@@ -68,6 +68,8 @@ internal abstract partial class AbstractExtractMethodService<
             /// <returns></returns>
             protected abstract bool ReadOnlyFieldAllowed();
 
+            protected abstract (int breakStatementCount, int continueStatementCount, bool exitIsReachable) GetComplexFlowControlInfo();
+
             public AnalyzerResult Analyze()
             {
                 // do data flow analysis
@@ -212,22 +214,38 @@ internal abstract partial class AbstractExtractMethodService<
             {
                 var allVariableInfos = symbolMap.Values.Order().ToImmutableArray();
 
-                if (this.IsInExpressionOrHasReturnStatement())
+                if (this.SelectionResult.IsExtractMethodOnExpression)
                 {
-                    // check whether current selection contains return statement
                     var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
-
                     return (allVariableInfos, returnType, returnsByRef);
                 }
                 else
                 {
-                    // no return statement
-                    var finalOrderedVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(allVariableInfos);
-                    var variablesToUseAsReturnValue = finalOrderedVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
+                    var (breakCount, continueCount, exitIsReachable) = GetComplexFlowControlInfo();
 
-                    var returnType = GetReturnType(variablesToUseAsReturnValue);
+                    if (this.ContainsReturnStatementInSelectedCode())
+                    {
 
-                    return (finalOrderedVariableInfos, returnType, returnsByRef: false);
+                    }
+
+
+                    if (this.IsInExpressionOrHasReturnStatement())
+                    {
+                        // check whether current selection contains return statement
+                        var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
+
+                        return (allVariableInfos, returnType, returnsByRef);
+                    }
+                    else
+                    {
+                        // no return statement
+                        var finalOrderedVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(allVariableInfos);
+                        var variablesToUseAsReturnValue = finalOrderedVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
+
+                        var returnType = GetReturnType(variablesToUseAsReturnValue);
+
+                        return (finalOrderedVariableInfos, returnType, returnsByRef: false);
+                    }
                 }
 
                 ITypeSymbol GetReturnType(ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
@@ -245,9 +263,6 @@ internal abstract partial class AbstractExtractMethodService<
                         variablesToUseAsReturnValue.SelectAsArray(v => v.Name)!);
                 }
             }
-
-            private bool IsInExpressionOrHasReturnStatement()
-                => SelectionResult.IsExtractMethodOnExpression || ContainsReturnStatementInSelectedCode();
 
             private OperationStatus GetOperationStatus(
                 MultiDictionary<ISymbol, SyntaxToken> symbolMap,

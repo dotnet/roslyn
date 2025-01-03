@@ -45,6 +45,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                     Return Not TypeOf methodBlock.BlockStatement Is SubNewStatementSyntax
                 End Function
+
+                Protected Overrides Function GetComplexFlowControlInfo() As (breakStatementCount As Integer, continueStatementCount As Integer, exitIsReachable As Boolean)
+                    ' We do not currently support converting code with advanced flow constrol constructs in VB.
+                    Return Nothing
+                End Function
             End Class
         End Class
     End Class
