@@ -124,7 +124,8 @@ internal abstract partial class AbstractExtractMethodService<
 
                 // check whether the selection contains "&" over a symbol exist
                 var unsafeAddressTakenUsed = dataFlowAnalysisData.UnsafeAddressTaken.Intersect(variableInfoMap.Keys).Any();
-                var (variables, variablesToUseAsReturnValue, returnType, returnsByRef) = GetSignatureInformation(variableInfoMap);
+
+                var (variables, returnType, returnsByRef) = GetSignatureInformation(variableInfoMap);
 
                 (returnType, var awaitTaskReturn) = AdjustReturnType(returnType);
 
@@ -141,7 +142,6 @@ internal abstract partial class AbstractExtractMethodService<
                     typeParametersInDeclaration,
                     typeParametersInConstraintList,
                     variables,
-                    variablesToUseAsReturnValue,
                     returnType,
                     returnsByRef,
                     awaitTaskReturn,
@@ -207,28 +207,27 @@ internal abstract partial class AbstractExtractMethodService<
                 return (returnType, awaitTaskReturn: false);
             }
 
-            private (ImmutableArray<VariableInfo> parameters, ImmutableArray<VariableInfo> variablesToUseAsReturnValue, ITypeSymbol returnType, bool returnsByRef)
-                GetSignatureInformation(Dictionary<ISymbol, VariableInfo> variableInfoMap)
+            private (ImmutableArray<VariableInfo> finalOrderedVariableInfos, ITypeSymbol returnType, bool returnsByRef)
+                GetSignatureInformation(Dictionary<ISymbol, VariableInfo> symbolMap)
             {
-                var allVariableInfos = variableInfoMap.Values.Order().ToImmutableArray();
+                var allVariableInfos = symbolMap.Values.Order().ToImmutableArray();
 
                 if (this.IsInExpressionOrHasReturnStatement())
                 {
                     // check whether current selection contains return statement
                     var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
 
-                    var variablesToUseAsReturnValue = allVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
-                    return (allVariableInfos, variablesToUseAsReturnValue, returnType, returnsByRef);
+                    return (allVariableInfos, returnType, returnsByRef);
                 }
                 else
                 {
                     // no return statement
-                    allVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(allVariableInfos);
-                    var variablesToUseAsReturnValue = allVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
+                    var finalOrderedVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(allVariableInfos);
+                    var variablesToUseAsReturnValue = finalOrderedVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
 
                     var returnType = GetReturnType(variablesToUseAsReturnValue);
 
-                    return (allVariableInfos, variablesToUseAsReturnValue, returnType, returnsByRef: false);
+                    return (finalOrderedVariableInfos, returnType, returnsByRef: false);
                 }
 
                 ITypeSymbol GetReturnType(ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
