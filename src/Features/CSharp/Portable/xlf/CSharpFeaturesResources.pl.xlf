@@ -132,11 +132,6 @@
         <target state="translated">Automatyczne wybieranie zostało wyłączone z powodu możliwej deklaracji zmiennej wzorca.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
-        <source>Cannot determine valid range of statements to extract</source>
-        <target state="translated">Nie można określić prawidłowego zakresu instrukcji do wyodrębnienia</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">Zmień na wyrażenie „as”</target>
@@ -365,11 +360,6 @@
       <trans-unit id="The_selected_code_is_inside_an_unsafe_context">
         <source>The selected code is inside an unsafe context.</source>
         <target state="translated">Zaznaczony kod znajduje się w niebezpiecznym kontekście.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_statement_range_to_extract">
-        <source>No valid statement range to extract</source>
-        <target state="translated">Brak prawidłowego zakresu instrukcji do wyodrębnienia</target>
         <note />
       </trans-unit>
       <trans-unit id="deprecated">

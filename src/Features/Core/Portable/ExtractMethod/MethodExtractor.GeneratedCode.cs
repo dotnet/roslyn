@@ -6,31 +6,37 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
+internal abstract partial class AbstractExtractMethodService<
+    TStatementSyntax,
+    TExecutableStatementSyntax,
+    TExpressionSyntax>
 {
-    internal sealed class GeneratedCode
+    internal abstract partial class MethodExtractor
     {
-        public GeneratedCode(
-            SemanticDocument document,
-            SyntaxAnnotation methodNameAnnotation,
-            SyntaxAnnotation callSiteAnnotation,
-            SyntaxAnnotation methodDefinitionAnnotation)
+        internal sealed class GeneratedCode
         {
-            Contract.ThrowIfNull(document);
-            Contract.ThrowIfNull(methodNameAnnotation);
-            Contract.ThrowIfNull(callSiteAnnotation);
-            Contract.ThrowIfNull(methodDefinitionAnnotation);
+            public GeneratedCode(
+                SemanticDocument document,
+                SyntaxAnnotation methodNameAnnotation,
+                SyntaxAnnotation callSiteAnnotation,
+                SyntaxAnnotation methodDefinitionAnnotation)
+            {
+                Contract.ThrowIfNull(document);
+                Contract.ThrowIfNull(methodNameAnnotation);
+                Contract.ThrowIfNull(callSiteAnnotation);
+                Contract.ThrowIfNull(methodDefinitionAnnotation);
 
-            SemanticDocument = document;
-            MethodNameAnnotation = methodNameAnnotation;
-            CallSiteAnnotation = callSiteAnnotation;
-            MethodDefinitionAnnotation = methodDefinitionAnnotation;
+                SemanticDocument = document;
+                MethodNameAnnotation = methodNameAnnotation;
+                CallSiteAnnotation = callSiteAnnotation;
+                MethodDefinitionAnnotation = methodDefinitionAnnotation;
+            }
+
+            public SemanticDocument SemanticDocument { get; }
+
+            public SyntaxAnnotation MethodNameAnnotation { get; }
+            public SyntaxAnnotation CallSiteAnnotation { get; }
+            public SyntaxAnnotation MethodDefinitionAnnotation { get; }
         }
-
-        public SemanticDocument SemanticDocument { get; }
-
-        public SyntaxAnnotation MethodNameAnnotation { get; }
-        public SyntaxAnnotation CallSiteAnnotation { get; }
-        public SyntaxAnnotation MethodDefinitionAnnotation { get; }
     }
 }

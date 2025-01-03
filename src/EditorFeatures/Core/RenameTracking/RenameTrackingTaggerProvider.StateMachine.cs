@@ -129,7 +129,7 @@ internal sealed partial class RenameTrackingTaggerProvider
         public void UpdateTrackingSessionIfRenamable()
         {
             ThreadingContext.ThrowIfNotOnUIThread();
-            if (this.TrackingSession.IsDefinitelyRenamableIdentifier())
+            if (this.TrackingSession.IsDefinitelyRenamableIdentifierFastCheck())
             {
                 this.TrackingSession.CheckNewIdentifier(this, Buffer.CurrentSnapshot);
                 TrackingSessionUpdated();
@@ -214,7 +214,7 @@ internal sealed partial class RenameTrackingTaggerProvider
                 previousTrackingSession.Cancel();
 
                 // If there may have been a tag showing, then actually clear the tags.
-                if (previousTrackingSession.IsDefinitelyRenamableIdentifier())
+                if (previousTrackingSession.IsDefinitelyRenamableIdentifierFastCheck())
                 {
                     TrackingSessionCleared(previousTrackingSession.TrackingSpan);
                 }
@@ -229,7 +229,7 @@ internal sealed partial class RenameTrackingTaggerProvider
         {
             ThreadingContext.ThrowIfNotOnUIThread();
 
-            if (this.TrackingSession != null && this.TrackingSession.IsDefinitelyRenamableIdentifier())
+            if (this.TrackingSession != null && this.TrackingSession.IsDefinitelyRenamableIdentifierFastCheck())
             {
                 var document = Buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
@@ -271,7 +271,7 @@ internal sealed partial class RenameTrackingTaggerProvider
 
         public bool CanInvokeRename(
             [NotNullWhen(true)] out TrackingSession trackingSession,
-            bool isSmartTagCheck = false, bool waitForResult = false, CancellationToken cancellationToken = default)
+            bool isSmartTagCheck = false)
         {
             // This needs to be able to run on a background thread for the diagnostic.
 
@@ -280,14 +280,15 @@ internal sealed partial class RenameTrackingTaggerProvider
                 return false;
 
             return TryGetSyntaxFactsService(out var syntaxFactsService) && TryGetLanguageHeuristicsService(out var languageHeuristicsService) &&
-                trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck, waitForResult, cancellationToken);
+                trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck);
         }
 
         internal (CodeAction action, TextSpan renameSpan) TryGetCodeAction(
-            Document document, SourceText text, TextSpan userSpan,
+            Document document,
+            SourceText text,
+            TextSpan userSpan,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            CancellationToken cancellationToken)
+            ITextUndoHistoryRegistry undoHistoryRegistry)
         {
             try
             {
@@ -299,7 +300,7 @@ internal sealed partial class RenameTrackingTaggerProvider
                 // engine will know that the document changed and not display the lightbulb anyway.
 
                 if (Buffer.AsTextContainer().CurrentText == text &&
-                    CanInvokeRename(out var trackingSession, waitForResult: true, cancellationToken: cancellationToken))
+                    CanInvokeRename(out var trackingSession))
                 {
                     var snapshotSpan = trackingSession.TrackingSpan.GetSpan(Buffer.CurrentSnapshot);
 
@@ -318,7 +319,7 @@ internal sealed partial class RenameTrackingTaggerProvider
 
                 return default;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable();
             }

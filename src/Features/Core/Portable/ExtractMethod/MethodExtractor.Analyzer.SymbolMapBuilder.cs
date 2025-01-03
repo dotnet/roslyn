@@ -13,66 +13,72 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
+internal abstract partial class AbstractExtractMethodService<
+    TStatementSyntax,
+    TExecutableStatementSyntax,
+    TExpressionSyntax>
 {
-    protected abstract partial class Analyzer
+    internal abstract partial class MethodExtractor
     {
-        private sealed class SymbolMapBuilder
+        protected abstract partial class Analyzer
         {
-            private readonly SemanticModel _semanticModel;
-            private readonly ISyntaxFactsService _service;
-            private readonly TextSpan _span;
-            private readonly Dictionary<ISymbol, List<SyntaxToken>> _symbolMap = [];
-            private readonly CancellationToken _cancellationToken;
-
-            public static Dictionary<ISymbol, List<SyntaxToken>> Build(
-                ISyntaxFactsService service,
-                SemanticModel semanticModel,
-                SyntaxNode root,
-                TextSpan span,
-                CancellationToken cancellationToken)
+            private sealed class SymbolMapBuilder
             {
-                Contract.ThrowIfNull(semanticModel);
-                Contract.ThrowIfNull(service);
-                Contract.ThrowIfNull(root);
+                private readonly SemanticModel _semanticModel;
+                private readonly ISyntaxFactsService _service;
+                private readonly TextSpan _span;
+                private readonly Dictionary<ISymbol, List<SyntaxToken>> _symbolMap = [];
+                private readonly CancellationToken _cancellationToken;
 
-                var builder = new SymbolMapBuilder(service, semanticModel, span, cancellationToken);
-                builder.Visit(root);
-
-                return builder._symbolMap;
-            }
-
-            private SymbolMapBuilder(
-                ISyntaxFactsService service,
-                SemanticModel semanticModel,
-                TextSpan span,
-                CancellationToken cancellationToken)
-            {
-                _semanticModel = semanticModel;
-                _service = service;
-                _span = span;
-                _cancellationToken = cancellationToken;
-            }
-
-            private void Visit(SyntaxNode node)
-            {
-                foreach (var token in node.DescendantTokens())
+                public static Dictionary<ISymbol, List<SyntaxToken>> Build(
+                    ISyntaxFactsService service,
+                    SemanticModel semanticModel,
+                    SyntaxNode root,
+                    TextSpan span,
+                    CancellationToken cancellationToken)
                 {
-                    if (token.IsMissing ||
-                        token.Width() <= 0 ||
-                        !_service.IsIdentifier(token) ||
-                        !_span.Contains(token.Span) ||
-                        _service.IsNameOfNamedArgument(token.Parent))
-                    {
-                        continue;
-                    }
+                    Contract.ThrowIfNull(semanticModel);
+                    Contract.ThrowIfNull(service);
+                    Contract.ThrowIfNull(root);
 
-                    var symbolInfo = _semanticModel.GetSymbolInfo(token, _cancellationToken);
-                    foreach (var sym in symbolInfo.GetAllSymbols())
+                    var builder = new SymbolMapBuilder(service, semanticModel, span, cancellationToken);
+                    builder.Visit(root);
+
+                    return builder._symbolMap;
+                }
+
+                private SymbolMapBuilder(
+                    ISyntaxFactsService service,
+                    SemanticModel semanticModel,
+                    TextSpan span,
+                    CancellationToken cancellationToken)
+                {
+                    _semanticModel = semanticModel;
+                    _service = service;
+                    _span = span;
+                    _cancellationToken = cancellationToken;
+                }
+
+                private void Visit(SyntaxNode node)
+                {
+                    foreach (var token in node.DescendantTokens())
                     {
-                        // add binding result to map
-                        var list = _symbolMap.GetOrAdd(sym, _ => []);
-                        list.Add(token);
+                        if (token.IsMissing ||
+                            token.Width() <= 0 ||
+                            !_service.IsIdentifier(token) ||
+                            !_span.Contains(token.Span) ||
+                            _service.IsNameOfNamedArgument(token.Parent))
+                        {
+                            continue;
+                        }
+
+                        var symbolInfo = _semanticModel.GetSymbolInfo(token, _cancellationToken);
+                        foreach (var sym in symbolInfo.GetAllSymbols())
+                        {
+                            // add binding result to map
+                            var list = _symbolMap.GetOrAdd(sym, _ => []);
+                            list.Add(token);
+                        }
                     }
                 }
             }

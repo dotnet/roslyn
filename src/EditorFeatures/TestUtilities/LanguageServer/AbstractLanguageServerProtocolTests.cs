@@ -87,7 +87,7 @@ namespace Roslyn.Test.Utilities
                 ImmutableArray<MappedSpanResult> mappedResult = default;
                 if (document.Name == GeneratedFileName)
                 {
-                    mappedResult = spans.Select(span => new MappedSpanResult(s_mappedFilePath, s_mappedLinePosition, new TextSpan(0, 5))).ToImmutableArray();
+                    mappedResult = [.. spans.Select(span => new MappedSpanResult(s_mappedFilePath, s_mappedLinePosition, new TextSpan(0, 5)))];
                 }
 
                 return Task.FromResult(mappedResult);
@@ -290,7 +290,7 @@ namespace Roslyn.Test.Utilities
                 item.Icon = tags.ToImmutableArray().GetFirstGlyph().GetImageElement().ToLSPImageElement();
 
             if (commitCharacters != null)
-                item.CommitCharacters = commitCharacters.Value.Select(c => c.ToString()).ToArray();
+                item.CommitCharacters = [.. commitCharacters.Value.Select(c => c.ToString())];
 
             return item;
         }
@@ -468,7 +468,7 @@ namespace Roslyn.Test.Utilities
 
                     // Linked files will return duplicate annotated Locations for each document that links to the same file.
                     // Since the test output only cares about the actual file, make sure we de-dupe before returning.
-                    locations[name] = locationsForName.Distinct().ToList();
+                    locations[name] = [.. locationsForName.Distinct()];
                 }
             }
 
@@ -710,26 +710,26 @@ namespace Roslyn.Test.Utilities
             {
                 var didChangeParams = CreateDidChangeTextDocumentParams(
                     documentUri,
-                    changes.ToImmutableArray());
+                    [.. changes]);
                 return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName, didChangeParams, CancellationToken.None);
             }
 
             public Task InsertTextAsync(Uri documentUri, params (int Line, int Column, string Text)[] changes)
             {
-                return ReplaceTextAsync(documentUri, changes.Select(change => (new LSP.Range
+                return ReplaceTextAsync(documentUri, [.. changes.Select(change => (new LSP.Range
                 {
                     Start = new LSP.Position { Line = change.Line, Character = change.Column },
                     End = new LSP.Position { Line = change.Line, Character = change.Column }
-                }, change.Text)).ToArray());
+                }, change.Text))]);
             }
 
             public Task DeleteTextAsync(Uri documentUri, params (int StartLine, int StartColumn, int EndLine, int EndColumn)[] changes)
             {
-                return ReplaceTextAsync(documentUri, changes.Select(change => (new LSP.Range
+                return ReplaceTextAsync(documentUri, [.. changes.Select(change => (new LSP.Range
                 {
                     Start = new LSP.Position { Line = change.StartLine, Character = change.StartColumn },
                     End = new LSP.Position { Line = change.EndLine, Character = change.EndColumn }
-                }, string.Empty)).ToArray());
+                }, string.Empty))]);
             }
 
             public Task CloseDocumentAsync(Uri documentUri)
@@ -790,7 +790,7 @@ namespace Roslyn.Test.Utilities
 
             internal T GetRequiredLspService<T>() where T : class, ILspService => LanguageServer.GetTestAccessor().GetRequiredLspService<T>();
 
-            internal ImmutableArray<SourceText> GetTrackedTexts() => GetManager().GetTrackedLspText().Values.Select(v => v.Text).ToImmutableArray();
+            internal ImmutableArray<SourceText> GetTrackedTexts() => [.. GetManager().GetTrackedLspText().Values.Select(v => v.Text)];
 
             internal Task RunCodeAnalysisAsync(ProjectId? projectId)
                 => _codeAnalysisService.RunAnalysisAsync(GetCurrentSolution(), projectId, onAfterProjectAnalyzed: _ => { }, CancellationToken.None);

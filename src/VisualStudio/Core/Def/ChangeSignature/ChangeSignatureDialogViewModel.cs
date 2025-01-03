@@ -43,19 +43,19 @@ internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyCh
     /// <summary>
     /// The document where the symbol we are changing signature is defined.
     /// </summary>
-    private readonly Document _document;
+    private readonly SemanticDocument _document;
     private readonly int _positionForTypeBinding;
 
     internal ChangeSignatureDialogViewModel(
+        SemanticDocument document,
         ParameterConfiguration parameters,
         ISymbol symbol,
-        Document document,
         int positionForTypeBinding,
         IClassificationFormatMap classificationFormatMap,
         ClassificationTypeMap classificationTypeMap)
     {
-        _originalParameterConfiguration = parameters;
         _document = document;
+        _originalParameterConfiguration = parameters;
         _positionForTypeBinding = positionForTypeBinding;
         _classificationFormatMap = classificationFormatMap;
         _classificationTypeMap = classificationTypeMap;
@@ -280,8 +280,8 @@ internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyCh
     {
         return new ParameterConfiguration(
             _originalParameterConfiguration.ThisParameter,
-            _parametersWithoutDefaultValues.Where(p => !p.IsRemoved).Select(p => p.Parameter).ToImmutableArray(),
-            _parametersWithDefaultValues.Where(p => !p.IsRemoved).Select(p => p.Parameter).ToImmutableArray(),
+            [.. _parametersWithoutDefaultValues.Where(p => !p.IsRemoved).Select(p => p.Parameter)],
+            [.. _parametersWithDefaultValues.Where(p => !p.IsRemoved).Select(p => p.Parameter)],
             (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : (ExistingParameter)_paramsParameter.Parameter,
             selectedIndex: -1);
     }

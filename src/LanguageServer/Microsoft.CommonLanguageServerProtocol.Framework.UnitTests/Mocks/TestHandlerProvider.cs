@@ -20,5 +20,5 @@ internal class TestHandlerProvider : AbstractHandlerProvider
         => _providers.Single(p => p.metadata.MethodName == method && p.metadata.Language == language).provider;
 
     public override ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
-        => _providers.Select(p => p.metadata).ToImmutableArray();
+        => [.. _providers.Select(p => p.metadata)];
 }

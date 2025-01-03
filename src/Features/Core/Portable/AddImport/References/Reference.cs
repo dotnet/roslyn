@@ -122,7 +122,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             var textChanges = await cleanedDocument.GetTextChangesAsync(
                 originalDocument, cancellationToken).ConfigureAwait(false);
 
-            return textChanges.ToImmutableArray();
+            return [.. textChanges];
         }
     }
 }

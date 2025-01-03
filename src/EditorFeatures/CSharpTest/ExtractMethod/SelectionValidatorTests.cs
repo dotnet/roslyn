@@ -662,7 +662,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             {
                 void Method1()
                 {
-                    short[,] arr = {|r:new short[,] { {|b:{ 19, 19, 19 }|}, { 19, 19, 19 } }|};
+                    short[,] arr = new short[,] { {|r:{|b:{ 19, 19, 19 }|}|}, { 19, 19, 19 } };
                 }
             }
             """;
@@ -677,7 +677,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             {
                 void Method1()
                 {
-                    short[,] arr = {|r:{ {|b:{ 19, 19, 19 }|}, { 19, 19, 19 } }|};
+                    short[,] arr = { {|r:{|b:{ 19, 19, 19 }|}|}s, { 19, 19, 19 } };
                 }
             }
             """;
@@ -1404,7 +1404,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
 
             class Program
             {
-                int[] array = {|r:new int[{|b:1|}] { 1 }|};
+                int[] array = new int[{|r:{|b:1|}|}] { 1 };
             }
             """;
         await TestSelectionAsync(code);
@@ -1476,7 +1476,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                         if (s.X < 3)
                         {
                             s = GetS();
-                            {|r:{|b:s|}.Z = 10f;|}
+                            {|r:{|b:s|}|}.Z = 10f;
                         }
                         else
                         {
@@ -1520,7 +1520,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
     {
         var code = """
             using System;
-            class C { void M() { {|r:var x = new { {|b:String|} = true }; |}} }
+            class C { void M() { {|r:var x = new { {|b:String|} = true };|} } }
             """;
         await TestSelectionAsync(code);
     }
@@ -1532,7 +1532,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             using System;
             class C { void M() { 
             var String = 1;
-            {|r:var x = new { {|b:String|} };|}
+            var x = new { {|r:{|b:String|}|} };
             } }
             """;
         await TestSelectionAsync(code);
@@ -1674,7 +1674,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 static void Main(string[] args)
                 {
                     A a = new A();
-                    var l = {|r:{|b:a|}?.Length |}?? 0;
+                    var l = {|r:{|b:a|}|}?.Length ?? 0;
                 }
             }
             class A
@@ -1717,7 +1717,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 static void Main(string[] args)
                 {
                     A a = new A();
-                    var l = {|r:a?.{|b:Prop|}?.Length |}?? 0;
+                    var l = {|r:a?.{|b:Prop|}?.Length|} ?? 0;
                 }
             }
             class A
@@ -1769,7 +1769,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 static void Main(string[] args)
                 {
                     A a = new A();
-                    var l = {|r:a?.{|b:Method()|}?.Length |}?? 0;
+                    var l = {|r:a?.{|b:Method()|}?.Length|} ?? 0;
                 }
             }
             class A

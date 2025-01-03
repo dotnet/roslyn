@@ -41,7 +41,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\AbstractGenerateConstructorService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\AbstractGenerateConstructorService.State.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\Argument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\GenerateConstructorHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\IGenerateConstructorService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\AbstractGenerateDefaultConstructorCodeFixProvider.cs" />

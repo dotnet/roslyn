@@ -7,7 +7,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 internal enum DeclarationBehavior
 {
     None,
-    Delete,
     MoveIn,
     MoveOut,
     SplitIn,

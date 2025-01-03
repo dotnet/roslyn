@@ -214,9 +214,6 @@
     <value>Remove 'Me' qualification</value>
     <comment>{Locked="Me"} "Me" is a VB keyword and should not be localized.</comment>
   </data>
-  <data name="can_t_determine_valid_range_of_statements_to_extract_out" xml:space="preserve">
-    <value>can't determine valid range of statements to extract out</value>
-  </data>
   <data name="contains_invalid_selection" xml:space="preserve">
     <value>contains invalid selection</value>
   </data>
@@ -249,9 +246,6 @@
   </data>
   <data name="Selection_doesn_t_contain_any_valid_node" xml:space="preserve">
     <value>Selection doesn't contain any valid node</value>
-  </data>
-  <data name="no_valid_statement_range_to_extract_out" xml:space="preserve">
-    <value>no valid statement range to extract out</value>
   </data>
   <data name="Deprecated" xml:space="preserve">
     <value>Deprecated</value>

@@ -24,7 +24,7 @@ internal static class EditAndContinueValidation
 
         VerifyLineEdits(
             editScript,
-            new[] { new SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, [.. lineEdits]) },
+            [new SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, [.. lineEdits])],
             semanticEdits,
             diagnostics,
             capabilities);

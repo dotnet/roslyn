@@ -40,7 +40,7 @@ internal sealed partial class FixAllState : CommonFixAllState<CodeFixProvider, F
         Debug.Assert(diagnosticSpan.HasValue || scope is not FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
         DiagnosticSpan = diagnosticSpan;
-        DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
+        DiagnosticIds = [.. diagnosticIds];
         DiagnosticProvider = fixAllDiagnosticProvider;
     }
 

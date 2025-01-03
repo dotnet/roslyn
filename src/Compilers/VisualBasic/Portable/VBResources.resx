@@ -5722,4 +5722,13 @@
   <data name="ERR_TypeReserved" xml:space="preserve">
     <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
+  <data name="ERR_CannotApplyOverloadResolutionPriorityToOverride" xml:space="preserve">
+    <value>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</value>
+  </data>
+  <data name="ERR_CannotApplyOverloadResolutionPriorityToMember" xml:space="preserve">
+    <value>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</value>
+  </data>
+  <data name="FEATURE_OverloadResolutionPriority" xml:space="preserve">
+    <value>overload resolution priority</value>
+  </data>
 </root>

@@ -76,7 +76,7 @@ internal static class LinkedFileMergeConflictCommentAdditionService
             var newText = oldText.WithChanges(adjustedChanges);
 
             var warningText = GetConflictCommentText(
-                string.Format(WorkspacesResources.Unmerged_change_from_project_0, projectName),
+                string.Format(WorkspacesResources.TODO_Unmerged_change_from_project_0, projectName),
                 TrimBlankLines(oldText),
                 TrimBlankLines(newText));
 

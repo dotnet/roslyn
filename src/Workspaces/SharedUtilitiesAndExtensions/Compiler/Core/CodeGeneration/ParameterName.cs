@@ -9,7 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Utilities;
+namespace Microsoft.CodeAnalysis.CodeGeneration;
 
 internal readonly struct ParameterName : IEquatable<ParameterName>
 {
@@ -26,7 +26,7 @@ internal readonly struct ParameterName : IEquatable<ParameterName>
     /// </summary>
     public readonly string BestNameForParameter;
 
-    public ParameterName(string nameBasedOnArgument, bool isFixed)
+    public ParameterName(string nameBasedOnArgument, bool isFixed, bool tryMakeCamelCase = true)
     {
         NameBasedOnArgument = nameBasedOnArgument;
 
@@ -37,10 +37,9 @@ internal readonly struct ParameterName : IEquatable<ParameterName>
         }
         else
         {
-            // Otherwise, massage it a bit to be a more suitable match for
-            // how people actually writing parameters.
+            // Otherwise, massage it a bit to be a more suitable match for how people actually writing parameters.
             var trimmed = nameBasedOnArgument.TrimStart('_');
-            BestNameForParameter = trimmed.Length > 0 ? trimmed.ToCamelCase() : nameBasedOnArgument;
+            BestNameForParameter = trimmed.Length > 0 ? tryMakeCamelCase ? trimmed.ToCamelCase() : trimmed : nameBasedOnArgument;
         }
     }
 

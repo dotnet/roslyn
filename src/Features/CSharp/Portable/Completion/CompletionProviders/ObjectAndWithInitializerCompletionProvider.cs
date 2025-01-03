@@ -24,17 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 // - new() { $$
 // - new C() { $$
 // - expr with { $$
-[ExportCompletionProvider(nameof(ObjectAndWithInitializerCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(ObjectAndWithInitializerCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(ObjectCreationCompletionProvider))]
-[Shared]
-internal class ObjectAndWithInitializerCompletionProvider : AbstractObjectInitializerCompletionProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ObjectAndWithInitializerCompletionProvider() : AbstractObjectInitializerCompletionProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ObjectAndWithInitializerCompletionProvider()
-    {
-    }
-
     internal override string Language => LanguageNames.CSharp;
 
     protected override async Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken)
@@ -177,33 +172,25 @@ internal class ObjectAndWithInitializerCompletionProvider : AbstractObjectInitia
                         .GetPreviousTokenIfTouchingWord(position);
 
         // We should have gotten back a { or ,
-        if (token.Kind() is SyntaxKind.CommaToken or SyntaxKind.OpenBraceToken)
+        if (token.Kind() is SyntaxKind.CommaToken or SyntaxKind.OpenBraceToken &&
+            token.Parent is InitializerExpressionSyntax initializer)
         {
-            if (token.Parent != null)
-            {
-
-                if (token.Parent is InitializerExpressionSyntax initializer)
-                {
-                    return new HashSet<string>(initializer.Expressions.OfType<AssignmentExpressionSyntax>()
-                        .Where(b => b.OperatorToken.Kind() == SyntaxKind.EqualsToken)
-                        .Select(b => b.Left)
-                        .OfType<IdentifierNameSyntax>()
-                        .Select(i => i.Identifier.ValueText));
-                }
-            }
+            return [.. initializer.Expressions.OfType<AssignmentExpressionSyntax>()
+                .Where(b => b.OperatorToken.Kind() == SyntaxKind.EqualsToken)
+                .Select(b => b.Left)
+                .OfType<IdentifierNameSyntax>()
+                .Select(i => i.Identifier.ValueText)];
         }
 
         return [];
     }
 
-    protected override bool IsInitializable(ISymbol member, INamedTypeSymbol containingType)
+    protected override bool IsInitializableFieldOrProperty(ISymbol fieldOrProperty, INamedTypeSymbol containingType)
     {
-        if (member is IPropertySymbol property && property.Parameters.Any(static p => !p.IsOptional))
-        {
+        if (fieldOrProperty is IPropertySymbol property && property.Parameters.Any(static p => !p.IsOptional))
             return false;
-        }
 
-        return base.IsInitializable(member, containingType);
+        return base.IsInitializableFieldOrProperty(fieldOrProperty, containingType);
     }
 
     protected override string EscapeIdentifier(ISymbol symbol)

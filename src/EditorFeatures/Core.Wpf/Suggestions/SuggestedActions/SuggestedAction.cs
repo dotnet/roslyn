@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         Workspace,
                         OriginalSolution,
                         document,
-                        operations.ToImmutableArray(),
+                        [.. operations],
                         CodeAction.Title,
                         progressTracker,
                         cancellationToken).ConfigureAwait(false);

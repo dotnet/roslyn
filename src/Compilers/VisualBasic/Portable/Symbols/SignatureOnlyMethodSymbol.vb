@@ -249,6 +249,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return 0
+        End Function
+
         Public Overrides ReadOnly Property IsExternalMethod As Boolean
             Get
                 Throw ExceptionUtilities.Unreachable

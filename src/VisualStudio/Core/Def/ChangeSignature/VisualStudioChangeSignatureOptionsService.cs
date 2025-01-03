@@ -26,7 +26,7 @@ internal sealed class VisualStudioChangeSignatureOptionsService(
     private readonly IThreadingContext _threadingContext = threadingContext;
 
     public ChangeSignatureOptionsResult? GetChangeSignatureOptions(
-        Document document,
+        SemanticDocument document,
         int positionForTypeBinding,
         ISymbol symbol,
         ParameterConfiguration parameters)
@@ -34,9 +34,9 @@ internal sealed class VisualStudioChangeSignatureOptionsService(
         _threadingContext.ThrowIfNotOnUIThread();
 
         var viewModel = new ChangeSignatureDialogViewModel(
+            document,
             parameters,
             symbol,
-            document,
             positionForTypeBinding,
             _classificationFormatMap,
             _classificationTypeMap);

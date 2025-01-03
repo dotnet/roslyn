@@ -72,6 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         End Function
 
         Public Function SupportsTupleDeconstruction(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsTupleDeconstruction
+            ' While VB supports tuples, it does not support deconstruction.
             Return False
         End Function
 
@@ -222,13 +223,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public Function GetStatementOfGlobalStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetStatementOfGlobalStatement
             ' Global statements doesn't exist in VB
             Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
-        End Function
-
-        Public Function AreStatementsInSameContainer(firstStatement As SyntaxNode, secondStatement As SyntaxNode) As Boolean Implements ISyntaxFacts.AreStatementsInSameContainer
-            Debug.Assert(IsStatement(firstStatement))
-            Debug.Assert(IsStatement(secondStatement))
-
-            Return firstStatement.Parent Is secondStatement.Parent
         End Function
 
         Public Function IsMethodBody(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMethodBody

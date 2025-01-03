@@ -157,6 +157,7 @@ internal interface ISyntaxKinds
     int? RefExpression { get; }
     int ReferenceEqualsExpression { get; }
     int ReferenceNotEqualsExpression { get; }
+    int SimpleAssignmentExpression { get; }
     int SimpleMemberAccessExpression { get; }
     int? SuppressNullableWarningExpression { get; }
     int TernaryConditionalExpression { get; }

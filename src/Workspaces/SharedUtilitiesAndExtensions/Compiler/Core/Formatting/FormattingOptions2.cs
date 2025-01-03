@@ -62,7 +62,8 @@ internal sealed partial class FormattingOptions2
     public static PerLanguageOption2<IndentStyle> SmartIndent = new PerLanguageOption2<IndentStyle>(
         "smart_indent",
         defaultValue: IndentationOptions.DefaultIndentStyle,
-        group: FormattingOptionGroups.IndentationAndSpacing)
+        group: FormattingOptionGroups.IndentationAndSpacing,
+        serializer: EditorConfigValueSerializer.CreateSerializerForEnum<IndentStyle>())
         .WithPublicOption(PublicFeatureName, "SmartIndent", static value => (PublicIndentStyle)value, static value => (IndentStyle)value);
 
     /// <summary>

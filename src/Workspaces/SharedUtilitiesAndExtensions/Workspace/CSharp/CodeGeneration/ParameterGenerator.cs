@@ -68,7 +68,7 @@ internal static class ParameterGenerator
         return Parameter(parameter.Name.ToIdentifierToken())
             .WithAttributeLists(GenerateAttributes(parameter, isExplicit, info))
             .WithModifiers(GenerateModifiers(parameter, isFirstParam))
-            .WithType(parameter.Type.GenerateTypeSyntax())
+            .WithType(parameter.Type.GenerateTypeSyntax(allowVar: false))
             .WithDefault(GenerateEqualsValueClause(info.Generator, parameter, isExplicit, seenOptional));
     }
 

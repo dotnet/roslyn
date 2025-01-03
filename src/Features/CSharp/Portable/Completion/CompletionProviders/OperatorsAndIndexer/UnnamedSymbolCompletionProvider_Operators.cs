@@ -110,7 +110,7 @@ internal sealed partial class UnnamedSymbolCompletionProvider
             inlineDescription: GetOperatorInlineDescription(opName),
             filterText: displayText,
             sortText: SortText(OperatorSortingGroupIndex, $"{sortOrderAndPosition.sortOrder:000}"),
-            symbols: operators.ToImmutableArray(),
+            symbols: [.. operators],
             rules: s_operatorRules,
             contextPosition: context.Position,
             properties: [.. OperatorProperties, KeyValuePairUtil.Create(OperatorName, opName)],

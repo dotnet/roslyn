@@ -4,12 +4,17 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExtractClass;
 
 internal interface IExtractClassOptionsService : IWorkspaceService
 {
-    Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalType, ImmutableArray<ISymbol> selectedMembers, CancellationToken cancellationToken);
+    ExtractClassOptions? GetExtractClassOptions(
+        Document document,
+        INamedTypeSymbol originalType,
+        ImmutableArray<ISymbol> selectedMembers,
+        SyntaxFormattingOptions formattingOptions,
+        CancellationToken cancellationToken);
 }

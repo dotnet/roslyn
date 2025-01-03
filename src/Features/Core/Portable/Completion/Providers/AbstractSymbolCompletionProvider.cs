@@ -311,9 +311,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
 
         // We want the resultant contexts ordered in the same order the related documents came in.  Importantly, the
         // context for *our* starting document should be placed first.
-        contextAndSymbolLists = contextAndSymbolLists
-            .OrderBy((tuple1, tuple2) => documentIdToIndex[tuple1.documentId] - documentIdToIndex[tuple2.documentId])
-            .ToImmutableArray();
+        contextAndSymbolLists = [.. contextAndSymbolLists.OrderBy((tuple1, tuple2) => documentIdToIndex[tuple1.documentId] - documentIdToIndex[tuple2.documentId])];
 
         var symbolToContextMap = UnionSymbols(contextAndSymbolLists);
         var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
@@ -332,15 +330,23 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
     private static Dictionary<SymbolAndSelectionInfo, TSyntaxContext> UnionSymbols(
         ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)> linkedContextSymbolLists)
     {
+        using var _ = PooledHashSet<(string Name, SymbolKind Kind)>.GetInstance(out var symbolNameAndKindSet);
+
         // To correctly map symbols back to their SyntaxContext, we do care about assembly identity.
         // We don't care about assembly identity when creating the union.
         var result = new Dictionary<SymbolAndSelectionInfo, TSyntaxContext>();
         foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
         {
+            symbolNameAndKindSet.Clear();
+
             // We need to use the SemanticModel any particular symbol came from in order to generate its description correctly.
             // Therefore, when we add a symbol to set of union symbols, add a mapping from it to its SyntaxContext.
-            foreach (var symbol in symbols.GroupBy(s => new { s.Symbol.Name, s.Symbol.Kind }).Select(g => g.First()))
-                result.TryAdd(symbol, syntaxContext);
+            foreach (var symbolAndSelectionInfo in symbols)
+            {
+                var symbolNameAndKind = (symbolAndSelectionInfo.Symbol.Name, symbolAndSelectionInfo.Symbol.Kind);
+                if (symbolNameAndKindSet.Add(symbolNameAndKind))
+                    result.TryAdd(symbolAndSelectionInfo, syntaxContext);
+            }
         }
 
         return result;

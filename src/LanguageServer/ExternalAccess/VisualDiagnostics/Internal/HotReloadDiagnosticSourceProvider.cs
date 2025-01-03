@@ -27,7 +27,7 @@ internal abstract class HotReloadDiagnosticSourceProvider(IHotReloadDiagnosticMa
     {
         if (context.Solution is not Solution solution)
         {
-            return ImmutableArray<IDiagnosticSource>.Empty;
+            return [];
         }
 
         var hotReloadContext = new HotReloadRequestContext(context);
