@@ -48,7 +48,6 @@ internal sealed partial class CSharpExtractMethodService
                     n is AccessorDeclarationSyntax or
                          LocalFunctionStatementSyntax or
                          BaseMethodDeclarationSyntax or
-                         AccessorDeclarationSyntax or
                          AnonymousFunctionExpressionSyntax or
                          CompilationUnitSyntax);
             }
@@ -70,7 +69,13 @@ internal sealed partial class CSharpExtractMethodService
                             _ => throw ExceptionUtilities.UnexpectedValue(node),
                         };
 
-                    case MethodDeclarationSyntax methodDeclaration:
+                    case LocalFunctionStatementSyntax localFunction:
+                        {
+                            var method = semanticModel.GetRequiredDeclaredSymbol(localFunction, cancellationToken);
+                            return (method.ReturnType, method.ReturnsByRef);
+                        }
+
+                    case BaseMethodDeclarationSyntax methodDeclaration:
                         {
                             var method = semanticModel.GetRequiredDeclaredSymbol(methodDeclaration, cancellationToken);
                             return (method.ReturnType, method.ReturnsByRef);
