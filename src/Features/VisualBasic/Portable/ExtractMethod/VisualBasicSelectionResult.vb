@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
             End Function
 
-            Public Overrides Function GetReturnTypeInfo(cancellationToken As CancellationToken) As (returnType As ITypeSymbol, returnsByRef As Boolean)
+            Protected Overrides Function GetReturnTypeInfoWorker(cancellationToken As CancellationToken) As (returnType As ITypeSymbol, returnsByRef As Boolean)
                 ' Todo: consider supporting byref return types in VB
                 Dim returnType = GetReturnTypeWorker()
                 Return (returnType, returnsByRef:=False)

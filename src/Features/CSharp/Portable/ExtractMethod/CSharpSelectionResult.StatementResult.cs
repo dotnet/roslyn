@@ -55,7 +55,7 @@ internal sealed partial class CSharpExtractMethodService
                          CompilationUnitSyntax);
             }
 
-            public override (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfo(CancellationToken cancellationToken)
+            protected override (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfoWorker(CancellationToken cancellationToken)
             {
                 Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 

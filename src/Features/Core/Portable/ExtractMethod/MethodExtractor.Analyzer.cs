@@ -215,14 +215,11 @@ internal abstract partial class AbstractExtractMethodService<
                     Dictionary<ISymbol, VariableInfo> variableInfoMap,
                     bool isInExpressionOrHasReturnStatement)
             {
-                var model = this.SemanticDocument.SemanticModel;
-                var compilation = model.Compilation;
                 if (isInExpressionOrHasReturnStatement)
                 {
                     // check whether current selection contains return statement
                     var parameters = GetMethodParameters(variableInfoMap);
                     var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
-                    returnType ??= compilation.GetSpecialType(SpecialType.System_Object);
 
                     return (parameters, returnType, returnsByRef, []);
                 }
@@ -239,6 +236,8 @@ internal abstract partial class AbstractExtractMethodService<
 
                 ITypeSymbol GetReturnType(ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
                 {
+                    var compilation = this.SemanticDocument.SemanticModel.Compilation;
+
                     if (variablesToUseAsReturnValue.IsEmpty)
                         return compilation.GetSpecialType(SpecialType.System_Void);
 

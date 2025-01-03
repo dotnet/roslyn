@@ -56,7 +56,7 @@ internal abstract partial class AbstractExtractMethodService<
         public abstract SyntaxNode GetContainingScope();
         public abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
 
-        public abstract (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfo(CancellationToken cancellationToken);
+        protected abstract (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfoWorker(CancellationToken cancellationToken);
 
         public abstract ImmutableArray<TExecutableStatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> jumpsOutOfRegion);
         public abstract bool IsFinalSpanSemanticallyValidSpan(ImmutableArray<TExecutableStatementSyntax> returnStatements, CancellationToken cancellationToken);
@@ -64,7 +64,13 @@ internal abstract partial class AbstractExtractMethodService<
 
         protected abstract OperationStatus ValidateLanguageSpecificRules(CancellationToken cancellationToken);
 
-        public ITypeSymbol? GetReturnType(CancellationToken cancellationToken)
+        public (ITypeSymbol returnType, bool returnsByRef) GetReturnTypeInfo(CancellationToken cancellationToken)
+        {
+            var (returnType, returnsByRef) = GetReturnTypeInfoWorker(cancellationToken);
+            return (returnType ?? this.SemanticDocument.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Object), returnsByRef);
+        }
+
+        public ITypeSymbol GetReturnType(CancellationToken cancellationToken)
             => GetReturnTypeInfo(cancellationToken).returnType;
 
         public bool IsExtractMethodOnExpression => this.SelectionType == SelectionType.Expression;
