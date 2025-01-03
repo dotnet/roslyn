@@ -152,6 +152,14 @@ namespace Microsoft.CodeAnalysis.Syntax
                         return new SyntaxNodeOrTokenList(
                             InternalSyntax.SyntaxList.List(_nodes[0]!, _nodes[1]!, _nodes[2]!).CreateRed(),
                             index: 0);
+                    case 4:
+                        return new SyntaxNodeOrTokenList(
+                            InternalSyntax.SyntaxList.List(_nodes[0]!, _nodes[1]!, _nodes[2]!, _nodes[3]!).CreateRed(),
+                            index: 0);
+                    case 5:
+                        return new SyntaxNodeOrTokenList(
+                            InternalSyntax.SyntaxList.List(_nodes[0]!, _nodes[1]!, _nodes[2]!, _nodes[3]!, _nodes[4]!).CreateRed(),
+                            index: 0);
                     default:
                         var tmp = new ArrayElement<GreenNode>[_count];
                         for (int i = 0; i < _count; i++)

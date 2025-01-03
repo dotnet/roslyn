@@ -84,6 +84,8 @@ namespace Microsoft.CodeAnalysis
                 case 1: return trivias[0].UnderlyingNode!;
                 case 2: return Syntax.InternalSyntax.SyntaxList.List(trivias[0].UnderlyingNode!, trivias[1].UnderlyingNode!);
                 case 3: return Syntax.InternalSyntax.SyntaxList.List(trivias[0].UnderlyingNode!, trivias[1].UnderlyingNode!, trivias[2].UnderlyingNode!);
+                case 4: return Syntax.InternalSyntax.SyntaxList.List(trivias[0].UnderlyingNode!, trivias[1].UnderlyingNode!, trivias[2].UnderlyingNode!, trivias[3].UnderlyingNode!);
+                case 5: return Syntax.InternalSyntax.SyntaxList.List(trivias[0].UnderlyingNode!, trivias[1].UnderlyingNode!, trivias[2].UnderlyingNode!, trivias[3].UnderlyingNode!, trivias[4].UnderlyingNode!);
                 default:
                     {
                         var copy = new ArrayElement<GreenNode>[trivias.Length];

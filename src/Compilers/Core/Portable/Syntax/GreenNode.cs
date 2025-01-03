@@ -920,6 +920,10 @@ namespace Microsoft.CodeAnalysis
                     return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]));
                 case 3:
                     return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
+                case 4:
+                    return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]), select(list[2]), select(list[3]));
+                case 5:
+                    return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]), select(list[2]), select(list[3]), select(list[4]));
                 default:
                     {
                         var array = new ArrayElement<GreenNode>[list.Count];
@@ -942,6 +946,10 @@ namespace Microsoft.CodeAnalysis
                     return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]));
                 case 3:
                     return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
+                case 4:
+                    return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]), select(list[2]), select(list[3]));
+                case 5:
+                    return Syntax.InternalSyntax.SyntaxList.List(select(list[0]), select(list[1]), select(list[2]), select(list[3]), select(list[4]));
                 default:
                     {
                         var array = new ArrayElement<GreenNode>[list.Count];
@@ -963,7 +971,7 @@ namespace Microsoft.CodeAnalysis
 
         #region Caching
 
-        internal const int MaxCachedChildNum = 3;
+        internal const int MaxCachedChildNum = 5;
 
         internal bool IsCacheable
         {
@@ -1023,6 +1031,33 @@ namespace Microsoft.CodeAnalysis
                 this.GetSlot(0) == child1 &&
                 this.GetSlot(1) == child2 &&
                 this.GetSlot(2) == child3;
+        }
+
+        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode? child1, GreenNode? child2, GreenNode? child3, GreenNode? child4)
+        {
+            Debug.Assert(this.IsCacheable);
+
+            return this.RawKind == kind &&
+                this.Flags == flags &&
+                this.SlotCount == 4 &&
+                this.GetSlot(0) == child1 &&
+                this.GetSlot(1) == child2 &&
+                this.GetSlot(2) == child3 &&
+                this.GetSlot(3) == child4;
+        }
+
+        internal bool IsCacheEquivalent(int kind, NodeFlags flags, GreenNode? child1, GreenNode? child2, GreenNode? child3, GreenNode? child4, GreenNode? child5)
+        {
+            Debug.Assert(this.IsCacheable);
+
+            return this.RawKind == kind &&
+                this.Flags == flags &&
+                this.SlotCount == 5 &&
+                this.GetSlot(0) == child1 &&
+                this.GetSlot(1) == child2 &&
+                this.GetSlot(2) == child3 &&
+                this.GetSlot(3) == child4 &&
+                this.GetSlot(4) == child5;
         }
         #endregion //Caching
 

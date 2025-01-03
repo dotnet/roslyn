@@ -181,6 +181,10 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                     return SyntaxList.List(_nodes[0]!, _nodes[1]!);
                 case 3:
                     return SyntaxList.List(_nodes[0]!, _nodes[1]!, _nodes[2]!);
+                case 4:
+                    return SyntaxList.List(_nodes[0]!, _nodes[1]!, _nodes[2]!, _nodes[3]!);
+                case 5:
+                    return SyntaxList.List(_nodes[0]!, _nodes[1]!, _nodes[2]!, _nodes[3]!, _nodes[4]!);
                 default:
                     var tmp = new ArrayElement<GreenNode>[this.Count];
                     Array.Copy(_nodes, tmp, this.Count);

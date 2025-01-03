@@ -74,5 +74,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.True(listOf3 != listOf2, $"{i} iterations");
             }
         }
+
+        [Fact]
+        public void TryGetNode_With3Of4Children()
+        {
+            const int nIterations = 1_000_000;
+
+            for (int i = 0; i < nIterations; i++)
+            {
+                var child0 = new SyntaxTokenWithTrivia(SyntaxKind.InternalKeyword, null, null);
+                var child1 = new SyntaxTokenWithTrivia(SyntaxKind.StaticKeyword, null, null);
+                var child2 = new SyntaxTokenWithTrivia(SyntaxKind.ReadOnlyKeyword, null, null);
+                var child3 = new SyntaxTokenWithTrivia(SyntaxKind.AsyncKeyword, null, null);
+                SyntaxNodeCache.AddNode(child0, child0.GetCacheHash());
+                SyntaxNodeCache.AddNode(child1, child1.GetCacheHash());
+                SyntaxNodeCache.AddNode(child2, child2.GetCacheHash());
+                SyntaxNodeCache.AddNode(child3, child3.GetCacheHash());
+
+                var listOf4 = new CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithFourChildren(child0, child1, child2, child3);
+                SyntaxNodeCache.AddNode(listOf4, listOf4.GetCacheHash());
+
+                var listCached = (CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithFourChildren)SyntaxNodeCache.TryGetNode(listOf4.RawKind, child0, child1, child2, child3, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
+                Assert.NotNull(listCached);
+
+                var listOf3 = SyntaxNodeCache.TryGetNode(listOf4.RawKind, child0, child1, child2, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
+                Assert.True(listOf4 != listOf3, $"{i} iterations");
+            }
+        }
+
+        [Fact]
+        public void TryGetNode_With4Of5Children()
+        {
+            const int nIterations = 1_000_000;
+
+            for (int i = 0; i < nIterations; i++)
+            {
+                var child0 = new SyntaxTokenWithTrivia(SyntaxKind.InternalKeyword, null, null);
+                var child1 = new SyntaxTokenWithTrivia(SyntaxKind.StaticKeyword, null, null);
+                var child2 = new SyntaxTokenWithTrivia(SyntaxKind.ReadOnlyKeyword, null, null);
+                var child3 = new SyntaxTokenWithTrivia(SyntaxKind.AsyncKeyword, null, null);
+                var child4 = new SyntaxTokenWithTrivia(SyntaxKind.OverrideKeyword, null, null);
+                SyntaxNodeCache.AddNode(child0, child0.GetCacheHash());
+                SyntaxNodeCache.AddNode(child1, child1.GetCacheHash());
+                SyntaxNodeCache.AddNode(child2, child2.GetCacheHash());
+                SyntaxNodeCache.AddNode(child3, child3.GetCacheHash());
+                SyntaxNodeCache.AddNode(child4, child4.GetCacheHash());
+
+                var listOf5 = new CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithFiveChildren(child0, child1, child2, child3, child4);
+                SyntaxNodeCache.AddNode(listOf5, listOf5.GetCacheHash());
+
+                var listCached = (CodeAnalysis.Syntax.InternalSyntax.SyntaxList.WithFiveChildren)SyntaxNodeCache.TryGetNode(listOf5.RawKind, child0, child1, child2, child3, child4, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
+                Assert.NotNull(listCached);
+
+                var listOf4 = SyntaxNodeCache.TryGetNode(listOf5.RawKind, child0, child1, child2, child3, SyntaxNodeCache.GetDefaultNodeFlags(), out _);
+                Assert.True(listOf5 != listOf4, $"{i} iterations");
+            }
+        }
     }
 }

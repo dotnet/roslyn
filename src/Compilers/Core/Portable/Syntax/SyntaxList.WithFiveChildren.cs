@@ -8,13 +8,15 @@ namespace Microsoft.CodeAnalysis.Syntax
 {
     internal partial class SyntaxList
     {
-        internal sealed class WithThreeChildren : SyntaxList
+        internal sealed class WithFiveChildren : SyntaxList
         {
             private SyntaxNode? _child0;
             private SyntaxNode? _child1;
             private SyntaxNode? _child2;
+            private SyntaxNode? _child3;
+            private SyntaxNode? _child4;
 
-            internal WithThreeChildren(InternalSyntax.SyntaxList green, SyntaxNode? parent, int position)
+            internal WithFiveChildren(InternalSyntax.SyntaxList green, SyntaxNode? parent, int position)
                 : base(green, parent, position)
             {
             }
@@ -29,6 +31,10 @@ namespace Microsoft.CodeAnalysis.Syntax
                         return this.GetRedElementIfNotToken(ref _child1, 1);
                     case 2:
                         return this.GetRedElement(ref _child2, 2);
+                    case 3:
+                        return this.GetRedElementIfNotToken(ref _child3, 3);
+                    case 4:
+                        return this.GetRedElement(ref _child4, 4);
                     default:
                         return null;
                 }
@@ -44,6 +50,10 @@ namespace Microsoft.CodeAnalysis.Syntax
                         return _child1;
                     case 2:
                         return _child2;
+                    case 3:
+                        return _child3;
+                    case 4:
+                        return _child4;
                     default:
                         return null;
                 }

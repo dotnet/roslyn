@@ -226,9 +226,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// special cased helper for 2 and 3 children lists where child #1 may map to a token
+        /// special cased helper for >= 2 children lists where child at specified slot may map to a token
         /// </summary>
-        internal SyntaxNode? GetRedElementIfNotToken(ref SyntaxNode? element)
+        internal SyntaxNode? GetRedElementIfNotToken(ref SyntaxNode? element, int slot)
         {
             Debug.Assert(this.IsList);
 
@@ -236,11 +236,11 @@ namespace Microsoft.CodeAnalysis
 
             if (result == null)
             {
-                var green = this.Green.GetRequiredSlot(1);
+                var green = this.Green.GetRequiredSlot(slot);
                 if (!green.IsToken)
                 {
                     // passing list's parent
-                    Interlocked.CompareExchange(ref element, green.CreateRed(this.Parent, this.GetChildPosition(1)), null);
+                    Interlocked.CompareExchange(ref element, green.CreateRed(this.Parent, this.GetChildPosition(slot)), null);
                     result = element;
                 }
             }

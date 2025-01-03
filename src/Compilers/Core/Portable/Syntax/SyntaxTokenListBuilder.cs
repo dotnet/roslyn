@@ -103,6 +103,19 @@ namespace Microsoft.CodeAnalysis.Syntax
                         Debug.Assert(_nodes[1] is object);
                         Debug.Assert(_nodes[2] is object);
                         return new SyntaxTokenList(null, InternalSyntax.SyntaxList.List(_nodes[0]!, _nodes[1]!, _nodes[2]!), 0, 0);
+                    case 4:
+                        Debug.Assert(_nodes[0] is object);
+                        Debug.Assert(_nodes[1] is object);
+                        Debug.Assert(_nodes[2] is object);
+                        Debug.Assert(_nodes[3] is object);
+                        return new SyntaxTokenList(null, InternalSyntax.SyntaxList.List(_nodes[0]!, _nodes[1]!, _nodes[2]!, _nodes[3]!), 0, 0);
+                    case 5:
+                        Debug.Assert(_nodes[0] is object);
+                        Debug.Assert(_nodes[1] is object);
+                        Debug.Assert(_nodes[2] is object);
+                        Debug.Assert(_nodes[3] is object);
+                        Debug.Assert(_nodes[4] is object);
+                        return new SyntaxTokenList(null, InternalSyntax.SyntaxList.List(_nodes[0]!, _nodes[1]!, _nodes[2]!, _nodes[3]!, _nodes[4]!), 0, 0);
                     default:
                         return new SyntaxTokenList(null, InternalSyntax.SyntaxList.List(_nodes, _count), 0, 0);
                 }

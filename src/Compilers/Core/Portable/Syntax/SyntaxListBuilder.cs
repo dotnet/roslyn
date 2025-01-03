@@ -177,6 +177,10 @@ namespace Microsoft.CodeAnalysis.Syntax
                     return InternalSyntax.SyntaxList.List(_nodes[0].Value!, _nodes[1].Value!);
                 case 3:
                     return InternalSyntax.SyntaxList.List(_nodes[0].Value!, _nodes[1].Value!, _nodes[2].Value!);
+                case 4:
+                    return InternalSyntax.SyntaxList.List(_nodes[0].Value!, _nodes[1].Value!, _nodes[2].Value!, _nodes[3].Value!);
+                case 5:
+                    return InternalSyntax.SyntaxList.List(_nodes[0].Value!, _nodes[1].Value!, _nodes[2].Value!, _nodes[3].Value!, _nodes[4].Value!);
                 default:
                     var tmp = new ArrayElement<GreenNode>[this.Count];
                     for (int i = 0; i < this.Count; i++)

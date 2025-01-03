@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis
                     case 1: return nodes[0].Green;
                     case 2: return Syntax.InternalSyntax.SyntaxList.List(nodes[0].Green, nodes[1].Green);
                     case 3: return Syntax.InternalSyntax.SyntaxList.List(nodes[0].Green, nodes[1].Green, nodes[2].Green);
+                    case 4: return Syntax.InternalSyntax.SyntaxList.List(nodes[0].Green, nodes[1].Green, nodes[2].Green, nodes[3].Green);
+                    case 5: return Syntax.InternalSyntax.SyntaxList.List(nodes[0].Green, nodes[1].Green, nodes[2].Green, nodes[3].Green, nodes[4].Green);
                     default:
                         {
                             var copy = new ArrayElement<GreenNode>[nodes.Length];

@@ -150,6 +150,23 @@ namespace Microsoft.CodeAnalysis.Syntax
                                 _nodes[1].UnderlyingNode!,
                                 _nodes[2].UnderlyingNode!),
                             position: 0, index: 0);
+                    case 4:
+                        return new SyntaxTriviaList(default(SyntaxToken),
+                            InternalSyntax.SyntaxList.List(
+                                _nodes[0].UnderlyingNode!,
+                                _nodes[1].UnderlyingNode!,
+                                _nodes[2].UnderlyingNode!,
+                                _nodes[3].UnderlyingNode!),
+                            position: 0, index: 0);
+                    case 5:
+                        return new SyntaxTriviaList(default(SyntaxToken),
+                            InternalSyntax.SyntaxList.List(
+                                _nodes[0].UnderlyingNode!,
+                                _nodes[1].UnderlyingNode!,
+                                _nodes[2].UnderlyingNode!,
+                                _nodes[3].UnderlyingNode!,
+                                _nodes[4].UnderlyingNode!),
+                            position: 0, index: 0);
                     default:
                         {
                             var tmp = new ArrayElement<GreenNode>[_count];

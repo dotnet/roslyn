@@ -63,6 +63,49 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return result;
         }
 
+        internal static WithFourChildren List(GreenNode child0, GreenNode child1, GreenNode child2, GreenNode child3)
+        {
+            RoslynDebug.Assert(child0 != null);
+            RoslynDebug.Assert(child1 != null);
+            RoslynDebug.Assert(child2 != null);
+            RoslynDebug.Assert(child3 != null);
+
+            int hash;
+            GreenNode? cached = SyntaxNodeCache.TryGetNode(GreenNode.ListKind, child0, child1, child2, child3, out hash);
+            if (cached != null)
+                return (WithFourChildren)cached;
+
+            var result = new WithFourChildren(child0, child1, child2, child3);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        internal static WithFiveChildren List(GreenNode child0, GreenNode child1, GreenNode child2, GreenNode child3, GreenNode child4)
+        {
+            RoslynDebug.Assert(child0 != null);
+            RoslynDebug.Assert(child1 != null);
+            RoslynDebug.Assert(child2 != null);
+            RoslynDebug.Assert(child3 != null);
+            RoslynDebug.Assert(child4 != null);
+
+            int hash;
+            GreenNode? cached = SyntaxNodeCache.TryGetNode(GreenNode.ListKind, child0, child1, child2, child3, child4, out hash);
+            if (cached != null)
+                return (WithFiveChildren)cached;
+
+            var result = new WithFiveChildren(child0, child1, child2, child3, child4);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
         internal static GreenNode List(GreenNode?[] nodes)
         {
             return List(nodes, nodes.Length);

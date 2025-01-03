@@ -87,6 +87,8 @@ namespace Microsoft.CodeAnalysis
                         : nodesAndTokens[0].AsNode();
                 case 2: return Syntax.InternalSyntax.SyntaxList.List(nodesAndTokens[0].UnderlyingNode!, nodesAndTokens[1].UnderlyingNode!).CreateRed();
                 case 3: return Syntax.InternalSyntax.SyntaxList.List(nodesAndTokens[0].UnderlyingNode!, nodesAndTokens[1].UnderlyingNode!, nodesAndTokens[2].UnderlyingNode!).CreateRed();
+                case 4: return Syntax.InternalSyntax.SyntaxList.List(nodesAndTokens[0].UnderlyingNode!, nodesAndTokens[1].UnderlyingNode!, nodesAndTokens[2].UnderlyingNode!, nodesAndTokens[3].UnderlyingNode!).CreateRed();
+                case 5: return Syntax.InternalSyntax.SyntaxList.List(nodesAndTokens[0].UnderlyingNode!, nodesAndTokens[1].UnderlyingNode!, nodesAndTokens[2].UnderlyingNode!, nodesAndTokens[3].UnderlyingNode!, nodesAndTokens[4].UnderlyingNode!).CreateRed();
                 default:
                     {
                         var copy = new ArrayElement<GreenNode>[nodesAndTokens.Length];

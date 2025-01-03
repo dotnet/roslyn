@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Syntax
                     case 0:
                         return this.GetRedElement(ref _child0, 0);
                     case 1:
-                        return this.GetRedElementIfNotToken(ref _child1);
+                        return this.GetRedElementIfNotToken(ref _child1, 1);
                     default:
                         return null;
                 }
