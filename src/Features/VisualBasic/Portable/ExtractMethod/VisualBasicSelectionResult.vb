@@ -291,11 +291,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Throw ExceptionUtilities.Unreachable
             End Function
 
-            Public Overrides Function ContainsNonReturnExitPointsStatements(jumpsOutOfRegion As ImmutableArray(Of SyntaxNode)) As Boolean
+            Public Overrides Function ContainsNonReturnExitPointsStatements(exitPoints As ImmutableArray(Of SyntaxNode)) As Boolean
                 Dim returnStatement = False
                 Dim exitStatement = False
 
-                For Each statement In jumpsOutOfRegion
+                For Each statement In exitPoints
                     If TypeOf statement Is ReturnStatementSyntax Then
                         returnStatement = True
                     ElseIf TypeOf statement Is ExitStatementSyntax Then

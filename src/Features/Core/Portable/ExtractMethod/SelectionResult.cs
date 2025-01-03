@@ -60,7 +60,7 @@ internal abstract partial class AbstractExtractMethodService<
 
         public abstract ImmutableArray<TExecutableStatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> jumpsOutOfRegion);
         public abstract bool IsFinalSpanSemanticallyValidSpan(ImmutableArray<TExecutableStatementSyntax> returnStatements, CancellationToken cancellationToken);
-        public abstract bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> jumpsOutOfRegion);
+        public abstract bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints);
 
         protected abstract OperationStatus ValidateLanguageSpecificRules(CancellationToken cancellationToken);
 

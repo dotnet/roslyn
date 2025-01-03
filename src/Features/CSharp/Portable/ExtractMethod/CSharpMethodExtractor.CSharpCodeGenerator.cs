@@ -159,7 +159,7 @@ internal sealed partial class CSharpExtractMethodService
                 => node is MemberDeclarationSyntax member && member.GetExpressionBody() != null;
 
             private static bool IsExpressionBodiedAccessor(SyntaxNode node)
-                => node is AccessorDeclarationSyntax accessor && accessor.ExpressionBody != null;
+                => node is AccessorDeclarationSyntax { ExpressionBody: not null };
 
             private SimpleNameSyntax CreateMethodNameForInvocation()
             {
