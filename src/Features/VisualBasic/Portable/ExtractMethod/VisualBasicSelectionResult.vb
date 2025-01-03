@@ -43,8 +43,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 MyBase.New(document, selectionType, finalSpan)
             End Sub
 
-            Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
-
             Protected Overrides Function UnderAnonymousOrLocalMethod(token As SyntaxToken, firstToken As SyntaxToken, lastToken As SyntaxToken) As Boolean
                 Dim current = token.Parent
 

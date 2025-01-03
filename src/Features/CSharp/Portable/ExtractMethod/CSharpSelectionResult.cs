@@ -52,9 +52,6 @@ internal sealed partial class CSharpExtractMethodService
                 : new StatementResult(newDocument, selectionType, finalSpan);
         }
 
-        protected override ISyntaxFacts SyntaxFacts
-            => CSharpSyntaxFacts.Instance;
-
         protected override OperationStatus ValidateLanguageSpecificRules(CancellationToken cancellationToken)
         {
             // Nothing language specific for C#.

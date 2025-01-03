@@ -45,7 +45,6 @@ internal abstract partial class AbstractExtractMethodService<
         /// </summary>
         private ControlFlowAnalysis? _statementControlFlowAnalysis;
 
-        protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken);
 
         public abstract TExecutableStatementSyntax GetFirstStatementUnderContainer();
