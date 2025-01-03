@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             {
                 // BaseUrl provided by the VS RemoteControl client team.  This is URL we are supposed
                 // to use to publish and access data from.
-                const string BaseUrl = "https://az700632.vo.msecnd.net/pub";
+                const string BaseUrl = "https://aka.ms/vssettings/pub";
 
                 return new RemoteControlClient(hostId, BaseUrl, serverPath, pollingMinutes);
             }
