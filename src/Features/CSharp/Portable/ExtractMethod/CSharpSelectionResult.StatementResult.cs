@@ -41,7 +41,6 @@ internal sealed partial class CSharpExtractMethodService
 
             public override SyntaxNode GetContainingScope()
             {
-                Contract.ThrowIfNull(SemanticDocument);
                 Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
                 return GetFirstTokenInSelection().GetRequiredParent().AncestorsAndSelf().First(n =>
@@ -54,8 +53,6 @@ internal sealed partial class CSharpExtractMethodService
 
             protected override (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfoWorker(CancellationToken cancellationToken)
             {
-                Contract.ThrowIfTrue(IsExtractMethodOnExpression);
-
                 var node = GetContainingScope();
                 var semanticModel = SemanticDocument.SemanticModel;
 
