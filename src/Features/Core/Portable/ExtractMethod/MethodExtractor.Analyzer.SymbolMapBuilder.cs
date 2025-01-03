@@ -27,10 +27,10 @@ internal abstract partial class AbstractExtractMethodService<
                 private readonly SemanticModel _semanticModel;
                 private readonly ISyntaxFactsService _service;
                 private readonly TextSpan _span;
-                private readonly Dictionary<ISymbol, List<SyntaxToken>> _symbolMap = [];
+                private readonly MultiDictionary<ISymbol, SyntaxToken> _symbolMap = [];
                 private readonly CancellationToken _cancellationToken;
 
-                public static Dictionary<ISymbol, List<SyntaxToken>> Build(
+                public static MultiDictionary<ISymbol, SyntaxToken> Build(
                     ISyntaxFactsService service,
                     SemanticModel semanticModel,
                     SyntaxNode root,
@@ -74,11 +74,7 @@ internal abstract partial class AbstractExtractMethodService<
 
                         var symbolInfo = _semanticModel.GetSymbolInfo(token, _cancellationToken);
                         foreach (var sym in symbolInfo.GetAllSymbols())
-                        {
-                            // add binding result to map
-                            var list = _symbolMap.GetOrAdd(sym, _ => []);
-                            list.Add(token);
-                        }
+                            _symbolMap.Add(sym, token);
                     }
                 }
             }

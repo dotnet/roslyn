@@ -309,11 +309,10 @@ internal abstract partial class AbstractExtractMethodService<
                 return OperationStatus.SucceededStatus;
             }
 
-            private Dictionary<ISymbol, List<SyntaxToken>> GetSymbolMap()
+            private MultiDictionary<ISymbol, SyntaxToken> GetSymbolMap()
             {
                 var context = SelectionResult.GetContainingScope();
-                var symbolMap = SymbolMapBuilder.Build(this.SyntaxFacts, this.SemanticModel, context, SelectionResult.FinalSpan, CancellationToken);
-                return symbolMap;
+                return SymbolMapBuilder.Build(this.SyntaxFacts, this.SemanticModel, context, SelectionResult.FinalSpan, CancellationToken);
             }
 
             private ImmutableArray<VariableInfo> MarkVariableInfosToUseAsReturnValueIfPossible(ImmutableArray<VariableInfo> variableInfo)
