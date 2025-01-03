@@ -133,10 +133,34 @@ public class UnifiedSettingsTests
         var jsonDocument = await JsonNode.ParseAsync(registrationFileStream!, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
         var categories = jsonDocument!.Root["categories"]!.AsObject();
         var propertyToCategory = categories.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Deserialize<Category>());
-        Assert.Equal(2, propertyToCategory.Count);
+        Assert.Equal(22, propertyToCategory.Count);
         Assert.Equal("C#", propertyToCategory["textEditor.csharp"]!.Title);
         Assert.Equal("IntelliSense", propertyToCategory["textEditor.csharp.intellisense"]!.Title);
         Assert.Equal(Guids.CSharpOptionPageIntelliSenseIdString, propertyToCategory["textEditor.csharp.intellisense"]!.LegacyOptionPageId);
+
+        Assert.Equal("Advanced", propertyToCategory["textEditor.csharp.advanced"]!.Title);
+        Assert.Equal(Guids.CSharpOptionPageAdvancedIdString, propertyToCategory["textEditor.csharp.advanced"]!.LegacyOptionPageId);
+
+        Assert.Equal("Analysis", propertyToCategory["textEditor.csharp.advanced.analysis"]!.Title);
+        Assert.Equal("Source Generators", propertyToCategory["textEditor.csharp.advanced.sourceGenerators"]!.Title);
+        Assert.Equal("Go To Definition", propertyToCategory["textEditor.csharp.advanced.goToDefinition"]!.Title);
+        Assert.Equal("Rename", propertyToCategory["textEditor.csharp.advanced.rename"]!.Title);
+        Assert.Equal("Using Directives", propertyToCategory["textEditor.csharp.advanced.usingDirectives"]!.Title);
+        Assert.Equal("Highlighting", propertyToCategory["textEditor.csharp.advanced.highlighting"]!.Title);
+        Assert.Equal("Outlining", propertyToCategory["textEditor.csharp.advanced.outlining"]!.Title);
+        Assert.Equal("Fading", propertyToCategory["textEditor.csharp.advanced.fading"]!.Title);
+        Assert.Equal("Block Structure Guides", propertyToCategory["textEditor.csharp.advanced.blockStructureGuides"]!.Title);
+        Assert.Equal("Comments", propertyToCategory["textEditor.csharp.advanced.comments"]!.Title);
+        Assert.Equal("Editor Help", propertyToCategory["textEditor.csharp.advanced.editorHelp"]!.Title);
+        Assert.Equal("Regular Expressions", propertyToCategory["textEditor.csharp.advanced.regularExpressions"]!.Title);
+        Assert.Equal("JSON strings", propertyToCategory["textEditor.csharp.advanced.jsonStrings"]!.Title);
+        Assert.Equal("Editor Color Scheme", propertyToCategory["textEditor.csharp.advanced.editorColorScheme"]!.Title);
+        Assert.Equal("Implement Interface or Abstract Class", propertyToCategory["textEditor.csharp.advanced.implementInterfaceOrAbstractClass"]!.Title);
+        Assert.Equal("Inline Hints", propertyToCategory["textEditor.csharp.advanced.inlineHints"]!.Title);
+        Assert.Equal("Inheritance Margin", propertyToCategory["textEditor.csharp.advanced.inheritanceMargin"]!.Title);
+        Assert.Equal("Stack Trace Explorer", propertyToCategory["textEditor.csharp.advanced.stackTraceExplorer"]!.Title);
+        Assert.Equal("Document Outline", propertyToCategory["textEditor.csharp.advanced.documentOutline"]!.Title);
+
         await VerifyTagAsync(jsonDocument.ToString(), "Roslyn.VisualStudio.Next.UnitTests.csharpPackageRegistration.pkgdef");
     }
 

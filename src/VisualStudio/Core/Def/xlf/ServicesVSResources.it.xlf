@@ -612,6 +612,11 @@
         <target state="translated">Interfacce ereditate</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="new">Inline Hints</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
         <target state="new">Insert Snippet</target>
@@ -1007,6 +1012,11 @@
         <target state="translated">Altri</target>
         <note />
       </trans-unit>
+      <trans-unit id="Outlining">
+        <source>Outlining</source>
+        <target state="new">Outlining</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Overridden_members">
         <source>Overridden members</source>
         <target state="translated">Membri sottoposti a override</target>
@@ -1225,6 +1235,11 @@
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">Rimuovi istruzioni using non necessarie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename">
+        <source>Rename</source>
+        <target state="new">Rename</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_asynchronously_experimental">

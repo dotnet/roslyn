@@ -256,6 +256,86 @@
     "textEditor.csharp.intellisense": {
       "title": "@103;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
       "legacyOptionPageId": "EDE66829-7A36-4c5d-8E20-9290195DCF80"
+    },
+    "textEditor.csharp.advanced": {
+      "title": "@102;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "legacyOptionPageId": "8FD0B177-B244-4A97-8E37-6FB7B27DE3AF"
+    },
+    "textEditor.csharp.advanced.analysis": {
+      "title": "@Analysis;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 0
+    },
+    "textEditor.csharp.advanced.sourceGenerators": {
+      "title": "@Source_Generators;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 10
+    },
+    "textEditor.csharp.advanced.goToDefinition": {
+      "title": "@Go_To_Definition;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 20
+    },
+    "textEditor.csharp.advanced.rename": {
+      "title": "@Rename;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 30
+    },
+    "textEditor.csharp.advanced.usingDirectives": {
+      "title": "@Using_Directives;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "order": 40
+    },
+    "textEditor.csharp.advanced.highlighting": {
+      "title": "@Highlighting;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 50
+    },
+    "textEditor.csharp.advanced.outlining": {
+      "title": "@Outlining;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 60
+    },
+    "textEditor.csharp.advanced.fading": {
+      "title": "@Fading;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 70
+    },
+    "textEditor.csharp.advanced.blockStructureGuides": {
+      "title": "@Block_Structure_Guides;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 80
+    },
+    "textEditor.csharp.advanced.comments": {
+      "title": "@Comments;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 90
+    },
+    "textEditor.csharp.advanced.editorHelp": {
+      "title": "@Editor_Help;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 100
+    },
+    "textEditor.csharp.advanced.regularExpressions": {
+      "title": "@Regular_Expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 110
+    },
+    "textEditor.csharp.advanced.jsonStrings": {
+      "title": "@JSON_strings;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 120
+    },
+    "textEditor.csharp.advanced.editorColorScheme": {
+      "title": "@Editor_Color_Scheme;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 130
+    },
+    "textEditor.csharp.advanced.implementInterfaceOrAbstractClass": {
+      "title": "@Implement_Interface_or_Abstract_Class;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 140
+    },
+    "textEditor.csharp.advanced.inlineHints": {
+      "title": "@Inline_Hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 150
+    },
+    "textEditor.csharp.advanced.inheritanceMargin": {
+      "title": "@Inheritance_Margin;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 160
+    },
+    "textEditor.csharp.advanced.stackTraceExplorer": {
+      "title": "@Stack_Trace_Explorer;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 170
+    },
+    "textEditor.csharp.advanced.documentOutline": {
+      "title": "@Document_Outline;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 180
     }
   }
 }
