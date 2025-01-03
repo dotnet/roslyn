@@ -177,6 +177,16 @@
         <target state="translated">'new' 式のヒントを表示する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_name_s_uggestions">
+        <source>Show name s_uggestions</source>
+        <target state="new">Show name s_uggestions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience">
+        <source>Show new snippet experience</source>
+        <target state="new">Show new snippet experience</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
         <source>Show new snippet experience (experimental)</source>
         <target state="translated">新しいスニペット エクスペリエンスの表示 (試験段階)</target>
@@ -698,8 +708,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_name_suggestions">
-        <source>Show name s_uggestions</source>
-        <target state="translated">名前の提案を表示(_U)</target>
+        <source>Show name suggestions</source>
+        <target state="needs-review-translation">名前の提案を表示(_U)</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
