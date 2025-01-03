@@ -170,7 +170,7 @@ internal sealed partial class CSharpExtractMethodService
                 result);
         }
 
-        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken)
+        protected override Task<SemanticDocument> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken)
         {
             var codeGenerator = CSharpCodeGenerator.Create(selectionResult, analyzeResult, options, this.LocalFunction);
             return codeGenerator.GenerateAsync(insertionPoint, cancellationToken);

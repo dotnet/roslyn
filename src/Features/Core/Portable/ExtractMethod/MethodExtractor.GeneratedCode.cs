@@ -1,42 +1,42 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+﻿//// Licensed to the .NET Foundation under one or more agreements.
+//// The .NET Foundation licenses this file to you under the MIT license.
+//// See the LICENSE file in the project root for more information.
 
-using Roslyn.Utilities;
+//using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExtractMethod;
+//namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal abstract partial class AbstractExtractMethodService<
-    TStatementSyntax,
-    TExecutableStatementSyntax,
-    TExpressionSyntax>
-{
-    internal abstract partial class MethodExtractor
-    {
-        internal sealed class GeneratedCode
-        {
-            public GeneratedCode(
-                SemanticDocument document,
-                SyntaxAnnotation methodNameAnnotation,
-                SyntaxAnnotation callSiteAnnotation,
-                SyntaxAnnotation methodDefinitionAnnotation)
-            {
-                Contract.ThrowIfNull(document);
-                Contract.ThrowIfNull(methodNameAnnotation);
-                Contract.ThrowIfNull(callSiteAnnotation);
-                Contract.ThrowIfNull(methodDefinitionAnnotation);
+//internal abstract partial class AbstractExtractMethodService<
+//    TStatementSyntax,
+//    TExecutableStatementSyntax,
+//    TExpressionSyntax>
+//{
+//    internal abstract partial class MethodExtractor
+//    {
+//        internal sealed class GeneratedCode
+//        {
+//            public GeneratedCode(
+//                SemanticDocument document,
+//                SyntaxAnnotation methodNameAnnotation,
+//                SyntaxAnnotation callSiteAnnotation,
+//                SyntaxAnnotation methodDefinitionAnnotation)
+//            {
+//                Contract.ThrowIfNull(document);
+//                Contract.ThrowIfNull(methodNameAnnotation);
+//                Contract.ThrowIfNull(callSiteAnnotation);
+//                Contract.ThrowIfNull(methodDefinitionAnnotation);
 
-                SemanticDocument = document;
-                MethodNameAnnotation = methodNameAnnotation;
-                CallSiteAnnotation = callSiteAnnotation;
-                MethodDefinitionAnnotation = methodDefinitionAnnotation;
-            }
+//                SemanticDocument = document;
+//                MethodNameAnnotation = methodNameAnnotation;
+//                CallSiteAnnotation = callSiteAnnotation;
+//                MethodDefinitionAnnotation = methodDefinitionAnnotation;
+//            }
 
-            public SemanticDocument SemanticDocument { get; }
+//            public SemanticDocument SemanticDocument { get; }
 
-            public SyntaxAnnotation MethodNameAnnotation { get; }
-            public SyntaxAnnotation CallSiteAnnotation { get; }
-            public SyntaxAnnotation MethodDefinitionAnnotation { get; }
-        }
-    }
-}
+//            public SyntaxAnnotation MethodNameAnnotation { get; }
+//            public SyntaxAnnotation CallSiteAnnotation { get; }
+//            public SyntaxAnnotation MethodDefinitionAnnotation { get; }
+//        }
+//    }
+//}

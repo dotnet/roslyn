@@ -712,7 +712,7 @@ internal sealed partial class CSharpExtractMethodService
                 }
             }
 
-            protected override async Task<GeneratedCode> CreateGeneratedCodeAsync(
+            protected override async Task<SemanticDocument> PerformFinalTriviaFixupAsync(
                 SemanticDocument newDocument, CancellationToken cancellationToken)
             {
                 // in hybrid code cases such as extract method, formatter will have some difficulties on where it breaks lines in two.
@@ -731,7 +731,7 @@ internal sealed partial class CSharpExtractMethodService
                 newDocument = await newDocument.WithSyntaxRootAsync(
                     root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
 
-                return await base.CreateGeneratedCodeAsync(newDocument, cancellationToken).ConfigureAwait(false);
+                return newDocument;
             }
 
             private static MethodDeclarationSyntax TweakNewLinesInMethod(MethodDeclarationSyntax method)

@@ -39,7 +39,7 @@ internal abstract partial class AbstractExtractMethodService<
         protected abstract Task<TriviaResult> PreserveTriviaAsync(SyntaxNode root, CancellationToken cancellationToken);
 
         protected abstract CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult);
-        protected abstract Task<GeneratedCode> GenerateCodeAsync(
+        protected abstract Task<SemanticDocument> GenerateCodeAsync(
             InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> tokens);
@@ -94,12 +94,12 @@ internal abstract partial class AbstractExtractMethodService<
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var newRoot = afterTriviaRestored.Root;
-                    var invocationNameToken = GetInvocationNameToken(newRoot.GetAnnotatedTokens(generatedCode.MethodNameAnnotation));
+                    var invocationNameToken = GetInvocationNameToken(newRoot.GetAnnotatedTokens(MethodNameAnnotation));
 
                     // Do some final patchups of whitespace when inserting a local function.
                     if (LocalFunction)
                     {
-                        var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(generatedCode.MethodDefinitionAnnotation).FirstOrDefault().AsNode();
+                        var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault().AsNode();
                         (documentWithoutFinalFormatting, invocationNameToken) = await InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
                             documentWithoutFinalFormatting, invocationNameToken, methodDefinition, cancellationToken).ConfigureAwait(false);
                     }

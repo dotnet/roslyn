@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         result)
             End Function
 
-            Protected Overrides Async Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, options As ExtractMethodGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+            Protected Overrides Async Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, options As ExtractMethodGenerationOptions, cancellationToken As CancellationToken) As Task(Of SemanticDocument)
                 Dim generator = VisualBasicCodeGenerator.Create(selectionResult, analyzeResult, options)
                 Return Await generator.GenerateAsync(insertionPoint, cancellationToken).ConfigureAwait(False)
             End Function
