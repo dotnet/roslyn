@@ -249,7 +249,7 @@ internal abstract partial class AbstractExtractMethodService<
                 => SelectionResult.IsExtractMethodOnExpression || ContainsReturnStatementInSelectedCode();
 
             private OperationStatus GetOperationStatus(
-                Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
+                MultiDictionary<ISymbol, SyntaxToken> symbolMap,
                 IList<VariableInfo> parameters,
                 IList<ISymbol> failedVariables,
                 bool unsafeAddressTakenUsed,
@@ -412,7 +412,7 @@ internal abstract partial class AbstractExtractMethodService<
             private void GenerateVariableInfoMap(
                 bool bestEffort,
                 DataFlowAnalysis dataFlowAnalysisData,
-                Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
+                MultiDictionary<ISymbol, SyntaxToken> symbolMap,
                 bool isInPrimaryConstructorBaseType,
                 out Dictionary<ISymbol, VariableInfo> variableInfoMap,
                 out List<ISymbol> failedVariables)
@@ -594,7 +594,7 @@ internal abstract partial class AbstractExtractMethodService<
 
             private bool TryGetVariableStyle(
                 bool bestEffort,
-                Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
+                MultiDictionary<ISymbol, SyntaxToken> symbolMap,
                 ISymbol symbol,
                 ITypeSymbol type,
                 bool captured,
@@ -649,9 +649,10 @@ internal abstract partial class AbstractExtractMethodService<
             }
 
             private bool IsWrittenInsideForFrameworkValueType(
-                Dictionary<ISymbol, List<SyntaxToken>> symbolMap, ISymbol symbol, bool writtenInside)
+                MultiDictionary<ISymbol, SyntaxToken> symbolMap, ISymbol symbol, bool writtenInside)
             {
-                if (!symbolMap.TryGetValue(symbol, out var tokens))
+                var tokens = symbolMap[symbol];
+                if (tokens.Count == 0)
                     return writtenInside;
 
                 var semanticFacts = this.SemanticFacts;
@@ -805,24 +806,21 @@ internal abstract partial class AbstractExtractMethodService<
                 }
             }
 
-            private static void AppendMethodTypeParameterUsedDirectly(IDictionary<ISymbol, List<SyntaxToken>> symbolMap, IDictionary<int, ITypeParameterSymbol> sortedMap)
+            private static void AppendMethodTypeParameterUsedDirectly(MultiDictionary<ISymbol, SyntaxToken> symbolMap, IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
-                foreach (var pair in symbolMap.Where(p => p.Key.Kind == SymbolKind.TypeParameter))
+                foreach (var typeParameter in symbolMap.Keys.OfType<ITypeParameterSymbol>())
                 {
-                    var typeParameter = (ITypeParameterSymbol)pair.Key;
-                    if (typeParameter.DeclaringMethod == null ||
-                        sortedMap.ContainsKey(typeParameter.Ordinal))
+                    if (typeParameter.DeclaringMethod != null &&
+                        !sortedMap.ContainsKey(typeParameter.Ordinal))
                     {
-                        continue;
+                        sortedMap[typeParameter.Ordinal] = typeParameter;
                     }
-
-                    sortedMap[typeParameter.Ordinal] = typeParameter;
                 }
             }
 
             private ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInConstraintList(
                 IDictionary<ISymbol, VariableInfo> variableInfoMap,
-                IDictionary<ISymbol, List<SyntaxToken>> symbolMap,
+                MultiDictionary<ISymbol, SyntaxToken> symbolMap,
                 SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 // find starting points
@@ -906,7 +904,7 @@ internal abstract partial class AbstractExtractMethodService<
                 return [.. sortedMap.Values];
             }
 
-            private OperationStatus CheckReadOnlyFields(Dictionary<ISymbol, List<SyntaxToken>> symbolMap)
+            private OperationStatus CheckReadOnlyFields(MultiDictionary<ISymbol, SyntaxToken> symbolMap)
             {
                 if (ReadOnlyFieldAllowed())
                     return OperationStatus.SucceededStatus;
