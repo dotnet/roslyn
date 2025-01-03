@@ -110,16 +110,6 @@ stages:
           Write-Host "##vso[build.addBuildTag]OfficialBuild"
       condition: succeeded()
 
-    # Don't run this while we don't have a main-vs-deps to merge. Should be uncommented when the branch comes back. Also need to change the condition of the tagging task above.
-    #
-    # - task: Powershell@2
-    #  displayName: Tag main validation build
-    #  inputs:
-    #    targetType: inline
-    #    script: |
-    #      Write-Host "##vso[build.addBuildTag]MainValidationBuild"
-    #  condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
-
     - task: PowerShell@2
       displayName: Merge main-vs-deps into source branch
       inputs:
