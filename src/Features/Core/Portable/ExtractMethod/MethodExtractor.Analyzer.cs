@@ -844,80 +844,63 @@ internal abstract partial class AbstractExtractMethodService<
 
             private static void AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
-                var visited = new HashSet<ITypeSymbol>();
-                var candidates = SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
+                using var _1 = PooledHashSet<ITypeSymbol>.GetInstance(out var visited);
+                using var _2 = PooledHashSet<ITypeParameterSymbol>.GetInstance(out var candidates);
 
                 // collect all type parameter appears in constraint
                 foreach (var typeParameter in sortedMap.Values)
                 {
                     var constraintTypes = typeParameter.ConstraintTypes;
                     if (constraintTypes.IsDefaultOrEmpty)
-                    {
                         continue;
-                    }
 
                     foreach (var type in constraintTypes)
-                    {
-                        candidates = candidates.Concat(AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(type, visited));
-                    }
+                        AddTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(type, visited, candidates);
                 }
 
                 // pick up only valid type parameter and add them to the map
                 foreach (var typeParameter in candidates)
-                {
                     AddTypeParameterToMap(typeParameter, sortedMap);
-                }
             }
 
-            private static IEnumerable<ITypeParameterSymbol> AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(
-                ITypeSymbol type, HashSet<ITypeSymbol> visited)
+            private static void AddTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(
+                ITypeSymbol type, HashSet<ITypeSymbol> visited, HashSet<ITypeParameterSymbol> typeParameters)
             {
-                if (visited.Contains(type))
-                    return [];
-
-                visited.Add(type);
+                if (!visited.Add(type))
+                    return;
 
                 if (type.OriginalDefinition.Equals(type))
-                    return [];
+                    return;
 
                 if (type is not INamedTypeSymbol constructedType)
-                    return [];
+                    return;
 
-                var parameters = constructedType.GetAllTypeParameters().ToList();
-                var arguments = constructedType.GetAllTypeArguments().ToList();
+                var parameters = constructedType.GetAllTypeParameters();
+                var arguments = constructedType.GetAllTypeArguments();
 
-                Contract.ThrowIfFalse(parameters.Count == arguments.Count);
+                Contract.ThrowIfFalse(parameters.Length == arguments.Length);
 
-                var typeParameters = new List<ITypeParameterSymbol>();
-                for (var i = 0; i < parameters.Count; i++)
+                for (var i = 0; i < parameters.Length; i++)
                 {
-                    var parameter = parameters[i];
-
                     if (arguments[i] is ITypeParameterSymbol argument)
                     {
-                        // no constraint, nothing to do
-                        if (!parameter.HasConstructorConstraint &&
-                            !parameter.HasReferenceTypeConstraint &&
-                            !parameter.HasValueTypeConstraint &&
-                            !parameter.AllowsRefLikeType &&
-                            parameter.ConstraintTypes.IsDefaultOrEmpty)
+                        if (parameters[i] is not
+                            {
+                                HasConstructorConstraint: false,
+                                HasReferenceTypeConstraint: false,
+                                HasValueTypeConstraint: false,
+                                AllowsRefLikeType: false,
+                                ConstraintTypes.IsDefaultOrEmpty: true
+                            })
                         {
-                            continue;
+                            typeParameters.Add(argument);
                         }
-
-                        typeParameters.Add(argument);
-                        continue;
                     }
-
-                    if (arguments[i] is not INamedTypeSymbol candidate)
+                    else if (arguments[i] is INamedTypeSymbol candidate)
                     {
-                        continue;
+                        AddTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(candidate, visited, typeParameters);
                     }
-
-                    typeParameters.AddRange(AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(candidate, visited));
                 }
-
-                return typeParameters;
             }
 
             private static ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
