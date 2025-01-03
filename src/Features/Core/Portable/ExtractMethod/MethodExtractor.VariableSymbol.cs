@@ -109,7 +109,6 @@ internal abstract partial class AbstractExtractMethodService<
                 Contract.ThrowIfFalse(locationLeft.IsInSource);
                 Contract.ThrowIfFalse(locationRight.IsInSource);
                 Contract.ThrowIfFalse(locationLeft.SourceTree == locationRight.SourceTree);
-                Contract.ThrowIfFalse(locationLeft.SourceSpan.Start != locationRight.SourceSpan.Start);
 
                 return locationLeft.SourceSpan.Start - locationRight.SourceSpan.Start;
             }
