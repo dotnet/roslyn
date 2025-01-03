@@ -106,7 +106,7 @@ stages:
       displayName: Tag official build
       inputs:
         targetType: inline
-        scri pt: |
+        script: |
           Write-Host "##vso[build.addBuildTag]OfficialBuild"
       condition: succeeded()
 
