@@ -44,6 +44,8 @@ public class UnifiedSettingsTests
         Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "textEditor.csharp.intellisense.enableArgumentCompletionSnippets").
         Add(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, "textEditor.csharp.intellisense.showNewSnippetExperience");
 
+    private static readonly ImmutableArray<(IOption2, UnifiedSettingBase)> s_csharpAdvancedExpectedSettings = [];
+
     /// <summary>
     /// Array containing the option to expected unified settings for C# intellisense page.
     /// </summary>
@@ -165,7 +167,7 @@ public class UnifiedSettingsTests
     }
 
     [Fact]
-    public async Task CSharpIntellisenseTest()
+    public async Task CSharpIntellisensePageTest()
     {
         using var registrationFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.csharpSettings.registration.json");
         var jsonDocument = await JsonNode.ParseAsync(registrationFileStream!, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
@@ -174,7 +176,21 @@ public class UnifiedSettingsTests
             Assert.True(s_csharpUnifiedSettingsStorage.ContainsKey(option));
         }
 
-        VerifyProperties(jsonDocument!, "textEditor.csharp.intellisense", s_csharpIntellisenseExpectedSettings);
+        VerifyProperties(jsonDocument!, ["textEditor.csharp.intellisense"], s_csharpIntellisenseExpectedSettings);
+        await VerifyTagAsync(jsonDocument!.ToString(), "Roslyn.VisualStudio.Next.UnitTests.csharpPackageRegistration.pkgdef");
+    }
+
+    [Fact]
+    public async Task CSharpAdvancedPageTest()
+    {
+        using var registrationFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.csharpSettings.registration.json");
+        var jsonDocument = await JsonNode.ParseAsync(registrationFileStream!, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
+        foreach (var (option, _) in s_csharpAdvancedExpectedSettings)
+        {
+            Assert.True(s_csharpUnifiedSettingsStorage.ContainsKey(option));
+        }
+
+        VerifyProperties(jsonDocument!, ["textEditor.csharp.advanced", "textEditor.csharpAndVisualBasic.advanced"], s_csharpIntellisenseExpectedSettings);
         await VerifyTagAsync(jsonDocument!.ToString(), "Roslyn.VisualStudio.Next.UnitTests.csharpPackageRegistration.pkgdef");
     }
 
@@ -276,14 +292,14 @@ public class UnifiedSettingsTests
             Assert.True(s_visualBasicUnifiedSettingsStorage.ContainsKey(option));
         }
 
-        VerifyProperties(jsonDocument!, "textEditor.basic.intellisense", s_visualBasicIntellisenseExpectedSettings);
+        VerifyProperties(jsonDocument!, ["textEditor.basic.intellisense"], s_visualBasicIntellisenseExpectedSettings);
         await VerifyTagAsync(jsonDocument!.ToString(), "Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
     }
 
-    private static void VerifyProperties(JsonNode jsonDocument, string prefix, ImmutableArray<(IOption2, UnifiedSettingBase)> expectedOptionToSettings)
+    private static void VerifyProperties(JsonNode jsonDocument, string[] prefixes, ImmutableArray<(IOption2, UnifiedSettingBase)> expectedOptionToSettings)
     {
-        var properties = jsonDocument!.Root["properties"]!.AsObject()
-            .Where(jsonObject => jsonObject.Key.StartsWith(prefix))
+        var properties = jsonDocument.Root["properties"]!.AsObject()
+            .Where(jsonObject => prefixes.Any(prefix => jsonObject.Key.StartsWith(prefix)))
             .SelectAsArray(jsonObject => jsonObject.Value);
         Assert.Equal(expectedOptionToSettings.Length, properties.Length);
         foreach (var (actualJson, (expectedOption, expectedSetting)) in properties.Zip(expectedOptionToSettings, (actual, expected) => (actual, expected)))
