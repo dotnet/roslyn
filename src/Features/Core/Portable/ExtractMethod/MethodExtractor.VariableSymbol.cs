@@ -80,12 +80,11 @@ internal abstract partial class AbstractExtractMethodService<
                     return -1;
                 }
 
-                if (left.DisplayOrder == right.DisplayOrder)
-                {
-                    return left.CompareTo(right);
-                }
+                var orderDiff = left.DisplayOrder - right.DisplayOrder;
+                if (orderDiff != 0)
+                    return orderDiff;
 
-                return left.DisplayOrder - right.DisplayOrder;
+                return left.CompareTo(right);
             }
 
             public string Name => this.GetSymbol().ToDisplayString(
@@ -94,17 +93,30 @@ internal abstract partial class AbstractExtractMethodService<
                     miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
         }
 
-        protected abstract class VariableSymbol<TSymbol>(TSymbol symbol, ITypeSymbol symbolType)
+        protected abstract class VariableSymbol<TVariableSymbol, TSymbol>(TSymbol symbol, ITypeSymbol symbolType)
             : VariableSymbol(symbolType)
+            where TVariableSymbol : VariableSymbol<TVariableSymbol, TSymbol>
             where TSymbol : ISymbol
         {
             protected TSymbol Symbol { get; } = symbol;
 
             protected override ISymbol GetSymbol() => this.Symbol;
+
+            protected sealed override int CompareTo(VariableSymbol right)
+            {
+                Contract.ThrowIfTrue(this.DisplayOrder != right.DisplayOrder);
+                if (this == right)
+                    return 0;
+
+                return this.CompareTo((TVariableSymbol)right);
+            }
+
+            protected abstract int CompareTo(TVariableSymbol right);
         }
 
-        protected abstract class NotMovableVariableSymbol<TSymbol>(
-            TSymbol symbol, ITypeSymbol symbolType) : VariableSymbol<TSymbol>(symbol, symbolType)
+        protected abstract class NotMovableVariableSymbol<TVariableSymbol, TSymbol>(
+            TSymbol symbol, ITypeSymbol symbolType) : VariableSymbol<TVariableSymbol, TSymbol>(symbol, symbolType)
+            where TVariableSymbol : VariableSymbol<TVariableSymbol, TSymbol>
             where TSymbol : ISymbol
         {
             public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
@@ -120,30 +132,18 @@ internal abstract partial class AbstractExtractMethodService<
         }
 
         protected sealed class ParameterVariableSymbol(IParameterSymbol symbol, ITypeSymbol symbolType)
-            : NotMovableVariableSymbol<IParameterSymbol>(symbol, symbolType), IComparable<ParameterVariableSymbol>
+            : NotMovableVariableSymbol<ParameterVariableSymbol, IParameterSymbol>(symbol, symbolType)
         {
             public override int DisplayOrder => 0;
 
-            protected override int CompareTo(VariableSymbol right)
-                => CompareTo((ParameterVariableSymbol)right);
-
-            public int CompareTo(ParameterVariableSymbol other)
+            protected override int CompareTo(ParameterVariableSymbol other)
             {
-                Contract.ThrowIfNull(other);
-
-                if (this == other)
-                {
-                    return 0;
-                }
-
                 var compare = CompareMethodParameters((IMethodSymbol)this.Symbol.ContainingSymbol, (IMethodSymbol)other.Symbol.ContainingSymbol);
                 if (compare != 0)
-                {
                     return compare;
-                }
 
                 Contract.ThrowIfFalse(Symbol.Ordinal != other.Symbol.Ordinal);
-                return (Symbol.Ordinal > other.Symbol.Ordinal) ? 1 : -1;
+                return Symbol.Ordinal > other.Symbol.Ordinal ? 1 : -1;
             }
 
             private static int CompareMethodParameters(IMethodSymbol left, IMethodSymbol right)
@@ -178,24 +178,14 @@ internal abstract partial class AbstractExtractMethodService<
         }
 
         protected sealed class LocalVariableSymbol(ILocalSymbol localSymbol, ITypeSymbol symbolType)
-            : VariableSymbol<ILocalSymbol>(localSymbol, symbolType), IComparable<LocalVariableSymbol>
+            : VariableSymbol<LocalVariableSymbol, ILocalSymbol>(localSymbol, symbolType)
         {
             private readonly SyntaxAnnotation _annotation = new();
 
             public override int DisplayOrder => 1;
 
-            protected override int CompareTo(VariableSymbol right)
-                => CompareTo((LocalVariableSymbol)right);
-
-            public int CompareTo(LocalVariableSymbol other)
+            protected override int CompareTo(LocalVariableSymbol other)
             {
-                Contract.ThrowIfNull(other);
-
-                if (this == other)
-                {
-                    return 0;
-                }
-
                 Contract.ThrowIfFalse(Symbol.Locations.Length == 1);
                 Contract.ThrowIfFalse(other.Symbol.Locations.Length == 1);
                 Contract.ThrowIfFalse(Symbol.Locations[0].IsInSource);
@@ -233,22 +223,12 @@ internal abstract partial class AbstractExtractMethodService<
         }
 
         protected sealed class QueryVariableSymbol(IRangeVariableSymbol symbol, ITypeSymbol symbolType)
-            : NotMovableVariableSymbol<IRangeVariableSymbol>(symbol, symbolType), IComparable<QueryVariableSymbol>
+            : NotMovableVariableSymbol<QueryVariableSymbol, IRangeVariableSymbol>(symbol, symbolType)
         {
             public override int DisplayOrder => 2;
 
-            protected override int CompareTo(VariableSymbol right)
-                => CompareTo((QueryVariableSymbol)right);
-
-            public int CompareTo(QueryVariableSymbol other)
+            protected override int CompareTo(QueryVariableSymbol other)
             {
-                Contract.ThrowIfNull(other);
-
-                if (this == other)
-                {
-                    return 0;
-                }
-
                 var locationLeft = this.Symbol.Locations.First();
                 var locationRight = other.Symbol.Locations.First();
 
