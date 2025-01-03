@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Return True
                     End If
 
-                    Return Not TypeOf methodBlock.BlockStatement Is SubNewStatementSyntax
+                    Return TypeOf methodBlock.BlockStatement IsNot SubNewStatementSyntax
                 End Function
             End Class
         End Class

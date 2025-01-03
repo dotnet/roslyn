@@ -692,19 +692,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public Function GetContainingMemberDeclaration(root As SyntaxNode, position As Integer, Optional useFullSpan As Boolean = True) As SyntaxNode Implements ISyntaxFacts.GetContainingMemberDeclaration
             Dim isApplicableDeclaration = Function(node As SyntaxNode)
-                                              If TypeOf node Is MethodBlockBaseSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
+                                              If TypeOf node Is MethodBlockBaseSyntax AndAlso TypeOf node.Parent IsNot PropertyBlockSyntax Then
                                                   Return True
                                               End If
 
-                                              If TypeOf node Is MethodBaseSyntax AndAlso Not TypeOf node.Parent Is MethodBlockBaseSyntax Then
+                                              If TypeOf node Is MethodBaseSyntax AndAlso TypeOf node.Parent IsNot MethodBlockBaseSyntax Then
                                                   Return True
                                               End If
 
-                                              If TypeOf node Is PropertyStatementSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
+                                              If TypeOf node Is PropertyStatementSyntax AndAlso TypeOf node.Parent IsNot PropertyBlockSyntax Then
                                                   Return True
                                               End If
 
-                                              If TypeOf node Is EventStatementSyntax AndAlso Not TypeOf node.Parent Is EventBlockSyntax Then
+                                              If TypeOf node Is EventStatementSyntax AndAlso TypeOf node.Parent IsNot EventBlockSyntax Then
                                                   Return True
                                               End If
 
@@ -725,11 +725,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public Function GetContainingMethodDeclaration(root As SyntaxNode, position As Integer, Optional useFullSpan As Boolean = True) As SyntaxNode Implements ISyntaxFacts.GetContainingMethodDeclaration
             Dim isApplicableDeclaration = Function(node As SyntaxNode)
-                                              If TypeOf node Is MethodBlockBaseSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
+                                              If TypeOf node Is MethodBlockBaseSyntax AndAlso TypeOf node.Parent IsNot PropertyBlockSyntax Then
                                                   Return True
                                               End If
 
-                                              If TypeOf node Is MethodBaseSyntax AndAlso Not TypeOf node.Parent Is MethodBlockBaseSyntax Then
+                                              If TypeOf node Is MethodBaseSyntax AndAlso TypeOf node.Parent IsNot MethodBlockBaseSyntax Then
                                                   Return True
                                               End If
 
@@ -770,23 +770,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             ' like AccessorStatementSyntax and DelegateStatementSyntax that we never want to tread as method level
             ' members.
 
-            If TypeOf node Is MethodStatementSyntax AndAlso Not TypeOf node.Parent Is MethodBlockBaseSyntax Then
+            If TypeOf node Is MethodStatementSyntax AndAlso TypeOf node.Parent IsNot MethodBlockBaseSyntax Then
                 Return True
             End If
 
-            If TypeOf node Is SubNewStatementSyntax AndAlso Not TypeOf node.Parent Is MethodBlockBaseSyntax Then
+            If TypeOf node Is SubNewStatementSyntax AndAlso TypeOf node.Parent IsNot MethodBlockBaseSyntax Then
                 Return True
             End If
 
-            If TypeOf node Is OperatorStatementSyntax AndAlso Not TypeOf node.Parent Is MethodBlockBaseSyntax Then
+            If TypeOf node Is OperatorStatementSyntax AndAlso TypeOf node.Parent IsNot MethodBlockBaseSyntax Then
                 Return True
             End If
 
-            If TypeOf node Is PropertyStatementSyntax AndAlso Not TypeOf node.Parent Is PropertyBlockSyntax Then
+            If TypeOf node Is PropertyStatementSyntax AndAlso TypeOf node.Parent IsNot PropertyBlockSyntax Then
                 Return True
             End If
 
-            If TypeOf node Is EventStatementSyntax AndAlso Not TypeOf node.Parent Is EventBlockSyntax Then
+            If TypeOf node Is EventStatementSyntax AndAlso TypeOf node.Parent IsNot EventBlockSyntax Then
                 Return True
             End If
 
