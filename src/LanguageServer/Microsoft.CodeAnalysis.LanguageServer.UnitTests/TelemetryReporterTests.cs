@@ -18,6 +18,7 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper)
             TestOutputLogger.Factory,
             includeDevKitComponents: true,
             MefCacheDirectory.Path,
+            [],
             out var _,
             out var _);
 
