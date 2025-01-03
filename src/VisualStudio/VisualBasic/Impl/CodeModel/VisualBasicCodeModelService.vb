@@ -227,7 +227,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     End If
 
                 Case SyntaxKind.EventStatement
-                    If Not TypeOf node.Parent Is EventBlockSyntax Then
+                    If TypeOf node.Parent IsNot EventBlockSyntax Then
                         If scope = EnvDTE.vsCMElement.vsCMElementEvent Then
                             Return True
                         End If
@@ -239,7 +239,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     End If
 
                 Case SyntaxKind.PropertyStatement
-                    If Not TypeOf node.Parent Is PropertyBlockSyntax Then
+                    If TypeOf node.Parent IsNot PropertyBlockSyntax Then
                         If scope = EnvDTE.vsCMElement.vsCMElementProperty Then
                             Return True
                         End If
@@ -1528,7 +1528,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
             If TypeOf member Is TypeBlockSyntax OrElse
                 TypeOf member Is EnumBlockSyntax Then
-                If Not TypeOf member.Parent Is TypeBlockSyntax AndAlso
+                If TypeOf member.Parent IsNot TypeBlockSyntax AndAlso
                     (newAccess = EnvDTE.vsCMAccess.vsCMAccessPrivate OrElse
                      newAccess = EnvDTE.vsCMAccess.vsCMAccessProtected OrElse
                      newAccess = EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected) Then
@@ -2084,7 +2084,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
         Public Overrides Function ValidateFunctionKind(containerNode As SyntaxNode, kind As EnvDTE.vsCMFunction, name As String) As EnvDTE.vsCMFunction
             If kind = EnvDTE.vsCMFunction.vsCMFunctionSub Then
-                Return If(name = "New" AndAlso Not TypeOf containerNode Is InterfaceBlockSyntax,
+                Return If(name = "New" AndAlso TypeOf containerNode IsNot InterfaceBlockSyntax,
                           EnvDTE.vsCMFunction.vsCMFunctionConstructor,
                           kind)
             End If
@@ -4163,9 +4163,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Public Overrides Function GetFunctionExtender(name As String, node As SyntaxNode, symbol As ISymbol) As Object
-            If Not TypeOf node Is MethodBlockBaseSyntax AndAlso
-               Not TypeOf node Is MethodStatementSyntax AndAlso
-               Not TypeOf symbol Is IMethodSymbol Then
+            If TypeOf node IsNot MethodBlockBaseSyntax AndAlso
+               TypeOf node IsNot MethodStatementSyntax AndAlso
+               TypeOf symbol IsNot IMethodSymbol Then
 
                 Throw Exceptions.ThrowEUnexpected()
             End If
@@ -4188,16 +4188,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Public Overrides Function GetPropertyExtender(name As String, node As SyntaxNode, symbol As ISymbol) As Object
-            If Not TypeOf node Is PropertyBlockSyntax AndAlso
-               Not TypeOf node Is PropertyStatementSyntax AndAlso
-               Not TypeOf symbol Is IPropertySymbol Then
+            If TypeOf node IsNot PropertyBlockSyntax AndAlso
+               TypeOf node IsNot PropertyStatementSyntax AndAlso
+               TypeOf symbol IsNot IPropertySymbol Then
 
                 Throw Exceptions.ThrowEUnexpected()
             End If
 
             If StringComparer.OrdinalIgnoreCase.Equals(name, ExtenderNames.VBAutoPropertyExtender) Then
                 Dim isAutoImplemented = TypeOf node Is PropertyStatementSyntax AndAlso
-                                        Not TypeOf node.Parent Is InterfaceBlockSyntax
+                                        TypeOf node.Parent IsNot InterfaceBlockSyntax
 
                 Return AutoPropertyExtender.Create(isAutoImplemented)
             End If
