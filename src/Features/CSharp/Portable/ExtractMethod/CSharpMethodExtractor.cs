@@ -45,7 +45,7 @@ internal sealed partial class CSharpExtractMethodService
             {
                 // If we are extracting a local function and are within a local function, then we want the new function to be created within the
                 // existing local function instead of the overarching method.
-                var outermostCapturedVariable = analyzerResult.GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
+                var outermostCapturedVariable = analyzerResult.GetOutermostVariableToMoveIntoMethodDefinition();
                 var baseNode = outermostCapturedVariable != null
                     ? outermostCapturedVariable.GetIdentifierTokenAtDeclaration(document).Parent
                     : this.OriginalSelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);

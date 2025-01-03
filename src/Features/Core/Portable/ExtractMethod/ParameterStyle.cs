@@ -6,36 +6,32 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal sealed record class ParameterStyle(
     ParameterBehavior ParameterBehavior,
-    DeclarationBehavior DeclarationBehavior,
-    DeclarationBehavior SaferDeclarationBehavior)
+    DeclarationBehavior DeclarationBehavior)
 {
     public static readonly ParameterStyle None =
-        new(ParameterBehavior.None, DeclarationBehavior.None, DeclarationBehavior.None);
+        new(ParameterBehavior.None, DeclarationBehavior.None);
 
     public static readonly ParameterStyle InputOnly =
-        new(ParameterBehavior.Input, DeclarationBehavior.None, DeclarationBehavior.None);
-
-    public static readonly ParameterStyle Delete =
-        new(ParameterBehavior.None, DeclarationBehavior.Delete, DeclarationBehavior.None);
+        new(ParameterBehavior.Input, DeclarationBehavior.None);
 
     public static readonly ParameterStyle MoveOut =
-        new(ParameterBehavior.None, DeclarationBehavior.MoveOut, DeclarationBehavior.SplitOut);
+        new(ParameterBehavior.None, DeclarationBehavior.MoveOut);
 
     public static readonly ParameterStyle SplitOut =
-        new(ParameterBehavior.None, DeclarationBehavior.SplitOut, DeclarationBehavior.SplitOut);
+        new(ParameterBehavior.None, DeclarationBehavior.SplitOut);
 
     public static readonly ParameterStyle MoveIn =
-        new(ParameterBehavior.None, DeclarationBehavior.MoveIn, DeclarationBehavior.SplitIn);
+        new(ParameterBehavior.None, DeclarationBehavior.MoveIn);
 
     public static readonly ParameterStyle SplitIn =
-        new(ParameterBehavior.None, DeclarationBehavior.SplitIn, DeclarationBehavior.SplitIn);
+        new(ParameterBehavior.None, DeclarationBehavior.SplitIn);
 
     public static readonly ParameterStyle Out =
-        new(ParameterBehavior.Out, DeclarationBehavior.None, DeclarationBehavior.None);
+        new(ParameterBehavior.Out, DeclarationBehavior.None);
 
     public static readonly ParameterStyle Ref =
-        new(ParameterBehavior.Ref, DeclarationBehavior.None, DeclarationBehavior.None);
+        new(ParameterBehavior.Ref, DeclarationBehavior.None);
 
     public static readonly ParameterStyle OutWithMoveOut =
-        new(ParameterBehavior.Out, DeclarationBehavior.MoveOut, DeclarationBehavior.MoveOut);
+        new(ParameterBehavior.Out, DeclarationBehavior.MoveOut);
 }

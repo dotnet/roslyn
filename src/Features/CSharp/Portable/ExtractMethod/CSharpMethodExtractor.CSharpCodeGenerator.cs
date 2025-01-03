@@ -108,7 +108,7 @@ internal sealed partial class CSharpExtractMethodService
                 CancellationToken cancellationToken)
             {
                 var variableMapToRemove = CreateVariableDeclarationToRemoveMap(
-                    AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), cancellationToken);
+                    AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(), cancellationToken);
                 var firstStatementToRemove = GetFirstStatementOrInitializerSelectedAtCallSite();
                 var lastStatementToRemove = GetLastStatementOrInitializerSelectedAtCallSite();
 
@@ -176,9 +176,9 @@ internal sealed partial class CSharpExtractMethodService
                 return [.. AnalyzerResult.MethodTypeParametersInDeclaration.Select(m => SyntaxFactory.ParseTypeName(m.Name))];
             }
 
-            protected override SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable(CancellationToken cancellationToken)
+            protected override SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable()
             {
-                var outmostVariable = GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
+                var outmostVariable = GetOutermostVariableToMoveIntoMethodDefinition();
                 if (outmostVariable == null)
                     return null;
 
@@ -341,7 +341,7 @@ internal sealed partial class CSharpExtractMethodService
                 using var _1 = ArrayBuilder<StatementSyntax>.GetInstance(out var result);
 
                 var variableToRemoveMap = CreateVariableDeclarationToRemoveMap(
-                    AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken), cancellationToken);
+                    AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(), cancellationToken);
 
                 statements = statements.SelectAsArray(s => FixDeclarationExpressionsAndDeclarationPatterns(s, variableToRemoveMap));
 
@@ -539,7 +539,7 @@ internal sealed partial class CSharpExtractMethodService
                 var semanticModel = SemanticDocument.SemanticModel;
                 var postProcessor = new PostProcessor(semanticModel, insertionPointNode.SpanStart);
 
-                var declStatements = CreateDeclarationStatements(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), cancellationToken);
+                var declStatements = CreateDeclarationStatements(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(), cancellationToken);
                 declStatements = postProcessor.MergeDeclarationStatements(declStatements);
 
                 return declStatements.Concat(statements);

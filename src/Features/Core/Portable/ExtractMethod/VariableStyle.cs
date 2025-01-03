@@ -14,9 +14,6 @@ internal sealed record class VariableStyle(
     public static readonly VariableStyle InputOnly =
         new(ParameterStyle.InputOnly, ReturnStyle.None);
 
-    public static readonly VariableStyle Delete =
-        new(ParameterStyle.Delete, ReturnStyle.None);
-
     public static readonly VariableStyle MoveOut =
         new(ParameterStyle.MoveOut, ReturnStyle.None);
 

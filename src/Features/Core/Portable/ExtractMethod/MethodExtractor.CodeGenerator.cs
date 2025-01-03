@@ -78,7 +78,7 @@ internal abstract partial class AbstractExtractMethodService<
 
             #region method to be implemented in sub classes
 
-            protected abstract SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable(CancellationToken cancellationToken);
+            protected abstract SyntaxNode GetCallSiteContainerFromOutermostMoveInVariable();
 
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(SyntaxNode insertionPointNode, SyntaxNode outermostCallSiteContainer, CancellationToken cancellationToken);
             protected abstract IMethodSymbol GenerateMethodDefinition(SyntaxNode insertionPointNode, CancellationToken cancellationToken);
@@ -196,15 +196,8 @@ internal abstract partial class AbstractExtractMethodService<
 
             private SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
             {
-                var callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken);
-                if (callSiteContainer != null)
-                {
-                    return callSiteContainer;
-                }
-                else
-                {
-                    return this.SelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
-                }
+                var callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable();
+                return callSiteContainer ?? this.SelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
             }
 
             protected virtual Task<GeneratedCode> CreateGeneratedCodeAsync(SemanticDocument newDocument, CancellationToken cancellationToken)
@@ -216,9 +209,9 @@ internal abstract partial class AbstractExtractMethodService<
                     MethodDefinitionAnnotation));
             }
 
-            protected VariableInfo GetOutermostVariableToMoveIntoMethodDefinition(CancellationToken cancellationToken)
+            protected VariableInfo GetOutermostVariableToMoveIntoMethodDefinition()
             {
-                return this.AnalyzerResult.GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
+                return this.AnalyzerResult.GetOutermostVariableToMoveIntoMethodDefinition();
             }
 
             protected ImmutableArray<TStatementSyntax> AddReturnIfUnreachable(
@@ -244,7 +237,7 @@ internal abstract partial class AbstractExtractMethodService<
                 if (!AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
                     return statements;
 
-                Contract.ThrowIfTrue(AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken).Any(v => v.UseAsReturnValue));
+                Contract.ThrowIfTrue(AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite().Any(v => v.UseAsReturnValue));
 
                 // add invocation expression
                 return statements.Concat(
@@ -283,7 +276,7 @@ internal abstract partial class AbstractExtractMethodService<
             {
                 using var _ = ArrayBuilder<TStatementSyntax>.GetInstance(out var list);
 
-                foreach (var variable in AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken))
+                foreach (var variable in AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite())
                 {
                     if (variable.UseAsReturnValue)
                         continue;
@@ -310,10 +303,9 @@ internal abstract partial class AbstractExtractMethodService<
 
                 foreach (var variable in variables)
                 {
-                    Contract.ThrowIfFalse(variable.GetDeclarationBehavior(cancellationToken) is
+                    Contract.ThrowIfFalse(variable.GetDeclarationBehavior() is
                         DeclarationBehavior.MoveOut or
-                        DeclarationBehavior.MoveIn or
-                        DeclarationBehavior.Delete);
+                        DeclarationBehavior.MoveIn);
 
                     variable.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
                 }

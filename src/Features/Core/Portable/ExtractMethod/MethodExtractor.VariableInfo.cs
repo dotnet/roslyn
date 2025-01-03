@@ -63,20 +63,10 @@ internal abstract partial class AbstractExtractMethodService<
                 }
             }
 
-            public DeclarationBehavior GetDeclarationBehavior(CancellationToken cancellationToken)
-            {
-                if (_useAsReturnValue)
-                {
-                    return _variableStyle.ReturnStyle.DeclarationBehavior;
-                }
-
-                if (_variableSymbol.GetUseSaferDeclarationBehavior(cancellationToken))
-                {
-                    return _variableStyle.ParameterStyle.SaferDeclarationBehavior;
-                }
-
-                return _variableStyle.ParameterStyle.DeclarationBehavior;
-            }
+            public DeclarationBehavior GetDeclarationBehavior()
+                => _useAsReturnValue
+                    ? _variableStyle.ReturnStyle.DeclarationBehavior
+                    : _variableStyle.ParameterStyle.DeclarationBehavior;
 
             public ReturnBehavior ReturnBehavior
             {

@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         insertionPointNode As SyntaxNode,
                         container As SyntaxNode,
                         cancellationToken As CancellationToken) As Task(Of SyntaxNode)
-                    Dim variableMapToRemove = CreateVariableDeclarationToRemoveMap(AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), cancellationToken)
+                    Dim variableMapToRemove = CreateVariableDeclarationToRemoveMap(AnalyzerResult.GetVariablesToMoveIntoMethodDefinition(), cancellationToken)
                     Dim firstStatementToRemove = GetFirstStatementOrInitializerSelectedAtCallSite()
                     Dim lastStatementToRemove = GetLastStatementOrInitializerSelectedAtCallSite()
 
@@ -128,14 +128,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Contract.ThrowIfTrue(AnalyzerResult.MethodTypeParametersInDeclaration.Count = 0)
 
                     ' propagate any type variable used in extracted code
-                    Dim typeVariables = (From methodTypeParameter In AnalyzerResult.MethodTypeParametersInDeclaration
-                                         Select SyntaxFactory.ParseTypeName(methodTypeParameter.Name)).ToList()
-
-                    Return SyntaxFactory.SeparatedList(typeVariables)
+                    Return SyntaxFactory.SeparatedList(
+                        From methodTypeParameter In AnalyzerResult.MethodTypeParametersInDeclaration
+                        Select SyntaxFactory.ParseTypeName(methodTypeParameter.Name))
                 End Function
 
-                Protected Overrides Function GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken As CancellationToken) As SyntaxNode
-                    Dim outmostVariable = GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken)
+                Protected Overrides Function GetCallSiteContainerFromOutermostMoveInVariable() As SyntaxNode
+                    Dim outmostVariable = GetOutermostVariableToMoveIntoMethodDefinition()
                     If outmostVariable Is Nothing Then
                         Return Nothing
                     End If
@@ -240,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Private Function MoveDeclarationOutFromMethodDefinition(statements As ImmutableArray(Of StatementSyntax), cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
                     Dim variableToRemoveMap = CreateVariableDeclarationToRemoveMap(
-                        Me.AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken), cancellationToken)
+                        Me.AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(), cancellationToken)
 
                     Dim declarationStatements = New List(Of StatementSyntax)()
 
@@ -304,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Dim semanticModel = Me.SemanticDocument.SemanticModel
                     Dim postProcessor = New PostProcessor(semanticModel, insertionPointNode.SpanStart)
 
-                    Dim declStatements = CreateDeclarationStatements(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), cancellationToken)
+                    Dim declStatements = CreateDeclarationStatements(AnalyzerResult.GetVariablesToSplitOrMoveIntoMethodDefinition(), cancellationToken)
                     declStatements = postProcessor.MergeDeclarationStatements(declStatements)
 
                     Return declStatements.Concat(statements)
@@ -427,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Contract.ThrowIfTrue(variables.Length <> 1)
 
                     Dim variable = variables(0)
-                    Dim shouldInitializeWithNothing = (variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.MoveOut OrElse variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.SplitOut) AndAlso
+                    Dim shouldInitializeWithNothing = (variable.GetDeclarationBehavior() = DeclarationBehavior.MoveOut OrElse variable.GetDeclarationBehavior() = DeclarationBehavior.SplitOut) AndAlso
                                                       (variable.ParameterModifier = ParameterBehavior.Out)
 
                     Dim initializer = If(initialValue, If(shouldInitializeWithNothing, SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword)), Nothing))

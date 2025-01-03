@@ -23,8 +23,7 @@ internal abstract partial class AbstractExtractMethodService<
     internal abstract class SelectionResult(
         SemanticDocument document,
         SelectionType selectionType,
-        TextSpan finalSpan,
-        bool selectionChanged)
+        TextSpan finalSpan)
     {
         protected static readonly SyntaxAnnotation s_firstTokenAnnotation = new();
         protected static readonly SyntaxAnnotation s_lastTokenAnnotation = new();
@@ -34,7 +33,6 @@ internal abstract partial class AbstractExtractMethodService<
         public SemanticDocument SemanticDocument { get; private set; } = document;
         public TextSpan FinalSpan { get; } = finalSpan;
         public SelectionType SelectionType { get; } = selectionType;
-        public bool SelectionChanged { get; } = selectionChanged;
 
         /// <summary>
         /// Cached data flow analysis result for the selected code.  Valid for both expressions and statements.

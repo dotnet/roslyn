@@ -76,43 +76,28 @@ internal abstract partial class AbstractExtractMethodService<
                 }
             }
 
-            public IEnumerable<VariableInfo> MethodParameters
-            {
-                get
-                {
-                    return Variables.Where(v => v.UseAsParameter);
-                }
-            }
-
-            public ImmutableArray<VariableInfo> GetVariablesToSplitOrMoveIntoMethodDefinition(CancellationToken cancellationToken)
+            public ImmutableArray<VariableInfo> GetVariablesToSplitOrMoveIntoMethodDefinition()
             {
                 return Variables.WhereAsArray(
-                    v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.SplitIn or
-                         DeclarationBehavior.MoveIn);
+                    v => v.GetDeclarationBehavior() is DeclarationBehavior.SplitIn or DeclarationBehavior.MoveIn);
             }
 
-            public IEnumerable<VariableInfo> GetVariablesToMoveIntoMethodDefinition(CancellationToken cancellationToken)
-                => Variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
+            public IEnumerable<VariableInfo> MethodParameters
+                => Variables.Where(v => v.UseAsParameter);
 
-            public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSite(CancellationToken cancellationToken)
-                => Variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut);
+            public IEnumerable<VariableInfo> GetVariablesToMoveIntoMethodDefinition()
+                => Variables.Where(v => v.GetDeclarationBehavior() == DeclarationBehavior.MoveIn);
 
-            public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSiteOrDelete(CancellationToken cancellationToken)
-            {
-                return Variables.Where(v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.MoveOut or
-                                                 DeclarationBehavior.Delete);
-            }
+            public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSiteOrDelete()
+                => Variables.Where(v => v.GetDeclarationBehavior() is DeclarationBehavior.MoveOut);
 
-            public IEnumerable<VariableInfo> GetVariablesToSplitOrMoveOutToCallSite(CancellationToken cancellationToken)
-            {
-                return Variables.Where(v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.SplitOut or
-                                                 DeclarationBehavior.MoveOut);
-            }
+            public IEnumerable<VariableInfo> GetVariablesToSplitOrMoveOutToCallSite()
+                => Variables.Where(v => v.GetDeclarationBehavior() is DeclarationBehavior.SplitOut or DeclarationBehavior.MoveOut);
 
-            public VariableInfo GetOutermostVariableToMoveIntoMethodDefinition(CancellationToken cancellationToken)
+            public VariableInfo GetOutermostVariableToMoveIntoMethodDefinition()
             {
                 using var _ = ArrayBuilder<VariableInfo>.GetInstance(out var variables);
-                variables.AddRange(this.GetVariablesToMoveIntoMethodDefinition(cancellationToken));
+                variables.AddRange(this.GetVariablesToMoveIntoMethodDefinition());
                 if (variables.Count <= 0)
                     return null;
 

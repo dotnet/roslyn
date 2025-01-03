@@ -80,7 +80,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Protected Overrides Async Function CreateSelectionResultAsync(
-                    initialSelectionInfo As InitialSelectionInfo,
                     finalSelectionInfo As FinalSelectionInfo,
                     cancellationToken As CancellationToken) As Task(Of SelectionResult)
 
@@ -88,10 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Contract.ThrowIfFalse(finalSelectionInfo.Status.Succeeded)
 
                 Return Await VisualBasicSelectionResult.CreateResultAsync(
-                    Me.SemanticDocument,
-                    finalSelectionInfo,
-                    SelectionChanged(initialSelectionInfo, finalSelectionInfo),
-                    cancellationToken).ConfigureAwait(False)
+                    Me.SemanticDocument, finalSelectionInfo, cancellationToken).ConfigureAwait(False)
             End Function
 
             Private Shared Function CheckErrorCasesAndAppendDescriptions(
@@ -157,23 +153,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
 
                 Return clone
-            End Function
-
-            Private Shared Function SelectionChanged(initialSelectionInfo As InitialSelectionInfo, finalSelectionInfo As FinalSelectionInfo) As Boolean
-                ' get final token that doesn't pointing to empty token
-                Dim finalFirstToken = If(finalSelectionInfo.FirstTokenInFinalSpan.Width = 0,
-                                         finalSelectionInfo.FirstTokenInFinalSpan.GetNextToken(),
-                                         finalSelectionInfo.FirstTokenInFinalSpan)
-
-                Dim finalLastToken = If(finalSelectionInfo.LastTokenInFinalSpan.Width = 0,
-                                         finalSelectionInfo.LastTokenInFinalSpan.GetPreviousToken(),
-                                         finalSelectionInfo.LastTokenInFinalSpan)
-
-                ' adjust original tokens to point to statement terminator token if needed
-                Dim originalFirstToken = initialSelectionInfo.FirstTokenInOriginalSpan
-                Dim originalLastToken = initialSelectionInfo.LastTokenInOriginalSpan
-
-                Return originalFirstToken <> finalFirstToken OrElse originalLastToken <> finalLastToken
             End Function
 
             Private Shared Function GetFinalTokenCommonRoot(selection As FinalSelectionInfo) As SyntaxNode

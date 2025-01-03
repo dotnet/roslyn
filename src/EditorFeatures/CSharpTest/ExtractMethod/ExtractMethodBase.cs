@@ -177,8 +177,8 @@ public abstract class ExtractMethodBase
             Assert.True(status.Succeeded);
         }
 
-        if (status.Succeeded && result.SelectionChanged)
-            Assert.Equal(namedSpans["r"].Single(), result.FinalSpan);
+        if (status.Succeeded && namedSpans.TryGetValue("r", out var revisedSpans))
+            Assert.Equal(revisedSpans.Single(), result.FinalSpan);
     }
 
     protected static async Task IterateAllAsync(

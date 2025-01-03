@@ -30,8 +30,6 @@ internal abstract partial class AbstractExtractMethodService<
             protected readonly SelectionResult SelectionResult;
             protected readonly bool LocalFunction;
 
-            private readonly HashSet<int> _nonNoisySyntaxKindSet;
-
             private SemanticDocument SemanticDocument => SelectionResult.SemanticDocument;
             protected SemanticModel SemanticModel => SemanticDocument.SemanticModel;
 
@@ -45,9 +43,6 @@ internal abstract partial class AbstractExtractMethodService<
                 SelectionResult = selectionResult;
                 CancellationToken = cancellationToken;
                 LocalFunction = localFunction;
-
-                var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
-                _nonNoisySyntaxKindSet = [syntaxKinds.WhitespaceTrivia, syntaxKinds.EndOfLineTrivia];
             }
 
             protected abstract bool IsInPrimaryConstructorBaseType();
@@ -939,7 +934,7 @@ internal abstract partial class AbstractExtractMethodService<
                 return OperationStatus.SucceededStatus;
             }
 
-            protected VariableInfo CreateFromSymbolCommon(
+            protected static VariableInfo CreateFromSymbolCommon(
                 ISymbol symbol,
                 ITypeSymbol type,
                 VariableStyle style)
@@ -947,7 +942,7 @@ internal abstract partial class AbstractExtractMethodService<
                 return symbol switch
                 {
                     ILocalSymbol local => new VariableInfo(
-                        new LocalVariableSymbol(local, type, _nonNoisySyntaxKindSet),
+                        new LocalVariableSymbol(local, type),
                         style,
                         useAsReturnValue: false),
                     IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(parameter, type), style, useAsReturnValue: false),
