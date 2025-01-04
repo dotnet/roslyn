@@ -229,20 +229,16 @@ internal abstract partial class AbstractExtractMethodService<
         /// </summary>
         private (TExecutableStatementSyntax firstStatement, TExecutableStatementSyntax lastStatement) GetFlowAnalysisNodeRange()
         {
-            var first = this.GetFirstStatement();
-            var last = this.GetLastStatement();
-
-            // single statement case
-            if (first == last ||
-                first.Span.Contains(last.Span))
+            if (this.IsExtractMethodOnSingleStatement)
             {
+                var first = this.GetFirstStatement();
                 return (first, first);
             }
-
-            // multiple statement case
-            var firstUnderContainer = this.GetFirstStatementUnderContainer();
-            var lastUnderContainer = this.GetLastStatementUnderContainer();
-            return (firstUnderContainer, lastUnderContainer);
+            else
+            {
+                // multiple statement case
+                return (this.GetFirstStatementUnderContainer(), this.GetLastStatementUnderContainer());
+            }
         }
 
         /// <summary>
