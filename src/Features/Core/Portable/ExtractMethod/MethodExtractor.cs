@@ -82,13 +82,7 @@ internal abstract partial class AbstractExtractMethodService<
                     var generator = this.CreateCodeGenerator(
                         OriginalSelectionResult.With(triviaResult.SemanticDocument),
                         analyzeResult);
-
                     var generatedCode = await generator.GenerateAsync(cancellationToken).ConfigureAwait(false);
-                    //GenerateCodeAsync(
-                    //    triviaResult.SemanticDocument,
-                    //    OriginalSelectionResult.With(triviaResult.SemanticDocument),
-                    //    analyzeResult,
-                    //    cancellationToken).ConfigureAwait(false);
 
                     var afterTriviaRestored = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
