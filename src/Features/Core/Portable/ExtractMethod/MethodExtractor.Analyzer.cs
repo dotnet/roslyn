@@ -243,39 +243,31 @@ internal abstract partial class AbstractExtractMethodService<
                             // More interesting case.  We have a return statement *and* some form of flow control we
                             // need to convey to the caller as well.  Create a special variable to represent that
                             // control flow value.
+                            allVariableInfos = allVariableInfos.Insert(0,
+                                new VariableInfo(new FlowControlVariableSymbol(
+                                    SemanticDocument.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean)),
+                                    VariableStyle.Out, useAsReturnValue: false));
                         }
                     }
                     else
                     {
-                        if (breakCount == 0 && continueCount == 0)
+                        if (breakCount > 0 && continueCount > 0)
                         {
-                            // No return statement, and no interesting flow control.  In this case, attempt to 
+                            // No return statement, but there was interesting flow control.  Note: we do not care about
+                            // endPointIsReachable here since there were no return statements.
+                            allVariableInfos = allVariableInfos.Insert(0,
+                                new VariableInfo(new FlowControlVariableSymbol(
+                                    SemanticDocument.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean)),
+                                    VariableStyle.Out, useAsReturnValue: false));
                         }
-                        else
-                        {
-
-                        }
                     }
 
-                    // If we get here, then we have a selection that either doesn't contain a return statement (and may
-                    // or may not have complex flow control), or it does contain a return statement *as well as* complex
-                    // flow control.
-                    if (this.IsInExpressionOrHasReturnStatement())
-                    {
-                        // check whether current selection contains return statement
-                        var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
-                        return (allVariableInfos, returnType, returnsByRef);
-                    }
-                    else
-                    {
-                        // no return statement
-                        var finalOrderedVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(allVariableInfos);
-                        var variablesToUseAsReturnValue = finalOrderedVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
+                    var finalOrderedVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(allVariableInfos);
+                    var variablesToUseAsReturnValue = finalOrderedVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
 
-                        var returnType = GetReturnType(variablesToUseAsReturnValue);
+                    var returnType = GetReturnType(variablesToUseAsReturnValue);
 
-                        return (finalOrderedVariableInfos, returnType, returnsByRef: false);
-                    }
+                    return (finalOrderedVariableInfos, returnType, returnsByRef: false);
                 }
 
                 ITypeSymbol GetReturnType(ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
