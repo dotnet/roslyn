@@ -38,9 +38,7 @@ internal abstract partial class AbstractExtractMethodService<
         protected abstract SyntaxNode GetInsertionPointNode(AnalyzerResult analyzerResult, CancellationToken cancellationToken);
         protected abstract Task<TriviaResult> PreserveTriviaAsync(SyntaxNode root, CancellationToken cancellationToken);
 
-        protected abstract CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult);
-        protected abstract Task<SemanticDocument> GenerateCodeAsync(
-            InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, ExtractMethodGenerationOptions options, CancellationToken cancellationToken);
+        protected abstract CodeGenerator CreateCodeGenerator(SelectionResult selectionResult, AnalyzerResult analyzerResult);
 
         protected abstract SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> tokens);
         protected abstract AbstractFormattingRule GetCustomFormattingRule(Document document);
@@ -63,7 +61,7 @@ internal abstract partial class AbstractExtractMethodService<
                 return ExtractMethodResult.Fail(canAddStatus);
 
             cancellationToken.ThrowIfCancellationRequested();
-            var codeGenerator = this.CreateCodeGenerator(analyzeResult);
+            var codeGenerator = this.CreateCodeGenerator(this.OriginalSelectionResult, analyzeResult);
 
             var statements = codeGenerator.GetNewMethodStatements(insertionPointNode, cancellationToken);
             if (statements.Status.Failed)
@@ -73,18 +71,16 @@ internal abstract partial class AbstractExtractMethodService<
                 status,
                 async cancellationToken =>
                 {
-                    var (analyzedDocument, insertionPoint) = await GetAnnotatedDocumentAndInsertionPointAsync(
+                    var analyzedDocument = await GetAnnotatedDocumentAndInsertionPointAsync(
                         OriginalSelectionResult, analyzeResult, insertionPointNode, cancellationToken).ConfigureAwait(false);
 
                     var triviaResult = await PreserveTriviaAsync(analyzedDocument.Root, cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var generatedCode = await GenerateCodeAsync(
-                        insertionPoint.With(triviaResult.SemanticDocument),
+                    var generator = this.CreateCodeGenerator(
                         OriginalSelectionResult.With(triviaResult.SemanticDocument),
-                        analyzeResult,
-                        Options,
-                        cancellationToken).ConfigureAwait(false);
+                        analyzeResult);
+                    var generatedCode = await generator.GenerateAsync(cancellationToken).ConfigureAwait(false);
 
                     var afterTriviaRestored = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
@@ -167,7 +163,7 @@ internal abstract partial class AbstractExtractMethodService<
             return (formattedDocument, finalInvocationNameToken == default ? null : finalInvocationNameToken);
         }
 
-        private static async Task<(SemanticDocument analyzedDocument, InsertionPoint insertionPoint)> GetAnnotatedDocumentAndInsertionPointAsync(
+        private static async Task<SemanticDocument> GetAnnotatedDocumentAndInsertionPointAsync(
             SelectionResult originalSelectionResult,
             AnalyzerResult analyzeResult,
             SyntaxNode insertionPointNode,
@@ -179,22 +175,27 @@ internal abstract partial class AbstractExtractMethodService<
             foreach (var variable in analyzeResult.Variables)
                 variable.AddIdentifierTokenAnnotationPair(tokenMap, cancellationToken);
 
-            var insertionPointAnnotation = new SyntaxAnnotation();
-            var 
-
+            var exitPoints = originalSelectionResult.IsExtractMethodOnExpression
+                ? []
+                : originalSelectionResult.GetStatementControlFlowAnalysis().ExitPoints;
             var finalRoot = document.Root.ReplaceSyntax(
-                nodes: analyzeResult.sele [insertionPointNode],
-                // intentionally using 'n' (new) here.  We want to see any updated sub tokens that were updated in computeReplacementToken
-                computeReplacementNode: (o, n) => n.WithAdditionalAnnotations(insertionPointAnnotation),
+                nodes: exitPoints.Append(insertionPointNode),
+                computeReplacementNode: (o, n) =>
+                {
+                    // intentionally using 'n' (new) here.  We want to see any updated sub tokens that were updated in computeReplacementToken
+                    if (o == insertionPointNode)
+                        return n.WithAdditionalAnnotations(InsertionPointAnnotation);
+                    else
+                        return n.WithAdditionalAnnotations(ExitPointAnnotation);
+                },
                 tokens: tokenMap.Keys,
                 computeReplacementToken: (o, n) => o.WithAdditionalAnnotations(tokenMap[o]),
                 trivia: null,
                 computeReplacementTrivia: null);
 
             var finalDocument = await document.WithSyntaxRootAsync(finalRoot, cancellationToken).ConfigureAwait(false);
-            var insertionPoint = new InsertionPoint(finalDocument, insertionPointAnnotation);
 
-            return (finalDocument, insertionPoint);
+            return finalDocument;
         }
 
         private ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
