@@ -249,7 +249,7 @@ internal abstract partial class AbstractExtractMethodService<
                     {
                         if (breakCount == 0 && continueCount == 0)
                         {
-
+                            // No return statement, and no interesting flow control.  In this case, attempt to 
                         }
                         else
                         {
@@ -260,8 +260,6 @@ internal abstract partial class AbstractExtractMethodService<
                     // If we get here, then we have a selection that either doesn't contain a return statement (and may
                     // or may not have complex flow control), or it does contain a return statement *as well as* complex
                     // flow control.
-
-
                     if (this.IsInExpressionOrHasReturnStatement())
                     {
                         // check whether current selection contains return statement
