@@ -37,6 +37,8 @@ internal abstract partial class AbstractExtractMethodService<
             /// </summary>
             public abstract OperationStatus<ImmutableArray<SyntaxNode>> GetNewMethodStatements(
                 SyntaxNode insertionPointNode, CancellationToken cancellationToken);
+
+            public abstract Task<SemanticDocument> GenerateAsync(CancellationToken cancellationToken);
         }
 
         protected abstract partial class CodeGenerator<TNodeUnderContainer, TCodeGenerationOptions> : CodeGenerator
@@ -99,10 +101,15 @@ internal abstract partial class AbstractExtractMethodService<
                 SemanticDocument newDocument, CancellationToken cancellationToken);
             #endregion
 
-            public async Task<SemanticDocument> GenerateAsync(InsertionPoint insertionPoint, CancellationToken cancellationToken)
+            private static SyntaxNode GetInsertionPoint(SemanticDocument document)
+                => document.Root.GetAnnotatedNodes(InsertionPointAnnotation).Single();
+
+            public sealed override async Task<SemanticDocument> GenerateAsync(CancellationToken cancellationToken)
             {
-                var newMethodDefinition = GenerateMethodDefinition(insertionPoint.GetContext(), cancellationToken);
-                var callSiteDocument = await InsertMethodAndUpdateCallSiteAsync(insertionPoint, newMethodDefinition, cancellationToken).ConfigureAwait(false);
+                var semanticDocument = SelectionResult.SemanticDocument;
+                var insertionPoint = GetInsertionPoint(semanticDocument);
+                var newMethodDefinition = GenerateMethodDefinition(insertionPoint, cancellationToken);
+                var callSiteDocument = await InsertMethodAndUpdateCallSiteAsync(semanticDocument, newMethodDefinition, cancellationToken).ConfigureAwait(false);
 
                 // For nullable reference types, we can provide a better experience by reducing use of nullable
                 // reference types after a method is done being generated. If we can determine that the method never
@@ -119,10 +126,9 @@ internal abstract partial class AbstractExtractMethodService<
             }
 
             private async Task<SemanticDocument> InsertMethodAndUpdateCallSiteAsync(
-                InsertionPoint insertionPoint, IMethodSymbol newMethodDefinition, CancellationToken cancellationToken)
+                SemanticDocument document, IMethodSymbol newMethodDefinition, CancellationToken cancellationToken)
             {
-                var document = this.SemanticDocument.Document;
-                var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
+                var codeGenerationService = document.GetRequiredLanguageService<ICodeGenerationService>();
 
                 // First, update the callsite with the call to the new method.
                 var outermostCallSiteContainer = GetOutermostCallSiteContainerToProcess(cancellationToken);
@@ -130,7 +136,7 @@ internal abstract partial class AbstractExtractMethodService<
                 var rootWithUpdatedCallSite = this.SemanticDocument.Root.ReplaceNode(
                     outermostCallSiteContainer,
                     await GenerateBodyForCallSiteContainerAsync(
-                        insertionPoint.GetContext(), outermostCallSiteContainer, cancellationToken).ConfigureAwait(false));
+                        GetInsertionPoint(document), outermostCallSiteContainer, cancellationToken).ConfigureAwait(false));
 
                 // Then insert the local-function/method into the updated document that contains the updated callsite.
                 var documentWithUpdatedCallSite = await this.SemanticDocument.WithSyntaxRootAsync(rootWithUpdatedCallSite, cancellationToken).ConfigureAwait(false);
@@ -151,7 +157,7 @@ internal abstract partial class AbstractExtractMethodService<
                     var localMethod = codeGenerationService.CreateMethodDeclaration(newMethodDefinition, CodeGenerationDestination.Unspecified, info, cancellationToken);
 
                     // Find the destination for the local function after the callsite has been fixed up.
-                    var destination = insertionPoint.With(documentWithUpdatedCallSite).GetContext();
+                    var destination = GetInsertionPoint(documentWithUpdatedCallSite);
                     var updatedDestination = codeGenerationService.AddStatements(destination, [localMethod], info, cancellationToken);
 
                     var finalRoot = documentWithUpdatedCallSite.Root.ReplaceNode(destination, updatedDestination);
@@ -160,10 +166,10 @@ internal abstract partial class AbstractExtractMethodService<
 
                 SyntaxNode InsertNormalMethod()
                 {
-                    var syntaxKinds = document.GetLanguageService<ISyntaxKindsService>();
+                    var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
 
                     // Find the destination for the new method after the callsite has been fixed up.
-                    var mappedMember = insertionPoint.With(documentWithUpdatedCallSite).GetContext();
+                    var mappedMember = GetInsertionPoint(documentWithUpdatedCallSite);
                     mappedMember = mappedMember.Parent?.RawKind == syntaxKinds.GlobalStatement
                         ? mappedMember.Parent
                         : mappedMember;
