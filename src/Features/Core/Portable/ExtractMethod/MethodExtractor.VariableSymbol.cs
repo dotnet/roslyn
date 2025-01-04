@@ -120,16 +120,14 @@ internal abstract partial class AbstractExtractMethodService<
             }
 
             public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+                => default;
 
             protected override int CompareToWorker(VariableSymbol other)
             {
                 return 0;
             }
 
-            public override string Name => "__flowControl";
+            public override string Name => "flowControl";
         }
 
         protected abstract class NotMovableVariableSymbol<TVariableSymbol, TSymbol>(

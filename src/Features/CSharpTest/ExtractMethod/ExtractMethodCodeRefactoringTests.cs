@@ -6079,4 +6079,55 @@ $@"
             }
             """);
     }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndFallThrough()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """);
+    }
 }

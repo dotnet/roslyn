@@ -7680,10 +7680,14 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
             {
                 void Test(bool b)
                 {
-                    NewMethod(b);
+                    bool flowControl = NewMethod(b);
+                    if (!flowControl)
+                    {
+                        return;
+                    }
                 }
 
-                private static void NewMethod(bool b)
+                private static bool NewMethod(bool b)
                 {
                     if (b)
                     {
@@ -7774,10 +7778,14 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
             {
                 void Test()
                 {
-                    NewMethod();
+                    bool flowControl = NewMethod();
+                    if (!flowControl)
+                    {
+                        return;
+                    }
                 }
 
-                private static void NewMethod()
+                private static bool NewMethod()
                 {
                     bool b = true;
                     if (b)
@@ -7903,18 +7911,23 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 {
                     Action d = () =>
                     {
-                        NewMethod();
+                        bool flowControl = NewMethod();
+                        if (!flowControl)
+                        {
+                            return;
+                        }
                     };
                 }
 
-                private static void NewMethod()
+                private static bool NewMethod()
                 {
                     int i = 1;
                     if (i > 10)
                     {
-                        return;
+                        return false;
                     }
                     Console.WriteLine(1);
+                    return true;
                 }
             }
             """;
@@ -12041,20 +12054,22 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                         test = null;
 
                         var a = test != null;
-                        NewMethod(ref test, a);
+                        bool flowControl = NewMethod(ref test, a);
                     }
 
-                    private static void NewMethod(ref object test, bool a)
+                    private static bool NewMethod(ref object test, bool a)
                     {
                         if (a)
                         {
-                            return;
+                            return false;
                         }
 
                         if (A == a)
                         {
                             test = new object();
                         }
+
+                        return true;
                     }
                 }
             }

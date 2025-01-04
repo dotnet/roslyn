@@ -66,15 +66,12 @@ internal sealed partial class CSharpExtractMethodService
                             _ => throw ExceptionUtilities.UnexpectedValue(node),
                         };
 
-<<<<<<< Updated upstream
                     case LocalFunctionStatementSyntax localFunction:
                         {
                             var method = semanticModel.GetRequiredDeclaredSymbol(localFunction, cancellationToken);
                             return (method.ReturnType, method.ReturnsByRef);
                         }
 
-=======
->>>>>>> Stashed changes
                     case BaseMethodDeclarationSyntax methodDeclaration:
                         {
                             var method = semanticModel.GetRequiredDeclaredSymbol(methodDeclaration, cancellationToken);
