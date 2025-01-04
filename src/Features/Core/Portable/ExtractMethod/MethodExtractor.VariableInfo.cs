@@ -5,10 +5,10 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
@@ -105,12 +105,9 @@ internal abstract partial class AbstractExtractMethodService<
             public bool CanBeCapturedByLocalFunction
                 => _variableSymbol.CanBeCapturedByLocalFunction;
 
-            public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate;
+            public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.SymbolType.ContainsAnonymousType();
 
-            public ITypeSymbol OriginalType => _variableSymbol.OriginalType;
-
-            public ITypeSymbol GetVariableType()
-                => _variableSymbol.OriginalType;
+            public ITypeSymbol SymbolType => _variableSymbol.SymbolType;
 
             public SyntaxToken GetIdentifierTokenAtDeclaration(SemanticDocument document)
                 => document.GetTokenWithAnnotation(_variableSymbol.IdentifierTokenAnnotation);
@@ -120,11 +117,8 @@ internal abstract partial class AbstractExtractMethodService<
 
             public SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken) => _variableSymbol.GetOriginalIdentifierToken(cancellationToken);
 
-            public static void SortVariables(ArrayBuilder<VariableInfo> variables)
-                => variables.Sort();
-
             public int CompareTo(VariableInfo other)
-                => VariableSymbol.Compare(this._variableSymbol, other._variableSymbol);
+                => this._variableSymbol.CompareTo(other._variableSymbol);
         }
     }
 }

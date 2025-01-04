@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 MyBase.New(result, options, localFunction:=False)
             End Sub
 
-            Protected Overrides Function CreateCodeGenerator(analyzerResult As AnalyzerResult) As CodeGenerator
-                Return VisualBasicCodeGenerator.Create(Me.OriginalSelectionResult, analyzerResult, Me.Options)
+            Protected Overrides Function CreateCodeGenerator(selectionResult As SelectionResult, analyzerResult As AnalyzerResult) As CodeGenerator
+                Return VisualBasicCodeGenerator.Create(selectionResult, analyzerResult, Me.Options)
             End Function
 
             Protected Overrides Function Analyze(cancellationToken As CancellationToken) As AnalyzerResult
@@ -55,11 +55,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return New VisualBasicTriviaResult(
                         Await semanticDocument.WithSyntaxRootAsync(result.Root, cancellationToken).ConfigureAwait(False),
                         result)
-            End Function
-
-            Protected Overrides Async Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, options As ExtractMethodGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
-                Dim generator = VisualBasicCodeGenerator.Create(selectionResult, analyzeResult, options)
-                Return Await generator.GenerateAsync(insertionPoint, cancellationToken).ConfigureAwait(False)
             End Function
 
             Protected Overrides Function GetCustomFormattingRule(document As Document) As AbstractFormattingRule

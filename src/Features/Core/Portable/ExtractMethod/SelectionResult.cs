@@ -45,7 +45,6 @@ internal abstract partial class AbstractExtractMethodService<
         /// </summary>
         private ControlFlowAnalysis? _statementControlFlowAnalysis;
 
-        protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken);
 
         public abstract TExecutableStatementSyntax GetFirstStatementUnderContainer();
@@ -56,15 +55,21 @@ internal abstract partial class AbstractExtractMethodService<
         public abstract SyntaxNode GetContainingScope();
         public abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
 
-        public abstract (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfo(CancellationToken cancellationToken);
+        protected abstract (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfoWorker(CancellationToken cancellationToken);
 
         public abstract ImmutableArray<TExecutableStatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> jumpsOutOfRegion);
         public abstract bool IsFinalSpanSemanticallyValidSpan(ImmutableArray<TExecutableStatementSyntax> returnStatements, CancellationToken cancellationToken);
-        public abstract bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> jumpsOutOfRegion);
+        public abstract bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints);
 
         protected abstract OperationStatus ValidateLanguageSpecificRules(CancellationToken cancellationToken);
 
-        public ITypeSymbol? GetReturnType(CancellationToken cancellationToken)
+        public (ITypeSymbol returnType, bool returnsByRef) GetReturnTypeInfo(CancellationToken cancellationToken)
+        {
+            var (returnType, returnsByRef) = GetReturnTypeInfoWorker(cancellationToken);
+            return (returnType ?? this.SemanticDocument.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Object), returnsByRef);
+        }
+
+        public ITypeSymbol GetReturnType(CancellationToken cancellationToken)
             => GetReturnTypeInfo(cancellationToken).returnType;
 
         public bool IsExtractMethodOnExpression => this.SelectionType == SelectionType.Expression;
@@ -224,20 +229,16 @@ internal abstract partial class AbstractExtractMethodService<
         /// </summary>
         private (TExecutableStatementSyntax firstStatement, TExecutableStatementSyntax lastStatement) GetFlowAnalysisNodeRange()
         {
-            var first = this.GetFirstStatement();
-            var last = this.GetLastStatement();
-
-            // single statement case
-            if (first == last ||
-                first.Span.Contains(last.Span))
+            if (this.IsExtractMethodOnSingleStatement)
             {
+                var first = this.GetFirstStatement();
                 return (first, first);
             }
-
-            // multiple statement case
-            var firstUnderContainer = this.GetFirstStatementUnderContainer();
-            var lastUnderContainer = this.GetLastStatementUnderContainer();
-            return (firstUnderContainer, lastUnderContainer);
+            else
+            {
+                // multiple statement case
+                return (this.GetFirstStatementUnderContainer(), this.GetLastStatementUnderContainer());
+            }
         }
 
         /// <summary>

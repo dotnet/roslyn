@@ -43,8 +43,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 MyBase.New(document, selectionType, finalSpan)
             End Sub
 
-            Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
-
             Protected Overrides Function UnderAnonymousOrLocalMethod(token As SyntaxToken, firstToken As SyntaxToken, lastToken As SyntaxToken) As Boolean
                 Dim current = token.Parent
 
@@ -130,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
             End Function
 
-            Public Overrides Function GetReturnTypeInfo(cancellationToken As CancellationToken) As (returnType As ITypeSymbol, returnsByRef As Boolean)
+            Protected Overrides Function GetReturnTypeInfoWorker(cancellationToken As CancellationToken) As (returnType As ITypeSymbol, returnsByRef As Boolean)
                 ' Todo: consider supporting byref return types in VB
                 Dim returnType = GetReturnTypeWorker()
                 Return (returnType, returnsByRef:=False)
@@ -291,11 +289,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Throw ExceptionUtilities.Unreachable
             End Function
 
-            Public Overrides Function ContainsNonReturnExitPointsStatements(jumpsOutOfRegion As ImmutableArray(Of SyntaxNode)) As Boolean
+            Public Overrides Function ContainsNonReturnExitPointsStatements(exitPoints As ImmutableArray(Of SyntaxNode)) As Boolean
                 Dim returnStatement = False
                 Dim exitStatement = False
 
-                For Each statement In jumpsOutOfRegion
+                For Each statement In exitPoints
                     If TypeOf statement Is ReturnStatementSyntax Then
                         returnStatement = True
                     ElseIf TypeOf statement Is ExitStatementSyntax Then
@@ -312,19 +310,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return False
             End Function
 
-            Public Overrides Function GetOuterReturnStatements(commonRoot As SyntaxNode, jumpsOutOfRegionStatements As ImmutableArray(Of SyntaxNode)) As ImmutableArray(Of ExecutableStatementSyntax)
-                Dim container = commonRoot.GetAncestorsOrThis(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault()
-                If container Is Nothing Then
-                    Return ImmutableArray(Of ExecutableStatementSyntax).Empty
-                End If
-
-                ' now filter return statements to only include the one under outmost container
-                Return jumpsOutOfRegionStatements.
+            Public Overrides Function GetOuterReturnStatements(commonRoot As SyntaxNode, exitPoints As ImmutableArray(Of SyntaxNode)) As ImmutableArray(Of ExecutableStatementSyntax)
+                Return exitPoints.
                     OfType(Of ExecutableStatementSyntax).
                     Where(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax).
-                    Select(Function(returnStatement) (returnStatement, container:=returnStatement.GetAncestors(Of SyntaxNode)().Where(Function(a) a.IsReturnableConstruct()).FirstOrDefault())).
-                    Where(Function(p) p.container Is container).
-                    SelectAsArray(Function(p) p.returnStatement)
+                    ToImmutableArray()
             End Function
 
             Public Overrides Function IsFinalSpanSemanticallyValidSpan(

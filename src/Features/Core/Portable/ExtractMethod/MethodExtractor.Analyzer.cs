@@ -52,11 +52,6 @@ internal abstract partial class AbstractExtractMethodService<
             /// </summary>
             protected abstract bool ContainsReturnStatementInSelectedCode(ImmutableArray<SyntaxNode> exitPoints);
 
-            /// <summary>
-            /// create VariableInfo type
-            /// </summary>
-            protected abstract VariableInfo CreateFromSymbol(ISymbol symbol, ITypeSymbol type, VariableStyle variableStyle, bool variableDeclared);
-
             protected virtual bool IsReadOutside(ISymbol symbol, HashSet<ISymbol> readOutsideMap)
                 => readOutsideMap.Contains(symbol);
 
@@ -127,12 +122,10 @@ internal abstract partial class AbstractExtractMethodService<
                 // check whether end of selection is reachable
                 var endOfSelectionReachable = this.SelectionResult.IsEndOfSelectionReachable();
 
-                var isInExpressionOrHasReturnStatement = IsInExpressionOrHasReturnStatement();
-
                 // check whether the selection contains "&" over a symbol exist
                 var unsafeAddressTakenUsed = dataFlowAnalysisData.UnsafeAddressTaken.Intersect(variableInfoMap.Keys).Any();
-                var (parameters, returnType, returnsByRef, variablesToUseAsReturnValue) =
-                    GetSignatureInformation(variableInfoMap, isInExpressionOrHasReturnStatement);
+
+                var (variables, returnType, returnsByRef) = GetSignatureInformation(variableInfoMap);
 
                 (returnType, var awaitTaskReturn) = AdjustReturnType(returnType);
 
@@ -143,13 +136,12 @@ internal abstract partial class AbstractExtractMethodService<
 
                 // check various error cases
                 var operationStatus = GetOperationStatus(
-                    symbolMap, parameters, failedVariables, unsafeAddressTakenUsed, returnType.ContainsAnonymousType(), containsAnyLocalFunctionCallNotWithinSpan);
+                    symbolMap, variables, failedVariables, unsafeAddressTakenUsed, returnType.ContainsAnonymousType(), containsAnyLocalFunctionCallNotWithinSpan);
 
                 return new AnalyzerResult(
                     typeParametersInDeclaration,
                     typeParametersInConstraintList,
-                    parameters,
-                    variablesToUseAsReturnValue,
+                    variables,
                     returnType,
                     returnsByRef,
                     awaitTaskReturn,
@@ -215,43 +207,41 @@ internal abstract partial class AbstractExtractMethodService<
                 return (returnType, awaitTaskReturn: false);
             }
 
-            private (ImmutableArray<VariableInfo> parameters, ITypeSymbol returnType, bool returnsByRef, ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
-                GetSignatureInformation(
-                    Dictionary<ISymbol, VariableInfo> variableInfoMap,
-                    bool isInExpressionOrHasReturnStatement)
+            private (ImmutableArray<VariableInfo> finalOrderedVariableInfos, ITypeSymbol returnType, bool returnsByRef)
+                GetSignatureInformation(Dictionary<ISymbol, VariableInfo> symbolMap)
             {
-                var model = this.SemanticDocument.SemanticModel;
-                var compilation = model.Compilation;
-                if (isInExpressionOrHasReturnStatement)
+                var allVariableInfos = symbolMap.Values.Order().ToImmutableArray();
+
+                if (this.IsInExpressionOrHasReturnStatement())
                 {
                     // check whether current selection contains return statement
-                    var parameters = GetMethodParameters(variableInfoMap);
                     var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
-                    returnType ??= compilation.GetSpecialType(SpecialType.System_Object);
 
-                    return (parameters, returnType, returnsByRef, []);
+                    return (allVariableInfos, returnType, returnsByRef);
                 }
                 else
                 {
                     // no return statement
-                    var parameters = MarkVariableInfosToUseAsReturnValueIfPossible(GetMethodParameters(variableInfoMap));
-                    var variablesToUseAsReturnValue = parameters.WhereAsArray(v => v.UseAsReturnValue);
+                    var finalOrderedVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(allVariableInfos);
+                    var variablesToUseAsReturnValue = finalOrderedVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
 
                     var returnType = GetReturnType(variablesToUseAsReturnValue);
 
-                    return (parameters, returnType, returnsByRef: false, variablesToUseAsReturnValue);
+                    return (finalOrderedVariableInfos, returnType, returnsByRef: false);
                 }
 
                 ITypeSymbol GetReturnType(ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
                 {
+                    var compilation = this.SemanticDocument.SemanticModel.Compilation;
+
                     if (variablesToUseAsReturnValue.IsEmpty)
                         return compilation.GetSpecialType(SpecialType.System_Void);
 
                     if (variablesToUseAsReturnValue is [var info])
-                        return info.GetVariableType();
+                        return info.SymbolType;
 
                     return compilation.CreateTupleTypeSymbol(
-                        variablesToUseAsReturnValue.SelectAsArray(v => v.GetVariableType()),
+                        variablesToUseAsReturnValue.SelectAsArray(v => v.SymbolType),
                         variablesToUseAsReturnValue.SelectAsArray(v => v.Name)!);
                 }
             }
@@ -260,8 +250,8 @@ internal abstract partial class AbstractExtractMethodService<
                 => SelectionResult.IsExtractMethodOnExpression || ContainsReturnStatementInSelectedCode();
 
             private OperationStatus GetOperationStatus(
-                Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
-                IList<VariableInfo> parameters,
+                MultiDictionary<ISymbol, SyntaxToken> symbolMap,
+                ImmutableArray<VariableInfo> variables,
                 IList<ISymbol> failedVariables,
                 bool unsafeAddressTakenUsed,
                 bool returnTypeHasAnonymousType,
@@ -269,7 +259,7 @@ internal abstract partial class AbstractExtractMethodService<
             {
                 var readonlyFieldStatus = CheckReadOnlyFields(symbolMap);
 
-                var namesWithAnonymousTypes = parameters.Where(v => v.OriginalTypeHadAnonymousTypeOrDelegate).Select(v => v.Name ?? string.Empty);
+                var namesWithAnonymousTypes = variables.Where(v => v.OriginalTypeHadAnonymousTypeOrDelegate).Select(v => v.Name ?? string.Empty);
                 if (returnTypeHasAnonymousType)
                 {
                     namesWithAnonymousTypes = namesWithAnonymousTypes.Concat("return type");
@@ -286,7 +276,7 @@ internal abstract partial class AbstractExtractMethodService<
                     ? OperationStatus.UnsafeAddressTaken
                     : OperationStatus.SucceededStatus;
 
-                var asyncRefOutParameterStatus = CheckAsyncMethodRefOutParameters(parameters);
+                var asyncRefOutParameterStatus = CheckAsyncMethodRefOutParameters(variables);
 
                 var variableMapStatus = failedVariables.Count == 0
                     ? OperationStatus.SucceededStatus
@@ -320,10 +310,30 @@ internal abstract partial class AbstractExtractMethodService<
                 return OperationStatus.SucceededStatus;
             }
 
-            private Dictionary<ISymbol, List<SyntaxToken>> GetSymbolMap()
+            private MultiDictionary<ISymbol, SyntaxToken> GetSymbolMap()
             {
+                var symbolMap = new MultiDictionary<ISymbol, SyntaxToken>();
+
+                var semanticModel = this.SemanticModel;
+                var syntaxFacts = this.SyntaxFacts;
                 var context = SelectionResult.GetContainingScope();
-                var symbolMap = SymbolMapBuilder.Build(this.SyntaxFacts, this.SemanticModel, context, SelectionResult.FinalSpan, CancellationToken);
+
+                foreach (var token in context.DescendantTokens())
+                {
+                    if (token.IsMissing ||
+                        token.Width() <= 0 ||
+                        !this.SelectionResult.FinalSpan.Contains(token.Span) ||
+                        !syntaxFacts.IsIdentifier(token) ||
+                        syntaxFacts.IsNameOfNamedArgument(token.Parent))
+                    {
+                        continue;
+                    }
+
+                    var symbolInfo = semanticModel.GetSymbolInfo(token, this.CancellationToken);
+                    foreach (var sym in symbolInfo.GetAllSymbols())
+                        symbolMap.Add(sym, token);
+                }
+
                 return symbolMap;
             }
 
@@ -410,21 +420,13 @@ internal abstract partial class AbstractExtractMethodService<
                 return -1;
             }
 
-            private static ImmutableArray<VariableInfo> GetMethodParameters(Dictionary<ISymbol, VariableInfo> variableInfoMap)
-            {
-                var list = new FixedSizeArrayBuilder<VariableInfo>(variableInfoMap.Count);
-                list.AddRange(variableInfoMap.Values);
-                list.Sort();
-                return list.MoveToImmutable();
-            }
-
             /// <param name="bestEffort">When false, variables whose data flow is not understood
             /// will be returned in <paramref name="failedVariables"/>. When true, we assume any
             /// variable we don't understand has <see cref="VariableStyle.None"/></param>
             private void GenerateVariableInfoMap(
                 bool bestEffort,
                 DataFlowAnalysis dataFlowAnalysisData,
-                Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
+                MultiDictionary<ISymbol, SyntaxToken> symbolMap,
                 bool isInPrimaryConstructorBaseType,
                 out Dictionary<ISymbol, VariableInfo> variableInfoMap,
                 out List<ISymbol> failedVariables)
@@ -525,10 +527,20 @@ internal abstract partial class AbstractExtractMethodService<
                         continue;
                     }
 
+                    // An assignment to a VB 'function value'.  (e.g. `MethodName = value`) needs to be treated as a
+                    // return value from the inner function which the outer function then still assigns to its function
+                    // value.
+                    if (symbol is ILocalSymbol { IsFunctionValue: true } &&
+                        variableStyle.ParameterStyle.DeclarationBehavior != DeclarationBehavior.None)
+                    {
+                        Contract.ThrowIfFalse(variableStyle.ParameterStyle.DeclarationBehavior == DeclarationBehavior.MoveIn || variableStyle.ParameterStyle.DeclarationBehavior == DeclarationBehavior.SplitIn);
+                        variableStyle = AlwaysReturn(variableStyle);
+                    }
+
                     AddVariableToMap(
                         variableInfoMap,
                         symbol,
-                        CreateFromSymbol(symbol, type, variableStyle, variableDeclared));
+                        CreateFromSymbol(symbol, type, variableStyle));
                 }
 
                 return;
@@ -572,6 +584,23 @@ internal abstract partial class AbstractExtractMethodService<
 
                     return type;
                 }
+
+                static VariableInfo CreateFromSymbol(
+                   ISymbol symbol,
+                   ITypeSymbol type,
+                   VariableStyle style)
+                {
+                    return symbol switch
+                    {
+                        ILocalSymbol local => new VariableInfo(
+                            new LocalVariableSymbol(local, type),
+                            style,
+                            useAsReturnValue: false),
+                        IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(parameter, type), style, useAsReturnValue: false),
+                        IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(rangeVariable, type), style, useAsReturnValue: false),
+                        _ => throw ExceptionUtilities.UnexpectedValue(symbol)
+                    };
+                }
             }
 
             private static void AddVariableToMap(IDictionary<ISymbol, VariableInfo> variableInfoMap, ISymbol localOrParameter, VariableInfo variableInfo)
@@ -579,7 +608,7 @@ internal abstract partial class AbstractExtractMethodService<
 
             private bool TryGetVariableStyle(
                 bool bestEffort,
-                Dictionary<ISymbol, List<SyntaxToken>> symbolMap,
+                MultiDictionary<ISymbol, SyntaxToken> symbolMap,
                 ISymbol symbol,
                 ITypeSymbol type,
                 bool captured,
@@ -634,9 +663,10 @@ internal abstract partial class AbstractExtractMethodService<
             }
 
             private bool IsWrittenInsideForFrameworkValueType(
-                Dictionary<ISymbol, List<SyntaxToken>> symbolMap, ISymbol symbol, bool writtenInside)
+                MultiDictionary<ISymbol, SyntaxToken> symbolMap, ISymbol symbol, bool writtenInside)
             {
-                if (!symbolMap.TryGetValue(symbol, out var tokens))
+                var tokens = symbolMap[symbol];
+                if (tokens.Count == 0)
                     return writtenInside;
 
                 var semanticFacts = this.SemanticFacts;
@@ -790,24 +820,21 @@ internal abstract partial class AbstractExtractMethodService<
                 }
             }
 
-            private static void AppendMethodTypeParameterUsedDirectly(IDictionary<ISymbol, List<SyntaxToken>> symbolMap, IDictionary<int, ITypeParameterSymbol> sortedMap)
+            private static void AppendMethodTypeParameterUsedDirectly(MultiDictionary<ISymbol, SyntaxToken> symbolMap, IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
-                foreach (var pair in symbolMap.Where(p => p.Key.Kind == SymbolKind.TypeParameter))
+                foreach (var typeParameter in symbolMap.Keys.OfType<ITypeParameterSymbol>())
                 {
-                    var typeParameter = (ITypeParameterSymbol)pair.Key;
-                    if (typeParameter.DeclaringMethod == null ||
-                        sortedMap.ContainsKey(typeParameter.Ordinal))
+                    if (typeParameter.DeclaringMethod != null &&
+                        !sortedMap.ContainsKey(typeParameter.Ordinal))
                     {
-                        continue;
+                        sortedMap[typeParameter.Ordinal] = typeParameter;
                     }
-
-                    sortedMap[typeParameter.Ordinal] = typeParameter;
                 }
             }
 
             private ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInConstraintList(
                 IDictionary<ISymbol, VariableInfo> variableInfoMap,
-                IDictionary<ISymbol, List<SyntaxToken>> symbolMap,
+                MultiDictionary<ISymbol, SyntaxToken> symbolMap,
                 SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 // find starting points
@@ -822,80 +849,63 @@ internal abstract partial class AbstractExtractMethodService<
 
             private static void AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
-                var visited = new HashSet<ITypeSymbol>();
-                var candidates = SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
+                using var _1 = PooledHashSet<ITypeSymbol>.GetInstance(out var visited);
+                using var _2 = PooledHashSet<ITypeParameterSymbol>.GetInstance(out var candidates);
 
                 // collect all type parameter appears in constraint
                 foreach (var typeParameter in sortedMap.Values)
                 {
                     var constraintTypes = typeParameter.ConstraintTypes;
                     if (constraintTypes.IsDefaultOrEmpty)
-                    {
                         continue;
-                    }
 
                     foreach (var type in constraintTypes)
-                    {
-                        candidates = candidates.Concat(AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(type, visited));
-                    }
+                        AddTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(type, visited, candidates);
                 }
 
                 // pick up only valid type parameter and add them to the map
                 foreach (var typeParameter in candidates)
-                {
                     AddTypeParameterToMap(typeParameter, sortedMap);
-                }
             }
 
-            private static IEnumerable<ITypeParameterSymbol> AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(
-                ITypeSymbol type, HashSet<ITypeSymbol> visited)
+            private static void AddTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(
+                ITypeSymbol type, HashSet<ITypeSymbol> visited, HashSet<ITypeParameterSymbol> typeParameters)
             {
-                if (visited.Contains(type))
-                    return [];
-
-                visited.Add(type);
+                if (!visited.Add(type))
+                    return;
 
                 if (type.OriginalDefinition.Equals(type))
-                    return [];
+                    return;
 
                 if (type is not INamedTypeSymbol constructedType)
-                    return [];
+                    return;
 
-                var parameters = constructedType.GetAllTypeParameters().ToList();
-                var arguments = constructedType.GetAllTypeArguments().ToList();
+                var parameters = constructedType.GetAllTypeParameters();
+                var arguments = constructedType.GetAllTypeArguments();
 
-                Contract.ThrowIfFalse(parameters.Count == arguments.Count);
+                Contract.ThrowIfFalse(parameters.Length == arguments.Length);
 
-                var typeParameters = new List<ITypeParameterSymbol>();
-                for (var i = 0; i < parameters.Count; i++)
+                for (var i = 0; i < parameters.Length; i++)
                 {
-                    var parameter = parameters[i];
-
                     if (arguments[i] is ITypeParameterSymbol argument)
                     {
-                        // no constraint, nothing to do
-                        if (!parameter.HasConstructorConstraint &&
-                            !parameter.HasReferenceTypeConstraint &&
-                            !parameter.HasValueTypeConstraint &&
-                            !parameter.AllowsRefLikeType &&
-                            parameter.ConstraintTypes.IsDefaultOrEmpty)
+                        if (parameters[i] is not
+                            {
+                                HasConstructorConstraint: false,
+                                HasReferenceTypeConstraint: false,
+                                HasValueTypeConstraint: false,
+                                AllowsRefLikeType: false,
+                                ConstraintTypes.IsDefaultOrEmpty: true
+                            })
                         {
-                            continue;
+                            typeParameters.Add(argument);
                         }
-
-                        typeParameters.Add(argument);
-                        continue;
                     }
-
-                    if (arguments[i] is not INamedTypeSymbol candidate)
+                    else if (arguments[i] is INamedTypeSymbol candidate)
                     {
-                        continue;
+                        AddTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(candidate, visited, typeParameters);
                     }
-
-                    typeParameters.AddRange(AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(candidate, visited));
                 }
-
-                return typeParameters;
             }
 
             private static ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
@@ -908,7 +918,7 @@ internal abstract partial class AbstractExtractMethodService<
                 return [.. sortedMap.Values];
             }
 
-            private OperationStatus CheckReadOnlyFields(Dictionary<ISymbol, List<SyntaxToken>> symbolMap)
+            private OperationStatus CheckReadOnlyFields(MultiDictionary<ISymbol, SyntaxToken> symbolMap)
             {
                 if (ReadOnlyFieldAllowed())
                     return OperationStatus.SucceededStatus;
@@ -932,23 +942,6 @@ internal abstract partial class AbstractExtractMethodService<
                     return new OperationStatus(succeeded: true, string.Format(FeaturesResources.Assigning_to_readonly_fields_must_be_done_in_a_constructor_colon_bracket_0_bracket, string.Join(", ", names)));
 
                 return OperationStatus.SucceededStatus;
-            }
-
-            protected static VariableInfo CreateFromSymbolCommon(
-                ISymbol symbol,
-                ITypeSymbol type,
-                VariableStyle style)
-            {
-                return symbol switch
-                {
-                    ILocalSymbol local => new VariableInfo(
-                        new LocalVariableSymbol(local, type),
-                        style,
-                        useAsReturnValue: false),
-                    IParameterSymbol parameter => new VariableInfo(new ParameterVariableSymbol(parameter, type), style, useAsReturnValue: false),
-                    IRangeVariableSymbol rangeVariable => new VariableInfo(new QueryVariableSymbol(rangeVariable, type), style, useAsReturnValue: false),
-                    _ => throw ExceptionUtilities.UnexpectedValue(symbol)
-                };
             }
         }
     }

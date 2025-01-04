@@ -588,8 +588,8 @@ internal static partial class ITypeSymbolExtensions
         // We should not have gotten here unless there were identity conversions between the
         // two types.
 
-        var allTypeArgs1 = n1.GetAllTypeArguments().ToList();
-        var allTypeArgs2 = n2.GetAllTypeArguments().ToList();
+        var allTypeArgs1 = n1.GetAllTypeArguments();
+        var allTypeArgs2 = n2.GetAllTypeArguments();
 
         return allTypeArgs1.AreMoreSpecificThan(allTypeArgs2);
     }

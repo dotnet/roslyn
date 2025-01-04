@@ -25,7 +25,6 @@ internal abstract partial class AbstractExtractMethodService<
             ImmutableArray<ITypeParameterSymbol> typeParametersInDeclaration,
             ImmutableArray<ITypeParameterSymbol> typeParametersInConstraintList,
             ImmutableArray<VariableInfo> variables,
-            ImmutableArray<VariableInfo> variablesToUseAsReturnValue,
             ITypeSymbol returnType,
             bool returnsByRef,
             bool awaitTaskReturn,
@@ -36,7 +35,7 @@ internal abstract partial class AbstractExtractMethodService<
         {
             public ImmutableArray<ITypeParameterSymbol> MethodTypeParametersInDeclaration { get; } = typeParametersInDeclaration;
             public ImmutableArray<ITypeParameterSymbol> MethodTypeParametersInConstraintList { get; } = typeParametersInConstraintList;
-            public ImmutableArray<VariableInfo> VariablesToUseAsReturnValue { get; } = variablesToUseAsReturnValue;
+            public ImmutableArray<VariableInfo> VariablesToUseAsReturnValue { get; } = variables.WhereAsArray(v => v.UseAsReturnValue);
 
             /// <summary>
             /// used to determine whether static can be used

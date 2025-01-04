@@ -37,7 +37,7 @@ internal sealed partial class CSharpExtractMethodService
 {
     internal sealed partial class CSharpMethodExtractor
     {
-        private abstract partial class CSharpCodeGenerator : CodeGenerator<StatementSyntax, SyntaxNode, CSharpCodeGenerationOptions>
+        private abstract partial class CSharpCodeGenerator : CodeGenerator<SyntaxNode, CSharpCodeGenerationOptions>
         {
             private readonly SyntaxToken _methodName;
 
@@ -159,7 +159,7 @@ internal sealed partial class CSharpExtractMethodService
                 => node is MemberDeclarationSyntax member && member.GetExpressionBody() != null;
 
             private static bool IsExpressionBodiedAccessor(SyntaxNode node)
-                => node is AccessorDeclarationSyntax accessor && accessor.ExpressionBody != null;
+                => node is AccessorDeclarationSyntax { ExpressionBody: not null };
 
             private SimpleNameSyntax CreateMethodNameForInvocation()
             {
@@ -662,8 +662,7 @@ internal sealed partial class CSharpExtractMethodService
 
                 if (variableInfos is [var singleVariable])
                 {
-                    var type = singleVariable.GetVariableType();
-                    var typeNode = type.GenerateTypeSyntax();
+                    var typeNode = singleVariable.SymbolType.GenerateTypeSyntax();
 
                     var originalIdentifierToken = singleVariable.GetOriginalIdentifierToken(cancellationToken);
 
@@ -704,7 +703,7 @@ internal sealed partial class CSharpExtractMethodService
                     {
                         left = TupleExpression(
                             [.. variableInfos.Select(v => Argument(v.ReturnBehavior == ReturnBehavior.Initialization
-                            ? DeclarationExpression(v.GetVariableType().GenerateTypeSyntax(), SingleVariableDesignation(v.Name.ToIdentifierToken()))
+                            ? DeclarationExpression(v.SymbolType.GenerateTypeSyntax(), SingleVariableDesignation(v.Name.ToIdentifierToken()))
                             : v.Name.ToIdentifierName()))]);
                     }
 
@@ -712,7 +711,7 @@ internal sealed partial class CSharpExtractMethodService
                 }
             }
 
-            protected override async Task<GeneratedCode> CreateGeneratedCodeAsync(
+            protected override async Task<SemanticDocument> PerformFinalTriviaFixupAsync(
                 SemanticDocument newDocument, CancellationToken cancellationToken)
             {
                 // in hybrid code cases such as extract method, formatter will have some difficulties on where it breaks lines in two.
@@ -731,7 +730,7 @@ internal sealed partial class CSharpExtractMethodService
                 newDocument = await newDocument.WithSyntaxRootAsync(
                     root.ReplaceNode(methodDefinition, newMethodDefinition), cancellationToken).ConfigureAwait(false);
 
-                return await base.CreateGeneratedCodeAsync(newDocument, cancellationToken).ConfigureAwait(false);
+                return newDocument;
             }
 
             private static MethodDeclarationSyntax TweakNewLinesInMethod(MethodDeclarationSyntax method)

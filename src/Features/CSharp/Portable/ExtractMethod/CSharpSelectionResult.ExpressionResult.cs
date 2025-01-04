@@ -45,7 +45,7 @@ internal sealed partial class CSharpExtractMethodService
                 return CSharpSyntaxFacts.Instance.GetRootStandaloneExpression(scope);
             }
 
-            public override (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfo(CancellationToken cancellationToken)
+            protected override (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfoWorker(CancellationToken cancellationToken)
             {
                 if (GetContainingScope() is not ExpressionSyntax node)
                 {
@@ -130,19 +130,31 @@ internal sealed partial class CSharpExtractMethodService
                     return !info.Type.IsObjectType() ? info.GetTypeWithAnnotatedNullability() : info.GetConvertedTypeWithAnnotatedNullability();
                 }
             }
-        }
 
-        private static bool IsCoClassImplicitConversion(TypeInfo info, Conversion conversion, INamedTypeSymbol? coclassSymbol)
-        {
-            if (!conversion.IsImplicit ||
-                 info.ConvertedType == null ||
-                 info.ConvertedType.TypeKind != TypeKind.Interface)
+            private static bool IsCoClassImplicitConversion(TypeInfo info, Conversion conversion, INamedTypeSymbol? coclassSymbol)
             {
-                return false;
+                if (!conversion.IsImplicit ||
+                     info.ConvertedType == null ||
+                     info.ConvertedType.TypeKind != TypeKind.Interface)
+                {
+                    return false;
+                }
+
+                // let's see whether this interface has coclass attribute
+                return info.ConvertedType.HasAttribute(coclassSymbol);
             }
 
-            // let's see whether this interface has coclass attribute
-            return info.ConvertedType.HasAttribute(coclassSymbol);
+            public override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
+            {
+                var container = this.GetInnermostStatementContainer();
+
+                Contract.ThrowIfNull(container);
+                Contract.ThrowIfFalse(
+                    container.IsStatementContainerNode() ||
+                    container is BaseListSyntax or TypeDeclarationSyntax or ConstructorDeclarationSyntax or CompilationUnitSyntax);
+
+                return container;
+            }
         }
     }
 }

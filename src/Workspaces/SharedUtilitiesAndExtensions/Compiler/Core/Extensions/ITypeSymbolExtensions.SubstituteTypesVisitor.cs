@@ -68,8 +68,8 @@ internal static partial class ITypeSymbolExtensions
             }
 
             // If we don't even have any type arguments, then there's nothing to do.
-            var allTypeArguments = symbol.GetAllTypeArguments().ToList();
-            if (allTypeArguments.Count == 0)
+            var allTypeArguments = symbol.GetAllTypeArguments();
+            if (allTypeArguments.Length == 0)
             {
                 return symbol;
             }
