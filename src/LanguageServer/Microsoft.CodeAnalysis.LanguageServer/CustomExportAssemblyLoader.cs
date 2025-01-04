@@ -96,7 +96,7 @@ internal class CustomExportAssemblyLoader(ExtensionAssemblyManager extensionAsse
         }
 
         // As described above, we can get a code base URI that contains the unescaped code base file path.  This can cause issues when we parse it as a URI if the code base file path
-        // contains URI reserved characters (for example '#') which are left unescaped in the URI string.  While we it is a well formed URI, when System.Uri parses the code base URI
+        // contains URI reserved characters (for example '#') which are left unescaped in the URI string.  While it is a well formed URI, when System.Uri parses the code base URI
         // the path component can get mangled and longer accurately represent the actual file system path.
         //
         // A concrete example - given code base URI 'file:///c:/Learn C#/file.dll', the path component from System.Uri will be 'c:/learn c' and '#/file.dll' is parsed as part of the fragment.
