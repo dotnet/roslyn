@@ -68,7 +68,7 @@ Get-ChildItem -Recurse -Path $RepoRoot\test\*.trx |% {
     $runTitle = $null
     if ($x.TestRun.TestDefinitions -and $x.TestRun.TestDefinitions.GetElementsByTagName('UnitTest')) {
       $storage = $x.TestRun.TestDefinitions.GetElementsByTagName('UnitTest')[0].storage -replace '\\','/'
-      if ($storage -match '/(?<tfm>net[^/]+)/(?:(?<rid>[^/]+)/)?(?<lib>[^/]+)\.dll$') {
+      if ($storage -match '/(?<tfm>net[^/]+)/(?:(?<rid>[^/]+)/)?(?<lib>[^/]+)\.(dll|exe)$') {
         if ($matches.rid) {
           $runTitle = "$($matches.lib) ($($matches.tfm), $($matches.rid), $Agent)"
         } else {
