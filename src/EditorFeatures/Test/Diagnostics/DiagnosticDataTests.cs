@@ -168,6 +168,43 @@ namespace B
     }
 
     [Fact]
+    public async Task DiagnosticData_NoneAdditionalLocationIsPreserved()
+    {
+        using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures);
+
+        var additionalDocument = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+            .AddDocument("test.cs", "", filePath: "test.cs");
+
+        var document = additionalDocument.Project.Documents.Single();
+
+        var noneAdditionalLocation = new DiagnosticDataLocation(new FileLinePositionSpan("", default));
+
+        var diagnosticData = new DiagnosticData(
+            id: "test1",
+            category: "Test",
+            message: "test1 message",
+            severity: DiagnosticSeverity.Info,
+            defaultSeverity: DiagnosticSeverity.Info,
+            isEnabledByDefault: true,
+            warningLevel: 1,
+            projectId: document.Project.Id,
+            customTags: [],
+            properties: ImmutableDictionary<string, string>.Empty,
+            location: new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath, span: default), document.Id),
+            additionalLocations: [noneAdditionalLocation],
+            language: document.Project.Language);
+
+        var diagnostic = await diagnosticData.ToDiagnosticAsync(document.Project, CancellationToken.None);
+        var roundTripDiagnosticData = DiagnosticData.Create(diagnostic, document);
+
+        var roundTripAdditionalLocation = Assert.Single(roundTripDiagnosticData.AdditionalLocations);
+        Assert.Null(noneAdditionalLocation.DocumentId);
+        Assert.Null(roundTripAdditionalLocation.DocumentId);
+        Assert.Equal(noneAdditionalLocation.UnmappedFileSpan, roundTripAdditionalLocation.UnmappedFileSpan);
+        Assert.Same(diagnostic.AdditionalLocations.Single(), Location.None);
+    }
+
+    [Fact]
     public async Task DiagnosticData_SourceGeneratedDocumentLocationIsPreserved()
     {
         var content = @"

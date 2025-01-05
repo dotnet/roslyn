@@ -263,13 +263,24 @@ internal sealed class DiagnosticData(
         {
             if (location.IsInSource)
             {
-                builder.AddIfNotNull(CreateLocation(document.Project.Solution.GetDocument(location.SourceTree), location));
+                builder.Add(CreateLocation(document.Project.Solution.GetDocument(location.SourceTree), location));
             }
             else if (location.Kind == LocationKind.ExternalFile)
             {
                 var textDocumentId = document.Project.GetDocumentForExternalLocation(location);
-                builder.AddIfNotNull(CreateLocation(document.Project.GetTextDocument(textDocumentId), location));
+                builder.Add(CreateLocation(document.Project.GetTextDocument(textDocumentId), location));
             }
+            else if (location.Kind == LocationKind.None)
+            {
+                builder.Add(CreateLocation(document: null, location));
+            }
+            // TODO: Should we throw an exception in an else?
+            // This will be reachable if a user creates his own type inheriting Location, and
+            // returns, e.g, LocationKind.XmlFile in Kind override.
+            // The case for custom `Location`s in general will be hard (if possible at all) to
+            // always round trip correctly.
+            // Or, maybe just always create a location with null document, so at least we guarantee that
+            // the count of additional location created by analyzer always matches what end up being in the code fix.
         }
 
         return builder.ToImmutableAndClear();
