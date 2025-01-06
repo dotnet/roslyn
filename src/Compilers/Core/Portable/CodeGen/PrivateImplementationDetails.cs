@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     systemStringType: systemStringType,
                     diagnostics: diagnostics);
             },
-            (privateImplDetails, data.ToImmutableArray(), systemStringType, diagnostics)).Field;
+            (privateImplDetails, ImmutableCollectionsMarshal.AsImmutableArray(data), systemStringType, diagnostics)).Field;
         }
 
         /// <summary>
