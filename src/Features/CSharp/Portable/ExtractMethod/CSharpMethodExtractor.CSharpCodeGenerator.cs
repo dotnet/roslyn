@@ -265,12 +265,26 @@ internal sealed partial class CSharpExtractMethodService
             {
                 var statements = GetInitialStatementsForMethodDefinitions();
 
+                statements = ConvertComplexControlFlowStatements(statements);
                 statements = SplitOrMoveDeclarationIntoMethodDefinition(insertionPoint, statements, cancellationToken);
                 statements = MoveDeclarationOutFromMethodDefinition(statements, cancellationToken);
                 statements = AppendReturnStatementIfNeeded(statements);
                 statements = CleanupCode(statements);
 
                 return statements;
+            }
+
+            private ImmutableArray<StatementSyntax> ConvertComplexControlFlowStatements(ImmutableArray<StatementSyntax> statements)
+                => statements.SelectAsArray(s => ConvertComplexControlFlowStatement(s));
+
+            private StatementSyntax ConvertComplexControlFlowStatement(StatementSyntax statement)
+            {
+                return statement.ReplaceNodes(
+                    statement.GetAnnotatedNodes(ExitPointAnnotation),
+                    (original, current) =>
+                    {
+
+                    });
             }
 
             protected SyntaxKind UnderCheckedExpressionContext()

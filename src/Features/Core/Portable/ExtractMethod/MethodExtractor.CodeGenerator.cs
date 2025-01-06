@@ -211,7 +211,7 @@ internal abstract partial class AbstractExtractMethodService<
             protected ImmutableArray<TStatementSyntax> AddReturnIfUnreachable(
                 ImmutableArray<TStatementSyntax> statements, CancellationToken cancellationToken)
             {
-                if (AnalyzerResult.EndOfSelectionReachable)
+                if (AnalyzerResult.FlowControlInformation.EndPointIsReachable)
                     return statements;
 
                 var returnType = SelectionResult.GetReturnType(cancellationToken);

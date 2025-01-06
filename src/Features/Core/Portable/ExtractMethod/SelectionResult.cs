@@ -221,9 +221,6 @@ internal abstract partial class AbstractExtractMethodService<
             }
         }
 
-        public bool IsEndOfSelectionReachable()
-            => this.IsExtractMethodOnExpression || GetStatementControlFlowAnalysis().EndPointIsReachable;
-
         /// <summary>f
         /// convert text span to node range for the flow analysis API
         /// </summary>

@@ -38,16 +38,15 @@ internal sealed partial class CSharpExtractMethodService
             protected override bool ContainsReturnStatementInSelectedCode(ImmutableArray<SyntaxNode> exitPoints)
                 => exitPoints.Any(n => n is ReturnStatementSyntax);
 
-            protected override (int breakStatementCount, int continueStatementCount, int returnStatementCount, bool endPointIsReachable) GetComplexFlowControlInfo()
+            protected override ExtractMethodFlowControlInformation GetStatementFlowControlInformation()
             {
-                if (this.SelectionResult.IsExtractMethodOnExpression)
-                    return (breakStatementCount: 0, continueStatementCount: 0, returnStatementCount: 1, endPointIsReachable: true);
-
                 var controlFlowAnalysis = this.SelectionResult.GetStatementControlFlowAnalysis();
-                return (controlFlowAnalysis.ExitPoints.Count(n => n is BreakStatementSyntax),
-                        controlFlowAnalysis.ExitPoints.Count(n => n is ContinueStatementSyntax),
-                        controlFlowAnalysis.ExitPoints.Count(n => n is ReturnStatementSyntax),
-                        controlFlowAnalysis.EndPointIsReachable);
+                return new(
+                    this.SemanticModel.Compilation,
+                    controlFlowAnalysis.ExitPoints.Count(n => n is BreakStatementSyntax),
+                    controlFlowAnalysis.ExitPoints.Count(n => n is ContinueStatementSyntax),
+                    controlFlowAnalysis.ExitPoints.Count(n => n is ReturnStatementSyntax),
+                    controlFlowAnalysis.EndPointIsReachable);
             }
 
             protected override bool ReadOnlyFieldAllowed()

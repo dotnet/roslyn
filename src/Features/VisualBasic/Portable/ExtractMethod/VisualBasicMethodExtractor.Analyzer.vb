@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -46,9 +47,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return TypeOf methodBlock.BlockStatement IsNot SubNewStatementSyntax
                 End Function
 
-                Protected Overrides Function GetComplexFlowControlInfo() As (breakStatementCount As Integer, continueStatementCount As Integer, returnStatementCount As Integer, exitIsReachable As Boolean)
-                    ' We do not currently support converting code with advanced flow constrol constructs in VB.
-                    Return Nothing
+                Protected Overrides Function GetStatementFlowControlInformation() As ExtractMethodFlowControlInformation
+                    ' We do not currently support converting code with advanced flow control constructs in VB. So just
+                    ' provide basic information that produces consistent behavior with how extract method has always
+                    ' worked in VB.
+                    Dim compilation = Me.SemanticModel.Compilation
+                    Return New ExtractMethodFlowControlInformation(
+                        compilation,
+                        breakStatementCount:=0,
+                        continueStatementCount:=0,
+                        returnStatementCount:=If(Me.ContainsReturnStatementInSelectedCode(), 1, 0),
+                        endPointIsReachable:=False)
                 End Function
             End Class
         End Class
