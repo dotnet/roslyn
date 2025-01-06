@@ -33,7 +33,7 @@ internal class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
             return expression;
         }
 
-        return CSharpSyntaxGeneratorInternal.Instance.CastExpression(enumType, expression);
+        return this.SyntaxGenerator.CastExpression(enumType, expression);
     }
 
     protected override bool IsValidName(INamedTypeSymbol enumType, string name)
