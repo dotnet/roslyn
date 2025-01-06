@@ -28,7 +28,12 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     TFieldDeclaration,
     TVariableDeclarator,
     TExpression,
-    TIdentifierName> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    TIdentifierName>(ISemanticFacts semanticFacts)
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.UseAutoPropertyDiagnosticId,
+           EnforceOnBuildValues.UseAutoProperty,
+           CodeStyleOptions2.PreferAutoProperties,
+           new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+           new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     where TSyntaxKind : struct, Enum
     where TPropertyDeclaration : SyntaxNode
     where TConstructorDeclaration : SyntaxNode
@@ -48,17 +53,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     /// <summary>
     /// Not static as this has different semantics around case sensitivity for C# and VB.
     /// </summary>
-    private readonly ObjectPool<HashSet<string>> _fieldNamesPool;
-
-    protected AbstractUseAutoPropertyAnalyzer()
-        : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId,
-               EnforceOnBuildValues.UseAutoProperty,
-               CodeStyleOptions2.PreferAutoProperties,
-               new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-               new LocalizableResourceString(nameof(AnalyzersResources.Use_auto_property), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
-    {
-        _fieldNamesPool = new(() => new(this.SyntaxFacts.StringComparer));
-    }
+    private readonly ObjectPool<HashSet<string>> _fieldNamesPool = new(() => new(semanticFacts.SyntaxFacts.StringComparer));
 
     protected static void AddFieldUsage(ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, IFieldSymbol field, SyntaxNode location)
         => fieldWrites.GetOrAdd(field, static _ => s_nodeSetPool.Allocate()).Add(location);
@@ -78,8 +73,8 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
-    protected abstract ISemanticFacts SemanticFacts { get; }
-    protected ISyntaxFacts SyntaxFacts => this.SemanticFacts.SyntaxFacts;
+    private ISemanticFacts SemanticFacts { get; } = semanticFacts;
+    private ISyntaxFacts SyntaxFacts => SemanticFacts.SyntaxFacts;
 
     protected abstract TSyntaxKind PropertyDeclarationKind { get; }
 
@@ -139,6 +134,8 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
                         IsConst: false,
                         // Can't preserve volatile semantics on a property.
                         IsVolatile: false,
+                        // Can't have an autoprop that returns by-ref. 
+                        RefKind: RefKind.None,
                         // To make processing later on easier, limit to well-behaved fields (versus having multiple
                         // fields merged together in error recoery scenarios).
                         DeclaringSyntaxReferences.Length: 1,
