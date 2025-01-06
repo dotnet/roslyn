@@ -3,7 +3,7 @@
 
   <!-- 
     This props file manages the target framework properties for Roslyn. The strategy for these properties
-    is covered in "docs/contributing/Target Framework Strategy.md". Please see that for documentation
+    is covered in "docs/contributing/target-framework-strategy.md". Please see that for documentation
     on what these values mean.
 
     Requirements: 
