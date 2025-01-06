@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -69,25 +68,20 @@ internal static class ParameterGenerator
         return Parameter(parameter.Name.ToIdentifierToken())
             .WithAttributeLists(GenerateAttributes(parameter, isExplicit, info))
             .WithModifiers(GenerateModifiers(parameter, isFirstParam))
-            .WithType(parameter.Type.GenerateTypeSyntax())
+            .WithType(parameter.Type.GenerateTypeSyntax(allowVar: false))
             .WithDefault(GenerateEqualsValueClause(info.Generator, parameter, isExplicit, seenOptional));
     }
 
     private static SyntaxTokenList GenerateModifiers(
         IParameterSymbol parameter, bool isFirstParam)
     {
-        var list = CSharpSyntaxGeneratorInternal.GetParameterModifiers(parameter.RefKind);
+        var list = CSharpSyntaxGeneratorInternal.GetParameterModifiers(parameter);
 
         if (isFirstParam &&
             parameter.ContainingSymbol is IMethodSymbol methodSymbol &&
             methodSymbol.IsExtensionMethod)
         {
             list = list.Add(ThisKeyword);
-        }
-
-        if (parameter.IsParams)
-        {
-            list = list.Add(ParamsKeyword);
         }
 
         return list;

@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private SyntaxToken LexSyntaxToken()
         {
             _leadingTriviaCache.Clear();
-            this.LexSyntaxTrivia(afterFirstToken: TextWindow.Position > 0, isTrailing: false, triviaList: ref _leadingTriviaCache);
+            this.LexSyntaxTrivia(isFollowingToken: TextWindow.Position > 0, isTrailing: false, triviaList: ref _leadingTriviaCache);
             var leading = _leadingTriviaCache;
 
             var tokenInfo = default(TokenInfo);
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var errors = this.GetErrors(GetFullWidth(leading));
 
             _trailingTriviaCache.Clear();
-            this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
+            this.LexSyntaxTrivia(isFollowingToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
             var trailing = _trailingTriviaCache;
 
             return Create(in tokenInfo, leading, trailing, errors);
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SyntaxTriviaList LexSyntaxLeadingTrivia()
         {
             _leadingTriviaCache.Clear();
-            this.LexSyntaxTrivia(afterFirstToken: TextWindow.Position > 0, isTrailing: false, triviaList: ref _leadingTriviaCache);
+            this.LexSyntaxTrivia(isFollowingToken: TextWindow.Position > 0, isTrailing: false, triviaList: ref _leadingTriviaCache);
             return new SyntaxTriviaList(default(Microsoft.CodeAnalysis.SyntaxToken),
                 _leadingTriviaCache.ToListNode(), position: 0, index: 0);
         }
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SyntaxTriviaList LexSyntaxTrailingTrivia()
         {
             _trailingTriviaCache.Clear();
-            this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
+            this.LexSyntaxTrivia(isFollowingToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
             return new SyntaxTriviaList(default(Microsoft.CodeAnalysis.SyntaxToken),
                 _trailingTriviaCache.ToListNode(), position: 0, index: 0);
         }
@@ -1889,7 +1889,7 @@ LoopExit:
             }
         }
 
-        private void LexSyntaxTrivia(bool afterFirstToken, bool isTrailing, ref SyntaxListBuilder triviaList)
+        private void LexSyntaxTrivia(bool isFollowingToken, bool isTrailing, ref SyntaxListBuilder triviaList)
         {
             bool onlyWhitespaceOnLine = !isTrailing;
 
@@ -1995,7 +1995,33 @@ LoopExit:
                     case '#':
                         if (_allowPreprocessorDirectives)
                         {
-                            this.LexDirectiveAndExcludedTrivia(afterFirstToken, isTrailing || !onlyWhitespaceOnLine, ref triviaList);
+                            if (isTrailing || !onlyWhitespaceOnLine)
+                            {
+                                // Directives cannot be in trailing trivia.
+                                // We parse the directive (ignoring its effects like disabled text or defined symbols).
+                                // We extract the text corresponding to the parsed directive
+                                // and add it as a BadToken in SkippedTokensTrivia.
+
+                                var savePosition = TextWindow.Position;
+
+                                // All the `false` arguments affect only error reporting and the resulting node, both of which we discard.
+                                // However, passing `false` can skip some unnecessary checks.
+                                this.ParseDirective(isActive: false, endIsActive: false, isFollowingToken: false);
+
+                                var text = TextWindow.Text.GetSubText(TextSpan.FromBounds(savePosition, TextWindow.Position));
+
+                                var error = new SyntaxDiagnosticInfo(offset: 0, width: 1, code: ErrorCode.ERR_BadDirectivePlacement);
+
+                                var token = SyntaxFactory.BadToken(null, text.ToString(), null).WithDiagnosticsGreen([error]);
+
+                                this.AddTrivia(SyntaxFactory.SkippedTokensTrivia(token), ref triviaList);
+                            }
+                            else
+                            {
+                                this.LexDirectiveAndExcludedTrivia(isFollowingToken, ref triviaList);
+                            }
+
+                            onlyWhitespaceOnLine = true;
                             break;
                         }
                         else
@@ -2332,13 +2358,12 @@ top:
         }
 
         private void LexDirectiveAndExcludedTrivia(
-            bool afterFirstToken,
-            bool afterNonWhitespaceOnLine,
+            bool isFollowingToken,
             ref SyntaxListBuilder triviaList)
         {
-            var directive = this.LexSingleDirective(true, true, afterFirstToken, afterNonWhitespaceOnLine, ref triviaList);
+            var directive = this.LexSingleDirective(true, true, isFollowingToken, ref triviaList);
 
-            // also lex excluded stuff            
+            // also lex excluded stuff
             var branching = directive as BranchingDirectiveTriviaSyntax;
             if (branching != null && !branching.BranchTaken)
             {
@@ -2362,7 +2387,7 @@ top:
                     break;
                 }
 
-                var directive = this.LexSingleDirective(false, endIsActive, false, false, ref triviaList);
+                var directive = this.LexSingleDirective(false, endIsActive, false, ref triviaList);
                 var branching = directive as BranchingDirectiveTriviaSyntax;
                 if (directive.Kind == SyntaxKind.EndIfDirectiveTrivia || (branching != null && branching.BranchTaken))
                 {
@@ -2378,8 +2403,7 @@ top:
         private CSharpSyntaxNode LexSingleDirective(
             bool isActive,
             bool endIsActive,
-            bool afterFirstToken,
-            bool afterNonWhitespaceOnLine,
+            bool isFollowingToken,
             ref SyntaxListBuilder triviaList)
         {
             if (SyntaxFacts.IsWhitespace(TextWindow.PeekChar()))
@@ -2388,16 +2412,25 @@ top:
                 this.AddTrivia(this.ScanWhitespace(), ref triviaList);
             }
 
-            CSharpSyntaxNode directive;
+            CSharpSyntaxNode directive = ParseDirective(isActive, endIsActive, isFollowingToken);
+
+            this.AddTrivia(directive, ref triviaList);
+            _directives = directive.ApplyDirectives(_directives);
+            return directive;
+        }
+
+        private CSharpSyntaxNode ParseDirective(
+            bool isActive,
+            bool endIsActive,
+            bool isFollowingToken)
+        {
             var saveMode = _mode;
 
             _directiveParser ??= new DirectiveParser(this);
             _directiveParser.ReInitialize(_directives);
 
-            directive = _directiveParser.ParseDirective(isActive, endIsActive, afterFirstToken, afterNonWhitespaceOnLine);
+            CSharpSyntaxNode directive = _directiveParser.ParseDirective(isActive, endIsActive, isFollowingToken);
 
-            this.AddTrivia(directive, ref triviaList);
-            _directives = directive.ApplyDirectives(_directives);
             _mode = saveMode;
             return directive;
         }

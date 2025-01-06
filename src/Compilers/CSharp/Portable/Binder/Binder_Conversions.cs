@@ -2274,26 +2274,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod))
-            {
-                SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
-                    delegateMethod,
-                    lambdaOrMethod,
-                    diagnostics,
-                    static (diagnostics, delegateMethod, lambdaOrMethod, parameter, _, typeAndSyntax) =>
-                    {
-                        diagnostics.Add(
-                            SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(delegateMethod, lambdaOrMethod) ?
-                                ErrorCode.ERR_ScopedMismatchInParameterOfTarget :
-                                ErrorCode.WRN_ScopedMismatchInParameterOfTarget,
-                            typeAndSyntax.Syntax.Location,
-                            new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
-                            typeAndSyntax.Type);
-                    },
-                    (Type: targetType, Syntax: syntax),
-                    allowVariance: true,
-                    invokedAsExtensionMethod: invokedAsExtensionMethod);
-            }
+            SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
+                delegateMethod,
+                lambdaOrMethod,
+                diagnostics,
+                static (diagnostics, delegateMethod, lambdaOrMethod, parameter, _, typeAndSyntax) =>
+                {
+                    diagnostics.Add(
+                        SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(delegateMethod, lambdaOrMethod) ?
+                            ErrorCode.ERR_ScopedMismatchInParameterOfTarget :
+                            ErrorCode.WRN_ScopedMismatchInParameterOfTarget,
+                        typeAndSyntax.Syntax.Location,
+                        new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
+                        typeAndSyntax.Type);
+                },
+                (Type: targetType, Syntax: syntax),
+                allowVariance: true,
+                invokedAsExtensionMethod: invokedAsExtensionMethod);
 
             SourceMemberContainerTypeSymbol.CheckRefReadonlyInMismatch(
                 delegateMethod, lambdaOrMethod, diagnostics,

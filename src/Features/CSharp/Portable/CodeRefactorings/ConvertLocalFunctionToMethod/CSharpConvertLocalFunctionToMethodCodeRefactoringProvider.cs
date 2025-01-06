@@ -259,16 +259,16 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         => CSharpSyntaxGenerator.Instance.Argument(shouldUseNamedArguments ? name : null, p.RefKind, name.ToIdentifierName());
 
     private static List<string> GenerateUniqueParameterNames(ImmutableArray<IParameterSymbol> parameters, List<string> reservedNames)
-        => parameters.Select(p => NameGenerator.EnsureUniqueness(p.Name, reservedNames)).ToList();
+        => [.. parameters.Select(p => NameGenerator.EnsureUniqueness(p.Name, reservedNames))];
 
     private static List<string> GetReservedNames(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
-        => semanticModel.GetAllDeclaredSymbols(node.GetAncestor<MemberDeclarationSyntax>(), cancellationToken).Select(s => s.Name).ToList();
+        => [.. semanticModel.GetAllDeclaredSymbols(node.GetAncestor<MemberDeclarationSyntax>(), cancellationToken).Select(s => s.Name)];
 
-    private static ParameterSyntax GenerateParameter(IParameterSymbol p, string name)
+    private static ParameterSyntax GenerateParameter(IParameterSymbol parameter, string name)
     {
         return SyntaxFactory.Parameter(name.ToIdentifierToken())
-            .WithModifiers(CSharpSyntaxGeneratorInternal.GetParameterModifiers(p.RefKind))
-            .WithType(p.Type.GenerateTypeSyntax());
+            .WithModifiers(CSharpSyntaxGeneratorInternal.GetParameterModifiers(parameter))
+            .WithType(parameter.Type.GenerateTypeSyntax());
     }
 
     private static MethodDeclarationSyntax WithBodyFrom(

@@ -291,9 +291,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureFieldKeyword = MessageBase + 12846,
 
         IDS_FeatureAllowsRefStructConstraint = MessageBase + 12847,
-        IDS_OverloadResolutionPriority = MessageBase + 12848,
+        IDS_FeatureOverloadResolutionPriority = MessageBase + 12848,
 
         IDS_FeatureFirstClassSpan = MessageBase + 12849,
+
+        IDS_FeatureUnboundGenericTypesInNameof = MessageBase + 12850,
 
         IDS_FeatureNullConditionalAssignment = MessageBase + 12900, // PROTOTYPE(nca): pack
     }
@@ -478,6 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# preview features.
                 case MessageID.IDS_FeatureFieldKeyword:
                 case MessageID.IDS_FeatureFirstClassSpan:
+                case MessageID.IDS_FeatureUnboundGenericTypesInNameof:
                 case MessageID.IDS_FeatureNullConditionalAssignment:
                     return LanguageVersion.Preview;
 
@@ -490,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRefStructInterfaces:
                 case MessageID.IDS_FeatureAllowsRefStructConstraint:
                 case MessageID.IDS_FeaturePartialProperties:
-                case MessageID.IDS_OverloadResolutionPriority:
+                case MessageID.IDS_FeatureOverloadResolutionPriority:
                     return LanguageVersion.CSharp13;
 
                 // C# 12.0 features.

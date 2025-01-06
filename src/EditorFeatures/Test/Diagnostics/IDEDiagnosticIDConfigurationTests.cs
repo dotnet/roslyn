@@ -47,7 +47,7 @@ public class IDEDiagnosticIDConfigurationTests
 
                     if (!IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnosticId, languageName, out var options))
                     {
-                        options = ImmutableHashSet<IOption2>.Empty;
+                        options = [];
                     }
 
                     if (uniqueDiagnosticIds.Add(diagnosticId))
@@ -63,7 +63,7 @@ public class IDEDiagnosticIDConfigurationTests
         }
 
         diagnosticIdAndOptions.Sort();
-        return diagnosticIdAndOptions.ToImmutableArray();
+        return [.. diagnosticIdAndOptions];
     }
 
     private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
@@ -94,7 +94,7 @@ public class IDEDiagnosticIDConfigurationTests
 
     private static Dictionary<string, string> GetExpectedMap(string expected, out string[] expectedLines)
     {
-        expectedLines = expected.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+        expectedLines = expected.Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries);
         Assert.True(expectedLines.Length % 2 == 0);
         var expectedMap = new Dictionary<string, string>();
         for (var i = 0; i < expectedLines.Length; i += 2)
@@ -403,6 +403,9 @@ Actual: {editorConfigString}
 
             # IDE0120
             dotnet_diagnostic.IDE0120.severity = %value%
+            
+            # IDE0121
+            dotnet_diagnostic.IDE0121.severity = %value%
 
             # IDE0130
             dotnet_diagnostic.IDE0130.severity = %value%
@@ -478,12 +481,18 @@ Actual: {editorConfigString}
 
             # IDE0305
             dotnet_diagnostic.IDE0305.severity = %value%
+            
+            # IDE0306
+            dotnet_diagnostic.IDE0306.severity = %value%
 
             # IDE0320
             dotnet_diagnostic.IDE0320.severity = %value%
             
             # IDE0330
             dotnet_diagnostic.IDE0330.severity = %value%
+            
+            # IDE0340
+            dotnet_diagnostic.IDE0340.severity = %value%
 
             # IDE1005
             dotnet_diagnostic.IDE1005.severity = %value%
@@ -873,6 +882,7 @@ dotnet_diagnostic.JSON002.severity = %value%
             ("IDE0100", null, null),
             ("IDE0110", null, null),
             ("IDE0120", null, null),
+            ("IDE0121", null, null),
             ("IDE0130", "dotnet_style_namespace_match_folder", "true"),
             ("IDE0150", "csharp_style_prefer_null_check_over_type_check", "true"),
             ("IDE0160", "csharp_style_namespace_declarations", "block_scoped"),
@@ -898,8 +908,10 @@ dotnet_diagnostic.JSON002.severity = %value%
             ("IDE0303", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
             ("IDE0304", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
             ("IDE0305", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
+            ("IDE0306", "dotnet_style_prefer_collection_expression", "when_types_loosely_match"),
             ("IDE0320", "csharp_prefer_static_anonymous_function", "true"),
             ("IDE0330", "csharp_prefer_system_threading_lock", "true"),
+            ("IDE0340", "csharp_style_prefer_unbound_generic_type_in_nameof", "true"),
             ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
             ("IDE1006", null, null),
             ("IDE1007", null, null),

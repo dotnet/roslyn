@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
                 solution,
                 new ManagedHotReloadServiceBridge(_debuggerService),
                 NullPdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureMatchingDocuments: [],
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: false,
                 cancellationToken).ConfigureAwait(false);
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
         public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(Solution solution, CancellationToken cancellationToken)
         {
             var results = (await _encService.EmitSolutionUpdateAsync(GetSessionId(), solution, runningProjects: [], s_noActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
-            return new ManagedHotReloadUpdates(results.ModuleUpdates.Updates.FromContract(), results.GetAllDiagnostics().FromContract());
+            return new ManagedHotReloadUpdates(results.ModuleUpdates.Updates.FromContract(), results.GetAllDiagnostics().FromContract(), [], []);
         }
     }
 }

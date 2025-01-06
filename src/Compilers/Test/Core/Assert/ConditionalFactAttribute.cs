@@ -165,6 +165,7 @@ namespace Roslyn.Test.Utilities
         public static bool IsCoreClr => !IsDesktop;
         public static bool IsCoreClrUnix => IsCoreClr && IsUnix;
         public static bool IsMonoOrCoreClr => IsMonoDesktop || IsCoreClr;
+        public static bool IsBitness64 => IntPtr.Size == 8;
         public static bool RuntimeSupportsCovariantReturnsOfClasses => Type.GetType("System.Runtime.CompilerServices.RuntimeFeature")?.GetField("CovariantReturnsOfClasses") != null;
 
         private static readonly Lazy<bool> s_operatingSystemRestrictsFileNames = new Lazy<bool>(() =>

@@ -31,18 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration;
 /// 
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
+        EnforceOnBuildValues.InlineDeclaration,
+        CSharpCodeStyleOptions.PreferInlinedVariableDeclaration,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Inline_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Variable_declaration_can_be_inlined), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
     private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
-
-    public CSharpInlineDeclarationDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
-               EnforceOnBuildValues.InlineDeclaration,
-               CSharpCodeStyleOptions.PreferInlinedVariableDeclaration,
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Inline_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Variable_declaration_can_be_inlined), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;

@@ -40,7 +40,7 @@ public partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_
             public static readonly DiagnosticDescriptor Decsciptor2 =
                 new DiagnosticDescriptor("InfoDiagnostic2", "InfoDiagnostic2 Title", "InfoDiagnostic2", "InfoDiagnostic2", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Decsciptor1, Decsciptor2);
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Decsciptor1, Decsciptor2];
 
             public override void Initialize(AnalysisContext context)
                 => context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);

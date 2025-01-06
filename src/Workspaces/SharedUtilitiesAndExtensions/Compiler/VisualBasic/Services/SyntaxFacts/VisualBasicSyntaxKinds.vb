@@ -41,6 +41,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property RegionDirectiveTrivia As Integer = SyntaxKind.RegionDirectiveTrivia Implements ISyntaxKinds.RegionDirectiveTrivia
         Public ReadOnly Property EndRegionDirectiveTrivia As Integer = SyntaxKind.EndRegionDirectiveTrivia Implements ISyntaxKinds.EndRegionDirectiveTrivia
         Public ReadOnly Property ShebangDirectiveTrivia As Integer? Implements ISyntaxKinds.ShebangDirectiveTrivia
+        Public ReadOnly Property DefineDirectiveTrivia As Integer = SyntaxKind.ConstDirectiveTrivia Implements ISyntaxKinds.DefineDirectiveTrivia
+        Public ReadOnly Property UndefDirectiveTrivia As Integer? Implements ISyntaxKinds.UndefDirectiveTrivia
 
         Public ReadOnly Property CloseBraceToken As Integer = SyntaxKind.CloseBraceToken Implements ISyntaxKinds.CloseBraceToken
         Public ReadOnly Property CloseBracketToken As Integer? = Nothing Implements ISyntaxKinds.CloseBracketToken
@@ -73,6 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property TrueKeyword As Integer = SyntaxKind.TrueKeyword Implements ISyntaxKinds.TrueKeyword
         Public ReadOnly Property UsingKeyword As Integer = SyntaxKind.UsingKeyword Implements ISyntaxKinds.UsingKeyword
 
+        Public ReadOnly Property AliasQualifiedName As Integer? Implements ISyntaxKinds.AliasQualifiedName
         Public ReadOnly Property GenericName As Integer = SyntaxKind.GenericName Implements ISyntaxKinds.GenericName
         Public ReadOnly Property IdentifierName As Integer = SyntaxKind.IdentifierName Implements ISyntaxKinds.IdentifierName
         Public ReadOnly Property QualifiedName As Integer = SyntaxKind.QualifiedName Implements ISyntaxKinds.QualifiedName
@@ -113,6 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property RefExpression As Integer? Implements ISyntaxKinds.RefExpression
         Public ReadOnly Property ReferenceEqualsExpression As Integer = SyntaxKind.IsExpression Implements ISyntaxKinds.ReferenceEqualsExpression
         Public ReadOnly Property ReferenceNotEqualsExpression As Integer = SyntaxKind.IsNotExpression Implements ISyntaxKinds.ReferenceNotEqualsExpression
+        Public ReadOnly Property SimpleAssignmentExpression As Integer = SyntaxKind.SimpleAssignmentStatement Implements ISyntaxKinds.SimpleAssignmentExpression
         Public ReadOnly Property SimpleMemberAccessExpression As Integer = SyntaxKind.SimpleMemberAccessExpression Implements ISyntaxKinds.SimpleMemberAccessExpression
         Public ReadOnly Property SuppressNullableWarningExpression As Integer? Implements ISyntaxKinds.SuppressNullableWarningExpression
         Public ReadOnly Property TernaryConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression Implements ISyntaxKinds.TernaryConditionalExpression
@@ -177,5 +181,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property InterpolatedStringExpression As Integer = SyntaxKind.InterpolatedStringExpression Implements ISyntaxKinds.InterpolatedStringExpression
         Public ReadOnly Property InterpolatedStringText As Integer = SyntaxKind.InterpolatedStringText Implements ISyntaxKinds.InterpolatedStringText
         Public ReadOnly Property IndexerMemberCref As Integer? Implements ISyntaxKinds.IndexerMemberCref
+        Public ReadOnly Property PrimaryConstructorBaseType As Integer? Implements ISyntaxKinds.PrimaryConstructorBaseType
     End Class
 End Namespace

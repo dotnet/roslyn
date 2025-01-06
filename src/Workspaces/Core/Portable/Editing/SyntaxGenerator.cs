@@ -167,7 +167,7 @@ public abstract class SyntaxGenerator : ILanguageService
         IEnumerable<SyntaxNode>? statements = null)
     {
         return MethodDeclaration(
-            name, parameters, typeParameters?.Select(n => TypeParameter(n)), returnType, accessibility, modifiers, statements);
+            name, parameters, typeParameters?.Select(TypeParameter), returnType, accessibility, modifiers, statements);
     }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -328,8 +328,7 @@ public abstract class SyntaxGenerator : ILanguageService
             symbol.RefKind,
             isExtension: symbol is { Ordinal: 0, ContainingSymbol: IMethodSymbol { IsExtensionMethod: true } },
             symbol.IsParams,
-            isScoped: symbol is { RefKind: RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter, ScopedKind: ScopedKind.ScopedRef }
-                or { RefKind: RefKind.None, Type.IsRefLikeType: true, ScopedKind: ScopedKind.ScopedValue });
+            isScoped: SyntaxGeneratorInternal.ParameterIsScoped(symbol));
     }
 
     private protected abstract SyntaxNode TypeParameter(ITypeParameterSymbol typeParameter);
@@ -1441,10 +1440,10 @@ public abstract class SyntaxGenerator : ILanguageService
     internal static SyntaxTokenList Merge(SyntaxTokenList original, SyntaxTokenList newList)
     {
         // return tokens from newList, but use original tokens of kind matches
-        return new SyntaxTokenList(newList.Select(
+        return [.. newList.Select(
             token => Any(original, token.RawKind)
                 ? original.First(tk => tk.RawKind == token.RawKind)
-                : token));
+                : token)];
     }
 
     private static bool Any(SyntaxTokenList original, int rawKind)

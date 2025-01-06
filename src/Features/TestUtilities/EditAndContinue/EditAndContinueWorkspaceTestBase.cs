@@ -38,7 +38,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     private protected static readonly Regex s_timePropertiesRegex = new("[|](EmitDifferenceMilliseconds|TotalAnalysisMilliseconds)=[0-9]+");
 
     private protected static readonly ActiveStatementSpanProvider s_noActiveSpans =
-        (_, _, _) => new(ImmutableArray<ActiveStatementSpan>.Empty);
+        (_, _, _) => new([]);
 
     private protected const TargetFramework DefaultTargetFramework = TargetFramework.NetStandard20;
 
@@ -54,13 +54,13 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     /// <summary>
     /// Streams that are verified to be disposed at the end of the debug session (by default).
     /// </summary>
-    public List<(Guid mvid, Stream stream)> DisposalVerifiedStreams = [];
+    private ImmutableList<Stream> _disposalVerifiedStreams = [];
 
     public override void Dispose()
     {
         base.Dispose();
 
-        foreach (var (_, stream) in DisposalVerifiedStreams)
+        foreach (var stream in _disposalVerifiedStreams)
         {
             Assert.False(stream.CanRead);
         }
@@ -162,7 +162,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             solution,
             _debuggerService,
             sourceTextProvider: sourceTextProvider ?? NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+            captureMatchingDocuments: [],
             captureAllMatchingDocuments: false,
             reportDiagnostics: true,
             CancellationToken.None);
@@ -190,7 +190,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal void ExitBreakState(
         DebuggingSession session)
     {
-        _debuggerService.GetActiveStatementsImpl = () => ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
+        _debuggerService.GetActiveStatementsImpl = () => [];
         session.BreakStateOrCapabilitiesChanged(inBreakState: false);
     }
 
@@ -314,7 +314,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             OpenAssemblyStreamImpl = () =>
             {
                 var stream = new MemoryStream();
-                DisposalVerifiedStreams.Add((moduleId, stream));
+                ImmutableInterlocked.Update(ref _disposalVerifiedStreams, s => s.Add(stream));
                 peImage.WriteToStream(stream);
                 stream.Position = 0;
                 return stream;
@@ -322,7 +322,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             OpenPdbStreamImpl = () =>
             {
                 var stream = new MemoryStream();
-                DisposalVerifiedStreams.Add((moduleId, stream));
+                ImmutableInterlocked.Update(ref _disposalVerifiedStreams, s => s.Add(stream));
                 pdbImage.WriteToStream(stream);
                 stream.Position = 0;
                 return stream;

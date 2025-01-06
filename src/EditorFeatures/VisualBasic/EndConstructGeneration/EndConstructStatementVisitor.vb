@@ -12,24 +12,50 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
-    Partial Friend Class EndConstructStatementVisitor
+    Partial Friend NotInheritable Class EndConstructStatementVisitor
         Inherits VisualBasicSyntaxVisitor(Of AbstractEndConstructResult)
 
         Private ReadOnly _textView As ITextView
         Private ReadOnly _subjectBuffer As ITextBuffer
-        Private ReadOnly _cancellationToken As CancellationToken
         Private ReadOnly _state As EndConstructState
+        Private ReadOnly _cancellationToken As CancellationToken
 
-        Public Sub New(textView As ITextView,
-                       subjectBuffer As ITextBuffer,
-                       state As EndConstructState,
-                       cancellationToken As CancellationToken)
+        ''' <summary>
+        ''' Note: this is only passed in when <see cref="NeedsSemanticModel"/> return true.  Any functions that require
+        ''' a semantic model must declare their need up front so we do not pay the cost for semantics for all the cases
+        ''' that do not need it.
+        ''' </summary>
+        Private ReadOnly _semanticModel As SemanticModel
+
+        Public Sub New(
+                textView As ITextView,
+                subjectBuffer As ITextBuffer,
+                state As EndConstructState,
+                semanticModel As SemanticModel,
+                cancellationToken As CancellationToken)
 
             _textView = textView
             _subjectBuffer = subjectBuffer
             _state = state
+            _semanticModel = semanticModel
             _cancellationToken = cancellationToken
         End Sub
+
+        Public Shared Function NeedsSemanticModel(node As SyntaxNode) As Boolean
+            ' All of these call HandleMethodBlockSyntax, which needs semantics
+            If TypeOf node Is MethodStatementSyntax OrElse
+               TypeOf node Is SubNewStatementSyntax OrElse
+               TypeOf node Is OperatorStatementSyntax Then
+                Return True
+            End If
+
+            ' Calls GenerateAddOrRemoveHandler and GenerateRaiseEventHandler, both which needs semantics
+            If TypeOf node Is EventStatementSyntax Then
+                Return True
+            End If
+
+            Return False
+        End Function
 
         Public Overrides Function VisitDoStatement(node As DoStatementSyntax) As AbstractEndConstructResult
             Dim needsEnd = node.GetAncestorsOrThis(Of DoLoopBlockSyntax)().Any(Function(block) block.LoopStatement.IsMissing)
@@ -100,11 +126,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             End If
         End Function
 
-        Private Function TryGenerateResultForConstructorSpitWithInitializeComponent(methodBlock As MethodBlockBaseSyntax) As AbstractEndConstructResult
+        Private Function TryGenerateResultForConstructorSpitWithInitializeComponent(
+                methodBlock As MethodBlockBaseSyntax) As AbstractEndConstructResult
             If methodBlock.BlockStatement.Kind = SyntaxKind.SubNewStatement Then
-                Dim boundConstructor = _state.SemanticModel.GetDeclaredSymbol(DirectCast(methodBlock.BlockStatement, SubNewStatementSyntax))
+                Dim boundConstructor = _semanticModel.GetDeclaredSymbol(DirectCast(methodBlock.BlockStatement, SubNewStatementSyntax))
                 If boundConstructor IsNot Nothing Then
-                    If boundConstructor.ContainingType.IsDesignerGeneratedTypeWithInitializeComponent(_state.SemanticModel.Compilation) Then
+                    If boundConstructor.ContainingType.IsDesignerGeneratedTypeWithInitializeComponent(_semanticModel.Compilation) Then
                         Dim aligningWhitespace = _subjectBuffer.CurrentSnapshot.GetAligningWhitespace(methodBlock.BlockStatement.SpanStart)
                         Dim innerAligningWhitespace = aligningWhitespace & "    "
 
@@ -161,10 +188,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 Dim aligningWhitespace = _subjectBuffer.CurrentSnapshot.GetAligningWhitespace(node.SpanStart)
                 Dim stringBuilder As New StringBuilder
                 stringBuilder.Append(_textView.Options.GetNewLineCharacter())
-                StringBuilder.Append(aligningWhitespace & "    Case ")
+                stringBuilder.Append(aligningWhitespace & "    Case ")
                 Dim finalCaretPoint = stringBuilder.Length
                 stringBuilder.AppendLine()
-                StringBuilder.Append(aligningWhitespace & "End Select")
+                stringBuilder.Append(aligningWhitespace & "End Select")
 
                 Return New ReplaceSpanResult(New SnapshotSpan(_subjectBuffer.CurrentSnapshot, _state.CaretPosition, 0),
                                              stringBuilder.ToString(), newCaretPosition:=finalCaretPoint)

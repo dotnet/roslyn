@@ -466,17 +466,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 parameters.treatPositionIndicatorsAsCode);
 
             const string UnnecessaryMarkupKey = "Unnecessary";
-            var unnecessarySpans = initialSpanMap.GetOrAdd(UnnecessaryMarkupKey, _ => ImmutableArray<TextSpan>.Empty);
+            var unnecessarySpans = initialSpanMap.GetOrAdd(UnnecessaryMarkupKey, _ => []);
 
             MarkupTestFile.GetSpans(
                 expectedMarkup,
                 out var expected, out var expectedSpanMap,
                 parameters.treatPositionIndicatorsAsCode);
 
-            var conflictSpans = expectedSpanMap.GetOrAdd("Conflict", _ => ImmutableArray<TextSpan>.Empty);
-            var renameSpans = expectedSpanMap.GetOrAdd("Rename", _ => ImmutableArray<TextSpan>.Empty);
-            var warningSpans = expectedSpanMap.GetOrAdd("Warning", _ => ImmutableArray<TextSpan>.Empty);
-            var navigationSpans = expectedSpanMap.GetOrAdd("Navigation", _ => ImmutableArray<TextSpan>.Empty);
+            var conflictSpans = expectedSpanMap.GetOrAdd("Conflict", _ => []);
+            var renameSpans = expectedSpanMap.GetOrAdd("Rename", _ => []);
+            var warningSpans = expectedSpanMap.GetOrAdd("Warning", _ => []);
+            var navigationSpans = expectedSpanMap.GetOrAdd("Navigation", _ => []);
 
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
             // Ideally this check would always run, but there are several hundred tests that would need to be
@@ -870,9 +870,9 @@ Consider using the title as the equivalence key instead of 'null'";
 
         protected static ImmutableArray<CodeAction> FlattenActions(ImmutableArray<CodeAction> codeActions)
         {
-            return codeActions.SelectMany(a => a.NestedActions.Length > 0
+            return [.. codeActions.SelectMany(a => a.NestedActions.Length > 0
                 ? a.NestedActions
-                : ImmutableArray.Create(a)).ToImmutableArray();
+                : [a])];
         }
 
         protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)

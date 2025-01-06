@@ -13,11 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints;
 /// The service to locate all positions where inline hints should be placed.
 /// </summary>
 [ExportLanguageService(typeof(IInlineHintsService), LanguageNames.CSharp), Shared]
-internal class CSharpInlineHintsService : AbstractInlineHintsService
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpInlineHintsService()
-    {
-    }
-}
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpInlineHintsService() : AbstractInlineHintsService;

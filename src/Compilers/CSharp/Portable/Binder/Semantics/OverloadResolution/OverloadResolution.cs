@@ -1835,7 +1835,7 @@ outerDefault:
             where TMemberResolution : IMemberResolutionResultWithPriority<TMember>
             where TMember : Symbol
         {
-            if (!Compilation.IsFeatureEnabled(MessageID.IDS_OverloadResolutionPriority))
+            if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureOverloadResolutionPriority))
             {
                 return;
             }
@@ -2980,6 +2980,19 @@ outerDefault:
             switch ((conv1.Kind, conv2.Kind))
             {
                 case (ConversionKind.ImplicitSpan, ConversionKind.ImplicitSpan):
+                    // If the expression is of an array type, prefer ReadOnlySpan over Span (to avoid ArrayTypeMismatchExceptions).
+                    if (node.Type is ArrayTypeSymbol)
+                    {
+                        if (t1.IsReadOnlySpan() && t2.IsSpan())
+                        {
+                            return BetterResult.Left;
+                        }
+
+                        if (t1.IsSpan() && t2.IsReadOnlySpan())
+                        {
+                            return BetterResult.Right;
+                        }
+                    }
                     break;
                 case (_, ConversionKind.ImplicitSpan):
                     return BetterResult.Right;

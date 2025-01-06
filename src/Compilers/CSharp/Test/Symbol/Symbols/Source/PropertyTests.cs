@@ -3026,5 +3026,74 @@ class C
             var property = compilation.GetMember<PropertySymbol>("C.P");
             Assert.True(property.RequiresInstanceReceiver);
         }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_01()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public class Preserve1Attribute : Attribute { }
+";
+
+            string source2 = @"
+public class Test1
+{
+    [Preserve1]
+    int P1 {get; set;}
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>k__BackingField").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_02()
+        {
+            string source1 = @"
+using System;
+
+[AttributeUsage(AttributeTargets.Field)]
+public class Preserve1Attribute : Attribute { }
+";
+
+            string source2 = @"
+public class Test1
+{
+    [field: Preserve1]
+    int P1 {get; set;}
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)",
+                        "Preserve1Attribute"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>k__BackingField").GetAttributes().Select(a => a.ToString()));
+            }
+        }
     }
 }

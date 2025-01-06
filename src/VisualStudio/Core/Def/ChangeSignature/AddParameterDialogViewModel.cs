@@ -3,30 +3,26 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 
-internal class AddParameterDialogViewModel : AbstractNotifyPropertyChanged
+internal sealed class AddParameterDialogViewModel : AbstractNotifyPropertyChanged
 {
     private readonly INotificationService? _notificationService;
 
-    public readonly Document Document;
+    public readonly SemanticDocument Document;
     public readonly int PositionForTypeBinding;
 
-    private readonly SemanticModel _semanticModel;
-
-    public AddParameterDialogViewModel(Document document, int positionForTypeBinding)
+    public AddParameterDialogViewModel(
+        SemanticDocument document, int positionForTypeBinding)
     {
         _notificationService = document.Project.Solution.Services.GetService<INotificationService>();
-        _semanticModel = document.GetRequiredSemanticModelAsync(CancellationToken.None).AsTask().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
         TypeIsEmptyImage = Visibility.Visible;
         TypeBindsImage = Visibility.Collapsed;
@@ -200,7 +196,7 @@ internal class AddParameterDialogViewModel : AbstractNotifyPropertyChanged
             TypeIsEmptyImage = Visibility.Collapsed;
 
             var languageService = Document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
-            TypeSymbol = _semanticModel.GetSpeculativeTypeInfo(PositionForTypeBinding, languageService.GetTypeNode(typeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+            TypeSymbol = Document.SemanticModel.GetSpeculativeTypeInfo(PositionForTypeBinding, languageService.GetTypeNode(typeName), SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
 
             if (TypeSymbol is { SpecialType: SpecialType.System_Void })
             {

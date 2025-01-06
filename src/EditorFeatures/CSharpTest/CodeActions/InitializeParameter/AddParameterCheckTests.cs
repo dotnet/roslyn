@@ -49,8 +49,7 @@ public class AddParameterCheckTests
         await new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp11,
-            TestCode = testCode,
-            FixedCode = testCode
+            TestCode = testCode
         }.RunAsync();
     }
 
@@ -261,8 +260,7 @@ public class AddParameterCheckTests
         await new VerifyCS.Test
         {
             LanguageVersion = languageVersion,
-            TestCode = code,
-            FixedCode = code
+            TestCode = code
         }.RunAsync();
     }
 
@@ -284,8 +282,7 @@ public class AddParameterCheckTests
         await new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp9,
-            TestCode = code,
-            FixedCode = code
+            TestCode = code
         }.RunAsync();
     }
 
@@ -309,8 +306,7 @@ public class AddParameterCheckTests
         await new VerifyCS.Test
         {
             LanguageVersion = languageVersion,
-            TestCode = code,
-            FixedCode = code
+            TestCode = code
         }.RunAsync();
     }
 
@@ -332,8 +328,7 @@ public class AddParameterCheckTests
         await new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp9,
-            TestCode = code,
-            FixedCode = code
+            TestCode = code
         }.RunAsync();
     }
 
@@ -1717,8 +1712,7 @@ class C
         await new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp11,
-            TestCode = testCode,
-            FixedCode = testCode
+            TestCode = testCode
         }.RunAsync();
     }
 
@@ -1831,7 +1825,6 @@ class C
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -2933,7 +2926,6 @@ class C
         {
             LanguageVersion = version,
             TestCode = code,
-            FixedCode = code,
         }.RunAsync();
     }
 
@@ -2947,7 +2939,6 @@ class C
         {
             LanguageVersion = LanguageVersion.CSharp12,
             TestCode = code,
-            FixedCode = code,
         }.RunAsync();
     }
 
@@ -2961,7 +2952,6 @@ class C
         {
             LanguageVersion = LanguageVersion.CSharp12,
             TestCode = code,
-            FixedCode = code,
         }.RunAsync();
     }
 

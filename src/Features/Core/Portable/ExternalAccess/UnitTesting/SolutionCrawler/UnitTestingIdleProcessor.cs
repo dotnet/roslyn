@@ -47,7 +47,8 @@ internal abstract class UnitTestingIdleProcessor(
     protected void Start()
     {
         Contract.ThrowIfFalse(_processorTask == null);
-        _processorTask = Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken, TaskScheduler.Default);
+        _processorTask = ProcessAsync();
+        _processorTask.ReportNonFatalErrorAsync();
     }
 
     protected void UpdateLastAccessTime()
@@ -117,6 +118,9 @@ internal abstract class UnitTestingIdleProcessor(
 
     private async Task ProcessAsync()
     {
+        // Ensure we do this processing on the background.
+        await Task.Yield().ConfigureAwait(false);
+
         while (!CancellationToken.IsCancellationRequested)
         {
             try

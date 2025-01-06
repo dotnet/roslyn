@@ -648,7 +648,7 @@ internal static partial class SyntaxNodeExtensions
         result.Add(currentGroup);
 
         // Now, filter out any empty groups.
-        result = result.Where(group => !group.IsEmpty()).ToList();
+        result = [.. result.Where(group => !group.IsEmpty())];
         return result;
     }
 

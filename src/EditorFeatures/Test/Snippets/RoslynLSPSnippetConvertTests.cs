@@ -401,7 +401,7 @@ public class RoslynLSPSnippetConvertTests
         using var workspace = CreateWorkspaceFromCode(testString);
         var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
         var lspSnippetString = RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(document, caretPosition: 12,
-            ImmutableArray<SnippetPlaceholder>.Empty, new TextChange(new TextSpan(8, 0), "quux"), triggerLocation: 12, CancellationToken.None).Result;
+            [], new TextChange(new TextSpan(8, 0), "quux"), triggerLocation: 12, CancellationToken.None).Result;
         AssertEx.EqualOrDiff("quux$0", lspSnippetString);
     }
 
@@ -412,7 +412,7 @@ public class RoslynLSPSnippetConvertTests
         using var workspace = CreateWorkspaceFromCode(testString);
         var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
         var lspSnippetString = RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(document, caretPosition: 12,
-            ImmutableArray<SnippetPlaceholder>.Empty, new TextChange(new TextSpan(4, 4), "bar quux"), triggerLocation: 12, CancellationToken.None).Result;
+            [], new TextChange(new TextSpan(4, 4), "bar quux"), triggerLocation: 12, CancellationToken.None).Result;
         AssertEx.EqualOrDiff("bar quux$0", lspSnippetString);
     }
 

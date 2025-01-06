@@ -17,11 +17,6 @@
         <target state="translated">添加默认事例</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">添加显式转换</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_file_header">
         <source>Add file header</source>
         <target state="translated">添加文件头</target>

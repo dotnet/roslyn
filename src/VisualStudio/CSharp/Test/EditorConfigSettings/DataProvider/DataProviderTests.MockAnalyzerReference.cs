@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
                 public bool Called;
                 public int ContextDiagnosticsCount;
 
-                public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(Id);
+                public sealed override ImmutableArray<string> FixableDiagnosticIds => [Id];
 
                 public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
                 {

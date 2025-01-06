@@ -73,6 +73,8 @@ internal sealed partial class SyntaxTreeIndex
             var containsGlobalKeyword = false;
             var containsCollectionInitializer = false;
             var containsAttribute = false;
+            var containsDirective = root.ContainsDirectives;
+            var containsPrimaryConstructorBaseType = false;
 
             var predefinedTypes = (int)PredefinedType.None;
             var predefinedOperators = (int)PredefinedOperator.None;
@@ -88,7 +90,7 @@ internal sealed partial class SyntaxTreeIndex
 
                         containsForEachStatement = containsForEachStatement || syntaxFacts.IsForEachStatement(node);
                         containsLockStatement = containsLockStatement || syntaxFacts.IsLockStatement(node);
-                        containsUsingStatement = containsUsingStatement || syntaxFacts.IsUsingStatement(node);
+                        containsUsingStatement = containsUsingStatement || syntaxFacts.IsUsingStatement(node) || syntaxFacts.IsUsingLocalDeclarationStatement(node);
                         containsQueryExpression = containsQueryExpression || syntaxFacts.IsQueryExpression(node);
                         containsElementAccess = containsElementAccess || (syntaxFacts.IsElementAccessExpression(node) || syntaxFacts.IsImplicitElementAccess(node));
                         containsIndexerMemberCref = containsIndexerMemberCref || syntaxFacts.IsIndexerMemberCref(node);
@@ -104,6 +106,7 @@ internal sealed partial class SyntaxTreeIndex
                         containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
                         containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
                         containsAttribute = containsAttribute || syntaxFacts.IsAttribute(node);
+                        containsPrimaryConstructorBaseType = containsPrimaryConstructorBaseType || syntaxFacts.IsPrimaryConstructorBaseType(node);
 
                         TryAddAliasInfo(syntaxFacts, ref aliasInfo, node);
 
@@ -196,7 +199,9 @@ internal sealed partial class SyntaxTreeIndex
                     containsConversion,
                     containsGlobalKeyword,
                     containsCollectionInitializer,
-                    containsAttribute),
+                    containsAttribute,
+                    containsDirective,
+                    containsPrimaryConstructorBaseType),
                 aliasInfo,
                 interceptsLocationInfo);
         }

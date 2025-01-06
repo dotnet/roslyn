@@ -4352,6 +4352,17 @@ namespace Microsoft.CodeAnalysis
                         1,
                         (byte)SignatureTypeCode.GenericMethodParameter, 0,
 
+                // System_Linq_Enumerable__ToArray
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Enumerable,                                                                 // DeclaringTypeId
+                1,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericMethodParameter, 0, // Return Type
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
+                        1,
+                        (byte)SignatureTypeCode.GenericMethodParameter, 0,
+
                 // System_Linq_Expressions_Expression__ArrayIndex_Expression_Expression,
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
@@ -5706,6 +5717,7 @@ namespace Microsoft.CodeAnalysis
                 "AddRange",                                 // System_Collections_Generic_List_T__AddRange
                 ".ctor",                                    // System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
                 "ToList",                                   // System_Linq_Enumerable__ToList
+                "ToArray",                                  // System_Linq_Enumerable__ToArray
                 "ArrayIndex",                               // System_Linq_Expressions_Expression__ArrayIndex_Expression_Expression
                 "ArrayIndex",                               // System_Linq_Expressions_Expression__ArrayIndex_Expression_Expressions
                 "Constant",                                 // System_Linq_Expressions_Expression__Constant

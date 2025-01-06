@@ -30,17 +30,15 @@ internal abstract class AbstractGoToBaseService : IGoToBaseService
 
     public async Task FindBasesAsync(IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
     {
-        var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+        var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
             document, position, cancellationToken).ConfigureAwait(false);
 
-        if (symbolAndProjectOpt == null)
+        if (symbolAndProject is not var (symbol, project))
         {
             await context.ReportNoResultsAsync(
                 FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, cancellationToken).ConfigureAwait(false);
             return;
         }
-
-        var (symbol, project) = symbolAndProjectOpt.Value;
 
         var solution = project.Solution;
         var bases = FindBaseHelpers.FindBases(symbol, solution, cancellationToken);
@@ -63,8 +61,8 @@ internal abstract class AbstractGoToBaseService : IGoToBaseService
         // If not found but the symbol is from metadata, create it's definition item from metadata and add to the context.
         foreach (var baseSymbol in bases)
         {
-            var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(
-               baseSymbol, solution, cancellationToken).ConfigureAwait(false);
+            var sourceDefinition = SymbolFinder.FindSourceDefinition(
+               baseSymbol, solution, cancellationToken);
             if (sourceDefinition != null)
             {
                 var definitionItem = await sourceDefinition.ToClassifiedDefinitionItemAsync(

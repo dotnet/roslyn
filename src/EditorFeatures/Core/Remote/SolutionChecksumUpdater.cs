@@ -221,7 +221,7 @@ internal sealed class SolutionChecksumUpdater
         //
         // otherwise, it will do the normal behavior of getting full text from VS side. this optimization saves
         // times we need to do full text synchronization for typing scenario.
-        using var _ = ArrayBuilder<(DocumentId id, Checksum textChecksum, ImmutableArray<TextChange> changes)>.GetInstance(out var builder);
+        using var _ = ArrayBuilder<(DocumentId id, Checksum textChecksum, ImmutableArray<TextChange> changes, Checksum newTextChecksum)>.GetInstance(out var builder);
 
         foreach (var (oldDocument, newDocument) in values)
         {
@@ -242,9 +242,10 @@ internal sealed class SolutionChecksumUpdater
                 continue;
 
             var state = await oldDocument.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            var newState = await newDocument.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
             var textChanges = newText.GetTextChanges(oldText).AsImmutable();
-            builder.Add((oldDocument.Id, state.Text, textChanges));
+            builder.Add((oldDocument.Id, state.Text, textChanges, newState.Text));
         }
 
         if (builder.Count == 0)

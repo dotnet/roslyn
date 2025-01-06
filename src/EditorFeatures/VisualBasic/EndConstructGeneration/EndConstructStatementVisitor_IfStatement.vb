@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
     Partial Friend Class EndConstructStatementVisitor
-
         Public Overrides Function VisitIfStatement(node As IfStatementSyntax) As AbstractEndConstructResult
             Dim needsEnd = node.GetAncestorsOrThis(Of MultiLineIfBlockSyntax)().Any(Function(block) block.EndIfStatement.IsMissing)
 

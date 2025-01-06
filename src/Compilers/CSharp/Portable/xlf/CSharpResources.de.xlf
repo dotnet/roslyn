@@ -1992,6 +1992,11 @@
         <target state="translated">Typen und Aliase können nicht als "erforderlich" bezeichnet werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
         <source>Target runtime doesn't support by-ref-like generics.</source>
         <target state="translated">Die Zielruntime unterstützt keine by-ref-like-Generics.</target>
@@ -2507,6 +2512,11 @@
         <target state="new">null conditional assignment</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureOverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">Parameterlose Strukturkonstruktoren</target>
@@ -2582,6 +2592,11 @@
         <target state="translated">Strukturfeldinitialisierer</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
+        <source>unbound generic types in nameof operator</source>
+        <target state="new">unbound generic types in nameof operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">Unsignierte Rechtsverschiebung</target>
@@ -2620,11 +2635,6 @@
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_OverloadResolutionPriority">
-        <source>overload resolution priority</source>
-        <target state="translated">Priorität der Überladungsauflösung</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -2952,6 +2962,16 @@
         <target state="translated">Die Verwendung der Variablen in diesem Kontext kann dazu führen, dass referenzierte Variablen außerhalb ihres Deklarationsbereichs verfügbar gemacht werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</source>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous">
         <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
         <target state="translated">In der Sprachversion {0}wird das Schlüsselwort "field" an ein synthetisiertes Sicherungsfeld für die Eigenschaft gebunden. Verwenden Sie stattdessen "this.field" oder "@field", um ein synthetisiertes Sicherungsfeld zu vermeiden und auf das vorhandene Element zu verweisen.</target>
@@ -3020,6 +3040,16 @@
       <trans-unit id="WRN_InterceptorSignatureMismatch_Title">
         <source>Signatures of interceptable and interceptor methods do not match.</source>
         <target state="translated">Signaturen von abfangbaren Methoden und Interceptormethoden stimmen nicht überein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature">
+        <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
+        <target state="new">'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature_Title">
+        <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
+        <target state="new">'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
@@ -5356,6 +5386,16 @@
       <trans-unit id="WRN_UnreadRecordParameter_Title">
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="translated">Der Parameter wird nicht gelesen. Möglicherweise haben Sie ihn nicht zum Initialisieren der gleichnamigen Eigenschaft verwendet?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules">
+        <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
+        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules_Title">
+        <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
+        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -10310,8 +10350,8 @@ Unterstützen Sie den Compiler bei der Unterscheidung zwischen den Methoden. Daz
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
-        <source>Cannot open '{0}' for writing -- '{1}'</source>
-        <target state="translated">"{0}" kann nicht zum Schreiben geöffnet werden: "{1}"</target>
+        <source>Cannot open '{0}' for writing -- {1}</source>
+        <target state="needs-review-translation">"{0}" kann nicht zum Schreiben geöffnet werden: "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBaseNumber">
@@ -12971,7 +13011,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="translated">"{0}" dient nur zu Testzwecken und kann in zukünftigen Aktualisierungen geändert oder entfernt werden. Unterdrücken Sie diese Diagnose, um fortzufahren.</target>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

@@ -9,9 +9,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
@@ -172,17 +174,49 @@ internal static class CompletionUtilities
         return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
     }
 
-    public static int GetTargetCaretPositionForMethod(MethodDeclarationSyntax methodDeclaration)
+    public static SyntaxNode GetTargetCaretPositionForMethod(BaseMethodDeclarationSyntax methodDeclaration)
     {
-        if (methodDeclaration.Body == null)
+        if (methodDeclaration.Body is null)
         {
-            return methodDeclaration.GetLocation().SourceSpan.End;
+            return methodDeclaration;
         }
         else
         {
             // move to the end of the last statement in the method
             var lastStatement = methodDeclaration.Body.Statements.Last();
-            return lastStatement.GetLocation().SourceSpan.End;
+            return lastStatement;
+        }
+    }
+
+    public static SyntaxNode GetTargetCaretNodeForInsertedMember(SyntaxNode caretTarget)
+    {
+        switch (caretTarget)
+        {
+            case EventFieldDeclarationSyntax:
+                // Inserted Event declarations are a single line, so move to the end of the line.
+                return caretTarget;
+
+            case BaseMethodDeclarationSyntax methodDeclaration:
+                return GetTargetCaretPositionForMethod(methodDeclaration);
+
+            case BasePropertyDeclarationSyntax propertyDeclaration:
+                {
+                    // property: no accessors; move to the end of the declaration
+                    if (propertyDeclaration.AccessorList is { Accessors: [var firstAccessor, ..] })
+                    {
+                        // move to the end of the last statement of the first accessor
+                        var firstAccessorStatement = (SyntaxNode)firstAccessor.Body?.Statements.LastOrDefault() ??
+                            firstAccessor.ExpressionBody!.Expression;
+                        return firstAccessorStatement;
+                    }
+                    else
+                    {
+                        return propertyDeclaration;
+                    }
+                }
+
+            default:
+                throw ExceptionUtilities.Unreachable();
         }
     }
 }
