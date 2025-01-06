@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda;
@@ -64,7 +65,7 @@ internal static class UseExpressionBodyForLambdaHelpers
     }
 
     internal static bool CanOfferUseExpressionBody(
-        ExpressionBodyPreference preference, LambdaExpressionSyntax declaration, LanguageVersion languageVersion, CancellationToken cancellationToken)
+        SemanticModel semanticModel, ExpressionBodyPreference preference, LambdaExpressionSyntax declaration, LanguageVersion languageVersion, CancellationToken cancellationToken)
     {
         var userPrefersExpressionBodies = preference != ExpressionBodyPreference.Never;
         if (!userPrefersExpressionBodies)
@@ -82,7 +83,7 @@ internal static class UseExpressionBodyForLambdaHelpers
 
         // They don't have an expression body.  See if we could convert the block they 
         // have into one.
-        return TryConvertToExpressionBody(declaration, languageVersion, preference, cancellationToken, out _);
+        return TryConvertToExpressionBody(semanticModel, declaration, languageVersion, preference, cancellationToken, out _);
     }
 
     internal static ExpressionSyntax? GetBodyAsExpression(LambdaExpressionSyntax declaration)
@@ -105,6 +106,7 @@ internal static class UseExpressionBodyForLambdaHelpers
     }
 
     internal static bool TryConvertToExpressionBody(
+        SemanticModel semanticModel,
         LambdaExpressionSyntax declaration,
         LanguageVersion languageVersion,
         ExpressionBodyPreference conversionPreference,
@@ -138,6 +140,15 @@ internal static class UseExpressionBodyForLambdaHelpers
         // #endif
         // );
         if (semicolonToken.TrailingTrivia.Any(t => t.IsDirective))
+            return false;
+
+        // Changing from a block to an expression body can cahnge semantics.  Specifically in the case where the block
+        // did not return (i.e. being assigned to an action).
+        var speculationAnalyzer = new SpeculationAnalyzer(
+            declaration,
+            declaration.WithBody(expression),
+            semanticModel, cancellationToken);
+        if (speculationAnalyzer.ReplacementChangesSemantics())
             return false;
 
         return true;
