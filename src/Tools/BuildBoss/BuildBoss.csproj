@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="$(MicrosoftBuildUtilitiesCoreVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <!-- -->
-    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableBuildBossVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(RefOnlySystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="$(MSBuildStructuredLoggerVersion)" />
     <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
