@@ -214,6 +214,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Warning level 10 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 10 (C# 14) and that can be reported for pre-existing code.
                     return 10;
+                case ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature:
+                    // Warning level 9 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 9 (C# 13) and that can be reported for pre-existing code.
+                    return 9;
                 case ErrorCode.WRN_AddressOfInAsync:
                 case ErrorCode.WRN_ByValArraySizeConstRequired:
                     // Warning level 8 is exclusively for warnings introduced in the compiler
@@ -567,7 +571,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UninitializedNonNullableBackingField:
                 case ErrorCode.WRN_AccessorDoesNotUseBackingField:
                 case ErrorCode.WRN_UnscopedRefAttributeOldRules:
-                case ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature:
                     return 1;
                 default:
                     return 0;
