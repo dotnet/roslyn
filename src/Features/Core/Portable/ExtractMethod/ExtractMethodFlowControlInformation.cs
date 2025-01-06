@@ -26,9 +26,8 @@ internal sealed class ExtractMethodFlowControlInformation
     public readonly int ContinueStatementCount;
     public readonly int ReturnStatementCount;
     public readonly bool EndPointIsReachable;
-    //    public readonly ITypeSymbol OriginalReturnType;
 
-    private readonly Dictionary<FlowControlKind, object> _flowValues = [];
+    private readonly Dictionary<FlowControlKind, object?> _flowValues = [];
 
     public readonly ITypeSymbol ControlFlowValueType;
 
@@ -67,6 +66,19 @@ internal sealed class ExtractMethodFlowControlInformation
         }
     }
 
+    private void AssignFlowValues(object?[] values)
+    {
+        var valuesIndex = 0;
+        if (BreakStatementCount > 0)
+            _flowValues[FlowControlKind.Break] = values[valuesIndex++];
+        if (ContinueStatementCount > 0)
+            _flowValues[FlowControlKind.Continue] = values[valuesIndex++];
+        if (ReturnStatementCount > 0)
+            _flowValues[FlowControlKind.Return] = values[valuesIndex++];
+        if (EndPointIsReachable)
+            _flowValues[FlowControlKind.FallThrough] = values[valuesIndex++];
+    }
+
     private int GetControlFlowKindCount()
     {
         var flowControlKinds =
@@ -80,15 +92,15 @@ internal sealed class ExtractMethodFlowControlInformation
     public bool NeedsControlFlowValue()
         => ControlFlowValueType.SpecialType != SpecialType.System_Void;
 
-    public object GetBreakFlowValue()
-        => _breakFlowValue ?? throw ExceptionUtilities.Unreachable();
+    public object? GetBreakFlowValue()
+        => _flowValues[FlowControlKind.Break];
 
-    public object GetContinueFlowValue()
-        => _continueFlowValue ?? throw ExceptionUtilities.Unreachable();
+    public object? GetContinueFlowValue()
+        => _flowValues[FlowControlKind.Continue];
 
-    public object GetReturnFlowValue()
-        => _returnFlowValue ?? throw ExceptionUtilities.Unreachable();
+    public object? GetReturnFlowValue()
+        => _flowValues[FlowControlKind.Return];
 
-    public object GetFallThroughFlowValue()
-        => _fallThroughFlowValue ?? throw ExceptionUtilities.Unreachable();
+    public object? GetFallThroughFlowValue()
+        => _flowValues[FlowControlKind.FallThrough];
 }
