@@ -1046,22 +1046,22 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
-        /// <see cref="PrivateImplementationDetails.GetOrCreateFieldForStringValue"/>
+        /// <see cref="PrivateImplementationDetails.TryGetOrCreateFieldForStringValue"/>
         /// </summary>
         public Cci.IFieldReference TryGetOrCreateFieldForStringValue(string text, TSyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            if (text.TryGetUtf8ByteRepresentation(out byte[] data, out _))
-            {
-                var privateImpl = GetPrivateImplClass(syntaxNode, diagnostics);
-                return privateImpl.GetOrCreateFieldForStringValue(
-                    text,
-                    data.ToImmutableArray(),
-                    Compilation,
-                    this.GetSpecialType(SpecialType.System_String, syntaxNode, diagnostics),
-                    diagnostics);
-            }
-
-            return null;
+            return PrivateImplementationDetails.TryGetOrCreateFieldForStringValue(
+                text,
+                (this, syntaxNode, diagnostics),
+                static arg =>
+                {
+                    var (@this, syntaxNode, diagnostics) = arg;
+                    return (
+                        @this.GetPrivateImplClass(syntaxNode, diagnostics),
+                        @this.GetSpecialType(SpecialType.System_String, syntaxNode, diagnostics)
+                    );
+                },
+                diagnostics);
         }
 
         public abstract Cci.IMethodReference GetInitArrayHelper();

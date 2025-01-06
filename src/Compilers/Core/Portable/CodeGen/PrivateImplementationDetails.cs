@@ -319,23 +319,29 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Gets the field of <see cref="DataSectionStringType"/> or creates one
         /// if the type does not exist yet for the given <paramref name="text"/>.
+        /// If the text cannot be encoded, returns <see langword="null"/>.
         /// </summary>
-        internal Cci.IFieldReference GetOrCreateFieldForStringValue(
+        internal static Cci.IFieldReference? TryGetOrCreateFieldForStringValue<TArg>(
             string text,
-            ImmutableArray<byte> data,
-            Compilation compilation,
-            Cci.ITypeReference systemStringType,
+            TArg arg,
+            Func<TArg, (PrivateImplementationDetails PrivateImplDetails, Cci.ITypeReference SystemStringType)> factory,
             DiagnosticBag diagnostics)
         {
-            return _dataSectionStringLiteralTypes.GetOrAdd(text, static (key, arg) =>
+            if (!text.TryGetUtf8ByteRepresentation(out byte[]? data, out _))
             {
-                var (@this, data, compilation, systemStringType, diagnostics) = arg;
+                return null;
+            }
+
+            var (privateImplDetails, systemStringType) = factory(arg);
+            return privateImplDetails._dataSectionStringLiteralTypes.GetOrAdd(text, static (key, arg) =>
+            {
+                var (@this, data, systemStringType, diagnostics) = arg;
 
                 string name = "<S>" + DataToHexViaXxHash128(data);
 
                 MappedField dataField = @this.CreateDataField(data, alignment: 1);
 
-                Cci.IMethodDefinition bytesToStringHelper = @this.GetOrSynthesizeBytesToStringHelper(compilation, diagnostics);
+                Cci.IMethodDefinition bytesToStringHelper = @this.GetOrSynthesizeBytesToStringHelper(@this._moduleBuilder.CommonCompilation, diagnostics);
 
                 return new DataSectionStringType(
                     module: (ITokenDeferral)@this._moduleBuilder,
@@ -346,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     systemStringType: systemStringType,
                     diagnostics: diagnostics);
             },
-            (this, data, compilation, systemStringType, diagnostics)).Field;
+            (privateImplDetails, data.ToImmutableArray(), systemStringType, diagnostics)).Field;
         }
 
         /// <summary>
