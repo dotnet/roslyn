@@ -19,7 +19,7 @@ public class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOutputHel
     {
         var loggerFactory = new LoggerFactory();
         using var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
-            loggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, out var serverConfiguration, out var _);
+            loggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, [], out var serverConfiguration, out var _);
 
         exportProvider.GetExportedValue<ServerConfigurationFactory>()
             .InitializeConfiguration(serverConfiguration);

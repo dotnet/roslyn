@@ -24,6 +24,7 @@ internal sealed class LanguageServerTestComposition
         ILoggerFactory loggerFactory,
         bool includeDevKitComponents,
         string cacheDirectory,
+        string[]? extensionPaths,
         out ServerConfiguration serverConfiguration,
         out IAssemblyLoader assemblyLoader)
     {
@@ -33,7 +34,7 @@ internal sealed class LanguageServerTestComposition
             StarredCompletionsPath: null,
             TelemetryLevel: null,
             SessionId: null,
-            ExtensionAssemblyPaths: [],
+            ExtensionAssemblyPaths: extensionPaths ?? [],
             DevKitDependencyPath: devKitDependencyPath,
             RazorSourceGenerator: null,
             RazorDesignTimePath: null,
