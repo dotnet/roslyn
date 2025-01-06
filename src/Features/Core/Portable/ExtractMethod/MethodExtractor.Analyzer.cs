@@ -209,15 +209,6 @@ internal abstract partial class AbstractExtractMethodService<
                 return (returnType, awaitTaskReturn: false);
             }
 
-            private sealed record class FlowControlData(
-                string? BreakValue,
-                string? ContinueValue,
-                string? FallThroughValue,
-                string? ReturnValue)
-            {
-
-            }
-
             private (ImmutableArray<VariableInfo> finalOrderedVariableInfos, ITypeSymbol returnType, bool returnsByRef)
                 GetSignatureInformation(Dictionary<ISymbol, VariableInfo> symbolMap)
             {
