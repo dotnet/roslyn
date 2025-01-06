@@ -1,4 +1,4 @@
-$ArtifactStagingFolder = & "$PSScriptRoot/../Get-ArtifactsStagingDirectory.ps1"
+$ArtifactStagingFolder = & "$PSScriptRoot/../../tools/Get-ArtifactsStagingDirectory.ps1"
 
 if (!(Test-Path $ArtifactStagingFolder/build_logs)) { return }
 

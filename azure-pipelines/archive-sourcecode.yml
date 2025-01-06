@@ -60,7 +60,7 @@ extends:
             forceReinstallCredentialProvider: true
         - script: dotnet tool restore
           displayName: ⚙️ Restore CLI tools
-        - powershell: azure-pipelines/variables/_pipelines.ps1
+        - powershell: tools/variables/_define.ps1
           failOnStderr: true
           displayName: ⚙ Set pipeline variables based on source
         - task: AzureCLI@2

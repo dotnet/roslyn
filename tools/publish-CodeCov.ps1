@@ -22,7 +22,7 @@ Param (
 
 $RepoRoot = (Resolve-Path "$PSScriptRoot/..").Path
 
-Get-ChildItem -Recurse -Path $PathToCodeCoverage -Filter "*.cobertura.xml" | % {
+Get-ChildItem -Recurse -LiteralPath $PathToCodeCoverage -Filter "*.cobertura.xml" | % {
     $relativeFilePath = Resolve-Path -relative $_.FullName
 
     Write-Host "Uploading: $relativeFilePath" -ForegroundColor Yellow

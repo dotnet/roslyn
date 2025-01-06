@@ -24,8 +24,8 @@ param (
             # and the second that works across jobs and stages but must be fully qualified when referenced.
             Write-Host "##vso[task.setvariable variable=$keyCaps;isOutput=true]$($_.Value)"
         } elseif ($env:GITHUB_ACTIONS) {
-            Add-Content -Path $env:GITHUB_ENV -Value "$keyCaps=$($_.Value)"
+            Add-Content -LiteralPath $env:GITHUB_ENV -Value "$keyCaps=$($_.Value)"
         }
-        Set-Item -Path "env:$keyCaps" -Value $_.Value
+        Set-Item -LiteralPath "env:$keyCaps" -Value $_.Value
     }
 }

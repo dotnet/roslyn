@@ -36,7 +36,7 @@ function Replace-Placeholders {
 
     $Path = Resolve-Path $Path
     Write-Host "Replacing tokens in `"$Path`""
-    $content = Get-Content -Encoding UTF8 -Path $Path | Out-String
+    $content = Get-Content -Encoding UTF8 -LiteralPath $Path | Out-String
     $Replacements.GetEnumerator() |% {
         $modifiedContent = $content -replace $_.Key,$_.Value
         if ($modifiedContent -eq $content) {
@@ -141,6 +141,12 @@ try {
         "(?m)^.*\[GitHub Actions status\].*`r?`n"=""
         "(?m)^.*\[codecov\].*`r?`n"=""
     }
+    Replace-Placeholders -Path "docfx/docfx.json" -Replacements @{
+        'Library'=$LibraryName
+    }
+    Replace-Placeholders -Path "docfx/docs/getting-started.md" -Replacements @{
+        'Library'=$LibraryName
+    }
 
     # Specially handle azure-pipelines .yml edits
     Replace-Placeholders -Path "azure-pipelines/build.yml" -Replacements @{
@@ -161,16 +167,16 @@ try {
     }
     Replace-Placeholders -Path "azure-pipelines/BuildStageVariables.yml" -Replacements $YmlReplacements
 
-    Replace-Placeholders -Path "azure-pipelines/variables/InsertVersionsValues.ps1" -Replacements @{
+    Replace-Placeholders -Path "tools/variables/InsertVersionsValues.ps1" -Replacements @{
         'LibraryName' = $LibraryName;
         'LibraryNoDots' = $LibraryName.Replace('.','');
     }
 
-    Replace-Placeholders -Path "azure-pipelines/variables/InsertJsonValues.ps1" -Replacements @{
+    Replace-Placeholders -Path "tools/variables/InsertJsonValues.ps1" -Replacements @{
         'LibraryName' = $LibraryName;
     }
 
-    Replace-Placeholders -Path "azure-pipelines/variables/SymbolsFeatureName.ps1" -Replacements @{
+    Replace-Placeholders -Path "tools/variables/SymbolsFeatureName.ps1" -Replacements @{
         'LibraryName' = $LibraryName;
     }
 
@@ -189,7 +195,7 @@ try {
 
     # Self-integrity check
     Get-ChildItem -Recurse -File -Exclude bin,obj,README.md,Expand-Template.* |? { -not $_.FullName.Contains("obj") } |% {
-        $PLACEHOLDERS = Get-Content -Path $_.FullName |? { $_.Contains('PLACEHOLDER') }
+        $PLACEHOLDERS = Get-Content -LiteralPath $_.FullName |? { $_.Contains('PLACEHOLDER') }
         if ($PLACEHOLDERS) {
             Write-Error "PLACEHOLDER discovered in $($_.FullName)"
         }

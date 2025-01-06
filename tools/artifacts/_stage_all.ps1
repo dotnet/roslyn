@@ -11,7 +11,7 @@ param (
     [switch]$AvoidSymbolicLinks
 )
 
-$ArtifactStagingFolder = & "$PSScriptRoot/../Get-ArtifactsStagingDirectory.ps1" -CleanIfLocal
+$ArtifactStagingFolder = & "$PSScriptRoot/../../tools/Get-ArtifactsStagingDirectory.ps1" -CleanIfLocal
 
 function Create-SymbolicLink {
     param (
@@ -51,7 +51,7 @@ $Artifacts |% {
     if (Test-Path -PathType Leaf $_.Source) { # skip folders
         $TargetPath = Join-Path $DestinationFolder $Name
         if ($AvoidSymbolicLinks) {
-            Copy-Item -Path $_.Source -Destination $TargetPath
+            Copy-Item -LiteralPath $_.Source -Destination $TargetPath
         } else {
             Create-SymbolicLink -Link $TargetPath -Target $_.Source
         }

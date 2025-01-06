@@ -16,7 +16,7 @@ Function Set-PipelineVariable($name, $value) {
         return # already set
     }
 
-    #New-Item -Path "Env:\$name".ToUpper() -Value $value -Force | Out-Null
+    #New-Item -LiteralPath "Env:\$name".ToUpper() -Value $value -Force | Out-Null
     Write-Host "##vso[task.setvariable variable=$name]$value"
 }
 
@@ -25,7 +25,7 @@ Function Test-ArtifactUploaded($artifactName) {
     Test-Path "env:$varName"
 }
 
-& "$PSScriptRoot/_stage_all.ps1" -ArtifactNameSuffix $ArtifactNameSuffix -AvoidSymbolicLinks:$AvoidSymbolicLinks |% {
+& "$PSScriptRoot/../tools/artifacts/_stage_all.ps1" -ArtifactNameSuffix $ArtifactNameSuffix -AvoidSymbolicLinks:$AvoidSymbolicLinks |% {
     # Set a variable which will out-live this script so that a subsequent attempt to collect and upload artifacts
     # will skip this one from a check in the _all.ps1 script.
     Set-PipelineVariable "ARTIFACTSTAGED_$($_.Name.ToUpper())" 'true'

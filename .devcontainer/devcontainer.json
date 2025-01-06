@@ -1,20 +1,25 @@
 {
   "name": "Dev space",
   "dockerFile": "Dockerfile",
-  "settings": {
-    "terminal.integrated.shell.linux": "/usr/bin/pwsh"
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.shell.linux": "/usr/bin/pwsh"
+      },
+      "extensions": [
+        "ms-azure-devops.azure-pipelines",
+        "ms-dotnettools.csharp",
+        "k--kato.docomment",
+        "editorconfig.editorconfig",
+        "esbenp.prettier-vscode",
+        "pflannery.vscode-versionlens",
+        "davidanson.vscode-markdownlint",
+        "dotjoshjohnson.xml",
+        "ms-vscode-remote.remote-containers",
+        "ms-azuretools.vscode-docker",
+        "tintoy.msbuild-project-tools"
+      ]
+    }
   },
-  "postCreateCommand": "./init.ps1 -InstallLocality machine",
-  "extensions": [
-    "ms-azure-devops.azure-pipelines",
-    "ms-dotnettools.csharp",
-    "k--kato.docomment",
-    "editorconfig.editorconfig",
-    "pflannery.vscode-versionlens",
-    "davidanson.vscode-markdownlint",
-    "dotjoshjohnson.xml",
-    "ms-vscode-remote.remote-containers",
-    "ms-azuretools.vscode-docker",
-    "ms-vscode.powershell"
-  ]
+  "postCreateCommand": "./init.ps1 -InstallLocality machine"
 }

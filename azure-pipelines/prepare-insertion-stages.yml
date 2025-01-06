@@ -23,7 +23,7 @@ stages:
         - download: current
           artifact: Variables-Windows
           displayName: 🔻 Download Variables-Windows artifact
-        - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
+        - powershell: $(Pipeline.Workspace)/Variables-Windows/_define.ps1
           displayName: ⚙️ Set pipeline variables based on artifacts
         - download: current
           artifact: symbols-legacy
@@ -66,7 +66,7 @@ stages:
         - download: current
           artifact: Variables-Windows
           displayName: 🔻 Download Variables-Windows artifact
-        - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
+        - powershell: $(Pipeline.Workspace)/Variables-Windows/_define.ps1
           displayName: ⚙️ Set pipeline variables based on artifacts
         - download: current
           artifact: deployables-Windows

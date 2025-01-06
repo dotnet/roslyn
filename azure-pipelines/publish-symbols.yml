@@ -63,5 +63,5 @@ steps:
     SymbolServerType: TeamServices
   displayName: 📢 Publish test symbols
 
-- powershell: azure-pipelines/Prepare-Legacy-Symbols.ps1 -Path $(Pipeline.Workspace)/symbols/Windows
+- powershell: tools/Prepare-Legacy-Symbols.ps1 -Path $(Pipeline.Workspace)/symbols/Windows
   displayName: ⚙ Prepare symbols for symbol archival

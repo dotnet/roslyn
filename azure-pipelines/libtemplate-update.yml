@@ -50,7 +50,7 @@ extends:
           fetchDepth: 0
           clean: true
         - pwsh: |
-            $LibTemplateBranch = & ./azure-pipelines/Get-LibTemplateBasis.ps1 -ErrorIfNotRelated
+            $LibTemplateBranch = & ./tools/Get-LibTemplateBasis.ps1 -ErrorIfNotRelated
             if ($LASTEXITCODE -ne 0) {
               exit $LASTEXITCODE
             }
