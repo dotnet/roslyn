@@ -68,7 +68,7 @@ internal abstract partial class AbstractExtractMethodService<
             /// <returns></returns>
             protected abstract bool ReadOnlyFieldAllowed();
 
-            protected abstract (int breakStatementCount, int continueStatementCount, bool endPointIsReachable) GetComplexFlowControlInfo();
+            protected abstract (int breakStatementCount, int continueStatementCount, int returnStatement, bool endPointIsReachable) GetComplexFlowControlInfo();
 
             public AnalyzerResult Analyze()
             {
@@ -222,7 +222,10 @@ internal abstract partial class AbstractExtractMethodService<
                 GetSignatureInformation(Dictionary<ISymbol, VariableInfo> symbolMap)
             {
                 var allVariableInfos = symbolMap.Values.Order().ToImmutableArray();
-                if (this.SelectionResult.IsExtractMethodOnExpression)
+
+                var (breakStatementCount, continueStatementCount, returnStatementCount, endPointIsReachable) = GetComplexFlowControlInfo();
+
+                if (IsTrivialReturnOnlyExtraction())
                 {
                     // Just selecting an expression.  There can't be any sort of interesting flow control here as the
                     // language doesn't support things like 'break/continue/return' expressions (those only have
@@ -274,6 +277,25 @@ internal abstract partial class AbstractExtractMethodService<
 
                     var returnType = GetReturnType(variablesToUseAsReturnValue);
                     return (finalOrderedVariableInfos, returnType, returnsByRef: false);
+                }
+
+                bool IsTrivialReturnOnlyExtraction()
+                {
+                    // Extracting an expression produces a method that does nothing more than return that expression.
+                    if (this.SelectionResult.IsExtractMethodOnExpression)
+                        return true;
+
+                    // If we have multiple returns and no other flow control, then we still do an extraction where the
+                    // extracted method returns on all paths, and the caller will return that call.
+                    if (returnStatementCount > 0 &&
+                        breakStatementCount == 0 &&
+                        continueStatementCount == 0 &&
+                        !endPointIsReachable)
+                    {
+                        return true;
+                    }
+
+                    return false;
                 }
 
                 ITypeSymbol GetReturnType(ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
