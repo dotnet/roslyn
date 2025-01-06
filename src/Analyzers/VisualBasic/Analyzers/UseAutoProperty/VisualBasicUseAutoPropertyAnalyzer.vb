@@ -3,16 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Concurrent
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.UseAutoProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class VisualBasicUseAutoPropertyAnalyzer
+    Friend NotInheritable Class VisualBasicUseAutoPropertyAnalyzer
         Inherits AbstractUseAutoPropertyAnalyzer(Of
             SyntaxKind,
             PropertyBlockSyntax,
@@ -22,9 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             ExpressionSyntax,
             IdentifierNameSyntax)
 
-        Protected Overrides ReadOnly Property PropertyDeclarationKind As SyntaxKind = SyntaxKind.PropertyBlock
+        Public Sub New()
+            MyBase.New(VisualBasicSemanticFacts.Instance)
+        End Sub
 
-        Protected Overrides ReadOnly Property SemanticFacts As ISemanticFacts = VisualBasicSemanticFacts.Instance
+        Protected Overrides ReadOnly Property PropertyDeclarationKind As SyntaxKind = SyntaxKind.PropertyBlock
 
         Protected Overrides Function SupportsReadOnlyProperties(compilation As Compilation) As Boolean
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic14
