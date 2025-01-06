@@ -41,7 +41,7 @@
     },
     // SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption
     "textEditor.csharp.advanced.analysis.compilerDiagnosticsScope": {
-      "title": "@Show_compiler_errors_and_warnings_for_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "title": "@Show_compiler_errors_and_warnings_for;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
       "enum": [ "none", "visibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics", "openFiles", "fullSolution" ],
       "enumItemLabels": [ "@None;..\\Microsoft.CodeAnalysis.Workspaces.dll", "@Current_document;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Open_documents;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Entire_solution;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
