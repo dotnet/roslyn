@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -239,4 +241,100 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
         => SyntaxFactory.UnaryPattern(operatorToken, (PatternSyntax)Parenthesize(pattern));
 
     #endregion
+
+    public override SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression)
+        => SyntaxFactory.CastExpression((TypeSyntax)type, (ExpressionSyntax)Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
+
+    public override SyntaxNode DefaultExpression(SyntaxNode type)
+        => SyntaxFactory.DefaultExpression((TypeSyntax)type).WithAdditionalAnnotations(Simplifier.Annotation);
+
+    public override SyntaxNode DefaultExpression(ITypeSymbol type)
+    {
+        // If it's just a reference type, then "null" is the default expression for it.  Note:
+        // this counts for actual reference type, or a type parameter with a 'class' constraint.
+        // Also, if it's a nullable type, then we can use "null".
+        if (type.IsReferenceType ||
+            type is IPointerTypeSymbol ||
+            type.IsNullable())
+        {
+            return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+        }
+
+        switch (type.SpecialType)
+        {
+            case SpecialType.System_Boolean:
+                return SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression);
+            case SpecialType.System_SByte:
+            case SpecialType.System_Byte:
+            case SpecialType.System_Int16:
+            case SpecialType.System_UInt16:
+            case SpecialType.System_Int32:
+            case SpecialType.System_UInt32:
+            case SpecialType.System_Int64:
+            case SpecialType.System_UInt64:
+            case SpecialType.System_Decimal:
+            case SpecialType.System_Single:
+            case SpecialType.System_Double:
+                return SyntaxFactory.LiteralExpression(
+                    SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal("0", 0));
+        }
+
+        // Default to a "default(<typename>)" expression.
+        return DefaultExpression(type.GenerateTypeSyntax());
+    }
+
+    public override SyntaxNode TypeExpression(ITypeSymbol typeSymbol, RefKind refKind)
+    {
+        var type = typeSymbol.GenerateTypeSyntax();
+        return refKind switch
+        {
+            RefKind.Ref => SyntaxFactory.RefType(type),
+            RefKind.RefReadOnly => SyntaxFactory.RefType(RefKeyword, ReadOnlyKeyword, type),
+            _ => type,
+        };
+    }
+
+    public override SyntaxNode MemberAccessExpressionWorker(SyntaxNode? expression, SyntaxNode simpleName)
+    {
+        // can only be null in VB
+        Contract.ThrowIfNull(expression);
+
+        return SyntaxFactory.MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            ParenthesizeLeft((ExpressionSyntax)expression),
+            (SimpleNameSyntax)simpleName);
+    }
+
+    /// <summary>
+    /// Parenthesize the left hand size of a member access, invocation or element access expression
+    /// </summary>
+    internal static ExpressionSyntax ParenthesizeLeft(ExpressionSyntax expression)
+    {
+        if (expression is TypeSyntax ||
+            expression.Kind()
+                is SyntaxKind.ThisExpression
+                or SyntaxKind.BaseExpression
+                or SyntaxKind.ParenthesizedExpression
+                or SyntaxKind.SimpleMemberAccessExpression
+                or SyntaxKind.InvocationExpression
+                or SyntaxKind.ElementAccessExpression
+                or SyntaxKind.MemberBindingExpression)
+        {
+            return expression;
+        }
+
+        return (ExpressionSyntax)Parenthesize(expression);
+    }
+
+    public override SyntaxNode BitwiseOrExpression(SyntaxNode left, SyntaxNode right)
+        => CreateBinaryExpression(SyntaxKind.BitwiseOrExpression, left, right);
+
+    public static SyntaxNode CreateBinaryExpression(SyntaxKind syntaxKind, SyntaxNode left, SyntaxNode right)
+        => SyntaxFactory.BinaryExpression(syntaxKind, (ExpressionSyntax)Parenthesize(left), (ExpressionSyntax)Parenthesize(right));
+
+    public override SyntaxNode IdentifierName(string identifier)
+        => identifier.ToIdentifierName();
+
+    public override SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression)
+        => SyntaxFactory.CastExpression((TypeSyntax)type, (ExpressionSyntax)Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
 }

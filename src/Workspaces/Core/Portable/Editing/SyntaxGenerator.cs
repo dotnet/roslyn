@@ -192,7 +192,7 @@ public abstract class SyntaxGenerator : ILanguageService
             name,
             typeParameters: method.TypeParameters.Select(p => TypeParameter(p)),
             parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
-            returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType, method.RefKind),
+            returnType: method.ReturnType.IsSystemVoid() ? null : this.SyntaxGeneratorInternal.TypeExpression(method.ReturnType, method.RefKind),
             accessibility: method.DeclaredAccessibility,
             modifiers: DeclarationModifiers.From(method),
             statements: statements);
@@ -284,7 +284,7 @@ public abstract class SyntaxGenerator : ILanguageService
             method.Name,
             isImplicitConversion: method.Name is WellKnownMemberNames.ImplicitConversionName,
             parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
-            returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType, method.RefKind),
+            returnType: method.ReturnType.IsSystemVoid() ? null : this.SyntaxGeneratorInternal.TypeExpression(method.ReturnType, method.RefKind),
             accessibility: method.DeclaredAccessibility,
             modifiers: DeclarationModifiers.From(method),
             statements: statements);
@@ -389,7 +389,7 @@ public abstract class SyntaxGenerator : ILanguageService
 
         var propDecl = PropertyDeclaration(
             property.Name,
-            TypeExpression(property.Type, property.RefKind),
+            this.SyntaxGeneratorInternal.TypeExpression(property.Type, property.RefKind),
             getAccessor,
             setAccessor,
             propertyAccessibility,
@@ -450,7 +450,7 @@ public abstract class SyntaxGenerator : ILanguageService
     {
         var indexerDecl = IndexerDeclaration(
             indexer.Parameters.Select(p => this.ParameterDeclaration(p)),
-            TypeExpression(indexer.Type, indexer.RefKind),
+            this.SyntaxGeneratorInternal.TypeExpression(indexer.Type, indexer.RefKind),
             indexer.DeclaredAccessibility,
             DeclarationModifiers.From(indexer),
             getAccessorStatements,
@@ -1775,8 +1775,11 @@ public abstract class SyntaxGenerator : ILanguageService
     /// An expression that represents the default value of a type.
     /// This is typically a null value for reference types or a zero-filled value for value types.
     /// </summary>
-    public abstract SyntaxNode DefaultExpression(SyntaxNode type);
-    public abstract SyntaxNode DefaultExpression(ITypeSymbol type);
+    public SyntaxNode DefaultExpression(SyntaxNode type)
+        => this.SyntaxGeneratorInternal.DefaultExpression(type);
+
+    public SyntaxNode DefaultExpression(ITypeSymbol type)
+        => this.SyntaxGeneratorInternal.DefaultExpression(type);
 
     /// <summary>
     /// Creates an expression that denotes the containing method's this-parameter.
@@ -1828,7 +1831,8 @@ public abstract class SyntaxGenerator : ILanguageService
     /// </summary>
     /// <param name="identifier"></param>
     /// <returns></returns>
-    public abstract SyntaxNode IdentifierName(string identifier);
+    public SyntaxNode IdentifierName(string identifier)
+        => this.SyntaxGeneratorInternal.IdentifierName(identifier);
 
     internal abstract SyntaxNode IdentifierName(SyntaxToken identifier);
     internal SyntaxToken Identifier(string identifier) => SyntaxGeneratorInternal.Identifier(identifier);
@@ -1927,9 +1931,7 @@ public abstract class SyntaxGenerator : ILanguageService
     /// Creates an expression that denotes a type.
     /// </summary>
     public SyntaxNode TypeExpression(ITypeSymbol typeSymbol)
-        => TypeExpression(typeSymbol, RefKind.None);
-
-    private protected abstract SyntaxNode TypeExpression(ITypeSymbol typeSymbol, RefKind refKind);
+        => this.SyntaxGeneratorInternal.TypeExpression(typeSymbol);
 
     /// <summary>
     /// Creates an expression that denotes a type. If addImport is false,
@@ -2104,7 +2106,8 @@ public abstract class SyntaxGenerator : ILanguageService
     /// <summary>
     /// Creates an expression that denotes a bitwise-or operation.
     /// </summary>
-    public abstract SyntaxNode BitwiseOrExpression(SyntaxNode left, SyntaxNode right);
+    public SyntaxNode BitwiseOrExpression(SyntaxNode left, SyntaxNode right)
+        => this.SyntaxGeneratorInternal.BitwiseOrExpression(left, right);
 
     /// <summary>
     /// Creates an expression that denotes a bitwise-not operation
@@ -2163,13 +2166,11 @@ public abstract class SyntaxGenerator : ILanguageService
     /// <summary>
     /// Creates a member access expression.
     /// </summary>
-    public virtual SyntaxNode MemberAccessExpression(SyntaxNode? expression, SyntaxNode memberName)
-    {
-        return MemberAccessExpressionWorker(expression, memberName)
-            .WithAdditionalAnnotations(Simplifier.Annotation);
-    }
+    public SyntaxNode MemberAccessExpression(SyntaxNode? expression, SyntaxNode memberName)
+        => this.SyntaxGeneratorInternal.MemberAccessExpression(expression, memberName);
 
-    internal abstract SyntaxNode MemberAccessExpressionWorker(SyntaxNode? expression, SyntaxNode memberName);
+    internal SyntaxNode MemberAccessExpressionWorker(SyntaxNode? expression, SyntaxNode memberName)
+        => this.SyntaxGeneratorInternal.MemberAccessExpressionWorker(expression, memberName);
 
     internal SyntaxNode RefExpression(SyntaxNode expression)
         => SyntaxGeneratorInternal.RefExpression(expression);
@@ -2285,24 +2286,26 @@ public abstract class SyntaxGenerator : ILanguageService
     /// <summary>
     /// Creates an expression that denotes a type cast operation.
     /// </summary>
-    public abstract SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression);
+    public SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression)
+        => this.SyntaxGeneratorInternal.CastExpression(type, expression);
 
     /// <summary>
     /// Creates an expression that denotes a type cast operation.
     /// </summary>
     public SyntaxNode CastExpression(ITypeSymbol type, SyntaxNode expression)
-        => CastExpression(TypeExpression(type), expression);
+        => this.SyntaxGeneratorInternal.CastExpression(type, expression);
 
     /// <summary>
     /// Creates an expression that denotes a type conversion operation.
     /// </summary>
-    public abstract SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression);
+    public SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression)
+        => this.SyntaxGeneratorInternal.ConvertExpression(type, expression);
 
     /// <summary>
     /// Creates an expression that denotes a type conversion operation.
     /// </summary>
     public SyntaxNode ConvertExpression(ITypeSymbol type, SyntaxNode expression)
-        => ConvertExpression(TypeExpression(type), expression);
+        => this.SyntaxGeneratorInternal.ConvertExpression(type, expression);
 
     /// <summary>
     /// Creates an expression that declares a value returning lambda expression.
