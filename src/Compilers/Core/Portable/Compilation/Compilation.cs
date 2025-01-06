@@ -70,6 +70,8 @@ namespace Microsoft.CodeAnalysis
         // Protected for access in CSharpCompilation.WithAdditionalFeatures
         protected readonly IReadOnlyDictionary<string, string> _features;
 
+        private Optional<int?> _lazyDataSectionStringLiteralThreshold;
+
         public ScriptCompilationInfo? ScriptCompilationInfo => CommonScriptCompilationInfo;
         internal abstract ScriptCompilationInfo? CommonScriptCompilationInfo { get; }
 
@@ -3523,27 +3525,37 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (Feature("experimental-data-section-string-literals") is { } s)
+                if (!_lazyDataSectionStringLiteralThreshold.HasValue)
                 {
-                    if (s == "off")
-                    {
-                        // disabled
-                        return null;
-                    }
-
-                    if (int.TryParse(s, out var i) && i >= 0)
-                    {
-                        // custom non-negative threshold
-                        // 0 can be used to enable for all strings
-                        return i;
-                    }
-
-                    // default value
-                    return 100;
+                    _lazyDataSectionStringLiteralThreshold = compute();
                 }
 
-                // disabled
-                return null;
+                return _lazyDataSectionStringLiteralThreshold.Value;
+
+                int? compute()
+                {
+                    if (Feature("experimental-data-section-string-literals") is { } s)
+                    {
+                        if (s == "off")
+                        {
+                            // disabled
+                            return null;
+                        }
+
+                        if (int.TryParse(s, out var i) && i >= 0)
+                        {
+                            // custom non-negative threshold
+                            // 0 can be used to enable for all strings
+                            return i;
+                        }
+
+                        // default value
+                        return 100;
+                    }
+
+                    // disabled
+                    return null;
+                }
             }
         }
 
