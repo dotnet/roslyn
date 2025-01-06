@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
@@ -16,14 +15,16 @@ internal class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
     {
     }
 
+    protected override SyntaxGeneratorInternal SyntaxGenerator
+        => CSharpSyntaxGeneratorInternal.Instance;
+
     protected override SyntaxNode CreateExplicitlyCastedLiteralValue(
-        SyntaxGenerator generator,
         INamedTypeSymbol enumType,
         SpecialType underlyingSpecialType,
         object constantValue)
     {
         var expression = ExpressionGenerator.GenerateNonEnumValueExpression(
-            generator, enumType.EnumUnderlyingType, constantValue, canUseFieldReference: true);
+            enumType.EnumUnderlyingType, constantValue, canUseFieldReference: true);
 
         var constantValueULong = underlyingSpecialType.ConvertUnderlyingValueToUInt64(constantValue);
         if (constantValueULong == 0)
@@ -32,7 +33,7 @@ internal class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
             return expression;
         }
 
-        return generator.CastExpression(enumType, expression);
+        return CSharpSyntaxGeneratorInternal.Instance.CastExpression(enumType, expression);
     }
 
     protected override bool IsValidName(INamedTypeSymbol enumType, string name)

@@ -110,7 +110,7 @@ internal static class ParameterGenerator
     }
 
     private static ExpressionSyntax GenerateEqualsValueClauseWorker(SyntaxGenerator generator, IParameterSymbol parameter, object? value)
-        => ExpressionGenerator.GenerateExpression(generator, parameter.Type, value, canUseFieldReference: true);
+        => ExpressionGenerator.GenerateExpression(parameter.Type, value, canUseFieldReference: true);
 
     private static SyntaxList<AttributeListSyntax> GenerateAttributes(
         IParameterSymbol parameter, bool isExplicit, CSharpCodeGenerationContextInfo info)
