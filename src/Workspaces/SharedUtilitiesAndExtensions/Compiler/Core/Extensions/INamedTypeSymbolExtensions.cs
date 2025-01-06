@@ -33,10 +33,10 @@ internal static partial class INamedTypeSymbolExtensions
         return stack.SelectManyAsArray(n => n.TypeParameters);
     }
 
-    public static IEnumerable<ITypeSymbol> GetAllTypeArguments(this INamedTypeSymbol? symbol)
+    public static ImmutableArray<ITypeSymbol> GetAllTypeArguments(this INamedTypeSymbol? symbol)
     {
         var stack = GetContainmentStack(symbol);
-        return stack.SelectMany(n => n.TypeArguments);
+        return stack.SelectManyAsArray(n => n.TypeArguments);
     }
 
     private static Stack<INamedTypeSymbol> GetContainmentStack(INamedTypeSymbol? symbol)
@@ -369,9 +369,7 @@ internal static partial class INamedTypeSymbolExtensions
     private static ImmutableArray<INamedTypeSymbol> GetAbstractClassesToImplement(
         IEnumerable<INamedTypeSymbol> abstractClasses)
     {
-        return abstractClasses.SelectMany(a => a.GetBaseTypesAndThis())
-                              .Where(t => t.IsAbstractClass())
-                              .ToImmutableArray();
+        return [.. abstractClasses.SelectMany(a => a.GetBaseTypesAndThis()).Where(t => t.IsAbstractClass())];
     }
 
     private static ImmutableArray<INamedTypeSymbol> GetInterfacesToImplement(

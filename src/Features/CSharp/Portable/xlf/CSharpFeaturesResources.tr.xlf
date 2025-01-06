@@ -132,11 +132,6 @@
         <target state="translated">Otomatik seçim, olası desen değişkeni bildirimi nedeniyle devre dışı bırakıldı.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
-        <source>Cannot determine valid range of statements to extract</source>
-        <target state="translated">Ayıklanacak geçerli deyim aralığı belirlenemedi</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">'as' ifadesine değiştir</target>
@@ -365,11 +360,6 @@
       <trans-unit id="The_selected_code_is_inside_an_unsafe_context">
         <source>The selected code is inside an unsafe context.</source>
         <target state="translated">Seçili kod güvenli olmayan bir bağlam içinde.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_statement_range_to_extract">
-        <source>No valid statement range to extract</source>
-        <target state="translated">Ayıklanacak geçerli deyim aralığı yok</target>
         <note />
       </trans-unit>
       <trans-unit id="deprecated">

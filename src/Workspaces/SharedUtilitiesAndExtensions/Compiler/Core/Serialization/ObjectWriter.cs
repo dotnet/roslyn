@@ -129,6 +129,28 @@ internal sealed partial class ObjectWriter : IDisposable
     public void WriteUInt16(ushort value) => _writer.Write(value);
     public void WriteString(string? value) => WriteStringValue(value);
 
+    public Stream BaseStream => _writer.BaseStream;
+
+    public void Reset()
+    {
+        _stringReferenceMap.Reset();
+
+        // Reset the position and length back to zero
+        _writer.BaseStream.Position = 0;
+
+        if (_writer.BaseStream is SerializableBytes.ReadWriteStream pooledStream)
+        {
+            // ReadWriteStream.SetLength allows us to indicate to not truncate, allowing
+            // reuse of the backing arrays.
+            pooledStream.SetLength(0, truncate: false);
+        }
+        else
+        {
+            // Otherwise, set the new length via the standard Stream.SetLength
+            _writer.BaseStream.SetLength(0);
+        }
+    }
+
     /// <summary>
     /// Used so we can easily grab the low/high 64bits of a guid for serialization.
     /// </summary>

@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function GetAssemblyScopedAttributeSyntaxNodesOfDocument(documentRoot As SyntaxNode) As IImmutableList(Of SyntaxNode)
             Dim builder As ImmutableList(Of SyntaxNode).Builder = Nothing
             Dim compilationUnit = TryCast(documentRoot, CompilationUnitSyntax)
-            If Not compilationUnit Is Nothing Then
+            If compilationUnit IsNot Nothing Then
                 For Each attributeStatement In compilationUnit.Attributes
                     For Each attributeList In attributeStatement.AttributeLists
                         builder = If(builder, ImmutableList.CreateBuilder(Of SyntaxNode)())

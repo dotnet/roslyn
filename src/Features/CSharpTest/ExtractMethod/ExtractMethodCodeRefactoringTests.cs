@@ -21,7 +21,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<
     ExtractMethodCodeRefactoringProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-public sealed class ExtractMethodTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     private const string SystemThreadingTasks = "System.Threading.Tasks";
     private const string SystemThreadingTasksTask = $"{SystemThreadingTasks}.Task";
@@ -6045,6 +6045,37 @@ $@"
             struct S1
             {
                 public int F1;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38087")]
+    public async Task TestPartialSelectionOfArithmeticExpression()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private void Repro()
+                {
+                    int i = 1, j = 2;
+                    int k = [|i + j|] + 1;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private void Repro()
+                {
+                    int i = 1, j = 2;
+                    int k = {|Rename:NewMethod|}(i, j) + 1;
+                }
+
+                private static int NewMethod(int i, int j)
+                {
+                    return i + j;
+                }
             }
             """);
     }

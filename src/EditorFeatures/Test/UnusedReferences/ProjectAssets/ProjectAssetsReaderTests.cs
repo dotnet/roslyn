@@ -66,9 +66,9 @@ public partial class ProjectAssetsReaderTests
 
     private static ReferenceInfo ProjectReference(string projectPath, params ReferenceInfo[] dependencies) => ProjectReference(projectPath, false, dependencies);
     private static ReferenceInfo ProjectReference(string projectPath, bool treatAsUsed, params ReferenceInfo[] dependencies)
-        => new(ReferenceType.Project, projectPath, treatAsUsed, ImmutableArray.Create(Path.ChangeExtension(projectPath, "dll")), dependencies.ToImmutableArray());
+        => new(ReferenceType.Project, projectPath, treatAsUsed, [Path.ChangeExtension(projectPath, "dll")], [.. dependencies]);
 
     private static ReferenceInfo PackageReference(string assemblyPath, params ReferenceInfo[] dependencies) => PackageReference(assemblyPath, false, dependencies);
     private static ReferenceInfo PackageReference(string assemblyPath, bool treatAsUsed, params ReferenceInfo[] dependencies)
-        => new(ReferenceType.Package, Path.GetFileNameWithoutExtension(assemblyPath), treatAsUsed, ImmutableArray.Create(assemblyPath), dependencies.ToImmutableArray());
+        => new(ReferenceType.Package, Path.GetFileNameWithoutExtension(assemblyPath), treatAsUsed, [assemblyPath], [.. dependencies]);
 }

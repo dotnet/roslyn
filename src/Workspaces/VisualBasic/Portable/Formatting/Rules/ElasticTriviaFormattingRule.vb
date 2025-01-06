@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             If AfterLastInheritsOrImplements(previousToken, currentToken) Then
-                If Not TypeOf currentToken.Parent Is EndBlockStatementSyntax Then
+                If TypeOf currentToken.Parent IsNot EndBlockStatementSyntax Then
                     Return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.ForceLines)
                 End If
             End If
@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' current one is not import statement
-            If Not TypeOf token.Parent Is NameSyntax Then
+            If TypeOf token.Parent IsNot NameSyntax Then
                 Return False
             End If
 

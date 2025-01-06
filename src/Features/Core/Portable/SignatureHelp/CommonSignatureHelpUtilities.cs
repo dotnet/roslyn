@@ -38,7 +38,7 @@ internal static class CommonSignatureHelpUtilities
                 argumentIndex,
                 argumentCount,
                 argumentIndex < argumentCount ? argumentNames[argumentIndex] : null,
-                argumentNames.WhereNotNull().ToImmutableArray());
+                [.. argumentNames.WhereNotNull()]);
         }
 
         return null;

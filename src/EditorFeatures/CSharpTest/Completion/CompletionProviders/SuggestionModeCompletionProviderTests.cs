@@ -1529,7 +1529,7 @@ class P
         };
 
         var service = GetCompletionService(document.Project);
-        var provider = Assert.Single(service.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet<string>.Empty));
+        var provider = Assert.Single(service.GetTestAccessor().GetImportedAndBuiltInProviders([]));
 
         foreach (var triggerInfo in triggerInfos)
         {

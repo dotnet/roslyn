@@ -9180,24 +9180,30 @@ done:
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var (variableDeclaration, initializers) = eatVariableDeclarationOrInitializers();
 
-            // Pulled out as we need to track this when parsing incrementors to place skipped tokens.
-            SyntaxToken secondSemicolonToken;
+            var firstSemicolonToken = eatCommaOrSemicolon();
+            var condition = this.CurrentToken.Kind is not SyntaxKind.SemicolonToken and not SyntaxKind.CommaToken
+                ? this.ParseExpressionCore()
+                : null;
+
+            // Used to place skipped tokens we run into when parsing the incrementors list.
+            var secondSemicolonToken = eatCommaOrSemicolon();
+
+            // Do allow semicolons (with diagnostics) in the incrementors list.  This allows us to consume
+            // accidental extra incrementors that should have been separated by commas.
+            var incrementors = this.CurrentToken.Kind != SyntaxKind.CloseParenToken
+                ? parseForStatementExpressionList(ref secondSemicolonToken, allowSemicolonAsSeparator: true)
+                : default;
+
             var forStatement = _syntaxFactory.ForStatement(
                 attributes,
                 forToken,
                 openParen,
                 variableDeclaration,
                 initializers,
-                firstSemicolonToken: eatCommaOrSemicolon(),
-                condition: this.CurrentToken.Kind is not SyntaxKind.SemicolonToken and not SyntaxKind.CommaToken
-                    ? this.ParseExpressionCore()
-                    : null,
-                secondSemicolonToken = eatCommaOrSemicolon(),
-                // Do allow semicolons (with diagnostics) in the incrementors list.  This allows us to consume
-                // accidental extra incrementors that should have been separated by commas.
-                incrementors: this.CurrentToken.Kind != SyntaxKind.CloseParenToken
-                    ? parseForStatementExpressionList(ref secondSemicolonToken, allowSemicolonAsSeparator: true)
-                    : default,
+                firstSemicolonToken,
+                condition,
+                secondSemicolonToken,
+                incrementors,
                 eatUnexpectedTokensAndCloseParenToken(),
                 ParseEmbeddedStatement());
 

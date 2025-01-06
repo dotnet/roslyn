@@ -5,11 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -407,8 +405,24 @@ internal partial class CSharpRecommendationService
                 if (filterOutOfScopeLocals && symbol.IsInaccessibleLocal(context.Position))
                     return true;
 
-                if (IsCapturedPrimaryConstructorParameter(context, enclosingNamedType, symbol, cancellationToken))
-                    return true;
+                // Outside of a nameof(...) we don't want to include a primary constructor parameter if it's not
+                // available.  Inside of a nameof(...) we do want to include it as it's always legal and causes no
+                // warnings.
+                if (!context.IsNameOfContext &&
+                    symbol is IParameterSymbol parameterSymbol &&
+                    parameterSymbol.IsPrimaryConstructor(cancellationToken))
+                {
+                    // Primary constructor parameters are only available in instance members, so filter out if we're in
+                    // a static context.
+                    if (!context.IsInstanceContext)
+                        return true;
+
+                    // If the parameter was already captured by a field, or by passing to a base-class constructor, then
+                    // we don't want to offer it as the user will get a warning about double storage by capturing both
+                    // into the field/base-type, and synthesized storage for the parameter.
+                    if (IsCapturedPrimaryConstructorParameter(context, enclosingNamedType, parameterSymbol, cancellationToken))
+                        return true;
+                }
 
                 return false;
             }
@@ -416,18 +430,9 @@ internal partial class CSharpRecommendationService
             static bool IsCapturedPrimaryConstructorParameter(
                 CSharpSyntaxContext context,
                 INamedTypeSymbol? enclosingNamedType,
-                ISymbol symbol,
+                IParameterSymbol parameterSymbol,
                 CancellationToken cancellationToken)
             {
-                if (enclosingNamedType is null)
-                    return false;
-
-                if (symbol is not IParameterSymbol parameterSymbol)
-                    return false;
-
-                if (!parameterSymbol.IsPrimaryConstructor(cancellationToken))
-                    return false;
-
                 // Fine to offer primary constructor parameters in field/property initializers 
                 var initializer = context.TargetToken.GetAncestors<EqualsValueClauseSyntax>().FirstOrDefault();
                 if (initializer is
@@ -442,49 +447,52 @@ internal partial class CSharpRecommendationService
                 // We're not in an initializer.  Filter out this primary constructor parameter if it's already been
                 // captured by an existing field or property initializer.
 
-                var parameterName = parameterSymbol.Name;
-                foreach (var reference in enclosingNamedType.DeclaringSyntaxReferences)
+                if (enclosingNamedType != null)
                 {
-                    if (reference.GetSyntax(cancellationToken) is not TypeDeclarationSyntax typeDeclaration)
-                        continue;
-
-                    // See if the parameter was captured into a base-type constructor through the base list.
-                    if (typeDeclaration.BaseList != null)
+                    var parameterName = parameterSymbol.Name;
+                    foreach (var reference in enclosingNamedType.DeclaringSyntaxReferences)
                     {
-                        foreach (var baseType in typeDeclaration.BaseList.Types)
+                        if (reference.GetSyntax(cancellationToken) is not TypeDeclarationSyntax typeDeclaration)
+                            continue;
+
+                        // See if the parameter was captured into a base-type constructor through the base list.
+                        if (typeDeclaration.BaseList != null)
                         {
-                            if (baseType is PrimaryConstructorBaseTypeSyntax primaryConstructorBase)
+                            foreach (var baseType in typeDeclaration.BaseList.Types)
                             {
-                                foreach (var argument in primaryConstructorBase.ArgumentList.Arguments)
+                                if (baseType is PrimaryConstructorBaseTypeSyntax primaryConstructorBase)
                                 {
-                                    if (argument.Expression is IdentifierNameSyntax { Identifier: var argumentIdentifier } &&
-                                        argumentIdentifier.ValueText == parameterName)
+                                    foreach (var argument in primaryConstructorBase.ArgumentList.Arguments)
+                                    {
+                                        if (argument.Expression is IdentifierNameSyntax { Identifier.ValueText: var argumentIdentifier } &&
+                                            argumentIdentifier == parameterName)
+                                        {
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Next, see if any field or property in the type captures the primary constructor parameter in its initializer.
+                        foreach (var member in typeDeclaration.Members)
+                        {
+                            if (member is FieldDeclarationSyntax fieldDeclaration)
+                            {
+                                foreach (var variableDeclarator in fieldDeclaration.Declaration.Variables)
+                                {
+                                    if (variableDeclarator.Initializer?.Value is IdentifierNameSyntax { Identifier.ValueText: var fieldInitializerIdentifier } &&
+                                        fieldInitializerIdentifier == parameterName)
                                     {
                                         return true;
                                     }
                                 }
                             }
-                        }
-                    }
-
-                    // Next, see if any field or property in the type captures the primary constructor parameter in its initializer.
-                    foreach (var member in typeDeclaration.Members)
-                    {
-                        if (member is FieldDeclarationSyntax fieldDeclaration)
-                        {
-                            foreach (var variableDeclarator in fieldDeclaration.Declaration.Variables)
+                            else if (member is PropertyDeclarationSyntax { Initializer.Value: IdentifierNameSyntax { Identifier.ValueText: var propertyInitializerIdentifier } } &&
+                                     propertyInitializerIdentifier == parameterName)
                             {
-                                if (variableDeclarator.Initializer?.Value is IdentifierNameSyntax { Identifier: var fieldInitializerIdentifier } &&
-                                    fieldInitializerIdentifier.ValueText == parameterName)
-                                {
-                                    return true;
-                                }
+                                return true;
                             }
-                        }
-                        else if (member is PropertyDeclarationSyntax { Initializer.Value: IdentifierNameSyntax { Identifier: var propertyInitializerIdentifier } } &&
-                                 propertyInitializerIdentifier.ValueText == parameterName)
-                        {
-                            return true;
                         }
                     }
                 }

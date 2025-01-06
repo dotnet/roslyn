@@ -5908,6 +5908,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TypeReserved" xml:space="preserve">
     <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
+  <data name="ERR_EmbeddedAttributeMustFollowPattern" xml:space="preserve">
+    <value>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</value>
+  </data>
   <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
     <value>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</value>
   </data>
@@ -8001,7 +8004,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CannotApplyOverloadResolutionPriorityToMember" xml:space="preserve">
     <value>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</value>
   </data>
-  <data name="IDS_OverloadResolutionPriority" xml:space="preserve">
+  <data name="IDS_FeatureOverloadResolutionPriority" xml:space="preserve">
     <value>overload resolution priority</value>
   </data>
   <data name="ERR_InlineArrayAttributeOnRecord" xml:space="preserve">
@@ -8031,5 +8034,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_UnscopedRefAttributeOldRules_Title" xml:space="preserve">
     <value>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</value>
+  </data>
+  <data name="WRN_InterceptsLocationAttributeUnsupportedSignature" xml:space="preserve">
+    <value>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</value>
+  </data>
+  <data name="WRN_InterceptsLocationAttributeUnsupportedSignature_Title" xml:space="preserve">
+    <value>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</value>
   </data>
 </root>

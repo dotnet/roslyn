@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         [ImportMany] IEnumerable<Lazy<IBraceCompletionService, LanguageMetadata>> braceCompletionServices,
         IGlobalOptionService globalOptions) : ILspServiceDocumentRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
     {
-        private readonly ImmutableArray<Lazy<IBraceCompletionService, LanguageMetadata>> _braceCompletionServices = braceCompletionServices.ToImmutableArray();
+        private readonly ImmutableArray<Lazy<IBraceCompletionService, LanguageMetadata>> _braceCompletionServices = [.. braceCompletionServices];
         private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public bool MutatesSolutionState => false;

@@ -90,7 +90,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CSharpSimplificationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NullableHelpers\NullableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntaxKindSet.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\NullableHelpers\NullableHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\CSharpSimplifierOptionsProviders.cs" />
   </ItemGroup>

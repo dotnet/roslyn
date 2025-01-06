@@ -101,7 +101,7 @@ internal class SolutionPreviewResult(
 
         return new SolutionPreviewResult(
             result1._threadingContext,
-            result1._previews.Concat(result2._previews).ToList(),
+            [.. result1._previews, .. result2._previews],
             result1.ChangeSummary ?? result2.ChangeSummary);
     }
 }

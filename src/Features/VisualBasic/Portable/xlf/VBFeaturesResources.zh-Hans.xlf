@@ -222,11 +222,6 @@
         <target state="translated">删除 "Me" 资格</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
-        <source>can't determine valid range of statements to extract out</source>
-        <target state="translated">无法确定要提取的语句的有效范围</target>
-        <note />
-      </trans-unit>
       <trans-unit id="contains_invalid_selection">
         <source>contains invalid selection</source>
         <target state="translated">包含无效的选择</target>
@@ -280,11 +275,6 @@
       <trans-unit id="Selection_doesn_t_contain_any_valid_node">
         <source>Selection doesn't contain any valid node</source>
         <target state="translated">所选内容不包含任何有效的节点</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">没有可供提取的有效语句范围</target>
         <note />
       </trans-unit>
       <trans-unit id="Deprecated">

@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -52,9 +53,9 @@ internal class Session<TController, TModel, TPresenterSession> : ISession<TModel
         this.PresenterSession.Dismiss();
     }
 
-    public TModel WaitForController()
+    public Task WaitForModelComputation_ForTestingPurposesOnlyAsync()
     {
         Computation.ThreadingContext.ThrowIfNotOnUIThread();
-        return Computation.WaitForController();
+        return Computation.WaitForModelComputation_ForTestingPurposesOnlyAsync();
     }
 }

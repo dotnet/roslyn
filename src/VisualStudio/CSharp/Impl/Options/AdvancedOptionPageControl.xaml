@@ -194,6 +194,8 @@
                 <StackPanel>
                     <CheckBox x:Name="Fade_out_unused_usings"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unused_usings}" />
+                    <CheckBox x:Name="Fade_out_unused_members"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unused_members}" />
                     <CheckBox x:Name="Fade_out_unreachable_code"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unreachable_code}" />
                 </StackPanel>

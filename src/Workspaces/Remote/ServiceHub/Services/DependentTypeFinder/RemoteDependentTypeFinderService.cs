@@ -39,7 +39,7 @@ internal sealed class RemoteDependentTypeFinderService : BrokeredServiceBase, IR
             var symbol = await typeAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
 
             if (symbol is not INamedTypeSymbol namedType)
-                return ImmutableArray<SerializableSymbolAndProjectId>.Empty;
+                return [];
 
             var projects = projectIdsOpt.IsDefault ? null : projectIdsOpt.Select(id => solution.GetRequiredProject(id)).ToImmutableHashSet();
 

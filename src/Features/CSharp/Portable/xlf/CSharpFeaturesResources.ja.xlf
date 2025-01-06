@@ -132,11 +132,6 @@
         <target state="translated">パターン変数宣言の可能性があるため、自動選択は無効になっています。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
-        <source>Cannot determine valid range of statements to extract</source>
-        <target state="translated">抽出するステートメントの有効な範囲を決定できません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">'as' 式に変更</target>
@@ -365,11 +360,6 @@
       <trans-unit id="The_selected_code_is_inside_an_unsafe_context">
         <source>The selected code is inside an unsafe context.</source>
         <target state="translated">選択されたコードは unsafe コンテキストの内側にあります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_statement_range_to_extract">
-        <source>No valid statement range to extract</source>
-        <target state="translated">抽出する有効なステートメントの範囲がありません</target>
         <note />
       </trans-unit>
       <trans-unit id="deprecated">

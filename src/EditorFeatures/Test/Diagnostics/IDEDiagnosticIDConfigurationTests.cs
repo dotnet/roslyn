@@ -47,7 +47,7 @@ public class IDEDiagnosticIDConfigurationTests
 
                     if (!IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnosticId, languageName, out var options))
                     {
-                        options = ImmutableHashSet<IOption2>.Empty;
+                        options = [];
                     }
 
                     if (uniqueDiagnosticIds.Add(diagnosticId))
@@ -63,7 +63,7 @@ public class IDEDiagnosticIDConfigurationTests
         }
 
         diagnosticIdAndOptions.Sort();
-        return diagnosticIdAndOptions.ToImmutableArray();
+        return [.. diagnosticIdAndOptions];
     }
 
     private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
@@ -94,7 +94,7 @@ public class IDEDiagnosticIDConfigurationTests
 
     private static Dictionary<string, string> GetExpectedMap(string expected, out string[] expectedLines)
     {
-        expectedLines = expected.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+        expectedLines = expected.Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries);
         Assert.True(expectedLines.Length % 2 == 0);
         var expectedMap = new Dictionary<string, string>();
         for (var i = 0; i < expectedLines.Length; i += 2)
@@ -403,6 +403,9 @@ Actual: {editorConfigString}
 
             # IDE0120
             dotnet_diagnostic.IDE0120.severity = %value%
+            
+            # IDE0121
+            dotnet_diagnostic.IDE0121.severity = %value%
 
             # IDE0130
             dotnet_diagnostic.IDE0130.severity = %value%
@@ -879,6 +882,7 @@ dotnet_diagnostic.JSON002.severity = %value%
             ("IDE0100", null, null),
             ("IDE0110", null, null),
             ("IDE0120", null, null),
+            ("IDE0121", null, null),
             ("IDE0130", "dotnet_style_namespace_match_folder", "true"),
             ("IDE0150", "csharp_style_prefer_null_check_over_type_check", "true"),
             ("IDE0160", "csharp_style_namespace_declarations", "block_scoped"),

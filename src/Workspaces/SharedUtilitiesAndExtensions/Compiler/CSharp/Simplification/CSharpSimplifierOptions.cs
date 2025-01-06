@@ -28,6 +28,7 @@ internal sealed record class CSharpSimplifierOptions : SimplifierOptions, IEquat
     [DataMember] public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine { get; init; } = CodeStyleOption2.TrueWithSilentEnforcement;
     [DataMember] public CodeStyleOption2<PreferBracesPreference> PreferBraces { get; init; } = s_defaultPreferBraces;
     [DataMember] public CodeStyleOption2<bool> PreferThrowExpression { get; init; } = CodeStyleOption2.TrueWithSuggestionEnforcement;
+    [DataMember] public CodeStyleOption2<bool> ImplicitObjectCreationWhenTypeIsApparent { get; init; } = CodeStyleOption2.FalseWithSilentEnforcement;
 
     public CSharpSimplifierOptions()
     {
@@ -43,6 +44,7 @@ internal sealed record class CSharpSimplifierOptions : SimplifierOptions, IEquat
         AllowEmbeddedStatementsOnSameLine = options.GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine);
         PreferBraces = options.GetOption(CSharpCodeStyleOptions.PreferBraces);
         PreferThrowExpression = options.GetOption(CSharpCodeStyleOptions.PreferThrowExpression);
+        ImplicitObjectCreationWhenTypeIsApparent = options.GetOption(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent);
     }
 
     public UseVarPreference GetUseVarPreference()

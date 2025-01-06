@@ -161,13 +161,13 @@ public class ConvertToRecordCodeFixTests
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
 #pragma warning disable RS0030 // Do not used banned APIs
-            => ImmutableArray.Create(new DiagnosticDescriptor(
+            => [new DiagnosticDescriptor(
                 "CS8865",
                 "Only records may inherit from records.",
                 "Only records may inherit from records.",
                 "Compiler error",
                 DiagnosticSeverity.Error,
-                isEnabledByDefault: true));
+                isEnabledByDefault: true)];
 #pragma warning restore RS0030 // Do not used banned APIs
 
         public override void Initialize(AnalysisContext context)

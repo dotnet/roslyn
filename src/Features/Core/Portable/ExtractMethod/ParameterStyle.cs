@@ -2,43 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal sealed class ParameterStyle
+internal sealed record class ParameterStyle(
+    ParameterBehavior ParameterBehavior,
+    DeclarationBehavior DeclarationBehavior)
 {
-    public ParameterBehavior ParameterBehavior { get; private set; }
-    public DeclarationBehavior DeclarationBehavior { get; private set; }
-    public DeclarationBehavior SaferDeclarationBehavior { get; private set; }
-
     public static readonly ParameterStyle None =
-        new ParameterStyle() { ParameterBehavior = ParameterBehavior.None, DeclarationBehavior = DeclarationBehavior.None, SaferDeclarationBehavior = DeclarationBehavior.None };
+        new(ParameterBehavior.None, DeclarationBehavior.None);
 
     public static readonly ParameterStyle InputOnly =
-        new ParameterStyle() { ParameterBehavior = ParameterBehavior.Input, DeclarationBehavior = DeclarationBehavior.None, SaferDeclarationBehavior = DeclarationBehavior.None };
-
-    public static readonly ParameterStyle Delete =
-        new ParameterStyle() { ParameterBehavior = ParameterBehavior.None, DeclarationBehavior = DeclarationBehavior.Delete, SaferDeclarationBehavior = DeclarationBehavior.None };
+        new(ParameterBehavior.Input, DeclarationBehavior.None);
 
     public static readonly ParameterStyle MoveOut =
-        new ParameterStyle() { ParameterBehavior = ParameterBehavior.None, DeclarationBehavior = DeclarationBehavior.MoveOut, SaferDeclarationBehavior = DeclarationBehavior.SplitOut };
+        new(ParameterBehavior.None, DeclarationBehavior.MoveOut);
 
     public static readonly ParameterStyle SplitOut =
-        new ParameterStyle() { ParameterBehavior = ParameterBehavior.None, DeclarationBehavior = DeclarationBehavior.SplitOut, SaferDeclarationBehavior = DeclarationBehavior.SplitOut };
+        new(ParameterBehavior.None, DeclarationBehavior.SplitOut);
 
     public static readonly ParameterStyle MoveIn =
-        new ParameterStyle() { ParameterBehavior = ParameterBehavior.None, DeclarationBehavior = DeclarationBehavior.MoveIn, SaferDeclarationBehavior = DeclarationBehavior.SplitIn };
+        new(ParameterBehavior.None, DeclarationBehavior.MoveIn);
 
     public static readonly ParameterStyle SplitIn =
-        new ParameterStyle() { ParameterBehavior = ParameterBehavior.None, DeclarationBehavior = DeclarationBehavior.SplitIn, SaferDeclarationBehavior = DeclarationBehavior.SplitIn };
+        new(ParameterBehavior.None, DeclarationBehavior.SplitIn);
 
     public static readonly ParameterStyle Out =
-        new ParameterStyle() { ParameterBehavior = ParameterBehavior.Out, DeclarationBehavior = DeclarationBehavior.None, SaferDeclarationBehavior = DeclarationBehavior.None };
+        new(ParameterBehavior.Out, DeclarationBehavior.None);
 
     public static readonly ParameterStyle Ref =
-        new ParameterStyle() { ParameterBehavior = ParameterBehavior.Ref, DeclarationBehavior = DeclarationBehavior.None, SaferDeclarationBehavior = DeclarationBehavior.None };
+        new(ParameterBehavior.Ref, DeclarationBehavior.None);
 
     public static readonly ParameterStyle OutWithMoveOut =
-        new ParameterStyle() { ParameterBehavior = ParameterBehavior.Out, DeclarationBehavior = DeclarationBehavior.MoveOut, SaferDeclarationBehavior = DeclarationBehavior.MoveOut };
+        new(ParameterBehavior.Out, DeclarationBehavior.MoveOut);
 }

@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ImmutableArray<CodeRefactoring> refactorings,
             TextSpan selection,
             bool filterOutsideSelection)
-            => refactorings.Select(r => FilterOnAnyThread(r, selection, filterOutsideSelection)).WhereNotNull().ToImmutableArray();
+            => [.. refactorings.Select(r => FilterOnAnyThread(r, selection, filterOutsideSelection)).WhereNotNull()];
 
         private static CodeRefactoring? FilterOnAnyThread(
             CodeRefactoring refactoring,

@@ -531,7 +531,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                 Return False
             End If
 
-            If Not TypeOf constantValue.Value Is Integer Then
+            If TypeOf constantValue.Value IsNot Integer Then
                 Return False
             End If
 
@@ -547,7 +547,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
         End Function
 
         Private Function TryGenerateSimpleArrayBound(argument As ArgumentSyntax) As Boolean
-            If Not TypeOf argument Is SimpleArgumentSyntax Then
+            If TypeOf argument IsNot SimpleArgumentSyntax Then
                 Return False
             End If
 
@@ -555,7 +555,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
         End Function
 
         Private Function TryGenerateRangeArrayBound(argument As ArgumentSyntax) As Boolean
-            If Not TypeOf argument Is RangeArgumentSyntax Then
+            If TypeOf argument IsNot RangeArgumentSyntax Then
                 Return False
             End If
 
