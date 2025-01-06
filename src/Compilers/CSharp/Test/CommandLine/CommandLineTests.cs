@@ -14475,7 +14475,8 @@ class C
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 additionalFlags: ["/langversion:preview",
                     "/out:embed.exe",
-                    "/features:InterceptorsNamespaces=Generated"],
+                    "/features:InterceptorsNamespaces=Generated",
+                    "/warn:9"],
                 expectedWarningCount: 1,
                 generators: [generator],
                 analyzers: null);
@@ -14543,7 +14544,8 @@ class C
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 additionalFlags: ["/langversion:preview",
                     $"/out:{objDir.Path}/embed.exe",
-                    "/features:InterceptorsNamespaces=Generated"],
+                    "/features:InterceptorsNamespaces=Generated",
+                    "/warn:9"],
                 expectedWarningCount: 1,
                 generators: [generator],
                 analyzers: null);
@@ -14617,6 +14619,7 @@ class C
                     "/langversion:preview",
                     "/out:embed.exe",
                     "/features:InterceptorsNamespaces=Generated",
+                    "/warn:9",
                     .. string.IsNullOrEmpty(pathMapArgument) ? default(Span<string>) : [pathMapArgument]
                     ],
                 expectedWarningCount: 1,
