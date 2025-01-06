@@ -5,8 +5,9 @@
 The roslyn repository produces components for a number of different products that push varying ship and TFM constraints on us. A summary of some of our dependencies are : 
 
 - Build Tools: requires us to ship compilers on `net472`
-- .NET SDK: requires us to ship compilers on current servicing target framework (presently `net8.0`)
-- Source build: requires us to ship `$(NetCurrent)` and `$(NetPrevious)` in workspaces and below (presently `net9.0` and `net8.0` respectively)
+- .NET SDK: requires us to ship compilers on current servicing target framework (presently `net9.0`)
+- Repository Source build: requires us to ship `$(NetCurrent)` and `$(NetPrevious)` in workspaces and below (presently `net10.0` and `net9.0` respectively). This is because the output of repository source build is an input to other repository source build and those could be targeting either `$(NetCurrent)` or `$(NetPrevious)`.
+- Full Source build: requires us to ship `$(NetCurrent)`
 - Visual Studio: requires us to ship `net472` for base IDE components and `$(NetVisualStudio)` (presently `net8.0`) for private runtime components.
 - Visual Studio Code: expects us to ship against the same runtime as DevKit (presently `net7.0`) to avoid two runtime downloads.
 - MSBuildWorkspace: requires to ship a process that must be usable on the lowest supported SDK (presently `net6.0`)
