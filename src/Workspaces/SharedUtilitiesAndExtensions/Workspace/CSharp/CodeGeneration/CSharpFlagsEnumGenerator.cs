@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
-internal class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
+internal sealed class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
 {
     public static readonly CSharpFlagsEnumGenerator Instance = new();
 

@@ -6,10 +6,10 @@ Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Friend Class VisualBasicFlagsEnumGenerator
+    Friend NotInheritable Class VisualBasicFlagsEnumGenerator
         Inherits AbstractFlagsEnumGenerator
 
-        Public Shared ReadOnly Instance As VisualBasicFlagsEnumGenerator = New VisualBasicFlagsEnumGenerator
+        Public Shared ReadOnly Instance As New VisualBasicFlagsEnumGenerator
 
         Private Sub New()
         End Sub
