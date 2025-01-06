@@ -1056,10 +1056,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 static arg =>
                 {
                     var (@this, syntaxNode, diagnostics) = arg;
-                    return (
-                        @this.GetPrivateImplClass(syntaxNode, diagnostics),
-                        @this.GetSpecialType(SpecialType.System_String, syntaxNode, diagnostics)
-                    );
+                    return @this.GetPrivateImplClass(syntaxNode, diagnostics);
                 },
                 diagnostics);
         }

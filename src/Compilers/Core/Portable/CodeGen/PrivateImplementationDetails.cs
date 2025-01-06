@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal const string SynthesizedBytesToStringFunctionName = "BytesToString";
 
-        private readonly CommonPEModuleBuilder _moduleBuilder;       //the module builder
+        internal readonly CommonPEModuleBuilder ModuleBuilder;       //the module builder
         internal readonly Cci.ITypeReference SystemObject;           //base type
         private readonly Cci.ITypeReference _systemValueType;        //base for nested structs
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             RoslynDebug.Assert(systemObject != null);
             RoslynDebug.Assert(systemValueType != null);
 
-            _moduleBuilder = moduleBuilder;
+            ModuleBuilder = moduleBuilder;
             SystemObject = systemObject;
             _systemValueType = systemValueType;
 
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal static Cci.IFieldReference? TryGetOrCreateFieldForStringValue<TArg>(
             string text,
             TArg arg,
-            Func<TArg, (PrivateImplementationDetails PrivateImplDetails, Cci.ITypeReference SystemStringType)> factory,
+            Func<TArg, PrivateImplementationDetails> factory,
             DiagnosticBag diagnostics)
         {
             if (!text.TryGetUtf8ByteRepresentation(out byte[]? data, out _))
@@ -332,27 +332,25 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return null;
             }
 
-            var (privateImplDetails, systemStringType) = factory(arg);
-            return privateImplDetails._dataSectionStringLiteralTypes.GetOrAdd(text, static (key, arg) =>
+            var @this = factory(arg);
+            return @this._dataSectionStringLiteralTypes.GetOrAdd(text, static (key, arg) =>
             {
-                var (@this, data, systemStringType, diagnostics) = arg;
+                var (@this, data, diagnostics) = arg;
 
                 string name = "<S>" + DataToHexViaXxHash128(data);
 
                 MappedField dataField = @this.CreateDataField(data, alignment: 1);
 
-                Cci.IMethodDefinition bytesToStringHelper = @this.GetOrSynthesizeBytesToStringHelper(@this._moduleBuilder.CommonCompilation, diagnostics);
+                Cci.IMethodDefinition bytesToStringHelper = @this.GetOrSynthesizeBytesToStringHelper(@this.ModuleBuilder.CommonCompilation, diagnostics);
 
                 return new DataSectionStringType(
-                    module: (ITokenDeferral)@this._moduleBuilder,
                     name: name,
                     containingType: @this,
                     dataField: dataField,
                     bytesToStringHelper: bytesToStringHelper,
-                    systemStringType: systemStringType,
                     diagnostics: diagnostics);
             },
-            (privateImplDetails, ImmutableCollectionsMarshal.AsImmutableArray(data), systemStringType, diagnostics)).Field;
+            (@this, ImmutableCollectionsMarshal.AsImmutableArray(data), diagnostics)).Field;
         }
 
         /// <summary>
@@ -368,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 var encodingGetString = getWellKnownTypeMember(compilation, WellKnownMember.System_Text_Encoding__GetString);
 
                 TryAddSynthesizedMethod(BytesToStringHelper.Create(
-                    moduleBuilder: (ITokenDeferral)_moduleBuilder,
+                    moduleBuilder: (ITokenDeferral)ModuleBuilder,
                     containingType: this,
                     encodingUtf8: encodingUtf8,
                     encodingGetString: encodingGetString,
@@ -537,8 +535,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.IUnitReference GetUnit(EmitContext context)
         {
-            Debug.Assert(context.Module == _moduleBuilder);
-            return _moduleBuilder;
+            Debug.Assert(context.Module == ModuleBuilder);
+            return ModuleBuilder;
         }
 
         public string NamespaceName => string.Empty;
@@ -713,20 +711,18 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ImmutableArray<Cci.IMethodDefinition> _methods;
 
         public DataSectionStringType(
-            ITokenDeferral module,
             string name,
             PrivateImplementationDetails containingType,
             MappedField dataField,
             Cci.IMethodDefinition bytesToStringHelper,
-            Cci.ITypeReference systemStringType,
             DiagnosticBag diagnostics)
         {
             _name = name;
             _containingType = containingType;
 
-            var stringField = new DataSectionStringField("s", this, systemStringType);
+            var stringField = new DataSectionStringField("s", this, containingType);
 
-            var staticConstructor = synthesizeStaticConstructor(module, containingType, dataField, stringField, bytesToStringHelper, diagnostics);
+            var staticConstructor = synthesizeStaticConstructor((ITokenDeferral)containingType.ModuleBuilder, containingType, dataField, stringField, bytesToStringHelper, diagnostics);
 
             _fields = [stringField];
             _methods = [staticConstructor];
@@ -777,32 +773,60 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override bool IsBeforeFieldInit => true;
 
         private sealed class DataSectionStringField(
-            string name, Cci.INamedTypeDefinition containingType, Cci.ITypeReference type)
-            : SynthesizedStaticField(name, containingType, type)
+            string name, Cci.INamedTypeDefinition containingType, PrivateImplementationDetails privateImplDetails)
+            : SynthesizedStaticFieldBase(name, containingType)
         {
+            private readonly PrivateImplementationDetails _privateImplDetails = privateImplDetails;
+
             public override ImmutableArray<byte> MappedData => default;
             public override bool IsReadOnly => true;
+
+            public override Cci.ITypeReference GetType(EmitContext context)
+            {
+                return _privateImplDetails.ModuleBuilder.GetPlatformType(Cci.PlatformType.SystemString, context);
+            }
+
+            public override string ToString()
+            {
+                return $"string {(object?)ContainingTypeDefinition.GetInternalSymbol() ?? ContainingTypeDefinition}.{this.Name}";
+            }
         }
     }
 
-    internal abstract class SynthesizedStaticField : Cci.IFieldDefinition
+    internal abstract class SynthesizedStaticField : SynthesizedStaticFieldBase
     {
-        private readonly Cci.INamedTypeDefinition _containingType;
         private readonly Cci.ITypeReference _type;
-        private readonly string _name;
 
         internal SynthesizedStaticField(string name, Cci.INamedTypeDefinition containingType, Cci.ITypeReference type)
+            : base(name, containingType)
+        {
+            RoslynDebug.Assert(type != null);
+
+            _type = type;
+        }
+
+        internal Cci.ITypeReference Type => _type;
+
+        public override string ToString() => $"{(object?)_type.GetInternalSymbol() ?? _type} {(object?)ContainingTypeDefinition.GetInternalSymbol() ?? ContainingTypeDefinition}.{this.Name}";
+
+        public override Cci.ITypeReference GetType(EmitContext context) => _type;
+    }
+
+    internal abstract class SynthesizedStaticFieldBase : Cci.IFieldDefinition
+    {
+        private readonly Cci.INamedTypeDefinition _containingType;
+        private readonly string _name;
+
+        internal SynthesizedStaticFieldBase(string name, Cci.INamedTypeDefinition containingType)
         {
             RoslynDebug.Assert(name != null);
             RoslynDebug.Assert(containingType != null);
-            RoslynDebug.Assert(type != null);
 
             _containingType = containingType;
-            _type = type;
             _name = name;
         }
 
-        public override string ToString() => $"{(object?)_type.GetInternalSymbol() ?? _type} {(object?)_containingType.GetInternalSymbol() ?? _containingType}.{this.Name}";
+        public abstract override string ToString();
 
         public MetadataConstant? GetCompileTimeValue(EmitContext context) => null;
 
@@ -858,13 +882,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool IsContextualNamedEntity => false;
 
-        public Cci.ITypeReference GetType(EmitContext context) => _type;
+        public abstract Cci.ITypeReference GetType(EmitContext context);
 
         public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers => ImmutableArray<Cci.ICustomModifier>.Empty;
 
         public bool IsByReference => false;
-
-        internal Cci.ITypeReference Type => _type;
 
         public Cci.IFieldDefinition GetResolvedField(EmitContext context) => this;
 
