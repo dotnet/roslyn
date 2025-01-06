@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
@@ -77,6 +73,8 @@ internal sealed class ExtractMethodFlowControlInformation
             _flowValues[FlowControlKind.Return] = values[valuesIndex++];
         if (EndPointIsReachable)
             _flowValues[FlowControlKind.FallThrough] = values[valuesIndex++];
+
+        Contract.ThrowIfFalse(valuesIndex == values.Length);
     }
 
     private int GetControlFlowKindCount()
@@ -91,6 +89,18 @@ internal sealed class ExtractMethodFlowControlInformation
 
     public bool NeedsControlFlowValue()
         => ControlFlowValueType.SpecialType != SpecialType.System_Void;
+
+    public bool HasUniformControlFlow()
+        => (BreakStatementCount > 0, ContinueStatementCount > 0, ReturnStatementCount > 0, EndPointIsReachable) switch
+        {
+            // All breaks on all paths.
+            (true, false, false, false) => true,
+            // All continues on all paths.
+            (false, true, false, false) => true,
+            // All returns on all paths.
+            (false, false, true, false) => true,
+            _ => false,
+        };
 
     public object? GetBreakFlowValue()
         => _flowValues[FlowControlKind.Break];
