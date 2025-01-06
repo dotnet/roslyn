@@ -142,8 +142,15 @@ internal static class UseExpressionBodyForLambdaHelpers
         if (semicolonToken.TrailingTrivia.Any(t => t.IsDirective))
             return false;
 
-        // Changing from a block to an expression body can cahnge semantics.  Specifically in the case where the block
-        // did not return (i.e. being assigned to an action).
+        // Changing from a block to an expression body can change semantics.  Consider:
+        //
+        //     X(() => { A = 1; });
+        //     
+        //     void X(Action action);
+        //     void X(Func<int> func);
+        //
+        // Changing this to `X(() => A = 1);` would change from calling the 'Action' overload to the 'Func<int>'
+        // overload.  Do a final semantic check to make sure the code meaning stays the same.
         var speculationAnalyzer = new SpeculationAnalyzer(
             declaration,
             declaration.WithBody(expression),
