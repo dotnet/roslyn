@@ -85,25 +85,19 @@ internal abstract class VisualStudioOptionStorage
             => persister.TryFetch(optionKey, FlagName, out value);
     }
 
-    internal sealed class LocalUserProfileStorage : VisualStudioOptionStorage
+    internal sealed class LocalUserProfileStorage(string path, string key) : VisualStudioOptionStorage
     {
-        private readonly string _path;
-        private readonly string _key;
-
-        public LocalUserProfileStorage(string path, string key)
-        {
-            _path = path;
-            _key = key;
-        }
+        public string Path => path;
+        public string Key => key;
 
         public Task PersistAsync(LocalUserRegistryOptionPersister persister, OptionKey2 optionKey, object? value)
         {
-            persister.Persist(optionKey, _path, _key, value);
+            persister.Persist(optionKey, path, key, value);
             return Task.CompletedTask;
         }
 
         public bool TryFetch(LocalUserRegistryOptionPersister persister, OptionKey2 optionKey, out object? value)
-            => persister.TryFetch(optionKey, _path, _key, out value);
+            => persister.TryFetch(optionKey, path, key, out value);
     }
 
     public static readonly IReadOnlyDictionary<string, VisualStudioOptionStorage> Storages = new Dictionary<string, VisualStudioOptionStorage>()
@@ -280,6 +274,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_allow_best_effort_when_extracting_method", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Allow Best Effort")},
         {"dotnet_fade_out_unreachable_code", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FadeOutUnreachableCode")},
         {"dotnet_fade_out_unused_imports", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FadeOutUnusedImports")},
+        {"dotnet_fade_out_unused_members", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FadeOutUnusedMembers")},
         {"dotnet_add_imports_on_paste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2")},
         {"dotnet_always_use_default_symbol_servers", new RoamingProfileStorage("TextEditor.AlwaysUseDefaultSymbolServers")},
         {"csharp_insert_block_comment_start_string", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Insert Block Comment Start String")},
@@ -296,7 +291,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_navigate_to_decompiled_sources", new RoamingProfileStorage("TextEditor.NavigateToDecompiledSources")},
         {"dotnet_navigate_to_source_link_and_embedded_sources", new RoamingProfileStorage("TextEditor.NavigateToSourceLinkAndEmbeddedSources")},
         {"dotnet_offer_remove_unused_references", new RoamingProfileStorage("TextEditor.OfferRemoveUnusedReferences")},
-        {"dotnet_offer_remove_unused_references_feature_flag", new FeatureFlagStorage(@"Roslyn.RemoveUnusedReferences")},
         {"dotnet_enter_outlining_mode_on_file_open", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Outlining")},
         {"visual_basic_pretty_listing", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PrettyListing")},
 #pragma warning disable CS0612 // Type or member is obsolete

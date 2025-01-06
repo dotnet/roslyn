@@ -256,7 +256,7 @@ class C
             ], map.DocumentPathMap["a.cs"].OrderBy(s => s.Span.Start.Line).Select(s => $"{s.Span}"));
 
             void CreateRegion(int ordinal, SourceFileSpan oldSpan, SourceFileSpan newSpan)
-                => remapping.Add(debugInfos[ordinal].ActiveInstruction.Method, ImmutableArray.Create(new NonRemappableRegion(oldSpan, newSpan, isExceptionRegion: false)));
+                => remapping.Add(debugInfos[ordinal].ActiveInstruction.Method, [new NonRemappableRegion(oldSpan, newSpan, isExceptionRegion: false)]);
 
             SourceFileSpan Span(int startLine, int startColumn, int endLine, int endColumn)
                 => new("a.cs", new(new(startLine, startColumn), new(endLine, endColumn)));
@@ -301,7 +301,7 @@ class C
             // The order should not matter.
             var remapping = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty.Add(
                 debugInfos[0].ActiveInstruction.Method,
-                reverse ? ImmutableArray.Create(mapping1, mapping2) : ImmutableArray.Create(mapping2, mapping1));
+                reverse ? [mapping1, mapping2] : [mapping2, mapping1]);
 
             var map = ActiveStatementsMap.Create(debugInfos, remapping);
 
@@ -339,7 +339,7 @@ class C
             // The order should not matter.
             var remapping = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty.Add(
                 debugInfos[0].ActiveInstruction.Method,
-                reverse ? ImmutableArray.Create(mapping1, mapping2) : ImmutableArray.Create(mapping2, mapping1));
+                reverse ? [mapping1, mapping2] : [mapping2, mapping1]);
 
             var map = ActiveStatementsMap.Create(debugInfos, remapping);
 

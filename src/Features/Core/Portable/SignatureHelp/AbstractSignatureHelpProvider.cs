@@ -192,7 +192,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
             select (INamedTypeSymbol)part.Symbol!;
 
         var info = structuralTypeDisplayService.GetTypeDisplayInfo(
-            orderSymbol, structuralTypes.ToImmutableArray(), semanticModel, position);
+            orderSymbol, [.. structuralTypes], semanticModel, position);
 
         if (info.TypesParts.Count > 0)
         {

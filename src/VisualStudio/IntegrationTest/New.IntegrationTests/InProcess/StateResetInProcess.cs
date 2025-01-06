@@ -39,11 +39,13 @@ internal partial class StateResetInProcess
     /// Contains the persistence slots of tool windows to close between tests.
     /// </summary>
     /// <seealso cref="__VSFPROPID.VSFPROPID_GuidPersistenceSlot"/>
-    private static readonly ImmutableHashSet<Guid> s_windowsToClose = ImmutableHashSet.Create(
+    private static readonly ImmutableHashSet<Guid> s_windowsToClose =
+    [
         FindReferencesWindowInProcess.FindReferencesWindowGuid,
         new Guid(EnvDTE.Constants.vsWindowKindObjectBrowser),
         new Guid(ToolWindowGuids80.CodedefinitionWindow),
-        VSConstants.StandardToolWindows.Immediate);
+        VSConstants.StandardToolWindows.Immediate,
+    ];
 
     public async Task ResetGlobalOptionsAsync(CancellationToken cancellationToken)
     {

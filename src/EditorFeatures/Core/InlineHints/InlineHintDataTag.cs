@@ -16,9 +16,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 /// The simple tag that only holds information regarding the associated parameter name
 /// for the argument
 /// </summary>
-internal sealed class InlineHintDataTag(InlineHintsDataTaggerProvider provider, ITextSnapshot snapshot, InlineHint hint) : ITag, IEquatable<InlineHintDataTag>
+internal sealed class InlineHintDataTag<TAdditionalInformation>(
+    InlineHintsDataTaggerProvider<TAdditionalInformation> provider, ITextSnapshot snapshot, InlineHint hint)
+    : ITag, IEquatable<InlineHintDataTag<TAdditionalInformation>>
+    where TAdditionalInformation : class
 {
-    private readonly InlineHintsDataTaggerProvider _provider = provider;
+    private readonly InlineHintsDataTaggerProvider<TAdditionalInformation> _provider = provider;
 
     /// <summary>
     /// The snapshot this tag was created against.
@@ -27,15 +30,21 @@ internal sealed class InlineHintDataTag(InlineHintsDataTaggerProvider provider, 
 
     public readonly InlineHint Hint = hint;
 
+    /// <summary>
+    /// Additional data that can be attached to the tag.  For example, the view tagger uses this to attach the adornment
+    /// tag information so it can be created and cached on demand.
+    /// </summary>
+    public TAdditionalInformation? AdditionalData;
+
     // Intentionally throwing, we have never supported this facility, and there is no contract around placing
     // these tags in sets or maps.
     public override int GetHashCode()
         => throw new NotImplementedException();
 
     public override bool Equals(object? obj)
-        => obj is InlineHintDataTag tag && Equals(tag);
+        => obj is InlineHintDataTag<TAdditionalInformation> tag && Equals(tag);
 
-    public bool Equals(InlineHintDataTag? other)
+    public bool Equals(InlineHintDataTag<TAdditionalInformation>? other)
     {
         if (other is null)
             return false;

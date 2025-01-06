@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
                     ExternalAccessFSharpResources.TheValueIsUnused,
                     DiagnosticCategory.Style, DiagnosticSeverity.Hidden, isEnabledByDefault: true, customTags: FSharpDiagnosticCustomTags.Unnecessary);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
 
         public bool IsHighPriority => false;
 

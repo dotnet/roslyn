@@ -106,10 +106,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 oldSolutionAndNewSolution = await TestOperationsAsync(
                     testState.Workspace, expected, operations,
-                    conflictSpans: ImmutableArray<TextSpan>.Empty,
-                    renameSpans: ImmutableArray<TextSpan>.Empty,
-                    warningSpans: ImmutableArray<TextSpan>.Empty,
-                    navigationSpans: ImmutableArray<TextSpan>.Empty,
+                    conflictSpans: [],
+                    renameSpans: [],
+                    warningSpans: [],
+                    navigationSpans: [],
                     expectedChangedDocumentId: testState.ExistingDocument.Id);
             }
             else
@@ -128,10 +128,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 Assert.NotNull(expectedTextWithUsings);
                 await TestOperationsAsync(testState.Workspace, expectedTextWithUsings, operations,
-                    conflictSpans: ImmutableArray<TextSpan>.Empty,
-                    renameSpans: ImmutableArray<TextSpan>.Empty,
-                    warningSpans: ImmutableArray<TextSpan>.Empty,
-                    navigationSpans: ImmutableArray<TextSpan>.Empty,
+                    conflictSpans: [],
+                    renameSpans: [],
+                    warningSpans: [],
+                    navigationSpans: [],
                     expectedChangedDocumentId: testState.InvocationDocument.Id);
             }
 

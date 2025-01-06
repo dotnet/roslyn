@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     CommandIdentifier = CodeActionsHandler.RunFixAllCodeActionCommandName,
                     Title = fixAllTitle,
-                    Arguments = [new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, codeActionPath, fixAllFlavors.ToArray(), nestedCodeActions: null)]
+                    Arguments = [new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, codeActionPath, [.. fixAllFlavors], nestedCodeActions: null)]
                 };
 
                 builder.Add(new LSP.CodeAction
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     Command = command,
                     Kind = codeActionKind,
                     Diagnostics = diagnosticsForFix,
-                    Data = new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, codeActionPath, fixAllFlavors.ToArray(), nestedCodeActions: null)
+                    Data = new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, codeActionPath, [.. fixAllFlavors], nestedCodeActions: null)
                 });
             }
         }

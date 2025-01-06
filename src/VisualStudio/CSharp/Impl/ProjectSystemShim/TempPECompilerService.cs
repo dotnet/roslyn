@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             var metadataResolver = new WorkspaceMetadataFileReferenceResolver(
                 _metadataService,
-                new RelativePathResolver(ImmutableArray<string>.Empty, baseDirectory: null));
+                new RelativePathResolver([], baseDirectory: null));
 
             var compilation = CSharpCompilation.Create(
                 Path.GetFileName(pszOutputFileName),
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 if (optionName == "r")
                 {
                     // We get a pipe-delimited list of references, so split them back apart
-                    foreach (var reference in ((string)optionValue).Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+                    foreach (var reference in ((string)optionValue).Split(['|'], StringSplitOptions.RemoveEmptyEntries))
                     {
                         arguments.Add(string.Format("/r:\"{0}\"", reference));
                     }

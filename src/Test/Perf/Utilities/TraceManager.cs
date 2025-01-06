@@ -12,7 +12,7 @@ using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
 namespace Roslyn.Test.Performance.Utilities
 {
-    public class TraceManagerFactory
+    public static class TraceManagerFactory
     {
         public static ITraceManager GetBestTraceManager()
         {

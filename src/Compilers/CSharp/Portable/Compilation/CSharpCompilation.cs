@@ -2427,16 +2427,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool InterceptorsDiscoveryComplete;
 
-        // NB: the 'Many' case for these dictionary values means there are duplicates. An error is reported for this after binding.
-        private ConcurrentDictionary<(string FilePath, int Position), OneOrMany<(Location AttributeLocation, MethodSymbol Interceptor)>>? _interceptions;
+        /// <remarks>Equals and GetHashCode on this type intentionally resemble corresponding methods on <see cref="InterceptableLocation1"/>.</remarks>
+        private sealed class InterceptorKeyComparer : IEqualityComparer<(ImmutableArray<byte> ContentHash, int Position)>
+        {
+            private InterceptorKeyComparer() { }
+            public static readonly InterceptorKeyComparer Instance = new InterceptorKeyComparer();
 
-        internal void AddInterception(string filePath, int position, Location attributeLocation, MethodSymbol interceptor)
+            public bool Equals((ImmutableArray<byte> ContentHash, int Position) x, (ImmutableArray<byte> ContentHash, int Position) y)
+            {
+                return x.ContentHash.SequenceEqual(y.ContentHash) && x.Position == y.Position;
+            }
+
+            public int GetHashCode((ImmutableArray<byte> ContentHash, int Position) obj)
+            {
+                return Hash.Combine(
+                    BinaryPrimitives.ReadInt32LittleEndian(obj.ContentHash.AsSpan()),
+                    obj.Position);
+            }
+        }
+
+        // NB: the 'Many' case for these dictionary values means there are duplicates. An error is reported for this after binding.
+        private ConcurrentDictionary<(ImmutableArray<byte> ContentHash, int Position), OneOrMany<(Location AttributeLocation, MethodSymbol Interceptor)>>? _interceptions;
+
+        internal void AddInterception(ImmutableArray<byte> contentHash, int position, Location attributeLocation, MethodSymbol interceptor)
         {
             Debug.Assert(!_declarationDiagnosticsFrozen);
             Debug.Assert(!InterceptorsDiscoveryComplete);
 
-            var dictionary = LazyInitializer.EnsureInitialized(ref _interceptions);
-            dictionary.AddOrUpdate((filePath, position),
+            var dictionary = LazyInitializer.EnsureInitialized(ref _interceptions,
+                () => new ConcurrentDictionary<(ImmutableArray<byte> ContentHash, int Position), OneOrMany<(Location AttributeLocation, MethodSymbol Interceptor)>>(comparer: InterceptorKeyComparer.Instance));
+            dictionary.AddOrUpdate((contentHash, position),
                 addValueFactory: static (key, newValue) => OneOrMany.Create(newValue),
                 updateValueFactory: static (key, existingValues, newValue) =>
                 {
@@ -2469,7 +2489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var key = (node.SyntaxTree.FilePath, node.Position);
+            var key = (node.SyntaxTree.GetText().GetContentHash(), node.Position);
             if (_interceptions.TryGetValue(key, out var interceptionsAtAGivenLocation) && interceptionsAtAGivenLocation is [var oneInterception])
             {
                 return oneInterception;

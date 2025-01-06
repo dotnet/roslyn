@@ -17,4 +17,9 @@ internal class CSharpFileBannerFacts : AbstractFileBannerFacts
     protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
     protected override IDocumentationCommentService DocumentationCommentService => CSharpDocumentationCommentService.Instance;
+
+    public override SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text)
+        => trivia.Kind() is SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia or SyntaxKind.SingleLineDocumentationCommentTrivia or SyntaxKind.MultiLineDocumentationCommentTrivia
+            ? SyntaxFactory.Comment(text)
+            : trivia;
 }

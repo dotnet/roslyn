@@ -215,12 +215,30 @@
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.12]"
     },
+    "release/dev17.12-telmet": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.12telmet",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.12]"
+    },
     "release/dev17.13": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.13",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.13 P2]"
+    },
+    "release/dev17.13-preview2.1": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.13",
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.13 P2]"
     },
@@ -231,7 +249,7 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
+      "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.13 P3]"
     },
     "dev/andrha/telemetry": {

@@ -439,6 +439,15 @@ internal sealed class SymbolSpecification(
 
         internal static SymbolKindOrTypeKind AddMethodKindFromXElement(XElement methodKindElement)
             => new((MethodKind)Enum.Parse(typeof(MethodKind), methodKindElement.Value));
+
+        public static implicit operator SymbolKindOrTypeKind(SymbolKind symbolKind)
+            => new(symbolKind);
+
+        public static implicit operator SymbolKindOrTypeKind(TypeKind symbolKind)
+            => new(symbolKind);
+
+        public static implicit operator SymbolKindOrTypeKind(MethodKind symbolKind)
+            => new(symbolKind);
     }
 
     [DataContract]

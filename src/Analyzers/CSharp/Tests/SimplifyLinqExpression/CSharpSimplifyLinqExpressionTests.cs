@@ -640,4 +640,38 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                 """
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75845")]
+    public static async Task TestSelectSum()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public void Test(int[] numbers)
+                    {
+                        var sumOfSquares = [|numbers.Select(n => n * n).Sum()|];
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    public void Test(int[] numbers)
+                    {
+                        var sumOfSquares = numbers.Sum(n => n * n);
+                    }
+                }
+                """
+        }.RunAsync();
+    }
 }

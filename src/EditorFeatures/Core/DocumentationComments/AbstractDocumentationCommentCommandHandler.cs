@@ -68,10 +68,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
 
     protected abstract string ExteriorTriviaText { get; }
 
-    private char TriggerCharacter
-    {
-        get { return ExteriorTriviaText[^1]; }
-    }
+    private char TriggerCharacter => ExteriorTriviaText[^1];
 
     public string DisplayName => EditorFeaturesResources.Documentation_Comment;
 
@@ -99,15 +96,11 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
     {
         var caretPosition = textView.GetCaretPoint(subjectBuffer) ?? -1;
         if (caretPosition < 0)
-        {
             return false;
-        }
 
         var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document == null)
-        {
             return false;
-        }
 
         var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
         var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
@@ -211,15 +204,11 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         nextHandler();
 
         if (args.TypedChar != TriggerCharacter)
-        {
             return;
-        }
 
         // Don't execute in cloud environment, as we let LSP handle that
         if (args.SubjectBuffer.IsInLspEditorContext())
-        {
             return;
-        }
 
         _threadingContext.JoinableTaskFactory.Run(async () =>
         {
@@ -235,6 +224,8 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
 
     public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
     {
+        var cancellationToken = context.OperationContext.UserCancellationToken;
+
         // Don't execute in cloud environment, as we let LSP handle that
         if (args.SubjectBuffer.IsInLspEditorContext())
         {
@@ -266,7 +257,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
             return false;
         }
 
-        if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, originalPosition, context.OperationContext.UserCancellationToken))
+        if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, originalPosition, cancellationToken))
         {
             return false;
         }

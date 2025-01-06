@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -27,10 +26,9 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     TIdentifierNameSyntax,
     TTypeDeclarationSyntax,
     TMemberDeclarationSyntax>()
-    : AbstractCodeQualityDiagnosticAnalyzer(
+    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
         [s_removeUnusedMembersRule, s_removeUnreadMembersRule],
-        // We want to analyze references in generated code, but not report unused members in generated code.
-        GeneratedCodeAnalysisFlags.Analyze)
+        FadingOptions.FadeOutUnusedMembers)
     where TDocumentationCommentTriviaSyntax : SyntaxNode
     where TIdentifierNameSyntax : SyntaxNode
     where TTypeDeclarationSyntax : TMemberDeclarationSyntax
@@ -44,21 +42,23 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
     // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
-    private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
+    private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptorWithId(
         IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
         EnforceOnBuildValues.RemoveUnusedMembers,
+        hasAnyCodeStyleOption: false,
         new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_is_unused), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        hasAnyCodeStyleOption: false, isUnnecessary: true);
+        isUnnecessary: true);
 
     // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
     // Internal for testing
-    internal static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
+    internal static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptorWithId(
         IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
         EnforceOnBuildValues.RemoveUnreadMembers,
+        hasAnyCodeStyleOption: false,
         new LocalizableResourceString(nameof(AnalyzersResources.Remove_unread_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        hasAnyCodeStyleOption: false, isUnnecessary: true);
+        isUnnecessary: true);
 
     protected abstract ISemanticFacts SemanticFacts { get; }
 
@@ -66,12 +66,18 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax typeDeclaration);
     protected abstract SyntaxNode GetParentIfSoleDeclarator(SyntaxNode declaration);
 
-    // We need to analyze the whole document even for edits within a method body,
-    // because we might add or remove references to members in executable code.
-    // For example, if we had an unused field with no references, then editing any single method body
-    // to reference this field should clear the unused field diagnostic.
-    // Hence, we need to re-analyze the declarations in the whole file for any edits within the document. 
+    /// <summary>
+    /// We need to analyze the whole document even for edits within a method body, because we might add or remove
+    /// references to members in executable code. For example, if we had an unused field with no references, then
+    /// editing any single method body to reference this field should clear the unused field diagnostic. Hence, we need
+    /// to re-analyze the declarations in the whole file for any edits within the document. 
+    /// </summary>
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+
+    /// <summary>
+    /// We want to analyze references in generated code, but not report unused members in generated code.
+    /// </summary>
+    protected override GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.Analyze;
 
     protected sealed override void InitializeWorker(AnalysisContext context)
         => context.RegisterCompilationStartAction(compilationStartContext
@@ -129,7 +135,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             _eventArgsType = compilation.EventArgsType();
             _iNotifyCompletionType = compilation.GetBestTypeByMetadataName(typeof(INotifyCompletion).FullName!);
             _deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
-            _attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange<INamedTypeSymbol?>(GetAttributesForMethodsToIgnore(compilation));
+            _attributeSetForMethodsToIgnore = [.. GetAttributesForMethodsToIgnore(compilation)];
         }
 
         private static Location GetDiagnosticLocation(ISymbol symbol)
@@ -220,8 +226,26 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
                 var hasUnsupportedOperation = false;
                 symbolStartContext.RegisterOperationAction(
-                    _ => hasUnsupportedOperation = true,
-                    OperationKind.Invalid, OperationKind.None, OperationKind.DynamicIndexerAccess, OperationKind.DynamicInvocation, OperationKind.DynamicMemberReference, OperationKind.DynamicObjectCreation);
+                    context =>
+                    {
+                        var operation = context.Operation;
+
+                        // 'nameof(argument)' currently returns a 'None' operation for its argument.  We don't want this
+                        // to cause us to bail out of processing. Instead, we'll handle this case explicitly in AnalyzeNameOfOperation.
+                        if (operation is { Kind: OperationKind.None, Parent: INameOfOperation { Argument: var nameofArgument } } &&
+                            nameofArgument == operation)
+                        {
+                            return;
+                        }
+
+                        hasUnsupportedOperation = true;
+                    },
+                    OperationKind.Invalid,
+                    OperationKind.None,
+                    OperationKind.DynamicIndexerAccess,
+                    OperationKind.DynamicInvocation,
+                    OperationKind.DynamicMemberReference,
+                    OperationKind.DynamicObjectCreation);
 
                 symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasUnsupportedOperation));
 
@@ -429,17 +453,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             // a bound method group/property group.
             var symbolInfo = nameofArgument.SemanticModel!.GetSymbolInfo(nameofArgument.Syntax, operationContext.CancellationToken);
             foreach (var symbol in symbolInfo.GetAllSymbols())
-            {
-                switch (symbol.Kind)
-                {
-                    // Handle potential references to methods/properties from missing IOperation
-                    // for method group/property group.
-                    case SymbolKind.Method:
-                    case SymbolKind.Property:
-                        OnSymbolUsage(symbol.OriginalDefinition, ValueUsageInfo.ReadWrite);
-                        break;
-                }
-            }
+                OnSymbolUsage(symbol.OriginalDefinition, ValueUsageInfo.ReadWrite);
         }
 
         private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
@@ -526,21 +540,24 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         ? s_removeUnusedMembersRule
                         : s_removeUnreadMembersRule;
 
-                    // Do not flag write-only properties that are not read.
-                    // Write-only properties are assumed to have side effects
-                    // visible through other means than a property getter.
-                    if (rule == s_removeUnreadMembersRule &&
-                        member is IPropertySymbol property &&
-                        property.IsWriteOnly)
+                    if (rule == s_removeUnreadMembersRule)
                     {
-                        continue;
+                        // Do not flag write-only properties that are not read. Write-only properties are assumed to
+                        // have side effects visible through other means than a property getter.
+                        if (member is IPropertySymbol { IsWriteOnly: true })
+                            continue;
+
+                        // Do not flag ref-fields that are not read.  A ref-field can exist to have side effects by
+                        // writing into some other location when a write happens to it.
+                        if (member is IFieldSymbol { IsReadOnly: false, RefKind: RefKind.Ref })
+                            continue;
                     }
 
                     // We change the message only if both 'get' and 'set' accessors are present and
                     // there are no shadow 'get' accessor usages. Otherwise the message will be confusing
                     var isConvertibleProperty =
-                        member is IPropertySymbol { GetMethod: not null, SetMethod: not null } property2 &&
-                        !_propertiesWithShadowGetAccessorUsages.Contains(property2);
+                        member is IPropertySymbol { GetMethod: not null, SetMethod: not null } property &&
+                        !_propertiesWithShadowGetAccessorUsages.Contains(property);
 
                     var diagnosticLocation = GetDiagnosticLocation(member);
                     var fadingLocation = member.DeclaringSyntaxReferences.FirstOrDefault(

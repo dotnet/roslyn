@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
-Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
@@ -12,8 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Inherits AbstractOptionPage
 
         Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider, optionStore As OptionStore) As AbstractOptionPageControl
-            Dim componentModel = DirectCast(Me.Site.GetService(GetType(SComponentModel)), IComponentModel)
-            Return New AdvancedOptionPageControl(optionStore, componentModel)
+            Return New AdvancedOptionPageControl(optionStore)
         End Function
     End Class
 End Namespace

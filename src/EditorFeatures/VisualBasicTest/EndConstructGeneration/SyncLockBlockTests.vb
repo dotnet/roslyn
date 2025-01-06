@@ -7,8 +7,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class SyncLockBlockTests
         <WpfFact>
-        Public Sub ApplyAfterSyncLockStatement()
-            VerifyStatementEndConstructApplied(
+        Public Async Function ApplyAfterSyncLockStatement() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class c1
 Sub goo()
 SyncLock variable
@@ -23,11 +23,11 @@ End SyncLock
 End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub DoNotApplyForMatchedUsing()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function DoNotApplyForMatchedUsing() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class c1
 Sub goo()
 SyncLock variable
@@ -35,11 +35,11 @@ End SyncLock
 End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyNestedSyncBlock()
-            VerifyStatementEndConstructApplied(
+        Public Async Function VerifyNestedSyncBlock() As Task
+            Await VerifyStatementEndConstructAppliedAsync(
                 before:="Class C
     Sub S
         SyncLock x
@@ -58,26 +58,26 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={4, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidSyntax()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidSyntax() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
     Sub S
         Using (SyncLock 1) 
     End Sub
 End Class",
                 caret:={2, -1})
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub VerifyInvalidLocation()
-            VerifyStatementEndConstructNotApplied(
+        Public Async Function VerifyInvalidLocation() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class EC
     Synclock 1
 End Class",
                 caret:={1, -1})
-        End Sub
+        End Function
     End Class
 End Namespace

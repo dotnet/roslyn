@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Runtime.Serialization;
 using System.Xml.Linq;
@@ -45,9 +43,9 @@ internal sealed record class SerializableNamingRule
     {
         return new SerializableNamingRule()
         {
-            EnforcementLevel = ((DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), namingRuleElement.Attribute(nameof(EnforcementLevel)).Value)).ToReportDiagnostic(),
-            NamingStyleID = Guid.Parse(namingRuleElement.Attribute(nameof(NamingStyleID)).Value),
-            SymbolSpecificationID = Guid.Parse(namingRuleElement.Attribute(nameof(SymbolSpecificationID)).Value)
+            EnforcementLevel = ((DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), namingRuleElement.Attribute(nameof(EnforcementLevel))!.Value)).ToReportDiagnostic(),
+            NamingStyleID = Guid.Parse(namingRuleElement.Attribute(nameof(NamingStyleID))!.Value),
+            SymbolSpecificationID = Guid.Parse(namingRuleElement.Attribute(nameof(SymbolSpecificationID))!.Value)
         };
     }
 

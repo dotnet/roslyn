@@ -18,13 +18,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicitType;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
-public partial class UseExplicitTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public UseExplicitTypeTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpUseExplicitTypeDiagnosticAnalyzer(), new UseExplicitTypeCodeFixProvider());
 
@@ -2816,5 +2812,33 @@ options: ExplicitTypeEverywhere());
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeEverywhere()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeExceptWhereApparent()));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58404")]
+    public async Task TestLambdaNaturalType()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                static void M()
+                {
+                    [|var|] s = int () => { };
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                static void M()
+                {
+                    Func<int> s = int () => { };
+                }
+            }
+            """, options: ExplicitTypeEverywhere());
     }
 }

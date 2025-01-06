@@ -21,7 +21,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 
 [ExportLanguageService(typeof(IDocumentationCommentSnippetService), LanguageNames.CSharp), Shared]
-internal class CSharpDocumentationCommentSnippetService : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
+internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
 {
     public override string DocumentationCommentCharacter => "/";
 

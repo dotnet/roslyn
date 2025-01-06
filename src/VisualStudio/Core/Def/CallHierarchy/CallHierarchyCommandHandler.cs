@@ -73,7 +73,7 @@ internal class CallHierarchyCommandHandler : ICommandHandler<ViewCallHierarchyCo
         Document document;
 
         using (var context = _threadOperationExecutor.BeginExecute(
-            ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
+            EditorFeaturesResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
         {
             document = await args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
                 commandExecutionContext.OperationContext).ConfigureAwait(true);
@@ -97,7 +97,7 @@ internal class CallHierarchyCommandHandler : ICommandHandler<ViewCallHierarchyCo
 
                 if (mapping.Symbol != null)
                 {
-                    var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(false);
+                    var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, [], cancellationToken).ConfigureAwait(false);
 
                     if (node != null)
                     {

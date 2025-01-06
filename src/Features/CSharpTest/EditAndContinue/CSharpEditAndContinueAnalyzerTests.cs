@@ -766,7 +766,7 @@ class D
             : $"ENC0080: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1, filePath, "System.NullReferenceException: NullRef!\n")}".Split('\n').First();
 
         AssertEx.Equal([expectedDiagnostic], result.RudeEdits.Select(d => d.ToDiagnostic(newSyntaxTree))
-            .Select(d => $"{d.Id}: {d.GetMessage().Split(new[] { Environment.NewLine }, StringSplitOptions.None).First()}"));
+            .Select(d => $"{d.Id}: {d.GetMessage().Split([Environment.NewLine], StringSplitOptions.None).First()}"));
     }
 
     [Fact]

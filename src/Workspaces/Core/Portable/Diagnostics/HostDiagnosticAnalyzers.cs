@@ -231,7 +231,7 @@ internal sealed class HostDiagnosticAnalyzers
             }
 
             // input "analyzerReferencesMap" is a dictionary, so there will be no duplication here.
-            builder.Add(reference.Key, analyzers.WhereNotNull().ToImmutableArray());
+            builder.Add(reference.Key, [.. analyzers.WhereNotNull()]);
         }
 
         return builder.ToImmutable();
@@ -290,7 +290,7 @@ internal sealed class HostDiagnosticAnalyzers
                 continue;
             }
 
-            current = current.Add(referenceIdentity, analyzers.Where(seen.Add).ToImmutableArray());
+            current = current.Add(referenceIdentity, [.. analyzers.Where(seen.Add)]);
         }
 
         return current;

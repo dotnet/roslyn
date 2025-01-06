@@ -43,14 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         {
             if (_children == null)
             {
-                var childrenBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance();
-
-                foreach (var child in ExternalNamespaceEnumerator.ChildrenOfNamespace(this.State, _projectId, _namespaceSymbolId))
-                {
-                    childrenBuilder.Add(child);
-                }
-
-                _children = childrenBuilder.ToImmutableAndFree();
+                _children = [.. ExternalNamespaceEnumerator.ChildrenOfNamespace(this.State, _projectId, _namespaceSymbolId)];
             }
 
             return _children;

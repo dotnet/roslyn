@@ -43,7 +43,7 @@ internal class VisualStudioMoveToNamespaceOptionsService : IMoveToNamespaceOptio
             defaultNamespace,
             availableNamespaces,
             syntaxFactsService,
-            History.WhereNotNull().ToImmutableArray());
+            [.. History.WhereNotNull()]);
 
         var result = _showDialog(viewModel);
 

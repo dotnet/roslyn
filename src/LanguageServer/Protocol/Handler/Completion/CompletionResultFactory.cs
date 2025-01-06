@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 }
             }
 
-            return commitCharacters.Select(c => c.ToString()).ToArray();
+            return [.. commitCharacters.Select(c => c.ToString())];
         }
 
         private sealed class CommitCharacterArrayComparer : IEqualityComparer<ImmutableArray<CharacterSetModificationRule>>
