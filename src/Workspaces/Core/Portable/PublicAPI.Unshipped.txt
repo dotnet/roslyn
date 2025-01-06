@@ -3,6 +3,7 @@
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CastExpression(Microsoft.CodeAnalysis.SyntaxNode type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConvertExpression(Microsoft.CodeAnalysis.SyntaxNode type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultExpression(Microsoft.CodeAnalysis.ITypeSymbol type) -> Microsoft.CodeAnalysis.SyntaxNode
+*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultExpression(Microsoft.CodeAnalysis.SyntaxNode type) -> Microsoft.CodeAnalysis.SyntaxNode
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.IdentifierName(string identifier) -> Microsoft.CodeAnalysis.SyntaxNode
 *REMOVED*virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.CompilationOutputInfo.GeneratedFilesOutputDirectory.get -> string
@@ -11,6 +12,7 @@ Microsoft.CodeAnalysis.Editing.SyntaxGenerator.BitwiseOrExpression(Microsoft.Cod
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CastExpression(Microsoft.CodeAnalysis.SyntaxNode type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConvertExpression(Microsoft.CodeAnalysis.SyntaxNode type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultExpression(Microsoft.CodeAnalysis.ITypeSymbol type) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultExpression(Microsoft.CodeAnalysis.SyntaxNode type) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.IdentifierName(string identifier) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Project.HostAnalyzerOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
