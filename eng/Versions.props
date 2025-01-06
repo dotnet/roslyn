@@ -218,7 +218,7 @@
     <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
     <MicrosoftWin32RegistryVersion>5.0.0</MicrosoftWin32RegistryVersion>
     <MicrosoftBuildLocatorVersion>1.6.10</MicrosoftBuildLocatorVersion>
-    <MSBuildStructuredLoggerVersion>2.2.350</MSBuildStructuredLoggerVersion>
+    <MSBuildStructuredLoggerVersion>2.2.386</MSBuildStructuredLoggerVersion>
     <MDbgVersion>0.1.0</MDbgVersion>
     <MonoOptionsVersion>6.6.0.161</MonoOptionsVersion>
     <MoqVersion>4.10.1</MoqVersion>
@@ -317,6 +317,12 @@
     <SystemCollectionsImmutableVersion>7.0.0</SystemCollectionsImmutableVersion>
     <SystemReflectionMetadataVersion>7.0.0</SystemReflectionMetadataVersion>
     <MicrosoftBclAsyncInterfacesVersion>7.0.0</MicrosoftBclAsyncInterfacesVersion>
+    <!--
+      Temporary, servicing branch only version for use with build boss.
+      MSBuildLocator must be updated to work with updated VS on CI machines, but it requires
+      at least SCI version 8.0.0.  We cannot update the 
+    -->
+    <SystemCollectionsImmutableBuildBossVersion>8.0.0</SystemCollectionsImmutableBuildBossVersion>
   </PropertyGroup>
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <UsingToolVSSDK>true</UsingToolVSSDK>
