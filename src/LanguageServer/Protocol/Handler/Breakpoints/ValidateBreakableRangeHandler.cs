@@ -28,12 +28,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalValidateBreakableRangeParams request)
             => request.TextDocument;
 
-        public async Task<LSP.Range?> HandleRequestAsync(LSP.VSInternalValidateBreakableRangeParams request, RequestContext context, CancellationToken cancellationToken)
-        {
-            var document = context.GetRequiredDocument();
+        public Task<LSP.Range?> HandleRequestAsync(LSP.VSInternalValidateBreakableRangeParams request, RequestContext context, CancellationToken cancellationToken)
+            => GetBreakableRangeAsync(context.GetRequiredDocument(), request.Range, cancellationToken);
 
+        public static async Task<LSP.Range?> GetBreakableRangeAsync(Document document, LSP.Range range, CancellationToken cancellationToken)
+        {
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            var span = ProtocolConversions.RangeToTextSpan(request.Range, text);
+            var span = ProtocolConversions.RangeToTextSpan(range, text);
             var breakpointService = document.Project.Services.GetRequiredService<IBreakpointResolutionService>();
 
             if (span.Length > 0)
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (tree.GetDiagnostics(cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
                     {
                         // Keep the span as is.
-                        return request.Range;
+                        return range;
                     }
                 }
             }
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // BP: int a = $$ GetData();
             //
             // If the user types "1;" we'd shrink the breakpoint, so stick to the end of the range.
-            if (!result.IsLineBreakpoint && BreakpointRangeIsSmaller(breakpointRange, request.Range))
+            if (!result.IsLineBreakpoint && BreakpointRangeIsSmaller(breakpointRange, range))
             {
                 var secondResult = await breakpointService.ResolveBreakpointAsync(document, new TextSpan(span.End, length: 0), cancellationToken).ConfigureAwait(false);
                 if (secondResult is not null)
