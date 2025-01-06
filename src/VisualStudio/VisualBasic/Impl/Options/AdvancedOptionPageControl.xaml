@@ -45,10 +45,10 @@
                         <StackPanel Margin="15, 0, 0, 0">
                             <RadioButton GroupName="Inline_diagnostic_location"
                                      x:Name="at_the_end_of_the_line_of_code"
-                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_at_the_end_of_the_line_of_code}"/>
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_At_the_end_of_the_line_of_code}"/>
                             <RadioButton GroupName="Inline_diagnostic_location"
                                      x:Name="on_the_right_edge_of_the_editor_window"
-                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_on_the_right_edge_of_the_editor_window}"/>
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_On_the_right_edge_of_the_editor_window}"/>
                         </StackPanel>
                     </StackPanel>
 
@@ -59,14 +59,14 @@
 
                     <StackPanel Margin="15, 0, 0, 0">
                         <CheckBox x:Name="Automatically_reload_updated_analyzers_and_generators"
-                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Automatically_reload_updated_analyzers_and_generators}" />
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Automatically_reload_updated_analyzers_and_generators_requires_restart}" />
                     </StackPanel>
 
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer}" />
 
                     <CheckBox x:Name="Enable_file_logging_for_diagnostics"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_file_logging_for_diagnostics}" />
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_file_logging_for_diagnostics_logged_in_temp_roslyn_folder}" />
 
                     <CheckBox x:Name="Skip_analyzers_for_implicitly_triggered_builds"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Skip_analyzers_for_implicitly_triggered_builds}" />
@@ -282,13 +282,13 @@
                     <StackPanel Margin="15, 0, 0, 0">
                         <RadioButton  GroupName="Insertion_behavior"
                                               x:Name="with_other_members_of_the_same_kind"
-                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_with_other_members_of_the_same_kind}"/>
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_With_other_members_of_the_same_kind}"/>
                         <RadioButton  GroupName="Insertion_behavior"
                                               x:Name="at_the_end"
-                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_at_the_end}"/>
+                                              Content="{x:Static local:AdvancedOptionPageStrings.Option_At_the_end}"/>
                     </StackPanel>
 
-                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_When_generating_properties}"/>
+                    <Label Content="{x:Static local:AdvancedOptionPageStrings.Option_When_generating_properties_colon}"/>
                     <StackPanel Margin="15, 0, 0, 0">
                         <RadioButton  GroupName="Property_generation_behavior"
                                               x:Name="prefer_throwing_properties"

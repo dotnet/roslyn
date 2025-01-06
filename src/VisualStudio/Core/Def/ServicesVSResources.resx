@@ -670,14 +670,17 @@ Additional information: {1}</value>
   <data name="For_a_given_symbol_only_the_topmost_rule_with_a_matching_Specification_will_be_applied_Violation_of_that_rules_Required_Style_will_be_reported_at_the_chosen_Severity_level" xml:space="preserve">
     <value>For a given symbol, only the topmost rule with a matching 'Specification' will be applied. Violation of that rule's 'Required Style' will be reported at the chosen 'Severity' level.</value>
   </data>
-  <data name="at_the_end" xml:space="preserve">
-    <value>at the end</value>
+  <data name="At_the_end" xml:space="preserve">
+    <value>At the end</value>
   </data>
   <data name="When_inserting_properties_events_and_methods_place_them" xml:space="preserve">
     <value>When inserting properties, events and methods, place them:</value>
   </data>
-  <data name="with_other_members_of_the_same_kind" xml:space="preserve">
-    <value>with other members of the same kind</value>
+  <data name="Insert_properties_events_and_methods" xml:space="preserve">
+    <value>Insert properties, events and methods</value>
+  </data>
+  <data name="With_other_members_of_the_same_kind" xml:space="preserve">
+    <value>With other members of the same kind</value>
   </data>
   <data name="Prefer_braces" xml:space="preserve">
     <value>Prefer braces</value>
@@ -734,13 +737,16 @@ Additional information: {1}</value>
     <value>VisualStudioWorkspace.TryApplyChanges cannot be called from a background thread.</value>
   </data>
   <data name="codegen_prefer_auto_properties" xml:space="preserve">
-    <value>prefer auto properties</value>
+    <value>Prefer auto properties</value>
   </data>
-  <data name="prefer_throwing_properties" xml:space="preserve">
-    <value>prefer throwing properties</value>
+  <data name="Prefer_throwing_properties" xml:space="preserve">
+    <value>Prefer throwing properties</value>
+  </data>
+  <data name="When_generating_properties_colon" xml:space="preserve">
+    <value>When generating properties:</value>
   </data>
   <data name="When_generating_properties" xml:space="preserve">
-    <value>When generating properties:</value>
+    <value>When generating properties</value>
   </data>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
@@ -1169,6 +1175,9 @@ Additional information: {1}</value>
   <data name="Run_background_code_analysis_for_colon" xml:space="preserve">
     <value>Run background code analysis for:</value>
   </data>
+  <data name="Run_background_code_analysis_for" xml:space="preserve">
+    <value>Run background code analysis for</value>
+  </data>
   <data name="Current_document" xml:space="preserve">
     <value>Current document</value>
   </data>
@@ -1180,6 +1189,9 @@ Additional information: {1}</value>
   </data>
   <data name="Show_compiler_errors_and_warnings_for_colon" xml:space="preserve">
     <value>Show compiler errors and warnings for:</value>
+  </data>
+  <data name="Show_compiler_errors_and_warnings_for" xml:space="preserve">
+    <value>Show compiler errors and warnings for</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>_Edit</value>
@@ -1216,6 +1228,9 @@ Additional information: {1}</value>
   <data name="Index" xml:space="preserve">
     <value>Index</value>
     <comment>Index of parameter in original signature</comment>
+  </data>
+    <data name="Inline_diagnostics_location" xml:space="preserve">
+    <value>Inline diagnostics location</value>
   </data>
   <data name="IntroduceUndefinedTodoVariables" xml:space="preserve">
     <value>Introduce undefined TODO variables</value>
@@ -1436,7 +1451,13 @@ Additional information: {1}</value>
     <value>No unused references were found.</value>
   </data>
   <data name="Enable_file_logging_for_diagnostics" xml:space="preserve">
+    <value>Enable file logging for diagnostics</value>
+  </data>
+  <data name="Enable_file_logging_for_diagnostics_logged_in_temp_roslyn_folder" xml:space="preserve">
     <value>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</value>
+  </data>
+  <data name="Logged_in_temp_roslyn_folder" xml:space="preserve">
+    <value>logged in '%Temp%\Roslyn' folder</value>
   </data>
   <data name="Skip_analyzers_for_implicitly_triggered_builds" xml:space="preserve">
     <value>Skip analyzers for implicitly triggered builds</value>
@@ -1495,11 +1516,11 @@ Additional information: {1}</value>
   <data name="Display_diagnostics_inline_experimental" xml:space="preserve">
     <value>Display diagnostics inline (experimental)</value>
   </data>
-  <data name="at_the_end_of_the_line_of_code" xml:space="preserve">
-    <value>at the end of the line of code</value>
+  <data name="At_the_end_of_the_line_of_code" xml:space="preserve">
+    <value>At the end of the line of code</value>
   </data>
-  <data name="on_the_right_edge_of_the_editor_window" xml:space="preserve">
-    <value>on the right edge of the editor window</value>
+  <data name="On_the_right_edge_of_the_editor_window" xml:space="preserve">
+    <value>On the right edge of the editor window</value>
   </data>
   <data name="Multiple_members_are_inherited" xml:space="preserve">
     <value>Multiple members are inherited</value>
@@ -1587,6 +1608,9 @@ Additional information: {1}</value>
   <data name="No_namespaces_needed_updating" xml:space="preserve">
     <value>No namespaces needed updating.</value>
     <comment>"Namespaces" is the programming language concept</comment>
+  </data>
+  <data name="Run_code_analysis_in_separate_process" xml:space="preserve">
+    <value>Run code analysis in separate process</value>
   </data>
   <data name="Run_code_analysis_in_separate_process_requires_restart" xml:space="preserve">
     <value>Run code analysis in separate process (requires restart)</value>
@@ -1779,6 +1803,9 @@ Additional information: {1}</value>
   <data name="Enable_document_outline_experimental_requires_restart" xml:space="preserve">
     <value>Enable document outline (experimental, requires restart)</value>
   </data>
+  <data name="Enable_document_outline" xml:space="preserve">
+    <value>Enable document outline</value>
+  </data>
   <data name="Prefer_primary_constructors" xml:space="preserve">
     <value>Prefer primary constructors</value>
   </data>
@@ -1811,14 +1838,23 @@ Additional information: {1}</value>
   <data name="Automatic_Run_generators_after_any_change" xml:space="preserve">
     <value>Automatic. Run generators after any change</value>
   </data>
+  <data name="Run_generators_after_any_change" xml:space="preserve">
+    <value>Run generators after any change</value>
+  </data>
   <data name="Source_generator_execution_requires_restart" xml:space="preserve">
     <value>Source generator execution (requires restart):</value>
+  </data>
+  <data name="Source_generator_execution" xml:space="preserve">
+    <value>Source generator execution</value>
   </data>
   <data name="Source_Generators" xml:space="preserve">
     <value>Source Generators</value>
   </data>
   <data name="Balanced_Run_generators_after_saving_or_building" xml:space="preserve">
     <value>Balanced. Run generators after saving or building</value>
+  </data>
+  <data name="Run_generators_after_saving_or_building" xml:space="preserve">
+    <value>Run generators after saving or building</value>
   </data>
   <data name="Generator_running" xml:space="preserve">
     <value>Generator running...</value>
@@ -1848,13 +1884,19 @@ Additional information: {1}</value>
     <value>Show hints for collection expressions</value>
   </data>
   <data name="Automatically_reload_updated_analyzers_and_generators" xml:space="preserve">
+    <value>Automatically reload updated analyzers and generators</value>
+  </data>
+  <data name="Automatically_reload_updated_analyzers_and_generators_requires_restart" xml:space="preserve">
     <value>Automatically reload updated analyzers and generators (requires restart)</value>
   </data>
   <data name="Insert_Snippet" xml:space="preserve">
     <value>Insert Snippet</value>
   </data>
-  <data name="Show_procedure_line_separators" xml:space="preserve">
+  <data name="_Show_procedure_line_separators" xml:space="preserve">
     <value>_Show procedure line separators</value>
+  </data>
+  <data name="Show_procedure_line_separators" xml:space="preserve">
+    <value>Show procedure line separators</value>
   </data>
   <data name="Editor_Help" xml:space="preserve">
     <value>Editor Help</value>
@@ -1928,8 +1970,11 @@ Additional information: {1}</value>
   <data name="Enter_key_behavior" xml:space="preserve">
     <value>Enter key behavior</value>
   </data>
-  <data name="Show_preview_for_rename_tracking" xml:space="preserve">
+  <data name="Show_preview_for_rename__tracking" xml:space="preserve">
     <value>Show preview for rename _tracking</value>
+  </data>
+  <data name="Show_preview_for_rename_tracking" xml:space="preserve">
+    <value>Show preview for rename tracking</value>
   </data>
   <data name="_Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
     <value>_Only add new line on enter after end of fully typed word</value>
