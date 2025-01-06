@@ -1150,8 +1150,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             _parameters =
             [
-                new BytesParameter(encodingGetString),                              // byte* bytes
-                new ParameterDefinition(1, "length", Cci.PlatformType.SystemInt32), // int length
+                new BytesParameter(encodingGetString), // byte* bytes
+                LengthParameterDefinition.Instance,    // int length
             ];
         }
 
@@ -1211,20 +1211,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return _encodingGetString.GetParameters(context)[0].GetType(context);
             }
         }
-    }
 
-    file sealed class ParameterDefinition(
-        ushort index,
-        string name,
-        Cci.PlatformType type)
-        : Cci.ParameterDefinitionBase
-    {
-        private readonly ushort _index = index;
-        private readonly string _name = name;
-        private readonly Cci.PlatformType _type = type;
+        private sealed class LengthParameterDefinition : Cci.ParameterDefinitionBase
+        {
+            private LengthParameterDefinition() { }
 
-        public override ushort Index => _index;
-        public override string Name => _name;
-        public override Cci.ITypeReference GetType(EmitContext context) => context.Module.GetPlatformType(_type, context);
+            public static LengthParameterDefinition Instance { get; } = new LengthParameterDefinition();
+
+            public override ushort Index => 0;
+            public override string Name => "length";
+            public override Cci.ITypeReference GetType(EmitContext context) => context.Module.GetPlatformType(Cci.PlatformType.SystemInt32, context);
+        }
     }
 }
