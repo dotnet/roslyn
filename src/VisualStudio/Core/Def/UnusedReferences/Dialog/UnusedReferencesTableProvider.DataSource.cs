@@ -22,8 +22,8 @@ internal partial class UnusedReferencesTableProvider
         public string Identifier => Name;
         public string? DisplayName => null;
 
-        private ImmutableList<SinkManager> _managers = ImmutableList<SinkManager>.Empty;
-        private ImmutableArray<UnusedReferencesEntry> _currentEntries = ImmutableArray<UnusedReferencesEntry>.Empty;
+        private ImmutableList<SinkManager> _managers = [];
+        private ImmutableArray<UnusedReferencesEntry> _currentEntries = [];
 
         public IDisposable Subscribe(ITableDataSink sink)
         {
@@ -53,7 +53,7 @@ internal partial class UnusedReferencesTableProvider
                 manager.Sink.RemoveAllEntries();
             }
 
-            _currentEntries = ImmutableArray<UnusedReferencesEntry>.Empty;
+            _currentEntries = [];
         }
 
         internal void AddSinkManager(SinkManager manager)

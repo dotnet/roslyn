@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaSymbol,
                 hasParams: OverloadResolution.IsValidParams(Binder, lambdaSymbol, disallowExpandedNonArrayParams: false, out _),
                 parameterScopesBuilder.ToImmutableAndFree(),
-                lambdaSymbol.Parameters.SelectAsArray(p => p.HasUnscopedRefAttribute),
+                lambdaSymbol.Parameters.SelectAsArray(p => p.HasUnscopedRefAttribute && p.UseUpdatedEscapeRules),
                 returnRefKind,
                 returnType);
         }

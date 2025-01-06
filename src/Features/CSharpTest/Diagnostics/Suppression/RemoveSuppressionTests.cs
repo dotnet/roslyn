@@ -33,7 +33,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
         {
             get
             {
-                return ImmutableArray.Create(Decsciptor);
+                return [Decsciptor];
             }
         }
 

@@ -5,6 +5,10 @@
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.SimplifyLinqExpression
 
+Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
+    Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression.VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.SimplifyLinqExpression.SimplifyLinqExpressionCodeFixProvider)
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression
     <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)>
     Partial Public Class VisualBasicSimplifyLinqExpressionTests
@@ -41,7 +45,7 @@ Module T
     End Sub
 End Module"
 
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
+            Await VerifyVB.VerifyCodeFixAsync(testCode, fixedCode)
         End Function
 
         <Theory>
@@ -66,7 +70,7 @@ Module T
     End Sub
 End Module"
 
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyAnalyzerAsync(testCode)
+            Await VerifyVB.VerifyAnalyzerAsync(testCode)
         End Function
 
         <Theory>
@@ -101,7 +105,7 @@ Module T
         Dim test = (From x In data).{methodName}(Function(x) x = 1)
     End Sub
 End Module"
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
+            Await VerifyVB.VerifyCodeFixAsync(testCode, fixedCode)
         End Function
 
         <Theory>
@@ -126,7 +130,7 @@ Module T
     End Sub
 End Module"
 
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyAnalyzerAsync(testCode)
+            Await VerifyVB.VerifyAnalyzerAsync(testCode)
         End Function
 
         <Theory>
@@ -167,7 +171,7 @@ Module T
                               End Function)
     End Sub
 End Module"
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
+            Await VerifyVB.VerifyCodeFixAsync(testCode, fixedCode)
         End Function
 
         <Theory>
@@ -192,7 +196,7 @@ Module T
         Dim output = testvar2.Where(Function(x) x = 4).{methodName}()
     End Sub
 End Module"
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyAnalyzerAsync(testCode)
+            Await VerifyVB.VerifyAnalyzerAsync(testCode)
         End Function
 
         <Theory, CombinatorialData>
@@ -237,7 +241,7 @@ Module T
         Dim test1 = test.{firstMethod}(Function(x) x.{secondMethod}(Function(c) c.Equals(""!"")).Equals(""!""))
     End Sub
 End Module"
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
+            Await VerifyVB.VerifyCodeFixAsync(testCode, fixedCode)
         End Function
 
         <Theory>
@@ -273,7 +277,7 @@ Module T
     End Sub
 End Module"
 
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
+            Await VerifyVB.VerifyCodeFixAsync(testCode, fixedCode)
         End Function
 
         <Theory>
@@ -297,7 +301,7 @@ Module T
         Dim output = testvar1.Where(Function(x) x = 4).{methodName}(Function(x) x <> 1)
     End Sub
 End Module"
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyAnalyzerAsync(testCode)
+            Await VerifyVB.VerifyAnalyzerAsync(testCode)
         End Function
 
         <Fact>
@@ -313,7 +317,7 @@ Module T
         Dim output = testvar1.Where(Function(x) x = 4).Count()
     End Sub
 End Module"
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyAnalyzerAsync(testCode)
+            Await VerifyVB.VerifyAnalyzerAsync(testCode)
         End Function
 
         <Fact>
@@ -342,7 +346,7 @@ Module T
         Dim result = queryableData.Where(Expression.Lambda(Of Func(Of String, Boolean))(predicateBody, pe)).First()
     End Sub
 End Module"
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyAnalyzerAsync(testCode)
+            Await VerifyVB.VerifyAnalyzerAsync(testCode)
         End Function
     End Class
 End Namespace

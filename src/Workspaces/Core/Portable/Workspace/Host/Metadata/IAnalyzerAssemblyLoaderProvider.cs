@@ -40,7 +40,7 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
 
     public AbstractAnalyzerAssemblyLoaderProvider(IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
     {
-        _externalResolvers = externalResolvers.ToImmutableArray();
+        _externalResolvers = [.. externalResolvers];
         _shadowCopyLoader = new(CreateNewShadowCopyLoader);
     }
 

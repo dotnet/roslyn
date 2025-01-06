@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.IO;
 using Microsoft.CodeAnalysis.Elfie.Model;
 
@@ -13,12 +11,22 @@ internal sealed partial class SymbolSearchUpdateEngine
 {
     private sealed class DatabaseFactoryService : IDatabaseFactoryService
     {
-        public AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
+        public AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes, bool isBinary)
         {
             using var memoryStream = new MemoryStream(bytes);
-            using var streamReader = new StreamReader(memoryStream);
             var database = new AddReferenceDatabase(ArdbVersion.V1);
-            database.ReadText(streamReader);
+
+            if (isBinary)
+            {
+                using var binaryReader = new BinaryReader(memoryStream);
+                database.ReadBinary(binaryReader);
+            }
+            else
+            {
+                using var streamReader = new StreamReader(memoryStream);
+                database.ReadText(streamReader);
+            }
+
             return database;
         }
     }

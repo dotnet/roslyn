@@ -558,6 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                 case ErrorCode.WRN_UseDefViolationRefField:
                 case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_ExperimentalWithMessage:
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
@@ -565,6 +566,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_FieldIsAmbiguous:
                 case ErrorCode.WRN_UninitializedNonNullableBackingField:
                 case ErrorCode.WRN_AccessorDoesNotUseBackingField:
+                case ErrorCode.WRN_UnscopedRefAttributeOldRules:
+                case ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature:
                     return 1;
                 default:
                     return 0;
@@ -1841,6 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_RefReturnReadonlyNotField2
                 or ErrorCode.ERR_ExplicitReservedAttr
                 or ErrorCode.ERR_TypeReserved
+                or ErrorCode.ERR_EmbeddedAttributeMustFollowPattern
                 or ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne
                 or ErrorCode.ERR_InExtensionMustBeValueType
                 or ErrorCode.ERR_FieldsInRoStruct
@@ -2410,6 +2414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_FeatureNotAvailableInVersion12
                 or ErrorCode.ERR_CollectionExpressionEscape
                 or ErrorCode.WRN_Experimental
+                or ErrorCode.WRN_ExperimentalWithMessage
                 or ErrorCode.ERR_ExpectedInterpolatedString
                 or ErrorCode.ERR_InterceptorGlobalNamespace
                 or ErrorCode.WRN_CollectionExpressionRefStructMayAllocate
@@ -2467,6 +2472,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_UnassignedInternalRefField
                 or ErrorCode.WRN_AccessorDoesNotUseBackingField
                 or ErrorCode.ERR_IteratorRefLikeElementType
+                or ErrorCode.WRN_UnscopedRefAttributeOldRules
+                or ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

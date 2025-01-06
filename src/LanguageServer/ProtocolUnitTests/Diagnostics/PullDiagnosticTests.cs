@@ -129,7 +129,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         public const string RuleId = "SYN0001";
         private readonly DiagnosticDescriptor _descriptor = new(RuleId, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
 
         public override void Initialize(AnalysisContext context)
         {
@@ -143,7 +143,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         public const string RuleId = "SEM0001";
         private readonly DiagnosticDescriptor _descriptor = new(RuleId, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
 
         public override void Initialize(AnalysisContext context)
         {
@@ -1092,7 +1092,7 @@ class A {
 
         testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(
             TaskListOptionsStorage.Descriptors,
-            ImmutableArray.Create("HACK:2", $"TODO:{priString}", "UNDONE:2", "UnresolvedMergeConflict:3"));
+            ["HACK:2", $"TODO:{priString}", "UNDONE:2", "UnresolvedMergeConflict:3"]);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true, includeTaskListItems: true, category: PullDiagnosticCategories.Task);
 
@@ -2008,7 +2008,7 @@ class A {";
         Assert.NotEmpty(results);
     }
 
-    [Theory, CombinatorialData]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/76503"), CombinatorialData]
     public async Task TestWorkspaceDiagnosticsWaitsForLspTextChangesWithMultipleSources(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var markup1 =
@@ -2045,7 +2045,8 @@ class A {";
         //    1.  LSP changed, which triggers immediately via the queue.
         //    2.  Workspace changed, which can be delayed until after the requests complete.
         // To ensure the workspace changed is processed, we need to wait for all workspace events.
-        await testLspServer.WaitForDiagnosticsAsync();
+        var listenerProvider = testLspServer.TestWorkspace.GetService<IAsynchronousOperationListenerProvider>();
+        await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(testLspServer.TestWorkspace);
 
         // Make new requests - these requests should again wait for new changes.
         resultTaskOne = RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true, category: PullDiagnosticCategories.WorkspaceDocumentsAndProject, triggerConnectionClose: false);

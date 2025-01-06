@@ -24,7 +24,7 @@ internal abstract class AbstractTestMethodFinder<TMethodDeclaration>(IEnumerable
         typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
         memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
-    protected readonly ImmutableArray<ITestFrameworkMetadata> TestFrameworkMetadata = testFrameworks.ToImmutableArray();
+    protected readonly ImmutableArray<ITestFrameworkMetadata> TestFrameworkMetadata = [.. testFrameworks];
 
     protected abstract bool IsTestMethod(TMethodDeclaration method);
 

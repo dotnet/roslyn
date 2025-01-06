@@ -17,6 +17,16 @@
         <target state="translated">命令行语法错误:“{0}”不是“{1}”选项的有效值。值的格式必须为 "{2}"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
         <source>Cannot inherit from '{0}' because it has required members.</source>
         <target state="translated">无法从 "{0}" 继承，因为它具有必需的成员。</target>
@@ -97,6 +107,11 @@
         <target state="translated">'{0}' 所需的成员列表格式不正确，无法解释。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</source>
+        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">目标运行时不支持默认接口实现。</target>
@@ -160,6 +175,11 @@
       <trans-unit id="FEATURE_InitOnlySettersUsage">
         <source>assigning to or passing 'ByRef' properties with init-only setters</source>
         <target state="translated">通过 init-only 资源库分配或传递 "ByRef" 属性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -656,6 +676,16 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">已多次指定分析器引用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</source>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
@@ -9323,7 +9353,7 @@
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">“{0}”仅用于评估，在将来的更新中可能会被更改或删除。</target>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

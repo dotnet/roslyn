@@ -58,7 +58,7 @@ class Test {
 
         Assert.NotEmpty(completions.ItemsList);
 
-        var item = Assert.Single(completions.ItemsList.Where(item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName));
+        var item = Assert.Single(completions.ItemsList, item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName);
         Assert.Equal(nameof(DebugAssertTestCompletionProvider), item.DisplayText);
 
         var expectedDescriptionText = nameof(DebugAssertTestCompletionProvider);
@@ -83,13 +83,13 @@ class Test {
         public override object Id => nameof(MockAnalyzerReference);
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
-            => ImmutableArray<DiagnosticAnalyzer>.Empty;
+            => [];
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-            => ImmutableArray<DiagnosticAnalyzer>.Empty;
+            => [];
 
         public ImmutableArray<CompletionProvider> GetCompletionProviders()
-            => ImmutableArray.Create(_completionProvider);
+            => [_completionProvider];
     }
 
     private sealed class DebugAssertTestCompletionProvider : CompletionProvider

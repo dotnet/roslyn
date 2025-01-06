@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             {
                 Language = project.Language,
                 Name = project.Name,
-                SourceFiles = project.Documents.Select(document => document.GetURI()).ToArray()
+                SourceFiles = [.. project.Documents.Select(document => document.GetURI())]
             };
     }
 }

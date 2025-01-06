@@ -1992,6 +1992,11 @@
         <target state="translated">Türler ve diğer adlar 'gerekli' olarak adlandırılamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
         <source>Target runtime doesn't support by-ref-like generics.</source>
         <target state="translated">Hedef çalışma zamanı başvuru benzeri genel türleri desteklemez.</target>
@@ -2507,6 +2512,11 @@
         <target state="new">null conditional assignment</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureOverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">parametresiz yapı oluşturucuları</target>
@@ -2582,6 +2592,11 @@
         <target state="translated">struct alan başlatıcıları</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
+        <source>unbound generic types in nameof operator</source>
+        <target state="new">unbound generic types in nameof operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">işaretsiz sağ kaydırma</target>
@@ -2620,11 +2635,6 @@
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_OverloadResolutionPriority">
-        <source>overload resolution priority</source>
-        <target state="translated">aşırı yükleme çözümlemesi önceliği</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -2952,6 +2962,16 @@
         <target state="translated">Bu bağlamda değişken kullanımı, başvurulan değişkenleri bildirim kapsamının dışında gösterebilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</source>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous">
         <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
         <target state="translated">{0} dil sürümünde, 'field' anahtar sözcüğü, özellik için sentezlenmiş bir destek alanına bağlanır. Sentezlenmiş bir destek alanı oluşturmaktan kaçınmak ve mevcut üyeye başvurmak için bunun yerine 'this.field' veya '@field' kullanın.</target>
@@ -3020,6 +3040,16 @@
       <trans-unit id="WRN_InterceptorSignatureMismatch_Title">
         <source>Signatures of interceptable and interceptor methods do not match.</source>
         <target state="translated">Engellenebilirlerin ve engelleyicilerin imzaları eşleşmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature">
+        <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
+        <target state="new">'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature_Title">
+        <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
+        <target state="new">'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
@@ -5356,6 +5386,16 @@
       <trans-unit id="WRN_UnreadRecordParameter_Title">
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="translated">Parametre okunmadı. Bu ada sahip özelliği başlatmak için bu parametreyi kullanmayı unutmuş olabilirsiniz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules">
+        <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
+        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules_Title">
+        <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
+        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -10310,8 +10350,8 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
-        <source>Cannot open '{0}' for writing -- '{1}'</source>
-        <target state="translated">'{0}' yazma için açılamıyor -- '{1}'</target>
+        <source>Cannot open '{0}' for writing -- {1}</source>
+        <target state="needs-review-translation">'{0}' yazma için açılamıyor -- '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBaseNumber">
@@ -12971,7 +13011,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="translated">'{0}' yalnızca değerlendirme amaçlıdır ve gelecekteki güncelleştirmelerde değiştirilebilir veya kaldırılabilir. Devam etmek için bu tanılamayı gizleyin.</target>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

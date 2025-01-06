@@ -40,8 +40,10 @@ internal static partial class DependentProjectsFinder
     public static async Task<ImmutableArray<Project>> GetDependentProjectsAsync(
         Solution solution, ImmutableArray<ISymbol> symbols, IImmutableSet<Project> projects, CancellationToken cancellationToken)
     {
-        // namespaces are visible in all projects.
-        if (symbols.Any(static s => s.Kind == SymbolKind.Namespace))
+        // Namespaces are visible in all projects.
+        // Preprocessing symbols are arbitrary identifiers that are not bound to specific projects.
+        // 'dynamic' can appear in any project.
+        if (symbols.Any(static s => s is INamespaceSymbol or IPreprocessingSymbol or IDynamicTypeSymbol))
             return [.. projects];
 
         var dependentProjects = await GetDependentProjectsWorkerAsync(solution, symbols, cancellationToken).ConfigureAwait(false);

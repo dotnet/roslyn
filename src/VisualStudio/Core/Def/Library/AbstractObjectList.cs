@@ -6,10 +6,12 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library;
 
@@ -24,9 +26,10 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
     protected abstract bool CanGoToSource(uint index, VSOBJGOTOSRCTYPE srcType);
     protected abstract bool TryGetCategoryField(uint index, int category, out uint categoryField);
     protected abstract void GetDisplayData(uint index, ref VSTREEDISPLAYDATA data);
-    protected abstract bool GetExpandable(uint index, uint listTypeExcluded);
+    protected abstract Task<bool> GetExpandableAsync(uint index, uint listTypeExcluded, CancellationToken cancellationToken);
     protected abstract uint GetItemCount();
-    protected abstract IVsSimpleObjectList2 GetList(uint index, uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch);
+    protected abstract Task<IVsSimpleObjectList2> GetListAsync(
+        uint index, uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, CancellationToken cancellationToken);
     protected abstract string GetText(uint index, VSTREETEXTOPTIONS tto);
     protected abstract string GetTipText(uint index, VSTREETOOLTIPTYPE eTipType);
     protected abstract Task GoToSourceAsync(uint index, VSOBJGOTOSRCTYPE srcType);
@@ -59,11 +62,8 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
         return false;
     }
 
-    protected virtual bool TryGetProperty(uint index, _VSOBJLISTELEMPROPID propertyId, out object pvar)
-    {
-        pvar = null;
-        return false;
-    }
+    protected virtual Task<(bool success, object pvar)> TryGetPropertyAsync(uint index, _VSOBJLISTELEMPROPID propertyId, CancellationToken cancellationToken)
+        => SpecializedTasks.Default<(bool success, object pvar)>();
 
     protected virtual bool TryCountSourceItems(uint index, out IVsHierarchy hierarchy, out uint itemid, out uint items)
     {
@@ -73,16 +73,16 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
         return false;
     }
 
-    protected virtual object GetBrowseObject(uint index)
-        => null;
+    protected virtual Task<object> GetBrowseObjectAsync(uint index, CancellationToken cancellationToken)
+        => SpecializedTasks.Null<object>();
 
     protected virtual bool SupportsNavInfo
     {
         get { return false; }
     }
 
-    protected virtual IVsNavInfo GetNavInfo(uint index)
-        => null;
+    protected virtual Task<IVsNavInfo> GetNavInfoAsync(uint index, CancellationToken cancellationToken)
+        => SpecializedTasks.Null<IVsNavInfo>();
 
     protected virtual IVsNavInfoNode GetNavInfoNode(uint index)
         => null;
@@ -98,8 +98,8 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
         get { return false; }
     }
 
-    protected virtual bool TryFillDescription(uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description)
-        => false;
+    protected virtual Task<bool> TryFillDescriptionAsync(uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description, CancellationToken cancellationToken)
+        => SpecializedTasks.False;
 
     int IVsSimpleObjectList2.CanDelete(uint index, out int pfOK)
     {
@@ -144,18 +144,19 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
     int IVsSimpleObjectList2.FillDescription2(uint index, uint grfOptions, IVsObjectBrowserDescription3 pobDesc)
     {
         if (!SupportsDescription)
-        {
             return VSConstants.E_NOTIMPL;
-        }
 
-        return TryFillDescription(index, (_VSOBJDESCOPTIONS)grfOptions, pobDesc)
+        var result = this.LibraryManager.ThreadingContext.JoinableTaskFactory.Run(
+                () => TryFillDescriptionAsync(index, (_VSOBJDESCOPTIONS)grfOptions, pobDesc, CancellationToken.None));
+        return result
             ? VSConstants.S_OK
             : VSConstants.E_FAIL;
     }
 
     int IVsSimpleObjectList2.GetBrowseObject(uint index, out object ppdispBrowseObj)
     {
-        ppdispBrowseObj = GetBrowseObject(index);
+        ppdispBrowseObj = this.LibraryManager.ThreadingContext.JoinableTaskFactory.Run(() =>
+            GetBrowseObjectAsync(index, CancellationToken.None));
 
         return ppdispBrowseObj != null
             ? VSConstants.S_OK
@@ -206,7 +207,8 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
 
     int IVsSimpleObjectList2.GetExpandable3(uint index, uint listTypeExcluded, out int pfExpandable)
     {
-        pfExpandable = GetExpandable(index, listTypeExcluded) ? 1 : 0;
+        pfExpandable = this.LibraryManager.ThreadingContext.JoinableTaskFactory.Run(
+            () => GetExpandableAsync(index, listTypeExcluded, CancellationToken.None)) ? 1 : 0;
         return VSConstants.S_OK;
     }
 
@@ -230,7 +232,8 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
 
     int IVsSimpleObjectList2.GetList2(uint index, uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
     {
-        ppIVsSimpleObjectList2 = GetList(index, listType, flags, pobSrch);
+        ppIVsSimpleObjectList2 = this.LibraryManager.ThreadingContext.JoinableTaskFactory.Run(
+            () => GetListAsync(index, listType, flags, pobSrch, CancellationToken.None));
         return VSConstants.S_OK;
     }
 
@@ -239,16 +242,18 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
 
     int IVsSimpleObjectList2.GetNavInfo(uint index, out IVsNavInfo ppNavInfo)
     {
-        if (!SupportsNavInfo)
+        (ppNavInfo, var result) = this.LibraryManager.ThreadingContext.JoinableTaskFactory.Run(async () =>
         {
-            ppNavInfo = null;
-            return VSConstants.E_NOTIMPL;
-        }
+            if (!SupportsNavInfo)
+                return (null, VSConstants.E_NOTIMPL);
 
-        ppNavInfo = GetNavInfo(index);
-        return ppNavInfo != null
-            ? VSConstants.S_OK
-            : VSConstants.E_FAIL;
+            var ppNavInfo = await GetNavInfoAsync(index, CancellationToken.None).ConfigureAwait(true);
+            return (ppNavInfo, ppNavInfo != null
+                ? VSConstants.S_OK
+                : VSConstants.E_FAIL);
+        });
+
+        return result;
     }
 
     int IVsSimpleObjectList2.GetNavInfoNode(uint index, out IVsNavInfoNode ppNavInfoNode)
@@ -262,11 +267,15 @@ internal abstract class AbstractObjectList<TLibraryManager> : IVsCoTaskMemFreeMy
 
     int IVsSimpleObjectList2.GetProperty(uint index, int propid, out object pvar)
     {
-        if (TryGetProperty(index, (_VSOBJLISTELEMPROPID)propid, out pvar))
+        var (success, obj) = this.LibraryManager.ThreadingContext.JoinableTaskFactory.Run(() =>
+            TryGetPropertyAsync(index, (_VSOBJLISTELEMPROPID)propid, CancellationToken.None));
+        if (success)
         {
+            pvar = obj;
             return VSConstants.S_OK;
         }
 
+        pvar = null;
         return VSConstants.E_FAIL;
     }
 

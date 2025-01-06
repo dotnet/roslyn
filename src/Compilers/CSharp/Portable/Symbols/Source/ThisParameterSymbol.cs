@@ -179,7 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var scope = _containingType.IsStructType() ? ScopedKind.ScopedRef : ScopedKind.None;
                 if (scope != ScopedKind.None &&
-                    HasUnscopedRefAttribute)
+                    HasUnscopedRefAttribute &&
+                    UseUpdatedEscapeRules)
                 {
                     return ScopedKind.None;
                 }

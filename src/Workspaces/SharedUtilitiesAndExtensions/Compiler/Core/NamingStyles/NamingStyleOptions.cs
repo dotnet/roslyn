@@ -24,7 +24,8 @@ internal static class NamingStyleOptions
     internal static PerLanguageOption2<NamingStylePreferences> NamingPreferences { get; } = new(
         NamingPreferencesOptionName,
         defaultValue: NamingStylePreferences.Default,
-        isEditorConfigOption: true);
+        isEditorConfigOption: true,
+        serializer: EditorConfigValueSerializer<NamingStylePreferences>.Unsupported);
 }
 
 internal interface NamingStylePreferencesProvider

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.CommandLine;
 using System.Globalization;
+using System.IO.Pipes;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
@@ -15,11 +16,13 @@ internal static class Program
 {
     internal static async Task Main(string[] args)
     {
+        var pipeOption = new CliOption<string>("--pipe") { Required = true };
         var propertyOption = new CliOption<string[]>("--property") { Arity = ArgumentArity.ZeroOrMore };
         var binaryLogOption = new CliOption<string?>("--binlog") { Required = false };
         var localeOption = new CliOption<string>("--locale") { Required = true };
-        var command = new CliRootCommand { binaryLogOption, propertyOption, localeOption };
+        var command = new CliRootCommand { pipeOption, binaryLogOption, propertyOption, localeOption };
         var parsedArguments = command.Parse(args);
+        var pipeName = parsedArguments.GetValue(pipeOption)!;
         var properties = parsedArguments.GetValue(propertyOption)!;
         var binaryLogPath = parsedArguments.GetValue(binaryLogOption);
         var locale = parsedArguments.GetValue(localeOption)!;
@@ -46,7 +49,10 @@ internal static class Program
 
         logger.LogInformation($"BuildHost Runtime Version: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}");
 
-        var server = new RpcServer(sendingStream: Console.OpenStandardOutput(), receivingStream: Console.OpenStandardInput());
+        var pipeServer = NamedPipeUtil.CreateServer(pipeName, PipeDirection.InOut);
+        await pipeServer.WaitForConnectionAsync().ConfigureAwait(false);
+
+        var server = new RpcServer(sendingStream: pipeServer, receivingStream: pipeServer);
 
         var targetObject = server.AddTarget(new BuildHost(logger, propertiesBuilder.ToImmutable(), binaryLogPath, server));
         Contract.ThrowIfFalse(targetObject == 0, "The first object registered should have target 0, which is assumed by the client.");

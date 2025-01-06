@@ -9,75 +9,21 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     internal static class VSInternalMethods
     {
-        /// <summary>
-        /// Method name for 'copilot/_related_documents'.
-        /// </summary>
         public const string CopilotRelatedDocumentsName = "copilot/_related_documents";
-
-        /// <summary>
-        /// Method name for 'textDocument/foldingRange/_vs_refresh'.
-        /// </summary>
         public const string DocumentFoldingRangeRefreshName = "textDocument/foldingRange/_vs_refresh";
-
-        /// <summary>
-        /// Method name for 'textDocument/_vs_references'.
-        /// </summary>
-        public const string DocumentReferencesName = "textDocument/_vs_references";
-
-        /// <summary>
-        /// Method name for 'textDocument/_vs_onAutoInsert'.
-        /// </summary>
-        public const string OnAutoInsertName = "textDocument/_vs_onAutoInsert";
-
-        /// <summary>
-        /// Method name for 'textDocument/_vs_iconMappingResolve'.
-        /// </summary>
-        public const string TextDocumentIconMappingResolveName = "textDocument/_vs_iconMappingResolve";
-
-        /// <summary>
-        /// Method name for 'textdocument/_vs_diagnostic'.
-        /// </summary>
         public const string DocumentPullDiagnosticName = "textdocument/_vs_diagnostic";
-
-        /// <summary>
-        /// Method name for 'workspace/_vs_diagnostic'.
-        /// </summary>
-        public const string WorkspacePullDiagnosticName = "workspace/_vs_diagnostic";
-
-        /// <summary>
-        /// Method name for 'textDocument/_vs_validateBreakableRange'.
-        /// </summary>
-        public const string TextDocumentValidateBreakableRangeName = "textDocument/_vs_validateBreakableRange";
-
-        /// <summary>
-        /// Method name for 'textDocument/_vs_inlineCompletion'.
-        /// </summary>
+        public const string DocumentReferencesName = "textDocument/_vs_references";
+        public const string OnAutoInsertName = "textDocument/_vs_onAutoInsert";
+        public const string TextDocumentDataTipRangeName = "textdocument/_vs_dataTipRange";
+        public const string TextDocumentIconMappingResolveName = "textDocument/_vs_iconMappingResolve";
         public const string TextDocumentInlineCompletionName = "textDocument/_vs_inlineCompletion";
-
-        /// <summary>
-        /// Method name for 'textDocument/_vs_spellCheckableRanges'.
-        /// </summary>
         public const string TextDocumentSpellCheckableRangesName = "textDocument/_vs_spellCheckableRanges";
-
-        /// <summary>
-        /// Method name for 'textDocument/_vs_uriPresentation'.
-        /// </summary>
-        public const string TextDocumentUriPresentationName = "textDocument/_vs_uriPresentation";
-
-        /// <summary>
-        /// Method name for 'textDocument/_vs_textPresentation'.
-        /// </summary>
         public const string TextDocumentTextPresentationName = "textDocument/_vs_textPresentation";
-
-        /// <summary>
-        /// Method name for 'workspace/_vs_spellCheckableRanges'.
-        /// </summary>
-        public const string WorkspaceSpellCheckableRangesName = "workspace/_vs_spellCheckableRanges";
-
-        /// <summary>
-        /// Method name for 'workspace/_vs_mapCode'.
-        /// </summary>
+        public const string TextDocumentUriPresentationName = "textDocument/_vs_uriPresentation";
+        public const string TextDocumentValidateBreakableRangeName = "textDocument/_vs_validateBreakableRange";
         public const string WorkspaceMapCodeName = "workspace/_vs_mapCode";
+        public const string WorkspacePullDiagnosticName = "workspace/_vs_diagnostic";
+        public const string WorkspaceSpellCheckableRangesName = "workspace/_vs_spellCheckableRanges";
 
         /// <summary>
         /// Strongly typed message object for 'textDocument/_vs_onAutoInsert'.

@@ -1855,25 +1855,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             reportMismatchInParameterType,
                             (implementingType, isExplicit));
 
-                        if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(implementedMethod))
-                        {
-                            SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
-                                implementedMethod,
-                                implementingMethod,
-                                diagnostics,
-                                static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
-                                    {
-                                        diagnostics.Add(
-                                            SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(implementedMethod, implementingMethod) ?
-                                                ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation :
-                                                ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation,
-                                            GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
-                                            new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
-                                    },
-                                (implementingType, isExplicit),
-                                allowVariance: true,
-                                invokedAsExtensionMethod: false);
-                        }
+                        SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
+                            implementedMethod,
+                            implementingMethod,
+                            diagnostics,
+                            static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
+                                {
+                                    diagnostics.Add(
+                                        SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(implementedMethod, implementingMethod) ?
+                                            ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation :
+                                            ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation,
+                                        GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
+                                        new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                                },
+                            (implementingType, isExplicit),
+                            allowVariance: true,
+                            invokedAsExtensionMethod: false);
+
                         SourceMemberContainerTypeSymbol.CheckRefReadonlyInMismatch(
                             implementedMethod, implementingMethod, diagnostics,
                             static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
@@ -1890,7 +1888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if (implementedMethod.HasUnscopedRefAttributeOnMethodOrProperty())
                             {
-                                if (!implementingMethod.IsExplicitInterfaceImplementation && implementingMethod is SourceMethodSymbolWithAttributes &&
+                                if (!implementingMethod.IsExplicitInterfaceImplementation && implementingMethod is SourceMethodSymbol &&
                                     implementedMethod.ContainingModule != implementingMethod.ContainingModule)
                                 {
                                     checkRefStructInterfacesFeatureAvailabilityOnUnscopedRefAttribute(implementingMethod.HasUnscopedRefAttribute ? implementingMethod : implementingMethod.AssociatedSymbol, diagnostics);

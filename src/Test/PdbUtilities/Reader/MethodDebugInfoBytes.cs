@@ -51,9 +51,9 @@ namespace Roslyn.Test.Utilities
 
                 var namespaces = importStringGroups == null
                     ? default(ImmutableArray<ISymUnmanagedNamespace>)
-                    : importStringGroups.SelectMany(names => names.Select(name => (ISymUnmanagedNamespace)new MockSymUnmanagedNamespace(name))).ToImmutableArray();
+                    : [.. importStringGroups.SelectMany(names => names.Select(name => (ISymUnmanagedNamespace)new MockSymUnmanagedNamespace(name)))];
                 var childScope = new MockSymUnmanagedScope(default(ImmutableArray<ISymUnmanagedScope>), namespaces, constants);
-                var rootScope = new MockSymUnmanagedScope(ImmutableArray.Create<ISymUnmanagedScope>(childScope), default(ImmutableArray<ISymUnmanagedNamespace>));
+                var rootScope = new MockSymUnmanagedScope([childScope], default(ImmutableArray<ISymUnmanagedNamespace>));
                 _method = new MockSymUnmanagedMethod(rootScope);
             }
 

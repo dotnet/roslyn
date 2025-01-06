@@ -361,6 +361,9 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     protected static Task FindDocumentsWithForEachStatementsAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
         => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsForEachStatement, processResult, processResultData, cancellationToken);
 
+    protected static Task FindDocumentsWithUsingStatementsAsync<TData>(Project project, IImmutableSet<Document>? documents, Action<Document, TData> processResult, TData processResultData, CancellationToken cancellationToken)
+        => FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsUsingStatement, processResult, processResultData, cancellationToken);
+
     /// <summary>
     /// If the `node` implicitly matches the `symbol`, then it will be added to `locations`.
     /// </summary>
@@ -393,11 +396,8 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         TData processResultData,
         CancellationToken cancellationToken)
     {
-        FindReferencesInDocument(state, IsRelevantDocument, CollectMatchingReferences, processResult, processResultData, cancellationToken);
+        FindReferencesInDocument(state, static index => index.ContainsForEachStatement, CollectMatchingReferences, processResult, processResultData, cancellationToken);
         return;
-
-        static bool IsRelevantDocument(SyntaxTreeIndex syntaxTreeInfo)
-            => syntaxTreeInfo.ContainsForEachStatement;
 
         void CollectMatchingReferences(
             SyntaxNode node, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData)
@@ -608,7 +608,6 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             topNameNode = topNameNode.Parent;
 
         var isInNamespaceNameContext = syntaxFacts.IsBaseNamespaceDeclaration(topNameNode.Parent);
-
         return syntaxFacts.IsInNamespaceOrTypeContext(topNameNode)
             ? SymbolUsageInfo.Create(GetTypeOrNamespaceUsageInfo())
             : GetSymbolUsageInfoCommon();
@@ -674,6 +673,9 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
             else
             {
                 var operation = semanticModel.GetOperation(node, cancellationToken);
+                if (operation is IObjectCreationOperation)
+                    return SymbolUsageInfo.Create(TypeOrNamespaceUsageInfo.ObjectCreation);
+
                 switch (operation?.Parent)
                 {
                     case INameOfOperation:

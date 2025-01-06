@@ -52,7 +52,7 @@ internal static class EditorConfigValueSerializer
         return optionalBool.HasValue ? new Optional<bool?>(optionalBool.Value) : new Optional<bool?>();
     }
 
-    public static EditorConfigValueSerializer<T> Default<T>()
+    public static EditorConfigValueSerializer<T> GetDefault<T>(bool isEditorConfigOption)
     {
         if (typeof(T) == typeof(bool))
             return (EditorConfigValueSerializer<T>)(object)s_bool;
@@ -66,9 +66,10 @@ internal static class EditorConfigValueSerializer
         if (typeof(T) == typeof(bool?))
             return (EditorConfigValueSerializer<T>)(object)s_nullableBoolean;
 
-        // TODO: https://github.com/dotnet/roslyn/issues/65787
-        // Once all global options define a serializer this should be changed to:
-        // throw ExceptionUtilities.UnexpectedValue(typeof(T));
+        // editorconfig options must have a serializer:
+        if (isEditorConfigOption)
+            throw ExceptionUtilities.UnexpectedValue(typeof(T));
+
         return EditorConfigValueSerializer<T>.Unsupported;
     }
 

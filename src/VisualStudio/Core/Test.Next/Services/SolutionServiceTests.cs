@@ -369,7 +369,7 @@ public class SolutionServiceTests
 
         await VerifySolutionUpdate(workspace, s =>
         {
-            return s.AddAnalyzerConfigDocuments(ImmutableArray.Create(analyzerConfigDocumentInfo));
+            return s.AddAnalyzerConfigDocuments([analyzerConfigDocumentInfo]);
         });
 
         workspace.OnAnalyzerConfigDocumentAdded(analyzerConfigDocumentInfo);

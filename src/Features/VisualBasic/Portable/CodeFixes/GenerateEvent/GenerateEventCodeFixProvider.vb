@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             End If
 
             ' Target type may be in other project so we need to find its source definition
-            Dim sourceDefinition = Await SymbolFinder.FindSourceDefinitionAsync(targetType, document.Project.Solution, cancellationToken).ConfigureAwait(False)
+            Dim sourceDefinition = SymbolFinder.FindSourceDefinition(targetType, document.Project.Solution, cancellationToken)
 
             targetType = TryCast(sourceDefinition, INamedTypeSymbol)
 
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                 Return Nothing
             End If
 
-            Dim targetType = TryCast(Await SymbolFinder.FindSourceDefinitionAsync(semanticModel.GetSymbolInfo(node.Left, cancellationToken).Symbol, document.Project.Solution, cancellationToken).ConfigureAwait(False), INamedTypeSymbol)
+            Dim targetType = TryCast(SymbolFinder.FindSourceDefinition(semanticModel.GetSymbolInfo(node.Left, cancellationToken).Symbol, document.Project.Solution, cancellationToken), INamedTypeSymbol)
             If targetType Is Nothing OrElse (targetType.TypeKind <> TypeKind.Interface AndAlso targetType.TypeKind <> TypeKind.Class) Then
                 Return Nothing
             End If
@@ -347,11 +347,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                     Return Nothing
                 End If
 
-                targetType = TryCast(Await SymbolFinder.FindSourceDefinitionAsync(withEventsProperty.Type, document.Project.Solution, cancellationToken).ConfigureAwait(False), INamedTypeSymbol)
+                targetType = TryCast(SymbolFinder.FindSourceDefinition(withEventsProperty.Type, document.Project.Solution, cancellationToken), INamedTypeSymbol)
 
             End If
 
-            targetType = TryCast(Await SymbolFinder.FindSourceDefinitionAsync(targetType, document.Project.Solution, cancellationToken).ConfigureAwait(False), INamedTypeSymbol)
+            targetType = TryCast(SymbolFinder.FindSourceDefinition(targetType, document.Project.Solution, cancellationToken), INamedTypeSymbol)
             If targetType Is Nothing OrElse
                 Not (targetType.TypeKind = TypeKind.Class OrElse targetType.TypeKind = TypeKind.Interface) OrElse
                 targetType.IsAnonymousType Then

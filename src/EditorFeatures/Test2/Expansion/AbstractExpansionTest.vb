@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
         End Function
 
         Private Shared Function GetExpressionSyntaxWithSameSpan(node As SyntaxNode, spanEnd As Integer) As SyntaxNode
-            While Not node Is Nothing And Not node.Parent Is Nothing And node.Parent.SpanStart = node.SpanStart
+            While node IsNot Nothing And node.Parent IsNot Nothing And node.Parent.SpanStart = node.SpanStart
                 node = node.Parent
                 If node.Span.End = spanEnd Then
                     Exit While

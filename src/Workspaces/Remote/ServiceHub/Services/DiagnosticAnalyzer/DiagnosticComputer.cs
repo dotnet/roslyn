@@ -381,7 +381,7 @@ internal class DiagnosticComputer
             ? new DocumentAnalysisScope(_document, _span, projectAnalyzers, hostAnalyzers, _analysisKind!.Value)
             : null;
 
-        var (projectAnalysisResult, hostAnalysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(
+        var (analysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(
             documentAnalysisScope, _project, _analyzerInfoCache, cancellationToken).ConfigureAwait(false);
 
         if (logPerformanceInfo && _performanceTracker != null)
@@ -396,31 +396,22 @@ internal class DiagnosticComputer
                 if (documentAnalysisScope == null)
                     unitCount += _project.DocumentIds.Count;
 
-                var projectPerformanceInfo = projectAnalysisResult?.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache) ?? [];
-                var hostPerformanceInfo = hostAnalysisResult?.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache) ?? [];
-                _performanceTracker.AddSnapshot(projectPerformanceInfo.Concat(hostPerformanceInfo), unitCount, forSpanAnalysis: _span.HasValue);
+                var performanceInfo = analysisResult?.MergedAnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache) ?? [];
+                _performanceTracker.AddSnapshot(performanceInfo, unitCount, forSpanAnalysis: _span.HasValue);
             }
         }
 
         var builderMap = ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>.Empty;
-        if (projectAnalysisResult is not null)
+        if (analysisResult is not null)
         {
-            builderMap = builderMap.AddRange(await projectAnalysisResult.ToResultBuilderMapAsync(
+            builderMap = builderMap.AddRange(await analysisResult.ToResultBuilderMapAsync(
                 additionalPragmaSuppressionDiagnostics, documentAnalysisScope,
-                _project, VersionStamp.Default, compilationWithAnalyzers.ProjectCompilation!,
-                projectAnalyzers, skippedAnalyzersInfo, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false));
-        }
-
-        if (hostAnalysisResult is not null)
-        {
-            builderMap = builderMap.AddRange(await hostAnalysisResult.ToResultBuilderMapAsync(
-                additionalPragmaSuppressionDiagnostics, documentAnalysisScope,
-                _project, VersionStamp.Default, compilationWithAnalyzers.HostCompilation!,
-                hostAnalyzers, skippedAnalyzersInfo, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false));
+                _project, VersionStamp.Default,
+                projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false));
         }
 
         var telemetry = getTelemetryInfo
-            ? GetTelemetryInfo(projectAnalysisResult, hostAnalysisResult, projectAnalyzers, hostAnalyzers, analyzerToIdMap)
+            ? GetTelemetryInfo(analysisResult, projectAnalyzers, hostAnalyzers, analyzerToIdMap)
             : [];
 
         return new SerializableDiagnosticAnalysisResults(Dehydrate(builderMap, analyzerToIdMap), telemetry);
@@ -448,15 +439,14 @@ internal class DiagnosticComputer
     }
 
     private static ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo)> GetTelemetryInfo(
-        AnalysisResult? projectAnalysisResult,
-        AnalysisResult? hostAnalysisResult,
+        AnalysisResultPair? analysisResult,
         ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
         ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
         BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
     {
         Func<DiagnosticAnalyzer, bool> shouldInclude;
-        if (projectAnalyzers.Length < (projectAnalysisResult?.AnalyzerTelemetryInfo.Count ?? 0)
-            || hostAnalyzers.Length < (hostAnalysisResult?.AnalyzerTelemetryInfo.Count ?? 0))
+        if (projectAnalyzers.Length < (analysisResult?.ProjectAnalysisResult?.AnalyzerTelemetryInfo.Count ?? 0)
+            || hostAnalyzers.Length < (analysisResult?.HostAnalysisResult?.AnalyzerTelemetryInfo.Count ?? 0))
         {
             // Filter the telemetry info to the executed analyzers.
             using var _1 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var analyzersSet);
@@ -471,21 +461,9 @@ internal class DiagnosticComputer
         }
 
         using var _2 = ArrayBuilder<(string analyzerId, AnalyzerTelemetryInfo)>.GetInstance(out var telemetryBuilder);
-        if (projectAnalysisResult is not null)
+        if (analysisResult is not null)
         {
-            foreach (var (analyzer, analyzerTelemetry) in projectAnalysisResult.AnalyzerTelemetryInfo)
-            {
-                if (shouldInclude(analyzer))
-                {
-                    var analyzerId = GetAnalyzerId(analyzerToIdMap, analyzer);
-                    telemetryBuilder.Add((analyzerId, analyzerTelemetry));
-                }
-            }
-        }
-
-        if (hostAnalysisResult is not null)
-        {
-            foreach (var (analyzer, analyzerTelemetry) in hostAnalysisResult.AnalyzerTelemetryInfo)
+            foreach (var (analyzer, analyzerTelemetry) in analysisResult.MergedAnalyzerTelemetryInfo)
             {
                 if (shouldInclude(analyzer))
                 {
@@ -528,7 +506,15 @@ internal class DiagnosticComputer
             }
         }
 
-        return (projectBuilder.ToImmutableAndClear(), hostBuilder.ToImmutableAndClear());
+        var projectAnalyzers = projectBuilder.ToImmutableAndClear();
+
+        if (hostAnalyzerIds.Any())
+        {
+            // If any host analyzers are active, make sure to also include any project diagnostic suppressors
+            hostBuilder.AddRange(projectAnalyzers.WhereAsArray(static a => a is DiagnosticSuppressor));
+        }
+
+        return (projectAnalyzers, hostBuilder.ToImmutableAndClear());
     }
 
     private async Task<(CompilationWithAnalyzersPair? compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)> GetOrCreateCompilationWithAnalyzersAsync(CancellationToken cancellationToken)
@@ -609,6 +595,7 @@ internal class DiagnosticComputer
 
             var analyzers = reference.GetAnalyzers(_project.Language);
             projectAnalyzerBuilder.AddRange(analyzers);
+            hostAnalyzerBuilder.AddRange(analyzers.WhereAsArray(static a => a is DiagnosticSuppressor));
             analyzerMapBuilder.AppendAnalyzerMap(analyzers);
         }
 

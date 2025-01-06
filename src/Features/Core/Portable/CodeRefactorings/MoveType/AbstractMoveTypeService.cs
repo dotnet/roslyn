@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -33,26 +31,22 @@ internal abstract class AbstractMoveTypeService : IMoveTypeService
     public abstract Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 }
 
-internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax> :
+internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TCompilationUnitSyntax> :
     AbstractMoveTypeService
-    where TService : AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
+    where TService : AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
     where TTypeDeclarationSyntax : SyntaxNode
     where TNamespaceDeclarationSyntax : SyntaxNode
-    where TMemberDeclarationSyntax : SyntaxNode
     where TCompilationUnitSyntax : SyntaxNode
 {
+    protected abstract Task<TTypeDeclarationSyntax?> GetRelevantNodeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+
+    protected abstract bool IsMemberDeclaration(SyntaxNode syntaxNode);
+
     public override async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(
         Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var state = await CreateStateAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-
-        if (state == null)
-        {
-            return [];
-        }
-
-        var actions = CreateActions(state, cancellationToken);
-        return actions;
+        return CreateActions(state, cancellationToken);
     }
 
     public override async Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken)
@@ -77,22 +71,21 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         return modifiedSolution ?? document.Project.Solution;
     }
 
-    protected abstract Task<TTypeDeclarationSyntax> GetRelevantNodeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
-
-    private async Task<State> CreateStateAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+    private async Task<State?> CreateStateAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var nodeToAnalyze = await GetRelevantNodeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         if (nodeToAnalyze == null)
-        {
             return null;
-        }
 
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
         return State.Generate(semanticDocument, nodeToAnalyze, cancellationToken);
     }
 
-    private ImmutableArray<CodeAction> CreateActions(State state, CancellationToken cancellationToken)
+    private ImmutableArray<CodeAction> CreateActions(State? state, CancellationToken cancellationToken)
     {
+        if (state is null)
+            return [];
+
         var typeMatchesDocumentName = TypeMatchesDocumentName(
             state.TypeNode,
             state.TypeName,
@@ -165,8 +158,8 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     private static bool ClassNextToGlobalStatements(SyntaxNode root, ISyntaxFactsService syntaxFacts)
         => syntaxFacts.ContainsGlobalStatement(root);
 
-    private CodeAction GetCodeAction(State state, string fileName, MoveTypeOperationKind operationKind)
-        => new MoveTypeCodeAction((TService)this, state, operationKind, fileName);
+    private MoveTypeCodeAction GetCodeAction(State state, string fileName, MoveTypeOperationKind operationKind)
+        => new((TService)this, state, operationKind, fileName);
 
     private static bool IsNestedType(TTypeDeclarationSyntax typeNode)
         => typeNode.Parent is TTypeDeclarationSyntax;
@@ -192,7 +185,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         return TopLevelTypeDeclarations(root).Any(
             typeDeclaration =>
             {
-                var typeName = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken).Name;
+                var typeName = semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken).Name;
                 return TypeMatchesDocumentName(
                     typeDeclaration, typeName, state.DocumentNameWithoutExtension,
                     semanticModel, cancellationToken);
@@ -258,6 +251,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         TTypeDeclarationSyntax typeNode, SemanticModel semanticModel, CancellationToken cancellationToken)
             => typeNode.AncestorsAndSelf()
                     .OfType<TTypeDeclarationSyntax>()
-                    .Select(n => semanticModel.GetDeclaredSymbol(n, cancellationToken).Name)
+                    .Select(n => semanticModel.GetRequiredDeclaredSymbol(n, cancellationToken).Name)
                     .Reverse();
 }

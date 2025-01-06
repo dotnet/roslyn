@@ -25,18 +25,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InlineTemporary), Shared]
-internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider()
     : AbstractInlineTemporaryCodeRefactoringProvider<IdentifierNameSyntax, VariableDeclaratorSyntax>
 {
     private static readonly SyntaxAnnotation DefinitionAnnotation = new();
     private static readonly SyntaxAnnotation ReferenceAnnotation = new();
     private static readonly SyntaxAnnotation ExpressionAnnotation = new();
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpInlineTemporaryCodeRefactoringProvider()
-    {
-    }
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -93,7 +89,7 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
         context.RegisterRefactoring(
             CodeAction.Create(
                 FeaturesResources.Inline_temporary_variable,
-                c => InlineTemporaryAsync(document, variableDeclarator, c),
+                cancellationToken => InlineTemporaryAsync(document, variableDeclarator, cancellationToken),
                 nameof(FeaturesResources.Inline_temporary_variable)),
             variableDeclarator.Span);
     }
@@ -132,7 +128,7 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
     }
 
     private static SyntaxAnnotation CreateConflictAnnotation()
-        => ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
+        => ConflictAnnotation.Create(FeaturesResources.Conflict_s_detected);
 
     private static async Task<Document> InlineTemporaryAsync(Document document, VariableDeclaratorSyntax declarator, CancellationToken cancellationToken)
     {
@@ -191,12 +187,12 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         // Make each topmost parenting statement or Equals Clause Expressions semantically explicit.
-        document = await document.ReplaceNodesAsync(topmostParentingExpressions, (o, n) =>
+        document = await document.ReplaceNodesAsync(topmostParentingExpressions, (original, current) =>
         {
             // warn when inlining into a conditional expression, as the inlined expression will not be executed.
-            if (semanticModel.GetSymbolInfo(o, cancellationToken).Symbol is IMethodSymbol { IsConditional: true })
+            if (semanticModel.GetSymbolInfo(original, cancellationToken).Symbol is IMethodSymbol { IsConditional: true })
             {
-                n = n.WithAdditionalAnnotations(
+                current = current.WithAdditionalAnnotations(
                     WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_into_conditional_method_call));
             }
 
@@ -204,12 +200,12 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
             // on the first inlined location.
             if (mayContainSideEffects)
             {
-                n = n.WithAdditionalAnnotations(
+                current = current.WithAdditionalAnnotations(
                     WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_variable_may_change_code_meaning));
                 mayContainSideEffects = false;
             }
 
-            return n;
+            return current;
         }, cancellationToken).ConfigureAwait(false);
 
         return document;
@@ -264,7 +260,7 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
     private static async Task<ImmutableArray<IdentifierNameSyntax>> FindReferenceAnnotatedNodesAsync(Document document, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        return root.GetAnnotatedNodesAndTokens(ReferenceAnnotation).Select(n => (IdentifierNameSyntax)n.AsNode()).ToImmutableArray();
+        return [.. root.GetAnnotatedNodesAndTokens(ReferenceAnnotation).Select(n => (IdentifierNameSyntax)n.AsNode())];
     }
 
     private static SyntaxNode GetScope(VariableDeclaratorSyntax variableDeclarator)
@@ -412,10 +408,14 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
 
                 return SyntaxFactory.ArrayCreationExpression(arrayType, arrayInitializer);
             }
-            else if (isVar && expression is ObjectCreationExpressionSyntax or ArrayCreationExpressionSyntax or CastExpressionSyntax)
+            else if (isVar && expression is
+                        ObjectCreationExpressionSyntax or
+                        ArrayCreationExpressionSyntax or
+                        CastExpressionSyntax or
+                        InvocationExpressionSyntax)
             {
                 // if we have `var x = new Y();` there's no need to do any casting as the type is indicated
-                // directly in the existing code.  The same holds for `new Y[]` or `(Y)...`
+                // directly in the existing code.  The same holds for `new Y[]` or `(Y)...` or `Y(...)`
                 return expression;
             }
             else
