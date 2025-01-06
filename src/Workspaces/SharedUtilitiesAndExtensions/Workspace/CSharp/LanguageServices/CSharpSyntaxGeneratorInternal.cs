@@ -245,6 +245,9 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
     public override SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression)
         => SyntaxFactory.CastExpression((TypeSyntax)type, (ExpressionSyntax)Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
 
+    public override SyntaxNode DefaultExpression(SyntaxNode type)
+        => SyntaxFactory.DefaultExpression((TypeSyntax)type).WithAdditionalAnnotations(Simplifier.Annotation);
+
     public override SyntaxNode DefaultExpression(ITypeSymbol type)
     {
         // If it's just a reference type, then "null" is the default expression for it.  Note:
@@ -277,7 +280,7 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
         }
 
         // Default to a "default(<typename>)" expression.
-        return SyntaxFactory.DefaultExpression(type.GenerateTypeSyntax());
+        return DefaultExpression(type.GenerateTypeSyntax());
     }
 
     public override SyntaxNode TypeExpression(ITypeSymbol typeSymbol, RefKind refKind)

@@ -1775,7 +1775,8 @@ public abstract class SyntaxGenerator : ILanguageService
     /// An expression that represents the default value of a type.
     /// This is typically a null value for reference types or a zero-filled value for value types.
     /// </summary>
-    public abstract SyntaxNode DefaultExpression(SyntaxNode type);
+    public SyntaxNode DefaultExpression(SyntaxNode type)
+        => this.SyntaxGeneratorInternal.DefaultExpression(type);
 
     public SyntaxNode DefaultExpression(ITypeSymbol type)
         => this.SyntaxGeneratorInternal.DefaultExpression(type);

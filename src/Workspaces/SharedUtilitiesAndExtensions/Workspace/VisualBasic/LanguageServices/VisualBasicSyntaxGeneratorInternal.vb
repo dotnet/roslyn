@@ -529,6 +529,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))
         End Function
 
+        Public Overrides Function DefaultExpression(type As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))
+        End Function
+
         Public Overrides Function IdentifierName(identifier As String) As SyntaxNode
             Return identifier.ToIdentifierName()
         End Function

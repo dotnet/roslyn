@@ -151,10 +151,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.Literal(text, value)
         End Function
 
-        Public Overrides Function DefaultExpression(type As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword))
-        End Function
-
         Public Overloads Overrides Function ElementAccessExpression(expression As SyntaxNode, arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.InvocationExpression(VisualBasicSyntaxGeneratorInternal.ParenthesizeLeft(expression), CreateArgumentList(arguments))
         End Function

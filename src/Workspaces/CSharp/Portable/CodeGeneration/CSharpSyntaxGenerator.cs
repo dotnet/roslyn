@@ -3188,9 +3188,6 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     internal override SyntaxToken NumericLiteralToken(string text, ulong value)
         => SyntaxFactory.Literal(text, value);
 
-    public override SyntaxNode DefaultExpression(SyntaxNode type)
-        => SyntaxFactory.DefaultExpression((TypeSyntax)type).WithAdditionalAnnotations(Simplifier.Annotation);
-
     private static SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
         => CSharpSyntaxGeneratorInternal.Parenthesize(expression, includeElasticTrivia, addSimplifierAnnotation);
 

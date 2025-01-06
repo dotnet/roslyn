@@ -129,6 +129,8 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
     #endregion
 
     public abstract SyntaxNode DefaultExpression(ITypeSymbol type);
+    public abstract SyntaxNode DefaultExpression(SyntaxNode type);
+
     public abstract SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression);
 
     public SyntaxNode CastExpression(ITypeSymbol type, SyntaxNode expression)
@@ -149,8 +151,8 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
 
     public abstract SyntaxNode MemberAccessExpressionWorker(SyntaxNode? expression, SyntaxNode memberName);
     public abstract SyntaxNode IdentifierName(string identifier);
-    public abstract SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression);
 
+    public abstract SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression);
     public SyntaxNode ConvertExpression(ITypeSymbol type, SyntaxNode expression)
         => ConvertExpression(TypeExpression(type), expression);
 }
