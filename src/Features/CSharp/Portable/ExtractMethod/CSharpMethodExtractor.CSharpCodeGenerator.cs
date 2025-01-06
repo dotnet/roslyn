@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -283,8 +282,30 @@ internal sealed partial class CSharpExtractMethodService
                     statement.GetAnnotatedNodes(ExitPointAnnotation),
                     (original, current) =>
                     {
-
+                        return ConvertExitPoint(current).WithTriviaFrom(current);
                     });
+
+                SyntaxNode ConvertExitPoint(SyntaxNode current)
+                {
+                    if (current is BreakStatementSyntax breakStatement)
+                    {
+                        var returnStatement = this.AnalyzerResult.FlowControlInformation.TryGetBreakFlowValue(out var breakFlowValue)
+                            ? ReturnStatement(ExpressionGenerator.GenerateExpression()
+                            : ReturnStatement();
+                        return returnStatement.WithSemicolonToken(breakStatement.SemicolonToken);
+                    }
+                    else if (current is ContinueStatementSyntax)
+                    {
+                    }
+                    else if (current is ReturnStatementSyntax)
+                    {
+
+                    }
+                    else
+                    {
+                        return current;
+                    }
+                }
             }
 
             protected SyntaxKind UnderCheckedExpressionContext()

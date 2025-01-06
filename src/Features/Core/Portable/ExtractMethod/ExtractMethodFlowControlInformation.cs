@@ -102,15 +102,15 @@ internal sealed class ExtractMethodFlowControlInformation
             _ => false,
         };
 
-    public object? GetBreakFlowValue()
-        => _flowValues[FlowControlKind.Break];
+    public bool TryGetBreakFlowValue(out object? value)
+        => _flowValues.TryGetValue(FlowControlKind.Break, out value);
 
-    public object? GetContinueFlowValue()
-        => _flowValues[FlowControlKind.Continue];
+    public bool TryGetContinueFlowValue(out object? value)
+        => _flowValues.TryGetValue(FlowControlKind.Continue, out value);
 
-    public object? GetReturnFlowValue()
-        => _flowValues[FlowControlKind.Return];
+    public bool TryGetReturnFlowValue(out object? value)
+        => _flowValues.TryGetValue(FlowControlKind.Return, out value);
 
-    public object? GetFallThroughFlowValue()
-        => _flowValues[FlowControlKind.FallThrough];
+    public bool TryGetFallThroughFlowValue(out object? value)
+        => _flowValues.TryGetValue(FlowControlKind.FallThrough, out value);
 }
