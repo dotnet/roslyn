@@ -655,9 +655,8 @@ End Class
             Dim outputCompilation As Compilation = Nothing
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, outputCompilation, diagnostics)
-            Dim runResult = driver.GetRunResult()
 
-            For Each runResult in driver.GetRunResult().Results Do
+            For Each runResult In driver.GetRunResult().Results
                 Assert.Single(runResult.GeneratedSources)
 
                 Dim generatedSource = runResult.GeneratedSources(0)
@@ -668,7 +667,7 @@ End Class
     End Class
 End Namespace", generatedSource.SourceText.ToString())
                 Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute.vb", generatedSource.HintName)
-            End For
+            Next
 
             outputCompilation.VerifyDiagnostics()
         End Sub
