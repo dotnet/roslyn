@@ -127,8 +127,6 @@ internal abstract partial class AbstractExtractMethodService<
 
                 var (variables, returnType, returnsByRef) = GetSignatureInformation(variableInfoMap);
 
-                (returnType, var awaitTaskReturn) = AdjustReturnType(returnType);
-
                 // collect method type variable used in selected code
                 var sortedMap = new SortedDictionary<int, ITypeParameterSymbol>();
                 var typeParametersInConstraintList = GetMethodTypeParametersInConstraintList(variableInfoMap, symbolMap, sortedMap);
@@ -144,67 +142,10 @@ internal abstract partial class AbstractExtractMethodService<
                     variables,
                     returnType,
                     returnsByRef,
-                    awaitTaskReturn,
                     instanceMemberIsUsed,
                     shouldBeReadOnly,
                     endOfSelectionReachable,
                     operationStatus);
-            }
-
-            private (ITypeSymbol typeSymbol, bool awaitTaskReturn) AdjustReturnType(ITypeSymbol returnType)
-            {
-                // if selection contains await which is not under async lambda or anonymous delegate,
-                // change return type to be wrapped in Task
-                var shouldPutAsyncModifier = SelectionResult.CreateAsyncMethod();
-                if (shouldPutAsyncModifier)
-                    return WrapReturnTypeInTask(returnType);
-
-                // unwrap task if needed
-                return (UnwrapTaskIfNeeded(returnType), awaitTaskReturn: false);
-            }
-
-            private ITypeSymbol UnwrapTaskIfNeeded(ITypeSymbol returnType)
-            {
-                // nothing to unwrap
-                if (SelectionResult.ContainingScopeHasAsyncKeyword() &&
-                    ContainsReturnStatementInSelectedCode())
-                {
-                    var originalDefinition = returnType.OriginalDefinition;
-
-                    // see whether it needs to be unwrapped
-                    var model = this.SemanticDocument.SemanticModel;
-                    var taskType = model.Compilation.TaskType();
-                    if (originalDefinition.Equals(taskType))
-                        return model.Compilation.GetSpecialType(SpecialType.System_Void);
-
-                    var genericTaskType = model.Compilation.TaskOfTType();
-                    if (originalDefinition.Equals(genericTaskType))
-                        return ((INamedTypeSymbol)returnType).TypeArguments[0];
-                }
-
-                // nothing to unwrap
-                return returnType;
-            }
-
-            private (ITypeSymbol returnType, bool awaitTaskReturn) WrapReturnTypeInTask(ITypeSymbol returnType)
-            {
-                var compilation = this.SemanticModel.Compilation;
-                var taskType = compilation.TaskType();
-
-                // convert void to Task type
-                if (taskType is object && returnType.Equals(compilation.GetSpecialType(SpecialType.System_Void)))
-                    return (taskType, awaitTaskReturn: true);
-
-                if (!SelectionResult.IsExtractMethodOnExpression && ContainsReturnStatementInSelectedCode())
-                    return (returnType, awaitTaskReturn: false);
-
-                var genericTaskType = compilation.TaskOfTType();
-
-                // okay, wrap the return type in Task<T>
-                if (genericTaskType is object)
-                    returnType = genericTaskType.Construct(returnType);
-
-                return (returnType, awaitTaskReturn: false);
             }
 
             private (ImmutableArray<VariableInfo> finalOrderedVariableInfos, ITypeSymbol returnType, bool returnsByRef)

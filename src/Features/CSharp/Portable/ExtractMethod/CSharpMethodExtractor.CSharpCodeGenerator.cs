@@ -89,7 +89,7 @@ internal sealed partial class CSharpExtractMethodService
                     attributes: [],
                     accessibility: Accessibility.Private,
                     modifiers: CreateMethodModifiers(),
-                    returnType: AnalyzerResult.ReturnType,
+                    returnType: this.GetFinalReturnType(),
                     refKind: AnalyzerResult.ReturnsByRef ? RefKind.Ref : RefKind.None,
                     explicitInterfaceImplementations: default,
                     name: _methodName.ToString(),
@@ -608,11 +608,9 @@ internal sealed partial class CSharpExtractMethodService
                 {
                     if (this.SelectionResult.ShouldCallConfigureAwaitFalse())
                     {
-                        if (AnalyzerResult.ReturnType.GetMembers().Any(static x => x is IMethodSymbol
-                            {
-                                Name: nameof(Task.ConfigureAwait),
-                                Parameters: [{ Type.SpecialType: SpecialType.System_Boolean }],
-                            }))
+                        if (this.GetFinalReturnType()
+                                .GetMembers(nameof(Task.ConfigureAwait))
+                                .Any(static x => x is IMethodSymbol { Parameters: [{ Type.SpecialType: SpecialType.System_Boolean }] }))
                         {
                             invocation = InvocationExpression(
                                 MemberAccessExpression(

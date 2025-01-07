@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -54,6 +55,8 @@ internal abstract partial class AbstractExtractMethodService<
             protected readonly TCodeGenerationOptions Options;
 
             protected readonly bool LocalFunction;
+
+            private ITypeSymbol? _finalReturnType;
 
             protected CodeGenerator(
                 SelectionResult selectionResult,
@@ -359,14 +362,25 @@ internal abstract partial class AbstractExtractMethodService<
                     _ => RefKind.None
                 };
 
-            protected TStatementSyntax GetStatementContainingInvocationToExtractedMethodWorker()
+            protected TExecutableStatementSyntax GetStatementContainingInvocationToExtractedMethodWorker()
             {
                 var callSignature = CreateCallSignature();
 
                 var generator = this.SemanticDocument.Document.GetRequiredLanguageService<SyntaxGenerator>();
-                return AnalyzerResult.HasReturnType
-                    ? (TStatementSyntax)generator.ReturnStatement(callSignature)
-                    : (TStatementSyntax)generator.ExpressionStatement(callSignature);
+
+                return AnalyzerResult.CoreReturnType.SpecialType != SpecialType.System_Void
+                    ? (TExecutableStatementSyntax)generator.ReturnStatement(callSignature)
+                    : (TExecutableStatementSyntax)generator.ExpressionStatement(callSignature);
+            }
+
+            public ITypeSymbol GetFinalReturnType()
+            {
+                return _finalReturnType ??= ComputeFinalReturnType();
+            }
+
+            private ITypeSymbol ComputeFinalReturnType()
+            {
+                throw new NotImplementedException();
             }
         }
     }

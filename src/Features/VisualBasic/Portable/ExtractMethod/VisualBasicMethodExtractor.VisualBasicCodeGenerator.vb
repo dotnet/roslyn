@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend NotInheritable Class VisualBasicExtractMethodService
         Partial Friend Class VisualBasicMethodExtractor
             Partial Private MustInherit Class VisualBasicCodeGenerator
-                Inherits CodeGenerator(Of StatementSyntax, VisualBasicCodeGenerationOptions)
+                Inherits CodeGenerator(Of ExecutableStatementSyntax, VisualBasicCodeGenerationOptions)
 
                 Private ReadOnly _methodName As SyntaxToken
 
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         attributes:=ImmutableArray(Of AttributeData).Empty,
                         accessibility:=Accessibility.Private,
                         modifiers:=CreateMethodModifiers(),
-                        returnType:=Me.AnalyzerResult.ReturnType,
+                        returnType:=Me.GetFinalReturnType(),
                         refKind:=RefKind.None,
                         explicitInterfaceImplementations:=Nothing,
                         name:=_methodName.ToString(),
@@ -363,23 +363,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                     If Me.SelectionResult.CreateAsyncMethod() Then
                         If Me.SelectionResult.ShouldCallConfigureAwaitFalse() Then
-                            If AnalyzerResult.ReturnType.GetMembers().Any(
-                            Function(x)
-                                Dim method = TryCast(x, IMethodSymbol)
-                                If method Is Nothing Then
-                                    Return False
-                                End If
-
-                                If Not CaseInsensitiveComparison.Equals(method.Name, NameOf(Task.ConfigureAwait)) Then
-                                    Return False
-                                End If
-
-                                If method.Parameters.Length <> 1 Then
-                                    Return False
-                                End If
-
-                                Return method.Parameters(0).Type.SpecialType = SpecialType.System_Boolean
-                            End Function) Then
+                            If Me.GetFinalReturnType().
+                                  GetMembers(NameOf(Task.ConfigureAwait)).
+                                  OfType(Of IMethodSymbol).
+                                  Any(Function(method) method.Parameters.Length = 1 AndAlso method.Parameters(0).Type.SpecialType = SpecialType.System_Boolean) Then
 
                                 invocation = SyntaxFactory.InvocationExpression(
                                 SyntaxFactory.MemberAccessExpression(

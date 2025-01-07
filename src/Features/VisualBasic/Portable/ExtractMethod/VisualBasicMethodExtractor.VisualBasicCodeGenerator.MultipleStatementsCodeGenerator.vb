@@ -43,21 +43,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Contract.ThrowIfFalse(lastStatementIndex >= 0)
 
                         Dim nodes = statements.
-                                    Skip(firstStatementIndex).
-                                    Take(lastStatementIndex - firstStatementIndex + 1)
+                            Skip(firstStatementIndex).
+                            Take(lastStatementIndex - firstStatementIndex + 1)
 
                         Return nodes.ToImmutableArray()
                     End Function
 
-                    Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax
+                    Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As ExecutableStatementSyntax
                         Return Me.SelectionResult.GetFirstStatementUnderContainer()
                     End Function
 
-                    Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As StatementSyntax
+                    Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As ExecutableStatementSyntax
                         Return Me.SelectionResult.GetLastStatementUnderContainer()
                     End Function
 
-                    Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)
+                    Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of ExecutableStatementSyntax)
                         Return Task.FromResult(GetStatementContainingInvocationToExtractedMethodWorker().WithAdditionalAnnotations(CallSiteAnnotation))
                     End Function
                 End Class
