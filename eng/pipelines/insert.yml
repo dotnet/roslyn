@@ -4,13 +4,19 @@ parameters:
   # So in order to pass a parameter that comes from a variable these must be typed as string.
   - name: createDraftPR
     type: string
-    default: ''
+    default: ""
   - name: autoComplete
     type: string
-    default: ''
+    default: ""
   - name: insertToolset
     type: string
-    default: ''
+    default: ""
+  - name: queueSpeedometerValidation
+    type: string
+    default: "true"
+  - name: retainInsertedBuild
+    type: string
+    default: "true"
 
   - name: buildUserName
     type: string
@@ -20,38 +26,38 @@ parameters:
     type: string
   - name: componentPassword
     type: string
-  
+
   - name: publishDataURI
     type: string
   - name: publishDataAccessToken
     type: string
-    default: ''
+    default: ""
 
   - name: vsBranchName
     type: string
-    default: ''
+    default: ""
   - name: componentBuildProjectName
     type: string
-    default: ''
+    default: ""
   - name: titlePrefix
     type: string
-    default: ''
+    default: ""
 
   - name: sourceBranch
     type: string
 
   - name: dropPath
     type: string
-    default: ''
+    default: ""
 
 steps:
   - checkout: none
 
   - task: NuGetCommand@2
-    displayName: 'Install RIT from Azure Artifacts'
+    displayName: "Install RIT from Azure Artifacts"
     inputs:
       command: custom
-      arguments: 'install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
+      arguments: "install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json"
 
   - powershell: |
       $authorization = if ("" -ne $Env:PublishDataAccessToken) { "Bearer $Env:PublishDataAccessToken" } else { "" }
@@ -174,7 +180,7 @@ steps:
   # Now that everything is set, actually perform the insertion.
   - powershell: |
       mv RoslynTools.VisualStudioInsertionTool.* RIT
-      .\RIT\tools\net46\OneOffInsertion.ps1 `
+      .\RIT\tools\net472\OneOffInsertion.ps1 `
         -autoComplete "$(Template.AutoComplete)" `
         -buildQueueName "$(Build.DefinitionName)" `
         -cherryPick "(default)" `
@@ -203,8 +209,10 @@ steps:
         -updateAssemblyVersions "(default)" `
         -updateCoreXTLibraries "(default)" `
         -visualStudioBranchName "$(Template.VSBranchName)" `
-        -writePullRequest "prid.txt"
-    displayName: 'Run OneOffInsertion.ps1'
+        -writePullRequest "prid.txt" `
+        -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}" `
+        -retaininsertedbuild "${{ parameters.retainInsertedBuild }}"
+    displayName: "Run OneOffInsertion.ps1"
 
   - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'
-    displayName: 'Report PR URL'
+    displayName: "Report PR URL"
