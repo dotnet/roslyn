@@ -11071,9 +11071,6 @@ class Program
                 // (8,30): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f3 = (in int x3, scoped in int y3) => { };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 30),
-                // (9,18): warning CS9073: The 'scoped' modifier of parameter 'z4' doesn't match target '<anonymous delegate>'.
-                //         var f4 = (out int x4, scoped out int y4, [System.Diagnostics.CodeAnalysis.UnscopedRefAttribute] out int z4) => { x4 = 0; y4 = 0; z4 = 0; };
-                Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "(out int x4, scoped out int y4, [System.Diagnostics.CodeAnalysis.UnscopedRefAttribute] out int z4) => { x4 = 0; y4 = 0; z4 = 0; }").WithArguments("z4", "<anonymous delegate>").WithLocation(9, 18),
                 // (9,31): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         var f4 = (out int x4, scoped out int y4, [System.Diagnostics.CodeAnalysis.UnscopedRefAttribute] out int z4) => { x4 = 0; y4 = 0; z4 = 0; };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 31),
@@ -16252,27 +16249,21 @@ class Program
     {{
         D0<int> d0 = ({refModifier} int i) => {{ }};
         D1<int> d1 = ({refModifier} int i) => F();
-        D2<int> d2 = ({refModifier} int i) => ref F();
-        D3<int> d3 = ({refModifier} int i) => ref F();
-        D4<int> d4 = ({refModifier} int i) => new R<int>();
+        D2<int> d2 = ({refModifier} int i) => ref F(); // 1
+        D3<int> d3 = ({refModifier} int i) => ref F(); // 2
+        D4<int> d4 = ({refModifier} int i) => new R<int>(); // 3
     }}
 }}";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (12,22): error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D0<int>'.
-                //         D0<int> d0 = (ref int i) => { };
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, $"({refModifier} int i) => {{ }}").WithArguments("i", "D0<int>").WithLocation(12, 22),
-                // (13,22): error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D1<int>'.
-                //         D1<int> d1 = (ref int i) => F();
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, $"({refModifier} int i) => F()").WithArguments("i", "D1<int>").WithLocation(13, 22),
                 // (14,22): error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D2<int>'.
-                //         D2<int> d2 = (ref int i) => ref F();
+                //         D2<int> d2 = (ref int i) => ref F(); // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, $"({refModifier} int i) => ref F()").WithArguments("i", "D2<int>").WithLocation(14, 22),
                 // (15,22): error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D3<int>'.
-                //         D3<int> d3 = (ref int i) => ref F();
+                //         D3<int> d3 = (ref int i) => ref F(); // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, $"({refModifier} int i) => ref F()").WithArguments("i", "D3<int>").WithLocation(15, 22),
                 // (16,22): error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D4<int>'.
-                //         D4<int> d4 = (ref int i) => new R<int>();
+                //         D4<int> d4 = (ref int i) => new R<int>(); // 3
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, $"({refModifier} int i) => new R<int>()").WithArguments("i", "D4<int>").WithLocation(16, 22));
         }
 
@@ -16293,24 +16284,18 @@ class Program
     static void Main()
     {{
         D0<int> d0 = ({refModifier} int i, R<int> r) => {{ }};
-        D1<int> d1 = ({refModifier} int i, ref R<int> r) => {{ }};
+        D1<int> d1 = ({refModifier} int i, ref R<int> r) => {{ }}; // 1
         D2<int> d2 = ({refModifier} int i, in R<int> r) => {{ }};
-        D3<int> d3 = ({refModifier} int i, out R<int> r) => {{ r = default; }};
+        D3<int> d3 = ({refModifier} int i, out R<int> r) => {{ r = default; }}; // 2
     }}
 }}";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,22): error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D0<int>'.
-                //         D0<int> d0 = (ref int i, R<int> r) => { };
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, $"({refModifier} int i, R<int> r) => {{ }}").WithArguments("i", "D0<int>").WithLocation(11, 22),
                 // (12,22): error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D1<int>'.
-                //         D1<int> d1 = (ref int i, ref R<int> r) => { };
+                //         D1<int> d1 = (ref int i, ref R<int> r) => { }; // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, $"({refModifier} int i, ref R<int> r) => {{ }}").WithArguments("i", "D1<int>").WithLocation(12, 22),
-                // (13,22): error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D2<int>'.
-                //         D2<int> d2 = (ref int i, in R<int> r) => { };
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, $"({refModifier} int i, in R<int> r) => {{ }}").WithArguments("i", "D2<int>").WithLocation(13, 22),
                 // (14,22): error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D3<int>'.
-                //         D3<int> d3 = (ref int i, out R<int> r) => { r = default; };
+                //         D3<int> d3 = (ref int i, out R<int> r) => { r = default; }; // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, $"({refModifier} int i, out R<int> r) => {{ r = default; }}").WithArguments("i", "D3<int>").WithLocation(14, 22));
         }
 
@@ -16780,10 +16765,7 @@ class C
             comp.VerifyDiagnostics(
                 // (3,17): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 // delegate R D<T>(scoped T t);
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(3, 17),
-                // (14,27): error CS8986: The 'scoped' modifier of parameter 'o2' doesn't match target 'D<string>'.
-                //             D<string> d = o2 => throw null!;
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "o2 => throw null!").WithArguments("o2", "D<string>").WithLocation(14, 27)
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(3, 17)
                 );
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -17406,10 +17388,7 @@ class B2 : A<string>
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "get").WithArguments("rs").WithLocation(11, 38),
                 // (12,45): error CS8987: The 'scoped' modifier of parameter 'rs' doesn't match overridden or implemented member.
                 //     public override RS this[RS rs, int _] { get => default; set { } } // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "get").WithArguments("rs").WithLocation(12, 45),
-                // (12,61): error CS8987: The 'scoped' modifier of parameter 'rs' doesn't match overridden or implemented member.
-                //     public override RS this[RS rs, int _] { get => default; set { } } // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("rs").WithLocation(12, 61));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "get").WithArguments("rs").WithLocation(12, 45));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73384")]
@@ -17438,10 +17417,7 @@ class B2 : A<string>
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "get").WithArguments("rs").WithLocation(11, 29),
                 // (12,36): error CS8987: The 'scoped' modifier of parameter 'rs' doesn't match overridden or implemented member.
                 //     public RS this[RS rs, int _] { get => default; set { } } // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "get").WithArguments("rs").WithLocation(12, 36),
-                // (12,52): error CS8987: The 'scoped' modifier of parameter 'rs' doesn't match overridden or implemented member.
-                //     public RS this[RS rs, int _] { get => default; set { } } // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "set").WithArguments("rs").WithLocation(12, 52));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "get").WithArguments("rs").WithLocation(12, 36));
         }
 
         [CombinatorialData]
@@ -22691,21 +22667,14 @@ using @scoped = System.Int32;
 
             var expectedOutput = "<>A{00000001}`1[System.Int32]";
 
-            var expectedDiagnostics = new[]
-            {
-                // (3,14): warning CS9073: The 'scoped' modifier of parameter 'x' doesn't match target '<anonymous delegate>'.
-                // Delegate d = C.M;
-                Diagnostic(ErrorCode.WRN_ScopedMismatchInParameterOfTarget, "C.M").WithArguments("x", "<anonymous delegate>").WithLocation(3, 14)
-            };
-
             CompileAndVerify(source2, [ref1],
                 parseOptions: TestOptions.Regular10,
                 symbolValidator: validate,
-                expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+                expectedOutput: expectedOutput).VerifyDiagnostics();
 
             CompileAndVerify(source2, [ref1],
                 symbolValidator: validate,
-                expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
+                expectedOutput: expectedOutput).VerifyDiagnostics();
 
             static void validate(ModuleSymbol module)
             {
@@ -26202,12 +26171,9 @@ public class A
             comp.VerifyEmitDiagnostics();
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.Preview)]
-        [InlineData(LanguageVersion.CSharp13)]
-        [InlineData(LanguageVersion.CSharp12)]
+        [Fact]
         [WorkItem(64508, "https://github.com/dotnet/roslyn/issues/64508")]
-        public void UnscopedRefAttribute_InterfaceImplementation_03(LanguageVersion langVersion)
+        public void UnscopedRefAttribute_InterfaceImplementation_03()
         {
             string source = """
                 using System.Diagnostics.CodeAnalysis;
@@ -26239,7 +26205,7 @@ public class A
                     public int P3 { [UnscopedRef] set { } } // 7
                 }
                 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion), targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
                 // (16,40): error CS9102: UnscopedRefAttribute cannot be applied to an interface implementation because implemented member 'I1<int>.P1.get' doesn't have this attribute.
                 //     [UnscopedRef] public ref int P1 => throw null; // 1
