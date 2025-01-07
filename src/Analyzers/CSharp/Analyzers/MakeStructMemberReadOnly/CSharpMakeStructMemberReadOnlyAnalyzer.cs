@@ -140,7 +140,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
             return;
 
         var (location, additionalLocation) = GetDiagnosticLocation(owningMethod, cancellationToken);
-        if (location == null || !context.ShouldAnalyzeSpan(location.SourceSpan))
+        if (location == null || additionalLocation is null || !context.ShouldAnalyzeSpan(location.SourceSpan))
             return;
 
         foreach (var blockOperation in context.OperationBlocks)
