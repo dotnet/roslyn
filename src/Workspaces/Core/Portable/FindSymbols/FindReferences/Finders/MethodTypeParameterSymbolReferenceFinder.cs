@@ -47,20 +47,34 @@ internal sealed class MethodTypeParameterSymbolReferenceFinder : AbstractTypePar
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        // Type parameters are only found in documents that have both their name, and the name
-        // of its owning method.  NOTE(cyrusn): We have to check in multiple files because of
-        // partial types.  A type parameter can be referenced across all the parts. NOTE(cyrusn):
-        // We look for type parameters by name.  This means if the same type parameter has a
-        // different name in different parts that we won't find it. However, this only happens
-        // in error situations.  It is not legal in C# to use a different name for a type
-        // parameter in different parts.
+        // Type parameters are only found in documents that have both their name, and the name of its owning method.
+        // NOTE(cyrusn): We have to check in multiple files because of partial types.  A type parameter can be
+        // referenced across all the parts. NOTE(cyrusn): We look for type parameters by name.  This means if the same
+        // type parameter has a different name in different parts that we won't find it. However, this only happens in
+        // error situations.  It is not legal in C# to use a different name for a type parameter in different parts.
         //
-        // Also, we only look for files that have the name of the owning type.  This helps filter
-        // down the set considerably.
+        // Also, we only look for files that have the name of the owning type.  This helps filter down the set
+        // considerably.  Note: we don't do this for top level local functions as they obviously appear only in one
+        // document, and their containing type name ("Program") doesn't have to appear there at all.
+
         Contract.ThrowIfNull(symbol.DeclaringMethod);
-        return FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name,
-            GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name),
-            symbol.DeclaringMethod.ContainingType.Name);
+        if (symbol is
+            {
+                ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.LocalFunction },
+                ContainingType: INamedTypeSymbol { Name: "Program", ContainingNamespace.IsGlobalNamespace: true }
+            })
+        {
+            return FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken,
+                symbol.Name,
+                GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name));
+        }
+        else
+        {
+            return FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken,
+                symbol.Name,
+                GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name),
+                symbol.DeclaringMethod.ContainingType.Name);
+        }
     }
 
     private static string GetMemberNameWithoutInterfaceName(string fullName)

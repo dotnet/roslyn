@@ -59,9 +59,12 @@ internal abstract class AbstractTypeParameterSymbolReferenceFinder : AbstractRef
         {
             foreach (var token in objectCreationTokens)
             {
-                Contract.ThrowIfNull(token.Parent?.Parent);
-                var typeInfo = state.SemanticModel.GetTypeInfo(token.Parent.Parent, cancellationToken);
-                if (SymbolEquivalenceComparer.Instance.Equals(symbol, typeInfo.Type))
+                Contract.ThrowIfNull(token.Parent);
+                //var typeInfo = state.SemanticModel.GetTypeInfo(token.Parent.Parent, cancellationToken);
+                //if (SymbolEquivalenceComparer.Instance.Equals(symbol, typeInfo.Type))
+                //    processResult(CreateFinderLocation(state, token, CandidateReason.None, cancellationToken), processResultData);
+                var boundSymbol = state.SemanticModel.GetSymbolInfo(token.Parent, cancellationToken).Symbol;
+                if (SymbolEquivalenceComparer.Instance.Equals(symbol, boundSymbol))
                     processResult(CreateFinderLocation(state, token, CandidateReason.None, cancellationToken), processResultData);
             }
         }
