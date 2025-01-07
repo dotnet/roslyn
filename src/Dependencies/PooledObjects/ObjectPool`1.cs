@@ -147,7 +147,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             // We will interlock only when we have a candidate. in a worst case we may miss some
             // recently returned objects. Not a big deal.
             var inst = _firstItem;
-            if (inst == null || inst != Interlocked.CompareExchange(ref _firstItem, null, inst))
+            if (inst == null ||
+                (inst = Interlocked.Exchange(ref _firstItem, null)) == null)
             {
                 inst = AllocateSlow();
             }
@@ -176,7 +177,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 var inst = items[i].Value;
                 if (inst != null)
                 {
-                    if (inst == Interlocked.CompareExchange(ref items[i].Value, null, inst))
+                    inst = Interlocked.Exchange(ref items[i].Value, null);
+                    if (inst != null)
                     {
                         return inst;
                     }
