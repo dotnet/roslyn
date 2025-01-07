@@ -709,7 +709,7 @@
       </trans-unit>
       <trans-unit id="Show_name_suggestions">
         <source>Show name suggestions</source>
-        <target state="needs-review-translation">Mostrar s_ugestões de nomes</target>
+        <target state="new">Show name suggestions</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
