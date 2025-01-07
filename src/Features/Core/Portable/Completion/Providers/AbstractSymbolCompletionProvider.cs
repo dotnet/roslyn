@@ -98,8 +98,8 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         CompletionContext completionContext,
         ImmutableArray<SymbolAndSelectionInfo> symbols,
         Func<SymbolAndSelectionInfo, TSyntaxContext> contextLookup,
-        Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap,
-        List<ProjectId>? totalProjects)
+        Dictionary<ISymbol, ArrayBuilder<ProjectId>>? invalidProjectMap,
+        ImmutableArray<ProjectId> totalProjects)
     {
         // We might get symbol w/o name but CanBeReferencedByName is still set to true, 
         // need to filter them out.
@@ -197,13 +197,13 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
     private static SupportedPlatformData? ComputeSupportedPlatformData(
         CompletionContext completionContext,
         ImmutableArray<SymbolAndSelectionInfo> symbols,
-        Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap,
-        List<ProjectId>? totalProjects)
+        Dictionary<ISymbol, ArrayBuilder<ProjectId>>? invalidProjectMap,
+        ImmutableArray<ProjectId> totalProjects)
     {
         SupportedPlatformData? supportedPlatformData = null;
         if (invalidProjectMap != null)
         {
-            List<ProjectId>? invalidProjects = null;
+            ArrayBuilder<ProjectId>? invalidProjects = null;
             foreach (var symbol in symbols)
             {
                 if (invalidProjectMap.TryGetValue(symbol.Symbol, out invalidProjects))
@@ -211,7 +211,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
             }
 
             if (invalidProjects != null)
-                supportedPlatformData = new SupportedPlatformData(completionContext.Document.Project.Solution, invalidProjects, totalProjects);
+                supportedPlatformData = new SupportedPlatformData(completionContext.Document.Project.Solution, invalidProjects.ToImmutable(), totalProjects);
         }
 
         return supportedPlatformData;
@@ -299,7 +299,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         if (relatedDocumentIds.IsEmpty)
         {
             var itemsForCurrentDocument = await GetSymbolsAsync(completionContext, syntaxContext, position, options, cancellationToken).ConfigureAwait(false);
-            return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: null);
+            return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: []);
         }
 
         using var _ = PooledDictionary<DocumentId, int>.GetInstance(out var documentIdToIndex);
@@ -315,10 +315,15 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
 
         var symbolToContextMap = UnionSymbols(contextAndSymbolLists);
         var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
-        var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
+        var totalProjects = contextAndSymbolLists.SelectAsArray(t => t.documentId.ProjectId);
 
-        return CreateItems(
+        var items = CreateItems(
             completionContext, [.. symbolToContextMap.Keys], symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects);
+
+        foreach (var (_, builder) in missingSymbolsMap)
+            builder.Free();
+
+        return items;
     }
 
     protected virtual bool IsExclusive()
@@ -395,17 +400,17 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
     /// <param name="symbolToContext">The symbols recommended in the active context.</param>
     /// <param name="linkedContextSymbolLists">The symbols recommended in linked documents</param>
     /// <returns>The list of projects each recommended symbol did NOT appear in.</returns>
-    private static Dictionary<ISymbol, List<ProjectId>> FindSymbolsMissingInLinkedContexts(
+    private static Dictionary<ISymbol, ArrayBuilder<ProjectId>> FindSymbolsMissingInLinkedContexts(
         Dictionary<SymbolAndSelectionInfo, TSyntaxContext> symbolToContext,
         ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)> linkedContextSymbolLists)
     {
-        var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
+        var missingSymbols = new Dictionary<ISymbol, ArrayBuilder<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
         foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
         {
             var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(symbols);
             foreach (var (symbol, _) in symbolsMissingInLinkedContext)
-                missingSymbols.GetOrAdd(symbol, m => []).Add(documentId.ProjectId);
+                missingSymbols.GetOrAdd(symbol, m => ArrayBuilder<ProjectId>.GetInstance()).Add(documentId.ProjectId);
         }
 
         return missingSymbols;

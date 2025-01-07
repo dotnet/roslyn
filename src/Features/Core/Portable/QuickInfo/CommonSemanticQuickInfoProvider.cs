@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -86,9 +87,6 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var mainTokenInformation = BindToken(services, semanticModel, token, cancellationToken);
 
-        var candidateProjects = new List<ProjectId> { document.Project.Id };
-        var invalidProjects = new List<ProjectId>();
-
         var candidateResults = new List<(DocumentId docId, TokenInformation tokenInformation)>
         {
             (document.Id, mainTokenInformation)
@@ -103,7 +101,6 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
             if (linkedToken != default)
             {
                 // Not in an inactive region, so this file is a candidate.
-                candidateProjects.Add(linkedDocumentId.ProjectId);
                 var linkedSymbols = BindToken(services, linkedModel, linkedToken, cancellationToken);
                 candidateResults.Add((linkedDocumentId, linkedSymbols));
             }
@@ -117,7 +114,11 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         if (bestBinding.tokenInformation.Symbols.IsDefaultOrEmpty)
             return default;
 
+        // We calculate the set of projects that are candidates for the best binding
+        var candidateProjects = candidateResults.SelectAsArray(result => result.docId.ProjectId);
+
         // We calculate the set of supported projects
+        using var _ = ArrayBuilder<ProjectId>.GetInstance(out var invalidProjects);
         candidateResults.Remove(bestBinding);
         foreach (var (docId, tokenInformation) in candidateResults)
         {
@@ -126,7 +127,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
                 invalidProjects.Add(docId.ProjectId);
         }
 
-        var supportedPlatforms = new SupportedPlatformData(solution, invalidProjects, candidateProjects);
+        var supportedPlatforms = new SupportedPlatformData(solution, invalidProjects.ToImmutableAndClear(), candidateProjects);
         return (bestBinding.tokenInformation, supportedPlatforms);
     }
 
