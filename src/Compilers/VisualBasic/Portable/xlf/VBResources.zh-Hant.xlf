@@ -9354,7 +9354,7 @@
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</target>
+        <target state="translated">'{0}' 僅供評估之用。後續更新時可能會有所變更或移除。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
