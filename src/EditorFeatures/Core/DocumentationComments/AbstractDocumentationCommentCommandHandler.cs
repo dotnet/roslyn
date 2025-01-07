@@ -42,14 +42,14 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
     private readonly SuggestionServiceBase _suggestionServiceBase;
     private SuggestionManagerBase? _suggestionManagerBase;
     internal SuggestionSessionBase? _suggestionSession;
-    public readonly IThreadingContext? _threadingContext;
+    public readonly IThreadingContext _threadingContext;
 
     protected AbstractDocumentationCommentCommandHandler(
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         ITextUndoHistoryRegistry undoHistoryRegistry,
         IEditorOperationsFactoryService editorOperationsFactoryService,
         EditorOptionsService editorOptionsService,
-        SuggestionServiceBase? suggestionServiceBase,
+        SuggestionServiceBase suggestionServiceBase,
         IThreadingContext? threadingContext)
     {
         Contract.ThrowIfNull(uiThreadOperationExecutor);
@@ -155,7 +155,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         return returnValue;
     }
 
-    private async Task<IReadOnlyList<ProposedEdit>> GetProposedEditsAsync(
+    private static async Task<IReadOnlyList<ProposedEdit>> GetProposedEditsAsync(
         DocumentationCommentProposal proposal, ITextBuffer textBuffer, ICopilotCodeAnalysisService copilotService, CancellationToken cancellationToken)
     {
         var list = new List<ProposedEdit>();

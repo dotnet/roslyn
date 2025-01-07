@@ -16,17 +16,9 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
-    internal class DocumentationCommentSuggestion : SuggestionBase
+    internal class DocumentationCommentSuggestion(AbstractDocumentationCommentCommandHandler handlerInstance, ProposalBase proposal) : SuggestionBase
     {
-        public ProposalBase Proposal { get; }
-
-        private readonly AbstractDocumentationCommentCommandHandler _handlerInstance;
-
-        public DocumentationCommentSuggestion(AbstractDocumentationCommentCommandHandler handlerInstance, ProposalBase proposal)
-        {
-            Proposal = proposal;
-            _handlerInstance = handlerInstance;
-        }
+        public ProposalBase Proposal { get; } = proposal;
 
         public override TipStyle TipStyle => TipStyle.AlwaysShowTip;
 
@@ -48,9 +40,9 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public override async Task OnDismissedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForDismiss reason, CancellationToken cancel)
         {
-            await _handlerInstance._threadingContext!.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
+            await handlerInstance._threadingContext!.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
 
-            await _handlerInstance.ClearSuggestionAsync(reason, cancel).ConfigureAwait(false);
+            await handlerInstance.ClearSuggestionAsync(reason, cancel).ConfigureAwait(false);
 
         }
 
@@ -65,20 +57,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         }
     }
 
-    internal class DocumentationCommentHandlerProposal : ProposalBase
+    internal class DocumentationCommentHandlerProposal(VirtualSnapshotPoint snapshotPoint, IReadOnlyList<ProposedEdit> edits) : ProposalBase
     {
-        private readonly VirtualSnapshotPoint _snapshotPoint;
-        private readonly IReadOnlyList<ProposedEdit> _edits;
+        public override IReadOnlyList<ProposedEdit> Edits => edits;
 
-        public DocumentationCommentHandlerProposal(VirtualSnapshotPoint snapshotPoint, IReadOnlyList<ProposedEdit> edits)
-        {
-            _snapshotPoint = snapshotPoint;
-            _edits = edits;
-        }
-
-        public override IReadOnlyList<ProposedEdit> Edits => _edits;
-
-        public override VirtualSnapshotPoint Caret => _snapshotPoint;
+        public override VirtualSnapshotPoint Caret => snapshotPoint;
 
         public override CompletionState? CompletionState => null;
 
