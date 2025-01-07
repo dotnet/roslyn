@@ -29,7 +29,8 @@ internal abstract partial class AbstractExtractMethodService<
         protected static readonly SyntaxAnnotation s_firstTokenAnnotation = new();
         protected static readonly SyntaxAnnotation s_lastTokenAnnotation = new();
 
-        private bool? _createAsyncMethod;
+        private bool? _containsAwaitExpression;
+        private bool? _containsConfigureAwaitFalse;
 
         public SemanticDocument SemanticDocument { get; private set; } = document;
         public TextSpan FinalSpan { get; } = finalSpan;
@@ -120,64 +121,55 @@ internal abstract partial class AbstractExtractMethodService<
             return token.GetRequiredAncestor<TExecutableStatementSyntax>();
         }
 
-        public bool ContainsAwaitExpression()
+        /// <summary>
+        /// Checks all of the nodes within the user's selection to see if any of them satisfy the supplied <paramref
+        /// name="predicate"/>. Will not descend into local functions or lambdas.
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        private bool CheckNodesInSelection(Func<ISyntaxFacts, SyntaxNode, bool> predicate)
         {
-            _createAsyncMethod ??= CreateAsyncMethodWorker();
-            return _createAsyncMethod.Value;
-
-            bool CreateAsyncMethodWorker()
-            {
-                var firstToken = this.GetFirstTokenInSelection();
-                var lastToken = this.GetLastTokenInSelection();
-                var span = TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
-
-                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
-                stack.Push(this.GetContainingScope());
-
-                var syntaxFacts = this.SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
-
-                while (stack.TryPop(out var current))
-                {
-                    // Don't dive into lambdas and local functions.  They reset the async/await context.
-                    if (syntaxFacts.IsAnonymousOrLocalFunction(current))
-                        continue;
-
-                    if (syntaxFacts.IsAwaitExpression(current))
-                        return true;
-
-                    // Only dive into child nodes within the span being extracted.
-                    foreach (var childNode in current.ChildNodes())
-                    {
-                        if (childNode.Span.OverlapsWith(span))
-                            stack.Push(childNode);
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        public bool ShouldCallConfigureAwaitFalse()
-        {
-            var syntaxFacts = SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
-
-            var firstToken = GetFirstTokenInSelection();
-            var lastToken = GetLastTokenInSelection();
-
+            var firstToken = this.GetFirstTokenInSelection();
+            var lastToken = this.GetLastTokenInSelection();
             var span = TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
 
-            foreach (var node in SemanticDocument.Root.DescendantNodesAndSelf())
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+            stack.Push(this.GetContainingScope());
+
+            var syntaxFacts = this.SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            while (stack.TryPop(out var current))
             {
-                if (!node.Span.OverlapsWith(span))
+                // Don't dive into lambdas and local functions.  They reset the async/await context.
+                if (syntaxFacts.IsAnonymousOrLocalFunction(current))
                     continue;
 
-                if (IsConfigureAwaitFalse(node) && !UnderAnonymousOrLocalMethod(node.GetFirstToken(), firstToken, lastToken))
+                if (predicate(syntaxFacts, current))
                     return true;
+
+                // Only dive into child nodes within the span being extracted.
+                foreach (var childNode in current.ChildNodes())
+                {
+                    if (childNode.Span.OverlapsWith(span))
+                        stack.Push(childNode);
+                }
             }
 
             return false;
+        }
 
-            bool IsConfigureAwaitFalse(SyntaxNode node)
+        public bool ContainsAwaitExpression()
+        {
+            return _containsAwaitExpression ??= CheckNodesInSelection(
+                static (syntaxFacts, node) => syntaxFacts.IsAwaitExpression(node));
+        }
+
+        public bool ContainsConfigureAwaitFalse()
+        {
+            return _containsConfigureAwaitFalse ??= CheckNodesInSelection(
+                static (syntaxFacts, node) => IsConfigureAwaitFalse(syntaxFacts, node));
+
+            static bool IsConfigureAwaitFalse(ISyntaxFacts syntaxFacts, SyntaxNode node)
             {
                 if (!syntaxFacts.IsInvocationExpression(node))
                     return false;
