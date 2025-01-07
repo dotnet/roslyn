@@ -30,7 +30,7 @@ internal class LinkedEditsTracker
     }
 
     public IList<SnapshotSpan> GetActiveSpansForSnapshot(ITextSnapshot snapshot)
-        => _trackingSpans.Select(ts => ts.GetSpan(snapshot)).ToList();
+        => [.. _trackingSpans.Select(ts => ts.GetSpan(snapshot))];
 
     public void AddSpans(IEnumerable<ITrackingSpan> spans)
     {

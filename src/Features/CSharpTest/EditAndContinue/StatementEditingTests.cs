@@ -9054,9 +9054,9 @@ interface I
             targetFrameworks: [TargetFramework.NetCoreApp],
             diagnostics:
             [
-                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f1", CSharpFeaturesResources.local_function),
-                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f2", CSharpFeaturesResources.local_function),
-                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f3", CSharpFeaturesResources.local_function)
+                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f1", FeaturesResources.local_function),
+                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f2", FeaturesResources.local_function),
+                Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f3", FeaturesResources.local_function)
             ]);
     }
 
@@ -11749,7 +11749,7 @@ class C
         var expectedDiagnostics = from errorMessage in errorMessages ?? [newStatement]
                                   select Diagnostic(RudeEditKind.AwaitStatementUpdate, errorMessage);
 
-        edits.VerifySemanticDiagnostics(expectedDiagnostics.ToArray());
+        edits.VerifySemanticDiagnostics([.. expectedDiagnostics]);
     }
 
     [Fact]

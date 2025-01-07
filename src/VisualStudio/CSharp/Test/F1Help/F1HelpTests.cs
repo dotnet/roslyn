@@ -1995,6 +1995,17 @@ public class C
     }
 
     [Fact]
+    public async Task TestScoped()
+    {
+        await Test_KeywordAsync("""
+            sc[||]oped var r = new R();
+            ref struct R
+            {
+            }
+            """, "scoped");
+    }
+
+    [Fact]
     public async Task TestDefaultConstraint()
     {
         await Test_KeywordAsync("""
@@ -2299,5 +2310,14 @@ public class C
             """
             #pragma warning dis[||]able CS0312
             """, "#disable");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68009")]
+    public async Task TestGlobalUsing1()
+    {
+        await Test_KeywordAsync(
+            """
+            [||]global using System;
+            """, "global-using");
     }
 }

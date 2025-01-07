@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -11,13 +12,13 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
@@ -71,6 +72,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     // Should be supported in C# 13.
     public bool SupportsCollectionExpressionNaturalType(ParseOptions options)
         => false;
+
+    public bool SupportsImplicitImplementationOfNonPublicInterfaceMembers(ParseOptions options)
+        => options.LanguageVersion() >= LanguageVersion.CSharp10;
 
     public SyntaxToken ParseToken(string text)
         => SyntaxFactory.ParseToken(text);
@@ -206,6 +210,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node)
         => node is ForEachVariableStatementSyntax;
 
+    public bool IsUsingLocalDeclarationStatement([NotNullWhen(true)] SyntaxNode? node)
+        => node is LocalDeclarationStatementSyntax { UsingKeyword.RawKind: not (int)SyntaxKind.None };
+
     public bool IsDeconstructionAssignment([NotNullWhen(true)] SyntaxNode? node)
         => node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction();
 
@@ -230,25 +237,6 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
     public SyntaxNode GetStatementOfGlobalStatement(SyntaxNode node)
         => ((GlobalStatementSyntax)node).Statement;
-
-    public bool AreStatementsInSameContainer(SyntaxNode firstStatement, SyntaxNode secondStatement)
-    {
-        Debug.Assert(IsStatement(firstStatement));
-        Debug.Assert(IsStatement(secondStatement));
-
-        if (firstStatement.Parent == secondStatement.Parent)
-            return true;
-
-        if (IsGlobalStatement(firstStatement.Parent)
-            && IsGlobalStatement(secondStatement.Parent)
-            && firstStatement.Parent.Parent == secondStatement.Parent.Parent)
-        {
-            return true;
-        }
-
-        return false;
-
-    }
 
     public bool IsMethodBody([NotNullWhen(true)] SyntaxNode? node)
     {
@@ -503,11 +491,11 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token)
         => token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.InterpolatedStringTextToken;
 
-    public bool IsBindableToken(SyntaxToken token)
+    public bool IsBindableToken(SemanticModel? semanticModel, SyntaxToken token)
     {
         if (this.IsWord(token) || this.IsLiteral(token) || this.IsOperator(token))
         {
-            switch ((SyntaxKind)token.RawKind)
+            switch (token.Kind())
             {
                 case SyntaxKind.DelegateKeyword:
                 case SyntaxKind.VoidKeyword:
@@ -519,14 +507,15 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
         // In the order by clause a comma might be bound to ThenBy or ThenByDescending
         if (token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.OrderByClause))
-        {
             return true;
-        }
 
-        if (token.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.CloseBracketToken
-            && token.Parent.IsKind(SyntaxKind.CollectionExpression))
+        if (token.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.CloseBracketToken)
         {
-            return true;
+            if (token.Parent.IsKind(SyntaxKind.CollectionExpression))
+                return true;
+
+            if (semanticModel != null && token.Parent is BracketedArgumentListSyntax { Parent: ElementAccessExpressionSyntax elementAccessExpression })
+                return semanticModel.GetSymbolInfo(elementAccessExpression).GetAnySymbol() != null;
         }
 
         return false;
@@ -1000,45 +989,34 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
         {
             var parent = node.Parent;
 
-            // If this node is on the left side of a member access expression, don't ascend
-            // further or we'll end up binding to something else.
-            if (parent is MemberAccessExpressionSyntax memberAccess)
+            // If this node is on the left side of a member access expression, don't ascend further or we'll end up
+            // binding to something else.
+            if (parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression == node)
+                break;
+
+            // If this node is on the left side of a qualified name, don't ascend further or we'll end up binding to
+            // something else.
+            if (parent is QualifiedNameSyntax qualifiedName && qualifiedName.Left == node)
+                break;
+
+            // If this node is on the left side of a alias-qualified name, don't ascend further or we'll end up binding
+            // to something else.
+            if (parent is AliasQualifiedNameSyntax aliasQualifiedName && aliasQualifiedName.Alias == node)
+                break;
+
+            // If this node is the type of an object creation expression, return the object creation expression.
+            if (parent is ObjectCreationExpressionSyntax objectCreation && objectCreation.Type == node)
             {
-                if (memberAccess.Expression == node)
-                {
-                    break;
-                }
+                node = parent;
+                break;
             }
 
-            // If this node is on the left side of a qualified name, don't ascend
-            // further or we'll end up binding to something else.
-            if (parent is QualifiedNameSyntax qualifiedName)
+            // If we're on the argument list `[...]` of an index expression, return the index expression itself as we
+            // want to bind to whatever symbol that binds to.
+            if (parent is ElementAccessExpressionSyntax elementAccess && elementAccess.ArgumentList == node)
             {
-                if (qualifiedName.Left == node)
-                {
-                    break;
-                }
-            }
-
-            // If this node is on the left side of a alias-qualified name, don't ascend
-            // further or we'll end up binding to something else.
-            if (parent is AliasQualifiedNameSyntax aliasQualifiedName)
-            {
-                if (aliasQualifiedName.Alias == node)
-                {
-                    break;
-                }
-            }
-
-            // If this node is the type of an object creation expression, return the
-            // object creation expression.
-            if (parent is ObjectCreationExpressionSyntax objectCreation)
-            {
-                if (objectCreation.Type == node)
-                {
-                    node = parent;
-                    break;
-                }
+                node = parent;
+                break;
             }
 
             // The inside of an interpolated string is treated as its own token so we
@@ -1376,6 +1354,12 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public bool IsPreprocessorDirective(SyntaxTrivia trivia)
         => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
 
+    public SyntaxNode? GetMatchingDirective(SyntaxNode directive, CancellationToken cancellationToken)
+        => ((DirectiveTriviaSyntax)directive).GetMatchingDirective(cancellationToken);
+
+    public ImmutableArray<SyntaxNode> GetMatchingConditionalDirectives(SyntaxNode directive, CancellationToken cancellationToken)
+        => ((DirectiveTriviaSyntax)directive).GetMatchingConditionalDirectives(cancellationToken).CastArray<SyntaxNode>();
+
     public bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
         => token.ContainsInterleavedDirective(span, cancellationToken);
 
@@ -1584,6 +1568,14 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     #endregion
 
     #region GetPartsOfXXX members
+
+    public void GetPartsOfAliasQualifiedName(SyntaxNode node, out SyntaxNode alias, out SyntaxToken colonColonToken, out SyntaxNode name)
+    {
+        var qualifiedName = (AliasQualifiedNameSyntax)node;
+        alias = qualifiedName.Alias;
+        colonColonToken = qualifiedName.ColonColonToken;
+        name = qualifiedName.Name;
+    }
 
     public void GetPartsOfArgumentList(SyntaxNode node, out SyntaxToken openParenToken, out SeparatedSyntaxList<SyntaxNode> arguments, out SyntaxToken closeParenToken)
     {

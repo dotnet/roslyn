@@ -892,7 +892,7 @@ End Class
         Private Sub AddUnusedValueOptions(optionStore As OptionStore, expressionPreferencesGroupTitle As String)
             Dim unusedValuePreferences = New List(Of CodeStylePreference) From
             {
-                New CodeStylePreference(BasicVSResources.Unused_local, isChecked:=True)
+                New CodeStylePreference(ServicesVSResources.Unused_local, isChecked:=True)
             }
 
             Dim enumValues =

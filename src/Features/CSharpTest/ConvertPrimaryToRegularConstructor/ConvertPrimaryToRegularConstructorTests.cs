@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertPrimaryToRegularConstructor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertPrimaryToRegularConstructor;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertPrimaryToRegular
 using VerifyCS = CSharpCodeRefactoringVerifier<ConvertPrimaryToRegularConstructorCodeRefactoringProvider>;
 
 [UseExportProvider]
-public class ConvertPrimaryToRegularConstructorTests
+public sealed class ConvertPrimaryToRegularConstructorTests
 {
     private const string FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig = """
         [*.cs]
@@ -2467,14 +2468,13 @@ public class ConvertPrimaryToRegularConstructorTests
             FixedCode = """
                 class C
                 {
-                    public C(int i)
-                    {
-                    }
 
                     #region constructors
 
                     #endregion
-
+                    public C(int i)
+                    {
+                    }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -2713,6 +2713,27 @@ public class ConvertPrimaryToRegularConstructorTests
                         _i = i;
                     }
                 }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72340")]
+    public async Task TestClassWithoutBody()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class [|Class1()|];
+                """,
+            FixedCode = """
+                class Class1
+                {
+                    public Class1()
+                    {
+                    }
+                }
+
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();

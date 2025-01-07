@@ -65,10 +65,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim location = token.GetLocation()
 
             For Each ancestor In token.GetAncestors(Of SyntaxNode)()
-                If Not TypeOf ancestor Is AggregationRangeVariableSyntax AndAlso
-                   Not TypeOf ancestor Is CollectionRangeVariableSyntax AndAlso
-                   Not TypeOf ancestor Is ExpressionRangeVariableSyntax AndAlso
-                   Not TypeOf ancestor Is InferredFieldInitializerSyntax Then
+                If TypeOf ancestor IsNot AggregationRangeVariableSyntax AndAlso
+                   TypeOf ancestor IsNot CollectionRangeVariableSyntax AndAlso
+                   TypeOf ancestor IsNot ExpressionRangeVariableSyntax AndAlso
+                   TypeOf ancestor IsNot InferredFieldInitializerSyntax Then
 
                     Dim symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken)
 

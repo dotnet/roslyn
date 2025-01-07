@@ -1992,6 +1992,11 @@
         <target state="translated">У типов и псевдонимов не может быть имя "required".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
         <source>Target runtime doesn't support by-ref-like generics.</source>
         <target state="translated">Целевая среда выполнения не поддерживает параметрические полиморфизмы, подобные ref.</target>
@@ -2502,6 +2507,11 @@
         <target state="translated">новые линии в интерполяции</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureOverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">конструкторы структуры без параметров</target>
@@ -2620,11 +2630,6 @@
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_OverloadResolutionPriority">
-        <source>overload resolution priority</source>
-        <target state="translated">приоритет разрешения перегрузки</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -2952,6 +2957,16 @@
         <target state="translated">Использование переменной в этом контексте может представить ссылочные переменные за пределами области их объявления.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</source>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous">
         <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
         <target state="translated">В версии языка {0} ключевое слово "field" привязывается к синтезированному резервному полю для свойства. Чтобы не создавать синтезированное резервное поле и ссылаться на существующий элемент, используйте вместо этого "this.field" или "@field".</target>
@@ -3020,6 +3035,16 @@
       <trans-unit id="WRN_InterceptorSignatureMismatch_Title">
         <source>Signatures of interceptable and interceptor methods do not match.</source>
         <target state="translated">Сигнатуры методов перехвата и перехватчика не совпадают.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature">
+        <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
+        <target state="new">'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature_Title">
+        <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
+        <target state="new">'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
@@ -5357,6 +5382,16 @@
       <trans-unit id="WRN_UnreadRecordParameter_Title">
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="translated">Параметр не читается. Возможно, вы забыли использовать его для инициализации свойства с таким же именем?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules">
+        <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
+        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules_Title">
+        <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
+        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -12972,7 +13007,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="translated">"{0}" предназначен только для оценки и может быть изменен или удален в будущих обновлениях. Чтобы продолжить, скройте эту диагностику.</target>
+        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

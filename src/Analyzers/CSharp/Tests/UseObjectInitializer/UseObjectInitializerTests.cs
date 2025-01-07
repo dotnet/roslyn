@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -20,7 +20,9 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
 public partial class UseObjectInitializerTests
 {
-    private static async Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion? languageVersion = null)
+    private static async Task TestMissingInRegularAndScriptAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
+        LanguageVersion? languageVersion = null)
     {
         var test = new VerifyCS.Test
         {
@@ -1407,6 +1409,186 @@ public partial class UseObjectInitializerTests
                 }
             },
             FixedState = { Sources = { fixedCode } },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
+    public async Task TestIndentationOfMultiLineExpressions1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    string S;
+                    string T;
+
+                    void M(int i)
+                    {
+                        var c = [|new|] C();
+                        c.S = i
+                            .ToString();
+                        c.T = i.
+                            ToString();
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    string S;
+                    string T;
+                
+                    void M(int i)
+                    {
+                        var c = [|new|] C
+                        {
+                            S = i
+                                .ToString(),
+                            T = i.
+                                ToString()
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
+    public async Task TestIndentationOfMultiLineExpressions2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    string S;
+                    string T;
+
+                    void M(int i)
+                    {
+                        var c = [|new|] C();
+                        c.S = i
+                            .ToString()
+                            .ToString();
+                        c.T = i.
+                            ToString().
+                            ToString();
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    string S;
+                    string T;
+                
+                    void M(int i)
+                    {
+                        var c = [|new|] C
+                        {
+                            S = i
+                                .ToString()
+                                .ToString(),
+                            T = i.
+                                ToString().
+                                ToString()
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
+    public async Task TestIndentationOfMultiLineExpressions3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    string S;
+                    string T;
+
+                    void M(int i)
+                    {
+                        var c = [|new|] C();
+                        c.S =
+                            i.ToString();
+                        c.T =
+                            i.ToString();
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    string S;
+                    string T;
+                
+                    void M(int i)
+                    {
+                        var c = [|new|] C
+                        {
+                            S =
+                                i.ToString(),
+                            T =
+                                i.ToString()
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
+    public async Task TestIndentationOfMultiLineExpressions4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    string S;
+                    string T;
+
+                    void M(int i)
+                    {
+                        var c = [|new|] C();
+                        c.S =
+                            i.ToString()
+                             .ToString();
+                        c.T =
+                            i.ToString()
+                             .ToString();
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    string S;
+                    string T;
+                
+                    void M(int i)
+                    {
+                        var c = [|new|] C
+                        {
+                            S =
+                                i.ToString()
+                                 .ToString(),
+                            T =
+                                i.ToString()
+                                 .ToString()
+                        };
+                    }
+                }
+                """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }

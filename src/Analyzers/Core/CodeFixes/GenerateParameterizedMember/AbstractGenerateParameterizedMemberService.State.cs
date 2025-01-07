@@ -58,7 +58,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
         protected async Task<bool> TryFinishInitializingStateAsync(TService service, SemanticDocument document, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+            TypeToGenerateIn = SymbolFinderInternal.FindSourceDefinition(TypeToGenerateIn, document.Project.Solution, cancellationToken) as INamedTypeSymbol;
             if (TypeToGenerateIn.IsErrorType())
             {
                 return false;

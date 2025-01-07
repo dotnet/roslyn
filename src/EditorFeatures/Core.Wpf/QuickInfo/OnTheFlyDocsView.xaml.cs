@@ -76,21 +76,19 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         OnDemandLinkContent = ToUIElement(
             new ContainerElement(
                 ContainerElementStyle.Wrapped,
-                new object[]
-                {
+                [
                     sparkle,
                     onDemandLinkText,
-                }));
+                ]));
 
         LoadingContent = ToUIElement(
             new ContainerElement(
                 ContainerElementStyle.Stacked,
-                new object[]
-                {
+                [
                     new ClassifiedTextElement(new ClassifiedTextRun(
                         ClassificationTypeDefinitions.ReducedEmphasisText, EditorFeaturesResources.Copilot_thinking)),
                     new SmoothProgressBar { IsIndeterminate = true, Height = 2, Margin = new Thickness { Top = 2 } },
-                }));
+                ]));
 
         // Ensure the loading content stretches so that the progress bar
         // takes the entire width of the quick info tooltip.
@@ -102,18 +100,16 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         ResultsContent = ToUIElement(
             new ContainerElement(
                 ContainerElementStyle.Stacked,
-                new object[]
-                {
+                [
                     new ContainerElement(
                         ContainerElementStyle.Wrapped,
-                        new object[]
-                        {
+                        [
                             sparkle,
                             ClassifiedTextElement.CreatePlainText(EditorFeaturesResources.Copilot),
-                        }),
+                        ]),
                     new ThematicBreakElement(),
                     _responseControl,
-                }));
+                ]));
 
         ResultsRequested += (_, _) => PopulateAIDocumentationElements(_cancellationTokenSource.Token);
         _asyncQuickInfoSession.StateChanged += (_, _) => OnQuickInfoSessionChanged();

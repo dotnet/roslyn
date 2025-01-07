@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
                 return new InlineRenameLocationSet(
                     _renameInfo, _document.Project.Solution,
-                    references.ToImmutableArray());
+                    [.. references]);
             }
 
             public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)

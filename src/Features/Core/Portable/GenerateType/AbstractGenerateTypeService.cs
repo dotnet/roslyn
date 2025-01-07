@@ -33,10 +33,6 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
     where TTypeDeclarationSyntax : SyntaxNode
     where TArgumentSyntax : SyntaxNode
 {
-    protected AbstractGenerateTypeService()
-    {
-    }
-
     protected abstract bool TryInitializeState(SemanticDocument document, TSimpleNameSyntax simpleName, CancellationToken cancellationToken, out GenerateTypeServiceStateOptions generateTypeServiceStateOptions);
     protected abstract TExpressionSyntax GetLeftSideOfDot(TSimpleNameSyntax simpleName);
     protected abstract bool TryGetArgumentList(TObjectCreationExpressionSyntax objectCreationExpression, out IList<TArgumentSyntax> argumentList);
@@ -77,7 +73,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
+            var state = State.Generate((TService)this, semanticDocument, node, cancellationToken);
             if (state != null)
             {
                 var actions = GetActions(semanticDocument, node, state, cancellationToken);
@@ -271,7 +267,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             ? state.TypeToGenerateInOpt.GetAllTypeParameters()
             : [];
 
-        return availableOuterTypeParameters.Concat(availableInnerTypeParameters).ToList();
+        return [.. availableOuterTypeParameters, .. availableInnerTypeParameters];
     }
 
     protected static async Task<bool> IsWithinTheImportingNamespaceAsync(Document document, int triggeringPosition, string includeUsingsOrImports, CancellationToken cancellationToken)

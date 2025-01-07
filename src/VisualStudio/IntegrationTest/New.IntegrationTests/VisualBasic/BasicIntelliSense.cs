@@ -301,7 +301,7 @@ HangMitigatingCancellationToken);
 
         await ClearEditorAsync(HangMitigatingCancellationToken);
 
-        await TestServices.Input.SendAsync(new InputKey(VirtualKeyCode.SPACE, ImmutableArray.Create(VirtualKeyCode.CONTROL, VirtualKeyCode.MENU)), HangMitigatingCancellationToken);
+        await TestServices.Input.SendAsync(new InputKey(VirtualKeyCode.SPACE, [VirtualKeyCode.CONTROL, VirtualKeyCode.MENU]), HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("Nam Foo", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("Nam Foo$$", assertCaretPosition: true, HangMitigatingCancellationToken);

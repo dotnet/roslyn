@@ -160,7 +160,7 @@ internal abstract class AbstractAssignOutParametersCodeFixProvider : SyntaxEdito
         {
             result.Add(generator.ExpressionStatement(generator.AssignmentStatement(
                 generator.IdentifierName(parameter.Name),
-                ExpressionGenerator.GenerateExpression(generator, parameter.Type, value: null, canUseFieldReference: false))));
+                ExpressionGenerator.GenerateExpression(parameter.Type, value: null, canUseFieldReference: false))));
         }
 
         return result.ToImmutableAndFree();

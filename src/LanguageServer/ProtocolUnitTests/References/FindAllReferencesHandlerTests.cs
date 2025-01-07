@@ -319,7 +319,7 @@ class C
             if (progress != null)
             {
                 Assert.Null(results);
-                results = UnwrapProgress<LSP.VSInternalReferenceItem>(progress.Value).ToArray();
+                results = [.. UnwrapProgress<LSP.VSInternalReferenceItem>(progress.Value)];
             }
 
             // Results are returned in a non-deterministic order, so we order them by location
@@ -336,7 +336,7 @@ class C
             if (progress != null)
             {
                 Assert.Null(results);
-                results = UnwrapProgress<LSP.Location>(progress.Value).ToArray();
+                results = [.. UnwrapProgress<LSP.Location>(progress.Value)];
             }
 
             // Results are returned in a non-deterministic order, so we order them by location
@@ -350,9 +350,8 @@ class C
             // with the test creating one, and the handler another, we have to unwrap.
             // Additionally, the VS LSP protocol specifies T from IProgress<T> as an object and not as the actual T type
             // so we have to correctly convert the JObject into the expected type.
-            return progress.GetValues()
-                .SelectMany(r => (List<object>)r).Select(r => JsonSerializer.Deserialize<T>((JsonElement)r, ProtocolConversions.LspJsonSerializerOptions))
-                .ToArray();
+            return [.. progress.GetValues()
+                .SelectMany(r => (List<object>)r).Select(r => JsonSerializer.Deserialize<T>((JsonElement)r, ProtocolConversions.LspJsonSerializerOptions))];
         }
 
         private static void AssertValidDefinitionProperties(LSP.VSInternalReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph)

@@ -66,7 +66,7 @@ internal sealed partial class FindReferencesSearchEngine
             var options = engine._options;
 
             // Start by mapping the initial symbol to the appropriate source symbol in originating project if possible.
-            var searchSymbols = await MapToAppropriateSymbolsAsync(solution, symbols, cancellationToken).ConfigureAwait(false);
+            var searchSymbols = MapToAppropriateSymbols(solution, symbols, cancellationToken);
 
             // If the caller doesn't want any cascading then just return an appropriate set that will just point at
             // only the search symbol and won't cascade to any related symbols, linked symbols, or inheritance
@@ -90,17 +90,17 @@ internal sealed partial class FindReferencesSearchEngine
                 : new BidirectionalSymbolSet(engine, initialSymbols, upSymbols, includeImplementationsThroughDerivedTypes);
         }
 
-        private static async Task<MetadataUnifyingSymbolHashSet> MapToAppropriateSymbolsAsync(
+        private static MetadataUnifyingSymbolHashSet MapToAppropriateSymbols(
             Solution solution, MetadataUnifyingSymbolHashSet symbols, CancellationToken cancellationToken)
         {
             var result = new MetadataUnifyingSymbolHashSet();
             foreach (var symbol in symbols)
-                result.AddIfNotNull(await TryMapToAppropriateSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false));
+                result.AddIfNotNull(TryMapToAppropriateSymbol(solution, symbol, cancellationToken));
 
             return result;
         }
 
-        private static async Task<ISymbol?> TryMapToAppropriateSymbolAsync(
+        private static ISymbol? TryMapToAppropriateSymbol(
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             // Never search for an alias.  Always search for it's target.  Note: if the caller was
@@ -133,7 +133,7 @@ internal sealed partial class FindReferencesSearchEngine
             // source definition as the 'truth' of a symbol versus seeing it projected into dependent cross language
             // projects as a metadata symbol.  If there is no source symbol, then continue to just use the metadata
             // symbol as the one to be looking for.
-            var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(searchSymbol, solution, cancellationToken).ConfigureAwait(false);
+            var sourceSymbol = SymbolFinder.FindSourceDefinition(searchSymbol, solution, cancellationToken);
             return sourceSymbol ?? searchSymbol;
         }
 
@@ -210,7 +210,7 @@ internal sealed partial class FindReferencesSearchEngine
 
             async Task<ISymbol?> TryMapAndAddLinkedSymbolsAsync(ISymbol symbol)
             {
-                var mapped = await TryMapToAppropriateSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+                var mapped = TryMapToAppropriateSymbol(solution, symbol, cancellationToken);
                 if (mapped is null)
                     return null;
 

@@ -2521,4 +2521,38 @@ public sealed class MakeStructMemberReadOnlyTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
+    public async Task TestMultipleAccessors()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct S
+                {
+                    public int M;
+
+                    public int Z
+                    {
+                        [|get|] => M;
+                        set => M = value;
+                    }
+                }
+                """,
+            FixedCode = """
+                struct S
+                {
+                    public int M;
+
+                    public int Z
+                    {
+                        readonly get => M;
+                        set => M = value;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }

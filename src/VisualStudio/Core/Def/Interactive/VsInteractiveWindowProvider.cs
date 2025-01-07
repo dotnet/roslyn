@@ -182,6 +182,6 @@ internal abstract class VsInteractiveWindowProvider
             }
         }
 
-        return interactiveCommands.ToImmutableArray();
+        return [.. interactiveCommands];
     }
 }

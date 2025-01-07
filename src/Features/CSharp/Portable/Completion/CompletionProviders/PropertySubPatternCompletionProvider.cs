@@ -86,7 +86,7 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
                 displayText: member.Name.EscapeIdentifier(),
                 displayTextSuffix: "",
                 insertionText: null,
-                symbols: ImmutableArray.Create(member),
+                symbols: [member],
                 contextPosition: context.Position,
                 rules: s_rules));
         }

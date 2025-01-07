@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -21,12 +22,12 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpImplementInterfaceCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-public class ImplementInterfaceTests
+public sealed class ImplementInterfaceTests
 {
-    private readonly NamingStylesTestOptionSets _options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+    private readonly NamingStylesTestOptionSets _options = new(LanguageNames.CSharp);
 
     private static OptionsCollection AllOptionsOff
-        => new OptionsCollection(LanguageNames.CSharp)
+        => new(LanguageNames.CSharp)
         {
              { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
              { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
@@ -37,7 +38,7 @@ public class ImplementInterfaceTests
         };
 
     private static OptionsCollection AllOptionsOn
-        => new OptionsCollection(LanguageNames.CSharp)
+        => new(LanguageNames.CSharp)
         {
              { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
              { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
@@ -48,7 +49,7 @@ public class ImplementInterfaceTests
         };
 
     private static OptionsCollection AccessorOptionsOn
-        => new OptionsCollection(LanguageNames.CSharp)
+        => new(LanguageNames.CSharp)
         {
              { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
              { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
@@ -59,7 +60,8 @@ public class ImplementInterfaceTests
         };
 
     internal static async Task TestWithAllCodeStyleOptionsOffAsync(
-        string initialMarkup, string expectedMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
         (string equivalenceKey, int index)? codeAction = null)
     {
         await new VerifyCS.Test
@@ -73,7 +75,9 @@ public class ImplementInterfaceTests
         }.RunAsync();
     }
 
-    internal static async Task TestWithAllCodeStyleOptionsOnAsync(string initialMarkup, string expectedMarkup)
+    internal static async Task TestWithAllCodeStyleOptionsOnAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup)
     {
         await new VerifyCS.Test
         {
@@ -83,7 +87,9 @@ public class ImplementInterfaceTests
         }.RunAsync();
     }
 
-    internal static async Task TestWithAccessorCodeStyleOptionsOnAsync(string initialMarkup, string expectedMarkup)
+    internal static async Task TestWithAccessorCodeStyleOptionsOnAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup)
     {
         await new VerifyCS.Test
         {
@@ -94,8 +100,8 @@ public class ImplementInterfaceTests
     }
 
     private static async Task TestInRegularAndScriptAsync(
-        string initialMarkup,
-        string expectedMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
         (string equivalenceKey, int index)? codeAction = null)
     {
         await new VerifyCS.Test
@@ -594,6 +600,54 @@ public class ImplementInterfaceTests
             }
 
             """);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26323")]
+    public async Task TestMethodWhenClassBracesAreMissing2(
+        [CombinatorialValues(0, 1)] int behavior)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+            
+                namespace WPFConsoleApplication1
+                {
+                    class Program
+                    {
+                        private class Test : {|CS0535:ICloneable|}{|CS1513:|}{|CS1514:|}
+            
+                        static void Main(string[] args) { }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                namespace WPFConsoleApplication1
+                {
+                    class Program
+                    {
+                        private class Test : ICloneable
+                        {
+                            public object Clone()
+                            {
+                                throw new NotImplementedException();
+                            }
+                        }
+            
+                        static void Main(string[] args) { }
+                    }
+                }
+                """,
+            Options =
+            {
+                new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { ImplementTypeOptionsStorage.InsertionBehavior, (ImplementTypeInsertionBehavior)behavior }
+                }
+            }
+        }.RunAsync();
     }
 
     [Fact]
@@ -1443,14 +1497,43 @@ codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterf
                 {
                     get
                     {
-                        throw new System.NotImplementedException();
+                        return Prop;
                     }
 
                     set
                     {
-                        throw new System.NotImplementedException();
+                        Prop = value;
                     }
                 }
+            }
+
+            interface I1
+            {
+                int Prop { get; set; }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestConflictingProperties2()
+    {
+        await TestWithAllCodeStyleOptionsOnAsync(
+            """
+            class Test : {|CS0737:I1|}
+            {
+                int Prop { get; set; }
+            }
+
+            interface I1
+            {
+                int Prop { get; set; }
+            }
+            """,
+            """
+            class Test : I1
+            {
+                int Prop { get; set; }
+                int I1.Prop { get => Prop; set => Prop = value; }
             }
 
             interface I1
@@ -4695,7 +4778,7 @@ codeAction: ("True;False;False:global::IOptional;Microsoft.CodeAnalysis.Implemen
             """,
             Options = { AllOptionsOff },
 
-            // 🐛 one value is generated with 0L instead of 0
+            // 🐛 one value is generated with 100L instead of 100
             CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
@@ -8577,9 +8660,14 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                         protected int P1 {get;}
                     }
 
-                    class Class : {|CS0535:{|CS0535:IInterface|}|}
+                    class Class : {|CS0535:IInterface|}
                     {
                         public void Method1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
+                    
+                        void IInterface.M1()
                         {
                             throw new System.NotImplementedException();
                         }
@@ -8680,9 +8768,14 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                         protected int P1 {get;}
                     }
 
-                    abstract class Class : {|CS0535:{|CS0535:IInterface|}|}
+                    abstract class Class : {|CS0535:IInterface|}
                     {
                         public abstract void Method1();
+
+                        void IInterface.M1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
                     }
                     """,
                 },
@@ -11895,7 +11988,7 @@ interface I
 
                 IEnumerator IEnumerable.GetEnumerator()
                 {
-                    throw new System.NotImplementedException();
+                    return GetEnumerator();
                 }
             }
             """,
@@ -11975,5 +12068,244 @@ interface I
             CodeActionEquivalenceKey = "True;False;False:global::I11<global::C11>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(CodeFixesResources.Implement_all_members_explicitly, codeAction.Title),
         }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67023")]
+    public async Task TestIEnumerable1()
+    {
+        await TestWithAllCodeStyleOptionsOffAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Class : {|CS0535:{|CS0535:IEnumerable<int>|}|}
+            {
+            }
+            """,
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Class : IEnumerable<int>
+            {
+                public IEnumerator<int> GetEnumerator()
+                {
+                    throw new NotImplementedException();
+                }
+            
+                IEnumerator IEnumerable.GetEnumerator()
+                {
+                    return GetEnumerator();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67023")]
+    public async Task TestIEnumerable2()
+    {
+        await TestWithAllCodeStyleOptionsOffAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Class : {|CS0535:{|CS0535:{|CS0535:{|CS0535:{|CS0535:IEnumerator<int>|}|}|}|}|}
+            {
+            }
+            """,
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Class : IEnumerator<int>
+            {
+                public int Current
+                {
+                    get
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            
+                object IEnumerator.Current
+                {
+                    get
+                    {
+                        return Current;
+                    }
+                }
+
+                public void Dispose()
+                {
+                    throw new NotImplementedException();
+                }
+            
+                public bool MoveNext()
+                {
+                    throw new NotImplementedException();
+                }
+            
+                public void Reset()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67023")]
+    public async Task TestIEnumerable3()
+    {
+        await TestWithAllCodeStyleOptionsOnAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Class : {|CS0535:{|CS0535:{|CS0535:{|CS0535:{|CS0535:IEnumerator<int>|}|}|}|}|}
+            {
+            }
+            """,
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Class : IEnumerator<int>
+            {
+                public int Current => throw new NotImplementedException();
+            
+                object IEnumerator.Current => Current;
+            
+                public void Dispose() => throw new NotImplementedException();
+                public bool MoveNext() => throw new NotImplementedException();
+                public void Reset() => throw new NotImplementedException();
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72380")]
+    public async Task TestImplementProtectedAbstract_CSharp9()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public interface I
+                {
+                    public abstract void Another();
+                    protected abstract void Method();
+                }
+
+                public class CI : {|CS0535:{|CS0535:I|}|}
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                public interface I
+                {
+                    public abstract void Another();
+                    protected abstract void Method();
+                }
+            
+                public class CI : I
+                {
+                    public void Another()
+                    {
+                        throw new NotImplementedException();
+                    }
+                
+                    void I.Method()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72380")]
+    public async Task TestImplementProtectedAbstract_CSharp10()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public interface I
+                {
+                    public abstract void Another();
+                    protected abstract void Method();
+                }
+
+                public class CI : {|CS0535:{|CS0535:I|}|}
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                public interface I
+                {
+                    public abstract void Another();
+                    protected abstract void Method();
+                }
+            
+                public class CI : I
+                {
+                    public void Another()
+                    {
+                        throw new NotImplementedException();
+                    }
+                
+                    public void Method()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19721")]
+    public async Task TestMatchPropertyAgainstPropertyWithMoreAccessors1()
+    {
+        await TestWithAllCodeStyleOptionsOnAsync(
+            """
+            interface ImmutableView
+            {
+                int Prop1 { get; }
+            }
+            interface MutableView : ImmutableView
+            {
+                new int Prop1 { get; set; }
+            }
+            class Implementation : {|CS0535:{|CS0535:MutableView|}|} { }
+            """,
+            """
+            interface ImmutableView
+            {
+                int Prop1 { get; }
+            }
+            interface MutableView : ImmutableView
+            {
+                new int Prop1 { get; set; }
+            }
+            class Implementation : MutableView
+            {
+                public int Prop1 { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+            }
+            """);
     }
 }

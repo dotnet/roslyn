@@ -19,7 +19,7 @@ internal sealed class OpenSemanticSearchWindowCommand : Command
     public override CommandConfiguration CommandConfiguration => new("%CSharpLanguageServiceExtension.OpenSemanticSearchWindow.DisplayName%")
     {
         Icon = new(ImageMoniker.KnownValues.FindSymbol, IconSettings.IconAndText),
-        Placements = new[] { CommandPlacement.KnownPlacements.ViewOtherWindowsMenu.WithPriority(0x8010) },
+        Placements = [CommandPlacement.KnownPlacements.ViewOtherWindowsMenu.WithPriority(0x8010)],
         VisibleWhen = ActivationConstraint.UIContext(Guid.Parse(SemanticSearchFeatureFlag.UIContextId))
     };
 

@@ -252,12 +252,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // The field needs to be public iff it is initialized directly from the kickoff method
                         // (i.e. not for IEnumerable which loads the values from parameter proxies).
-                        var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, parameter.Name, isPublic: !PreserveInitialParameterValuesAndThreadId);
+                        var proxyField = F.StateMachineFieldForRegularParameter(typeMap.SubstituteType(parameter.Type).Type, parameter.Name, parameter, isPublic: !PreserveInitialParameterValuesAndThreadId);
                         proxiesBuilder.Add(parameter, new CapturedToStateMachineFieldReplacement(proxyField, isReusable: false));
 
                         if (PreserveInitialParameterValuesAndThreadId)
                         {
-                            var field = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, GeneratedNames.StateMachineParameterProxyFieldName(parameter.Name), isPublic: true);
+                            var field = F.StateMachineFieldForRegularParameter(typeMap.SubstituteType(parameter.Type).Type, GeneratedNames.StateMachineParameterProxyFieldName(parameter.Name), parameter, isPublic: true);
                             initialParameters.Add(parameter, new CapturedToStateMachineFieldReplacement(field, isReusable: false));
                         }
                     }

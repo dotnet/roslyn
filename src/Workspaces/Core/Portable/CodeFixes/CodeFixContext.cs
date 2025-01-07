@@ -210,7 +210,7 @@ public readonly struct CodeFixContext
             throw new ArgumentNullException(nameof(diagnostics));
         }
 
-        RegisterCodeFix(action, diagnostics.ToImmutableArray());
+        RegisterCodeFix(action, [.. diagnostics]);
     }
 
     /// <summary>

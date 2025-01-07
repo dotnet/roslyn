@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     [ComVisible(true)]
-    public partial class AutomationObject : AbstractAutomationObject
+    public sealed partial class AutomationObject : AbstractAutomationObject
     {
         internal AutomationObject(ILegacyGlobalOptionService legacyGlobalOptions)
             : base(legacyGlobalOptions, LanguageNames.CSharp)

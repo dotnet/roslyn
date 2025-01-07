@@ -440,11 +440,6 @@ Elemente aus nicht importierten Namespaces anzeigen (experimentell);</target>
         <target state="translated">Schnipsel nie einschließen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>Only add new line on enter after end of fully typed word</source>
-        <target state="translated">Nach Drücken der EINGABETASTE nur nach dem Ende eines vollständigen Worts neue Zeile hinzufügen</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -68,16 +66,16 @@ internal sealed class SimplifyConditionalCodeFixProvider() : SyntaxEditorBasedCo
             if (diagnostic.Properties.ContainsKey(Negate))
                 condition = generator.Negate(generatorInternal, condition, semanticModel, cancellationToken);
 
-            var replacement = condition;
+            var replacement = condition.WithoutTrailingTrivia();
             if (diagnostic.Properties.ContainsKey(Or))
             {
                 var right = diagnostic.Properties.ContainsKey(WhenTrue) ? whenTrue : whenFalse;
-                replacement = generator.LogicalOrExpression(condition, right);
+                replacement = generator.LogicalOrExpression(replacement, right);
             }
             else if (diagnostic.Properties.ContainsKey(And))
             {
                 var right = diagnostic.Properties.ContainsKey(WhenTrue) ? whenTrue : whenFalse;
-                replacement = generator.LogicalAndExpression(condition, right);
+                replacement = generator.LogicalAndExpression(replacement, right);
             }
 
             return generatorInternal.AddParentheses(replacement.WithTriviaFrom(expr));
