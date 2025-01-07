@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
                 => Analyzers;
 
             public ImmutableArray<CodeFixProvider> GetFixers()
-                => Fixer != null ? [Fixer] : ImmutableArray<CodeFixProvider>.Empty;
+                => Fixer != null ? [Fixer] : [];
 
             public class MockFixer : CodeFixProvider
             {
