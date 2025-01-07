@@ -914,7 +914,7 @@
       </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
-        <target state="new">Never</target>
+        <target state="translated">Hiçbir zaman</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
@@ -1579,7 +1579,7 @@
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments</source>
-        <target state="needs-review-translation">Bağımsız değişkenleri eklemek için iki kez dokunun (deneysel)</target>
+        <target state="new">Tab twice to insert arguments</target>
         <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments_experimental">
@@ -1629,7 +1629,7 @@
       </trans-unit>
       <trans-unit id="Title">
         <source>Title</source>
-        <target state="new">Title</target>
+        <target state="translated">Başlık</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Name">
