@@ -638,23 +638,24 @@ End Class
             Dim parseOptions = TestOptions.Regular
             Dim compilation As Compilation = CreateCompilation(source, parseOptions:=parseOptions)
             compilation.VerifyDiagnostics()
-        
+
             Assert.Single(compilation.SyntaxTrees)
-        
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                             ctx.RegisterPostInitializationOutput(Sub(c) c.AddEmbeddedAttributeDefinition())
-                                                                                         End Sub))
-        
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
+                Sub(ctx)
+                    ctx.RegisterPostInitializationOutput(Sub(c) c.AddEmbeddedAttributeDefinition())
+                End Sub))
+
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             Dim outputCompilation As Compilation = Nothing
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, outputCompilation, diagnostics)
             Dim runResult = driver.GetRunResult().Results(0)
-        
+
             Assert.Single(runResult.GeneratedSources)
-        
+
             Dim generatedSource = runResult.GeneratedSources(0)
-        
+
             Assert.Equal("Namespace Microsoft.CodeAnalysis
     Friend NotInheritable Partial Class EmbeddedAttribute
         Inherits Global.System.Attribute
@@ -664,7 +665,7 @@ End Namespace", generatedSource.SourceText.ToString())
 
             outputCompilation.VerifyDiagnostics()
         End Sub
-        
+
         <Fact>
         Public Sub IncrementalGenerator_PostInit_AddEmbeddedAttributeSource_DoubleAdd_Throws()
             Dim source = "
@@ -674,24 +675,26 @@ End Class
             Dim parseOptions = TestOptions.Regular
             Dim compilation As Compilation = CreateCompilation(source, parseOptions:=parseOptions)
             compilation.VerifyDiagnostics()
-        
+
             Assert.Single(compilation.SyntaxTrees)
-        
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                             ctx.RegisterPostInitializationOutput(Sub(c)
-                                                                                                                                     c.AddEmbeddedAttributeDefinition()
-                                                                                                                                     Assert.Throws(Of ArgumentException)("hintName", Sub() c.AddEmbeddedAttributeDefinition())
-                                                                                                                                 End Sub)
-                                                                                         End Sub))
-        
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
+                Sub(ctx)
+                    ctx.RegisterPostInitializationOutput(
+                        Sub(c)
+                            c.AddEmbeddedAttributeDefinition()
+                            Assert.Throws(Of ArgumentException)("hintName", Sub() c.AddEmbeddedAttributeDefinition())
+                        End Sub)
+                End Sub))
+
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
-        
+
             Assert.Single(runResult.GeneratedSources)
-        
+
             Dim generatedSource = runResult.GeneratedSources(0)
-        
+
             Assert.Equal("Namespace Microsoft.CodeAnalysis
     Friend NotInheritable Partial Class EmbeddedAttribute
         Inherits Global.System.Attribute
