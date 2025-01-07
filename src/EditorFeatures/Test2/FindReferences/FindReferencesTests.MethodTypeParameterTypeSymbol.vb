@@ -130,6 +130,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/76650")>
         Public Async Function TestMethodTypeParameter_TopLevelLocalFunction(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -145,6 +146,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/76650")>
         Public Async Function TestMethodTypeParameter_MethodLevelLocalFunction(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -166,6 +168,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/76650")>
         Public Async Function TestMethodTypeParameter_NormalMethod(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
