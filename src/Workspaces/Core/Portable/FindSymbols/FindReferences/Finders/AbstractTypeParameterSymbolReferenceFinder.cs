@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -60,7 +61,7 @@ internal abstract class AbstractTypeParameterSymbolReferenceFinder : AbstractRef
             {
                 Contract.ThrowIfNull(token.Parent?.Parent);
                 var typeInfo = state.SemanticModel.GetTypeInfo(token.Parent.Parent, cancellationToken);
-                if (symbol.Equals(typeInfo.Type, SymbolEqualityComparer.Default))
+                if (SymbolEquivalenceComparer.Instance.Equals(symbol, typeInfo.Type))
                     processResult(CreateFinderLocation(state, token, CandidateReason.None, cancellationToken), processResultData);
             }
         }
