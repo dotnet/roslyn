@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -45,7 +46,7 @@ internal abstract partial class AbstractExtractMethodService<
         /// </summary>
         private ControlFlowAnalysis? _statementControlFlowAnalysis;
 
-        protected abstract bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken);
+        // protected abstract bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken);
 
         public abstract TExecutableStatementSyntax GetFirstStatementUnderContainer();
         public abstract TExecutableStatementSyntax GetLastStatementUnderContainer();
@@ -119,31 +120,36 @@ internal abstract partial class AbstractExtractMethodService<
             return token.GetRequiredAncestor<TExecutableStatementSyntax>();
         }
 
-        public bool CreateAsyncMethod()
+        public bool ContainsAwaitExpression()
         {
             _createAsyncMethod ??= CreateAsyncMethodWorker();
             return _createAsyncMethod.Value;
 
             bool CreateAsyncMethodWorker()
             {
-                var firstToken = GetFirstTokenInSelection();
-                var lastToken = GetLastTokenInSelection();
-                var syntaxFacts = SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+                var firstToken = this.GetFirstTokenInSelection();
+                var lastToken = this.GetLastTokenInSelection();
+                var span = TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
 
-                for (var currentToken = firstToken;
-                    currentToken.Span.End < lastToken.SpanStart;
-                    currentToken = currentToken.GetNextToken())
+                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+                stack.Push(this.GetContainingScope());
+
+                var syntaxFacts = this.SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+
+                while (stack.TryPop(out var current))
                 {
-                    // [|
-                    //     async () => await ....
-                    // |]
-                    //
-                    // for the case above, even if the selection contains "await", it doesn't belong to the enclosing block
-                    // which extract method is applied to
-                    if (syntaxFacts.IsAwaitKeyword(currentToken)
-                        && !UnderAnonymousOrLocalMethod(currentToken, firstToken, lastToken))
-                    {
+                    // Don't dive into lambdas and local functions.  They reset the async/await context.
+                    if (syntaxFacts.IsAnonymousOrLocalFunction(current))
+                        continue;
+
+                    if (syntaxFacts.IsAwaitExpression(current))
                         return true;
+
+                    // Only dive into child nodes within the span being extracted.
+                    foreach (var childNode in current.ChildNodes())
+                    {
+                        if (childNode.Span.OverlapsWith(span))
+                            stack.Push(childNode);
                     }
                 }
 
