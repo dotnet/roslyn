@@ -196,8 +196,6 @@ internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider() : Code
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        // We're only replacing a single declaration in the refactoring.  So pass 'declaration'
-        // as both the 'original' and 'current' declaration.
         var updatedDeclaration = UseExpressionBodyForLambdaCodeActionHelpers.Update(
             semanticModel, declaration, cancellationToken);
 
