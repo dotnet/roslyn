@@ -50,11 +50,6 @@ internal abstract partial class AbstractExtractMethodService<
             /// </summary>
             public bool EndOfSelectionReachable { get; } = endOfSelectionReachable;
 
-            // <summary>
-            // flag to show whether task return type is due to await
-            // </summary>
-            //public bool AwaitTaskReturn { get; } = awaitTaskReturn;
-
             /// <summary>
             /// Initial computed return type for the extract method.  This does not include any wrapping in a type like
             /// <see cref="Task{TResult}"/> for async methods.
@@ -68,9 +63,6 @@ internal abstract partial class AbstractExtractMethodService<
             public OperationStatus Status { get; } = status;
 
             public ImmutableArray<VariableInfo> Variables { get; } = variables;
-
-            //public bool IsVoidMethod
-            //    => ReturnType.SpecialType == SpecialType.System_Void;
 
             public ImmutableArray<VariableInfo> GetVariablesToSplitOrMoveIntoMethodDefinition()
             {
