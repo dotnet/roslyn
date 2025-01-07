@@ -641,27 +641,34 @@ End Class
 
             Assert.Single(compilation.SyntaxTrees)
 
-            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
+            Dim generator1 = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
                 Sub(ctx)
                     ctx.RegisterPostInitializationOutput(Sub(c) c.AddEmbeddedAttributeDefinition())
                 End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
+            Dim generator2 = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator2(
+                Sub(ctx)
+                    ctx.RegisterPostInitializationOutput(Sub(c) c.AddEmbeddedAttributeDefinition())
+                End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator1, generator2), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             Dim outputCompilation As Compilation = Nothing
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, outputCompilation, diagnostics)
-            Dim runResult = driver.GetRunResult().Results(0)
+            Dim runResult = driver.GetRunResult()
 
-            Assert.Single(runResult.GeneratedSources)
+            For Each runResult in driver.GetRunResult().Results Do
+                Assert.Single(runResult.GeneratedSources)
 
-            Dim generatedSource = runResult.GeneratedSources(0)
+                Dim generatedSource = runResult.GeneratedSources(0)
 
-            Assert.Equal("Namespace Microsoft.CodeAnalysis
+                Assert.Equal("Namespace Microsoft.CodeAnalysis
     Friend NotInheritable Partial Class EmbeddedAttribute
         Inherits Global.System.Attribute
     End Class
 End Namespace", generatedSource.SourceText.ToString())
-            Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute.vb", generatedSource.HintName)
+                Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute.vb", generatedSource.HintName)
+            End For
 
             outputCompilation.VerifyDiagnostics()
         End Sub

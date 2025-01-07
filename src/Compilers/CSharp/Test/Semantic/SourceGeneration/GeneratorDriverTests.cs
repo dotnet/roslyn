@@ -2458,28 +2458,29 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
-            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
-            {
-                ctx.RegisterPostInitializationOutput(c => c.AddEmbeddedAttributeDefinition());
-            }));
+            var callback = (IncrementalGeneratorInitializationContext ctx) => ctx.RegisterPostInitializationOutput(c => c.AddEmbeddedAttributeDefinition());
+            var generator1 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(callback));
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(callback));
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator1, generator2], parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
-            var runResult = driver.GetRunResult().Results[0];
 
-            Assert.Single(runResult.GeneratedSources);
-
-            var generatedSource = runResult.GeneratedSources[0];
-
-            Assert.Equal("""
-            namespace Microsoft.CodeAnalysis
+            foreach (var runResult in driver.GetRunResult().Results)
             {
-                internal sealed partial class EmbeddedAttribute : global::System.Attribute
-                {
-                }
+                Assert.Single(runResult.GeneratedSources);
+
+                var generatedSource = runResult.GeneratedSources[0];
+
+                Assert.Equal("""
+                    namespace Microsoft.CodeAnalysis
+                    {
+                        internal sealed partial class EmbeddedAttribute : global::System.Attribute
+                        {
+                        }
+                    }
+                    """, generatedSource.SourceText.ToString());
+                Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute.cs", generatedSource.HintName);
             }
-            """, generatedSource.SourceText.ToString());
-            Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute.cs", generatedSource.HintName);
 
             outputCompilation.VerifyDiagnostics();
         }
