@@ -30,8 +30,7 @@ var options = new OptionSet
 
 try
 {
-    List<string> extra;
-    extra = options.Parse(args);
+    List<string> extra = options.Parse(args);
 
     if (assemblyFilePath is null)
     {

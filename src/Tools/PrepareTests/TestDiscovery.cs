@@ -35,11 +35,11 @@ internal class TestDiscovery
                 ? dotnetFrameworkWorker
                 : dotnetCoreWorker;
 
-            var tuple = RunWorker(dotnetPath, workerPath, assembly);
+            var (workerSucceeded, output) = RunWorker(dotnetPath, workerPath, assembly);
             lock (s_lock)
             {
-                Console.WriteLine(tuple.Output);
-                success &= tuple.Succeeded;
+                Console.WriteLine(output);
+                success &= workerSucceeded;
             }
         });
         stopwatch.Stop();
@@ -89,18 +89,18 @@ internal class TestDiscovery
         var pathToOutput = Path.Combine(Path.GetDirectoryName(pathToAssembly)!, "testlist.json");
         arguments.Append($" --assembly {pathToAssembly} --out {pathToOutput}");
 
-        string output = string.Empty;
+        var output = new StringBuilder();
         worker.StartInfo.Arguments = arguments.ToString();
         worker.StartInfo.UseShellExecute = false;
         worker.StartInfo.RedirectStandardOutput = true;
-        worker.OutputDataReceived += (sender, e) => output += e.Data;
+        worker.OutputDataReceived += (sender, e) => output.Append(e.Data);
         worker.Start();
         worker.BeginOutputReadLine();
         worker.WaitForExit();
         var success = worker.ExitCode == 0;
         worker.Close();
 
-        return (success, output);
+        return (success, output.ToString());
     }
 
     private static List<string> GetAssemblies(string binDirectory, bool isUnix)
