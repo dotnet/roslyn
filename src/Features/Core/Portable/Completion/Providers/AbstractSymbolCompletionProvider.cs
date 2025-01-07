@@ -299,7 +299,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         if (relatedDocumentIds.IsEmpty)
         {
             var itemsForCurrentDocument = await GetSymbolsAsync(completionContext, syntaxContext, position, options, cancellationToken).ConfigureAwait(false);
-            return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: ImmutableArray<ProjectId>.Empty);
+            return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: []);
         }
 
         using var _ = PooledDictionary<DocumentId, int>.GetInstance(out var documentIdToIndex);

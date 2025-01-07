@@ -277,7 +277,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
                 symbolKey = SymbolKey.Create(methodSymbol.OriginalDefinition, cancellationToken);
             }
 
-            var invalidProjectsForCurrentSymbol = ArrayBuilder<ProjectId>.GetInstance();
+            using var _ = ArrayBuilder<ProjectId>.GetInstance(out var invalidProjectsForCurrentSymbol);
             foreach (var relatedDocument in relatedDocuments)
             {
                 // Try to resolve symbolKey in each related compilation,
@@ -289,7 +289,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
                 }
             }
 
-            var platformData = new SupportedPlatformData(document.Project.Solution, invalidProjectsForCurrentSymbol.ToImmutableAndFree(), totalProjects);
+            var platformData = new SupportedPlatformData(document.Project.Solution, invalidProjectsForCurrentSymbol.ToImmutableAndClear(), totalProjects);
             finalItems.Add(UpdateItem(item, platformData));
         }
 

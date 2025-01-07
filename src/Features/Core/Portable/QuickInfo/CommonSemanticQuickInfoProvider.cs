@@ -118,7 +118,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var candidateProjects = candidateResults.SelectAsArray(result => result.docId.ProjectId);
 
         // We calculate the set of supported projects
-        var invalidProjects = ArrayBuilder<ProjectId>.GetInstance();
+        using var _ = ArrayBuilder<ProjectId>.GetInstance(out var invalidProjects);
         candidateResults.Remove(bestBinding);
         foreach (var (docId, tokenInformation) in candidateResults)
         {
@@ -127,7 +127,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
                 invalidProjects.Add(docId.ProjectId);
         }
 
-        var supportedPlatforms = new SupportedPlatformData(solution, invalidProjects.ToImmutableAndFree(), candidateProjects);
+        var supportedPlatforms = new SupportedPlatformData(solution, invalidProjects.ToImmutableAndClear(), candidateProjects);
         return (bestBinding.tokenInformation, supportedPlatforms);
     }
 
