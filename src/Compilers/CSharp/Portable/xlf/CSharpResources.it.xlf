@@ -2657,11 +2657,6 @@
         <target state="translated">indicatore di misura</target>
         <note />
       </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
-        <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
-        <target state="translated">L'identificatore è una parola chiave contestuale, con un significato specifico, in una versione successiva del linguaggio.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
         <source>Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</source>
         <target state="translated">La compilazione richiede l'associazione dell'espressione lambda almeno {0}volte. È consigliabile dichiarare l'espressione lambda con tipi di parametro espliciti oppure, se la chiamata al metodo contenitore è generica, provare a usare argomenti di tipo esplicito.</target>
@@ -5501,6 +5496,16 @@ target:module               Compila un modulo che può essere aggiunto ad altro
       <trans-unit id="WRN_UseDefViolation_Title">
         <source>Use of unassigned local variable</source>
         <target state="translated">Uso della variabile locale non assegnata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_VariableDeclarationNamedField">
+        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. Unescaped references to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</source>
+        <target state="new">In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. Unescaped references to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_VariableDeclarationNamedField_Title">
+        <source>References to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</source>
+        <target state="new">References to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_WindowsExperimental">

@@ -2657,11 +2657,6 @@
         <target state="translated">指针</target>
         <note />
       </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
-        <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
-        <target state="translated">标识符是更高语言版本中具有特定含义的上下文关键字。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
         <source>Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</source>
         <target state="translated">编译时需要绑定 lambda 表达式至少 {0} 次。请考虑使用显式参数类型声明 lambda 表达式，如果包含的方法调用是泛型的，请考虑使用显式类型参数。</target>
@@ -5501,6 +5496,16 @@
       <trans-unit id="WRN_UseDefViolation_Title">
         <source>Use of unassigned local variable</source>
         <target state="translated">使用未赋值的局部变量</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_VariableDeclarationNamedField">
+        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. Unescaped references to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</source>
+        <target state="new">In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. Unescaped references to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_VariableDeclarationNamedField_Title">
+        <source>References to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</source>
+        <target state="new">References to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_WindowsExperimental">
