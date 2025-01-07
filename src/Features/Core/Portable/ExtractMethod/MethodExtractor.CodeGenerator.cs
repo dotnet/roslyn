@@ -376,11 +376,22 @@ internal abstract partial class AbstractExtractMethodService<
             public ITypeSymbol GetFinalReturnType()
             {
                 return _finalReturnType ??= ComputeFinalReturnType();
-            }
 
-            private ITypeSymbol ComputeFinalReturnType()
-            {
-                throw new NotImplementedException();
+                ITypeSymbol ComputeFinalReturnType()
+                {
+                    var coreType = this.AnalyzerResult.CoreReturnType;
+                    if (this.SelectionResult.ContainsAwaitExpression())
+                    {
+                        // If we're awaiting, then we're going to be returning a task of some sort.  Convert `void` to
+                        // `Task` and any other T to `Task<T>`.
+                        var compilation = this.SemanticDocument.SemanticModel.Compilation;
+                        return coreType.SpecialType == SpecialType.System_Void
+                            ? compilation.TaskType()
+                            : compilation.TaskOfTType().Construct(coreType);
+                    }
+
+                    return coreType;
+                }
             }
         }
     }

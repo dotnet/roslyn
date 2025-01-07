@@ -71,7 +71,7 @@ internal abstract partial class AbstractExtractMethodService<
             public AnalyzerResult Analyze()
             {
                 // do data flow analysis
-                var model = this.SemanticDocument.SemanticModel;
+                var model = this.SemanticModel;
                 var dataFlowAnalysisData = this.SelectionResult.GetDataFlowAnalysis();
 
                 // build symbol map for the identifiers used inside of the selection
@@ -158,7 +158,7 @@ internal abstract partial class AbstractExtractMethodService<
                     // check whether current selection contains return statement
                     var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
 
-                    return (allVariableInfos, returnType, returnsByRef);
+                    return (allVariableInfos, UnwrapTaskIfNeeded(returnType), returnsByRef);
                 }
                 else
                 {
@@ -171,9 +171,34 @@ internal abstract partial class AbstractExtractMethodService<
                     return (finalOrderedVariableInfos, returnType, returnsByRef: false);
                 }
 
+                ITypeSymbol UnwrapTaskIfNeeded(ITypeSymbol returnType)
+                {
+                    if (this.SelectionResult.ContainingScopeHasAsyncKeyword())
+                    {
+                        // We compute the desired return type for the extract method from our own return type.  But for
+                        // the purposes of manipulating the return type, we need to get to the underlying type if this
+                        // was wrapped in a Task in an explicitly 'async' method.  In other words, if we're in an `async
+                        // Task<int>` method, then we want the extract method to return `int`.  Note: we will possibly
+                        // then wrap that as `Task<int>` again if we see that we extracted out any await-expressions.
+
+                        var compilation = this.SemanticModel.Compilation;
+                        var knownTaskTypes = new KnownTaskTypes(compilation);
+
+                        // Map from `Task/ValueTask` to `void`
+                        if (returnType.Equals(knownTaskTypes.TaskType) || returnType.Equals(knownTaskTypes.ValueTaskType))
+                            return compilation.GetSpecialType(SpecialType.System_Void);
+
+                        // Map from `Task<T>/ValueTask<T>` to `T`
+                        if (returnType.OriginalDefinition.Equals(knownTaskTypes.TaskOfTType) || returnType.OriginalDefinition.Equals(knownTaskTypes.ValueTaskOfTType))
+                            return returnType.GetTypeArguments().Single();
+                    }
+
+                    return returnType;
+                }
+
                 ITypeSymbol GetReturnType(ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
                 {
-                    var compilation = this.SemanticDocument.SemanticModel.Compilation;
+                    var compilation = this.SemanticModel.Compilation;
 
                     if (variablesToUseAsReturnValue.IsEmpty)
                         return compilation.GetSpecialType(SpecialType.System_Void);

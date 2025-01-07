@@ -209,7 +209,7 @@ internal sealed partial class CSharpExtractMethodService
             private DeclarationModifiers CreateMethodModifiers()
             {
                 var isUnsafe = ShouldPutUnsafeModifier();
-                var isAsync = this.SelectionResult.CreateAsyncMethod();
+                var isAsync = this.SelectionResult.ContainsAwaitExpression();
                 var isStatic = !AnalyzerResult.UseInstanceMember;
                 var isReadOnly = AnalyzerResult.ShouldBeReadOnly;
 
@@ -604,21 +604,20 @@ internal sealed partial class CSharpExtractMethodService
                 }
 
                 var invocation = (ExpressionSyntax)InvocationExpression(methodExpression, ArgumentList([.. arguments]));
+
+                // If we're extracting any code that contained an 'await' then we'll have to await the new method we're
+                // calling as well.  If we also see any use of .ConfigureAwait(false) in the extracted code, keep that
+                // pattern on the await expression we produce.
                 if (this.SelectionResult.ContainsAwaitExpression())
                 {
                     if (this.SelectionResult.ContainsConfigureAwaitFalse())
                     {
-                        if (this.GetFinalReturnType()
-                                .GetMembers(nameof(Task.ConfigureAwait))
-                                .Any(static x => x is IMethodSymbol { Parameters: [{ Type.SpecialType: SpecialType.System_Boolean }] }))
-                        {
-                            invocation = InvocationExpression(
-                                MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    invocation,
-                                    IdentifierName(nameof(Task.ConfigureAwait))),
-                                ArgumentList([Argument(LiteralExpression(SyntaxKind.FalseLiteralExpression))]));
-                        }
+                        invocation = InvocationExpression(
+                            MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                invocation,
+                                IdentifierName(nameof(Task.ConfigureAwait))),
+                            ArgumentList([Argument(LiteralExpression(SyntaxKind.FalseLiteralExpression))]));
                     }
 
                     invocation = AwaitExpression(invocation);
