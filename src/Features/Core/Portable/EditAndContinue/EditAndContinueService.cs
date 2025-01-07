@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// Implements core of Edit and Continue orchestration: management of edit sessions and connecting EnC related services.
 /// </summary>
 [Export(typeof(IEditAndContinueService)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class EditAndContinueService() : IEditAndContinueService
+internal sealed class EditAndContinueService : IEditAndContinueService
 {
     [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
     [method: ImportingConstructor]
@@ -47,8 +45,10 @@ internal sealed class EditAndContinueService() : IEditAndContinueService
         public ImmutableArray<DiagnosticData> ApplyChangesDiagnostics => [];
     }
 
-    internal static readonly TraceLog Log;
-    internal static readonly TraceLog AnalysisLog;
+    private static readonly string? s_logDir = GetLogDirectory();
+
+    internal readonly TraceLog Log;
+    internal readonly TraceLog AnalysisLog;
 
     private Func<Project, CompilationOutputs> _compilationOutputsProvider = GetCompilationOutputs;
 
@@ -58,16 +58,18 @@ internal sealed class EditAndContinueService() : IEditAndContinueService
     private readonly List<DebuggingSession> _debuggingSessions = [];
     private static int s_debuggingSessionId;
 
-    static EditAndContinueService()
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public EditAndContinueService(
+        [Import(AllowDefault = true)] IEditAndContinueLogReporter? logReporter)
     {
-        Log = new(2048, "Trace.log");
-        AnalysisLog = new(1024, "Analysis.log");
+        Log = new TraceLog("Session", logReporter);
+        AnalysisLog = new TraceLog("Analysis", logReporter);
 
-        var logDir = GetLogDirectory();
-        if (logDir != null)
+        if (s_logDir != null)
         {
-            Log.SetLogDirectory(logDir);
-            AnalysisLog.SetLogDirectory(logDir);
+            Log.SetLogDirectory(s_logDir);
+            AnalysisLog.SetLogDirectory(s_logDir);
         }
     }
 
@@ -92,7 +94,9 @@ internal sealed class EditAndContinueService() : IEditAndContinueService
 
     public void SetFileLoggingDirectory(string? logDirectory)
     {
-        Log.SetLogDirectory(logDirectory ?? GetLogDirectory());
+        logDirectory ??= GetLogDirectory();
+        Log.SetLogDirectory(logDirectory);
+        AnalysisLog.SetLogDirectory(logDirectory);
     }
 
     private static CompilationOutputs GetCompilationOutputs(Project project)
@@ -148,7 +152,7 @@ internal sealed class EditAndContinueService() : IEditAndContinueService
                     ? solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values))
                     : GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
 
-                initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(documentsByProject, _compilationOutputsProvider, sourceTextProvider, cancellationToken).ConfigureAwait(false);
+                initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(Log, documentsByProject, _compilationOutputsProvider, sourceTextProvider, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -159,7 +163,7 @@ internal sealed class EditAndContinueService() : IEditAndContinueService
             solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
 
             var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, initialDocumentStates, reportDiagnostics);
+            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, initialDocumentStates, Log, AnalysisLog, reportDiagnostics);
 
             lock (_debuggingSessions)
             {

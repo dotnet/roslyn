@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var lazyCapabilities = AsyncLazy.Create(requiredCapabilities);
             var actualRequiredCapabilities = EditAndContinueCapabilities.None;
             var hasValidChanges = false;
+            var log = new TraceLog("Test");
 
             for (var documentIndex = 0; documentIndex < documentCount; documentIndex++)
             {
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 Contract.ThrowIfNull(newModel);
 
                 var lazyOldActiveStatementMap = AsyncLazy.Create(expectedResult.ActiveStatements.OldStatementsMap);
-                var result = Analyzer.AnalyzeDocumentAsync(oldProject, lazyOldActiveStatementMap, newDocument, newActiveStatementSpans, lazyCapabilities, CancellationToken.None).Result;
+                var result = Analyzer.AnalyzeDocumentAsync(oldProject, lazyOldActiveStatementMap, newDocument, newActiveStatementSpans, lazyCapabilities, log, CancellationToken.None).Result;
                 var oldText = oldDocument.GetTextSynchronously(default);
                 var newText = newDocument.GetTextSynchronously(default);
 

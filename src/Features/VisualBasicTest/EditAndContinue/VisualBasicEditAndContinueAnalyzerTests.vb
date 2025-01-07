@@ -123,7 +123,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim analyzer = oldProject.Services.GetRequiredService(Of IEditAndContinueAnalyzer)
             Dim baseActiveStatements = AsyncLazy.Create(If(activeStatementMap, ActiveStatementsMap.Empty))
             Dim capabilities = AsyncLazy.Create(EditAndContinueTestVerifier.Net5RuntimeCapabilities)
-            Return Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray(Of ActiveStatementLineSpan).Empty, capabilities, CancellationToken.None)
+            Dim log = New TraceLog("Test")
+            Return Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray(Of ActiveStatementLineSpan).Empty, capabilities, log, CancellationToken.None)
         End Function
 #End Region
 

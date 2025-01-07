@@ -21,12 +21,14 @@ internal enum LogMessageSeverity
 }
 
 /// <summary>
-/// Fixed size rolling tracing log. 
+/// Implements EnC logging.
+/// 
+/// Writes log messages to:
+/// - fixed size rolling tracing log captured in a memory dump,
+/// - a file log, if a log directory is provided,
+/// - log service, if avaiable.
 /// </summary>
-/// <remarks>
-/// Recent entries are captured in a memory dump.
-/// </remarks>
-internal sealed class TraceLog(int logSize, string fileName)
+internal sealed class TraceLog(string name, IEditAndContinueLogReporter? logService = null, int logSize = 2048)
 {
     internal sealed class FileLogger(string logDirectory, TraceLog traceLog)
     {
@@ -39,7 +41,7 @@ internal sealed class TraceLog(int logSize, string fileName)
 
             try
             {
-                path = Path.Combine(_logDirectory, _traceLog._fileName);
+                path = Path.Combine(_logDirectory, _traceLog._name + ".log");
                 File.AppendAllLines(path, [entry]);
             }
             catch (Exception e)
@@ -136,7 +138,7 @@ internal sealed class TraceLog(int logSize, string fileName)
     }
 
     private readonly string[] _log = new string[logSize];
-    private readonly string _fileName = fileName;
+    private readonly string _name = name;
     private int _currentLine;
 
     public FileLogger? FileLog { get; private set; }
@@ -159,6 +161,7 @@ internal sealed class TraceLog(int logSize, string fileName)
     {
         AppendInMemory(message);
         FileLog?.Append(message);
+        logService?.Report(message, severity);
     }
 
     internal TestAccessor GetTestAccessor()
