@@ -287,22 +287,56 @@ internal sealed partial class CSharpExtractMethodService
 
                 SyntaxNode ConvertExitPoint(SyntaxNode current)
                 {
+                    var flowControlInformation = this.AnalyzerResult.FlowControlInformation;
                     if (current is BreakStatementSyntax breakStatement)
                     {
-                        var returnStatement = this.AnalyzerResult.FlowControlInformation.TryGetBreakFlowValue(out var breakFlowValue)
-                            ? ReturnStatement(ExpressionGenerator.GenerateExpression()
+                        // TODO: pass back more than just the control flow value if needed.
+                        var returnStatement = flowControlInformation.TryGetBreakFlowValue(out var flowValue)
+                            ? ReturnStatement(ExpressionGenerator.GenerateExpression(flowControlInformation.ControlFlowValueType, flowValue, canUseFieldReference: false))
                             : ReturnStatement();
                         return returnStatement.WithSemicolonToken(breakStatement.SemicolonToken);
                     }
-                    else if (current is ContinueStatementSyntax)
+                    else if (current is ContinueStatementSyntax continueStatement)
                     {
+                        // TODO: pass back more than just the control flow value if needed.
+                        var returnStatement = flowControlInformation.TryGetContinueFlowValue(out var flowValue)
+                            ? ReturnStatement(ExpressionGenerator.GenerateExpression(flowControlInformation.ControlFlowValueType, flowValue, canUseFieldReference: false))
+                            : ReturnStatement();
+                        return returnStatement.WithSemicolonToken(continueStatement.SemicolonToken);
                     }
-                    else if (current is ReturnStatementSyntax)
+                    else if (current is ReturnStatementSyntax returnStatement)
                     {
+                        if (flowControlInformation.TryGetContinueFlowValue(out var flowValue))
+                        {
+                            var returnExpr = returnStatement.Expression;
+                            if (returnExpr != null)
+                            {
+                                // The code we're extracting is returning values as well.  Ensure that we return both
+                                // the control flow value and the original value the code was returning.
+                                var tupleExpression = TupleExpression([
+                                    Argument(ExpressionGenerator.GenerateExpression(flowControlInformation.ControlFlowValueType, flowValue, canUseFieldReference: false)),
+                                    Argument(returnExpr.WithoutTrivia())]).WithTriviaFrom(returnExpr);
+                                return returnStatement.WithExpression(tupleExpression);
+                            }
+                            else
+                            {
+                                // The code we're extracting has no other values to return outwards, just the control
+                                // flow value.  In that case, we can just return the control flow value directly
+                                // indicating that we hit a return statement.
+                                return returnStatement.WithExpression(
+                                    ExpressionGenerator.GenerateExpression(flowControlInformation.ControlFlowValueType, flowValue, canUseFieldReference: false));
+                            }
+                        }
 
+                        // No advanced flow control.  Just have the return statement return as it normally did.  It can
+                        // be a normal `return;` or a `return expr;`.  In the former case the caller will just call into
+                        // the new method and do an immediate `return;` after that itself.  In the latter case the
+                        // caller will change to `return NewMethod();` to pass that value upwards.
+                        return current;
                     }
                     else
                     {
+                        // A different type of flow control construct (goto, yield, perhaps others).  Just leave as is.
                         return current;
                     }
                 }
