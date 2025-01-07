@@ -86,15 +86,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         End If
                     End Function
 
-                    Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As ExecutableStatementSyntax
-                        Return Me.SelectionResult.GetContainingScopeOf(Of ExecutableStatementSyntax)()
+                    Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax
+                        Return Me.SelectionResult.GetContainingScopeOf(Of StatementSyntax)()
                     End Function
 
-                    Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As ExecutableStatementSyntax
+                    Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As StatementSyntax
                         Return GetFirstStatementOrInitializerSelectedAtCallSite()
                     End Function
 
-                    Protected Overrides Async Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of ExecutableStatementSyntax)
+                    Protected Overrides Async Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)
                         Dim enclosingStatement = GetFirstStatementOrInitializerSelectedAtCallSite()
                         Dim callSignature = CreateCallSignature().WithAdditionalAnnotations(CallSiteAnnotation)
 
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Dim updatedDocument = Await Me.SemanticDocument.Document.ReplaceNodeAsync(enclosingStatement, newEnclosingStatement, cancellationToken).ConfigureAwait(False)
                         Dim updatedRoot = Await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
-                        newEnclosingStatement = DirectCast(updatedRoot.GetAnnotatedNodesAndTokens(enclosingStatementAnnotation).Single().AsNode(), ExecutableStatementSyntax)
+                        newEnclosingStatement = DirectCast(updatedRoot.GetAnnotatedNodesAndTokens(enclosingStatementAnnotation).Single().AsNode(), StatementSyntax)
 
                         ' because of the complexification we cannot guarantee that there is only one annotation.
                         ' however complexification of names is prepended, so the last annotation should be the original one.

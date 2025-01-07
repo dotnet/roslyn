@@ -49,16 +49,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Return nodes.ToImmutableArray()
                     End Function
 
-                    Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As ExecutableStatementSyntax
+                    Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax
                         Return Me.SelectionResult.GetFirstStatementUnderContainer()
                     End Function
 
-                    Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As ExecutableStatementSyntax
+                    Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As StatementSyntax
                         Return Me.SelectionResult.GetLastStatementUnderContainer()
                     End Function
 
-                    Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of ExecutableStatementSyntax)
-                        Return Task.FromResult(GetStatementContainingInvocationToExtractedMethodWorker().WithAdditionalAnnotations(CallSiteAnnotation))
+                    Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)
+                        Return Task.FromResult(Of StatementSyntax)(
+                            GetStatementContainingInvocationToExtractedMethodWorker().WithAdditionalAnnotations(CallSiteAnnotation))
                     End Function
                 End Class
             End Class

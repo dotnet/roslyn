@@ -37,18 +37,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Return ImmutableArray.Create(Of StatementSyntax)(Me.SelectionResult.GetFirstStatement())
                     End Function
 
-                    Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As ExecutableStatementSyntax
+                    Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax
                         Return Me.SelectionResult.GetFirstStatement()
                     End Function
 
-                    Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As ExecutableStatementSyntax
+                    Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As StatementSyntax
                         ' it is a single statement case. either first statement is same as last statement or
                         ' last statement belongs (embedded statement) to the first statement.
                         Return Me.SelectionResult.GetFirstStatement()
                     End Function
 
-                    Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of ExecutableStatementSyntax)
-                        Return Task.FromResult(GetStatementContainingInvocationToExtractedMethodWorker().WithAdditionalAnnotations(CallSiteAnnotation))
+                    Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)
+                        Return Task.FromResult(Of StatementSyntax)(
+                            GetStatementContainingInvocationToExtractedMethodWorker().WithAdditionalAnnotations(CallSiteAnnotation))
                     End Function
                 End Class
             End Class
