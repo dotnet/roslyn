@@ -19,7 +19,7 @@ Assert.Equal([2], x); // previously Assert.Equal<T>(T[], T[]), now ambiguous wit
 Assert.Equal([2], x.AsSpan()); // workaround
 
 var y = new int[] { 1, 2 };
-var s = new ArraySegment<int>(x, 1, 1);
+var s = new ArraySegment<int>(y, 1, 1);
 Assert.Equal(y, s); // previously Assert.Equal<T>(T, T), now ambiguous with Assert.Equal<T>(Span<T>, Span<T>)
 Assert.Equal(y.AsSpan(), s); // workaround
 ```
@@ -39,8 +39,23 @@ static class C
     public static void R<T>(IEnumerable<T> e) => Console.Write(1);
     public static void R<T>(Span<T> s) => Console.Write(2);
     // another workaround:
-    [OverloadResolutionPriority(1)]
     public static void R<T>(ReadOnlySpan<T> s) => Console.Write(3);
+}
+```
+
+For that reason, `ReadOnlySpan<T>` is generally preferred over `Span<T>` by overload resolution in C# 14.
+In some cases, that might lead to compilation breaks,
+for example when there are overloads for both `Span<T>` and `ReadOnlySpan<T>`, both taking and returning the same span type:
+
+```cs
+double[] x = new double[0];
+Span<ulong> y = MemoryMarshal.Cast<double, ulong>(x); // previously worked, now compilation error
+Span<ulong> z = MemoryMarshal.Cast<double, ulong>(x.AsSpan()); // workaround
+
+static class MemoryMarshal
+{
+    public static ReadOnlySpan<TTo> Cast<TFrom, TTo>(ReadOnlySpan<TFrom> span) => default;
+    public static Span<TTo> Cast<TFrom, TTo>(Span<TFrom> span) => default;
 }
 ```
 
@@ -155,4 +170,60 @@ struct S
     [UnscopedRef] public ref int Ref() => throw null!;
     public static void M([UnscopedRef] ref int x) { }
 }
+```
+
+## Variance of `scoped` and `[UnscopedRef]` is more strict
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+Scope can be changed when overriding a method, implementing an interface, or converting a lambda/method to a delegate under
+[some conditions](https://github.com/dotnet/csharplang/blob/05064c2a9567b7a58a07e526dff403ece1866541/proposals/csharp-11.0/low-level-struct-improvements.md#scoped-mismatch)
+(roughly, `scoped` can be added and `[UnscopedRef]` can be removed).
+Previously, the compiler did not report an error/warning for such mismatch under some circumstances, but it is now always reported.
+Note that the error is downgraded to a warning in `unsafe` contexts and also (in scenarios where it would be a breaking change) with LangVersion 12 or lower.
+
+```cs
+D1 d1 = (ref int i) => { }; // previously no mismatch error reported, now:
+                            // error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D1'.
+
+D2 d2 = (ref int i) => ref i; // an error was and continues to be reported:
+                              // error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D2'.
+
+delegate void D1(scoped ref int x);
+delegate ref int D2(scoped ref int x);
+```
+
+```cs
+using System.Diagnostics.CodeAnalysis;
+
+D1 d1 = ([UnscopedRef] ref int i) => { }; // previously no mismatch error reported, now:
+                                          // error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D1'.
+
+D2 d2 = ([UnscopedRef] ref int i) => ref i; // an error was and continues to be reported:
+                                            // error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D2'.
+
+delegate void D1(ref int x);
+delegate ref int D2(ref int x);
+```
+
+## `Microsoft.CodeAnalysis.EmbeddedAttribute` is validated on declaration
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+The compiler now validates the shape of `Microsoft.CodeAnalysis.EmbeddedAttribute` when declared in source. Previously, the compiler
+would allow user-defined declarations of this attribute, but only when it didn't need to generate one itself. We now validate that:
+
+1. It must be internal
+2. It must be a class
+3. It must be sealed
+4. It must be non-static
+5. It must have an internal or public parameterless constructor
+6. It must inherit from System.Attribute.
+7. It must be allowed on any type declaration (class, struct, interface, enum, or delegate)
+
+```cs
+namespace Microsoft.CodeAnalysis;
+
+// Previously, sometimes allowed. Now, CS9271
+public class EmbeddedAttribute : Attribute {}
 ```

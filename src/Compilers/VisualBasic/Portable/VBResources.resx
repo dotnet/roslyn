@@ -5731,4 +5731,7 @@
   <data name="FEATURE_OverloadResolutionPriority" xml:space="preserve">
     <value>overload resolution priority</value>
   </data>
+  <data name="ERR_EmbeddedAttributeMustFollowPattern" xml:space="preserve">
+    <value>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</value>
+  </data>
 </root>

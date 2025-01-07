@@ -81,21 +81,12 @@ internal static class SourceTextExtensions
 
     private static void AppendNamingStylePreferencesToEditorConfig(IEnumerable<NamingRule> namingRules, StringBuilder editorconfig, string? language = null)
     {
-        var symbolSpecifications = namingRules.Select(x => x.SymbolSpecification).ToImmutableArray();
-        var namingStyles = namingRules.Select(x => x.NamingStyle).ToImmutableArray();
-        var serializedNamingRules = namingRules.Select(x => new SerializableNamingRule()
-        {
-            EnforcementLevel = x.EnforcementLevel,
-            NamingStyleID = x.NamingStyle.ID,
-            SymbolSpecificationID = x.SymbolSpecification.ID
-        }).ToImmutableArray();
-
         language ??= LanguageNames.CSharp;
 
         NamingStylePreferencesEditorConfigSerializer.AppendNamingStylePreferencesToEditorConfig(
-            symbolSpecifications,
-            namingStyles,
-            serializedNamingRules,
+            [.. namingRules.Select(static x => x.SymbolSpecification)],
+            [.. namingRules.Select(static x => x.NamingStyle)],
+            [.. namingRules],
             language,
             editorconfig);
     }

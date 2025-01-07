@@ -57,7 +57,7 @@ internal abstract class AbstractUseConditionalExpressionDiagnosticAnalyzer<TIfSt
             ifStatement.GetFirstToken().GetLocation(),
             option.Notification,
             context.Options,
-            additionalLocations: ImmutableArray.Create(ifStatement.GetLocation()),
+            additionalLocations: [ifStatement.GetLocation()],
             properties: canSimplify ? UseConditionalExpressionHelpers.CanSimplifyProperties : null));
     }
 }

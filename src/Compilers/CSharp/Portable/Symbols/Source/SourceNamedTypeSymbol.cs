@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1418,7 +1419,9 @@ next:;
             get
             {
                 var data = GetEarlyDecodedWellKnownAttributeData();
-                return data != null && data.HasCodeAnalysisEmbeddedAttribute;
+                return (data != null && data.HasCodeAnalysisEmbeddedAttribute)
+                    // If this is Microsoft.CodeAnalysis.EmbeddedAttribute, we'll synthesize EmbeddedAttribute even if it's not applied.
+                    || this.IsMicrosoftCodeAnalysisEmbeddedAttribute();
             }
         }
 
@@ -1761,6 +1764,21 @@ next:;
                         ImmutableArray.Create(new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, originalType)),
                         isOptionalUse: true));
             }
+
+            if (this.IsMicrosoftCodeAnalysisEmbeddedAttribute() && GetEarlyDecodedWellKnownAttributeData() is null or { HasCodeAnalysisEmbeddedAttribute: false })
+            {
+                // This is Microsoft.CodeAnalysis.EmbeddedAttribute, and the user didn't manually apply this attribute to itself. Grab the parameterless constructor
+                // and apply it; if there isn't a parameterless constructor, there would have been a declaration diagnostic
+
+                var parameterlessConstructor = InstanceConstructors.FirstOrDefault(c => c.ParameterCount == 0);
+
+                if (parameterlessConstructor is not null)
+                {
+                    AddSynthesizedAttribute(
+                        ref attributes,
+                        SynthesizedAttributeData.Create(DeclaringCompilation, parameterlessConstructor, arguments: [], namedArguments: []));
+                }
+            }
         }
 
         #endregion
@@ -1917,6 +1935,34 @@ next:;
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, GetFirstLocation());
                 }
+            }
+
+            if (this.IsMicrosoftCodeAnalysisEmbeddedAttribute())
+            {
+                // This is a user-defined implementation of the special attribute Microsoft.CodeAnalysis.EmbeddedAttribute. It needs to follow specific rules:
+                // 1. It must be internal
+                // 2. It must be a class
+                // 3. It must be sealed
+                // 4. It must be non-static
+                // 5. It must have an internal or public parameterless constructor
+                // 6. It must inherit from System.Attribute
+                // 7. It must be allowed on any type declaration (class, struct, interface, enum, or delegate)
+                // 8. It must be non-generic (checked as part of IsMicrosoftCodeAnalysisEmbeddedAttribute, we don't error on this because both types can exist)
+
+                const AttributeTargets expectedTargets = AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Enum | AttributeTargets.Delegate;
+
+                if (DeclaredAccessibility != Accessibility.Internal
+                    || TypeKind != TypeKind.Class
+                    || !IsSealed
+                    || IsStatic
+                    || !InstanceConstructors.Any(c => c is { ParameterCount: 0, DeclaredAccessibility: Accessibility.Internal or Accessibility.Public })
+                    || !this.DeclaringCompilation.IsAttributeType(this)
+                    || (GetAttributeUsageInfo().ValidTargets & expectedTargets) != expectedTargets)
+                {
+                    // The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
+                    diagnostics.Add(ErrorCode.ERR_EmbeddedAttributeMustFollowPattern, GetFirstLocation());
+                }
+
             }
         }
     }

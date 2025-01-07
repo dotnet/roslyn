@@ -42,10 +42,10 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
         private ServerCapabilities? _serverCapabilities;
 
-        internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, TestOutputLogger logger, string cacheDirectory, bool includeDevKitComponents = true)
+        internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, TestOutputLogger logger, string cacheDirectory, bool includeDevKitComponents = true, string[]? extensionPaths = null)
         {
             var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
-                logger.Factory, includeDevKitComponents, cacheDirectory, out var _, out var assemblyLoader);
+                logger.Factory, includeDevKitComponents, cacheDirectory, extensionPaths, out var _, out var assemblyLoader);
             var testLspServer = new TestLspServer(exportProvider, logger, assemblyLoader);
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);

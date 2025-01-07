@@ -5,7 +5,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -3112,6 +3111,26 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 }
 
                 private void SetAction(string newAction) => _action = newAction;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76634")]
+    public async Task TestRefField()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|ref int i|];
+
+                int P
+                {
+                    get
+                    {
+                        return i;
+                    }
+                }
             }
             """);
     }

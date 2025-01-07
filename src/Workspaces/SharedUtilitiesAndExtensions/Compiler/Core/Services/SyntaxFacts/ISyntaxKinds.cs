@@ -139,6 +139,7 @@ internal interface ISyntaxKinds
     int CollectionInitializerExpression { get; }
     int ConditionalAccessExpression { get; }
     int ConditionalExpression { get; }
+    int? FieldExpression { get; }
     int? ImplicitArrayCreationExpression { get; }
     int? ImplicitObjectCreationExpression { get; }
     int? IndexExpression { get; }

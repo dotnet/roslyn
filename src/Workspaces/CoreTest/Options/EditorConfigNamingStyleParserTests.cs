@@ -5,9 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -31,8 +29,8 @@ public class EditorConfigNamingStyleParserTests
             ["dotnet_naming_style.pascal_case_style.capitalization"] = "pascal_case"
         };
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        Assert.Single(result.NamingRules);
-        var namingRule = result.NamingRules.Single();
+        Assert.Single(result.SerializableNamingRules);
+        var namingRule = result.SerializableNamingRules.Single();
         Assert.Single(result.NamingStyles);
         var namingStyle = result.NamingStyles.Single();
         Assert.Single(result.SymbolSpecifications);
@@ -79,7 +77,7 @@ public class EditorConfigNamingStyleParserTests
             ["dotnet_naming_style.pascal_case_style.capitalization"] = "pascal_case"
         };
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        var namingRule = Assert.Single(result.NamingRules);
+        var namingRule = Assert.Single(result.SerializableNamingRules);
         var namingStyle = Assert.Single(result.NamingStyles);
         var symbolSpec = Assert.Single(result.SymbolSpecifications);
         Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
@@ -101,8 +99,8 @@ public class EditorConfigNamingStyleParserTests
             ["dotnet_naming_style.end_in_async_style.required_suffix"] = "Async",
         };
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        Assert.Single(result.NamingRules);
-        var namingRule = result.NamingRules.Single();
+        Assert.Single(result.SerializableNamingRules);
+        var namingRule = result.SerializableNamingRules.Single();
         Assert.Single(result.NamingStyles);
         var namingStyle = result.NamingStyles.Single();
         Assert.Single(result.SymbolSpecifications);
@@ -159,8 +157,8 @@ public class EditorConfigNamingStyleParserTests
             ["dotnet_naming_style.first_word_upper_case_style.capitalization"] = "first_word_upper",
         };
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        Assert.Single(result.NamingRules);
-        var namingRule = result.NamingRules.Single();
+        Assert.Single(result.SerializableNamingRules);
+        var namingRule = result.SerializableNamingRules.Single();
         Assert.Single(result.NamingStyles);
         var namingStyle = result.NamingStyles.Single();
         Assert.Single(result.SymbolSpecifications);
@@ -207,8 +205,8 @@ public class EditorConfigNamingStyleParserTests
             ["dotnet_naming_style.all_lower_case_style.capitalization"] = "all_lower",
         };
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        Assert.Single(result.NamingRules);
-        var namingRule = result.NamingRules.Single();
+        Assert.Single(result.SerializableNamingRules);
+        var namingRule = result.SerializableNamingRules.Single();
         Assert.Single(result.NamingStyles);
         var namingStyle = result.NamingStyles.Single();
         Assert.Single(result.SymbolSpecifications);
@@ -249,8 +247,8 @@ public class EditorConfigNamingStyleParserTests
         };
 
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        Assert.Single(result.NamingRules);
-        var namingRule = result.NamingRules.Single();
+        Assert.Single(result.SerializableNamingRules);
+        var namingRule = result.SerializableNamingRules.Single();
         Assert.Single(result.NamingStyles);
         var namingStyle = result.NamingStyles.Single();
         Assert.Single(result.SymbolSpecifications);
@@ -292,8 +290,8 @@ public class EditorConfigNamingStyleParserTests
         };
 
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        Assert.Single(result.NamingRules);
-        var namingRule = result.NamingRules.Single();
+        Assert.Single(result.SerializableNamingRules);
+        var namingRule = result.SerializableNamingRules.Single();
         Assert.Single(result.NamingStyles);
         var namingStyle = result.NamingStyles.Single();
         Assert.Single(result.SymbolSpecifications);
@@ -328,7 +326,7 @@ public class EditorConfigNamingStyleParserTests
             ["dotnet_naming_style.all_lower_case_style.capitalization"] = "all_lower",
         };
         var result = OptionsTestHelpers.ParseNamingStylePreferences(dictionary);
-        Assert.Empty(result.NamingRules);
+        Assert.Empty(result.SerializableNamingRules);
         Assert.Empty(result.NamingStyles);
         Assert.Empty(result.SymbolSpecifications);
     }
@@ -359,7 +357,7 @@ public class EditorConfigNamingStyleParserTests
             rule["dotnet_naming_symbols.kinds.applicable_kinds"] = specification;
         }
 
-        var kinds = typeOrSymbolKinds.Select(NamingStylesTestOptionSets.ToSymbolKindOrTypeKind).ToArray();
+        var kinds = typeOrSymbolKinds.Select(NamingStyleTestUtilities.ToSymbolKindOrTypeKind).ToArray();
         var result = OptionsTestHelpers.ParseNamingStylePreferences(rule);
         Assert.Equal(kinds, result.SymbolSpecifications.SelectMany(x => x.ApplicableSymbolKindList));
     }
@@ -438,8 +436,8 @@ public class EditorConfigNamingStyleParserTests
         };
 
         var result = OptionsTestHelpers.ParseNamingStylePreferences(rule);
-        Assert.Single(result.NamingRules);
-        var namingRule = result.NamingRules.Single();
+        Assert.Single(result.SerializableNamingRules);
+        var namingRule = result.SerializableNamingRules.Single();
         Assert.Single(result.NamingStyles);
         var namingStyle = result.NamingStyles.Single();
         Assert.Single(result.SymbolSpecifications);
@@ -577,7 +575,7 @@ public class EditorConfigNamingStyleParserTests
     /// <summary>
     /// Two rules with different names but same specification.
     /// </summary>
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/76381")]
+    [Fact]
     public void DuplicateRuleKeys()
     {
         var dictionary = new Dictionary<string, string>()
@@ -638,8 +636,8 @@ public class EditorConfigNamingStyleParserTests
                 <NamingStyle ID="3" Name="STYLE" Prefix="" Suffix="" WordSeparator="" CapitalizationScheme="PascalCase" />
               </NamingStyles>
               <NamingRules>
-                <SerializableNamingRule SymbolSpecificationID="1" NamingStyleID="3" EnforcementLevel="Warning" />
                 <SerializableNamingRule SymbolSpecificationID="0" NamingStyleID="2" EnforcementLevel="Warning" />
+                <SerializableNamingRule SymbolSpecificationID="1" NamingStyleID="3" EnforcementLevel="Warning" />
               </NamingRules>
             </NamingPreferencesInfo>
             """,
@@ -668,15 +666,53 @@ public class EditorConfigNamingStyleParserTests
             ["dotnet_naming_style.STYLE2.capitalization"] = "pascal_case",
         };
 
+        // The order of XML elements is deterministic since applicable kinds set {method} is a subset of {method, field} 
         AssertEx.AssertEqualToleratingWhitespaceDifferences("""
             <NamingPreferencesInfo SerializationVersion="5">
+              <SymbolSpecifications>
+                <SymbolSpecification ID="0" Name="SYMBOLS1">
+                  <ApplicableSymbolKindList>
+                    <MethodKind>Ordinary</MethodKind>
+                  </ApplicableSymbolKindList>
+                  <ApplicableAccessibilityList>
+                    <AccessibilityKind>NotApplicable</AccessibilityKind>
+                    <AccessibilityKind>Public</AccessibilityKind>
+                    <AccessibilityKind>Internal</AccessibilityKind>
+                    <AccessibilityKind>Private</AccessibilityKind>
+                    <AccessibilityKind>Protected</AccessibilityKind>
+                    <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
+                    <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+                  </ApplicableAccessibilityList>
+                  <RequiredModifierList />
+                </SymbolSpecification>
+                <SymbolSpecification ID="1" Name="SYMBOLS2">
+                  <ApplicableSymbolKindList>
+                    <MethodKind>Ordinary</MethodKind>
+                    <SymbolKind>Field</SymbolKind>
+                  </ApplicableSymbolKindList>
+                  <ApplicableAccessibilityList>
+                    <AccessibilityKind>NotApplicable</AccessibilityKind>
+                    <AccessibilityKind>Public</AccessibilityKind>
+                    <AccessibilityKind>Internal</AccessibilityKind>
+                    <AccessibilityKind>Private</AccessibilityKind>
+                    <AccessibilityKind>Protected</AccessibilityKind>
+                    <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
+                    <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+                  </ApplicableAccessibilityList>
+                  <RequiredModifierList />
+                </SymbolSpecification>
+              </SymbolSpecifications>
+              <NamingStyles>
+                <NamingStyle ID="2" Name="STYLE1" Prefix="" Suffix="" WordSeparator="" CapitalizationScheme="PascalCase" />
+                <NamingStyle ID="3" Name="STYLE2" Prefix="" Suffix="" WordSeparator="" CapitalizationScheme="PascalCase" />
+              </NamingStyles>
               <NamingRules>
-                <SerializableNamingRule SymbolSpecificationID="0" NamingStyleID="1" EnforcementLevel="Warning" />
-                <SerializableNamingRule SymbolSpecificationID="2" NamingStyleID="3" EnforcementLevel="Error" />
+                <SerializableNamingRule SymbolSpecificationID="0" NamingStyleID="2" EnforcementLevel="Warning" />
+                <SerializableNamingRule SymbolSpecificationID="1" NamingStyleID="3" EnforcementLevel="Error" />
               </NamingRules>
             </NamingPreferencesInfo>
             """,
-            OptionsTestHelpers.ParseNamingStylePreferences(dictionary).Inspect(excludeNodes: ["SymbolSpecifications", "NamingStyles"]));
+            OptionsTestHelpers.ParseNamingStylePreferences(dictionary).Inspect());
 
         // adding priorities reverses the order - R2 (P0) is now ordered before R1 (P1):
         dictionary.Add("dotnet_naming_rule.R2.priority", "0");
@@ -684,12 +720,49 @@ public class EditorConfigNamingStyleParserTests
 
         AssertEx.AssertEqualToleratingWhitespaceDifferences("""
             <NamingPreferencesInfo SerializationVersion="5">
+              <SymbolSpecifications>
+                <SymbolSpecification ID="0" Name="SYMBOLS2">
+                  <ApplicableSymbolKindList>
+                    <MethodKind>Ordinary</MethodKind>
+                    <SymbolKind>Field</SymbolKind>
+                  </ApplicableSymbolKindList>
+                  <ApplicableAccessibilityList>
+                    <AccessibilityKind>NotApplicable</AccessibilityKind>
+                    <AccessibilityKind>Public</AccessibilityKind>
+                    <AccessibilityKind>Internal</AccessibilityKind>
+                    <AccessibilityKind>Private</AccessibilityKind>
+                    <AccessibilityKind>Protected</AccessibilityKind>
+                    <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
+                    <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+                  </ApplicableAccessibilityList>
+                  <RequiredModifierList />
+                </SymbolSpecification>
+                <SymbolSpecification ID="1" Name="SYMBOLS1">
+                  <ApplicableSymbolKindList>
+                    <MethodKind>Ordinary</MethodKind>
+                  </ApplicableSymbolKindList>
+                  <ApplicableAccessibilityList>
+                    <AccessibilityKind>NotApplicable</AccessibilityKind>
+                    <AccessibilityKind>Public</AccessibilityKind>
+                    <AccessibilityKind>Internal</AccessibilityKind>
+                    <AccessibilityKind>Private</AccessibilityKind>
+                    <AccessibilityKind>Protected</AccessibilityKind>
+                    <AccessibilityKind>ProtectedAndInternal</AccessibilityKind>
+                    <AccessibilityKind>ProtectedOrInternal</AccessibilityKind>
+                  </ApplicableAccessibilityList>
+                  <RequiredModifierList />
+                </SymbolSpecification>
+              </SymbolSpecifications>
+              <NamingStyles>
+                <NamingStyle ID="2" Name="STYLE2" Prefix="" Suffix="" WordSeparator="" CapitalizationScheme="PascalCase" />
+                <NamingStyle ID="3" Name="STYLE1" Prefix="" Suffix="" WordSeparator="" CapitalizationScheme="PascalCase" />
+              </NamingStyles>
               <NamingRules>
-                <SerializableNamingRule SymbolSpecificationID="0" NamingStyleID="1" EnforcementLevel="Error" />
-                <SerializableNamingRule SymbolSpecificationID="2" NamingStyleID="3" EnforcementLevel="Warning" />
+                <SerializableNamingRule SymbolSpecificationID="0" NamingStyleID="2" EnforcementLevel="Error" />
+                <SerializableNamingRule SymbolSpecificationID="1" NamingStyleID="3" EnforcementLevel="Warning" />
               </NamingRules>
             </NamingPreferencesInfo>
             """,
-            OptionsTestHelpers.ParseNamingStylePreferences(dictionary).Inspect(excludeNodes: ["SymbolSpecifications", "NamingStyles"]));
+            OptionsTestHelpers.ParseNamingStylePreferences(dictionary).Inspect());
     }
 }

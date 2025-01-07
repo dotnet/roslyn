@@ -43,7 +43,7 @@ internal class NamingStyleSetting
         {
             Style = namingStyleOption.NamingScheme.AsNamingStyle(),
             Type = namingStyleOption.ApplicableSymbolInfo.AsSymbolSpecification(),
-            Severity = namingStyleOption.Severity,
+            Severity = namingStyleOption.Severity.Value,
             Location = new SettingLocation(LocationKind.EditorConfig, namingStyleOption.Section.FilePath)
         };
     }
