@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -58,23 +59,21 @@ internal sealed class MethodTypeParameterSymbolReferenceFinder : AbstractTypePar
         // document, and their containing type name ("Program") doesn't have to appear there at all.
 
         Contract.ThrowIfNull(symbol.DeclaringMethod);
-        if (symbol is
+
+        using var names = TemporaryArray<string>.Empty;
+        names.Add(symbol.Name);
+        names.Add(GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name));
+
+        if (symbol is not
             {
                 ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.LocalFunction },
                 ContainingType: INamedTypeSymbol { Name: "Program", ContainingNamespace.IsGlobalNamespace: true }
             })
         {
-            return FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken,
-                symbol.Name,
-                GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name));
+            names.Add(symbol.ContainingType.Name);
         }
-        else
-        {
-            return FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken,
-                symbol.Name,
-                GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name),
-                symbol.DeclaringMethod.ContainingType.Name);
-        }
+
+        return FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, names.ToImmutableAndClear());
     }
 
     private static string GetMemberNameWithoutInterfaceName(string fullName)

@@ -119,7 +119,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
         Action<Document, TData> processResult,
         TData processResultData,
         CancellationToken cancellationToken,
-        params string[] values)
+        params ImmutableArray<string> values)
     {
         return FindDocumentsWithPredicateAsync(project, documents, static (index, values) =>
         {
