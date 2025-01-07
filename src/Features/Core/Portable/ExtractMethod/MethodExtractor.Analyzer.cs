@@ -217,8 +217,6 @@ internal abstract partial class AbstractExtractMethodService<
                     ? OperationStatus.UnsafeAddressTaken
                     : OperationStatus.SucceededStatus;
 
-                var asyncRefOutParameterStatus = CheckAsyncMethodRefOutParameters(variables);
-
                 var variableMapStatus = failedVariables.Count == 0
                     ? OperationStatus.SucceededStatus
                     : new OperationStatus(succeeded: true,
@@ -230,25 +228,11 @@ internal abstract partial class AbstractExtractMethodService<
                     ? OperationStatus.LocalFunctionCallWithoutDeclaration
                     : OperationStatus.SucceededStatus;
 
-                return readonlyFieldStatus.With(anonymousTypeStatus)
-                                          .With(unsafeAddressStatus)
-                                          .With(asyncRefOutParameterStatus)
-                                          .With(variableMapStatus)
-                                          .With(localFunctionStatus);
-            }
-
-            private OperationStatus CheckAsyncMethodRefOutParameters(IList<VariableInfo> parameters)
-            {
-                if (SelectionResult.CreateAsyncMethod())
-                {
-                    var names = parameters.Where(v => v is { UseAsReturnValue: false, ParameterModifier: ParameterBehavior.Out or ParameterBehavior.Ref })
-                                          .Select(p => p.Name ?? string.Empty);
-
-                    if (names.Any())
-                        return new OperationStatus(succeeded: true, string.Format(FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket, string.Join(", ", names)));
-                }
-
-                return OperationStatus.SucceededStatus;
+                return readonlyFieldStatus
+                    .With(anonymousTypeStatus)
+                    .With(unsafeAddressStatus)
+                    .With(variableMapStatus)
+                    .With(localFunctionStatus);
             }
 
             private MultiDictionary<ISymbol, SyntaxToken> GetSymbolMap()
@@ -286,7 +270,7 @@ internal abstract partial class AbstractExtractMethodService<
                 // return values of the method since we can't actually have out/ref with an async method.
                 var outRefCount = numberOfOutParameters + numberOfRefParameters;
                 if (outRefCount > 0 &&
-                    this.SelectionResult.CreateAsyncMethod() &&
+                    this.SelectionResult.ContainsAwaitExpression() &&
                     this.SyntaxFacts.SupportsTupleDeconstruction(this.SemanticDocument.Document.Project.ParseOptions!))
                 {
                     var result = new FixedSizeArrayBuilder<VariableInfo>(variableInfo.Length);

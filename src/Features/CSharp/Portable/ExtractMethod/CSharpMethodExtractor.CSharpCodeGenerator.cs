@@ -604,9 +604,9 @@ internal sealed partial class CSharpExtractMethodService
                 }
 
                 var invocation = (ExpressionSyntax)InvocationExpression(methodExpression, ArgumentList([.. arguments]));
-                if (this.SelectionResult.CreateAsyncMethod())
+                if (this.SelectionResult.ContainsAwaitExpression())
                 {
-                    if (this.SelectionResult.ShouldCallConfigureAwaitFalse())
+                    if (this.SelectionResult.ContainsConfigureAwaitFalse())
                     {
                         if (this.GetFinalReturnType()
                                 .GetMembers(nameof(Task.ConfigureAwait))

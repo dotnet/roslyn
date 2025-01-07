@@ -56,7 +56,7 @@ internal abstract partial class AbstractExtractMethodService<
 
             protected readonly bool LocalFunction;
 
-            private ITypeSymbol? _finalReturnType;
+            private ITypeSymbol _finalReturnType;
 
             protected CodeGenerator(
                 SelectionResult selectionResult,
