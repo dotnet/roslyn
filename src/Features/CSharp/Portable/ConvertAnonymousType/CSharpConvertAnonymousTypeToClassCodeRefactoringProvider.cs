@@ -66,7 +66,7 @@ internal class CSharpConvertAnonymousTypeToClassCodeRefactoringProvider :
     }
 
     private SyntaxNodeOrTokenList CreateArguments(SyntaxNodeOrTokenList list)
-        => new(list.Select(CreateArgumentOrComma));
+        => [.. list.Select(CreateArgumentOrComma)];
 
     private SyntaxNodeOrToken CreateArgumentOrComma(SyntaxNodeOrToken declOrComma)
         => declOrComma.IsToken

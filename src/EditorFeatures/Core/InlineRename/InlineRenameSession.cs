@@ -574,9 +574,9 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
             // Switch to a background thread for expensive work
             await TaskScheduler.Default;
-            var computedMergeResult = await ComputeMergeResultAsync(replacementInfo, cancellationToken);
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            ApplyReplacements(computedMergeResult.replacementInfo, computedMergeResult.mergeResult, cancellationToken);
+            var computedMergeResult = await ComputeMergeResultAsync(replacementInfo, cancellationToken).ConfigureAwait(false);
+            await ApplyReplacementsAsync(
+                computedMergeResult.replacementInfo, computedMergeResult.mergeResult, cancellationToken).ConfigureAwait(true);
         });
         replacementOperation.Task.CompletesAsyncOperation(asyncToken);
     }
@@ -584,14 +584,14 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private async Task<(IInlineRenameReplacementInfo replacementInfo, LinkedFileMergeSessionResult mergeResult)> ComputeMergeResultAsync(IInlineRenameReplacementInfo replacementInfo, CancellationToken cancellationToken)
     {
         var diffMergingSession = new LinkedFileDiffMergingSession(_baseSolution, replacementInfo.NewSolution, replacementInfo.NewSolution.GetChanges(_baseSolution));
-        var mergeResult = await diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var mergeResult = await diffMergingSession.MergeDiffsAsync(cancellationToken).ConfigureAwait(false);
         return (replacementInfo, mergeResult);
     }
 
-    private void ApplyReplacements(IInlineRenameReplacementInfo replacementInfo, LinkedFileMergeSessionResult mergeResult, CancellationToken cancellationToken)
+    private async Task ApplyReplacementsAsync(
+        IInlineRenameReplacementInfo replacementInfo, LinkedFileMergeSessionResult mergeResult, CancellationToken cancellationToken)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
-        cancellationToken.ThrowIfCancellationRequested();
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         RaiseReplacementsComputed(replacementInfo);
 
@@ -602,7 +602,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             if (documents.Any())
             {
                 var textBufferManager = _openTextBuffers[textBuffer];
-                textBufferManager.ApplyConflictResolutionEdits(replacementInfo, mergeResult, documents, cancellationToken);
+                await textBufferManager.ApplyConflictResolutionEditsAsync(
+                    replacementInfo, mergeResult, documents, cancellationToken).ConfigureAwait(true);
             }
         }
 

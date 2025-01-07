@@ -128,7 +128,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     {
         lock (_debuggingSessions)
         {
-            return _debuggingSessions.Where(s => s.ReportDiagnostics).ToImmutableArray();
+            return [.. _debuggingSessions.Where(s => s.ReportDiagnostics)];
         }
     }
 

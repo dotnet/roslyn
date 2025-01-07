@@ -35,7 +35,7 @@ internal interface IBraceCompletionService
     /// True if <see cref="BraceCompletionResult"/> is available in the given <paramref name="context"/>.
     /// Completes synchronously unless the service needs Semantic Model to determine the brace completion result.
     /// </summary>
-    Task<bool> HasBraceCompletionAsync(BraceCompletionContext context, Document document, CancellationToken cancellationToken);
+    ValueTask<bool> HasBraceCompletionAsync(BraceCompletionContext context, Document document, CancellationToken cancellationToken);
 
     /// <summary>
     /// Returns the text change to add the closing brace given the context.

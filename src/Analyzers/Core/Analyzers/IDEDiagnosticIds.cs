@@ -153,6 +153,7 @@ internal static class IDEDiagnosticIds
     public const string RemoveUnnecessaryDiscardDesignationDiagnosticId = "IDE0110";
 
     public const string SimplifyLinqExpressionDiagnosticId = "IDE0120";
+    public const string SimplifyLinqTypeCheckAndCastDiagnosticId = "IDE0121";
 
     public const string MatchFolderAndNamespaceDiagnosticId = "IDE0130";
 

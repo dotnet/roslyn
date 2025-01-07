@@ -20,19 +20,11 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     /// <summary>
-    /// There are two forms of intellisense that may be active at the same time. Completion and
-    /// SigHelp. Completion precedes SigHelp in the command handler because it wants to make sure
-    /// it's operating on a buffer *after* Completion has changed it. i.e. if "WriteL(" is typed,
-    /// sig help wants to allow completion to complete that to "WriteLine(" before it tried to
-    /// proffer sig help. If we were to reverse things, then we'd get a bogus situation where sig
-    /// help would see "WriteL(" would have nothing to offer and would return.
-    /// 
-    /// However, despite wanting sighelp to receive typechar first and then defer it to completion,
-    /// we want completion to receive other events first (like escape, and navigation keys). We
-    /// consider completion to have higher priority for those commands. In order to accomplish that,
-    /// we introduced <see cref="SignatureHelpAfterCompletionCommandHandler"/>
-    /// This command handler then delegates escape, up and down to those command handlers. 
-    /// It is called before <see cref="PredefinedCompletionNames.CompletionCommandHandler"/>.
+    /// There are two forms of intellisense that may be active at the same time. Completion and SigHelp. Completion
+    /// precedes SigHelp in the command handler because it wants to make sure it's operating on a buffer *after*
+    /// Completion has changed it. i.e. if "WriteL(" is typed, sig help wants to allow completion to complete that to
+    /// "WriteLine(" before it tried to proffer sig help. If we were to reverse things, then we'd get a bogus situation
+    /// where sig help would see "WriteL(" would have nothing to offer and would return.
     /// </summary>
     [Export]
     [Export(typeof(ICommandHandler))]

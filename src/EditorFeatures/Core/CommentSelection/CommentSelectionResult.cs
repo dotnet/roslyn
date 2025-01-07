@@ -15,11 +15,11 @@ internal readonly struct CommentSelectionResult(IEnumerable<TextChange> textChan
     /// <summary>
     /// Text changes to make for this operation.
     /// </summary>
-    public ImmutableArray<TextChange> TextChanges { get; } = textChanges.ToImmutableArray();
+    public ImmutableArray<TextChange> TextChanges { get; } = [.. textChanges];
     /// <summary>
     /// Tracking spans used to format and set the output selection after edits.
     /// </summary>
-    public ImmutableArray<CommentTrackingSpan> TrackingSpans { get; } = trackingSpans.ToImmutableArray();
+    public ImmutableArray<CommentTrackingSpan> TrackingSpans { get; } = [.. trackingSpans];
     /// <summary>
     /// The type of text changes being made.
     /// This is known beforehand in some cases (comment selection)

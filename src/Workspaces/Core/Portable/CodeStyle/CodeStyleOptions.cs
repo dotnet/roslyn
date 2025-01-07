@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.CodeStyle;
 
 /// <inheritdoc cref="CodeStyleOptions2"/>
-public class CodeStyleOptions
+public static class CodeStyleOptions
 {
     /// <inheritdoc cref="CodeStyleOptions2.QualifyFieldAccess"/>
     public static readonly PerLanguageOption<CodeStyleOption<bool>> QualifyFieldAccess =

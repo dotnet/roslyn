@@ -267,6 +267,14 @@ internal static class UseCollectionExpressionHelpers
                 if (type.Name is nameof(ObservableCollection<int>) or nameof(ReadOnlyObservableCollection<int>))
                     return false;
 
+                // If the original expression was creating a set, but is being assigned to one of the well known
+                // interfaces, then we don't want to convert this.  This is because the set has different semantics than
+                // the linear sequence types.
+                var isetType = compilation.ISetOfTType();
+                var ireadOnlySetType = compilation.IReadOnlySetOfTType();
+                if (type.AllInterfaces.Any(t => t.OriginalDefinition.Equals(isetType) || t.OriginalDefinition.Equals(ireadOnlySetType)))
+                    return false;
+
                 return true;
             }
 

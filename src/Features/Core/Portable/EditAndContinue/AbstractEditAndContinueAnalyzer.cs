@@ -3472,7 +3472,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             staticConstructorEdits?.Free();
         }
 
-        return semanticEdits.Distinct(SemanticEditInfoComparer.Instance).ToImmutableArray();
+        return [.. semanticEdits.Distinct(SemanticEditInfoComparer.Instance)];
 
         // If the symbol has a single declaring reference use its syntax node for further analysis.
         // Some syntax edits may not be directly associated with the declarations.

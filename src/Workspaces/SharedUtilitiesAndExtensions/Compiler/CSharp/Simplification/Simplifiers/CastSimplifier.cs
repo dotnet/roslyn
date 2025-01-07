@@ -89,21 +89,28 @@ internal static class CastSimplifier
             {
                 Kind: OperationKind.MethodReference,
                 Parent.Kind: OperationKind.DelegateCreation,
-                Parent.Parent: IConversionOperation { Type.SpecialType: SpecialType.System_Object } conversionOperation
+                IsImplicit: false,
             })
         {
-            // If we have a double cast, report as unnecessary, e.g:
-            // (object)(object)MethodGroup
-            // (Delegate)(object)MethodGroup
-            // If we have a single object cast, don't report as unnecessary e.g:
-            // (object)MethodGroup
-            if (conversionOperation.Parent is IConversionOperation { Type: { } parentConversionType } &&
-                semanticModel.ClassifyConversion(cast.Expression, parentConversionType).Exists)
-            {
-                return true;
-            }
+            var current = castExpressionOperation.Parent.Parent;
+            while (current is IConversionOperation { Type.SpecialType: SpecialType.System_Delegate or SpecialType.System_MulticastDelegate })
+                current = current.Parent;
 
-            return false;
+            if (current is IConversionOperation { Type.SpecialType: SpecialType.System_Object })
+            {
+                // If we have a double cast, report as unnecessary, e.g:
+                // (object)(object)MethodGroup
+                // (Delegate)(object)MethodGroup
+                // If we have a single object cast, don't report as unnecessary e.g:
+                // (object)MethodGroup
+                if (current.Parent is IConversionOperation { Type: { } parentConversionType, IsImplicit: false } &&
+                    semanticModel.ClassifyConversion(cast.Expression, parentConversionType).Exists)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         return IsCastSafeToRemove(cast, cast.Expression, semanticModel, cancellationToken);
@@ -349,6 +356,14 @@ internal static class CastSimplifier
         if (rewrittenConvertedType is null || rewrittenConvertedType.TypeKind == TypeKind.Error || !rewrittenConversion.Exists)
             return false;
 
+        // If removing the conversion caused us to now become an explicit conversion (a conversion that can cause
+        // lossyness), then we must block as that's disallowed by the language.
+        //
+        // Note: compiler API is slightly odd here as they return such an 'IsExplicit+Exists' conversion when casting
+        // the expression inside a string interpolation.  So we ignore that case here
+        if (rewrittenConversion.IsExplicit && castNode.WalkUpParentheses().Parent is not InterpolationSyntax)
+            return false;
+
         if (CastRemovalWouldCauseUnintendedReferenceComparisonWarning(rewrittenExpression, rewrittenSemanticModel, cancellationToken))
             return false;
 
@@ -420,22 +435,27 @@ internal static class CastSimplifier
 
         #region allowed cases that allow this cast to be removed.
 
-        // In code like `((X)y).Z()` the cast to (X) can be removed if the same 'Z' method would be called.
-        // The rules here can be subtle.  For example, if Z is virtual, and (X) is a cast up the inheritance
-        // hierarchy then this is *normally* ok.  HOwever, the language resolve default parameter values 
-        // from the overridden method.  So if they differ, we can't actually remove the cast.
+        // In code like `((X)y).Z()` the cast to (X) can be removed if the same 'Z' method would be called. The rules
+        // here can be subtle.  For example, if Z is virtual, and (X) is a cast up the inheritance hierarchy then this
+        // is *normally* ok.  However, the language resolve default parameter values from the overridden method.  So if
+        // they differ, we can't actually remove the cast.
         //
-        // Similarly, if (X) is a cast to an interface, and Z is an impl of that interface method, it might
-        // be possible to remove, but only if y's type is sealed, as otherwise the interface method could be
-        // reimplemented in a derived type.
+        // Similarly, if (X) is a cast to an interface, and Z is an impl of that interface method, it might be possible
+        // to remove, but only if y's type is sealed, as otherwise the interface method could be reimplemented in a
+        // derived type.
         //
-        // Note: this path is fundamentally different from the other forms of cast removal we perform.  The
-        // casts are removed because statically they make no difference to the meaning of the code.  Here,
-        // the code statically changes meaning.  However, we can use our knowledge of how the language/runtime
-        // works to know at *runtime* that the user will get the exact same behavior.
+        // Note: this path is fundamentally different from the other forms of cast removal we perform.  The casts are
+        // removed because statically they make no difference to the meaning of the code.  Here, the code statically
+        // changes meaning.  However, we can use our knowledge of how the language/runtime works to know at *runtime*
+        // that the user will get the exact same behavior.
         if (castNode.WalkUpParentheses().Parent is MemberAccessExpressionSyntax memberAccessExpression)
         {
-            if (IsComplementaryMemberAccessAfterCastRemoval(
+            // Note: because this involves virtual calls, it is only safe if the original cast didn't change the runtime
+            // representation of the value at all.  So we only allow this for representation preserving casts.  For example,
+            // `string->object` preserves representation.  As does `int -> icomparable`
+            var isRepresentationPreservingCast = originalConversion.IsIdentityOrImplicitReference() || originalConversion.IsBoxing;
+            if (isRepresentationPreservingCast &&
+                IsComplementaryMemberAccessAfterCastRemoval(
                     memberAccessExpression, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
             {
                 return true;

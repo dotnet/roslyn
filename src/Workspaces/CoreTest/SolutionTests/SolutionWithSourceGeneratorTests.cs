@@ -271,7 +271,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
             var regularDocumentSyntaxTree = await project.GetRequiredDocument(documentId).GetRequiredSyntaxTreeAsync(CancellationToken.None);
             Assert.Contains(regularDocumentSyntaxTree, compilation.SyntaxTrees);
 
-            var generatedSyntaxTree = Assert.Single(compilation.SyntaxTrees.Where(t => t != regularDocumentSyntaxTree));
+            var generatedSyntaxTree = Assert.Single(compilation.SyntaxTrees, t => t != regularDocumentSyntaxTree);
             Assert.IsType<SourceGeneratedDocument>(project.GetDocument(generatedSyntaxTree));
 
             Assert.Equal(expectedGeneratedContents, generatedSyntaxTree.GetText().ToString());

@@ -27,8 +27,6 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
 
     protected abstract bool IsCommentStartCharacter(char ch);
 
-    protected abstract SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text);
-
     protected sealed override ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
         = [FixAllScope.Project, FixAllScope.Solution];
 
@@ -53,15 +51,10 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
         var position = span.Start;
         var firstToken = root.GetFirstToken();
         if (!firstToken.FullSpan.IntersectsWith(position))
-        {
             return;
-        }
 
         if (HasExistingBanner(document, root))
-        {
-            // Already has a banner.
             return;
-        }
 
         // Process the other documents in this document's project.  Look at the
         // ones that we can get a root from (without having to parse).  Then
@@ -86,9 +79,10 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
                 context.RegisterRefactoring(
                     CodeAction.Create(
                         CodeFixesResources.Add_file_header,
-                        _ => AddBannerAsync(document, root, siblingDocument, siblingBanner),
+                        cancellationToken => AddFileBannerHelpers.CopyBannerAsync(
+                            destinationDocument: document, document.FilePath, sourceDocument: siblingDocument, cancellationToken),
                         equivalenceKey: GetEquivalenceKey(siblingDocument, siblingBanner)),
-                    new Text.TextSpan(position, length: 0));
+                    new TextSpan(position, length: 0));
                 return;
             }
         }
@@ -123,38 +117,6 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
 
         var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
         return bannerService.GetFileBanner(token);
-    }
-
-    private Task<Document> AddBannerAsync(
-        Document document, SyntaxNode root,
-        Document siblingDocument, ImmutableArray<SyntaxTrivia> banner)
-    {
-        banner = UpdateEmbeddedFileNames(siblingDocument, document, banner);
-
-        var newRoot = root.WithPrependedLeadingTrivia(new SyntaxTriviaList(banner));
-        return Task.FromResult(document.WithSyntaxRoot(newRoot));
-    }
-
-    /// <summary>
-    /// Looks at <paramref name="banner"/> to see if it contains the name of <paramref name="sourceDocument"/>
-    /// in it.  If so, those names will be replaced with <paramref name="destinationDocument"/>'s name.
-    /// </summary>
-    private ImmutableArray<SyntaxTrivia> UpdateEmbeddedFileNames(
-        Document sourceDocument, Document destinationDocument, ImmutableArray<SyntaxTrivia> banner)
-    {
-        var sourceName = IOUtilities.PerformIO(() => Path.GetFileName(sourceDocument.FilePath));
-        var destinationName = IOUtilities.PerformIO(() => Path.GetFileName(destinationDocument.FilePath));
-        if (string.IsNullOrEmpty(sourceName) || string.IsNullOrEmpty(destinationName))
-            return banner;
-
-        var result = new FixedSizeArrayBuilder<SyntaxTrivia>(banner.Length);
-        foreach (var trivia in banner)
-        {
-            var updated = CreateTrivia(trivia, trivia.ToFullString().Replace(sourceName, destinationName));
-            result.Add(updated);
-        }
-
-        return result.MoveToImmutable();
     }
 
     private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(

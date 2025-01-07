@@ -9,7 +9,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ComVisible(True)>
-    Partial Public Class AutomationObject
+    Partial Public NotInheritable Class AutomationObject
         Inherits AbstractAutomationObject
 
         Friend Sub New(legacyGlobalOptions As ILegacyGlobalOptionService)

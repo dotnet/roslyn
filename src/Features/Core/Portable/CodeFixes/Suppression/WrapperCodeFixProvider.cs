@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
 
 internal sealed class WrapperCodeFixProvider(IConfigurationFixProvider suppressionFixProvider, IEnumerable<string> diagnosticIds) : CodeFixProvider
 {
-    private readonly ImmutableArray<string> _originalDiagnosticIds = diagnosticIds.Distinct().ToImmutableArray();
+    private readonly ImmutableArray<string> _originalDiagnosticIds = [.. diagnosticIds.Distinct()];
 
     public IConfigurationFixProvider SuppressionFixProvider { get; } = suppressionFixProvider;
     public override ImmutableArray<string> FixableDiagnosticIds => _originalDiagnosticIds;

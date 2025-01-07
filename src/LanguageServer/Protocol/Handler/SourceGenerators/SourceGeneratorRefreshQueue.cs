@@ -79,8 +79,17 @@ internal sealed class SourceGeneratorRefreshQueue :
             // source generators possibly changed.  Note that this overreports actual
             // changes to the source generated text; we rely on resultIds in the text retrieval to avoid unnecessary serialization.
 
-            // Trivial check.  see if the SG version of these projects changed.  If so, we definitely want to update
-            // this generated file.
+            var oldProject = e.OldSolution.GetProject(projectId);
+            var newProject = e.NewSolution.GetProject(projectId);
+
+            // If the project has been added/removed, we need to update the generated files.
+            if (oldProject is null || newProject is null)
+            {
+                _refreshQueue.AddWork();
+                return;
+            }
+
+            // Trivial check.  see if the SG version of these projects changed.  If so, we definitely want to update generated files.
             if (e.OldSolution.GetSourceGeneratorExecutionVersion(projectId) !=
                 e.NewSolution.GetSourceGeneratorExecutionVersion(projectId))
             {
@@ -88,13 +97,8 @@ internal sealed class SourceGeneratorRefreshQueue :
                 return;
             }
 
-            var oldProject = e.OldSolution.GetProject(projectId);
-            var newProject = e.NewSolution.GetProject(projectId);
-
-            if (oldProject != null && newProject != null)
-            {
-                await CheckDependentVersionsAsync(oldProject, newProject).ConfigureAwait(false);
-            }
+            // More expensive check - see if the dependent versions are different.
+            await CheckDependentVersionsAsync(oldProject, newProject).ConfigureAwait(false);
         }
         else
         {
