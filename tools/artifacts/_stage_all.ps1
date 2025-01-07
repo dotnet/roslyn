@@ -11,7 +11,7 @@ param (
     [switch]$AvoidSymbolicLinks
 )
 
-$ArtifactStagingFolder = & "$PSScriptRoot/../../tools/Get-ArtifactsStagingDirectory.ps1" -CleanIfLocal
+$ArtifactStagingFolder = & "$PSScriptRoot/../Get-ArtifactsStagingDirectory.ps1" -CleanIfLocal
 
 function Create-SymbolicLink {
     param (
