@@ -1,8 +1,8 @@
-name: Library.Template update
+name: ⛜ Library.Template update
 
-# PREREQUISITE: This workflow requires the repo to be configured to allow workflows to push commits and create pull requests.
+# PREREQUISITE: This workflow requires the repo to be configured to allow workflows to create pull requests.
 # Visit https://github.com/USER/REPO/settings/actions
-# Under "Workflow permissions", select "Read and write permissions" and check "Allow GitHub Actions to create ...pull requests"
+# Under "Workflow permissions" check "Allow GitHub Actions to create ...pull requests"
 # Click Save.
 
 on:
@@ -13,15 +13,19 @@ on:
 jobs:
   merge:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
 
     - name: merge
+      id: merge
       shell: pwsh
       run: |
-        $LibTemplateBranch = & ./azure-pipelines/Get-LibTemplateBasis.ps1 -ErrorIfNotRelated
+        $LibTemplateBranch = & ./tools/Get-LibTemplateBasis.ps1 -ErrorIfNotRelated
         if ($LASTEXITCODE -ne 0) {
           exit $LASTEXITCODE
         }
@@ -31,15 +35,37 @@ jobs:
           exit $LASTEXITCODE
         }
         $LibTemplateCommit = git rev-parse FETCH_HEAD
+        git diff --stat ...FETCH_HEAD
 
         if ((git rev-list FETCH_HEAD ^HEAD --count) -eq 0) {
           Write-Host "There are no Library.Template updates to merge."
+          echo "uptodate=true" >> $env:GITHUB_OUTPUT
           exit 0
         }
 
-        git -c http.extraheader="AUTHORIZATION: bearer $env:GH_TOKEN" push origin -u FETCH_HEAD:refs/heads/auto/libtemplateUpdate
+        # Pushing commits that add or change files under .github/workflows will cause our workflow to fail.
+        # But it usually isn't necessary because the target branch already has (or doesn't have) these changes.
+        # So if the merged doesn't bring in any changes to these files, try the merge locally and push that
+        # to keep github happy.
+        if ((git rev-list FETCH_HEAD ^HEAD --count -- .github/workflows) -eq 0) {
+          # Indeed there are no changes in that area. So merge locally to try to appease GitHub.
+          git checkout -b auto/libtemplateUpdate
+          git config user.name "Andrew Arnott"
+          git config user.email "andrewarnott@live.com"
+          git merge FETCH_HEAD
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "Merge conflicts prevent creating the pull request. Please run tools/MergeFrom-Template.ps1 locally and push the result as a pull request."
+            exit 2
+          }
+
+          git -c http.extraheader="AUTHORIZATION: bearer $env:GH_TOKEN" push origin -u HEAD
+        } else {
+          Write-Host "Changes to github workflows are included in this update. Please run tools/MergeFrom-Template.ps1 locally and push the result as a pull request."
+          exit 1
+        }
     - name: pull request
       shell: pwsh
+      if: success() && steps.merge.outputs.uptodate != 'true'
       run: |
         # If there is already an active pull request, don't create a new one.
         $existingPR = gh pr list -H auto/libtemplateUpdate --json url | ConvertFrom-Json
@@ -50,6 +76,8 @@ jobs:
 
         $prTitle = "Merge latest Library.Template"
         $prBody = "This merges the latest features and fixes from [Library.Template's  branch](https://github.com/AArnott/Library.Template/tree/).
+
+        ⚠️ Do **not** squash this pull request when completing it. You must *merge* it.
 
         <details>
         <summary>Merge conflicts?</summary>
@@ -63,9 +91,7 @@ jobs:
         git commit
         git push
         ```
-        </details>
-
-        ⚠️ Do **not** squash this pull request when completing it. You must *merge* it."
+        </details>"
 
         gh pr create -H auto/libtemplateUpdate -b $prBody -t $prTitle
       env:

@@ -41,6 +41,8 @@ Further customize your repo by:
 1. Reset or replace the badges at the top of this file.
 1. Check and maybe change any variable groups referenced in the .yml files. Search for `- group:` to find them.
 
+[Activate Renovate automated dependency updates](https://docs.renovatebot.com/getting-started/installing-onboarding/) for your repo.
+
 ### Maintaining your repo based on this template
 
 The best way to keep your repo in sync with this template's evolving features and best practices is to periodically merge the template into your repo:

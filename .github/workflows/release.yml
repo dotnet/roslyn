@@ -1,0 +1,88 @@
+name: 🎁 Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      ship_run_id:
+        description: ID of the GitHub workflow run to ship
+        required: true
+
+run-name: ${{ github.ref_name }}
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: ⚙️ Initialization
+      shell: pwsh
+      run: |
+        if ('${{ secrets.NUGET_API_KEY }}') {
+          Write-Host "NUGET_API_KEY secret detected. NuGet packages will be pushed."
+          echo "NUGET_API_KEY_DEFINED=true" >> $env:GITHUB_ENV
+        }
+
+    - name: 🔎 Search for build of ${{ github.ref }}
+      shell: pwsh
+      id: findrunid
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        if ('${{ inputs.ship_run_id }}') {
+          $runid = '${{ inputs.ship_run_id }}'
+        } else {
+          $restApiRoot = '/repos/${{ github.repository }}'
+
+          # Resolve the tag reference to a commit sha
+          $resolvedRef = gh api `
+            -H "Accept: application/vnd.github+json" `
+            -H "X-GitHub-Api-Version: 2022-11-28" `
+            $restApiRoot/git/ref/tags/${{ github.ref_name }} `
+            | ConvertFrom-Json
+          $commitSha = $resolvedRef.object.sha
+
+          Write-Host "Resolved ${{ github.ref_name }} to $commitSha"
+
+          $releases = gh run list -R ${{ github.repository }} -c $commitSha -w .github/workflows/build.yml -s success --json databaseId,startedAt `
+            | ConvertFrom-Json | Sort-Object startedAt -Descending
+
+          if ($releases.length -eq 0) {
+            Write-Error "No successful builds found for ${{ github.ref }}."
+          } elseif ($releases.length -gt 1) {
+            Write-Warning "More than one successful run found for ${{ github.ref }}. Artifacts from the most recent successful run will ship."
+          }
+
+          $runid = $releases[0].databaseId
+        }
+
+        Write-Host "Using artifacts from run-id: $runid"
+
+        Echo "runid=$runid" >> $env:GITHUB_OUTPUT
+
+    - name: 🔻 Download deployables artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: deployables-Linux
+        path: ${{ runner.temp }}/deployables
+        run-id: ${{ steps.findrunid.outputs.runid }}
+        github-token: ${{ github.token }}
+
+    - name: 💽 Upload artifacts to release
+      shell: pwsh
+      if: ${{ github.event.release.assets_url }} != ''
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        Get-ChildItem '${{ runner.temp }}/deployables' |% {
+          Write-Host "Uploading $($_.Name) to release..."
+          gh release -R ${{ github.repository }} upload "${{ github.ref_name }}" $_.FullName
+        }
+
+    - name: 🚀 Push NuGet packages
+      run: dotnet nuget push ${{ runner.temp }}/deployables/*.nupkg --source https://api.nuget.org/v3/index.json -k '${{ secrets.NUGET_API_KEY }}'
+      if: ${{ env.NUGET_API_KEY_DEFINED == 'true' }}

@@ -82,7 +82,7 @@ stages:
       displayName: Set pipeline variables based on artifacts
       inputs:
         targetType: filePath
-        filePath: $(Agent.TempDirectory)/Variables-Windows/_pipelines.ps1
+        filePath: $(Agent.TempDirectory)/Variables-Windows/_define.ps1
     - task: NuGetCommand@2
       displayName: Push VS-repo packages to VS feed
       inputs:

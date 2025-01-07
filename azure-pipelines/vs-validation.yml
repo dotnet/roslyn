@@ -44,7 +44,7 @@ extends:
             os: Linux
           macOSPool:
             name: Azure Pipelines
-            vmImage: macOS-12
+            vmImage: macOS-14
             os: macOS
           EnableMacOSBuild: false
           RunTests: false
@@ -68,7 +68,7 @@ extends:
         - download: current
           artifact: Variables-Windows
           displayName: 🔻 Download Variables-Windows artifact
-        - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
+        - powershell: $(Pipeline.Workspace)/Variables-Windows/_define.ps1
           displayName: ⚙️ Set pipeline variables based on artifacts
         - download: current
           artifact: VSInsertion-Windows
