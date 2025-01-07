@@ -336,7 +336,7 @@ internal sealed partial class CSharpExtractMethodService
                     }
                     else
                     {
-                        // A different type of flow control construct (goto, yield, perhaps others).  Just leave as is.
+                        // A different type of flow control construct (goto, yield, perhaps others).  Just leave as is. g
                         return current;
                     }
                 }
