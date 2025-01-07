@@ -13006,7 +13006,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
+        <target state="translated">{0} slouží jen pro účely vyhodnocení a v budoucích aktualizacích může dojít ke změně nebo odebrání. Potlačte tuto diagnostiku, abyste mohli pokračovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

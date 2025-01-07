@@ -13006,7 +13006,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
+        <target state="translated">"{0}" dient nur zu Testzwecken und kann in zukünftigen Aktualisierungen geändert oder entfernt werden. Unterdrücken Sie diese Diagnose, um fortzufahren.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
