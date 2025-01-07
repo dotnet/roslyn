@@ -29,7 +29,7 @@ internal sealed partial class EnableNullableCodeRefactoringProvider : CodeRefact
         }
 
         public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-            => ImmutableArray.Create(FixAllScope.Solution);
+            => [FixAllScope.Solution];
 
         public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {

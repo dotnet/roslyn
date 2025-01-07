@@ -39,9 +39,10 @@ public class ActiveStatementTrackingServiceTests
 
         spanProvider.GetBaseActiveStatementSpansImpl = (_, documentIds) =>
         [
-            ImmutableArray.Create(
-                    new ActiveStatementSpan(new ActiveStatementId(0), span11, ActiveStatementFlags.NonLeafFrame),
-                    new ActiveStatementSpan(new ActiveStatementId(1), span12, ActiveStatementFlags.LeafFrame)),
+            [
+                new ActiveStatementSpan(new ActiveStatementId(0), span11, ActiveStatementFlags.NonLeafFrame),
+                new ActiveStatementSpan(new ActiveStatementId(1), span12, ActiveStatementFlags.LeafFrame),
+            ],
             [],
         ];
 

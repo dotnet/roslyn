@@ -257,7 +257,7 @@ public class RemoteEditAndContinueServiceTests
         mockEncService.GetBaseActiveStatementSpansImpl = (solution, documentIds) =>
         {
             AssertEx.Equal(new[] { documentId, inProcOnlyDocumentId }, documentIds);
-            return [ImmutableArray.Create(activeStatementSpan1)];
+            return [[activeStatementSpan1]];
         };
 
         var baseActiveSpans = await sessionProxy.GetBaseActiveStatementSpansAsync(localWorkspace.CurrentSolution, [documentId, inProcOnlyDocumentId], CancellationToken.None);

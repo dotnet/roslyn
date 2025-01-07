@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             get
             {
-                return _folders ?? ImmutableArray.Create<string>();
+                return _folders ?? [];
             }
         }
 

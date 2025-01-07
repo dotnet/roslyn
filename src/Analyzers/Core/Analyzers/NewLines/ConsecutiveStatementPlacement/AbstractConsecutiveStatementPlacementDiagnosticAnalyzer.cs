@@ -109,7 +109,7 @@ internal abstract class AbstractConsecutiveStatementPlacementDiagnosticAnalyzer<
             GetDiagnosticLocation(block),
             notificationOption,
             context.Options,
-            additionalLocations: ImmutableArray.Create(nextToken.GetLocation()),
+            additionalLocations: [nextToken.GetLocation()],
             properties: null));
     }
 }

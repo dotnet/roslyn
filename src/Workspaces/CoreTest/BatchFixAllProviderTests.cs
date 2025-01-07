@@ -39,11 +39,7 @@ class TestClass {{
 ";
 
             // Three CodeFixProviders provide three actions
-            var codeFixes = ImmutableArray.Create(
-                ImmutableArray.Create(1),
-                ImmutableArray.Create(2),
-                ImmutableArray.Create(3));
-            await new CSharpTest(codeFixes, nested: true)
+            await new CSharpTest([[1], [2], [3]], nested: true)
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
@@ -56,7 +52,7 @@ class TestClass {{
             internal static readonly DiagnosticDescriptor Descriptor =
                 new DiagnosticDescriptor("LiteralZero", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
 
             public override void Initialize(AnalysisContext context)
             {
@@ -88,7 +84,7 @@ class TestClass {{
                 _nested = nested;
             }
 
-            public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(LiteralZeroAnalyzer.Descriptor.Id);
+            public override ImmutableArray<string> FixableDiagnosticIds => [LiteralZeroAnalyzer.Descriptor.Id];
 
             public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 

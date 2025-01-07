@@ -368,7 +368,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         return DocumentInfo.Create(
             DocumentId.CreateNewId(projectId, name),
             name: name,
-            folders: Array.Empty<string>(),
+            folders: [],
             sourceCodeKind: SourceCodeKind.Regular,
             loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), path)),
             filePath: path,
