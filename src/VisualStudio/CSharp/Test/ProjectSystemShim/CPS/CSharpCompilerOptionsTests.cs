@@ -50,7 +50,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             var options = environment.GetUpdatedCompilationOptionOfSingleProject();
             Assert.Equal(expected: ReportDiagnostic.Error, actual: options.SpecificDiagnosticOptions["CS1111"]);
 
-            project.SetOptions(ImmutableArray.Create(@"/warnaserror"));
+            project.SetOptions([@"/warnaserror"]);
             options = environment.GetUpdatedCompilationOptionOfSingleProject();
             Assert.False(options.SpecificDiagnosticOptions.ContainsKey("CS1111"));
         }
@@ -68,19 +68,19 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
             // Change obj output folder from command line arguments - verify that objOutputPath changes, but binOutputPath is the same.
             var newObjPath = @"C:\NewFolder\test.dll";
-            project.SetOptions(ImmutableArray.Create($"/out:{newObjPath}"));
+            project.SetOptions([$"/out:{newObjPath}"]);
             Assert.Equal(newObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(initialBinPath, project.BinOutputPath);
 
             // Change output file name - verify that objOutputPath changes, but binOutputPath is the same.
             newObjPath = @"C:\NewFolder\test2.dll";
-            project.SetOptions(ImmutableArray.Create($"/out:{newObjPath}"));
+            project.SetOptions([$"/out:{newObjPath}"]);
             Assert.Equal(newObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(initialBinPath, project.BinOutputPath);
 
             // Change output file name and folder - verify that objOutputPath changes, but binOutputPath is the same.
             newObjPath = @"C:\NewFolder3\test3.dll";
-            project.SetOptions(ImmutableArray.Create($"/out:{newObjPath}"));
+            project.SetOptions([$"/out:{newObjPath}"]);
             Assert.Equal(newObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(initialBinPath, project.BinOutputPath);
 
@@ -100,7 +100,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             // Change obj  folder to non-canonical path - verify that objOutputPath changes to normalized path, but binOutputPath is unchanged.
             var relativeObjPath = @"..\folder\\test.dll";
             var absoluteObjPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), relativeObjPath));
-            project.SetOptions(ImmutableArray.Create($"/out:{relativeObjPath}"));
+            project.SetOptions([$"/out:{relativeObjPath}"]);
             Assert.Equal(absoluteObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(expectedNewBinPath, project.BinOutputPath);
         }
@@ -183,7 +183,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
             Assert.Equal(SourceHashAlgorithms.Default, environment.Workspace.CurrentSolution.Projects.Single().State.ChecksumAlgorithm);
 
-            cpsProject.SetOptions(ImmutableArray.Create("/checksumalgorithm:SHA1"));
+            cpsProject.SetOptions(["/checksumalgorithm:SHA1"]);
 
             Assert.Equal(SourceHashAlgorithm.Sha1, environment.Workspace.CurrentSolution.Projects.Single().State.ChecksumAlgorithm);
         }

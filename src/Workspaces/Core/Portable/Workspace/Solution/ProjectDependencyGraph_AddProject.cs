@@ -28,7 +28,7 @@ public partial class ProjectDependencyGraph
         if (!newDependencySets.IsDefault)
         {
             var builder = newDependencySets.ToBuilder();
-            builder.Add(ImmutableArray.Create(projectId));
+            builder.Add([projectId]);
             newDependencySets = builder.ToImmutable();
         }
 

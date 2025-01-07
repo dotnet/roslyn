@@ -24,7 +24,7 @@ VersionStamp.Create(),
 "TestProject",
 "TestProject",
 LanguageNames.CSharp,
-metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)));
+metadataReferences: [PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)]);
 
             var project = ws.AddProject(projectInfo);
 
@@ -53,7 +53,7 @@ VersionStamp.Create(),
 "ReferenceProject",
 "ReferenceProject",
 LanguageNames.CSharp,
-metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)));
+metadataReferences: [PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)]);
 
             var referenceProject = ws.AddProject(referenceInfo);
 
@@ -63,8 +63,8 @@ metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableR
                 "TestProject",
                 "TestProject",
                 LanguageNames.CSharp,
-                projectReferences: ImmutableArray.Create<ProjectReference>(new ProjectReference(referenceInfo.Id)),
-                metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)));
+                projectReferences: [new ProjectReference(referenceInfo.Id)],
+                metadataReferences: [PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)]);
 
             var project = ws.AddProject(projectInfo);
 
@@ -93,7 +93,7 @@ VersionStamp.Create(),
 "ReferenceProject",
 "ReferenceProject",
 LanguageNames.VisualBasic,
-metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)));
+metadataReferences: [PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)]);
 
             var referenceProject = ws.AddProject(referenceInfo);
 
@@ -103,8 +103,8 @@ metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableR
                 "TestProject",
                 "TestProject",
                 LanguageNames.CSharp,
-                projectReferences: ImmutableArray.Create<ProjectReference>(new ProjectReference(referenceInfo.Id)),
-                metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)));
+                projectReferences: [new ProjectReference(referenceInfo.Id)],
+                metadataReferences: [PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)]);
 
             var project = ws.AddProject(projectInfo);
 
@@ -133,7 +133,7 @@ VersionStamp.Create(),
 "ReferenceProject",
 "ReferenceProject",
 LanguageNames.CSharp,
-metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)));
+metadataReferences: [PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)]);
 
             var referenceProject = ws.AddProject(referenceInfo);
 
@@ -143,8 +143,8 @@ metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableR
                 "TestProject",
                 "TestProject",
                 LanguageNames.CSharp,
-                projectReferences: ImmutableArray.Create<ProjectReference>(new ProjectReference(referenceInfo.Id)),
-                metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)));
+                projectReferences: [new ProjectReference(referenceInfo.Id)],
+                metadataReferences: [PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)]);
 
             var project = ws.AddProject(projectInfo);
 
@@ -177,7 +177,7 @@ VersionStamp.Create(),
 "TestProject",
 "TestProject",
 LanguageNames.CSharp,
-metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)));
+metadataReferences: [PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location)]);
 
             var project = ws.AddProject(projectInfo);
 
@@ -186,9 +186,11 @@ metadataReferences: ImmutableArray.Create<MetadataReference>(PortableExecutableR
             var references1 = compilation1.ExternalReferences;
 
             // explicitly change references
-            var forkedProject = project.WithMetadataReferences(ImmutableArray.Create<MetadataReference>(
+            var forkedProject = project.WithMetadataReferences(
+            [
                 PortableExecutableReference.CreateFromFile(typeof(object).Assembly.Location),
-                PortableExecutableReference.CreateFromFile(typeof(Workspace).Assembly.Location)));
+                PortableExecutableReference.CreateFromFile(typeof(Workspace).Assembly.Location),
+            ]);
 
             // get new compilation
             var compilation2 = await forkedProject.GetCompilationAsync();

@@ -75,12 +75,11 @@ internal sealed class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractBui
         {
             var location = GetDiagnosticLocation(declaration);
 
-            var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
             var properties = ImmutableDictionary<string, string?>.Empty;
             return DiagnosticHelper.Create(
                 s_useExpressionBodyForLambda,
                 location, option.Notification,
-                analyzerOptions, additionalLocations, properties);
+                analyzerOptions, [declaration.GetLocation()], properties);
         }
 
         if (UseExpressionBodyForLambdaHelpers.CanOfferUseBlockBody(semanticModel, option.Value, declaration, cancellationToken))

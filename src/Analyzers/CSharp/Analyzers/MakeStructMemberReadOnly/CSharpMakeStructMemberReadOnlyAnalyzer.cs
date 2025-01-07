@@ -163,7 +163,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 location,
                 notificationOption,
                 context.Options,
-                additionalLocations: ImmutableArray.Create(additionalLocation),
+                additionalLocations: [additionalLocation],
                 properties: null);
         }
     }

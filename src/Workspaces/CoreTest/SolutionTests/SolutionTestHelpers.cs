@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static void TestListProperty<T, TValue>(T instance, Func<T, IEnumerable<TValue>, T> factory, Func<T, IEnumerable<TValue>> getter, TValue item, bool allowDuplicates)
             where T : class
         {
-            var boxedItems = (IEnumerable<TValue>)ImmutableArray.Create(item);
+            var boxedItems = (IEnumerable<TValue>)[item];
             TestProperty(instance, factory, getter, boxedItems, defaultThrows: false);
 
             var instanceWithNoItem = factory(instance, null);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // duplicate item:
             if (allowDuplicates)
             {
-                var boxedDupItems = (IEnumerable<TValue>)ImmutableArray.Create(item, item);
+                var boxedDupItems = (IEnumerable<TValue>)[item, item];
                 Assert.Same(boxedDupItems, getter(factory(instanceWithNoItem, boxedDupItems)));
             }
             else
