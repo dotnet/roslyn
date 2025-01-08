@@ -142,7 +142,7 @@ internal abstract partial class AbstractExtractMethodService<
                 if (syntaxFacts.IsAnonymousOrLocalFunction(current))
                     continue;
 
-                if (current.Span.OverlapsWith(span) && predicate(syntaxFacts, current))
+                if (predicate(syntaxFacts, current))
                     return true;
 
                 // Only dive into child nodes within the span being extracted.
