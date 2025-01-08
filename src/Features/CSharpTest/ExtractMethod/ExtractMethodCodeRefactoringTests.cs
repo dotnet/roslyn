@@ -6174,7 +6174,7 @@ $@"
                     return 0;
                 }
 
-                private static void NewMethod(int v)
+                private static bool NewMethod(int v)
                 {
                     if (v == 0)
                     {

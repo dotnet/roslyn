@@ -49,6 +49,7 @@ internal abstract partial class AbstractExtractMethodService<
             where TCodeGenerationOptions : CodeGenerationOptions
         {
             private static readonly CodeGenerationContext s_codeGenerationContext = new(addImports: false);
+            protected static readonly string FlowControlName = "flowControl";
 
             protected readonly SelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
@@ -92,8 +93,20 @@ internal abstract partial class AbstractExtractMethodService<
             protected abstract Task<TNodeUnderContainer> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken);
 
             protected abstract TExpressionSyntax CreateCallSignature();
-            protected abstract TStatementSyntax CreateDeclarationStatement(ImmutableArray<VariableInfo> variables, TExpressionSyntax initialValue, CancellationToken cancellationToken);
-            protected abstract TStatementSyntax CreateAssignmentExpressionStatement(ImmutableArray<VariableInfo> variables, TExpressionSyntax rvalue);
+
+            /// <summary>
+            /// Statement we create when we are assigning variables and at least one of the variables in a new
+            /// declaration that is being created.
+            /// </summary>
+            protected abstract TStatementSyntax CreateDeclarationStatement(
+                ImmutableArray<VariableInfo> variables, TExpressionSyntax initialValue, ExtractMethodFlowControlInformation flowControlInformation, CancellationToken cancellationToken);
+
+            /// <summary>
+            /// Statement we create when we are assigning variables and all of the variables already exist and are just
+            /// being assigned to.
+            /// </summary>
+            protected abstract TStatementSyntax CreateAssignmentExpressionStatement(
+                ImmutableArray<VariableInfo> variables, TExpressionSyntax rvalue, ExtractMethodFlowControlInformation flowControlInformation);
 
             protected abstract TExecutableStatementSyntax CreateBreakStatement();
             protected abstract TExecutableStatementSyntax CreateContinueStatement();
@@ -259,41 +272,50 @@ internal abstract partial class AbstractExtractMethodService<
             protected async Task<ImmutableArray<TStatementSyntax>> AddInvocationAtCallSiteAsync(
                 ImmutableArray<TStatementSyntax> statements, CancellationToken cancellationToken)
             {
-                if (!AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
-                    return statements;
+                // If the newly extracted method isn't returning any data, and doesn't have complex flow control, then
+                // we want ot handle that here.  The case where we do need to pass data out is in AddAssignmentStatementToCallSite.
+                if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty &&
+                    !AnalyzerResult.FlowControlInformation.NeedsControlFlowValue())
+                {
+                    Contract.ThrowIfTrue(AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite().Any(v => v.UseAsReturnValue));
 
-                Contract.ThrowIfTrue(AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite().Any(v => v.UseAsReturnValue));
+                    // add invocation expression
+                    return statements.Concat(
+                        (TStatementSyntax)(SyntaxNode)await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken).ConfigureAwait(false));
+                }
 
-                // add invocation expression
-                return statements.Concat(
-                    (TStatementSyntax)(SyntaxNode)await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken).ConfigureAwait(false));
+                return statements;
             }
 
             protected ImmutableArray<TStatementSyntax> AddAssignmentStatementToCallSite(
                 ImmutableArray<TStatementSyntax> statements,
                 CancellationToken cancellationToken)
             {
-                if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
+                if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty &&
+                    !AnalyzerResult.FlowControlInformation.NeedsControlFlowValue())
+                {
                     return statements;
+                }
 
+                var flowControlInformation = AnalyzerResult.FlowControlInformation;
                 var variables = AnalyzerResult.VariablesToUseAsReturnValue;
                 if (variables.Any(v => v.ReturnBehavior == ReturnBehavior.Initialization))
                 {
                     var declarationStatement = CreateDeclarationStatement(
-                        variables, CreateCallSignature(), cancellationToken);
-                    declarationStatement = declarationStatement.WithAdditionalAnnotations(CallSiteAnnotation);
+                        variables, CreateCallSignature(), flowControlInformation, cancellationToken);
 
-                    return statements.Concat(declarationStatement);
+                    return statements.Concat(declarationStatement.WithAdditionalAnnotations(CallSiteAnnotation));
                 }
 
                 return statements.Concat(
-                    CreateAssignmentExpressionStatement(variables, CreateCallSignature()).WithAdditionalAnnotations(CallSiteAnnotation));
+                    CreateAssignmentExpressionStatement(variables, CreateCallSignature(), flowControlInformation).WithAdditionalAnnotations(CallSiteAnnotation));
             }
 
             protected ImmutableArray<TStatementSyntax> CreateDeclarationStatements(
                 ImmutableArray<VariableInfo> variables, CancellationToken cancellationToken)
             {
-                return variables.SelectAsArray(v => CreateDeclarationStatement([v], initialValue: null, cancellationToken));
+                return variables.SelectAsArray(
+                    v => CreateDeclarationStatement([v], initialValue: null, flowControlInformation: null, cancellationToken));
             }
 
             protected ImmutableArray<TStatementSyntax> AddSplitOrMoveDeclarationOutStatementsToCallSite(
@@ -307,7 +329,7 @@ internal abstract partial class AbstractExtractMethodService<
                         continue;
 
                     list.Add(CreateDeclarationStatement(
-                        [variable], initialValue: null, cancellationToken: cancellationToken));
+                        [variable], initialValue: null, flowControlInformation: null, cancellationToken));
                 }
 
                 return list.ToImmutableAndClear();
@@ -417,7 +439,6 @@ internal abstract partial class AbstractExtractMethodService<
                 var callSignature = CreateCallSignature();
 
                 var generator = this.SemanticDocument.Document.GetRequiredLanguageService<SyntaxGenerator>();
-
                 return AnalyzerResult.CoreReturnType.SpecialType != SpecialType.System_Void
                     ? (TExecutableStatementSyntax)generator.ReturnStatement(callSignature)
                     : (TExecutableStatementSyntax)generator.ExpressionStatement(callSignature);
@@ -446,7 +467,7 @@ internal abstract partial class AbstractExtractMethodService<
                     var compilation = this.SemanticDocument.SemanticModel.Compilation;
                     return compilation.CreateTupleTypeSymbol(
                         [controlFlowValueType, coreReturnType],
-                        ["flowControl", "value"]);
+                        [FlowControlName, "value"]);
                 }
 
                 ITypeSymbol WrapWithTaskIfNecessary(ITypeSymbol type)
