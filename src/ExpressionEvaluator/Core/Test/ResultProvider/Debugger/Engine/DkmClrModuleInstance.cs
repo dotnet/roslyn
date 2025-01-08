@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             get { return _resolveTypeNameFailures; }
         }
 
-        public object GetMetaDataImport() => new MetadataImportMock(Assembly);
+        public DkmMetadataImportHolder GetMetaDataImportHolder() => new DkmMetadataImportHolder(new MetadataImportMock(Assembly));
 
         private class MetadataImportMock : IMetadataImport
         {
