@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             get
             {
-                return _builder.Count;
+                return _builder?.Count ?? 0;
             }
         }
 
