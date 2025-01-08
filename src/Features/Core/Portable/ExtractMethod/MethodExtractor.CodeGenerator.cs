@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -257,19 +258,21 @@ internal abstract partial class AbstractExtractMethodService<
                 return statements.Concat(CreateReturnStatement([]));
             }
 
-            private TExecutableStatementSyntax CreateReturnStatement(ImmutableArray<TExpressionSyntax> expressions)
+            private TExecutableStatementSyntax CreateReturnStatement(
+                ImmutableArray<TExpressionSyntax> expressions)
             {
                 var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
                 return (TExecutableStatementSyntax)generator.ReturnStatement(CreateReturnExpression(expressions));
             }
 
-            private TExpressionSyntax CreateReturnExpression(ImmutableArray<TExpressionSyntax> expressions)
+            private TExpressionSyntax CreateReturnExpression(ImmutableArray<TExpressionSyntax> expressions, ImmutableArray<string> names = default)
             {
                 var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
                 return
                     expressions.Length == 0 ? null :
                     expressions.Length == 1 ? expressions[0] :
-                    (TExpressionSyntax)generator.TupleExpression(expressions.Select(generator.Argument));
+                    (TExpressionSyntax)generator.TupleExpression(expressions.Select(
+                        (e, i) => generator.Argument(names.IsDefaultOrEmpty ? null : names[i], RefKind.None, e)));
             }
 
             protected async Task<ImmutableArray<TStatementSyntax>> AddInvocationAtCallSiteAsync(
@@ -350,22 +353,38 @@ internal abstract partial class AbstractExtractMethodService<
                 }
 
                 var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
-                using var _ = ArrayBuilder<TExpressionSyntax>.GetInstance(out var expressions);
+
                 if (this.AnalyzerResult.FlowControlInformation.TryGetFallThroughFlowValue(out var fallthroughValue))
+                {
+                    using var _1 = ArrayBuilder<string>.GetInstance(out var expressionNames);
+                    using var _2 = ArrayBuilder<TExpressionSyntax>.GetInstance(out var expressions);
+
+                    expressionNames.Add(FlowControlName);
                     expressions.Add((TExpressionSyntax)generator.LiteralExpression(fallthroughValue));
 
-                if (!AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
-                {
-                    expressions.Add(CreateReturnExpression(AnalyzerResult.VariablesToUseAsReturnValue.SelectAsArray(
-                        static (v, generator) => (TExpressionSyntax)generator.IdentifierName(v.Name),
-                        generator)));
+                    if (AnalyzerResult.CoreReturnType.SpecialType != SpecialType.System_Void)
+                    {
+                        expressionNames.Add(ReturnValueName);
+                        expressions.Add((TExpressionSyntax)generator.DefaultExpression(AnalyzerResult.CoreReturnType));
+                    }
+
+                    return statements.Concat(CreateReturnStatement( expressions.ToImmutableAndClear(), expressionNames.ToImmutableAndClear()));
                 }
-
-                if (expressions.Count == 0)
+                else if (!this.AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
+                {
+                    return statements.Concat((TStatementSyntax)generator.ReturnStatement(
+                        CreateReturnExpression(AnalyzerResult.VariablesToUseAsReturnValue.SelectAsArray(
+                            static (v, generator) => (TExpressionSyntax)generator.IdentifierName(v.Name),
+                            generator))));
+                }
+                else
+                {
                     return statements;
-
-                return statements.Concat(CreateReturnStatement(expressions.ToImmutableAndClear()));
+                }
             }
+
+            protected abstract TExpressionSyntax CreateConvertedReturnExpression(
+                ExtractMethodFlowControlInformation flowControlInformation, object flowValue);
 
             protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
                 IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)

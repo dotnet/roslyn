@@ -6509,4 +6509,218 @@ $@"
             }
             """);
     }
+
+    [Fact]
+    public async Task TestFlowControl_ReturnAndBreak()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }
+                        
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            return value;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+
+                    return (flowControl: false, value: default);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_ReturnAndContinue()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }
+                        
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            return value;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+
+                    return (flowControl: false, value: default);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_ReturnAndReturn()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 2;
+                        }
+                        
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        return {|Rename:NewMethod|}(v);
+                    }
+            
+                    return 0;
+                }
+
+                private static int NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return 2;
+                    }
+
+                    return 1;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_ReturnAndFallThrough()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: 1);
+                    }
+
+                    return (flowControl: true, value: default);
+                }
+            }
+            """);
+    }
 }
