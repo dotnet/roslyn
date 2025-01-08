@@ -95,6 +95,9 @@ internal abstract partial class AbstractExtractMethodService<
             protected abstract TStatementSyntax CreateDeclarationStatement(ImmutableArray<VariableInfo> variables, TExpressionSyntax initialValue, CancellationToken cancellationToken);
             protected abstract TStatementSyntax CreateAssignmentExpressionStatement(ImmutableArray<VariableInfo> variables, TExpressionSyntax rvalue);
 
+            protected abstract TExecutableStatementSyntax CreateBreakStatement();
+            protected abstract TExecutableStatementSyntax CreateContinueStatement();
+
             protected abstract ImmutableArray<TStatementSyntax> GetInitialStatementsForMethodDefinitions();
 
             protected abstract Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
@@ -102,6 +105,7 @@ internal abstract partial class AbstractExtractMethodService<
 
             protected abstract Task<SemanticDocument> PerformFinalTriviaFixupAsync(
                 SemanticDocument newDocument, CancellationToken cancellationToken);
+
             #endregion
 
             private static SyntaxNode GetInsertionPoint(SemanticDocument document)
@@ -213,8 +217,17 @@ internal abstract partial class AbstractExtractMethodService<
                 ImmutableArray<TStatementSyntax> statements, CancellationToken cancellationToken)
             {
                 if (AnalyzerResult.FlowControlInformation.EndPointIsReachable)
-                {
                     return statements;
+
+                // All the flow control in the analyzed block is the same (for example, all breaks/continues/returns).
+                // In this case add a specific instance of that same flow control construct after the call to the new
+                // method to ensure we preserve original control flow.
+                if (AnalyzerResult.FlowControlInformation.HasUniformControlFlow())
+                {
+                    if (AnalyzerResult.FlowControlInformation.BreakStatementCount > 0)
+                        return statements.Concat(this.CreateBreakStatement());
+                    else if (AnalyzerResult.FlowControlInformation.ContinueStatementCount > 0)
+                        return statements.Concat(this.CreateContinueStatement());
                 }
 
                 var returnType = SelectionResult.GetReturnType(cancellationToken);

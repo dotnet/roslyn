@@ -71,6 +71,12 @@ internal sealed partial class CSharpExtractMethodService
                 _methodName = nameToken.WithAdditionalAnnotations(MethodNameAnnotation);
             }
 
+            protected override StatementSyntax CreateBreakStatement()
+                => BreakStatement();
+
+            protected override StatementSyntax CreateContinueStatement()
+                => ContinueStatement();
+
             public override OperationStatus<ImmutableArray<SyntaxNode>> GetNewMethodStatements(SyntaxNode insertionPointNode, CancellationToken cancellationToken)
             {
                 var statements = CreateMethodBody(insertionPointNode, cancellationToken);

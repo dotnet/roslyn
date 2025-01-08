@@ -52,6 +52,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)
                 End Sub
 
+                Protected Overrides Function CreateBreakStatement() As ExecutableStatementSyntax
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
+                Protected Overrides Function CreateContinueStatement() As ExecutableStatementSyntax
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
                 Protected Overrides Function UpdateMethodAfterGenerationAsync(originalDocument As SemanticDocument, methodSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Task(Of SemanticDocument)
                     Return Task.FromResult(originalDocument)
                 End Function
