@@ -7143,7 +7143,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
                         if (flowControl)
                         {
                             return value;
@@ -7199,7 +7199,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        bool flowControl = {|Rename:NewMethod|}(v);
+                        var flowControl = {|Rename:NewMethod|}(v);
                         if (!flowControl)
                         {
                             break;
@@ -7253,7 +7253,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        bool flowControl = {|Rename:NewMethod|}(v);
+                        var flowControl = {|Rename:NewMethod|}(v);
                         if (flowControl)
                         {
                             continue;
@@ -7284,7 +7284,7 @@ $@"
     [Fact]
     public async Task TestFlowControl_ContinueAndContinue_AllowVar()
     {
-        await         TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7335,7 +7335,7 @@ $@"
     [Fact]
     public async Task TestFlowControl_ContinueAndReturn_AllowVar()
     {
-        await         TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7362,7 +7362,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
                         if (flowControl)
                         {
                             return value;
@@ -7393,7 +7393,7 @@ $@"
     [Fact]
     public async Task TestFlowControl_ContinueAndFallThrough_AllowVar()
     {
-        await         TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7418,7 +7418,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        bool flowControl = {|Rename:NewMethod|}(v);
+                        var flowControl = {|Rename:NewMethod|}(v);
                         if (!flowControl)
                         {
                             continue;
@@ -7445,7 +7445,7 @@ $@"
     [Fact]
     public async Task TestFlowControl_ReturnAndBreak_AllowVar()
     {
-        await         TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7472,7 +7472,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
                         if (flowControl)
                         {
                             return value;
@@ -7503,7 +7503,7 @@ $@"
     [Fact]
     public async Task TestFlowControl_ReturnAndContinue_AllowVar()
     {
-        await         TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7530,7 +7530,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
                         if (flowControl)
                         {
                             return value;
@@ -7561,7 +7561,7 @@ $@"
     [Fact]
     public async Task TestFlowControl_ReturnAndReturn_AllowVar()
     {
-        await         TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7611,7 +7611,7 @@ $@"
     [Fact]
     public async Task TestFlowControl_ReturnAndFallThrough_AllowVar()
     {
-        await         TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7636,7 +7636,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
                         if (!flowControl)
                         {
                             return value;
@@ -7663,7 +7663,7 @@ $@"
     [Fact]
     public async Task TestFlowControl_BreakAndContinueAndReturn_AllowVar()
     {
-        await         TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7695,7 +7695,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (bool? flowControl, int value) = {|Rename:NewMethod|}(v);
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
                         if (flowControl == false)
                         {
                             break;
@@ -7735,7 +7735,7 @@ $@"
     [Fact]
     public async Task TestFlowControl_BreakAndContinueAndFallThrough_AllowVar()
     {
-        await         TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7765,7 +7765,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        bool? flowControl = {|Rename:NewMethod|}(v);
+                        var flowControl = {|Rename:NewMethod|}(v);
                         if (flowControl == false)
                         {
                             break;
@@ -7801,7 +7801,7 @@ $@"
     [Fact]
     public async Task TestFlowControl_ContinueAndReturnAndFallThrough_AllowVar()
     {
-        await         TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7831,7 +7831,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (bool? flowControl, int value) = {|Rename:NewMethod|}(v);
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
                         if (flowControl == false)
                         {
                             break;
@@ -7867,80 +7867,79 @@ $@"
     [Fact]
     public async Task TestFlowControl_BreakAndContinueAndReturnAndFallThrough_AllowVar()
     {
-        await         TestInRegularAndScriptAsync(
-            """
-        class C
-        {
-            private string Repro(int[] x)
+        await TestInRegularAndScriptAsync("""
+            class C
             {
-                foreach (var v in x)
+                private string Repro(int[] x)
                 {
-                    [|if (v == 0)
+                    foreach (var v in x)
                     {
-                        break;
-                    }
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
                         
+                        if (v == 1)
+                        {
+                            continue;
+                        }
+
+                        if (v == 2)
+                        {
+                            return "";
+                        }|]
+                    }
+
+                    return "x";
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private string Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
+                        if (flowControl == 0)
+                        {
+                            break;
+                        }
+                        else if (flowControl == 1)
+                        {
+                            continue;
+                        }
+                        else if (flowControl == 2)
+                        {
+                            return value;
+                        }
+                    }
+
+                    return "x";
+                }
+
+                private static (int flowControl, string value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: 0, value: null);
+                    }
+
                     if (v == 1)
                     {
-                        continue;
+                        return (flowControl: 1, value: null);
                     }
 
                     if (v == 2)
                     {
-                        return "";
-                    }|]
-                }
-
-                return "x";
-            }
-        }
-        """,
-            """
-        class C
-        {
-            private string Repro(int[] x)
-            {
-                foreach (var v in x)
-                {
-                    (int flowControl, string value) = {|Rename:NewMethod|}(v);
-                    if (flowControl == 0)
-                    {
-                        break;
+                        return (flowControl: 2, value: "");
                     }
-                    else if (flowControl == 1)
-                    {
-                        continue;
-                    }
-                    else if (flowControl == 2)
-                    {
-                        return value;
-                    }
-                }
 
-                return "x";
+                    return (flowControl: 3, value: null);
+                }
             }
-
-            private static (int flowControl, string value) NewMethod(int v)
-            {
-                if (v == 0)
-                {
-                    return (flowControl: 0, value: null);
-                }
-
-                if (v == 1)
-                {
-                    return (flowControl: 1, value: null);
-                }
-
-                if (v == 2)
-                {
-                    return (flowControl: 2, value: "");
-                }
-
-                return (flowControl: 3, value: null);
-            }
-        }
-        """,
+            """,
             options: ImplicitTypeEverywhere());
     }
 }
