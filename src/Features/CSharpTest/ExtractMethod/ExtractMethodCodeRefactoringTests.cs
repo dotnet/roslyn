@@ -6235,10 +6235,10 @@ $@"
                 {
                     if (v == 0)
                     {
-                        return (false, default);
+                        return (flowControl: false, value: 0);
                     }
 
-                    return (true, 1);
+                    return (flowControl: true, value: 1);
                 }
             }
             """);

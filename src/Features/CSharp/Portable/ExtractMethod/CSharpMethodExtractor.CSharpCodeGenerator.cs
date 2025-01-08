@@ -396,7 +396,7 @@ internal sealed partial class CSharpExtractMethodService
                     {
                         // TODO: pass back more than just the control flow value if needed.
                         var returnStatement = flowControlInformation.TryGetBreakFlowValue(out var flowValue)
-                            ? ReturnStatement(ExpressionGenerator.GenerateExpression(flowControlInformation.ControlFlowValueType, flowValue, canUseFieldReference: false))
+                            ? ReturnStatement(CreateConvertedReturnExpression(flowControlInformation, flowValue))
                             : ReturnStatement();
                         return returnStatement.WithSemicolonToken(breakStatement.SemicolonToken);
                     }
@@ -404,13 +404,13 @@ internal sealed partial class CSharpExtractMethodService
                     {
                         // TODO: pass back more than just the control flow value if needed.
                         var returnStatement = flowControlInformation.TryGetContinueFlowValue(out var flowValue)
-                            ? ReturnStatement(ExpressionGenerator.GenerateExpression(flowControlInformation.ControlFlowValueType, flowValue, canUseFieldReference: false))
+                            ? ReturnStatement(CreateConvertedReturnExpression(flowControlInformation, flowValue))
                             : ReturnStatement();
                         return returnStatement.WithSemicolonToken(continueStatement.SemicolonToken);
                     }
                     else if (current is ReturnStatementSyntax returnStatement)
                     {
-                        if (flowControlInformation.TryGetContinueFlowValue(out var flowValue))
+                        if (flowControlInformation.TryGetReturnFlowValue(out var flowValue))
                         {
                             var returnExpr = returnStatement.Expression;
                             if (returnExpr != null)
@@ -418,8 +418,8 @@ internal sealed partial class CSharpExtractMethodService
                                 // The code we're extracting is returning values as well.  Ensure that we return both
                                 // the control flow value and the original value the code was returning.
                                 var tupleExpression = TupleExpression([
-                                    Argument(ExpressionGenerator.GenerateExpression(flowControlInformation.ControlFlowValueType, flowValue, canUseFieldReference: false)),
-                                    Argument(returnExpr.WithoutTrivia())]).WithTriviaFrom(returnExpr);
+                                    Argument(NameColon(IdentifierName(FlowControlName)), refKindKeyword: default, ExpressionGenerator.GenerateExpression(flowControlInformation.ControlFlowValueType, flowValue, canUseFieldReference: false)),
+                                    Argument(NameColon(IdentifierName(ReturnValueName)), refKindKeyword: default, returnExpr.WithoutTrivia())]).WithTriviaFrom(returnExpr);
                                 return returnStatement.WithExpression(tupleExpression);
                             }
                             else
@@ -444,6 +444,21 @@ internal sealed partial class CSharpExtractMethodService
                         return current;
                     }
                 }
+            }
+
+            private ExpressionSyntax CreateConvertedReturnExpression(ExtractMethodFlowControlInformation flowControlInformation, object flowValue)
+            {
+                var flowValueExpression = ExpressionGenerator.GenerateExpression(
+                    flowControlInformation.ControlFlowValueType, flowValue, canUseFieldReference: false);
+                if (this.AnalyzerResult.CoreReturnType.SpecialType == SpecialType.System_Void)
+                    return flowValueExpression;
+
+                var methodReturnDefaultValue = this.AnalyzerResult.CoreReturnType.IsReferenceType
+                    ? LiteralExpression(SyntaxKind.NullLiteralExpression)
+                    : LiteralExpression(SyntaxKind.DefaultLiteralExpression);
+                return TupleExpression([
+                    Argument(NameColon(IdentifierName(FlowControlName)), refKindKeyword: default, flowValueExpression),
+                    Argument(NameColon(IdentifierName(ReturnValueName)), refKindKeyword: default, methodReturnDefaultValue)]);
             }
 
             protected SyntaxKind UnderCheckedExpressionContext()
@@ -835,7 +850,7 @@ internal sealed partial class CSharpExtractMethodService
                                 singleVariable.Name.ToIdentifierToken(), null, equalsValueClause)]))
                         .WithUsingKeyword(usingKeyword);
                 }
-                else if (variableInfos.IsEmpty && needsControlFlowValue)
+                else if (this.AnalyzerResult.CoreReturnType.SpecialType == SpecialType.System_Void && needsControlFlowValue)
                 {
                     // No actual return values, but we do have a control flow value.  Just generate:
                     // bool flowControl = NewMethod();
