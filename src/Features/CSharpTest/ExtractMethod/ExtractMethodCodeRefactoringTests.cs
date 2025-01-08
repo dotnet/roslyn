@@ -7942,4 +7942,966 @@ $@"
             """,
             options: ImplicitTypeEverywhere());
     }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndBreak_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        {|Rename:NewMethod|}(v);
+                        break;
+                    }
+            
+                    return 0;
+                }
+
+                private static void NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return;
+                    }
+                    await Task.Delay(0);
+                    return;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndContinue_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+                    await Task.Delay(0);
+                    return true;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndReturn_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            return value;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+                    await Task.Delay(0);
+                    return (flowControl: true, value: 1);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndFallThrough_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+                    await Task.Delay(0);
+                    return true;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_ContinueAndBreak_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(0);
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return true;
+                    }
+                    await Task.Delay(0);
+                    return false;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_ContinueAndContinue_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(0);
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        {|Rename:NewMethod|}(v);
+                        continue;
+                    }
+            
+                    return 0;
+                }
+
+                private static void NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return;
+                    }
+                    await Task.Delay(0);
+                    return;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_ContinueAndReturn_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(0);
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            return value;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+                    await Task.Delay(0);
+                    return (flowControl: true, value: 1);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_ContinueAndFallThrough_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(0);|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            continue;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+                    await Task.Delay(0);
+                    return true;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_ReturnAndBreak_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }
+                        await Task.Delay(0);
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            return value;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+                    await Task.Delay(0);
+                    return (flowControl: false, value: default);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_ReturnAndContinue_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }
+                        await Task.Delay(0);
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            return value;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+                    await Task.Delay(0);
+                    return (flowControl: false, value: default);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_ReturnAndReturn_Async_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 2;
+                        }
+                        await Task.Delay(0);
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        return {|Rename:NewMethod|}(v);
+                    }
+            
+                    return 0;
+                }
+
+                private static int NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return 2;
+                    }
+                    await Task.Delay(0);
+                    return 1;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_ReturnAndFallThrough_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            return 1;
+                        }
+                        await Task.Delay(0);|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: 1);
+                    }
+                    await Task.Delay(0);
+                    return (flowControl: true, value: default);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndContinueAndReturn_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);
+                        if (v == 1)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(1);
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool? flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (flowControl == false)
+                        {
+                            break;
+                        }
+                        else if (flowControl == true)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool? flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+                    await Task.Delay(0);
+                    if (v == 1)
+                    {
+                        return (flowControl: true, value: default);
+                    }
+                    await Task.Delay(1);
+                    return (flowControl: null, value: 1);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndContinueAndFallThrough_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);
+                        if (v == 1)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(1);|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool? flowControl = {|Rename:NewMethod|}(v);
+                        if (flowControl == false)
+                        {
+                            break;
+                        }
+                        else if (flowControl == true)
+                        {
+                            continue;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool? NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+                    await Task.Delay(0);
+                    if (v == 1)
+                    {
+                        return true;
+                    }
+                    await Task.Delay(1);
+                    return null;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_ContinueAndReturnAndFallThrough_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);
+                        if (v == 1)
+                        {
+                            return 1;
+                        }
+                        await Task.Delay(1);|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<int> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool? flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (flowControl == false)
+                        {
+                            break;
+                        }
+                        else if (flowControl == true)
+                        {
+                            return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool? flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+                    await Task.Delay(0);
+                    if (v == 1)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+                    await Task.Delay(1);
+                    return (flowControl: null, value: default);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndContinueAndReturnAndFallThrough_Async()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private Task<string> Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        await Task.Delay(0);
+                        if (v == 1)
+                        {
+                            continue;
+                        }
+                        await Task.Delay(1);
+                        if (v == 2)
+                        {
+                            return "";
+                        }
+                        await Task.Delay(2);|]
+                    }
+
+                    return "x";
+                }
+            }
+            """,
+            """
+            using System.Threading.Tasks;
+            class C
+            {
+                private string Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (int flowControl, string value) = {|Rename:NewMethod|}(v);
+                        if (flowControl == 0)
+                        {
+                            break;
+                        }
+                        else if (flowControl == 1)
+                        {
+                            continue;
+                        }
+                        else if (flowControl == 2)
+                        {
+                            return value;
+                        }
+                    }
+
+                    return "x";
+                }
+
+                private static (int flowControl, string value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: 0, value: null);
+                    }
+                    await Task.Delay(0);
+                    if (v == 1)
+                    {
+                        return (flowControl: 1, value: null);
+                    }
+                    await Task.Delay(1);
+                    if (v == 2)
+                    {
+                        return (flowControl: 2, value: "");
+                    }
+                    await Task.Delay(2);
+                    return (flowControl: 3, value: null);
+                }
+            }
+            """);
+    }
 }
