@@ -8510,7 +8510,7 @@ $@"
     }
 
     [Fact]
-    public async Task TestFlowControl_ReturnAndReturn_Async_Async()
+    public async Task TestFlowControl_ReturnAndReturn_Async()
     {
         await TestInRegularAndScript1Async(
             """
@@ -8547,7 +8547,7 @@ $@"
                     return 0;
                 }
 
-                private static int NewMethod(int v)
+                private static Task<int> NewMethod(int v)
                 {
                     if (v == 0)
                     {
@@ -8601,7 +8601,7 @@ $@"
                     return 0;
                 }
 
-                private static (bool flowControl, int value) NewMethod(int v)
+                private static async Task<(bool flowControl, int value)> NewMethod(int v)
                 {
                     if (v == 0)
                     {
@@ -8669,7 +8669,7 @@ $@"
                     return 0;
                 }
 
-                private static (bool? flowControl, int value) NewMethod(int v)
+                private static async Task<(bool? flowControl, int value)> NewMethod(int v)
                 {
                     if (v == 0)
                     {
@@ -8737,7 +8737,7 @@ $@"
                     return 0;
                 }
 
-                private static bool? NewMethod(int v)
+                private static async Task<bool?> NewMethod(int v)
                 {
                     if (v == 0)
                     {
@@ -8805,7 +8805,7 @@ $@"
                     return 0;
                 }
 
-                private static (bool? flowControl, int value) NewMethod(int v)
+                private static async Task<(bool? flowControl, int value)> NewMethod(int v)
                 {
                     if (v == 0)
                     {
