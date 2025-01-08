@@ -7951,7 +7951,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -7971,7 +7971,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8003,7 +8003,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8023,7 +8023,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8062,7 +8062,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8082,7 +8082,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8100,7 +8100,7 @@ $@"
                     return 0;
                 }
 
-                private static (bool flowControl, int value) NewMethod(int v)
+                private static async Task<(bool flowControl, int value)> NewMethod(int v)
                 {
                     if (v == 0)
                     {
@@ -8121,7 +8121,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8140,7 +8140,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8175,7 +8175,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8195,7 +8195,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8234,7 +8234,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8254,7 +8254,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8286,7 +8286,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8306,7 +8306,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8324,7 +8324,7 @@ $@"
                     return 0;
                 }
 
-                private static (bool flowControl, int value) NewMethod(int v)
+                private static async Task<(bool flowControl, int value)> NewMethod(int v)
                 {
                     if (v == 0)
                     {
@@ -8345,7 +8345,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8364,7 +8364,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8399,7 +8399,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8419,7 +8419,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8437,7 +8437,7 @@ $@"
                     return 0;
                 }
 
-                private static (bool flowControl, int value) NewMethod(int v)
+                private static async Task<(bool flowControl, int value)> NewMethod(int v)
                 {
                     if (v == 0)
                     {
@@ -8458,7 +8458,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8478,7 +8478,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8496,7 +8496,7 @@ $@"
                     return 0;
                 }
 
-                private static (bool flowControl, int value) NewMethod(int v)
+                private static async Task<(bool flowControl, int value)> NewMethod(int v)
                 {
                     if (v == 0)
                     {
@@ -8517,7 +8517,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8537,7 +8537,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8568,7 +8568,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8587,7 +8587,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8622,7 +8622,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8647,7 +8647,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8695,7 +8695,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8719,7 +8719,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8763,7 +8763,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8787,7 +8787,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<int> Repro(int[] x)
+                private async Task<int> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8831,7 +8831,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private Task<string> Repro(int[] x)
+                private async Task<string> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8860,7 +8860,7 @@ $@"
             using System.Threading.Tasks;
             class C
             {
-                private string Repro(int[] x)
+                private async Task<string> Repro(int[] x)
                 {
                     foreach (var v in x)
                     {
@@ -8882,7 +8882,7 @@ $@"
                     return "x";
                 }
 
-                private static (int flowControl, string value) NewMethod(int v)
+                private static async Task<(int flowControl, string value)> NewMethod(int v)
                 {
                     if (v == 0)
                     {
