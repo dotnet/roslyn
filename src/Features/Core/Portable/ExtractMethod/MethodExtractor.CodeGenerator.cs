@@ -82,7 +82,6 @@ internal abstract partial class AbstractExtractMethodService<
             protected abstract IMethodSymbol GenerateMethodDefinition(SyntaxNode insertionPointNode, CancellationToken cancellationToken);
             protected abstract bool ShouldLocalFunctionCaptureParameter(SyntaxNode node);
 
-            protected abstract SyntaxToken CreateIdentifier(string name);
             protected abstract SyntaxToken CreateMethodName();
             protected abstract bool LastStatementOrHasReturnStatementInReturnableConstruct();
 
@@ -93,7 +92,6 @@ internal abstract partial class AbstractExtractMethodService<
             protected abstract TExpressionSyntax CreateCallSignature();
             protected abstract TStatementSyntax CreateDeclarationStatement(ImmutableArray<VariableInfo> variables, TExpressionSyntax initialValue, CancellationToken cancellationToken);
             protected abstract TStatementSyntax CreateAssignmentExpressionStatement(ImmutableArray<VariableInfo> variables, TExpressionSyntax rvalue);
-            protected abstract TStatementSyntax CreateReturnStatement(params string[] identifierNames);
 
             protected abstract ImmutableArray<TStatementSyntax> GetInitialStatementsForMethodDefinitions();
 
@@ -223,7 +221,22 @@ internal abstract partial class AbstractExtractMethodService<
                 if (LastStatementOrHasReturnStatementInReturnableConstruct())
                     return statements;
 
-                return statements.Concat(CreateReturnStatement());
+                return statements.Concat(CreateReturnStatement([]));
+            }
+
+            private TExecutableStatementSyntax CreateReturnStatement(ImmutableArray<TExpressionSyntax> expressions)
+            {
+                var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
+                return (TExecutableStatementSyntax)generator.ReturnStatement(CreateReturnExpression(expressions));
+            }
+
+            private TExpressionSyntax CreateReturnExpression(ImmutableArray<TExpressionSyntax> expressions)
+            {
+                var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
+                return
+                    expressions.Length == 0 ? null :
+                    expressions.Length == 1 ? expressions[0] :
+                    (TExpressionSyntax)generator.TupleExpression(expressions.Select(generator.Argument));
             }
 
             protected async Task<ImmutableArray<TStatementSyntax>> AddInvocationAtCallSiteAsync(
@@ -288,7 +301,11 @@ internal abstract partial class AbstractExtractMethodService<
                 if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
                     return statements;
 
-                return statements.Concat(CreateReturnStatement([.. AnalyzerResult.VariablesToUseAsReturnValue.Select(b => b.Name)]));
+                var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
+                return statements.Concat(CreateReturnStatement(
+                    AnalyzerResult.VariablesToUseAsReturnValue.SelectAsArray(
+                        static (v, generator) => (TExpressionSyntax)generator.IdentifierName(v.Name),
+                        generator)));
             }
 
             protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(

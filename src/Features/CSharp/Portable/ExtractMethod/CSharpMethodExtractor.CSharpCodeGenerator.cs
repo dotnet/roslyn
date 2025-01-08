@@ -573,14 +573,6 @@ internal sealed partial class CSharpExtractMethodService
                 return statements[index + 1].Kind() == SyntaxKind.ReturnStatement;
             }
 
-            protected override SyntaxToken CreateIdentifier(string name)
-                => name.ToIdentifierToken();
-
-            protected override StatementSyntax CreateReturnStatement(string[] identifierNames)
-                => identifierNames.Length == 0 ? ReturnStatement() :
-                   identifierNames.Length == 1 ? ReturnStatement(IdentifierName(identifierNames[0])) :
-                   ReturnStatement(TupleExpression([.. identifierNames.Select(n => Argument(n.ToIdentifierName()))]));
-
             protected override ExpressionSyntax CreateCallSignature()
             {
                 var methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation);
