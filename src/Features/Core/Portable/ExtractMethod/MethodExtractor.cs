@@ -217,7 +217,7 @@ internal abstract partial class AbstractExtractMethodService<
                     return status;
             }
 
-            return status.With(CheckType(semanticModel, analyzeResult.ReturnType));
+            return status.With(CheckType(semanticModel, analyzeResult.CoreReturnType));
         }
 
         private OperationStatus CheckType(

@@ -108,27 +108,27 @@ internal abstract partial class AbstractExtractMethodService<
                     miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
         }
 
-        protected sealed class FlowControlVariableSymbol(ITypeSymbol symbolType)
-            : VariableSymbol(symbolType, displayOrder: 0)
-        {
-            public override bool CanBeCapturedByLocalFunction => false;
+        //protected sealed class FlowControlVariableSymbol(ITypeSymbol symbolType)
+        //    : VariableSymbol(symbolType, displayOrder: 0)
+        //{
+        //    public override bool CanBeCapturedByLocalFunction => false;
 
-            public override SyntaxAnnotation IdentifierTokenAnnotation => throw new NotImplementedException();
+        //    public override SyntaxAnnotation IdentifierTokenAnnotation => throw new NotImplementedException();
 
-            public override void AddIdentifierTokenAnnotationPair(MultiDictionary<SyntaxToken, SyntaxAnnotation> annotations, CancellationToken cancellationToken)
-            {
-            }
+        //    public override void AddIdentifierTokenAnnotationPair(MultiDictionary<SyntaxToken, SyntaxAnnotation> annotations, CancellationToken cancellationToken)
+        //    {
+        //    }
 
-            public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
-                => default;
+        //    public override SyntaxToken GetOriginalIdentifierToken(CancellationToken cancellationToken)
+        //        => default;
 
-            protected override int CompareToWorker(VariableSymbol other)
-            {
-                return 0;
-            }
+        //    protected override int CompareToWorker(VariableSymbol other)
+        //    {
+        //        return 0;
+        //    }
 
-            public override string Name => "flowControl";
-        }
+        //    public override string Name => "flowControl";
+        //}
 
         protected abstract class NotMovableVariableSymbol<TVariableSymbol, TSymbol>(
             TSymbol symbol, ITypeSymbol symbolType, int displayOrder)

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -56,6 +57,8 @@ internal abstract partial class AbstractExtractMethodService<
             protected readonly TCodeGenerationOptions Options;
 
             protected readonly bool LocalFunction;
+
+            private ITypeSymbol _finalReturnType;
 
             protected CodeGenerator(
                 SelectionResult selectionResult,
@@ -212,7 +215,9 @@ internal abstract partial class AbstractExtractMethodService<
                 ImmutableArray<TStatementSyntax> statements, CancellationToken cancellationToken)
             {
                 if (AnalyzerResult.FlowControlInformation.EndPointIsReachable)
+                {
                     return statements;
+                }
 
                 var returnType = SelectionResult.GetReturnType(cancellationToken);
                 if (returnType != null && returnType.SpecialType != SpecialType.System_Void)
@@ -361,14 +366,55 @@ internal abstract partial class AbstractExtractMethodService<
                     _ => RefKind.None
                 };
 
-            protected TStatementSyntax GetStatementContainingInvocationToExtractedMethodWorker()
+            protected TExecutableStatementSyntax GetStatementContainingInvocationToExtractedMethodWorker()
             {
                 var callSignature = CreateCallSignature();
 
                 var generator = this.SemanticDocument.Document.GetRequiredLanguageService<SyntaxGenerator>();
-                return AnalyzerResult.HasReturnType
-                    ? (TStatementSyntax)generator.ReturnStatement(callSignature)
-                    : (TStatementSyntax)generator.ExpressionStatement(callSignature);
+
+                return AnalyzerResult.CoreReturnType.SpecialType != SpecialType.System_Void
+                    ? (TExecutableStatementSyntax)generator.ReturnStatement(callSignature)
+                    : (TExecutableStatementSyntax)generator.ExpressionStatement(callSignature);
+            }
+
+            public ITypeSymbol GetFinalReturnType()
+            {
+                return _finalReturnType ??= WrapWithTaskIfNecessary(AddFlowControlTypeIfNecessary(this.AnalyzerResult.CoreReturnType));
+
+                ITypeSymbol AddFlowControlTypeIfNecessary(ITypeSymbol coreReturnType)
+                {
+                    var controlFlowValueType = this.AnalyzerResult.FlowControlInformation.ControlFlowValueType;
+
+                    // If don't need to report complex flow control to the caller.  Just return whatever the inner method wanted to iriginally return.
+                    if (controlFlowValueType.SpecialType == SpecialType.System_Void)
+                        return coreReturnType;
+
+                    // We need to report complex flow control to the caller.
+
+                    // If the method wasn't going to return any values to begin with, then all we have to do is
+                    // return the control value value to the caller to indicate what flow control path to take.
+                    if (coreReturnType.SpecialType == SpecialType.System_Void)
+                        return controlFlowValueType;
+
+                    // We need to report both the control flow data and the original data.
+                    var compilation = this.SemanticDocument.SemanticModel.Compilation;
+                    return compilation.CreateTupleTypeSymbol(
+                        [controlFlowValueType, coreReturnType],
+                        ["flowControl", "value"]);
+                }
+
+                ITypeSymbol WrapWithTaskIfNecessary(ITypeSymbol type)
+                {
+                    if (!this.SelectionResult.ContainsAwaitExpression())
+                        return type;
+
+                    // If we're awaiting, then we're going to be returning a task of some sort.  Convert `void` to
+                    // `Task` and any other T to `Task<T>`.
+                    var compilation = this.SemanticDocument.SemanticModel.Compilation;
+                    return type.SpecialType == SpecialType.System_Void
+                        ? compilation.TaskType()
+                        : compilation.TaskOfTType().Construct(type);
+                }
             }
         }
     }

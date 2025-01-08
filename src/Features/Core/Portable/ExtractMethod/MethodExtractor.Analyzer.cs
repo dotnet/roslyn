@@ -73,7 +73,7 @@ internal abstract partial class AbstractExtractMethodService<
             public AnalyzerResult Analyze()
             {
                 // do data flow analysis
-                var model = this.SemanticDocument.SemanticModel;
+                var model = this.SemanticModel;
                 var dataFlowAnalysisData = this.SelectionResult.GetDataFlowAnalysis();
 
                 // build symbol map for the identifiers used inside of the selection
@@ -127,8 +127,6 @@ internal abstract partial class AbstractExtractMethodService<
                 var flowControlInformation = GetFlowControlInformation();
                 var (variables, returnType, returnsByRef) = GetSignatureInformation(variableInfoMap, flowControlInformation);
 
-                (returnType, var awaitTaskReturn) = AdjustReturnType(returnType);
-
                 // collect method type variable used in selected code
                 var sortedMap = new SortedDictionary<int, ITypeParameterSymbol>();
                 var typeParametersInConstraintList = GetMethodTypeParametersInConstraintList(variableInfoMap, symbolMap, sortedMap);
@@ -144,67 +142,10 @@ internal abstract partial class AbstractExtractMethodService<
                     variables,
                     returnType,
                     returnsByRef,
-                    awaitTaskReturn,
                     instanceMemberIsUsed,
                     shouldBeReadOnly,
                     flowControlInformation,
                     operationStatus);
-            }
-
-            private (ITypeSymbol typeSymbol, bool awaitTaskReturn) AdjustReturnType(ITypeSymbol returnType)
-            {
-                // if selection contains await which is not under async lambda or anonymous delegate,
-                // change return type to be wrapped in Task
-                var shouldPutAsyncModifier = SelectionResult.CreateAsyncMethod();
-                if (shouldPutAsyncModifier)
-                    return WrapReturnTypeInTask(returnType);
-
-                // unwrap task if needed
-                return (UnwrapTaskIfNeeded(returnType), awaitTaskReturn: false);
-            }
-
-            private ITypeSymbol UnwrapTaskIfNeeded(ITypeSymbol returnType)
-            {
-                // nothing to unwrap
-                if (SelectionResult.ContainingScopeHasAsyncKeyword() &&
-                    ContainsReturnStatementInSelectedCode())
-                {
-                    var originalDefinition = returnType.OriginalDefinition;
-
-                    // see whether it needs to be unwrapped
-                    var model = this.SemanticDocument.SemanticModel;
-                    var taskType = model.Compilation.TaskType();
-                    if (originalDefinition.Equals(taskType))
-                        return model.Compilation.GetSpecialType(SpecialType.System_Void);
-
-                    var genericTaskType = model.Compilation.TaskOfTType();
-                    if (originalDefinition.Equals(genericTaskType))
-                        return ((INamedTypeSymbol)returnType).TypeArguments[0];
-                }
-
-                // nothing to unwrap
-                return returnType;
-            }
-
-            private (ITypeSymbol returnType, bool awaitTaskReturn) WrapReturnTypeInTask(ITypeSymbol returnType)
-            {
-                var compilation = this.SemanticModel.Compilation;
-                var taskType = compilation.TaskType();
-
-                // convert void to Task type
-                if (taskType is object && returnType.Equals(compilation.GetSpecialType(SpecialType.System_Void)))
-                    return (taskType, awaitTaskReturn: true);
-
-                if (!SelectionResult.IsExtractMethodOnExpression && ContainsReturnStatementInSelectedCode())
-                    return (returnType, awaitTaskReturn: false);
-
-                var genericTaskType = compilation.TaskOfTType();
-
-                // okay, wrap the return type in Task<T>
-                if (genericTaskType is object)
-                    returnType = genericTaskType.Construct(returnType);
-
-                return (returnType, awaitTaskReturn: false);
             }
 
             private (ImmutableArray<VariableInfo> finalOrderedVariableInfos, ITypeSymbol returnType, bool returnsByRef)
@@ -217,22 +158,23 @@ internal abstract partial class AbstractExtractMethodService<
                     // language doesn't support things like 'break/continue/return' expressions (those only have
                     // statement forms).
                     var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
-                    return (allVariableInfos, returnType, returnsByRef);
+                    return (allVariableInfos, UnwrapTaskIfNeeded(returnType), returnsByRef);
                 }
                 else
                 {
-                    if (flowControlInformation.NeedsControlFlowValue())
-                    {
-                        // More interesting case.  We have a return statement *and* some form of flow control we
-                        // need to convey to the caller as well.  Create a special variable to represent that
-                        // control flow value.
-                        allVariableInfos = allVariableInfos.Insert(0, new VariableInfo(
-                            new FlowControlVariableSymbol(flowControlInformation.ControlFlowValueType),
-                            VariableStyle.OutWithMoveOut,
-                            useAsReturnValue: false));
-                    }
+                    //if (flowControlInformation.NeedsControlFlowValue())
+                    //{
+                    //    // More interesting case.  We have a return statement *and* some form of flow control we
+                    //    // need to convey to the caller as well.  Create a special variable to represent that
+                    //    // control flow value.
+                    //    allVariableInfos = allVariableInfos.Insert(0, new VariableInfo(
+                    //        new FlowControlVariableSymbol(flowControlInformation.ControlFlowValueType),
+                    //        VariableStyle.OutWithMoveOut,
+                    //        useAsReturnValue: false));
+                    //}
 
-                    var finalOrderedVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(allVariableInfos);
+                    var finalOrderedVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(
+                        allVariableInfos, flowControlInformation.NeedsControlFlowValue());
                     var variablesToUseAsReturnValue = finalOrderedVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
 
                     var returnType = GetReturnType(variablesToUseAsReturnValue);
@@ -304,9 +246,34 @@ internal abstract partial class AbstractExtractMethodService<
                     return false;
                 }
 
+                ITypeSymbol UnwrapTaskIfNeeded(ITypeSymbol returnType)
+                {
+                    if (this.SelectionResult.ContainingScopeHasAsyncKeyword())
+                    {
+                        // We compute the desired return type for the extract method from our own return type.  But for
+                        // the purposes of manipulating the return type, we need to get to the underlying type if this
+                        // was wrapped in a Task in an explicitly 'async' method.  In other words, if we're in an `async
+                        // Task<int>` method, then we want the extract method to return `int`.  Note: we will possibly
+                        // then wrap that as `Task<int>` again if we see that we extracted out any await-expressions.
+
+                        var compilation = this.SemanticModel.Compilation;
+                        var knownTaskTypes = new KnownTaskTypes(compilation);
+
+                        // Map from `Task/ValueTask` to `void`
+                        if (returnType.Equals(knownTaskTypes.TaskType) || returnType.Equals(knownTaskTypes.ValueTaskType))
+                            return compilation.GetSpecialType(SpecialType.System_Void);
+
+                        // Map from `Task<T>/ValueTask<T>` to `T`
+                        if (returnType.OriginalDefinition.Equals(knownTaskTypes.TaskOfTType) || returnType.OriginalDefinition.Equals(knownTaskTypes.ValueTaskOfTType))
+                            return returnType.GetTypeArguments().Single();
+                    }
+
+                    return returnType;
+                }
+
                 ITypeSymbol GetReturnType(ImmutableArray<VariableInfo> variablesToUseAsReturnValue)
                 {
-                    var compilation = this.SemanticDocument.SemanticModel.Compilation;
+                    var compilation = this.SemanticModel.Compilation;
 
                     if (variablesToUseAsReturnValue.IsEmpty)
                         return compilation.GetSpecialType(SpecialType.System_Void);
@@ -367,19 +334,21 @@ internal abstract partial class AbstractExtractMethodService<
                     ? OperationStatus.LocalFunctionCallWithoutDeclaration
                     : OperationStatus.SucceededStatus;
 
-                return readonlyFieldStatus.With(anonymousTypeStatus)
-                                          .With(unsafeAddressStatus)
-                                          .With(asyncRefOutParameterStatus)
-                                          .With(variableMapStatus)
-                                          .With(localFunctionStatus);
+                return readonlyFieldStatus
+                    .With(anonymousTypeStatus)
+                    .With(unsafeAddressStatus)
+                    .With(asyncRefOutParameterStatus)
+                    .With(variableMapStatus)
+                    .With(localFunctionStatus);
             }
 
             private OperationStatus CheckAsyncMethodRefOutParameters(IList<VariableInfo> parameters)
             {
-                if (SelectionResult.CreateAsyncMethod())
+                if (SelectionResult.ContainsAwaitExpression())
                 {
-                    var names = parameters.Where(v => v is { UseAsReturnValue: false, ParameterModifier: ParameterBehavior.Out or ParameterBehavior.Ref })
-                                          .Select(p => p.Name ?? string.Empty);
+                    var names = parameters
+                        .Where(v => v is { UseAsReturnValue: false, ParameterModifier: ParameterBehavior.Out or ParameterBehavior.Ref })
+                        .Select(p => p.Name ?? string.Empty);
 
                     if (names.Any())
                         return new OperationStatus(succeeded: true, string.Format(FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket, string.Join(", ", names)));
@@ -415,10 +384,10 @@ internal abstract partial class AbstractExtractMethodService<
                 return symbolMap;
             }
 
-            private ImmutableArray<VariableInfo> MarkVariableInfosToUseAsReturnValueIfPossible(ImmutableArray<VariableInfo> variableInfos)
+            private ImmutableArray<VariableInfo> MarkVariableInfosToUseAsReturnValueIfPossible(
+                ImmutableArray<VariableInfo> variableInfos, bool hasFlowControlResult)
             {
                 var index = GetIndexOfVariableInfoToUseAsReturnValue(variableInfos, out var numberOfOutParameters, out var numberOfRefParameters);
-                var hasFlowControlVariable = variableInfos.Any(v => v is FlowControlVariableSymbol);
 
                 // If there are any variables we'd make out/ref and this is async, then we need to make these the return
                 // values of the method since we can't actually have out/ref with an async method.
@@ -427,9 +396,9 @@ internal abstract partial class AbstractExtractMethodService<
                 // so that the caller can see what the called method wants to do.
                 var outRefCount = numberOfOutParameters + numberOfRefParameters;
                 var createAsyncTuple = outRefCount > 0 &&
-                    this.SelectionResult.CreateAsyncMethod() &&
+                    this.SelectionResult.ContainsAwaitExpression() &&
                     this.SyntaxFacts.SupportsTupleDeconstruction(this.SemanticDocument.Document.Project.ParseOptions!);
-                if (hasFlowControlVariable || createAsyncTuple)
+                if (hasFlowControlResult || createAsyncTuple)
                 {
                     var result = new FixedSizeArrayBuilder<VariableInfo>(variableInfos.Length);
                     foreach (var info in variableInfos)
