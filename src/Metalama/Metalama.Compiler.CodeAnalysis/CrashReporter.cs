@@ -3,18 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Diagnostics;
-using Metalama.Compiler;
 
-namespace Microsoft.CodeAnalysis.CommandLine
+namespace Metalama.Compiler
 {
     internal static class CrashReporter
     {
-        public static string? WriteCrashReport( Exception ex )
+        public static string? WriteCrashReport(Exception ex)
         {
             var crashReportDirectory = Path.Combine(MetalamaPathUtilities.GetTempPath(), "Metalama", "CrashReports");
             var crashReportPath = Path.Combine(crashReportDirectory, Guid.NewGuid() + ".txt");
@@ -25,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 var exceptionText = new StringBuilder();
                 var process = Process.GetCurrentProcess();
-               
 
                 exceptionText.AppendLine($"Metalama.Compiler Version: {typeof(CrashReporter).Assembly.GetName().Version}");
                 exceptionText.AppendLine($"Runtime: {RuntimeInformation.FrameworkDescription}");

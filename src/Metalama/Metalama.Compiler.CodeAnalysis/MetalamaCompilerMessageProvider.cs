@@ -23,7 +23,8 @@ namespace Metalama.Compiler
         WRN_AnalyzerAssemblyCantRedirect = 618,
         WRN_LanguageVersionUpdated = 620, // Emitted by Microsoft.CSharp.Core.targets.
         WRN_GeneratorAssemblyCantRedirect = 621,
-        WRN_TargetFrameworkNotSupported = 622 // Emitted by Microsoft.CSharp.Core.targets.
+        WRN_TargetFrameworkNotSupported = 622, // Emitted by Microsoft.CSharp.Core.targets.
+        ERR_ServiceInitializationFailed = 623
     }
 
     internal sealed class MetalamaCompilerMessageProvider : CommonMessageProvider
@@ -216,7 +217,8 @@ namespace Metalama.Compiler
             ERR_HowToDiagnoseInvalidAspect or
             ERR_HowToReportMetalamaBug or
             ERR_ManyTransformersOfSameName or
-            ERR_TransformerNotUnique => DiagnosticSeverity.Error,
+            ERR_TransformerNotUnique or
+            ERR_ServiceInitializationFailed => DiagnosticSeverity.Error,
             WRN_NoTransformedOutputPathWhenDebuggingTransformed or
             WRN_TransformersNotOrdered or
             WRN_AnalyzerAssembliesRedirected or
@@ -243,6 +245,7 @@ namespace Metalama.Compiler
                 WRN_AnalyzerAssembliesRedirected => "Some analyzer assemblies were downgraded because of Metalama/Roslyn version mismatch.",
                 WRN_AnalyzerAssemblyCantRedirect => "Analyzer assembly was disabled because of Metalama/Roslyn version mismatch.",
                 WRN_GeneratorAssemblyCantRedirect => "Source generator assembly was disabled because of Metalama/Roslyn version mismatch.",
+                ERR_ServiceInitializationFailed => "Service initialization failed.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 
@@ -271,6 +274,7 @@ namespace Metalama.Compiler
                 WRN_AnalyzerAssembliesRedirected => "Analyzer assemblies for this project reference Roslyn version {0}, which is newer than what is supported by the current version of Metalama ({1}). Some analyzer assemblies were downgraded to the latest supported version.",
                 WRN_AnalyzerAssemblyCantRedirect => """The analyzer assembly '{0}' was disabled because it references Roslyn version {1}, which is newer than the version supported by the current version of Metalama ({2}). Consider one of the following remedies: (1) Update Metalama to a newer version if one is available. (2) Set the version of the .NET SDK to {3} in global.json and limit roll-forwarding the SDK to the latest patch: {{ "sdk": {{ "version": "{3}", "rollForward": "latestPatch" }} }}. (3) If this analyzer assembly is not essential, disable the LAMA0618 warning in your project file.""",
                 WRN_GeneratorAssemblyCantRedirect => """The source generator assembly '{0}' was disabled because it references Roslyn version {1}, which is newer than the version supported by the current version of Metalama ({2}). Consider one of the following remedies: (1) Update Metalama to a newer version if one is available. (2) Set the version of the .NET SDK to {3} in global.json and limit roll-forwarding the SDK to the latest patch: {{ "sdk": {{ "version": "{3}", "rollForward": "latestPatch" }} }}. (3) If your project compiles anyway because it does not rely on this source generator, ignore the LAMA0621 warning in your project file.""",
+                ERR_ServiceInitializationFailed => "Service initialization failed: {0} For details about this exception, see '{1}'.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
 

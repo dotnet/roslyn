@@ -13,7 +13,6 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
 using Metalama.Compiler;
-using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
