@@ -14,11 +14,10 @@ Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Syntax.InternalSyntax
 Imports CoreInternalSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
@@ -46,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' USE GetScratch()
         ''' </summary>
         Private ReadOnly _sb As StringBuilder = _sbPooled.Builder
-        Private ReadOnly _triviaListPool As New SyntaxListPool
+        Private ReadOnly _triviaListPool As SyntaxListPool = SyntaxListPool.GetInstance()
         Private ReadOnly _options As VisualBasicParseOptions
 
         Private ReadOnly _stringTable As StringTable = StringTable.GetInstance()
@@ -124,6 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 _quickTokenTable.Free()
                 _stringTable.Free()
                 _sbPooled.Free()
+                _triviaListPool.Free()
 
                 s_idTablePool.Free(_idTable)
                 s_kwTablePool.Free(_kwTable)

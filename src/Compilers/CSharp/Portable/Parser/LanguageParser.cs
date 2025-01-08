@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // can be reused (hence pooled) since the syntax factory methods don't keep references to
         // them
 
-        private readonly SyntaxListPool _pool = new SyntaxListPool(); // Don't need to reset this.
+        private readonly SyntaxListPool _pool = SyntaxListPool.GetInstance(); // Don't need to reset this.
 
         private readonly SyntaxFactoryContext _syntaxFactoryContext; // Fields are resettable.
         private readonly ContextAwareSyntax _syntaxFactory; // Has context, the fields of which are resettable.
@@ -45,6 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             _syntaxFactoryContext = new SyntaxFactoryContext();
             _syntaxFactory = new ContextAwareSyntax(_syntaxFactoryContext);
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            _pool.Free();
         }
 
         private static bool IsSomeWord(SyntaxKind kind)

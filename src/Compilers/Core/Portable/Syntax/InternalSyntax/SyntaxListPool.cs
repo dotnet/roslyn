@@ -2,24 +2,43 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// #define LOG
+
 using System;
+#if LOG
 using System.Collections.Generic;
 using System.Diagnostics;
-using Roslyn.Utilities;
+#endif
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal class SyntaxListPool
     {
-        private ArrayElement<SyntaxListBuilder?>[] _freeList = new ArrayElement<SyntaxListBuilder?>[10];
+        private static readonly ObjectPool<SyntaxListPool> s_listPool = new ObjectPool<SyntaxListPool>(() => new SyntaxListPool());
+
+        private const int InitialFreeListSize = 16;
+        private const int InitialBuilderCapacity = 32;
+
+        private ArrayElement<SyntaxListBuilder?>[] _freeList = new ArrayElement<SyntaxListBuilder?>[InitialFreeListSize];
         private int _freeIndex;
 
-#if DEBUG
+#if LOG
         private readonly List<SyntaxListBuilder> _allocated = new List<SyntaxListBuilder>();
 #endif
 
-        internal SyntaxListPool()
+        private SyntaxListPool()
         {
+        }
+
+        public static SyntaxListPool GetInstance()
+        {
+            return s_listPool.Allocate();
+        }
+
+        public void Free()
+        {
+            s_listPool.Free(this);
         }
 
         internal SyntaxListBuilder Allocate()
@@ -33,10 +52,10 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
             else
             {
-                item = new SyntaxListBuilder(10);
+                item = new SyntaxListBuilder(InitialBuilderCapacity);
             }
 
-#if DEBUG
+#if LOG
             Debug.Assert(!_allocated.Contains(item));
             _allocated.Add(item);
 #endif
@@ -63,16 +82,26 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             if (item is null)
                 return;
 
-            item.Clear();
-            if (_freeIndex >= _freeList.Length)
-            {
-                this.Grow();
-            }
-#if DEBUG
+#if LOG
             Debug.Assert(_allocated.Contains(item));
 
             _allocated.Remove(item);
 #endif
+
+            // Don't add the builder back to _freelist if the builder has grown too large.
+            if (item.Capacity > InitialBuilderCapacity * 2)
+                return;
+
+            if (_freeIndex >= _freeList.Length)
+            {
+                // Don't add the builder back to _freelist if the cache has grown too large.
+                if (_freeIndex >= InitialFreeListSize * 2)
+                    return;
+
+                this.Grow();
+            }
+
+            item.Clear();
             _freeList[_freeIndex].Value = item;
             _freeIndex++;
         }
