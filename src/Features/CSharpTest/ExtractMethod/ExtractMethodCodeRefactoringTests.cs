@@ -8547,7 +8547,7 @@ $@"
                     return 0;
                 }
 
-                private static Task<int> NewMethod(int v)
+                private static async Task<int> NewMethod(int v)
                 {
                     if (v == 0)
                     {
