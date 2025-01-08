@@ -96,14 +96,14 @@ internal abstract partial class AbstractExtractMethodService<
 
             /// <summary>
             /// Statement we create when we are assigning variables and at least one of the variables in a new
-            /// declaration that is being created.
+            /// declaration that is being created.  <paramref name="variables"/> must be non-empty.
             /// </summary>
             protected abstract TStatementSyntax CreateDeclarationStatement(
                 ImmutableArray<VariableInfo> variables, TExpressionSyntax initialValue, ExtractMethodFlowControlInformation flowControlInformation, CancellationToken cancellationToken);
 
             /// <summary>
             /// Statement we create when we are assigning variables and all of the variables already exist and are just
-            /// being assigned to.
+            /// being assigned to. <paramref name="variables"/> can be empty.
             /// </summary>
             protected abstract TStatementSyntax CreateAssignmentExpressionStatement(
                 ImmutableArray<VariableInfo> variables, TExpressionSyntax rvalue, ExtractMethodFlowControlInformation flowControlInformation);
