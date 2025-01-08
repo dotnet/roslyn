@@ -224,12 +224,6 @@ internal abstract partial class AbstractExtractMethodService<
                 return statements.Concat(CreateReturnStatement([]));
             }
 
-            //private TExecutableStatementSyntax CreateReturnStatement(ImmutableArray<VariableInfo> variables)
-            //{
-            //    var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
-            //    return CreateReturnStatement(variables.SelectAsArray(v => (TExpressionSyntax)generator.IdentifierName(v.Name)));
-            //}
-
             private TExecutableStatementSyntax CreateReturnStatement(ImmutableArray<TExpressionSyntax> expressions)
             {
                 var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
