@@ -6924,4 +6924,83 @@ $@"
             }
             """);
     }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndContinueAndReturnAndFallThrough()
+    {
+        await TestInRegularAndScript1Async(
+            """
+        class C
+        {
+            private string Repro(int[] x)
+            {
+                foreach (var v in x)
+                {
+                    [|if (v == 0)
+                    {
+                        break;
+                    }
+                        
+                    if (v == 1)
+                    {
+                        continue;
+                    }
+
+                    if (v == 2)
+                    {
+                        return "";
+                    }|]
+                }
+
+                return "x";
+            }
+        }
+        """,
+            """
+        class C
+        {
+            private string Repro(int[] x)
+            {
+                foreach (var v in x)
+                {
+                    (int flowControl, string value) = {|Rename:NewMethod|}(v);
+                    if (flowControl == 0)
+                    {
+                        break;
+                    }
+                    else if (flowControl == 1)
+                    {
+                        continue;
+                    }
+                    else if (flowControl == 2)
+                    {
+                        return value;
+                    }
+                }
+
+                return "x";
+            }
+
+            private static (int flowControl, string value) NewMethod(int v)
+            {
+                if (v == 0)
+                {
+                    return (flowControl: 0, value: null);
+                }
+
+                if (v == 1)
+                {
+                    return (flowControl: 1, value: null);
+                }
+
+                if (v == 2)
+                {
+                    return (flowControl: 2, value: "");
+                }
+
+                return (flowControl: 3, value: null);
+            }
+        }
+        """);
+    }
 }
