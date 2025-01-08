@@ -228,15 +228,19 @@ internal abstract partial class AbstractExtractMethodService<
                 return statements.Concat(CreateReturnStatement([]));
             }
 
-            private TExecutableStatementSyntax CreateReturnStatement(ImmutableArray<VariableInfo> variables)
+            private TExecutableStatementSyntax CreateReturnStatement(ImmutableArray<TExpressionSyntax> expressions)
             {
                 var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
-                var returnStatement =
-                    variables.Length == 0 ? generator.ReturnStatement() :
-                    variables.Length == 1 ? generator.ReturnStatement(generator.IdentifierName(variables[0].Name)) :
-                    generator.ReturnStatement(generator.TupleExpression(variables.SelectAsArray(v => generator.IdentifierName(v.Name))));
+                return (TExecutableStatementSyntax)generator.ReturnStatement(CreateReturnExpression(expressions));
+            }
 
-                return (TExecutableStatementSyntax)returnStatement;
+            private TExpressionSyntax CreateReturnExpression(ImmutableArray<TExpressionSyntax> expressions)
+            {
+                var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
+                return
+                    expressions.Length == 0 ? null :
+                    expressions.Length == 1 ? expressions[0] :
+                    (TExpressionSyntax)generator.TupleExpression(expressions.Select(generator.Argument));
             }
 
             protected async Task<ImmutableArray<TStatementSyntax>> AddInvocationAtCallSiteAsync(
@@ -317,7 +321,11 @@ internal abstract partial class AbstractExtractMethodService<
                     return statements;
                 }
 
-                return statements.Concat(CreateReturnStatement(AnalyzerResult.VariablesToUseAsReturnValue));
+                var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
+                return statements.Concat(CreateReturnStatement(
+                    AnalyzerResult.VariablesToUseAsReturnValue.SelectAsArray(
+                        static (v, generator) => (TExpressionSyntax)generator.IdentifierName(v.Name),
+                        generator)));
             }
 
             protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
