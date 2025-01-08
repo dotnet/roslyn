@@ -49,7 +49,9 @@ internal abstract partial class AbstractExtractMethodService<
             where TCodeGenerationOptions : CodeGenerationOptions
         {
             private static readonly CodeGenerationContext s_codeGenerationContext = new(addImports: false);
+
             protected const string FlowControlName = "flowControl";
+            protected const string ReturnValueName = "value";
 
             protected readonly SelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
@@ -469,7 +471,7 @@ internal abstract partial class AbstractExtractMethodService<
                     var compilation = this.SemanticDocument.SemanticModel.Compilation;
                     return compilation.CreateTupleTypeSymbol(
                         [controlFlowValueType, coreReturnType],
-                        [FlowControlName, "value"]);
+                        [FlowControlName, ReturnValueName]);
                 }
 
                 ITypeSymbol WrapWithTaskIfNecessary(ITypeSymbol type)

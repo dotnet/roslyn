@@ -151,10 +151,106 @@ internal sealed partial class CSharpExtractMethodService
                 var statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(cancellationToken);
                 statements = postProcessor.MergeDeclarationStatements(statements);
                 statements = AddAssignmentStatementToCallSite(statements, cancellationToken);
+                statements = AddComplexFlowControlProcessingStatements(statements);
                 statements = await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(false);
                 statements = AddReturnIfUnreachable(statements, cancellationToken);
 
                 return statements.CastArray<SyntaxNode>();
+            }
+
+            private ImmutableArray<StatementSyntax> AddComplexFlowControlProcessingStatements(ImmutableArray<StatementSyntax> statements)
+            {
+                var flowControlInformation = this.AnalyzerResult.FlowControlInformation;
+                if (!flowControlInformation.NeedsControlFlowValue())
+                    return statements;
+
+                return statements.Add(GetFlowControlStatement());
+
+                StatementSyntax GetFlowControlStatement()
+                {
+                    var controlFlowValueType = flowControlInformation.ControlFlowValueType;
+                    if (controlFlowValueType.SpecialType == SpecialType.System_Boolean)
+                    {
+                        if (flowControlInformation.TryGetFallThroughFlowValue(out _))
+                        {
+                            // If we have 'fallthrough' as as the final control flow value, then we'll just emit:
+                            //
+                            //      if (!flowControl) FlowControlConstruct; // allowing fallthrough to happen automatically.
+                            return IfStatement(
+                                PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, IdentifierName(FlowControlName)),
+                                Block(GetFlowStatement(false)));
+                        }
+                        else
+                        {
+                            // Otherwise, we'll emit:
+                            //
+                            //      if (flowControl) FlowControlConstruct1;
+                            //      else FlowControlConstruct2;
+                            return IfStatement(
+                                IdentifierName(FlowControlName),
+                                Block(GetFlowStatement(true)),
+                                ElseClause(Block(GetFlowStatement(false))));
+                        }
+                    }
+                    else if (controlFlowValueType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                    {
+                        if (flowControlInformation.TryGetFallThroughFlowValue(out _))
+                        {
+                            // If we have 'fallthrough' as as the final control flow value, then we'll just emit:
+                            //
+                            //      if (flowControl == false) FlowControlConstruct1;
+                            //      else if (flowControl == true) FlowControlConstruct2; // allowing fallthrough to happen automatically.
+                            return IfStatement(
+                                BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(false)),
+                                Block(GetFlowStatement(false)),
+                                ElseClause(IfStatement(
+                                    BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(true)),
+                                    Block(GetFlowStatement(true)))));
+                        }
+                        else
+                        {
+                            // Otherwise, we'll emit:
+                            //      if (flowControl == false) FlowControlConstruct1;
+                            //      else if (flowControl == true) FlowControlConstruct2;
+                            //      else FlowControlConstruct3;
+                            return IfStatement(
+                                BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(false)),
+                                Block(GetFlowStatement(false)),
+                                ElseClause(IfStatement(
+                                    BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(true)),
+                                    Block(GetFlowStatement(true)),
+                                    ElseClause(Block(GetFlowStatement(null))))));
+                        }
+                    }
+                    else
+                    {
+                        Contract.ThrowIfFalse(controlFlowValueType.SpecialType == SpecialType.System_Int32);
+                        return IfStatement(
+                            BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(0)),
+                            Block(GetFlowStatement(0)),
+                            ElseClause(IfStatement(
+                                BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(1)),
+                                Block(GetFlowStatement(1)),
+                                ElseClause(IfStatement(
+                                    BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(2)),
+                                    Block(GetFlowStatement(2)))))));
+                    }
+                }
+
+                ExpressionSyntax LiteralExpression(object value)
+                    => ExpressionGenerator.GenerateExpression(null, value, canUseFieldReference: false);
+
+                StatementSyntax GetFlowStatement(object value)
+                {
+                    if (flowControlInformation.TryGetBreakFlowValue(out var breakValue) && Equals(breakValue, value))
+                        return BreakStatement();
+                    else if (flowControlInformation.TryGetContinueFlowValue(out var continueValue) && Equals(continueValue, value))
+                        return ContinueStatement();
+                    else if (flowControlInformation.TryGetContinueFlowValue(out var returnValue) && Equals(returnValue, value))
+                        return ReturnStatement(IdentifierName(ReturnValueName));
+                    else
+                        throw ExceptionUtilities.Unreachable();
+                }
             }
 
             protected override bool ShouldLocalFunctionCaptureParameter(SyntaxNode node)
