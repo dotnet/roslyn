@@ -1713,7 +1713,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     }
 
     [Theory, CombinatorialData]
-    public async Task InXmlDocLangWord_Keyword(TestHost testHost)
+    public async Task XmlDocComment_LangWordAttribute_Keyword(TestHost testHost)
     {
         await TestAsync(
             """
@@ -1751,7 +1751,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     }
 
     [Theory, CombinatorialData]
-    public async Task InXmlDocLangWord_ControlKeyword(TestHost testHost)
+    public async Task XmlDocComment_LangWordAttribute_ControlKeyword(TestHost testHost)
     {
         await TestAsync(
             """
@@ -1789,7 +1789,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     }
 
     [Theory, CombinatorialData]
-    public async Task InXmlDocLangWord_ContextualKeyword(TestHost testHost)
+    public async Task XmlDocComment_LangWordAttribute_ContextualKeyword(TestHost testHost)
     {
         await TestAsync(
             """
@@ -1827,7 +1827,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     }
 
     [Theory, CombinatorialData]
-    public async Task InXmlDocLangWord_NonKeyword(TestHost testHost)
+    public async Task XmlDocComment_LangWordAttribute_NonKeyword(TestHost testHost)
     {
         await TestAsync(
             """
