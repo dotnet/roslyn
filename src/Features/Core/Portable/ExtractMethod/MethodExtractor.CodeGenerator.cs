@@ -265,14 +265,13 @@ internal abstract partial class AbstractExtractMethodService<
                 return (TExecutableStatementSyntax)generator.ReturnStatement(CreateReturnExpression(expressions));
             }
 
-            private TExpressionSyntax CreateReturnExpression(ImmutableArray<TExpressionSyntax> expressions, ImmutableArray<string> names = default)
+            private TExpressionSyntax CreateReturnExpression(ImmutableArray<TExpressionSyntax> expressions)
             {
                 var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
                 return
                     expressions.Length == 0 ? null :
                     expressions.Length == 1 ? expressions[0] :
-                    (TExpressionSyntax)generator.TupleExpression(expressions.Select(
-                        (e, i) => generator.Argument(names.IsDefaultOrEmpty ? null : names[i], RefKind.None, e)));
+                    (TExpressionSyntax)generator.TupleExpression(expressions.Select(generator.Argument));
             }
 
             protected async Task<ImmutableArray<TStatementSyntax>> AddInvocationAtCallSiteAsync(
@@ -356,26 +355,14 @@ internal abstract partial class AbstractExtractMethodService<
 
                 if (this.AnalyzerResult.FlowControlInformation.TryGetFallThroughFlowValue(out var fallthroughValue))
                 {
-                    using var _1 = ArrayBuilder<string>.GetInstance(out var expressionNames);
-                    using var _2 = ArrayBuilder<TExpressionSyntax>.GetInstance(out var expressions);
-
-                    expressionNames.Add(FlowControlName);
-                    expressions.Add((TExpressionSyntax)generator.LiteralExpression(fallthroughValue));
-
-                    if (AnalyzerResult.CoreReturnType.SpecialType != SpecialType.System_Void)
-                    {
-                        expressionNames.Add(ReturnValueName);
-                        expressions.Add((TExpressionSyntax)generator.DefaultExpression(AnalyzerResult.CoreReturnType));
-                    }
-
-                    return statements.Concat(CreateReturnStatement( expressions.ToImmutableAndClear(), expressionNames.ToImmutableAndClear()));
+                    return statements.Concat(CreateReturnStatement([CreateFlowControlReturnExpression(this.AnalyzerResult.FlowControlInformation, fallthroughValue)]));
                 }
                 else if (!this.AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
                 {
-                    return statements.Concat((TStatementSyntax)generator.ReturnStatement(
+                    return statements.Concat(CreateReturnStatement([
                         CreateReturnExpression(AnalyzerResult.VariablesToUseAsReturnValue.SelectAsArray(
                             static (v, generator) => (TExpressionSyntax)generator.IdentifierName(v.Name),
-                            generator))));
+                            generator))]));
                 }
                 else
                 {
@@ -383,7 +370,7 @@ internal abstract partial class AbstractExtractMethodService<
                 }
             }
 
-            protected abstract TExpressionSyntax CreateConvertedReturnExpression(
+            protected abstract TExpressionSyntax CreateFlowControlReturnExpression(
                 ExtractMethodFlowControlInformation flowControlInformation, object flowValue);
 
             protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(

@@ -60,6 +60,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Throw ExceptionUtilities.Unreachable
                 End Function
 
+                Protected Overrides Function CreateFlowControlReturnExpression(flowControlInformation As ExtractMethodFlowControlInformation, flowValue As Object) As ExpressionSyntax
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
                 Protected Overrides Function UpdateMethodAfterGenerationAsync(originalDocument As SemanticDocument, methodSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Task(Of SemanticDocument)
                     Return Task.FromResult(originalDocument)
                 End Function

@@ -397,7 +397,7 @@ internal sealed partial class CSharpExtractMethodService
                     {
                         // TODO: pass back more than just the control flow value if needed.
                         var returnStatement = flowControlInformation.TryGetBreakFlowValue(out var flowValue)
-                            ? ReturnStatement(CreateConvertedReturnExpression(flowControlInformation, flowValue))
+                            ? ReturnStatement(CreateFlowControlReturnExpression(flowControlInformation, flowValue))
                             : ReturnStatement();
                         return returnStatement.WithSemicolonToken(breakStatement.SemicolonToken);
                     }
@@ -405,7 +405,7 @@ internal sealed partial class CSharpExtractMethodService
                     {
                         // TODO: pass back more than just the control flow value if needed.
                         var returnStatement = flowControlInformation.TryGetContinueFlowValue(out var flowValue)
-                            ? ReturnStatement(CreateConvertedReturnExpression(flowControlInformation, flowValue))
+                            ? ReturnStatement(CreateFlowControlReturnExpression(flowControlInformation, flowValue))
                             : ReturnStatement();
                         return returnStatement.WithSemicolonToken(continueStatement.SemicolonToken);
                     }
@@ -447,7 +447,7 @@ internal sealed partial class CSharpExtractMethodService
                 }
             }
 
-            private ExpressionSyntax CreateConvertedReturnExpression(ExtractMethodFlowControlInformation flowControlInformation, object flowValue)
+            protected override ExpressionSyntax CreateFlowControlReturnExpression(ExtractMethodFlowControlInformation flowControlInformation, object flowValue)
             {
                 var flowValueExpression = ExpressionGenerator.GenerateExpression(
                     flowControlInformation.ControlFlowValueType, flowValue, canUseFieldReference: false);
