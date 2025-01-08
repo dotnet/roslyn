@@ -225,6 +225,8 @@ internal sealed partial class CSharpExtractMethodService
                     else
                     {
                         Contract.ThrowIfFalse(controlFlowValueType.SpecialType == SpecialType.System_Int32);
+                        // We use 'int' when we have all 4 flow control cases (break, continue, return, fallthrough).
+                        // fallthrough is always the last one so we only have to test the first 3.
                         return IfStatement(
                             BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(0)),
                             Block(GetFlowStatement(0)),
