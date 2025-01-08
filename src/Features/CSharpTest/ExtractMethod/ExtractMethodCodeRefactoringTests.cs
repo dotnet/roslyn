@@ -6081,6 +6081,170 @@ $@"
     }
 
     [Fact]
+    public async Task TestFlowControl_BreakAndBreak()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        {|Rename:NewMethod|}(v);
+                        break;
+                    }
+            
+                    return 0;
+                }
+
+                private static void NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return;
+                    }
+
+                    return;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndContinue()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static void NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndReturn()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        var (flowControl, returnValue) = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            return returnValue;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int returnValue) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (false, default);
+                    }
+
+                    return (true, 1);
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestFlowControl_BreakAndFallThrough()
     {
         await TestInRegularAndScript1Async(

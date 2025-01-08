@@ -315,17 +315,17 @@ internal abstract partial class AbstractExtractMethodService<
                 if (this.AnalyzerResult.FlowControlInformation.TryGetFallThroughFlowValue(out var fallthroughValue))
                     expressions.Add((TExpressionSyntax)generator.LiteralExpression(fallthroughValue));
 
-
-                    AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
+                if (!AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
                 {
-                    return statements;
-                }
-
-                var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
-                return statements.Concat(CreateReturnStatement(
-                    AnalyzerResult.VariablesToUseAsReturnValue.SelectAsArray(
+                    expressions.Add(CreateReturnExpression(AnalyzerResult.VariablesToUseAsReturnValue.SelectAsArray(
                         static (v, generator) => (TExpressionSyntax)generator.IdentifierName(v.Name),
                         generator)));
+                }
+
+                if (expressions.Count == 0)
+                    return statements;
+
+                return statements.Concat(CreateReturnStatement(expressions.ToImmutableAndClear()));
             }
 
             protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
