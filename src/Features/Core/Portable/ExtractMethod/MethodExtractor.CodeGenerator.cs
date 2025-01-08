@@ -79,7 +79,6 @@ internal abstract partial class AbstractExtractMethodService<
             protected abstract IMethodSymbol GenerateMethodDefinition(SyntaxNode insertionPointNode, CancellationToken cancellationToken);
             protected abstract bool ShouldLocalFunctionCaptureParameter(SyntaxNode node);
 
-            protected abstract SyntaxToken CreateIdentifier(string name);
             protected abstract SyntaxToken CreateMethodName();
             protected abstract bool LastStatementOrHasReturnStatementInReturnableConstruct();
 
@@ -90,7 +89,6 @@ internal abstract partial class AbstractExtractMethodService<
             protected abstract TExpressionSyntax CreateCallSignature();
             protected abstract TStatementSyntax CreateDeclarationStatement(ImmutableArray<VariableInfo> variables, TExpressionSyntax initialValue, CancellationToken cancellationToken);
             protected abstract TStatementSyntax CreateAssignmentExpressionStatement(ImmutableArray<VariableInfo> variables, TExpressionSyntax rvalue);
-            protected abstract TStatementSyntax CreateReturnStatement(params string[] identifierNames);
 
             protected abstract ImmutableArray<TStatementSyntax> GetInitialStatementsForMethodDefinitions();
 
@@ -220,7 +218,20 @@ internal abstract partial class AbstractExtractMethodService<
                 if (LastStatementOrHasReturnStatementInReturnableConstruct())
                     return statements;
 
-                return statements.Concat(CreateReturnStatement());
+                return statements.Concat(CreateReturnStatement([]));
+            }
+
+            private TExecutableStatementSyntax CreateReturnStatement(ImmutableArray<VariableInfo> variables)
+            {
+                var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
+                if (variables.IsEmpty)
+                    return (TExecutableStatementSyntax)generator.ReturnStatement();
+
+                if (variables is [var variable])
+                    return (TExecutableStatementSyntax)generator.ReturnStatement(generator.IdentifierName(variable.Name));
+
+                return (TExecutableStatementSyntax)generator.ReturnStatement(
+                    generator.TupleExpression(variables.SelectAsArray(v => generator.IdentifierName(v.Name))));
             }
 
             protected async Task<ImmutableArray<TStatementSyntax>> AddInvocationAtCallSiteAsync(
@@ -285,7 +296,7 @@ internal abstract partial class AbstractExtractMethodService<
                 if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
                     return statements;
 
-                return statements.Concat(CreateReturnStatement([.. AnalyzerResult.VariablesToUseAsReturnValue.Select(b => b.Name)]));
+                return statements.Concat(CreateReturnStatement(AnalyzerResult.VariablesToUseAsReturnValue));
             }
 
             protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(

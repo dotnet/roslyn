@@ -309,20 +309,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return declStatements.Concat(statements)
                 End Function
 
-                Protected Overrides Function CreateIdentifier(name As String) As SyntaxToken
-                    Return name.ToIdentifierToken()
-                End Function
-
-                Protected Overrides Function CreateReturnStatement(ParamArray identifierNames As String()) As StatementSyntax
-                    Contract.ThrowIfTrue(identifierNames.Length > 1)
-
-                    If identifierNames.Length = 0 Then
-                        Return SyntaxFactory.ReturnStatement()
-                    End If
-
-                    Return SyntaxFactory.ReturnStatement(identifierNames(0).ToIdentifierName())
-                End Function
-
                 Protected Overrides Function LastStatementOrHasReturnStatementInReturnableConstruct() As Boolean
                     Dim lastStatement = GetLastStatementOrInitializerSelectedAtCallSite()
                     Dim container = lastStatement.GetAncestorsOrThis(Of SyntaxNode).Where(Function(n) n.IsReturnableConstruct()).FirstOrDefault()
