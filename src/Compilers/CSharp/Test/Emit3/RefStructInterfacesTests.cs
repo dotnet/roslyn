@@ -21358,7 +21358,7 @@ class Helper<T>
     delegate void D2(T x);
     
     static D1 d11 = M1;
-    static D1 d12 = M2; // 1
+    static D1 d12 = M2;
     static D2 d21 = M1;
     static D2 d22 = M2;
 
@@ -21372,7 +21372,7 @@ class Helper
     delegate void D2(Span<int> x);
     
     static D1 d11 = M1;
-    static D1 d12 = M2; // 2
+    static D1 d12 = M2;
     static D2 d21 = M1;
     static D2 d22 = M2;
 
@@ -21381,13 +21381,7 @@ class Helper
 }
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
-            comp.VerifyEmitDiagnostics(
-                // (11,21): error CS8986: The 'scoped' modifier of parameter 'x' doesn't match target 'Helper<T>.D1'.
-                //     static D1 d12 = M2; // 1
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M2").WithArguments("x", "Helper<T>.D1").WithLocation(11, 21),
-                // (25,21): error CS8986: The 'scoped' modifier of parameter 'x' doesn't match target 'Helper.D1'.
-                //     static D1 d12 = M2; // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M2").WithArguments("x", "Helper.D1").WithLocation(25, 21));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
