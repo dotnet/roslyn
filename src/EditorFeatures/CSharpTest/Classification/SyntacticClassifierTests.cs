@@ -1712,6 +1712,158 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseCurly);
     }
 
+    [Theory, CombinatorialData]
+    public async Task InXmlDocLangWord_Keyword(TestHost testHost)
+    {
+        await TestAsync(
+            """
+            /// <summary>
+            /// <see langword="true"/>
+            /// </summary>
+            class MyClass
+            {
+            }
+            """, testHost,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("see"),
+            XmlDoc.AttributeName("langword"),
+            XmlDoc.Delimiter("="),
+            XmlDoc.AttributeQuotes("\""),
+            Keyword("true"),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.Delimiter("/>"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            Keyword("class"),
+            Class("MyClass"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task InXmlDocLangWord_ControlKeyword(TestHost testHost)
+    {
+        await TestAsync(
+            """
+            /// <summary>
+            /// <see langword="return"/>
+            /// </summary>
+            class MyClass
+            {
+            }
+            """, testHost,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("see"),
+            XmlDoc.AttributeName("langword"),
+            XmlDoc.Delimiter("="),
+            XmlDoc.AttributeQuotes("\""),
+            ControlKeyword("return"),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.Delimiter("/>"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            Keyword("class"),
+            Class("MyClass"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task InXmlDocLangWord_ContextualKeyword(TestHost testHost)
+    {
+        await TestAsync(
+            """
+            /// <summary>
+            /// <see langword="with"/>
+            /// </summary>
+            class MyClass
+            {
+            }
+            """, testHost,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("see"),
+            XmlDoc.AttributeName("langword"),
+            XmlDoc.Delimiter("="),
+            XmlDoc.AttributeQuotes("\""),
+            Keyword("with"),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.Delimiter("/>"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            Keyword("class"),
+            Class("MyClass"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task InXmlDocLangWord_NonKeyword(TestHost testHost)
+    {
+        await TestAsync(
+            """
+            /// <summary>
+            /// <see langword="MyWord"/>
+            /// </summary>
+            class MyClass
+            {
+            }
+            """, testHost,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("see"),
+            XmlDoc.AttributeName("langword"),
+            XmlDoc.Delimiter("="),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeValue("MyWord"),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.Delimiter("/>"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            Keyword("class"),
+            Class("MyClass"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+    }
+
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531155")]
     [CombinatorialData]
     public async Task XmlDocComment_ExteriorTriviaInsideCRef(TestHost testHost)
