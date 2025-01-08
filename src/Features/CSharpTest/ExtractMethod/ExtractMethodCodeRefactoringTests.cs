@@ -7975,14 +7975,14 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        {|Rename:NewMethod|}(v);
+                        await {|Rename:NewMethod|}(v);
                         break;
                     }
             
                     return 0;
                 }
 
-                private static void NewMethod(int v)
+                private static async Task NewMethod(int v)
                 {
                     if (v == 0)
                     {
@@ -8027,7 +8027,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        bool flowControl = {|Rename:NewMethod|}(v);
+                        bool flowControl = await {|Rename:NewMethod|}(v);
                         if (flowControl)
                         {
                             continue;
@@ -8041,7 +8041,7 @@ $@"
                     return 0;
                 }
 
-                private static bool NewMethod(int v)
+                private static async Task<bool> NewMethod(int v)
                 {
                     if (v == 0)
                     {
@@ -8086,7 +8086,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        (bool flowControl, int value) = await {|Rename:NewMethod|}(v);
                         if (flowControl)
                         {
                             return value;
@@ -8144,7 +8144,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        bool flowControl = {|Rename:NewMethod|}(v);
+                        bool flowControl = await {|Rename:NewMethod|}(v);
                         if (!flowControl)
                         {
                             break;
@@ -8154,7 +8154,7 @@ $@"
                     return 0;
                 }
 
-                private static bool NewMethod(int v)
+                private static async Task<bool> NewMethod(int v)
                 {
                     if (v == 0)
                     {
@@ -8199,7 +8199,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        bool flowControl = {|Rename:NewMethod|}(v);
+                        bool flowControl = await {|Rename:NewMethod|}(v);
                         if (flowControl)
                         {
                             continue;
@@ -8213,7 +8213,7 @@ $@"
                     return 0;
                 }
 
-                private static bool NewMethod(int v)
+                private static async Task<bool> NewMethod(int v)
                 {
                     if (v == 0)
                     {
@@ -8258,14 +8258,14 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        {|Rename:NewMethod|}(v);
+                        await {|Rename:NewMethod|}(v);
                         continue;
                     }
             
                     return 0;
                 }
 
-                private static void NewMethod(int v)
+                private static async Task NewMethod(int v)
                 {
                     if (v == 0)
                     {
@@ -8310,7 +8310,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        (bool flowControl, int value) = await {|Rename:NewMethod|}(v);
                         if (flowControl)
                         {
                             return value;
@@ -8368,7 +8368,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        bool flowControl = {|Rename:NewMethod|}(v);
+                        bool flowControl = await {|Rename:NewMethod|}(v);
                         if (!flowControl)
                         {
                             continue;
@@ -8378,7 +8378,7 @@ $@"
                     return 0;
                 }
 
-                private static bool NewMethod(int v)
+                private static async Task<bool> NewMethod(int v)
                 {
                     if (v == 0)
                     {
@@ -8423,7 +8423,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        (bool flowControl, int value) = await {|Rename:NewMethod|}(v);
                         if (flowControl)
                         {
                             return value;
@@ -8482,7 +8482,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        (bool flowControl, int value) = await {|Rename:NewMethod|}(v);
                         if (flowControl)
                         {
                             return value;
@@ -8541,7 +8541,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        return {|Rename:NewMethod|}(v);
+                        return await {|Rename:NewMethod|}(v);
                     }
             
                     return 0;
@@ -8591,7 +8591,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        (bool flowControl, int value) = await {|Rename:NewMethod|}(v);
                         if (!flowControl)
                         {
                             return value;
@@ -8651,7 +8651,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (bool? flowControl, int value) = {|Rename:NewMethod|}(v);
+                        (bool? flowControl, int value) = await {|Rename:NewMethod|}(v);
                         if (flowControl == false)
                         {
                             break;
@@ -8723,7 +8723,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        bool? flowControl = {|Rename:NewMethod|}(v);
+                        bool? flowControl = await {|Rename:NewMethod|}(v);
                         if (flowControl == false)
                         {
                             break;
@@ -8791,7 +8791,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (bool? flowControl, int value) = {|Rename:NewMethod|}(v);
+                        (bool? flowControl, int value) = await {|Rename:NewMethod|}(v);
                         if (flowControl == false)
                         {
                             break;
@@ -8864,7 +8864,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        (int flowControl, string value) = {|Rename:NewMethod|}(v);
+                        (int flowControl, string value) = await {|Rename:NewMethod|}(v);
                         if (flowControl == 0)
                         {
                             break;
