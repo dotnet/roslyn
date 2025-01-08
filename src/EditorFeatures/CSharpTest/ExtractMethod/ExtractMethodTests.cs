@@ -7691,9 +7691,10 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 {
                     if (b)
                     {
-                        return;
+                        return false;
                     }
                     Console.WriteLine();
+                    return true;
                 }
             }
             """;
@@ -7790,7 +7791,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                     bool b = true;
                     if (b)
                     {
-                        return;
+                        return false;
                     }
 
                     Action d = () =>
@@ -7801,6 +7802,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                         }
                         Console.WriteLine(1);
                     };
+                    return true;
                 }
             }
             """;
@@ -12055,6 +12057,10 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
 
                         var a = test != null;
                         bool flowControl = NewMethod(ref test, a);
+                        if (!flowControl)
+                        {
+                            return;
+                        }
                     }
 
                     private static bool NewMethod(ref object test, bool a)
@@ -12106,19 +12112,25 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 {
                     test = null;
                     var a = test != null;
-                    NewMethod(ref test, a);
+                    bool flowControl = NewMethod(ref test, a);
+                    if (!flowControl)
+                    {
+                        return;
+                    }
                 }
 
-                private static void NewMethod(ref object test, bool a)
+                private static bool NewMethod(ref object test, bool a)
                 {
                     if (a)
                     {
-                        return;
+                        return false;
                     }
                     if (A == a)
                     {
                         test = new object();
                     }
+
+                    return true;
                 }
             }
             """;

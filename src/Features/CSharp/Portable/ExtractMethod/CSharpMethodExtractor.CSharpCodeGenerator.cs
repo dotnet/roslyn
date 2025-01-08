@@ -250,7 +250,7 @@ internal sealed partial class CSharpExtractMethodService
                     else if (flowControlInformation.TryGetContinueFlowValue(out var continueValue) && Equals(continueValue, value))
                         return ContinueStatement();
                     else if (flowControlInformation.TryGetReturnFlowValue(out var returnValue) && Equals(returnValue, value))
-                        return ReturnStatement(IdentifierName(ReturnValueName));
+                        return ReturnStatement(this.AnalyzerResult.CoreReturnType.SpecialType == SpecialType.System_Void ? null : IdentifierName(ReturnValueName));
                     else
                         throw ExceptionUtilities.Unreachable();
                 }
