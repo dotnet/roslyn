@@ -6161,13 +6161,13 @@ $@"
                     foreach (var v in x)
                     {
                         bool flowControl = {|Rename:NewMethod|}(v);
-                        if (!flowControl)
+                        if (flowControl)
                         {
-                            break;
+                            continue;
                         }
                         else
                         {
-                            continue;
+                            break;
                         }
                     }
             
@@ -6217,21 +6217,21 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        var (flowControl, returnValue) = {|Rename:NewMethod|}(v);
+                        var (flowControl, value) = {|Rename:NewMethod|}(v);
                         if (!flowControl)
                         {
                             break;
                         }
                         else
                         {
-                            return returnValue;
+                            return value;
                         }
                     }
             
                     return 0;
                 }
 
-                private static (bool flowControl, int returnValue) NewMethod(int v)
+                private static (bool flowControl, int value) NewMethod(int v)
                 {
                     if (v == 0)
                     {

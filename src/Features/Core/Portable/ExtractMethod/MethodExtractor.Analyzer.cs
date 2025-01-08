@@ -152,11 +152,15 @@ internal abstract partial class AbstractExtractMethodService<
                 GetSignatureInformation(Dictionary<ISymbol, VariableInfo> symbolMap, ExtractMethodFlowControlInformation flowControlInformation)
             {
                 var allVariableInfos = symbolMap.Values.Order().ToImmutableArray();
-                if (IsTrivialReturnOnlyExtraction(flowControlInformation))
+                if (this.SelectionResult.IsExtractMethodOnExpression ||
+                    flowControlInformation.ReturnStatementCount > 0)
                 {
-                    // Just selecting an expression.  There can't be any sort of interesting flow control here as the
-                    // language doesn't support things like 'break/continue/return' expressions (those only have
-                    // statement forms).
+                    // If we're just selecting an expression, then we want the extract method to have the type of that
+                    // expression.  Similarly, if we're selecting a statement that contains a return statement, then we
+                    // want the extracted method to have the return type of the containing method.
+                    //
+                    // Note: if there's more complex flow control, that will be handled later on with an additional
+                    // value added to the return value.
                     var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
                     return (allVariableInfos, UnwrapTaskIfNeeded(returnType), returnsByRef);
                 }
