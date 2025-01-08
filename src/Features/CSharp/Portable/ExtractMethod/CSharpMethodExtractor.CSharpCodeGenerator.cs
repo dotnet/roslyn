@@ -698,50 +698,16 @@ internal sealed partial class CSharpExtractMethodService
 
             protected override StatementSyntax CreateAssignmentExpressionStatement(
                 ImmutableArray<VariableInfo> variableInfos,
-                ExpressionSyntax right,
-                ExtractMethodFlowControlInformation flowControlInformation)
+                ExpressionSyntax right)
             {
-                var needsControlFlowValue = flowControlInformation?.NeedsControlFlowValue() is true;
-                Contract.ThrowIfTrue(variableInfos.IsEmpty && !needsControlFlowValue);
+                Contract.ThrowIfTrue(variableInfos.IsEmpty);
 
                 return ExpressionStatement(AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
-                    CreateLeftExpression(),
+                    variableInfos is [var singleInfo]
+                        ? singleInfo.Name.ToIdentifierName()
+                        : TupleExpression([.. variableInfos.Select(v => Argument(v.Name.ToIdentifierName()))]),
                     right));
-
-                ExpressionSyntax CreateLeftExpression()
-                {
-                    if (variableInfos is [])
-                    {
-
-                    }
-                    else if (variableInfos is [var singleInfo])
-                    {
-                        var variableName = singleInfo.Name.ToIdentifierName();
-                        if (needsControlFlowValue)
-                        {
-                            // create `(bool flowControl, variableName) = NewMethod()`
-                            return TupleExpression([
-                                Argument(CreateFlowControlDeclarationExpression(flowControlInformation)),
-                                Argument(variableName)]);
-                        }
-                        else
-                        {
-                            // create `variableName = NewMethod()`
-                            return variableName;
-                        }
-                    }
-                    else
-                    {
-                        if (needsControlFlowValue)
-                        {
-                        }
-                        else
-                        {
-                            return TupleExpression([.. variableInfos.Select(v => Argument(v.Name.ToIdentifierName()))]);
-                        }
-                    }
-                }
             }
 
             protected override StatementSyntax CreateDeclarationStatement(
@@ -751,8 +717,9 @@ internal sealed partial class CSharpExtractMethodService
                 CancellationToken cancellationToken)
             {
                 var needsControlFlowValue = flowControlInformation?.NeedsControlFlowValue() is true;
-                Contract.ThrowIfTrue(variableInfos.IsEmpty);
+                Contract.ThrowIfTrue(variableInfos.IsEmpty && !needsControlFlowValue);
 
+                var equalsValueClause = initialValue == null ? null : EqualsValueClause(initialValue);
                 if (variableInfos is [var singleVariable] && !needsControlFlowValue)
                 {
                     var originalIdentifierToken = singleVariable.GetOriginalIdentifierToken(cancellationToken);
@@ -764,10 +731,20 @@ internal sealed partial class CSharpExtractMethodService
                         : default;
 
                     return LocalDeclarationStatement(
-                        VariableDeclaration(singleVariable.SymbolType.GenerateTypeSyntax())
-                            .AddVariables(VariableDeclarator(singleVariable.Name.ToIdentifierToken())
-                            .WithInitializer(initialValue == null ? null : EqualsValueClause(initialValue))))
+                        VariableDeclaration(
+                            singleVariable.SymbolType.GenerateTypeSyntax(),
+                            [VariableDeclarator(
+                                singleVariable.Name.ToIdentifierToken(), null, equalsValueClause)]))
                         .WithUsingKeyword(usingKeyword);
+                }
+                else if (variableInfos.IsEmpty && needsControlFlowValue)
+                {
+                    // No actual return values, but we do have a control flow value.  Just generate:
+                    // bool flowControl = NewMethod();
+                    return LocalDeclarationStatement(
+                        VariableDeclaration(
+                            flowControlInformation.ControlFlowValueType.GenerateTypeSyntax(),
+                            [VariableDeclarator(FlowControlName.ToIdentifierToken(), null, equalsValueClause)]));
                 }
 
                 return ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, CreateLeftExpression(), initialValue));

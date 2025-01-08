@@ -391,8 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Protected Overrides Function CreateAssignmentExpressionStatement(
                         variables As ImmutableArray(Of VariableInfo),
-                        rvalue As ExpressionSyntax,
-                        flowControlInformation As ExtractMethodFlowControlInformation) As StatementSyntax
+                        rvalue As ExpressionSyntax) As StatementSyntax
                     Contract.ThrowIfTrue(variables.Length <> 1)
                     Dim identifier = variables(0).Name.ToIdentifierToken()
                     Return identifier.CreateAssignmentExpressionStatementWithValue(rvalue)

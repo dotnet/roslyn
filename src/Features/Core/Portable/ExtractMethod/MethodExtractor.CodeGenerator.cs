@@ -49,7 +49,7 @@ internal abstract partial class AbstractExtractMethodService<
             where TCodeGenerationOptions : CodeGenerationOptions
         {
             private static readonly CodeGenerationContext s_codeGenerationContext = new(addImports: false);
-            protected static readonly string FlowControlName = "flowControl";
+            protected const string FlowControlName = "flowControl";
 
             protected readonly SelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
@@ -96,17 +96,18 @@ internal abstract partial class AbstractExtractMethodService<
 
             /// <summary>
             /// Statement we create when we are assigning variables and at least one of the variables in a new
-            /// declaration that is being created.  <paramref name="variables"/> must be non-empty.
+            /// declaration that is being created.  <paramref name="variables"/> can be empty.  This can happen
+            /// if we are creating a new declaration for a flow control variable.
             /// </summary>
             protected abstract TStatementSyntax CreateDeclarationStatement(
                 ImmutableArray<VariableInfo> variables, TExpressionSyntax initialValue, ExtractMethodFlowControlInformation flowControlInformation, CancellationToken cancellationToken);
 
             /// <summary>
             /// Statement we create when we are assigning variables and all of the variables already exist and are just
-            /// being assigned to. <paramref name="variables"/> can be empty.
+            /// being assigned to. <paramref name="variables"/> must be non-empty.
             /// </summary>
             protected abstract TStatementSyntax CreateAssignmentExpressionStatement(
-                ImmutableArray<VariableInfo> variables, TExpressionSyntax rvalue, ExtractMethodFlowControlInformation flowControlInformation);
+                ImmutableArray<VariableInfo> variables, TExpressionSyntax right);
 
             protected abstract TExecutableStatementSyntax CreateBreakStatement();
             protected abstract TExecutableStatementSyntax CreateContinueStatement();
@@ -299,7 +300,8 @@ internal abstract partial class AbstractExtractMethodService<
 
                 var flowControlInformation = AnalyzerResult.FlowControlInformation;
                 var variables = AnalyzerResult.VariablesToUseAsReturnValue;
-                if (variables.Any(v => v.ReturnBehavior == ReturnBehavior.Initialization))
+                if (variables.Any(v => v.ReturnBehavior == ReturnBehavior.Initialization) ||
+                    flowControlInformation.NeedsControlFlowValue())
                 {
                     var declarationStatement = CreateDeclarationStatement(
                         variables, CreateCallSignature(), flowControlInformation, cancellationToken);
@@ -308,7 +310,7 @@ internal abstract partial class AbstractExtractMethodService<
                 }
 
                 return statements.Concat(
-                    CreateAssignmentExpressionStatement(variables, CreateCallSignature(), flowControlInformation).WithAdditionalAnnotations(CallSiteAnnotation));
+                    CreateAssignmentExpressionStatement(variables, CreateCallSignature()).WithAdditionalAnnotations(CallSiteAnnotation));
             }
 
             protected ImmutableArray<TStatementSyntax> CreateDeclarationStatements(
