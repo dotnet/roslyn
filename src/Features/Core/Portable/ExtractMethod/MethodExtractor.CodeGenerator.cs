@@ -298,8 +298,24 @@ internal abstract partial class AbstractExtractMethodService<
 
             protected ImmutableArray<TStatementSyntax> AppendReturnStatementIfNeeded(ImmutableArray<TStatementSyntax> statements)
             {
-                if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
+                // No need to add a return statement if we already have one.
+                var syntaxFacts = this.SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+                if (statements is [.., var lastStatement] &&
+                    syntaxFacts.IsReturnStatement(lastStatement))
+                {
                     return statements;
+                }
+
+                var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
+                using var _ = ArrayBuilder<TExpressionSyntax>.GetInstance(out var expressions);
+                if (this.AnalyzerResult.FlowControlInformation.TryGetFallThroughFlowValue(out var fallthroughValue))
+                    expressions.Add((TExpressionSyntax)generator.LiteralExpression(fallthroughValue));
+
+
+                    AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
+                {
+                    return statements;
+                }
 
                 return statements.Concat(CreateReturnStatement(AnalyzerResult.VariablesToUseAsReturnValue));
             }
