@@ -6217,7 +6217,7 @@ $@"
                 {
                     foreach (var v in x)
                     {
-                        var (flowControl, value) = {|Rename:NewMethod|}(v);
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
                         if (flowControl)
                         {
                             return value;
@@ -6235,7 +6235,7 @@ $@"
                 {
                     if (v == 0)
                     {
-                        return (flowControl: false, value: 0);
+                        return (flowControl: false, value: default);
                     }
 
                     return (flowControl: true, value: 1);

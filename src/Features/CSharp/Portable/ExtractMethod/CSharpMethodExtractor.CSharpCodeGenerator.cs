@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -832,6 +833,16 @@ internal sealed partial class CSharpExtractMethodService
                 var needsControlFlowValue = flowControlInformation?.NeedsControlFlowValue() is true;
                 Contract.ThrowIfTrue(variableInfos.IsEmpty && !needsControlFlowValue);
 
+                var hasNonControlFlowReturnValue = variableInfos.Length > 0 || this.AnalyzerResult.CoreReturnType.SpecialType != SpecialType.System_Void;
+
+                // Note, we do not use "Use var when apparent" here as no types are apparent when doing `... =
+                // NewMethod()`. If we have `use var elsewhere` we may try to generate `var (a, b, c)` if we're
+                // producing new variables for all variable infos.  If we're producing new variables only for some
+                // variables, we'll need to do something like `(Type a, b, c)`.  In that case, we'll use 'var' if the
+                // type is a built-in type, and varForBuiltInTypes is true.  Otherwise, if it's not built-in, we'll
+                // use "use var elsewhere" to determine what to do.
+                var allowVar = ((CSharpSimplifierOptions)this.ExtractMethodGenerationOptions.SimplifierOptions).VarElsewhere.Value;
+
                 var equalsValueClause = initialValue == null ? null : EqualsValueClause(initialValue);
                 if (variableInfos is [var singleVariable] && !needsControlFlowValue)
                 {
@@ -845,39 +856,35 @@ internal sealed partial class CSharpExtractMethodService
 
                     return LocalDeclarationStatement(
                         VariableDeclaration(
-                            singleVariable.SymbolType.GenerateTypeSyntax(),
-                            [VariableDeclarator(
-                                singleVariable.Name.ToIdentifierToken(), null, equalsValueClause)]))
+                            singleVariable.SymbolType.GenerateTypeSyntax(allowVar),
+                            [VariableDeclarator(singleVariable.Name.ToIdentifierToken(), null, equalsValueClause)]))
                         .WithUsingKeyword(usingKeyword);
                 }
-                else if (this.AnalyzerResult.CoreReturnType.SpecialType == SpecialType.System_Void && needsControlFlowValue)
+                else if (!hasNonControlFlowReturnValue && needsControlFlowValue)
                 {
                     // No actual return values, but we do have a control flow value.  Just generate:
                     // bool flowControl = NewMethod();
                     return LocalDeclarationStatement(
                         VariableDeclaration(
-                            flowControlInformation.ControlFlowValueType.GenerateTypeSyntax(),
+                            flowControlInformation.ControlFlowValueType.GenerateTypeSyntax(allowVar),
                             [VariableDeclarator(FlowControlName.ToIdentifierToken(), null, equalsValueClause)]));
                 }
 
+                // Otherwise we have non-control-flow and/or control-flow return values.  Generate assignments in this
+                // case for all the variables that need it.
                 return ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, CreateLeftExpression(), initialValue));
 
                 ExpressionSyntax CreateLeftExpression()
                 {
-                    // Note, we do not use "Use var when apparent" here as no types are apparent when doing `... =
-                    // NewMethod()`. If we have `use var elsewhere` we may try to generate `var (a, b, c)` if we're
-                    // producing new variables for all variable infos.  If we're producing new variables only for some
-                    // variables, we'll need to do something like `(Type a, b, c)`.  In that case, we'll use 'var' if the
-                    // type is a built-in type, and varForBuiltInTypes is true.  Otherwise, if it's not built-in, we'll
-                    // use "use var elsewhere" to determine what to do.
-                    var varElsewhere = ((CSharpSimplifierOptions)this.ExtractMethodGenerationOptions.SimplifierOptions).VarElsewhere.Value;
-
-                    if (variableInfos.All(i => i.ReturnBehavior == ReturnBehavior.Initialization) && varElsewhere)
+                    if (variableInfos.All(i => i.ReturnBehavior == ReturnBehavior.Initialization) && allowVar)
                     {
                         // Create `(a, b, c)` to represent the N values being returned.
-                        VariableDesignationSyntax returnVariableParenthesizedDesignation = variableInfos.Length == 1
-                            ? SingleVariableDesignation(variableInfos[0].Name.ToIdentifierToken())
-                            : ParenthesizedVariableDesignation([.. variableInfos.Select(v => SingleVariableDesignation(v.Name.ToIdentifierToken()))]);
+                        VariableDesignationSyntax returnVariableParenthesizedDesignation = variableInfos.Length switch
+                        {
+                            0 => SingleVariableDesignation(ReturnValueName.ToIdentifierToken()),
+                            1 => SingleVariableDesignation(variableInfos[0].Name.ToIdentifierToken()),
+                            _ => ParenthesizedVariableDesignation([.. variableInfos.Select(v => SingleVariableDesignation(v.Name.ToIdentifierToken()))]),
+                        };
 
                         if (needsControlFlowValue)
                         {
@@ -899,16 +906,18 @@ internal sealed partial class CSharpExtractMethodService
                     else
                     {
                         // Create `(int x, y, z)` to represent the N values being returned.
-                        var returnVariableExpression = variableInfos.Length == 1
-                            ? CreateReturnExpression(variableInfos[0])
-                            : TupleExpression(
-                                [.. variableInfos.Select(v => Argument(CreateReturnExpression(v)))]);
+                        var returnVariableExpression = variableInfos.Length switch
+                        {
+                            0 => DeclarationExpression(this.AnalyzerResult.CoreReturnType.GenerateTypeSyntax(allowVar), SingleVariableDesignation(ReturnValueName.ToIdentifierToken())),
+                            1 => CreateReturnExpression(variableInfos[0]),
+                            _ => TupleExpression([.. variableInfos.Select(v => Argument(CreateReturnExpression(v)))]),
+                        };
 
                         if (needsControlFlowValue)
                         {
                             // create `(bool flowControl, (int x, y, int z)) = NewMethod()`
                             return TupleExpression([
-                                Argument(CreateFlowControlDeclarationExpression(flowControlInformation)),
+                                Argument(CreateFlowControlDeclarationExpression()),
                                 Argument(returnVariableExpression)]);
                         }
                         else
@@ -919,18 +928,17 @@ internal sealed partial class CSharpExtractMethodService
                     }
                 }
 
-                static ExpressionSyntax CreateReturnExpression(VariableInfo variableInfo)
+                ExpressionSyntax CreateReturnExpression(VariableInfo variableInfo)
                     => variableInfo.ReturnBehavior == ReturnBehavior.Initialization
-                        ? DeclarationExpression(variableInfo.SymbolType.GenerateTypeSyntax(), SingleVariableDesignation(variableInfo.Name.ToIdentifierToken()))
+                        ? DeclarationExpression(variableInfo.SymbolType.GenerateTypeSyntax(allowVar), SingleVariableDesignation(variableInfo.Name.ToIdentifierToken()))
                         : variableInfo.Name.ToIdentifierName();
-            }
 
-            private static DeclarationExpressionSyntax CreateFlowControlDeclarationExpression(
-                ExtractMethodFlowControlInformation flowControlInformation)
-            {
-                return DeclarationExpression(
-                    flowControlInformation.ControlFlowValueType.GenerateTypeSyntax(),
-                    SingleVariableDesignation(FlowControlName.ToIdentifierToken()));
+                DeclarationExpressionSyntax CreateFlowControlDeclarationExpression()
+                {
+                    return DeclarationExpression(
+                        flowControlInformation.ControlFlowValueType.GenerateTypeSyntax(allowVar),
+                        SingleVariableDesignation(FlowControlName.ToIdentifierToken()));
+                }
             }
 
             protected override async Task<SemanticDocument> PerformFinalTriviaFixupAsync(
