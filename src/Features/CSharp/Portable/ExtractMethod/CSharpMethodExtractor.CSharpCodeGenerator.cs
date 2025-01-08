@@ -248,7 +248,7 @@ internal sealed partial class CSharpExtractMethodService
                         return BreakStatement();
                     else if (flowControlInformation.TryGetContinueFlowValue(out var continueValue) && Equals(continueValue, value))
                         return ContinueStatement();
-                    else if (flowControlInformation.TryGetContinueFlowValue(out var returnValue) && Equals(returnValue, value))
+                    else if (flowControlInformation.TryGetReturnFlowValue(out var returnValue) && Equals(returnValue, value))
                         return ReturnStatement(IdentifierName(ReturnValueName));
                     else
                         throw ExceptionUtilities.Unreachable();

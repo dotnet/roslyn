@@ -6218,13 +6218,13 @@ $@"
                     foreach (var v in x)
                     {
                         var (flowControl, value) = {|Rename:NewMethod|}(v);
-                        if (!flowControl)
+                        if (flowControl)
                         {
-                            break;
+                            return value;
                         }
                         else
                         {
-                            return value;
+                            break;
                         }
                     }
             
