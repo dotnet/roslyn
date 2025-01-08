@@ -1431,6 +1431,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 op2 = BindToNaturalType(op2, diagnostics);
                 op1 = InferTypeForDiscardAssignment((BoundDiscardExpression)op1, op2, diagnostics);
             }
+            else
+            {
+                op1 = BindToTypeForErrorRecovery(op1);
+            }
 
             return BindAssignment(node, op1, op2, isRef, diagnostics);
         }
