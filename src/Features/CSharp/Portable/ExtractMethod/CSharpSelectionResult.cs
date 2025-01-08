@@ -10,10 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -66,27 +64,6 @@ internal sealed partial class CSharpExtractMethodService
             return node is RefExpressionSyntax refExpression
                 ? refExpression.Expression
                 : node;
-        }
-
-        protected override bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
-            => IsUnderAnonymousOrLocalMethod(token, firstToken, lastToken);
-
-        public static bool IsUnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
-        {
-            for (var current = token.Parent; current != null; current = current.Parent)
-            {
-                if (current is MemberDeclarationSyntax)
-                    return false;
-
-                if (current is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax)
-                {
-                    // make sure the selection contains the lambda
-                    return firstToken.SpanStart <= current.GetFirstToken().SpanStart &&
-                        current.GetLastToken().Span.End <= lastToken.Span.End;
-                }
-            }
-
-            return false;
         }
 
         public override StatementSyntax GetFirstStatementUnderContainer()

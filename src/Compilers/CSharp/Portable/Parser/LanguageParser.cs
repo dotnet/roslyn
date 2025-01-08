@@ -10123,11 +10123,12 @@ done:
                     awaitKeyword,
                     usingKeyword,
                     mods.ToList(),
-                    _syntaxFactory.VariableDeclaration(type, _pool.ToListAndFree(variables)),
+                    _syntaxFactory.VariableDeclaration(type, variables.ToList()),
                     this.EatToken(SyntaxKind.SemicolonToken));
             }
             finally
             {
+                _pool.Free(variables);
                 _pool.Free(mods);
             }
         }
