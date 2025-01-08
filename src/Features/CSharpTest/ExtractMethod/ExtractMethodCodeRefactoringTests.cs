@@ -6723,6 +6723,7 @@ $@"
             }
             """);
     }
+
     [Fact]
     public async Task TestFlowControl_BreakAndContinueAndReturn()
     {
@@ -6763,7 +6764,7 @@ $@"
                         {
                             break;
                         }
-                        else if (flowControl == true) 
+                        else if (flowControl == true)
                         {
                             continue;
                         }
@@ -6794,4 +6795,133 @@ $@"
             """);
     }
 
+    [Fact]
+    public async Task TestFlowControl_BreakAndContinueAndFallThrough()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        if (v == 1)
+                        {
+                            continue;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool? flowControl = {|Rename:NewMethod|}(v);
+                        if (flowControl == false)
+                        {
+                            break;
+                        }
+                        else if (flowControl == true)
+                        {
+                            continue;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool? NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    if (v == 1)
+                    {
+                        return true;
+                    }
+
+                    return null;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_ContinueAndReturnAndFallThrough()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        if (v == 1)
+                        {
+                            return 1;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool? flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (flowControl == false)
+                        {
+                            break;
+                        }
+                        else if (flowControl == true)
+                        {
+                            return value;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool? flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+
+                    if (v == 1)
+                    {
+                        return (flowControl: true, value: 1);
+                    }
+
+                    return (flowControl: null, value: default);
+                }
+            }
+            """);
+    }
 }
