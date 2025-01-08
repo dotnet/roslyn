@@ -227,14 +227,12 @@ internal abstract partial class AbstractExtractMethodService<
             private TExecutableStatementSyntax CreateReturnStatement(ImmutableArray<VariableInfo> variables)
             {
                 var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
-                if (variables.IsEmpty)
-                    return (TExecutableStatementSyntax)generator.ReturnStatement();
+                var returnStatement =
+                    variables.Length == 0 ? generator.ReturnStatement() :
+                    variables.Length == 1 ? generator.ReturnStatement(generator.IdentifierName(variables[0].Name)) :
+                    generator.ReturnStatement(generator.TupleExpression(variables.SelectAsArray(v => generator.IdentifierName(v.Name))));
 
-                if (variables is [var variable])
-                    return (TExecutableStatementSyntax)generator.ReturnStatement(generator.IdentifierName(variable.Name));
-
-                return (TExecutableStatementSyntax)generator.ReturnStatement(
-                    generator.TupleExpression(variables.SelectAsArray(v => generator.IdentifierName(v.Name))));
+                return (TExecutableStatementSyntax)returnStatement;
             }
 
             protected async Task<ImmutableArray<TStatementSyntax>> AddInvocationAtCallSiteAsync(
