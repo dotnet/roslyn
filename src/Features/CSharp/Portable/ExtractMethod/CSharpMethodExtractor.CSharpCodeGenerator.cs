@@ -698,26 +698,49 @@ internal sealed partial class CSharpExtractMethodService
 
             protected override StatementSyntax CreateAssignmentExpressionStatement(
                 ImmutableArray<VariableInfo> variableInfos,
-                ExpressionSyntax rvalue,
+                ExpressionSyntax right,
                 ExtractMethodFlowControlInformation flowControlInformation)
             {
-                var needsControlFlowValue = flowControlInformation.NeedsControlFlowValue();
+                var needsControlFlowValue = flowControlInformation?.NeedsControlFlowValue() is true;
                 Contract.ThrowIfTrue(variableInfos.IsEmpty && !needsControlFlowValue);
 
-                if (variableInfos is [var singleInfo])
+                return ExpressionStatement(AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    CreateLeftExpression(),
+                    right));
+
+                ExpressionSyntax CreateLeftExpression()
                 {
-                    return ExpressionStatement(AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        singleInfo.Name.ToIdentifierName(),
-                        rvalue));
-                }
-                else
-                {
-                    var tupleExpression = TupleExpression([.. variableInfos.Select(v => Argument(v.Name.ToIdentifierName()))]);
-                    return ExpressionStatement(AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        tupleExpression,
-                        rvalue));
+                    if (variableInfos is [])
+                    {
+
+                    }
+                    else if (variableInfos is [var singleInfo])
+                    {
+                        var variableName = singleInfo.Name.ToIdentifierName();
+                        if (needsControlFlowValue)
+                        {
+                            // create `(bool flowControl, variableName) = NewMethod()`
+                            return TupleExpression([
+                                Argument(CreateFlowControlDeclarationExpression(flowControlInformation)),
+                                Argument(variableName)]);
+                        }
+                        else
+                        {
+                            // create `variableName = NewMethod()`
+                            return variableName;
+                        }
+                    }
+                    else
+                    {
+                        if (needsControlFlowValue)
+                        {
+                        }
+                        else
+                        {
+                            return TupleExpression([.. variableInfos.Select(v => Argument(v.Name.ToIdentifierName()))]);
+                        }
+                    }
                 }
             }
 
@@ -727,7 +750,7 @@ internal sealed partial class CSharpExtractMethodService
                 ExtractMethodFlowControlInformation flowControlInformation,
                 CancellationToken cancellationToken)
             {
-                var needsControlFlowValue = flowControlInformation.NeedsControlFlowValue();
+                var needsControlFlowValue = flowControlInformation?.NeedsControlFlowValue() is true;
                 Contract.ThrowIfTrue(variableInfos.IsEmpty);
 
                 if (variableInfos is [var singleVariable] && !needsControlFlowValue)
@@ -789,15 +812,13 @@ internal sealed partial class CSharpExtractMethodService
                         var returnVariableExpression = variableInfos.Length == 1
                             ? CreateReturnExpression(variableInfos[0])
                             : TupleExpression(
-                                [.. variableInfos.Select(v => Argument(CreateReturnExpression(v))));
+                                [.. variableInfos.Select(v => Argument(CreateReturnExpression(v)))]);
 
                         if (needsControlFlowValue)
                         {
                             // create `(bool flowControl, (int x, y, int z)) = NewMethod()`
                             return TupleExpression([
-                                Argument(DeclarationExpression(
-                                    flowControlInformation.ControlFlowValueType.GenerateTypeSyntax(),
-                                    SingleVariableDesignation(FlowControlName.ToIdentifierToken()))),
+                                Argument(CreateFlowControlDeclarationExpression(flowControlInformation)),
                                 Argument(returnVariableExpression)]);
                         }
                         else
@@ -812,6 +833,14 @@ internal sealed partial class CSharpExtractMethodService
                     => variableInfo.ReturnBehavior == ReturnBehavior.Initialization
                         ? DeclarationExpression(variableInfo.SymbolType.GenerateTypeSyntax(), SingleVariableDesignation(variableInfo.Name.ToIdentifierToken()))
                         : variableInfo.Name.ToIdentifierName();
+            }
+
+            private static DeclarationExpressionSyntax CreateFlowControlDeclarationExpression(
+                ExtractMethodFlowControlInformation flowControlInformation)
+            {
+                return DeclarationExpression(
+                    flowControlInformation.ControlFlowValueType.GenerateTypeSyntax(),
+                    SingleVariableDesignation(FlowControlName.ToIdentifierToken()));
             }
 
             protected override async Task<SemanticDocument> PerformFinalTriviaFixupAsync(
