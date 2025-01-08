@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         attributes:=ImmutableArray(Of AttributeData).Empty,
                         accessibility:=Accessibility.Private,
                         modifiers:=CreateMethodModifiers(),
-                        returnType:=Me.AnalyzerResult.ReturnType,
+                        returnType:=Me.GetFinalReturnType(),
                         refKind:=RefKind.None,
                         explicitInterfaceImplementations:=Nothing,
                         name:=_methodName.ToString(),
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         isShared = True
                     End If
 
-                    Dim isAsync = Me.SelectionResult.CreateAsyncMethod()
+                    Dim isAsync = Me.SelectionResult.ContainsAwaitExpression()
 
                     Return New DeclarationModifiers(isStatic:=isShared, isAsync:=isAsync)
                 End Function
@@ -361,27 +361,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Dim invocation = SyntaxFactory.InvocationExpression(
                         methodExpression, SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments)))
 
-                    If Me.SelectionResult.CreateAsyncMethod() Then
-                        If Me.SelectionResult.ShouldCallConfigureAwaitFalse() Then
-                            If AnalyzerResult.ReturnType.GetMembers().Any(
-                            Function(x)
-                                Dim method = TryCast(x, IMethodSymbol)
-                                If method Is Nothing Then
-                                    Return False
-                                End If
-
-                                If Not CaseInsensitiveComparison.Equals(method.Name, NameOf(Task.ConfigureAwait)) Then
-                                    Return False
-                                End If
-
-                                If method.Parameters.Length <> 1 Then
-                                    Return False
-                                End If
-
-                                Return method.Parameters(0).Type.SpecialType = SpecialType.System_Boolean
-                            End Function) Then
-
-                                invocation = SyntaxFactory.InvocationExpression(
+                    ' If we're extracting any code that contained an 'await' then we'll have to await the new method
+                    ' we're calling as well.  If we also see any use of .ConfigureAwait(false) in the extracted code,
+                    ' keep that pattern on the await expression we produce.
+                    If Me.SelectionResult.ContainsAwaitExpression() Then
+                        If Me.SelectionResult.ContainsConfigureAwaitFalse() Then
+                            invocation = SyntaxFactory.InvocationExpression(
                                 SyntaxFactory.MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
                                     invocation,
@@ -392,7 +377,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                         SyntaxFactory.LiteralExpression(
                                             SyntaxKind.FalseLiteralExpression,
                                             SyntaxFactory.Token(SyntaxKind.FalseKeyword))))))
-                            End If
                         End If
 
                         Return SyntaxFactory.AwaitExpression(invocation)
