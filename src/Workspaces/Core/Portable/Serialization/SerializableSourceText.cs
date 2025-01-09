@@ -89,7 +89,6 @@ internal sealed class SerializableSourceText
     /// Returns the strongly referenced SourceText if we have it, or tries to retrieve it from the weak reference if
     /// it's still being held there.
     /// </summary>
-    /// <returns></returns>
     private SourceText? TryGetText()
         => _text ?? _computedText.GetTarget();
 

@@ -124,7 +124,6 @@ internal abstract partial class AbstractExtractMethodService<
         /// name="predicate"/>. Will not descend into local functions or lambdas.
         /// </summary>
         /// <param name="predicate"></param>
-        /// <returns></returns>
         private bool CheckNodesInSelection(Func<ISyntaxFacts, SyntaxNode, bool> predicate)
         {
             var firstToken = this.GetFirstTokenInSelection();

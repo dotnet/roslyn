@@ -81,7 +81,6 @@ internal static class GenerateFromMembersHelpers
     /// </summary>
     /// <param name="selectedMembers"></param>
     /// <param name="rules"></param>
-    /// <returns></returns>
     public static ImmutableArray<IParameterSymbol> DetermineParameters(
         ImmutableArray<ISymbol> selectedMembers, ImmutableArray<NamingRule> rules)
     {
