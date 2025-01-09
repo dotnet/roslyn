@@ -29,6 +29,7 @@ internal sealed class ExtractMethodFlowControlInformation
 
     public ExtractMethodFlowControlInformation(
         Compilation compilation,
+        bool supportsComplexFlowControl,
         int breakStatementCount,
         int continueStatementCount,
         int returnStatementCount,
@@ -40,26 +41,27 @@ internal sealed class ExtractMethodFlowControlInformation
         ReturnStatementCount = returnStatementCount;
         EndPointIsReachable = endPointIsReachable;
 
-        var controlFlowKindCount = GetControlFlowKindCount();
-        if (controlFlowKindCount == 2)
+        if (supportsComplexFlowControl)
         {
-            ControlFlowValueType = _compilation.GetSpecialType(SpecialType.System_Boolean);
-            AssignFlowValues([false, true]);
+            var controlFlowKindCount = GetControlFlowKindCount();
+            if (controlFlowKindCount == 2)
+            {
+                ControlFlowValueType = _compilation.GetSpecialType(SpecialType.System_Boolean);
+                AssignFlowValues([false, true]);
+            }
+            else if (controlFlowKindCount == 3)
+            {
+                ControlFlowValueType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(_compilation.GetSpecialType(SpecialType.System_Boolean));
+                AssignFlowValues([false, true, null]);
+            }
+            else if (controlFlowKindCount == 4)
+            {
+                ControlFlowValueType = _compilation.GetSpecialType(SpecialType.System_Int32);
+                AssignFlowValues([0, 1, 2, 3]);
+            }
         }
-        else if (controlFlowKindCount == 3)
-        {
-            ControlFlowValueType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(_compilation.GetSpecialType(SpecialType.System_Boolean));
-            AssignFlowValues([false, true, null]);
-        }
-        else if (controlFlowKindCount == 4)
-        {
-            ControlFlowValueType = _compilation.GetSpecialType(SpecialType.System_Int32);
-            AssignFlowValues([0, 1, 2, 3]);
-        }
-        else
-        {
-            ControlFlowValueType = _compilation.GetSpecialType(SpecialType.System_Void);
-        }
+
+        ControlFlowValueType = _compilation.GetSpecialType(SpecialType.System_Void);
     }
 
     private void AssignFlowValues(object?[] values)

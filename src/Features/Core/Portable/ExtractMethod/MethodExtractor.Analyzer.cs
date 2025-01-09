@@ -166,88 +166,12 @@ internal abstract partial class AbstractExtractMethodService<
                 }
                 else
                 {
-                    //if (flowControlInformation.NeedsControlFlowValue())
-                    //{
-                    //    // More interesting case.  We have a return statement *and* some form of flow control we
-                    //    // need to convey to the caller as well.  Create a special variable to represent that
-                    //    // control flow value.
-                    //    allVariableInfos = allVariableInfos.Insert(0, new VariableInfo(
-                    //        new FlowControlVariableSymbol(flowControlInformation.ControlFlowValueType),
-                    //        VariableStyle.OutWithMoveOut,
-                    //        useAsReturnValue: false));
-                    //}
-
                     var finalOrderedVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(
                         allVariableInfos, flowControlInformation.NeedsControlFlowValue());
                     var variablesToUseAsReturnValue = finalOrderedVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
 
                     var returnType = GetReturnType(variablesToUseAsReturnValue);
                     return (finalOrderedVariableInfos, returnType, returnsByRef: false);
-                }
-
-                //else
-                //{
-                //    var (breakCount, continueCount, endPointIsReachable) = GetComplexFlowControlInfo();
-
-                //    if (this.ContainsReturnStatementInSelectedCode())
-                //    {
-                //        if (breakCount == 0 && continueCount == 0 && !endPointIsReachable)
-                //        {
-                //            // Trivial case.  The code we're extracting does contain return-statements, but no other
-                //            // sorts of complex flow control (including falling through past the end of the selection.
-                //            // In this case, we'll extract the code virtually as-is into a new method and have the
-                //            // callsite return that *new* method.
-                //            var (containerReturnType, containerReturnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
-                //            return (allVariableInfos, containerReturnType, containerReturnsByRef);
-                //        }
-                //        else
-                //        {
-                //            // More interesting case.  We have a return statement *and* some form of flow control we
-                //            // need to convey to the caller as well.  Create a special variable to represent that
-                //            // control flow value.
-                //            allVariableInfos = allVariableInfos.Insert(0,
-                //                new VariableInfo(new FlowControlVariableSymbol(
-                //                    SemanticDocument.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean)),
-                //                    VariableStyle.OutWithMoveOut, useAsReturnValue: false));
-                //        }
-                //    }
-                //    else
-                //    {
-                //        if (breakCount > 0 || continueCount > 0)
-                //        {
-                //            // No return statement, but there was interesting flow control.  Note: we do not care about
-                //            // endPointIsReachable here since there were no return statements.
-                //            allVariableInfos = allVariableInfos.Insert(0,
-                //                new VariableInfo(new FlowControlVariableSymbol(
-                //                    SemanticDocument.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean)),
-                //                    VariableStyle.OutWithMoveOut, useAsReturnValue: false));
-                //        }
-                //    }
-
-                //    var finalOrderedVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(allVariableInfos);
-                //    var variablesToUseAsReturnValue = finalOrderedVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
-
-                //    var returnType = GetReturnType(variablesToUseAsReturnValue);
-                //    return (finalOrderedVariableInfos, returnType, returnsByRef: false);
-                //}
-
-                bool IsTrivialReturnOnlyExtraction(ExtractMethodFlowControlInformation flowControlInformation)
-                {
-                    // Extracting an expression produces a method that does nothing more than return that expression.
-                    if (this.SelectionResult.IsExtractMethodOnExpression)
-                        return true;
-
-                    // If we have multiple returns and no other flow control, then we still do an extraction where the
-                    // extracted method returns on all paths, and the caller will return that call.
-                    if (flowControlInformation.ReturnStatementCount > 0 &&
-                        flowControlInformation.BreakStatementCount == 0 &&
-                        flowControlInformation.ContinueStatementCount == 0 &&
-                        !flowControlInformation.EndPointIsReachable)
-                    {
-                        return true;
-                    }
-
-                    return false;
                 }
 
                 ITypeSymbol UnwrapTaskIfNeeded(ITypeSymbol returnType)

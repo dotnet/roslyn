@@ -72,6 +72,9 @@ internal sealed partial class CSharpExtractMethodService
                 _methodName = nameToken.WithAdditionalAnnotations(MethodNameAnnotation);
             }
 
+            protected override bool SupportsComplexFlowControl
+                => true;
+
             protected override StatementSyntax CreateBreakStatement()
                 => BreakStatement();
 

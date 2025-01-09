@@ -115,6 +115,9 @@ internal abstract partial class AbstractExtractMethodService<
             protected abstract TExecutableStatementSyntax CreateBreakStatement();
             protected abstract TExecutableStatementSyntax CreateContinueStatement();
 
+            protected abstract TExpressionSyntax CreateFlowControlReturnExpression(
+                ExtractMethodFlowControlInformation flowControlInformation, object flowValue);
+
             protected abstract ImmutableArray<TStatementSyntax> GetInitialStatementsForMethodDefinitions();
 
             protected abstract Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
@@ -353,7 +356,8 @@ internal abstract partial class AbstractExtractMethodService<
 
                 var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
 
-                if (this.AnalyzerResult.FlowControlInformation.TryGetFallThroughFlowValue(out var fallthroughValue))
+                if (this.SupportsComplexFlowControl &&
+                    this.AnalyzerResult.FlowControlInformation.TryGetFallThroughFlowValue(out var fallthroughValue))
                 {
                     return statements.Concat(CreateReturnStatement([CreateFlowControlReturnExpression(this.AnalyzerResult.FlowControlInformation, fallthroughValue)]));
                 }
@@ -369,9 +373,6 @@ internal abstract partial class AbstractExtractMethodService<
                     return statements;
                 }
             }
-
-            protected abstract TExpressionSyntax CreateFlowControlReturnExpression(
-                ExtractMethodFlowControlInformation flowControlInformation, object flowValue);
 
             protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
                 IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)

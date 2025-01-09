@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         breakStatementCount:=0,
                         continueStatementCount:=0,
                         returnStatementCount:=If(Me.ContainsReturnStatementInSelectedCode(), 1, 0),
-                        endPointIsReachable:=False)
+                        endPointIsReachable:=Me.SelectionResult.IsExtractMethodOnExpression OrElse Me.SelectionResult.GetStatementControlFlowAnalysis().EndPointIsReachable)
                 End Function
             End Class
         End Class
