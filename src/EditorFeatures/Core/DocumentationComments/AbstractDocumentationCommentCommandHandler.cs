@@ -39,7 +39,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
     private readonly EditorOptionsService _editorOptionsService;
-    private readonly SuggestionServiceBase _suggestionServiceBase;
+    private readonly SuggestionServiceBase? _suggestionServiceBase;
     private SuggestionManagerBase? _suggestionManagerBase;
     internal SuggestionSessionBase? _suggestionSession;
     public readonly IThreadingContext _threadingContext;
@@ -49,13 +49,12 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         ITextUndoHistoryRegistry undoHistoryRegistry,
         IEditorOperationsFactoryService editorOperationsFactoryService,
         EditorOptionsService editorOptionsService,
-        SuggestionServiceBase suggestionServiceBase,
+        SuggestionServiceBase? suggestionServiceBase,
         IThreadingContext? threadingContext)
     {
         Contract.ThrowIfNull(uiThreadOperationExecutor);
         Contract.ThrowIfNull(undoHistoryRegistry);
         Contract.ThrowIfNull(editorOperationsFactoryService);
-        Contract.ThrowIfNull(suggestionServiceBase);
         Contract.ThrowIfNull(threadingContext);
 
         _uiThreadOperationExecutor = uiThreadOperationExecutor;
@@ -212,8 +211,10 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
 
         _threadingContext.JoinableTaskFactory.Run(async () =>
         {
-            _suggestionManagerBase = await _suggestionServiceBase.TryRegisterProviderAsync(this, args.TextView, "AmbientAIDocumentationComments", context.OperationContext.UserCancellationToken).ConfigureAwait(false);
-
+            if (_suggestionServiceBase != null)
+            {
+                _suggestionManagerBase = await _suggestionServiceBase.TryRegisterProviderAsync(this, args.TextView, "AmbientAIDocumentationComments", context.OperationContext.UserCancellationToken).ConfigureAwait(false);
+            }
         });
 
         CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCharacterTyped, CancellationToken.None);

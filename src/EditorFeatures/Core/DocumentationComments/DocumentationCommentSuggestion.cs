@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public override bool HasMultipleSuggestions => false;
 
-        public override event PropertyChangedEventHandler PropertyChanged;
+        public override event PropertyChangedEventHandler? PropertyChanged;
 
         public override Task OnAcceptedAsync(SuggestionSessionBase session, ProposalBase originalProposal, ProposalBase currentProposal, ReasonForAccept reason, CancellationToken cancel)
         {
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public override async Task OnDismissedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForDismiss reason, CancellationToken cancel)
         {
-            await handlerInstance._threadingContext!.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
+            await handlerInstance._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
 
             await handlerInstance.ClearSuggestionAsync(reason, cancel).ConfigureAwait(false);
 
