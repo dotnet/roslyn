@@ -162,8 +162,8 @@ internal sealed partial class CSharpExtractMethodService
             }
 
             /// <summary>
-            /// Adds the statements after the call to the newly extracted method to handle the control flow return
-            /// value, and optionally the normal return value of the method.
+            /// Adds the statements after the call to the newly extracted method to handle processing of the control
+            /// flow return value, and optionally the normal return value of the method.
             /// </summary>
             private ImmutableArray<StatementSyntax> AddComplexFlowControlProcessingStatements(ImmutableArray<StatementSyntax> statements)
             {
