@@ -491,16 +491,16 @@ internal sealed partial class CSharpExtractMethodService
                         return current;
                     }
                 }
-            }
 
-            private ReturnStatementSyntax CreateReturnStatementForReturnedVariables()
-                => ReturnStatement(this.AnalyzerResult.VariablesToUseAsReturnValue.Length switch
-                {
-                    0 => null,
-                    1 => this.AnalyzerResult.VariablesToUseAsReturnValue[0].Name.ToIdentifierName(),
-                    _ => TupleExpression([.. this.AnalyzerResult.VariablesToUseAsReturnValue.Select(
-                        v => Argument(v.Name.ToIdentifierName()))]),
-                });
+                ReturnStatementSyntax CreateReturnStatementForReturnedVariables()
+                    => ReturnStatement(this.AnalyzerResult.VariablesToUseAsReturnValue.Length switch
+                    {
+                        0 => null,
+                        1 => this.AnalyzerResult.VariablesToUseAsReturnValue[0].Name.ToIdentifierName(),
+                        _ => TupleExpression([.. this.AnalyzerResult.VariablesToUseAsReturnValue.Select(
+                            v => Argument(v.Name.ToIdentifierName()))]),
+                    });
+            }
 
             protected override ExpressionSyntax CreateFlowControlReturnExpression(ExtractMethodFlowControlInformation flowControlInformation, object flowValue)
             {
