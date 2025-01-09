@@ -4753,12 +4753,17 @@ class X : List<int>
                         int local = 1;
                         return $"{param}{local}"; // 5
                     }
+                    R M6()
+                    {
+                        return $"abc"; // 6
+                    }
                 }
                 [InterpolatedStringHandlerAttribute]
                 ref struct R
                 {
                     public R(int literalLength, int formattedCount) { }
                     public void AppendFormatted([UnscopedRef] in int x) { }
+                    public void AppendLiteral([UnscopedRef] in string x) { }
                 }
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition, InterpolatedStringHandlerAttribute], options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
@@ -4788,7 +4793,13 @@ class X : List<int>
                 Diagnostic(ErrorCode.ERR_EscapeCall, "{local}").WithArguments("R.AppendFormatted(in int)", "x").WithLocation(26, 25),
                 // (26,26): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //         return $"{param}{local}"; // 5
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(26, 26));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(26, 26),
+                // (30,18): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return $"abc"; // 6
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "abc").WithLocation(30, 18),
+                // (30,18): error CS8347: Cannot use a result of 'R.AppendLiteral(in string)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return $"abc"; // 6
+                Diagnostic(ErrorCode.ERR_EscapeCall, "abc").WithArguments("R.AppendLiteral(in string)", "x").WithLocation(30, 18));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63306")]
@@ -4817,12 +4828,17 @@ class X : List<int>
                         R r;
                         r = $"{local}"; // 2
                     }
+                    R M4()
+                    {
+                        return $"abc"; // 3
+                    }
                 }
                 [InterpolatedStringHandlerAttribute]
                 ref struct R
                 {
                     public R(int literalLength, int formattedCount) { }
                     public void AppendFormatted([UnscopedRef] in int x) { }
+                    public void AppendLiteral([UnscopedRef] in string x) { }
                 }
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition, InterpolatedStringHandlerAttribute]).VerifyDiagnostics(
@@ -4834,7 +4850,13 @@ class X : List<int>
                 Diagnostic(ErrorCode.ERR_EscapeCall, "{local}").WithArguments("R.AppendFormatted(in int)", "x").WithLocation(21, 15),
                 // (21,16): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //         r = $"{local}"; // 2
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(21, 16));
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(21, 16),
+                // (25,18): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return $"abc"; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "abc").WithLocation(25, 18),
+                // (25,18): error CS8347: Cannot use a result of 'R.AppendLiteral(in string)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return $"abc"; // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "abc").WithArguments("R.AppendLiteral(in string)", "x").WithLocation(25, 18));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63306")]
@@ -4862,12 +4884,17 @@ class X : List<int>
                         int local = 1;
                         return $"{param}{local}";
                     }
+                    R M5()
+                    {
+                        return $"abc";
+                    }
                 }
                 [InterpolatedStringHandlerAttribute]
                 ref struct R
                 {
                     public R(int literalLength, int formattedCount) { }
                     public void AppendFormatted(in int x) { }
+                    public void AppendLiteral(in string x) { }
                 }
                 """;
             CreateCompilation([source, InterpolatedStringHandlerAttribute]).VerifyDiagnostics();
@@ -4898,12 +4925,17 @@ class X : List<int>
                         R r;
                         r = $"{local}";
                     }
+                    R M4()
+                    {
+                        return $"abc";
+                    }
                 }
                 [InterpolatedStringHandlerAttribute]
                 ref struct R
                 {
                     public R(int literalLength, int formattedCount) { }
                     public void AppendFormatted(in int x) { }
+                    public void AppendLiteral(in string x) { }
                 }
                 """;
             CreateCompilation([source, InterpolatedStringHandlerAttribute]).VerifyDiagnostics();
