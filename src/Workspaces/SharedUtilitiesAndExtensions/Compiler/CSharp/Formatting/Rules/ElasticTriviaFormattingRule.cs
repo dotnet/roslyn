@@ -442,7 +442,6 @@ internal class ElasticTriviaFormattingRule : BaseFormattingRule
         else if (nextToken.Kind() == SyntaxKind.EndOfFileToken)
         {
             return 0;
-            return 0;
         }
         else
         {
