@@ -142,7 +142,7 @@ internal sealed class HelixTestRunner
         var builder = new StringBuilder();
         builder.AppendLine($"""
             <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
-            <PropertyGroup>
+              <PropertyGroup>
                 <TestRunNamePrefix>{jobName}_</TestRunNamePrefix>
                 <HelixSource>pr/{sourceBranch}</HelixSource>
                 <HelixType>test</HelixType>
@@ -152,10 +152,10 @@ internal sealed class HelixTestRunner
                 <DotNetCliVersion>{dotnetSdkVersion}</DotNetCliVersion>
                 <DotNetCliPackageType>sdk</DotNetCliPackageType>
                 <EnableAzurePipelinesReporter>true</EnableAzurePipelinesReporter>
-            </PropertyGroup>
+              </PropertyGroup>
 
-            <ItemGroup>
-                <HelixCorrelationPayload Include="{duplicateDir}" />";
+              <ItemGroup>
+                <HelixCorrelationPayload Include="{duplicateDir}" />
             """);
 
         foreach (var workItemInfo in workItems)
@@ -163,7 +163,10 @@ internal sealed class HelixTestRunner
             AppendHelixWorkItemProject(builder, workItemInfo, platform, artifactsDir,testOS);
         }
 
-        builder.AppendLine("</ItemGroup>");
+        builder.AppendLine("""
+              </ItemGroup>
+            </Project>
+            """);
 
         return builder.ToString();
 
