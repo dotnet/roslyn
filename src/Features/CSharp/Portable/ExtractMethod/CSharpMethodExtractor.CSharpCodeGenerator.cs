@@ -73,10 +73,12 @@ internal sealed partial class CSharpExtractMethodService
             }
 
             protected override StatementSyntax CreateBreakStatement()
-                => BreakStatement();
+                // Being explicit about trivia ensures the formatter doesn't insert newlines in undesirable places.
+                => BreakStatement(BreakKeyword.WithoutTrailingTrivia(), SemicolonToken.WithoutLeadingTrivia());
 
             protected override StatementSyntax CreateContinueStatement()
-                => ContinueStatement();
+                // Being explicit about trivia ensures the formatter doesn't insert newlines in undesirable places.
+                => ContinueStatement(ContinueKeyword.WithoutTrailingTrivia(), SemicolonToken.WithoutLeadingTrivia());
 
             public override OperationStatus<ImmutableArray<SyntaxNode>> GetNewMethodStatements(SyntaxNode insertionPointNode, CancellationToken cancellationToken)
             {
@@ -159,6 +161,10 @@ internal sealed partial class CSharpExtractMethodService
                 return statements.CastArray<SyntaxNode>();
             }
 
+            /// <summary>
+            /// Adds the statements after the call to the newly extracted method to handle the control flow return
+            /// value, and optionally the normal return value of the method.
+            /// </summary>
             private ImmutableArray<StatementSyntax> AddComplexFlowControlProcessingStatements(ImmutableArray<StatementSyntax> statements)
             {
                 var flowControlInformation = this.AnalyzerResult.FlowControlInformation;
@@ -280,13 +286,12 @@ internal sealed partial class CSharpExtractMethodService
                 {
                     // Being explicit about trivia ensures the formatter doesn't insert newlines in undesirable places.
 
-                    var semicolon = SemicolonToken.WithoutLeadingTrivia();
                     if (flowControlInformation.TryGetBreakFlowValue(out var breakValue) && Equals(breakValue, value))
-                        return BreakStatement(BreakKeyword.WithoutTrailingTrivia(), semicolon);
+                        return CreateBreakStatement();
                     else if (flowControlInformation.TryGetContinueFlowValue(out var continueValue) && Equals(continueValue, value))
-                        return ContinueStatement(ContinueKeyword.WithoutTrailingTrivia(), semicolon);
+                        return CreateContinueStatement();
                     else if (flowControlInformation.TryGetReturnFlowValue(out var returnValue) && Equals(returnValue, value))
-                        return ReturnStatement(ReturnKeyword.WithoutTrailingTrivia(), this.AnalyzerResult.CoreReturnType.SpecialType == SpecialType.System_Void ? null : IdentifierName(ReturnValueName).WithLeadingTrivia(Space).WithoutTrailingTrivia(), semicolon);
+                        return ReturnStatement(ReturnKeyword.WithoutTrailingTrivia(), this.AnalyzerResult.CoreReturnType.SpecialType == SpecialType.System_Void ? null : IdentifierName(ReturnValueName).WithLeadingTrivia(Space).WithoutTrailingTrivia(), SemicolonToken.WithoutLeadingTrivia());
                     else
                         throw ExceptionUtilities.Unreachable();
                 }
