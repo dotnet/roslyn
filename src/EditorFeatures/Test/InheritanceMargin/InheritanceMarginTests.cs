@@ -266,7 +266,7 @@ public class InheritanceMarginTests
             TargetSymbolDisplayName = targetSymbolDisplayName;
             Relationship = relationship;
             InMetadata = inMetadata;
-            LocationTags = ImmutableArray<string>.Empty;
+            LocationTags = [];
         }
 
         public TargetInfo(
@@ -275,7 +275,7 @@ public class InheritanceMarginTests
             params string[] locationTags)
         {
             TargetSymbolDisplayName = targetSymbolDisplayName;
-            LocationTags = locationTags.ToImmutableArray();
+            LocationTags = [.. locationTags];
             Relationship = relationship;
         }
     }
@@ -314,7 +314,7 @@ public class InheritanceMarginTests
                 return new TestInheritanceTargetItem(
                     targetInfo.TargetSymbolDisplayName,
                     targetInfo.Relationship,
-                    ImmutableArray<DocumentSpan>.Empty,
+                    [],
                     isInMetadata: true,
                     targetInfo.LanguageGlyph,
                     targetInfo.ProjectName);
@@ -447,11 +447,10 @@ public class {|target2:Bar|} : IBar
         var itemOnLine3 = new TestInheritanceMemberItem(
             lineNumber: 3,
             memberName: "interface IBar2",
-            targets: ImmutableArray<TargetInfo>.Empty
-                .Add(new TargetInfo(
+            targets: [new TargetInfo(
                     targetSymbolDisplayName: "IBar",
                     locationTag: "target1",
-                    relationship: InheritanceRelationship.InheritedInterface))
+                    relationship: InheritanceRelationship.InheritedInterface)]
             );
 
         return VerifyInSingleDocumentAsync(

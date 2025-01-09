@@ -44,13 +44,13 @@ public class CompletionFeaturesTests : AbstractLanguageServerProtocolTests
                     LabelDetailsSupport = true,
                     ResolveSupport = new LSP.ResolveSupportSetting
                     {
-                        Properties = new string[] { "documentation", "additionalTextEdits", "command", "labelDetail" }
+                        Properties = ["documentation", "additionalTextEdits", "command", "labelDetail"]
                     }
                 },
 
                 CompletionListSetting = new LSP.CompletionListSetting
                 {
-                    ItemDefaults = new string[] { CompletionCapabilityHelper.EditRangePropertyName, CompletionCapabilityHelper.DataPropertyName, CompletionCapabilityHelper.CommitCharactersPropertyName }
+                    ItemDefaults = [CompletionCapabilityHelper.EditRangePropertyName, CompletionCapabilityHelper.DataPropertyName, CompletionCapabilityHelper.CommitCharactersPropertyName]
                 },
             },
         }
@@ -385,10 +385,10 @@ class A
         if (!hasDefaultCommitCharCapability)
         {
             clientCapability.TextDocument.Completion.CompletionListSetting.ItemDefaults
-                = new string[] { CompletionCapabilityHelper.EditRangePropertyName, CompletionCapabilityHelper.DataPropertyName };
+                = [CompletionCapabilityHelper.EditRangePropertyName, CompletionCapabilityHelper.DataPropertyName];
         }
 
-        await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
+        await using var testLspServer = await CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace,
             new InitializationOptions { ClientCapabilities = clientCapability, CallInitialized = true },
             Composition.AddParts(typeof(CSharpLspMockCompletionService.Factory)));
 
@@ -435,7 +435,7 @@ class A
     public async Task TestUsingServerDefaultCommitCharacters(bool mutatingLspWorkspace, bool shouldPromoteDefaultCommitCharsToList)
     {
         var markup = "Item{|caret:|}";
-        await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
+        await using var testLspServer = await CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace,
             new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true },
             composition: Composition.AddParts(typeof(CSharpLspMockCompletionService.Factory)));
 
@@ -762,7 +762,7 @@ public class C
     public async Task TestSoftSelectionWhenFilterTextIsEmptyForPreselectItemAsync(bool mutatingLspWorkspace)
     {
         var markup = "{|caret:|}";
-        await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
+        await using var testLspServer = await CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace,
             new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true },
             composition: Composition.AddParts(typeof(CSharpLspMockCompletionService.Factory)));
 
@@ -879,7 +879,7 @@ public class A
             return true;
         }
 
-        public ImmutableArray<CodeAnalysis.Completion.CompletionItem> ReturnedItems { get; set; } = ImmutableArray<CodeAnalysis.Completion.CompletionItem>.Empty;
+        public ImmutableArray<CodeAnalysis.Completion.CompletionItem> ReturnedItems { get; set; } = [];
 
         public (int defaultItemCount, int nonDefaultItemCount) ItemCounts { get; set; }
 
@@ -922,7 +922,7 @@ public class A
     public async Task TestHandleExceptionFromGetCompletionChange(bool mutatingLspWorkspace)
     {
         var markup = "Item {|caret:|}";
-        await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
+        await using var testLspServer = await CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace,
             new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true },
             composition: Composition.AddParts(typeof(CSharpLspThrowExceptionOnChangeCompletionService.Factory)));
 
@@ -1004,7 +1004,7 @@ public class A
                          override {|caret:|}
                      }
                      """;
-        await using var testLspServer = await CreateTestLspServerAsync(new[] { markup }, LanguageNames.CSharp, mutatingLspWorkspace,
+        await using var testLspServer = await CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace,
             new InitializationOptions { ClientCapabilities = DefaultClientCapabilities, CallInitialized = true }, commonReferences: false);
 
         var caret = testLspServer.GetLocations("caret").Single();

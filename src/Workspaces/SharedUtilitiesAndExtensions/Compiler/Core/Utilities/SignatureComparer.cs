@@ -62,7 +62,7 @@ internal sealed class SignatureComparer
             this.ParameterEquivalenceComparer);
     }
 
-    private static bool BadPropertyAccessor(IMethodSymbol method1, IMethodSymbol method2)
+    public static bool BadPropertyAccessor(IMethodSymbol method1, IMethodSymbol method2)
     {
         return method1 != null &&
             (method2 == null || method2.DeclaredAccessibility != Accessibility.Public);
@@ -142,6 +142,21 @@ internal sealed class SignatureComparer
         if (symbol1 == symbol2)
             return true;
 
+        if (!HaveSameSignatureAndConstraintsAndReturnType(symbol1, symbol2, caseSensitive))
+            return false;
+
+        if (symbol1 is IPropertySymbol property1 && symbol2 is IPropertySymbol property2)
+            return HaveSameAccessors(property1, property2);
+
+        return true;
+    }
+
+    public bool HaveSameSignatureAndConstraintsAndReturnType(ISymbol symbol1, ISymbol symbol2, bool caseSensitive)
+    {
+        // NOTE - we're deliberately using reference equality here for speed.
+        if (symbol1 == symbol2)
+            return true;
+
         if (!HaveSameSignature(symbol1, symbol2, caseSensitive))
             return false;
 
@@ -158,8 +173,7 @@ internal sealed class SignatureComparer
 
                 return property1.ReturnsByRef == property2.ReturnsByRef &&
                        property1.ReturnsByRefReadonly == property2.ReturnsByRefReadonly &&
-                       this.SignatureTypeEquivalenceComparer.Equals(property1.Type, property2.Type) &&
-                       HaveSameAccessors(property1, property2);
+                       this.SignatureTypeEquivalenceComparer.Equals(property1.Type, property2.Type);
             case SymbolKind.Event:
                 var ev1 = (IEventSymbol)symbol1;
                 var ev2 = (IEventSymbol)symbol2;

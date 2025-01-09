@@ -408,7 +408,7 @@ End Class</Test>
 
                 Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
 
-                Dim updatedDocument = expansionClient.GetTestAccessor().LanguageHelper.AddImports(
+                Dim updatedDocument = Await expansionClient.GetTestAccessor().LanguageHelper.AddImportsAsync(
                     document,
                     addImportOptions,
                     formattingOptions,

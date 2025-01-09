@@ -15,13 +15,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDelegateWithConditionalAccess;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
-public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class InvokeDelegateWithConditionalAccessTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public InvokeDelegateWithConditionalAccessTests(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new InvokeDelegateWithConditionalAccessAnalyzer(), new InvokeDelegateWithConditionalAccessCodeFixProvider());
 
@@ -55,6 +51,42 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                 }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76423")]
+    public async Task Test1_TopLevel()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            var v = () => {};
+            [||]if (v != null)
+            {
+                v();
+            }
+            """,
+            """
+            var v = () => {};
+            v?.Invoke();
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76423")]
+    public async Task Test2_TopLevel()
+    {
+        await TestAsync(
+            """
+            Action a = null;
+            [||]var v = a;
+            if (v != null)
+            {
+                v();
+            }
+            """,
+            """
+            Action a = null;
+
+            a?.Invoke();
+            """, parseOptions: CSharpParseOptions.Default);
     }
 
     [Fact]
@@ -1112,6 +1144,23 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76423")]
+    public async Task TestWithExplicitInvokeCall2_TopLevel()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            var v = () => {};
+            [||]if (v != null)
+            {
+                v.Invoke();
+            }
+            """,
+            """
+            var v = () => {};
+            v?.Invoke();
+            """);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50976")]
     public async Task TestMissingOnFunctionPointer()
     {
@@ -1126,6 +1175,48 @@ public partial class InvokeDelegateWithConditionalAccessTests : AbstractCSharpDi
                         [||]func();
                     }
                 }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76422")]
+    public async Task TestInvokeMethodOnNonDelegate()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    [||]var v = new C();
+                    if (v != null)
+                    {
+                        v.Invoke();
+                    }
+                }
+            }
+                        
+            class C
+            {
+                public void Invoke() { }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76422")]
+    public async Task TestInvokeMethodOnNonDelegate_TopLevel()
+    {
+        await TestMissingAsync(
+            """
+            var v = new C();
+            [||]if (v != null)
+            {
+                v.Invoke();
+            }
+                        
+            class C
+            {
+                public void Invoke() { }
             }
             """);
     }

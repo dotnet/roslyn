@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             else if (document.SupportsSemanticModel && metadataAsSourceFileService != null)
             {
                 // No definition found - see if we can get metadata as source but that's only applicable for C#\VB.
-                var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var symbol = await SymbolFinder.FindSymbolAtPositionAsync(semanticModel, position, document.Project.Solution.Services, includeType: true, cancellationToken).ConfigureAwait(false);
                 if (forSymbolType)
                     symbol = symbol?.GetSymbolType();
 

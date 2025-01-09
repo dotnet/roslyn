@@ -42,12 +42,14 @@ internal abstract class AbstractNavigableItemsService : INavigableItemsService
 
         async Task<(ISymbol symbol, Solution solution)?> GetSymbolAsync(Document document)
         {
-            var (symbol, project, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(document, position, cancellationToken).ConfigureAwait(false);
+            // No need for NRT analysis here as it doesn't affect navigation.
+            var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var (symbol, project, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(document, semanticModel, position, cancellationToken).ConfigureAwait(false);
 
             var solution = project.Solution;
 
-            symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false) ?? symbol;
-            symbol = await GoToDefinitionFeatureHelpers.TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+            symbol = SymbolFinder.FindSourceDefinition(symbol, solution, cancellationToken) ?? symbol;
+            symbol = GoToDefinitionFeatureHelpers.TryGetPreferredSymbol(solution, symbol, cancellationToken);
 
             if (symbol is null or IErrorTypeSymbol)
                 return null;
@@ -59,8 +61,8 @@ internal abstract class AbstractNavigableItemsService : INavigableItemsService
                 if (typeSymbol is null)
                     return null;
 
-                typeSymbol = await SymbolFinder.FindSourceDefinitionAsync(typeSymbol, solution, cancellationToken).ConfigureAwait(false) ?? typeSymbol;
-                typeSymbol = await GoToDefinitionFeatureHelpers.TryGetPreferredSymbolAsync(solution, typeSymbol, cancellationToken).ConfigureAwait(false);
+                typeSymbol = SymbolFinder.FindSourceDefinition(typeSymbol, solution, cancellationToken) ?? typeSymbol;
+                typeSymbol = GoToDefinitionFeatureHelpers.TryGetPreferredSymbol(solution, typeSymbol, cancellationToken);
 
                 if (typeSymbol is null or IErrorTypeSymbol)
                     return null;

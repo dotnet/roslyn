@@ -49,6 +49,9 @@ internal static partial class AddAccessibilityModifiersHelpers
         // that's not legal.  And these are reasonable default values for them.
         if (symbol is IMethodSymbol or IPropertySymbol or IEventSymbol)
         {
+            if (symbol.ContainingType?.TypeKind == TypeKind.Interface)
+                return Accessibility.Public;
+
             if (symbol.IsAbstract)
                 return Accessibility.Protected;
 

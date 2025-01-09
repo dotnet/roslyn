@@ -341,7 +341,7 @@ internal static partial class ConflictResolver
         }
     }
 
-    public static async Task<RenameDeclarationLocationReference[]> CreateDeclarationLocationAnnotationsAsync(
+    public static RenameDeclarationLocationReference[] CreateDeclarationLocationAnnotations(
         Solution solution,
         IEnumerable<ISymbol> symbols,
         CancellationToken cancellationToken)
@@ -360,12 +360,12 @@ internal static partial class ConflictResolver
 
                 if (overriddenSymbol != null)
                 {
-                    overriddenSymbol = await SymbolFinder.FindSourceDefinitionAsync(overriddenSymbol, solution, cancellationToken).ConfigureAwait(false);
+                    overriddenSymbol = SymbolFinder.FindSourceDefinition(overriddenSymbol, solution, cancellationToken);
                     overriddenFromMetadata = overriddenSymbol == null || overriddenSymbol.Locations.All(loc => loc.IsInMetadata);
                 }
             }
 
-            var location = await GetSymbolLocationAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+            var location = GetSymbolLocation(solution, symbol, cancellationToken);
             if (location != null && location.IsInSource)
             {
                 renameDeclarationLocations[symbolIndex] = new RenameDeclarationLocationReference(solution.GetDocumentId(location.SourceTree), location.SourceSpan, overriddenFromMetadata, locations.Length);
@@ -398,15 +398,13 @@ internal static partial class ConflictResolver
     /// <summary>
     /// Gives the First Location for a given Symbol by ordering the locations using DocumentId first and Location starting position second
     /// </summary>
-    private static async Task<Location?> GetSymbolLocationAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+    private static Location? GetSymbolLocation(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
     {
         var locations = symbol.Locations;
 
-        var originalsourcesymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+        var originalsourcesymbol = SymbolFinder.FindSourceDefinition(symbol, solution, cancellationToken);
         if (originalsourcesymbol != null)
-        {
             locations = originalsourcesymbol.Locations;
-        }
 
         var orderedLocations = locations
             .OrderBy(l => l.IsInSource ? solution.GetDocumentId(l.SourceTree)!.Id : Guid.Empty)

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.QuickInfo)]
-public class DiagnosticAnalyzerQuickInfoSourceTests
+public sealed class DiagnosticAnalyzerQuickInfoSourceTests
 {
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
     public async Task ErrorTitleIsShownOnDisablePragma()
@@ -127,7 +127,7 @@ public class DiagnosticAnalyzerQuickInfoSourceTests
                     private int _i;
                 }
             }
-            """, GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members)), ImmutableArray<TextSpan>.Empty);
+            """, GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members)), []);
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/46604")]
@@ -156,26 +156,26 @@ public class DiagnosticAnalyzerQuickInfoSourceTests
             ? GetFormattedIDEAnalyzerTitle(51, nameof(AnalyzersResources.Remove_unused_private_members))
             : null;
         await TestAsync(
-@$"
-using System.Diagnostics.CodeAnalysis;
-using SM = System.Diagnostics.CodeAnalysis.SuppressMessageAttribute;
-namespace T
-{{
-    public static class DiagnosticIds
-    {{
-        public const string IDE0051 = ""IDE0051"";
-    }}
+            $$"""
+            using System.Diagnostics.CodeAnalysis;
+            using SM = System.Diagnostics.CodeAnalysis.SuppressMessageAttribute;
+            namespace T
+            {
+                public static class DiagnosticIds
+                {
+                    public const string IDE0051 = "IDE0051";
+                }
 
-    {suppressMessageAttribute}
-    public class C
-    {{
-        private int _i;
-    }}
-}}
-", description, ImmutableArray<TextSpan>.Empty);
+                {{suppressMessageAttribute}}
+                public class C
+                {
+                    private int _i;
+                }
+            }
+            """, description, []);
     }
 
-    protected static async Task AssertContentIsAsync(EditorTestWorkspace workspace, Document document, int position, string expectedDescription,
+    private static async Task AssertContentIsAsync(EditorTestWorkspace workspace, Document document, int position, string expectedDescription,
         ImmutableArray<TextSpan> relatedSpans)
     {
         var info = await GetQuickinfo(workspace, document, position);
@@ -183,7 +183,7 @@ namespace T
         Assert.NotNull(description);
         Assert.Equal(expectedDescription, description.Text);
         Assert.Collection(relatedSpans,
-            info.RelatedSpans.Select(actualSpan => new Action<TextSpan>(expectedSpan => Assert.Equal(expectedSpan, actualSpan))).ToArray());
+            [.. info.RelatedSpans.Select(actualSpan => new Action<TextSpan>(expectedSpan => Assert.Equal(expectedSpan, actualSpan)))]);
     }
 
     private static async Task<QuickInfoItem> GetQuickinfo(EditorTestWorkspace workspace, Document document, int position)
@@ -194,22 +194,20 @@ namespace T
         return info;
     }
 
-    protected static async Task AssertNoContentAsync(EditorTestWorkspace workspace, Document document, int position)
+    private static async Task AssertNoContentAsync(EditorTestWorkspace workspace, Document document, int position)
     {
         var info = await GetQuickinfo(workspace, document, position);
         Assert.Null(info);
     }
 
-    protected static async Task TestAsync(
+    private static async Task TestAsync(
         string code,
         string expectedDescription,
         ImmutableArray<TextSpan> relatedSpans,
         CSharpParseOptions parseOptions = null)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions);
-        var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(
-            new CSharpCompilerDiagnosticAnalyzer(),
-            new CSharpRemoveUnusedMembersDiagnosticAnalyzer()));
+        var analyzerReference = new AnalyzerImageReference([new CSharpCompilerDiagnosticAnalyzer(), new CSharpRemoveUnusedMembersDiagnosticAnalyzer()]);
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
         var testDocument = workspace.Documents.Single();
@@ -237,16 +235,16 @@ namespace T
         return $"IDE{ideDiagnosticId:0000}: {localizable}";
     }
 
-    protected static Task TestInClassAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
+    private static Task TestInClassAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
         => TestAsync(
             $$"""
             class C
             {
             {{code}}
             }
-            """, expectedDescription, relatedSpans.ToImmutableArray());
+            """, expectedDescription, [.. relatedSpans]);
 
-    protected static Task TestInMethodAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
+    private static Task TestInMethodAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
         => TestInClassAsync(
             $$"""
             void M()

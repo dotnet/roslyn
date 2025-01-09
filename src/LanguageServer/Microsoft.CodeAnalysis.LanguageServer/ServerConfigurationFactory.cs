@@ -51,6 +51,7 @@ internal record class ServerConfiguration(
     string? DevKitDependencyPath,
     string? RazorSourceGenerator,
     string? RazorDesignTimePath,
+    string? ServerPipeName,
     string ExtensionLogDirectory);
 
 internal class LogConfiguration

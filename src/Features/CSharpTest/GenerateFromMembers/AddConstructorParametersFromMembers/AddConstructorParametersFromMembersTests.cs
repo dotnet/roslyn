@@ -1835,7 +1835,6 @@ public class AddConstructorParametersFromMembersTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEndUnderscoreSuffixEditorConfig
         }.RunAsync();
     }

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.NamingStyles;
@@ -22,13 +23,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static readonly Option<bool> CustomPublicOption = new Option<bool>("My Feature", "My Option", defaultValue: true);
 
         // all public options and their non-default values:
-        public static readonly ImmutableArray<(IOption, object)> PublicCustomOptionsWithNonDefaultValues = ImmutableArray.Create<(IOption, object)>(
-            (CustomPublicOption, false));
+        public static readonly ImmutableArray<(IOption, object)> PublicCustomOptionsWithNonDefaultValues = [(CustomPublicOption, false)];
 
-        public static readonly ImmutableArray<(IOption, object)> PublicAutoFormattingOptionsWithNonDefaultValues = ImmutableArray.Create<(IOption, object)>(
-            (FormattingOptions.SmartIndent, FormattingOptions.IndentStyle.Block));
+        public static readonly ImmutableArray<(IOption, object)> PublicAutoFormattingOptionsWithNonDefaultValues = [(FormattingOptions.SmartIndent, FormattingOptions.IndentStyle.Block)];
 
-        public static readonly ImmutableArray<(IOption, object)> PublicFormattingOptionsWithNonDefaultValues = ImmutableArray.Create<(IOption, object)>(
+        public static readonly ImmutableArray<(IOption, object)> PublicFormattingOptionsWithNonDefaultValues =
+        [
             (FormattingOptions.UseTabs, true),
             (FormattingOptions.TabSize, 5),
             (FormattingOptions.IndentationSize, 7),
@@ -79,15 +79,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             (CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true),
             (CSharpFormattingOptions.SpacingAroundBinaryOperator, BinaryOperatorSpacingOptions.Remove),
             (CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false),
-            (CSharpFormattingOptions.WrappingPreserveSingleLine, false));
+            (CSharpFormattingOptions.WrappingPreserveSingleLine, false),
+        ];
 
-        public static readonly ImmutableArray<(IOption, object)> PublicCodeStyleOptionsWithNonDefaultValues = ImmutableArray.Create<(IOption, object)>(
+        public static readonly ImmutableArray<(IOption, object)> PublicCodeStyleOptionsWithNonDefaultValues =
+        [
             (CodeStyleOptions.QualifyFieldAccess, new CodeStyleOption<bool>(true, NotificationOption.Suggestion)),
             (CodeStyleOptions.QualifyPropertyAccess, new CodeStyleOption<bool>(true, NotificationOption.Suggestion)),
             (CodeStyleOptions.QualifyMethodAccess, new CodeStyleOption<bool>(true, NotificationOption.Suggestion)),
             (CodeStyleOptions.QualifyEventAccess, new CodeStyleOption<bool>(true, NotificationOption.Suggestion)),
             (CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, new CodeStyleOption<bool>(false, NotificationOption.Suggestion)),
-            (CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, new CodeStyleOption<bool>(false, NotificationOption.Suggestion)));
+            (CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, new CodeStyleOption<bool>(false, NotificationOption.Suggestion)),
+        ];
 
         public static readonly IEnumerable<(IOption, object)> AllPublicOptionsWithNonDefaultValues =
             PublicCustomOptionsWithNonDefaultValues
@@ -132,7 +135,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 _ when type == typeof(int?) => value is null ? 1 : null,
                 _ when type == typeof(long?) => value is null ? 1L : null,
                 ImmutableArray<bool> array => array.IsEmpty ? ImmutableArray.Create(true) : [],
-                ImmutableArray<string> array => array is ["X"] ? ImmutableArray.Create("X", "Y") : ImmutableArray.Create("X"),
+                ImmutableArray<string> array => array is ["X"] ? ["X", "Y"] : ImmutableArray.Create("X"),
                 ImmutableArray<int> array => array.IsEmpty ? ImmutableArray.Create(1) : [],
                 ImmutableArray<long> array => array.IsEmpty ? ImmutableArray.Create(1L) : [],
 
@@ -147,33 +150,53 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         public static NamingStylePreferences GetNonDefaultNamingStylePreference()
+            => CreateNamingStylePreferences(([TypeKind.Class], Capitalization.PascalCase, ReportDiagnostic.Error));
+
+        public static NamingStylePreferences CreateNamingStylePreferences(
+            params (SymbolSpecification.SymbolKindOrTypeKind[], Capitalization capitalization, ReportDiagnostic severity)[] rules)
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)),
-                accessibilityList: default,
-                modifiers: default);
+            var symbolSpecifications = new List<SymbolSpecification>();
+            var namingStyles = new List<NamingStyle>();
+            var namingRules = new List<SerializableNamingRule>();
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.PascalCase,
-                name: "Name",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
-
-            var namingRule = new SerializableNamingRule()
+            foreach (var (kinds, capitalization, severity) in rules)
             {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+                var id = namingRules.Count;
+
+                var symbolSpecification = new SymbolSpecification(
+                    Guid.NewGuid(),
+                    name: $"symbols{id}",
+                    [.. kinds],
+                    accessibilityList: default,
+                    modifiers: default);
+
+                symbolSpecifications.Add(symbolSpecification);
+
+                var namingStyle = new NamingStyle(
+                    Guid.NewGuid(),
+                    capitalizationScheme: capitalization,
+                    name: $"style{id}",
+                    prefix: "",
+                    suffix: "",
+                    wordSeparator: "");
+
+                namingStyles.Add(namingStyle);
+
+                namingRules.Add(new SerializableNamingRule()
+                {
+                    SymbolSpecificationID = symbolSpecification.ID,
+                    NamingStyleID = namingStyle.ID,
+                    EnforcementLevel = severity
+                });
+            }
 
             return new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+                [.. symbolSpecifications],
+                [.. namingStyles],
+                [.. namingRules]);
         }
+
+        public static NamingStylePreferences ParseNamingStylePreferences(Dictionary<string, string> options)
+            => EditorConfigNamingStyleParser.ParseDictionary(new DictionaryAnalyzerConfigOptions(options.ToImmutableDictionary()));
     }
 }

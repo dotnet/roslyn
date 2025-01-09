@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
     public class NamingStylePreferenceEditorConfigStorageLocationTests
     {
         [Fact]
-        public static void TestEmptyDictionaryReturnNoNamingStylePreferencesObjectReturnsFalse()
+        public void TestEmptyDictionaryReturnNoNamingStylePreferencesObjectReturnsFalse()
         {
             var options = StructuredAnalyzerConfigOptions.Create(DictionaryAnalyzerConfigOptions.Empty);
             var value = options.GetNamingStylePreferences();
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         }
 
         [Fact]
-        public static void TestNonEmptyDictionaryReturnsTrue()
+        public void TestNonEmptyDictionaryReturnsTrue()
         {
             var options = StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(new Dictionary<string, string>()
             {

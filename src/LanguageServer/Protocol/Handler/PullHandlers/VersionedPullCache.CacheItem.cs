@@ -52,7 +52,7 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
         /// 
         /// Returns <see langword="null"/> if the previousPullResult can be re-used, otherwise returns a new resultId and the new data associated with it.
         /// </summary>
-        public async Task<(string, ImmutableArray<TComputedData>)?> UpdateCacheItemAsync(
+        public async Task<(string, TComputedData)?> UpdateCacheItemAsync(
             VersionedPullCache<TCheapVersion, TExpensiveVersion, TState, TComputedData> cache,
             PreviousPullResult? previousPullResult,
             bool isFullyLoaded,

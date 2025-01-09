@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
                     {
                         if (i.Name == DestinationName)
                         {
-                            return PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(i, selectedMember.ToImmutableArray());
+                            return PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(i, [.. selectedMember]);
                         }
                     }
                 }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
             }
             else
             {
-                return PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination, selectedMember.ToImmutableArray());
+                return PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination, [.. selectedMember]);
             }
         }
     }

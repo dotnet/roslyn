@@ -13,14 +13,10 @@ using Microsoft.CodeAnalysis.MoveStaticMembers;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveStaticMembers;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MoveStaticMembers), Shared]
-internal class CSharpMoveStaticMembersRefactoringProvider : AbstractMoveStaticMembersRefactoringProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpMoveStaticMembersRefactoringProvider() : AbstractMoveStaticMembersRefactoringProvider()
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpMoveStaticMembersRefactoringProvider() : base()
-    {
-    }
-
     protected override Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context)
         => NodeSelectionHelpers.GetSelectedDeclarationsOrVariablesAsync(context);
 }

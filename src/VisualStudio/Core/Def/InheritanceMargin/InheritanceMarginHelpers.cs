@@ -107,10 +107,9 @@ internal static class InheritanceMarginHelpers
             foreach (var target in targets)
                 nameToTargets.Add(target.DisplayName, target);
 
-            return item.TargetItems
+            return [.. item.TargetItems
                 .GroupBy(t => t.RelationToMember)
-                .SelectMany(g => CreateMenuItemsWithHeader(item, g.Key, g, nameToTargets))
-                .ToImmutableArray();
+                .SelectMany(g => CreateMenuItemsWithHeader(item, g.Key, g, nameToTargets))];
         }
         finally
         {

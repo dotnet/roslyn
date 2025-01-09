@@ -22,33 +22,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         {
             if (symbol == null)
             {
-                return Enumerable.Empty<TaggedText>();
+                return [];
             }
 
             var codeProject = document.GetCodeProject();
             var formatter = codeProject.Services.GetService<IDocumentationCommentFormattingService>();
             if (formatter == null)
             {
-                return Enumerable.Empty<TaggedText>();
+                return [];
             }
 
             var symbolDisplayService = codeProject.Services.GetService<ISymbolDisplayService>();
             if (symbolDisplayService == null)
             {
-                return Enumerable.Empty<TaggedText>();
+                return [];
             }
 
             // Any code document will do
             var codeDocument = codeProject.Documents.FirstOrDefault();
             if (codeDocument == null)
             {
-                return Enumerable.Empty<TaggedText>();
+                return [];
             }
 
             var semanticModel = await codeDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (semanticModel == null)
             {
-                return Enumerable.Empty<TaggedText>();
+                return [];
             }
 
             var services = codeProject.Solution.Services;

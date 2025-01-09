@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             var noConfigSpecified = false;
 
-            foreach (var argument in arguments.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (var argument in arguments.Split([' '], StringSplitOptions.RemoveEmptyEntries))
             {
                 switch (argument.ToLowerInvariant())
                 {

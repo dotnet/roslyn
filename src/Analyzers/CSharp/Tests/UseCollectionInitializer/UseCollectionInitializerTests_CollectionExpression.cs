@@ -25,7 +25,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     {
         await new VerifyCS.Test
         {
-            ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = testCode,
             FixedCode = fixedCode,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -5886,6 +5886,82 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76092")]
+    public async Task TestNotOnSetAssignedToNonSet()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void Main()
+                    {
+                        ICollection<int> a = new HashSet<int>();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76092")]
+    public async Task TestOnSetAssignedToSet()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void Main()
+                    {
+                        HashSet<int> a = [|new|] HashSet<int>();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void Main()
+                    {
+                        HashSet<int> a = [];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76683")]
+    public async Task TestNotOnStack()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    Stack<T> GetNumbers<T>(T[] values)
+                    {
+                        return new Stack<T>(values);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 }

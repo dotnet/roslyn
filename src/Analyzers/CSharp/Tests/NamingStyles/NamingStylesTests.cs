@@ -272,7 +272,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             {
                 {{camelCaseSymbol}}
             }
-            """, new TestParameters(options: s_options.AccessibilitiesArePascalCase(ImmutableArray.Create(alternateAccessibility))));
+            """, new TestParameters(options: s_options.AccessibilitiesArePascalCase([alternateAccessibility])));
 
         await TestInRegularAndScriptAsync(
             $$"""
@@ -286,7 +286,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             {
                 {{pascalCaseSymbol}}
             }
-            """, options: s_options.AccessibilitiesArePascalCase(ImmutableArray.Create(accessibility)));
+            """, options: s_options.AccessibilitiesArePascalCase([accessibility]));
     }
 
     [Fact]

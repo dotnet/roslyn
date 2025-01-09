@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -147,17 +148,28 @@ internal static partial class ISymbolExtensions
         if (symbol.Kind is not SymbolKind.Method and not SymbolKind.Property and not SymbolKind.Event)
             return [];
 
-        var containingType = symbol.ContainingType;
-        var query = from iface in containingType.AllInterfaces
-                    from interfaceMember in iface.GetMembers()
-                    let impl = containingType.FindImplementationForInterfaceMember(interfaceMember)
-                    where symbol.Equals(impl)
-                    select interfaceMember;
-        return query.ToImmutableArray();
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
+
+        foreach (var iface in symbol.ContainingType.AllInterfaces)
+        {
+            foreach (var interfaceMember in iface.GetMembers())
+            {
+                var impl = symbol.ContainingType.FindImplementationForInterfaceMember(interfaceMember);
+                if (symbol.Equals(impl))
+                    result.Add(interfaceMember);
+            }
+        }
+
+        // There are explicit methods that FindImplementationForInterfaceMember.  For exampl `abstract explicit impls`
+        // like `abstract void I<T>.M()`.  So add these back in directly using symbol.ExplicitInterfaceImplementations.
+        result.AddRange(symbol.ExplicitInterfaceImplementations());
+        result.RemoveDuplicates();
+
+        return result.ToImmutableAndClear();
     }
 
     public static ImmutableArray<ISymbol> ImplicitInterfaceImplementations(this ISymbol symbol)
-        => symbol.ExplicitOrImplicitInterfaceImplementations().Except(symbol.ExplicitInterfaceImplementations()).ToImmutableArray();
+        => [.. symbol.ExplicitOrImplicitInterfaceImplementations().Except(symbol.ExplicitInterfaceImplementations())];
 
     public static bool IsOverridable([NotNullWhen(true)] this ISymbol? symbol)
     {
@@ -330,6 +342,7 @@ internal static partial class ISymbolExtensions
             IMethodSymbol methodSymbol => methodSymbol.ReturnType,
             IEventSymbol eventSymbol => eventSymbol.Type,
             IParameterSymbol parameterSymbol => parameterSymbol.Type,
+            ILocalSymbol localSymbol => localSymbol.Type,
             _ => null,
         };
 
@@ -504,7 +517,7 @@ internal static partial class ISymbolExtensions
                     types = types.Concat((method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullableAnnotation(method.ReturnNullableAnnotation));
                 }
 
-                return delegateType.TryConstruct(types.ToArray());
+                return delegateType.TryConstruct([.. types]);
             }
         }
 
@@ -795,4 +808,12 @@ internal static partial class ISymbolExtensions
             MetadataName: nameof(ObsoleteAttribute),
             ContainingNamespace.Name: nameof(System),
         });
+
+    public static bool HasAttribute([NotNullWhen(true)] this ISymbol? symbol, [NotNullWhen(true)] INamedTypeSymbol? attributeClass)
+    {
+        if (symbol is null || attributeClass is null)
+            return false;
+
+        return symbol.GetAttributes().Any(static (attribute, attributeClass) => attributeClass.Equals(attribute.AttributeClass), attributeClass);
+    }
 }

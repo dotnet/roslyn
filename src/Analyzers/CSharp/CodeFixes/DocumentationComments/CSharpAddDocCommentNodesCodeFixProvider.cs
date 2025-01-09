@@ -32,7 +32,7 @@ internal sealed class CSharpAddDocCommentNodesCodeFixProvider()
     protected override string NodeName { get; } = "param";
 
     protected override List<XmlNameAttributeSyntax> GetNameAttributes(XmlElementSyntax node)
-        => node.StartTag.Attributes.OfType<XmlNameAttributeSyntax>().ToList();
+        => [.. node.StartTag.Attributes.OfType<XmlNameAttributeSyntax>()];
 
     protected override string GetValueFromNameAttribute(XmlNameAttributeSyntax attribute)
         => attribute.Identifier.Identifier.ValueText;

@@ -176,7 +176,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
                              where projectId != null
                              select projectId;
 
-            encService.UpdateBaselines(_debuggingSession.Value, currentCompileTimeSolution, projectIds.ToImmutableArray());
+            encService.UpdateBaselines(_debuggingSession.Value, currentCompileTimeSolution, [.. projectIds]);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
