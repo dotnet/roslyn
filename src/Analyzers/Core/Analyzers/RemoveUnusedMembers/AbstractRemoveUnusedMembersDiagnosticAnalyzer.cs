@@ -90,6 +90,12 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     {
     }
 
+    /// <summary>
+    /// We always want to do our processing, considering the original symbol corresponding to the user's declared
+    /// symbols.  As such, we use an instance of this comparer with all the dictionaries and sets we create while
+    /// processing so that reference to non-original definitions (like references to members from an instantiate generic
+    /// type) still count as a use of the original user definition.
+    /// </summary>
     internal sealed class OriginalDefinitionSymbolEqualityComparer : IEqualityComparer<ISymbol>
     {
         public static readonly OriginalDefinitionSymbolEqualityComparer Instance = new();
