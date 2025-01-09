@@ -182,7 +182,7 @@ internal sealed partial class CSharpExtractMethodService
                                 PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, IdentifierName(FlowControlName)),
                                 Block(GetFlowStatement(false)));
                         }
-                        else if (flowControlInformation.BreakStatementCount == 0 && useBlock)
+                        else if (flowControlInformation.BreakStatementCount == 0)
                         {
                             // Otherwise, if we have no break statements we'll emit the following as its shorter:
                             //
@@ -191,14 +191,7 @@ internal sealed partial class CSharpExtractMethodService
                             //          case false: FlowControlConstruct1;
                             //          case true: FlowControlConstruct2;
                             //      }
-                            return SwitchStatement(
-                                IdentifierName(FlowControlName), [
-                                    SwitchSection(
-                                        [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(false).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
-                                        [GetFlowStatement(false).WithoutTrivia()]),
-                                    SwitchSection(
-                                        [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(true).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
-                                        [GetFlowStatement(true).WithoutTrivia()])]);
+                            return NoBreakSwitchStatement();
                         }
                         else
                         {
@@ -218,7 +211,7 @@ internal sealed partial class CSharpExtractMethodService
                     {
                         if (flowControlInformation.TryGetFallThroughFlowValue(out _))
                         {
-                            if (flowControlInformation.BreakStatementCount == 0 && useBlock)
+                            if (flowControlInformation.BreakStatementCount == 0)
                             {
                                 // Otherwise, if we have no break statements we'll emit the following as its shorter:
                                 //
@@ -227,27 +220,17 @@ internal sealed partial class CSharpExtractMethodService
                                 //          case false: FlowControlConstruct1;
                                 //          case true: FlowControlConstruct2;
                                 //      }
-                                return SwitchStatement(
-                                    IdentifierName(FlowControlName), [
-                                        SwitchSection(
-                                            [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(false).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
-                                            [GetFlowStatement(false).WithoutTrivia()]),
-                                        SwitchSection(
-                                            [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(true).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
-                                            [GetFlowStatement(true).WithoutTrivia()])]);
+                                return NoBreakSwitchStatement();
                             }
                             else
                             {
                                 // If we have 'fallthrough' as as the final control flow value, then we'll just emit:
                                 //
-                                //      if (flowControl == false) FlowControlConstruct1;
-                                //      else if (flowControl == true) FlowControlConstruct2; // allowing fallthrough to happen automatically.
-                                return IfStatement(
-                                    BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(false)),
-                                    Block(GetFlowStatement(false)),
-                                    ElseClause(IfStatement(
-                                        BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(true)),
-                                        Block(GetFlowStatement(true)))));
+                                //      if (flowControl == false)
+                                //          FlowControlConstruct1;
+                                //      else if (flowControl == true)
+                                //          FlowControlConstruct2; // allowing fallthrough to happen automatically.
+                                return ControlFlowIfStatement(false, ControlFlowIfStatement(true));
                             }
                         }
                         else
@@ -259,13 +242,7 @@ internal sealed partial class CSharpExtractMethodService
                             //          FlowControlConstruct2;
                             //      else
                             //          FlowControlConstruct3;
-                            return IfStatement(
-                                BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(false)),
-                                Block(GetFlowStatement(false)),
-                                ElseClause(IfStatement(
-                                    BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(true)),
-                                    Block(GetFlowStatement(true)),
-                                    ElseClause(Block(GetFlowStatement(null))))));
+                            return ControlFlowIfStatement(false, ControlFlowIfStatement(true, Block(GetFlowStatement(null))));
                         }
                     }
                     else
@@ -273,17 +250,25 @@ internal sealed partial class CSharpExtractMethodService
                         Contract.ThrowIfFalse(controlFlowValueType.SpecialType == SpecialType.System_Int32);
                         // We use 'int' when we have all 4 flow control cases (break, continue, return, fallthrough).
                         // fallthrough is always the last one so we only have to test the first 3.
-                        return IfStatement(
-                            BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(0)),
-                            Block(GetFlowStatement(0)),
-                            ElseClause(IfStatement(
-                                BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(1)),
-                                Block(GetFlowStatement(1)),
-                                ElseClause(IfStatement(
-                                    BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(2)),
-                                    Block(GetFlowStatement(2)))))));
+                        return ControlFlowIfStatement(0, ControlFlowIfStatement(1, ControlFlowIfStatement(2)));
                     }
                 }
+
+                IfStatementSyntax ControlFlowIfStatement(object value, StatementSyntax elseClause = null)
+                    => IfStatement(
+                        BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(value)),
+                        Block(GetFlowStatement(value)),
+                        elseClause == null ? null : ElseClause(elseClause));
+
+                SwitchStatementSyntax NoBreakSwitchStatement()
+                    => SwitchStatement(
+                        IdentifierName(FlowControlName), [
+                            SwitchSection(
+                                [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(false).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
+                                [GetFlowStatement(false).WithoutTrivia()]),
+                            SwitchSection(
+                                [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(true).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
+                                [GetFlowStatement(true).WithoutTrivia()])]);
 
                 StatementSyntax Block(StatementSyntax statement)
                     => useBlock ? SyntaxFactory.Block(statement) : statement;
