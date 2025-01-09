@@ -97,18 +97,18 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         var leftToken = syntaxContext.LeftToken;
         var declaration = GetAsyncSupportingDeclaration(leftToken, position);
 
-        using var builder = TemporaryArray<KeyValuePair<string, string>>.Empty;
+        using var builder = TemporaryArray<KeyValuePair<string, object>>.Empty;
 
-        builder.Add(KeyValuePairUtil.Create(Position, position.ToString()));
-        builder.Add(KeyValuePairUtil.Create(LeftTokenPosition, leftToken.SpanStart.ToString()));
+        builder.Add(KeyValuePairUtil.Create<string, object>(Position, position.ToString()));
+        builder.Add(KeyValuePairUtil.Create<string, object>(LeftTokenPosition, leftToken.SpanStart.ToString()));
 
         var makeContainerAsync = declaration is not null && !SyntaxGenerator.GetGenerator(document).GetModifiers(declaration).IsAsync;
         if (makeContainerAsync)
-            builder.Add(KeyValuePairUtil.Create(MakeContainerAsync, string.Empty));
+            builder.Add(KeyValuePairUtil.Create<string, object>(MakeContainerAsync, string.Empty));
 
         if (isAwaitKeywordContext)
         {
-            builder.Add(KeyValuePairUtil.Create(AddAwaitAtCurrentPosition, string.Empty));
+            builder.Add(KeyValuePairUtil.Create<string, object>(AddAwaitAtCurrentPosition, string.Empty));
             var properties = builder.ToImmutableAndClear();
 
             context.AddItem(CreateCompletionItem(
@@ -133,7 +133,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
             if (dotAwaitContext == DotAwaitContext.AwaitAndConfigureAwait)
             {
                 // add the `awaitf` option to do the same, but also add .ConfigureAwait(false);
-                properties = properties.Add(KeyValuePairUtil.Create(AppendConfigureAwait, string.Empty));
+                properties = properties.Add(KeyValuePairUtil.Create<string, object>(AppendConfigureAwait, string.Empty));
                 context.AddItem(CreateCompletionItem(
                     properties, _awaitfDisplayText, _awaitfFilterText,
                     string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, _falseKeyword),
@@ -145,7 +145,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         return;
 
         static CompletionItem CreateCompletionItem(
-            ImmutableArray<KeyValuePair<string, string>> completionProperties, string displayText, string filterText, string tooltip, bool isComplexTextEdit, bool appendConfigureAwait)
+            ImmutableArray<KeyValuePair<string, object>> completionProperties, string displayText, string filterText, string tooltip, bool isComplexTextEdit, bool appendConfigureAwait)
         {
             var description = appendConfigureAwait
                 ? [new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, tooltip)]

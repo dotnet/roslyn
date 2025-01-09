@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -22,17 +21,12 @@ internal static class SymbolCompletionItem
 {
     private const string InsertionTextProperty = "InsertionText";
 
-    private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolEncoding = AddSymbolEncoding;
-    private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolInfo = AddSymbolInfo;
-    private static readonly char[] s_projectSeperators = [';'];
-
     private static CompletionItem CreateWorker(
         string displayText,
         string? displayTextSuffix,
         ImmutableArray<ISymbol> symbols,
         CompletionItemRules rules,
         int contextPosition,
-        Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> symbolEncoder,
         string? sortText = null,
         string? insertionText = null,
         string? filterText = null,
@@ -44,17 +38,21 @@ internal static class SymbolCompletionItem
         Glyph? glyph = null,
         bool isComplexTextEdit = false)
     {
-        using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var builder);
+        using var _ = ArrayBuilder<KeyValuePair<string, object>>.GetInstance(out var builder);
 
         if (!properties.IsDefault)
-            builder.AddRange(properties);
+        {
+            foreach (var kvp in properties)
+                builder.Add(new KeyValuePair<string, object>(kvp.Key, kvp.Value));
+        }
 
         if (insertionText != null)
-            builder.Add(KeyValuePairUtil.Create(InsertionTextProperty, insertionText));
+            builder.Add(KeyValuePairUtil.Create<string, object>(InsertionTextProperty, insertionText));
 
-        builder.Add(KeyValuePairUtil.Create("ContextPosition", contextPosition.ToString()));
+        builder.Add(KeyValuePairUtil.Create<string, object>("ContextPosition", contextPosition.ToString()));
         AddSupportedPlatforms(builder, supportedPlatforms);
-        symbolEncoder(symbols, builder);
+
+        builder.Add(KeyValuePairUtil.Create<string, object>("Symbols", symbols));
 
         tags = tags.NullToEmpty();
         if (!tags.Contains(WellKnownTags.Deprecated) && symbols.All(static symbol => symbol.IsObsolete()))
@@ -78,20 +76,6 @@ internal static class SymbolCompletionItem
         return item;
     }
 
-    private static void AddSymbolEncoding(ImmutableArray<ISymbol> symbols, ArrayBuilder<KeyValuePair<string, string>> properties)
-        => properties.Add(KeyValuePairUtil.Create("Symbols", EncodeSymbols(symbols)));
-
-    private static void AddSymbolInfo(ImmutableArray<ISymbol> symbols, ArrayBuilder<KeyValuePair<string, string>> properties)
-    {
-        var symbol = symbols[0];
-        var isGeneric = symbol.GetArity() > 0;
-        properties.Add(KeyValuePairUtil.Create("SymbolKind", SmallNumberFormatter.ToString((int)symbol.Kind)));
-        properties.Add(KeyValuePairUtil.Create("SymbolName", symbol.Name));
-
-        if (isGeneric)
-            properties.Add(KeyValuePairUtil.Create("IsGeneric", isGeneric.ToString()));
-    }
-
     public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item)
         => item.AddProperty("ShouldProvideParenthesisCompletion", true.ToString());
 
@@ -105,81 +89,63 @@ internal static class SymbolCompletionItem
         return false;
     }
 
-    public static string EncodeSymbols(ImmutableArray<ISymbol> symbols)
-    {
-        if (symbols.Length > 1)
-        {
-            return string.Join("|", symbols.Select(EncodeSymbol));
-        }
-        else if (symbols.Length == 1)
-        {
-            return EncodeSymbol(symbols[0]);
-        }
-        else
-        {
-            return string.Empty;
-        }
-    }
-
-    public static string EncodeSymbol(ISymbol symbol)
-        => SymbolKey.CreateString(symbol);
-
     public static bool HasSymbols(CompletionItem item)
-        => item.TryGetProperty("Symbols", out var _);
-
-    private static readonly char[] s_symbolSplitters = ['|'];
-
-    public static async Task<ImmutableArray<ISymbol>> GetSymbolsAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
-    {
-        if (item.TryGetProperty("Symbols", out var symbolIds))
-        {
-            var idList = symbolIds.Split(s_symbolSplitters, StringSplitOptions.RemoveEmptyEntries).ToList();
-            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
-
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            DecodeSymbols(idList, compilation, symbols);
-
-            // merge in symbols from other linked documents
-            if (idList.Count > 0)
-            {
-                var linkedIds = document.GetLinkedDocumentIds();
-                if (linkedIds.Length > 0)
-                {
-                    foreach (var id in linkedIds)
-                    {
-                        var linkedDoc = document.Project.Solution.GetRequiredDocument(id);
-                        var linkedCompilation = await linkedDoc.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                        DecodeSymbols(idList, linkedCompilation, symbols);
-                    }
-                }
-            }
-
-            return symbols.ToImmutableAndClear();
-        }
-
-        return [];
-    }
-
-    private static void DecodeSymbols(List<string> ids, Compilation compilation, ArrayBuilder<ISymbol> symbols)
-    {
-        for (var i = 0; i < ids.Count;)
-        {
-            var id = ids[i];
-            var symbol = DecodeSymbol(id, compilation);
-            if (symbol != null)
-            {
-                ids.RemoveAt(i); // consume id from the list
-                symbols.Add(symbol); // add symbol to the results
-            }
-            else
-            {
-                i++;
-            }
-        }
-    }
+        => GetSymbols(item).Length > 0;
 
     private static ISymbol? DecodeSymbol(string id, Compilation compilation)
         => SymbolKey.ResolveString(id, compilation).GetAnySymbol();
+
+    public static async Task<ImmutableArray<ISymbol>> GetSymbolsAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
+    {
+        var oldSymbols = GetSymbols(item);
+
+        if (oldSymbols.Length == 0)
+            return [];
+
+        using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
+        using var _2 = ArrayBuilder<string>.GetInstance(out var remainingSymbolKeys);
+        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (var symbol in oldSymbols)
+        {
+            var symbolKey = SymbolKey.CreateString(symbol, cancellationToken);
+
+            if (DecodeSymbol(symbolKey, compilation) is ISymbol decodedSymbol)
+                symbols.Add(decodedSymbol);
+            else
+                remainingSymbolKeys.Add(symbolKey);
+        }
+
+        if (remainingSymbolKeys.Count > 0)
+        {
+            // merge in symbols from other linked documents
+            var linkedIds = document.GetLinkedDocumentIds();
+
+            foreach (var id in linkedIds)
+            {
+                var linkedDoc = document.Project.Solution.GetRequiredDocument(id);
+                var linkedCompilation = await linkedDoc.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var writeIndex = 0;
+
+                for (var readIndex = 0; readIndex < remainingSymbolKeys.Count; readIndex++)
+                {
+                    var symbolKey = remainingSymbolKeys[readIndex];
+
+                    if (DecodeSymbol(symbolKey, linkedCompilation) is ISymbol decodedSymbol)
+                        symbols.Add(decodedSymbol);
+                    else
+                        remainingSymbolKeys[writeIndex++] = symbolKey;
+                }
+
+                remainingSymbolKeys.Count = writeIndex;
+
+                if (writeIndex == 0)
+                    break;
+            }
+        }
+
+        return symbols.ToImmutableAndClear();
+    }
 
     public static async Task<CompletionDescription> GetDescriptionAsync(
         CompletionItem item, Document document, SymbolDescriptionOptions options, CancellationToken cancellationToken)
@@ -220,24 +186,21 @@ internal static class SymbolCompletionItem
         return document;
     }
 
-    private static void AddSupportedPlatforms(ArrayBuilder<KeyValuePair<string, string>> properties, SupportedPlatformData? supportedPlatforms)
+    private static void AddSupportedPlatforms(ArrayBuilder<KeyValuePair<string, object>> properties, SupportedPlatformData? supportedPlatforms)
     {
         if (supportedPlatforms != null)
         {
-            properties.Add(KeyValuePairUtil.Create("InvalidProjects", string.Join(";", supportedPlatforms.InvalidProjects.Select(id => id.Id))));
-            properties.Add(KeyValuePairUtil.Create("CandidateProjects", string.Join(";", supportedPlatforms.CandidateProjects.Select(id => id.Id))));
+            properties.Add(KeyValuePairUtil.Create<string, object>("InvalidProjects", supportedPlatforms.InvalidProjects));
+            properties.Add(KeyValuePairUtil.Create<string, object>("CandidateProjects", supportedPlatforms.CandidateProjects));
         }
     }
 
     public static SupportedPlatformData? GetSupportedPlatforms(CompletionItem item, Solution solution)
     {
-        if (item.TryGetProperty("InvalidProjects", out var invalidProjects)
-            && item.TryGetProperty("CandidateProjects", out var candidateProjects))
+        if (item.TryGetObjectProperty<ImmutableArray<ProjectId>>("InvalidProjects", out var invalidProjects)
+            && item.TryGetObjectProperty<ImmutableArray<ProjectId>>("CandidateProjects", out var candidateProjects))
         {
-            return new SupportedPlatformData(
-                solution,
-                invalidProjects.Split(s_projectSeperators).SelectAsArray(s => ProjectId.CreateFromSerialized(Guid.Parse(s))),
-                candidateProjects.Split(s_projectSeperators).SelectAsArray(s => ProjectId.CreateFromSerialized(Guid.Parse(s))));
+            return new SupportedPlatformData(solution, invalidProjects, candidateProjects);
         }
 
         return null;
@@ -316,7 +279,7 @@ internal static class SymbolCompletionItem
     {
         return CreateWorker(
             displayText, displayTextSuffix, symbols, rules, contextPosition,
-            s_addSymbolEncoding, sortText, insertionText,
+            sortText, insertionText,
             filterText, supportedPlatforms, properties, tags, displayTextPrefix,
             inlineDescription, glyph, isComplexTextEdit);
     }
@@ -340,19 +303,29 @@ internal static class SymbolCompletionItem
     {
         return CreateWorker(
             displayText, displayTextSuffix, symbols, rules, contextPosition,
-            s_addSymbolInfo, sortText, insertionText,
+            sortText, insertionText,
             filterText, supportedPlatforms, properties, tags,
             displayTextPrefix, inlineDescription, glyph, isComplexTextEdit);
     }
 
     internal static string? GetSymbolName(CompletionItem item)
-        => item.TryGetProperty("SymbolName", out var name) ? name : null;
+        => TryGetFirstSymbol(item)?.Name;
 
     internal static SymbolKind? GetKind(CompletionItem item)
-        => item.TryGetProperty("SymbolKind", out var kind) ? (SymbolKind?)int.Parse(kind) : null;
+        => TryGetFirstSymbol(item)?.Kind;
 
     internal static bool GetSymbolIsGeneric(CompletionItem item)
-        => item.TryGetProperty("IsGeneric", out var v) && bool.TryParse(v, out var isGeneric) && isGeneric;
+        => TryGetFirstSymbol(item)?.GetArity() > 0;
+
+    private static ImmutableArray<ISymbol> GetSymbols(CompletionItem item)
+        => item.TryGetObjectProperty<ImmutableArray<ISymbol>>("Symbols", out var symbols) ? symbols : ImmutableArray<ISymbol>.Empty;
+
+    private static ISymbol? TryGetFirstSymbol(CompletionItem item)
+    {
+        var symbols = GetSymbols(item);
+
+        return symbols.Length > 0 ? symbols[0] : null;
+    }
 
     public static async Task<CompletionDescription> GetDescriptionAsync(
         CompletionItem item, ImmutableArray<ISymbol> symbols, Document document, SemanticModel semanticModel, SymbolDescriptionOptions options, CancellationToken cancellationToken)

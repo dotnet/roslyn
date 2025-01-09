@@ -31,8 +31,8 @@ internal sealed class SnippetCompletionItem
             sortText: snippetIdentifier + " ",
             filterText: snippetIdentifier,
             properties: [
-                KeyValuePairUtil.Create("Position", position.ToString()),
-                KeyValuePairUtil.Create(SnippetIdentifierKey, snippetIdentifier)],
+                KeyValuePairUtil.Create<string, object>("Position", position.ToString()),
+                KeyValuePairUtil.Create<string, object>(SnippetIdentifierKey, snippetIdentifier)],
             isComplexTextEdit: true,
             inlineDescription: inlineDescription,
             rules: CompletionItemRules.Default)

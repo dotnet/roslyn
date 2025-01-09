@@ -89,7 +89,7 @@ internal sealed partial class RegexEmbeddedCompletionProvider(RegexEmbeddedLangu
             return;
         }
 
-        using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var properties);
+        using var _ = ArrayBuilder<KeyValuePair<string, object>>.GetInstance(out var properties);
         foreach (var embeddedItem in embeddedContext.Items)
         {
             properties.Clear();
@@ -97,15 +97,15 @@ internal sealed partial class RegexEmbeddedCompletionProvider(RegexEmbeddedLangu
             var change = embeddedItem.Change;
             var textChange = change.TextChange;
 
-            properties.Add(KeyValuePairUtil.Create(StartKey, textChange.Span.Start.ToString()));
-            properties.Add(KeyValuePairUtil.Create(LengthKey, textChange.Span.Length.ToString()));
-            properties.Add(KeyValuePairUtil.Create(NewTextKey, textChange.NewText));
-            properties.Add(KeyValuePairUtil.Create(DescriptionKey, embeddedItem.FullDescription));
-            properties.Add(KeyValuePairUtil.Create(AbstractAggregateEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name));
+            properties.Add(KeyValuePairUtil.Create<string, object>(StartKey, textChange.Span.Start.ToString()));
+            properties.Add(KeyValuePairUtil.Create<string, object>(LengthKey, textChange.Span.Length.ToString()));
+            properties.Add(KeyValuePairUtil.Create<string, object>(NewTextKey, textChange.NewText));
+            properties.Add(KeyValuePairUtil.Create<string, object>(DescriptionKey, embeddedItem.FullDescription));
+            properties.Add(KeyValuePairUtil.Create<string, object>(AbstractAggregateEmbeddedLanguageCompletionProvider.EmbeddedProviderName, Name));
 
             if (change.NewPosition != null)
             {
-                properties.Add(new KeyValuePair<string, string>(NewPositionKey, change.NewPosition.ToString()));
+                properties.Add(new KeyValuePair<string, object>(NewPositionKey, change.NewPosition.ToString()));
             }
 
             // Keep everything sorted in the order we just produced the items in.

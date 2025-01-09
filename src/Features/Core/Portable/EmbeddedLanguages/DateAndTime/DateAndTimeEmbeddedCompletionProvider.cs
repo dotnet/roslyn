@@ -103,7 +103,7 @@ internal sealed partial class DateAndTimeEmbeddedCompletionProvider(DateAndTimeE
         if (items.Count == 0)
             return;
 
-        using var _2 = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var properties);
+        using var _2 = ArrayBuilder<KeyValuePair<string, object>>.GetInstance(out var properties);
         foreach (var embeddedItem in items)
         {
             properties.Clear();

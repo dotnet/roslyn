@@ -23,8 +23,8 @@ internal static class XmlDocCommentCompletionItem
             displayTextSuffix: "",
             glyph: Glyph.Keyword,
             properties: [
-                KeyValuePairUtil.Create(BeforeCaretText, beforeCaretText),
-                KeyValuePairUtil.Create(AfterCaretText, afterCaretText)],
+                KeyValuePairUtil.Create<string, object>(BeforeCaretText, beforeCaretText),
+                KeyValuePairUtil.Create<string, object>(AfterCaretText, afterCaretText)],
             rules: rules,
             isComplexTextEdit: true);
     }

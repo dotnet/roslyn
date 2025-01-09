@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,7 +23,7 @@ public sealed class CompletionItem : IComparable<CompletionItem>
     private readonly string? _filterText;
     private string? _lazyEntireDisplayText;
     private ImmutableDictionary<string, string>? _lazyPropertiesAsImmutableDictionary;
-    private readonly ImmutableArray<KeyValuePair<string, string>> _properties;
+    private readonly ImmutableArray<KeyValuePair<string, object>> _properties;
 
     /// <summary>
     /// The text that is displayed to the user.
@@ -97,13 +98,13 @@ public sealed class CompletionItem : IComparable<CompletionItem>
         get
         {
             if (_lazyPropertiesAsImmutableDictionary is null)
-                _lazyPropertiesAsImmutableDictionary = _properties.ToImmutableDictionary();
+                _lazyPropertiesAsImmutableDictionary = _properties.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value?.ToString()!);
 
             return _lazyPropertiesAsImmutableDictionary;
         }
     }
 
-    internal ImmutableArray<KeyValuePair<string, string>> GetProperties()
+    internal ImmutableArray<KeyValuePair<string, object>> GetProperties()
     {
         return _properties;
     }
@@ -115,14 +116,31 @@ public sealed class CompletionItem : IComparable<CompletionItem>
 
         foreach ((var propName, var propValue) in _properties)
         {
-            if (name == propName)
+            if (name == propName && propValue?.ToString() is string propValueString)
             {
-                value = propValue;
+                value = propValueString;
                 return true;
             }
         }
 
         value = null;
+        return false;
+    }
+
+    internal bool TryGetObjectProperty<ValueType>(string name, [NotNullWhen(true)] out ValueType? value)
+    {
+        // Don't search in _lazyPropertiesAsImmutableDictionary as TryGetProperty does
+        // as that contains the objects converted to strings
+        foreach ((var propName, var propValue) in _properties)
+        {
+            if (name == propName)
+            {
+                value = (ValueType)propValue;
+                return true;
+            }
+        }
+
+        value = default;
         return false;
     }
 
@@ -179,7 +197,7 @@ public sealed class CompletionItem : IComparable<CompletionItem>
         string? filterText,
         string? sortText,
         TextSpan span,
-        ImmutableArray<KeyValuePair<string, string>> properties,
+        ImmutableArray<KeyValuePair<string, object>> properties,
         ImmutableArray<string> tags,
         CompletionItemRules? rules,
         string? displayTextPrefix,
@@ -202,7 +220,7 @@ public sealed class CompletionItem : IComparable<CompletionItem>
         {
             // Prefer to just keep an ImmutableArray, but performance on large property collections
             //  (quite uncommon) dictate falling back to a non-linear lookup data structure.
-            _lazyPropertiesAsImmutableDictionary = _properties.ToImmutableDictionary();
+            _lazyPropertiesAsImmutableDictionary = _properties.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value?.ToString()!);
         }
 
         if (!DisplayText.Equals(filterText ?? "", StringComparison.Ordinal))
@@ -267,7 +285,7 @@ public sealed class CompletionItem : IComparable<CompletionItem>
         bool isComplexTextEdit = false)
     {
         var result = CreateInternal(
-            displayText, filterText, sortText, properties.AsImmutableOrNull(), tags, rules, displayTextPrefix,
+            displayText, filterText, sortText, ConvertToArrayWithObjectValues(properties), tags, rules, displayTextPrefix,
             displayTextSuffix, inlineDescription, isComplexTextEdit);
 
         result._lazyPropertiesAsImmutableDictionary = properties;
@@ -279,7 +297,7 @@ public sealed class CompletionItem : IComparable<CompletionItem>
         string? displayText,
         string? filterText = null,
         string? sortText = null,
-        ImmutableArray<KeyValuePair<string, string>> properties = default,
+        ImmutableArray<KeyValuePair<string, object>> properties = default,
         ImmutableArray<string> tags = default,
         CompletionItemRules? rules = null,
         string? displayTextPrefix = null,
@@ -328,7 +346,7 @@ public sealed class CompletionItem : IComparable<CompletionItem>
             displayText: displayText,
             filterText: filterText,
             sortText: sortText,
-            properties: properties.AsImmutableOrNull(),
+            properties: ConvertToArrayWithObjectValues(properties),
             tags: tags,
             rules: rules,
             displayTextPrefix: null,
@@ -346,7 +364,7 @@ public sealed class CompletionItem : IComparable<CompletionItem>
         Optional<string> displayText = default,
         Optional<string> filterText = default,
         Optional<string> sortText = default,
-        Optional<ImmutableArray<KeyValuePair<string, string>>> properties = default,
+        Optional<ImmutableArray<KeyValuePair<string, object>>> properties = default,
         Optional<ImmutableArray<string>> tags = default,
         Optional<CompletionItemRules> rules = default,
         Optional<string> displayTextPrefix = default,
@@ -447,21 +465,34 @@ public sealed class CompletionItem : IComparable<CompletionItem>
     /// </summary>
     public CompletionItem WithProperties(ImmutableDictionary<string, string> properties)
     {
-        var result = With(properties: properties.AsImmutableOrNull());
+        var result = With(properties: ConvertToArrayWithObjectValues(properties));
 
         result._lazyPropertiesAsImmutableDictionary = properties;
 
         return result;
     }
 
-    internal CompletionItem WithProperties(ImmutableArray<KeyValuePair<string, string>> properties)
+    internal static ImmutableArray<KeyValuePair<string, object>> ConvertToArrayWithObjectValues(ImmutableDictionary<string, string>? properties)
+    {
+        var builder = ArrayBuilder<KeyValuePair<string, object>>.GetInstance();
+
+        if (properties != null)
+        {
+            foreach (var kvp in properties)
+                builder.Add(new KeyValuePair<string, object>(kvp.Key, kvp.Value));
+        }
+
+        return builder.ToImmutableAndFree();
+    }
+
+    internal CompletionItem WithProperties(ImmutableArray<KeyValuePair<string, object>> properties)
         => With(properties: properties);
 
     /// <summary>
     /// Creates a copy of this <see cref="CompletionItem"/> with the specified property.
     /// </summary>
     public CompletionItem AddProperty(string name, string value)
-        => With(properties: GetProperties().Add(KeyValuePairUtil.Create(name, value)));
+        => With(properties: GetProperties().Add(KeyValuePairUtil.Create<string, object>(name, value)));
 
     /// <summary>
     /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Tags"/> property changed.

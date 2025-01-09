@@ -151,13 +151,12 @@ internal abstract class AbstractInternalsVisibleToCompletionProvider : LSPComple
                 continue;
             }
 
-            var projectGuid = project.Id.Id.ToString();
             var completionItem = CommonCompletionItem.Create(
                 displayText: project.AssemblyName,
                 displayTextSuffix: "",
                 rules: CompletionItemRules.Default,
                 glyph: project.GetGlyph(),
-                properties: [KeyValuePairUtil.Create(ProjectGuidKey, projectGuid)]);
+                properties: [KeyValuePairUtil.Create<string, object>(ProjectGuidKey, project.Id.Id)]);
             context.AddItem(completionItem);
         }
 
@@ -267,8 +266,8 @@ internal abstract class AbstractInternalsVisibleToCompletionProvider : LSPComple
 
     public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
     {
-        var projectIdGuid = item.GetProperty(ProjectGuidKey);
-        var projectId = ProjectId.CreateFromSerialized(new Guid(projectIdGuid));
+        item.TryGetObjectProperty<Guid>(ProjectGuidKey, out var projectIdGuid);
+        var projectId = ProjectId.CreateFromSerialized(projectIdGuid);
         var project = document.Project.Solution.GetRequiredProject(projectId);
         var assemblyName = item.DisplayText;
         var publicKey = await GetPublicKeyOfProjectAsync(project, cancellationToken).ConfigureAwait(false);

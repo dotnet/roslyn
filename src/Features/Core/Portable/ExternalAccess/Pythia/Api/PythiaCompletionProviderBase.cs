@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
 
@@ -30,7 +29,7 @@ internal abstract class PythiaCompletionProviderBase : CommonCompletionProvider,
         ImmutableDictionary<string, string>? properties = null,
         ImmutableArray<string> tags = default,
         string? inlineDescription = null)
-        => CommonCompletionItem.Create(displayText, displayTextSuffix, rules, (Glyph?)glyph, description, sortText, filterText, showsWarningIcon, properties.AsImmutableOrNull(), tags, inlineDescription);
+        => CommonCompletionItem.Create(displayText, displayTextSuffix, rules, (Glyph?)glyph, description, sortText, filterText, showsWarningIcon, CompletionItem.ConvertToArrayWithObjectValues(properties), tags, inlineDescription);
 
     public static CompletionItem CreateSymbolCompletionItem(
         string displayText,
