@@ -51,6 +51,7 @@ internal abstract partial class AbstractExtractMethodService<
         {
             private static readonly CodeGenerationContext s_codeGenerationContext = new(addImports: false);
 
+            // TODO: Check if these namesare already in scope and if so, generate non-colliding ones.
             protected const string FlowControlName = "flowControl";
             protected const string ReturnValueName = "value";
 
