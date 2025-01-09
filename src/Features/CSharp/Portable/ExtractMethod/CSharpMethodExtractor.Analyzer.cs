@@ -41,13 +41,13 @@ internal sealed partial class CSharpExtractMethodService
             protected override ExtractMethodFlowControlInformation GetStatementFlowControlInformation()
             {
                 var controlFlowAnalysis = this.SelectionResult.GetStatementControlFlowAnalysis();
-                return new(
+                return ExtractMethodFlowControlInformation.Create(
                     this.SemanticModel.Compilation,
                     supportsComplexFlowControl: true,
-                    controlFlowAnalysis.ExitPoints.Count(n => n is BreakStatementSyntax),
-                    controlFlowAnalysis.ExitPoints.Count(n => n is ContinueStatementSyntax),
-                    controlFlowAnalysis.ExitPoints.Count(n => n is ReturnStatementSyntax),
-                    controlFlowAnalysis.EndPointIsReachable);
+                    breakStatementCount: controlFlowAnalysis.ExitPoints.Count(n => n is BreakStatementSyntax),
+                    continueStatementCount: controlFlowAnalysis.ExitPoints.Count(n => n is ContinueStatementSyntax),
+                    returnStatementCount: controlFlowAnalysis.ExitPoints.Count(n => n is ReturnStatementSyntax),
+                    endPointIsReachable: controlFlowAnalysis.EndPointIsReachable);
             }
 
             protected override bool ReadOnlyFieldAllowed()

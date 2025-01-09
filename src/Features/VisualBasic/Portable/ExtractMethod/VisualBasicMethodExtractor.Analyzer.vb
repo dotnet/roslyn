@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     ' provide basic information that produces consistent behavior with how extract method has always
                     ' worked in VB.
                     Dim compilation = Me.SemanticModel.Compilation
-                    Return New ExtractMethodFlowControlInformation(
+                    Return ExtractMethodFlowControlInformation.Create(
                         compilation,
                         supportsComplexFlowControl:=False,
                         breakStatementCount:=0,

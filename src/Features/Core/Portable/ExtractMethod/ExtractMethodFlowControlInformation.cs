@@ -17,7 +17,6 @@ internal sealed class ExtractMethodFlowControlInformation
         FallThrough,
     }
 
-    private readonly Compilation _compilation;
     public readonly int BreakStatementCount;
     public readonly int ContinueStatementCount;
     public readonly int ReturnStatementCount;
@@ -27,7 +26,23 @@ internal sealed class ExtractMethodFlowControlInformation
 
     public readonly ITypeSymbol ControlFlowValueType;
 
-    public ExtractMethodFlowControlInformation(
+    private ExtractMethodFlowControlInformation(
+        int breakStatementCount,
+        int continueStatementCount,
+        int returnStatementCount,
+        bool endPointIsReachable,
+        ITypeSymbol controlFlowValueType,
+        Dictionary<FlowControlKind, object?> flowValues)
+    {
+        BreakStatementCount = breakStatementCount;
+        ContinueStatementCount = continueStatementCount;
+        ReturnStatementCount = returnStatementCount;
+        EndPointIsReachable = endPointIsReachable;
+        ControlFlowValueType = controlFlowValueType;
+        _flowValues = flowValues;
+    }
+
+    public static ExtractMethodFlowControlInformation Create(
         Compilation compilation,
         bool supportsComplexFlowControl,
         int breakStatementCount,
@@ -35,57 +50,60 @@ internal sealed class ExtractMethodFlowControlInformation
         int returnStatementCount,
         bool endPointIsReachable)
     {
-        _compilation = compilation;
-        BreakStatementCount = breakStatementCount;
-        ContinueStatementCount = continueStatementCount;
-        ReturnStatementCount = returnStatementCount;
-        EndPointIsReachable = endPointIsReachable;
-
-        ControlFlowValueType = _compilation.GetSpecialType(SpecialType.System_Void);
+        var controlFlowValueType = compilation.GetSpecialType(SpecialType.System_Void);
+        var flowValues = new Dictionary<FlowControlKind, object?>();
         if (supportsComplexFlowControl)
         {
             var controlFlowKindCount = GetControlFlowKindCount();
             if (controlFlowKindCount == 2)
             {
-                ControlFlowValueType = _compilation.GetSpecialType(SpecialType.System_Boolean);
+                controlFlowValueType = compilation.GetSpecialType(SpecialType.System_Boolean);
                 AssignFlowValues([false, true]);
             }
             else if (controlFlowKindCount == 3)
             {
-                ControlFlowValueType = _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(_compilation.GetSpecialType(SpecialType.System_Boolean));
+                controlFlowValueType = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(compilation.GetSpecialType(SpecialType.System_Boolean));
                 AssignFlowValues([false, true, null]);
             }
             else if (controlFlowKindCount == 4)
             {
-                ControlFlowValueType = _compilation.GetSpecialType(SpecialType.System_Int32);
+                controlFlowValueType = compilation.GetSpecialType(SpecialType.System_Int32);
                 AssignFlowValues([0, 1, 2, 3]);
             }
         }
-    }
 
-    private void AssignFlowValues(object?[] values)
-    {
-        var valuesIndex = 0;
-        if (BreakStatementCount > 0)
-            _flowValues[FlowControlKind.Break] = values[valuesIndex++];
-        if (ContinueStatementCount > 0)
-            _flowValues[FlowControlKind.Continue] = values[valuesIndex++];
-        if (ReturnStatementCount > 0)
-            _flowValues[FlowControlKind.Return] = values[valuesIndex++];
-        if (EndPointIsReachable)
-            _flowValues[FlowControlKind.FallThrough] = values[valuesIndex++];
+        return new(
+            breakStatementCount,
+            continueStatementCount,
+            returnStatementCount,
+            endPointIsReachable,
+            controlFlowValueType,
+            flowValues);
 
-        Contract.ThrowIfFalse(valuesIndex == values.Length);
-    }
+        void AssignFlowValues(object?[] values)
+        {
+            var valuesIndex = 0;
+            if (breakStatementCount > 0)
+                flowValues[FlowControlKind.Break] = values[valuesIndex++];
+            if (continueStatementCount > 0)
+                flowValues[FlowControlKind.Continue] = values[valuesIndex++];
+            if (returnStatementCount > 0)
+                flowValues[FlowControlKind.Return] = values[valuesIndex++];
+            if (endPointIsReachable)
+                flowValues[FlowControlKind.FallThrough] = values[valuesIndex++];
 
-    private int GetControlFlowKindCount()
-    {
-        var flowControlKinds =
-            (BreakStatementCount > 0 ? 1 : 0) +
-            (ContinueStatementCount > 0 ? 1 : 0) +
-            (ReturnStatementCount > 0 ? 1 : 0) +
-            (EndPointIsReachable ? 1 : 0);
-        return flowControlKinds;
+            Contract.ThrowIfFalse(valuesIndex == values.Length);
+        }
+
+        int GetControlFlowKindCount()
+        {
+            var flowControlKinds =
+                (breakStatementCount > 0 ? 1 : 0) +
+                (continueStatementCount > 0 ? 1 : 0) +
+                (returnStatementCount > 0 ? 1 : 0) +
+                (endPointIsReachable ? 1 : 0);
+            return flowControlKinds;
+        }
     }
 
     public bool NeedsControlFlowValue()
