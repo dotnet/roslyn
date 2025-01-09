@@ -165,6 +165,7 @@ internal sealed partial class CSharpExtractMethodService
                 if (!flowControlInformation.NeedsControlFlowValue())
                     return statements;
 
+                var useBlock = ((CSharpSimplifierOptions)this.ExtractMethodGenerationOptions.SimplifierOptions).PreferBraces.Value == CodeAnalysis.CodeStyle.PreferBracesPreference.Always;
                 return statements.Add(GetFlowControlStatement());
 
                 StatementSyntax GetFlowControlStatement()
@@ -239,6 +240,9 @@ internal sealed partial class CSharpExtractMethodService
                                     Block(GetFlowStatement(2)))))));
                     }
                 }
+
+                StatementSyntax Block(StatementSyntax statement)
+                    => useBlock ? SyntaxFactory.Block(statement) : statement;
 
                 ExpressionSyntax LiteralExpression(object value)
                     => ExpressionGenerator.GenerateExpression(null, value, canUseFieldReference: false);

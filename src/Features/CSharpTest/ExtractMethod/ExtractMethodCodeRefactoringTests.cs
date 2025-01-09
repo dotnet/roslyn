@@ -77,6 +77,12 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
         };
 
+    private OptionsCollection NoBraces()
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption2<PreferBracesPreference>(PreferBracesPreference.None, NotificationOption2.Suggestion) }
+        };
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
     public async Task LocalFuncExtract()
     {
@@ -8903,5 +8909,214 @@ $@"
                 }
             }
             """);
+    }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndBreak_NoBraces()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        break;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        {|Rename:NewMethod|}(v);
+                        break;
+                    }
+            
+                    return 0;
+                }
+
+                private static void NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return;
+                    }
+
+                    return;
+                }
+            }
+            """,
+            options: NoBraces());
+    }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndContinue_NoBraces()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        continue;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                            continue;
+                        else
+                            break;
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """,
+            options: NoBraces());
+    }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndReturn_NoBraces()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }
+                        
+                        return 1;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        (bool flowControl, int value) = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                            return value;
+                        else
+                            break;
+                    }
+            
+                    return 0;
+                }
+
+                private static (bool flowControl, int value) NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return (flowControl: false, value: default);
+                    }
+
+                    return (flowControl: true, value: 1);
+                }
+            }
+            """,
+            options: NoBraces());
+    }
+
+    [Fact]
+    public async Task TestFlowControl_BreakAndFallThrough_NoBraces()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break;
+                        }|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (!flowControl)
+                            break;
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """,
+            options: NoBraces());
     }
 }
