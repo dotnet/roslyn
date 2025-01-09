@@ -118,6 +118,12 @@ internal sealed class ExtractMethodFlowControlInformation
     public bool NeedsControlFlowValue()
         => ControlFlowValueType.SpecialType != SpecialType.System_Void;
 
+    /// <summary>
+    /// Returns <see langword="true"/> if the selection returns the same way across all paths.  For example,
+    /// 'continue'ing across all paths, or `return`ing across all paths.  In this case, the extracted method doesn't
+    /// need to actually return a flow control value, and the caller can uniformly execute that same control flow
+    /// construct after calling the extracted method..
+    /// </summary>
     public bool HasUniformControlFlow()
         => (BreakStatementCount > 0, ContinueStatementCount > 0, ReturnStatementCount > 0, EndPointIsReachable) switch
         {
