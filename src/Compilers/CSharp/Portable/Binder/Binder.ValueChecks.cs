@@ -1931,17 +1931,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _visited = previousVisited;
 #endif
 
-            var arguments = ArrayBuilder<BoundExpression>.GetInstance();
-            GetInterpolatedStringHandlerArgumentsForEscape(expression, arguments);
-
-            foreach (var argument in arguments)
-            {
-                SafeContext argEscape = GetValEscape(argument, localScopeDepth);
-                escapeScope = escapeScope.Intersect(argEscape);
-            }
-
-            arguments.Free();
-
             // Narrow the scope for implicit calls which allow the receiver to capture refs from the arguments.
             escapeScope = escapeScope.Intersect(GetValEscapeOfInterpolatedStringHandlerCalls(expression, localScopeDepth));
 
@@ -5789,78 +5778,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var previousVisited = _visited;
             _visited = null;
 #endif
-            CheckValEscape(expression.Syntax, data.Construction, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
+            bool result = CheckValEscape(expression.Syntax, data.Construction, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
 #if DEBUG
             _visited = previousVisited;
 #endif
-
-            var arguments = ArrayBuilder<BoundExpression>.GetInstance();
-            GetInterpolatedStringHandlerArgumentsForEscape(expression, arguments);
-
-            bool result = true;
-            foreach (var argument in arguments)
-            {
-                if (!CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, checkingReceiver: false, diagnostics))
-                {
-                    result = false;
-                    break;
-                }
-            }
-
-            arguments.Free();
 
             // Narrow the scope for implicit calls which allow the receiver to capture refs from the arguments.
             result = result && CheckValEscapeOfInterpolatedStringHandlerCalls(expression, escapeFrom, escapeTo, diagnostics);
 
             return result;
-        }
-
-        private void GetInterpolatedStringHandlerArgumentsForEscape(BoundExpression expression, ArrayBuilder<BoundExpression> arguments)
-        {
-            while (true)
-            {
-                switch (expression)
-                {
-                    case BoundBinaryOperator binary:
-                        GetInterpolatedStringHandlerArgumentsForEscape(binary.Right, arguments);
-                        expression = binary.Left;
-                        break;
-
-                    case BoundInterpolatedString interpolatedString:
-                        getParts(interpolatedString);
-                        return;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(expression.Kind);
-                }
-            }
-
-            void getParts(BoundInterpolatedString interpolatedString)
-            {
-                foreach (var part in interpolatedString.Parts)
-                {
-                    if (part is not BoundCall { Method.Name: BoundInterpolatedString.AppendFormattedMethod } call)
-                    {
-                        // Dynamic calls cannot have ref struct parameters, and AppendLiteral calls will always have literal
-                        // string arguments and do not require us to be concerned with escape
-                        continue;
-                    }
-
-                    // The interpolation component is always the first argument to the method, and it was not passed by name
-                    // so there can be no reordering.
-
-                    // SPEC: For a given argument `a` that is passed to parameter `p`:
-                    // SPEC: 1. ...
-                    // SPEC: 2. If `p` is `scoped` then `a` does not contribute *safe-to-escape* when considering arguments.
-                    if (_useUpdatedEscapeRules &&
-                        call.Method.Parameters[0].EffectiveScope == ScopedKind.ScopedValue)
-                    {
-                        continue;
-                    }
-
-                    arguments.Add(call.Arguments[0]);
-                }
-            }
         }
 
         private SafeContext GetValEscapeOfInterpolatedStringHandlerCalls(BoundExpression expression, SafeContext localScopeDepth)

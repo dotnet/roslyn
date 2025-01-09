@@ -14620,6 +14620,9 @@ public ref struct CustomHandler
 
             var expectedDiagnostics = new[]
             {
+                // (17,18): error CS8347: Cannot use a result of 'CustomHandler.AppendFormatted(Span<char>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return $"{s}";
+                Diagnostic(ErrorCode.ERR_EscapeCall, "{s}").WithArguments("CustomHandler.AppendFormatted(System.Span<char>)", "s").WithLocation(17, 18),
                 // (17,19): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         return $"{s}";
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 19)
@@ -14779,6 +14782,9 @@ public ref struct S1
                 // (17,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, ref CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         M2(ref s1, $"{s}");
                 Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, " + expression + @")").WithArguments("CustomHandler.M2(ref S1, ref CustomHandler)", "handler").WithLocation(17, 9),
+                // (17,22): error CS8347: Cannot use a result of 'CustomHandler.AppendFormatted(Span<char>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         M2(ref s1, $"{s}");
+                Diagnostic(ErrorCode.ERR_EscapeCall, "{s}").WithArguments("CustomHandler.AppendFormatted(System.Span<char>)", "s").WithLocation(17, 22),
                 // (17,23): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2(ref s1, $"{s}");
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 23));
@@ -14793,10 +14799,7 @@ public ref struct S1
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1").WithLocation(17, 16),
                 // (17,20): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
                 //         M2(ref s1, $"{s}");
-                Diagnostic(ErrorCode.ERR_EscapeCall, expression).WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(17, 20),
-                // (17,23): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s1, $"{s}");
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 23));
+                Diagnostic(ErrorCode.ERR_EscapeCall, expression).WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(17, 20));
         }
 
         [Theory]
@@ -14980,6 +14983,9 @@ public ref struct S1
                 // (15,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         M2(ref s1, $"{s2}");
                 Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, $""{s2}"")").WithArguments("CustomHandler.M2(ref S1, CustomHandler)", "handler").WithLocation(15, 9),
+                // (15,22): error CS8347: Cannot use a result of 'CustomHandler.AppendFormatted(Span<char>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         M2(ref s1, $"{s2}");
+                Diagnostic(ErrorCode.ERR_EscapeCall, "{s2}").WithArguments("CustomHandler.AppendFormatted(System.Span<char>)", "s").WithLocation(15, 22),
                 // (15,23): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2(ref s1, $"{s2}");
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 23)
@@ -14998,10 +15004,7 @@ public ref struct S1
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1").WithLocation(15, 16),
                 // (15,20): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
                 //         M2(ref s1, $"{s2}");
-                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{s2}""").WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(15, 20),
-                // (15,23): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s1, $"{s2}");
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 23)
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{s2}""").WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(15, 20)
             );
         }
 
@@ -15038,6 +15041,9 @@ class Program
                 // (5,97): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
                 //     public CustomHandler(int literalLength, int formattedCount, ref S s) : this() { s.Handler = this; }
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(5, 97),
+                // (17,9): error CS8350: This combination of arguments to 'Program.M(ref S, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         M(ref s, $"{1}");
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"M(ref s, $""{1}"")").WithArguments("Program.M(ref S, CustomHandler)", "handler").WithLocation(17, 9),
                 // (17,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         M(ref s, $"{1}");
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s").WithLocation(17, 15),
@@ -15416,15 +15422,12 @@ class Program
                 // (11,24): error CS0631: ref and out are not valid in this context
                 //     public object this[ref R r, [InterpolatedStringHandlerArgument("r")] CustomHandler handler] => null;
                 Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(11, 24),
+                // (18,13): error CS8350: This combination of arguments to 'R.this[ref R, CustomHandler]' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         _ = r[ref r, $"{1}"];
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"r[ref r, $""{1}""]").WithArguments("R.this[ref R, CustomHandler]", "handler").WithLocation(18, 13),
                 // (18,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         _ = r[ref r, $"{1}"];
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "r").WithLocation(18, 19),
-                // (18,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                //         _ = r[ref r, $"{1}"];
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "r").WithLocation(18, 19),
-                // (18,22): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
-                //         _ = r[ref r, $"{1}"];
-                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(18, 22),
                 // (18,22): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
                 //         _ = r[ref r, $"{1}"];
                 Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(18, 22));
@@ -15461,6 +15464,9 @@ class Program
                 // (5,97): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
                 //     public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(5, 97),
+                // (18,15): error CS8350: This combination of arguments to 'R.R(ref R, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         R y = new R(ref x, $"{1}");
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"new R(ref x, $""{1}"")").WithArguments("R.R(ref R, CustomHandler)", "handler").WithLocation(18, 15),
                 // (18,25): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         R y = new R(ref x, $"{1}");
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(18, 25),
@@ -15788,11 +15794,67 @@ class Program
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefEscape_NestedCalls_06b()
+        {
+            string source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                static class Program
+                {
+                    static R M()
+                    {
+                        R r = default;
+                        Span<byte> span = stackalloc byte[42];
+                        return r
+                            .F($"{span}")
+                            .F($"{span}");
+                    }
+                }
+                ref struct R
+                {
+                    public R F([InterpolatedStringHandlerArgument("")] CustomHandler handler)
+                        => this;
+                }
+                [InterpolatedStringHandler]
+                ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, R r)
+                    {
+                    }
+                    public void AppendLiteral(string value)
+                    {
+                    }
+                    public void AppendFormatted<T>(T value)
+                    {
+                    }
+                    public void AppendFormatted(Span<byte> span)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
+                // (9,16): error CS8350: This combination of arguments to 'R.F(CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         return r
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"r
+            .F($""{span}"")").WithArguments("R.F(CustomHandler)", "handler").WithLocation(9, 16),
                 // (9,16): error CS8347: Cannot use a result of 'R.F(CustomHandler)' in this context because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         return r
                 Diagnostic(ErrorCode.ERR_EscapeCall, @"r
             .F($""{span}"")").WithArguments("R.F(CustomHandler)", "handler").WithLocation(9, 16),
+                // (10,18): error CS8347: Cannot use a result of 'CustomHandler.AppendFormatted(Span<byte>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //             .F($"{span}")
+                Diagnostic(ErrorCode.ERR_EscapeCall, "{span}").WithArguments("CustomHandler.AppendFormatted(System.Span<byte>)", "span").WithLocation(10, 18),
+                // (10,18): error CS8347: Cannot use a result of 'CustomHandler.AppendFormatted(Span<byte>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //             .F($"{span}")
+                Diagnostic(ErrorCode.ERR_EscapeCall, "{span}").WithArguments("CustomHandler.AppendFormatted(System.Span<byte>)", "span").WithLocation(10, 18),
+                // (10,19): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //             .F($"{span}")
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(10, 19),
                 // (10,19): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
                 //             .F($"{span}")
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(10, 19));
@@ -15921,6 +15983,9 @@ class Program
                 // (5,97): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
                 //     public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(5, 97),
+                // (26,27): error CS8350: This combination of arguments to 'Enumerable.Create(ref R, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         foreach (var i in Enumerable.Create(ref r, $"{1}"))
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"Enumerable.Create(ref r, $""{1}"")").WithArguments("Enumerable.Create(ref R, CustomHandler)", "handler").WithLocation(26, 27),
                 // (26,49): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         foreach (var i in Enumerable.Create(ref r, $"{1}"))
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "r").WithLocation(26, 49),
