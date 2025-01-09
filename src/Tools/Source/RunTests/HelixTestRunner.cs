@@ -36,7 +36,7 @@ internal sealed class HelixTestRunner
         Verify(string.IsNullOrEmpty(options.TestFilter));
         Verify(!string.IsNullOrEmpty(options.ArtifactsDirectory));
         Verify(!string.IsNullOrEmpty(options.HelixQueueName));
-        Verify(!string.IsNullOrEmpty(options.HelixApiAccessToken));
+        Verify(!string.IsNullOrEmpty(options.Configuration));
 
         // Currently, it's required for the client machine to use the same OS family as the target Helix queue.
         // We could relax this and allow for example Linux clients to kick off Windows jobs, but we'd have to
@@ -59,6 +59,9 @@ internal sealed class HelixTestRunner
         // Note: this should be an explicit argument
         var executionDir = AppContext.BaseDirectory;
 
+        var logsDir = Path.Combine(options.ArtifactsDirectory, options.Configuration);
+        _ = Directory.CreateDirectory(logsDir);
+
         var helixProjectFilePath = WriteHelixProjectFile(
             workItems,
             testOS,
@@ -68,7 +71,20 @@ internal sealed class HelixTestRunner
             options.ArtifactsDirectory,
             executionDir);
 
-        var arguments = $"build {helixProjectFilePath} -p:HelixAccessToken={options.HelixApiAccessToken}";
+        var arguments = $"build -bl:{Path.Combine(logsDir, "helix.binlog")} {helixProjectFilePath}";
+        if (!string.IsNullOrEmpty(options.HelixApiAccessToken))
+        {
+            // Internal queues require an access token.
+            // We don't put it in the project string itself since it can cause escaping issues.
+            arguments += $" -p:HelixAccessToken={options.HelixApiAccessToken}";
+        }
+        else
+        {
+            // If we're not using authenticated access we need to specify a creator.
+            var queuedBy = GetEnv("BUILD_QUEUEDBY", "roslyn");
+            arguments += $" -p:Creator={queuedBy}";
+        }
+
         var process = ProcessRunner.CreateProcess(
             executable: options.DotnetFilePath,
             arguments: arguments,
@@ -315,29 +331,29 @@ internal sealed class HelixTestRunner
                     </HelixWorkItem>
                 """);
         }
+    }
 
-        static string GetEnv(string name, string defaultValue)
+    private static string GetEnv(string name, string defaultValue)
+    {
+        if (Environment.GetEnvironmentVariable(name) is { } value)
         {
-            if (Environment.GetEnvironmentVariable(name) is { } value)
-            {
-                return value;
-            }
-
-            Console.WriteLine($"The environment variable {name} was not set. Using the default value {defaultValue}");
-            return defaultValue;
+            return value;
         }
 
-        static string SetEnv(string name, string defaultValue)
-        {
-            if (Environment.GetEnvironmentVariable(name) is { } value)
-            {
-                return value;
-            }
+        Console.WriteLine($"The environment variable {name} was not set. Using the default value {defaultValue}");
+        return defaultValue;
+    }
 
-            Console.WriteLine($"The environment variable {name} was not set. Setting it to {defaultValue}");
-            Environment.SetEnvironmentVariable(name, defaultValue);
-            return defaultValue;
+    private static string SetEnv(string name, string defaultValue)
+    {
+        if (Environment.GetEnvironmentVariable(name) is { } value)
+        {
+            return value;
         }
+
+        Console.WriteLine($"The environment variable {name} was not set. Setting it to {defaultValue}");
+        Environment.SetEnvironmentVariable(name, defaultValue);
+        return defaultValue;
     }
 
     private static string GetDotNetSdkVersion(string artifactsDir)
