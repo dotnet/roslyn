@@ -1712,18 +1712,25 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseCurly);
     }
 
-    [Theory, CombinatorialData]
-    public async Task XmlDocComment_LangWordAttribute_Keyword(TestHost testHost)
+    [Theory]
+    [InlineData(TestHost.InProcess, "true", false)]
+    [InlineData(TestHost.OutOfProcess, "true", false)]
+    [InlineData(TestHost.InProcess, "return", true)]
+    [InlineData(TestHost.OutOfProcess, "return", true)]
+    [InlineData(TestHost.InProcess, "with", false)]
+    [InlineData(TestHost.OutOfProcess, "with", false)]
+    public async Task XmlDocComment_LangWordAttribute_Keywords(TestHost testHost, string langword, bool isControlKeyword)
     {
         await TestAsync(
-            """
+            $$"""
             /// <summary>
-            /// <see langword="true"/>
+            /// <see langword="{{langword}}"/>
             /// </summary>
             class MyClass
             {
             }
-            """, testHost,
+            """,
+            testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Text(" "),
             XmlDoc.Delimiter("<"),
@@ -1736,83 +1743,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             XmlDoc.AttributeName("langword"),
             XmlDoc.Delimiter("="),
             XmlDoc.AttributeQuotes("\""),
-            Keyword("true"),
-            XmlDoc.AttributeQuotes("\""),
-            XmlDoc.Delimiter("/>"),
-            XmlDoc.Delimiter("///"),
-            XmlDoc.Text(" "),
-            XmlDoc.Delimiter("</"),
-            XmlDoc.Name("summary"),
-            XmlDoc.Delimiter(">"),
-            Keyword("class"),
-            Class("MyClass"),
-            Punctuation.OpenCurly,
-            Punctuation.CloseCurly);
-    }
-
-    [Theory, CombinatorialData]
-    public async Task XmlDocComment_LangWordAttribute_ControlKeyword(TestHost testHost)
-    {
-        await TestAsync(
-            """
-            /// <summary>
-            /// <see langword="return"/>
-            /// </summary>
-            class MyClass
-            {
-            }
-            """, testHost,
-            XmlDoc.Delimiter("///"),
-            XmlDoc.Text(" "),
-            XmlDoc.Delimiter("<"),
-            XmlDoc.Name("summary"),
-            XmlDoc.Delimiter(">"),
-            XmlDoc.Delimiter("///"),
-            XmlDoc.Text(" "),
-            XmlDoc.Delimiter("<"),
-            XmlDoc.Name("see"),
-            XmlDoc.AttributeName("langword"),
-            XmlDoc.Delimiter("="),
-            XmlDoc.AttributeQuotes("\""),
-            ControlKeyword("return"),
-            XmlDoc.AttributeQuotes("\""),
-            XmlDoc.Delimiter("/>"),
-            XmlDoc.Delimiter("///"),
-            XmlDoc.Text(" "),
-            XmlDoc.Delimiter("</"),
-            XmlDoc.Name("summary"),
-            XmlDoc.Delimiter(">"),
-            Keyword("class"),
-            Class("MyClass"),
-            Punctuation.OpenCurly,
-            Punctuation.CloseCurly);
-    }
-
-    [Theory, CombinatorialData]
-    public async Task XmlDocComment_LangWordAttribute_ContextualKeyword(TestHost testHost)
-    {
-        await TestAsync(
-            """
-            /// <summary>
-            /// <see langword="with"/>
-            /// </summary>
-            class MyClass
-            {
-            }
-            """, testHost,
-            XmlDoc.Delimiter("///"),
-            XmlDoc.Text(" "),
-            XmlDoc.Delimiter("<"),
-            XmlDoc.Name("summary"),
-            XmlDoc.Delimiter(">"),
-            XmlDoc.Delimiter("///"),
-            XmlDoc.Text(" "),
-            XmlDoc.Delimiter("<"),
-            XmlDoc.Name("see"),
-            XmlDoc.AttributeName("langword"),
-            XmlDoc.Delimiter("="),
-            XmlDoc.AttributeQuotes("\""),
-            Keyword("with"),
+            isControlKeyword ? ControlKeyword(langword) : Keyword(langword),
             XmlDoc.AttributeQuotes("\""),
             XmlDoc.Delimiter("/>"),
             XmlDoc.Delimiter("///"),
