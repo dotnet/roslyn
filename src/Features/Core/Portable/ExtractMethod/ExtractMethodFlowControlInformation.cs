@@ -7,6 +7,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
+/// <summary>
+/// Holds onto fine-grained information about the types of flow control constructs seen in a selection being extracted.
+/// If there are two or more different flow control types seen, then information about that flow control is will need to
+/// be passed out from the extracted method to the caller.  If this is the case, then <see cref="NeedsControlFlowValue"
+/// /> will return true.  When <see langword="true"/> the type needed to pass back that information will be exposed in
+/// <see cref="ControlFlowValueType"/>.  When <see langword="false"/> the type will be <see cref="System.Void"/>.
+/// <para/> A mapping between flow control kind and a specific flow control value to use to represent it will be
+/// created.  That mapping can be queried using the <see cref="TryGetBreakFlowValue"/> helper (and siblings).
+/// </summary>
 internal sealed class ExtractMethodFlowControlInformation
 {
     private enum FlowControlKind
