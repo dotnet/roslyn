@@ -34,10 +34,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return If(info.ConvertedType.IsObjectType(), info.ConvertedType, info.Type)
                 End Function
 
-                Protected Overrides Function ContainsReturnStatementInSelectedCode(exitPoints As ImmutableArray(Of SyntaxNode)) As Boolean
-                    Return exitPoints.Any(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax)
-                End Function
-
                 Protected Overrides Function ReadOnlyFieldAllowed() As Boolean
                     Dim methodBlock = Me.SelectionResult.GetContainingScopeOf(Of MethodBlockBaseSyntax)()
                     If methodBlock Is Nothing Then
@@ -51,14 +47,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     ' We do not currently support converting code with advanced flow control constructs in VB. So just
                     ' provide basic information that produces consistent behavior with how extract method has always
                     ' worked in VB.
-                    Dim compilation = Me.SemanticModel.Compilation
+                    Dim controlFlowAnalysis = Me.SelectionResult.GetStatementControlFlowAnalysis()
+
                     Return ExtractMethodFlowControlInformation.Create(
-                        compilation,
+                        Me.SemanticModel.Compilation,
                         supportsComplexFlowControl:=False,
                         breakStatementCount:=0,
                         continueStatementCount:=0,
-                        returnStatementCount:=If(Me.ContainsReturnStatementInSelectedCode(), 1, 0),
-                        endPointIsReachable:=Me.SelectionResult.GetStatementControlFlowAnalysis().EndPointIsReachable)
+                        returnStatementCount:=controlFlowAnalysis.ExitPoints.Count(Function(n) TypeOf n Is ReturnStatementSyntax OrElse TypeOf n Is ExitStatementSyntax),
+                        endPointIsReachable:=controlFlowAnalysis.EndPointIsReachable)
                 End Function
             End Class
         End Class

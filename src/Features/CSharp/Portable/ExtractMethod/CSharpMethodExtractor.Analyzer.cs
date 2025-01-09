@@ -35,9 +35,6 @@ internal sealed partial class CSharpExtractMethodService
                     : info.ConvertedType;
             }
 
-            protected override bool ContainsReturnStatementInSelectedCode(ImmutableArray<SyntaxNode> exitPoints)
-                => exitPoints.Any(n => n is ReturnStatementSyntax);
-
             protected override ExtractMethodFlowControlInformation GetStatementFlowControlInformation()
             {
                 var controlFlowAnalysis = this.SelectionResult.GetStatementControlFlowAnalysis();

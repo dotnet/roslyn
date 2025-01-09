@@ -47,11 +47,6 @@ internal abstract partial class AbstractExtractMethodService<
 
             protected abstract bool IsInPrimaryConstructorBaseType();
 
-            /// <summary>
-            /// check whether selection contains return statement or not
-            /// </summary>
-            protected abstract bool ContainsReturnStatementInSelectedCode(ImmutableArray<SyntaxNode> exitPoints);
-
             protected virtual bool IsReadOutside(ISymbol symbol, HashSet<ISymbol> readOutsideMap)
                 => readOutsideMap.Contains(symbol);
 
@@ -718,12 +713,6 @@ internal abstract partial class AbstractExtractMethodService<
                        parameter.ContainingSymbol != null &&
                        parameter.ContainingSymbol.ContainingType != null &&
                        parameter.ContainingSymbol.ContainingType.IsScriptClass;
-            }
-
-            protected bool ContainsReturnStatementInSelectedCode()
-            {
-                Contract.ThrowIfTrue(SelectionResult.IsExtractMethodOnExpression);
-                return ContainsReturnStatementInSelectedCode(this.SelectionResult.GetStatementControlFlowAnalysis().ExitPoints);
             }
 
             private static void AddTypeParametersToMap(IEnumerable<ITypeParameterSymbol> typeParameters, IDictionary<int, ITypeParameterSymbol> sortedMap)
