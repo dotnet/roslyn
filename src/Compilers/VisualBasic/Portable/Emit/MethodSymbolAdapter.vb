@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If Not AdaptedMethodSymbol.IsDefinition Then
                 Return moduleBeingBuilt.Translate(AdaptedMethodSymbol.ContainingType, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
             ElseIf TypeOf AdaptedMethodSymbol Is SynthesizedGlobalMethodBase Then
-                Dim privateImplClass = moduleBeingBuilt.GetPrivateImplClass(syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                Dim privateImplClass = moduleBeingBuilt.GetPrivateImplClass(syntaxNode:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
                 Debug.Assert(privateImplClass IsNot Nothing)
                 Return privateImplClass
             End If

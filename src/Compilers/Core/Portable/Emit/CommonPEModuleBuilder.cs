@@ -215,6 +215,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public abstract PrivateImplementationDetails? GetFrozenPrivateImplementationDetails();
 
+        internal abstract PrivateImplementationDetails GetPrivateImplClass(SyntaxNode? syntaxNode, DiagnosticBag diagnostics);
+
         /// <summary>
         /// Additional top-level types injected by the Expression Evaluators.
         /// </summary>
@@ -1050,15 +1052,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public Cci.IFieldReference TryGetOrCreateFieldForStringValue(string text, TSyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            return PrivateImplementationDetails.TryGetOrCreateFieldForStringValue(
-                text,
-                (this, syntaxNode, diagnostics),
-                static arg =>
-                {
-                    var (@this, syntaxNode, diagnostics) = arg;
-                    return @this.GetPrivateImplClass(syntaxNode, diagnostics);
-                },
-                diagnostics);
+            return PrivateImplementationDetails.TryGetOrCreateFieldForStringValue(text, this, syntaxNode, diagnostics);
         }
 
         public abstract Cci.IMethodReference GetInitArrayHelper();
@@ -1089,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
 #nullable enable
 
-        internal PrivateImplementationDetails GetPrivateImplClass(TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        internal PrivateImplementationDetails GetPrivateImplClass(TSyntaxNode? syntaxNode, DiagnosticBag diagnostics)
         {
             var result = _lazyPrivateImplementationDetails;
 
@@ -1099,12 +1093,12 @@ namespace Microsoft.CodeAnalysis.Emit
                         this,
                         this.SourceModule.Name,
                         Compilation.GetSubmissionSlotIndex(),
-                        this.GetSpecialType(SpecialType.System_Object, syntaxNodeOpt, diagnostics),
-                        this.GetSpecialType(SpecialType.System_ValueType, syntaxNodeOpt, diagnostics),
-                        this.GetSpecialType(SpecialType.System_Byte, syntaxNodeOpt, diagnostics),
-                        this.GetSpecialType(SpecialType.System_Int16, syntaxNodeOpt, diagnostics),
-                        this.GetSpecialType(SpecialType.System_Int32, syntaxNodeOpt, diagnostics),
-                        this.GetSpecialType(SpecialType.System_Int64, syntaxNodeOpt, diagnostics),
+                        this.GetSpecialType(SpecialType.System_Object, syntaxNode, diagnostics),
+                        this.GetSpecialType(SpecialType.System_ValueType, syntaxNode, diagnostics),
+                        this.GetSpecialType(SpecialType.System_Byte, syntaxNode, diagnostics),
+                        this.GetSpecialType(SpecialType.System_Int16, syntaxNode, diagnostics),
+                        this.GetSpecialType(SpecialType.System_Int32, syntaxNode, diagnostics),
+                        this.GetSpecialType(SpecialType.System_Int64, syntaxNode, diagnostics),
                         SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
                 if (Interlocked.CompareExchange(ref _lazyPrivateImplementationDetails, result, null) != null)
@@ -1114,6 +1108,11 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return result;
+        }
+
+        internal override PrivateImplementationDetails GetPrivateImplClass(SyntaxNode? syntaxNode, DiagnosticBag diagnostics)
+        {
+            return GetPrivateImplClass((TSyntaxNode?)syntaxNode, diagnostics);
         }
 
         public PrivateImplementationDetails? FreezePrivateImplementationDetails()
