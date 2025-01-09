@@ -253,7 +253,13 @@ internal ref partial struct Worker
         switch (attribute.Kind())
         {
             case SyntaxKind.XmlTextAttribute:
-                ClassifyXmlTextTokens(((XmlTextAttributeSyntax)attribute).TextTokens);
+                // Since the langword attribute in `<see langword="..." />` is not parsed into its own
+                // SyntaxNode as cref is, we need to handle it specially.
+                if (IsLangWordAttribute(attribute))
+                    ClassifyLangWordTextTokenList(((XmlTextAttributeSyntax)attribute).TextTokens);
+                else
+                    ClassifyXmlTextTokens(((XmlTextAttributeSyntax)attribute).TextTokens);
+
                 break;
             case SyntaxKind.XmlCrefAttribute:
                 ClassifyNode(((XmlCrefAttributeSyntax)attribute).Cref);
@@ -264,6 +270,47 @@ internal ref partial struct Worker
         }
 
         AddXmlClassification(attribute.EndQuoteToken, ClassificationTypeNames.XmlDocCommentAttributeQuotes);
+
+        static bool IsLangWordAttribute(XmlAttributeSyntax attribute)
+        {
+            return attribute.Name.LocalName.Text == DocumentationCommentXmlNames.LangwordAttributeName && IsSeeElement(attribute.Parent);
+        }
+
+        static bool IsSeeElement(SyntaxNode? node)
+        {
+            return node is XmlElementStartTagSyntax { Name: XmlNameSyntax { Prefix: null, LocalName: SyntaxToken { Text: DocumentationCommentXmlNames.SeeElementName } } }
+                || node is XmlEmptyElementSyntax { Name: XmlNameSyntax { Prefix: null, LocalName: SyntaxToken { Text: DocumentationCommentXmlNames.SeeElementName } } };
+        }
+    }
+
+    private void ClassifyLangWordTextTokenList(SyntaxTokenList list)
+    {
+        foreach (var token in list)
+        {
+            if (token.HasLeadingTrivia)
+                ClassifyXmlTrivia(token.LeadingTrivia);
+
+            ClassifyLangWordTextToken(token);
+
+            if (token.HasTrailingTrivia)
+                ClassifyXmlTrivia(token.TrailingTrivia);
+        }
+    }
+
+    private void ClassifyLangWordTextToken(SyntaxToken token)
+    {
+        var kind = SyntaxFacts.GetKeywordKind(token.Text);
+        if (kind is SyntaxKind.None)
+            kind = SyntaxFacts.GetContextualKeywordKind(token.Text);
+
+        if (kind is SyntaxKind.None)
+        {
+            ClassifyXmlTextToken(token);
+            return;
+        }
+
+        var isControlKeyword = ClassificationHelpers.IsControlKeywordKind(kind) || ClassificationHelpers.IsControlStatementKind(kind);
+        AddClassification(token, isControlKeyword ? ClassificationTypeNames.ControlKeyword : ClassificationTypeNames.Keyword);
     }
 
     private void ClassifyXmlText(XmlTextSyntax node)
