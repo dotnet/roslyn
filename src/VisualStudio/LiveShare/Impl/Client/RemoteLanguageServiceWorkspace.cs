@@ -287,7 +287,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         public async Task<DocumentSpan?> GetDocumentSpanFromLocationAsync(LSP.Location location, CancellationToken cancellationToken)
         {
-            var document = GetOrAddDocument(location.Uri.LocalPath);
+            if (location.Uri.ParsedUri is null)
+            {
+                return null;
+            }
+
+            var document = GetOrAddDocument(location.Uri.ParsedUri.LocalPath);
             if (document == null)
             {
                 return null;

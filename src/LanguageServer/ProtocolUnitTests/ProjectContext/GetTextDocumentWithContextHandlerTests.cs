@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -99,13 +100,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
             }
         }
 
-        internal static async Task<LSP.VSProjectContextList?> RunGetProjectContext(TestLspServer testLspServer, Uri uri)
+        internal static async Task<LSP.VSProjectContextList?> RunGetProjectContext(TestLspServer testLspServer, DocumentUri uri)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.VSGetProjectContextsParams, LSP.VSProjectContextList?>(LSP.VSMethods.GetProjectContextsName,
                            CreateGetProjectContextParams(uri), cancellationToken: CancellationToken.None);
         }
 
-        private static LSP.VSGetProjectContextsParams CreateGetProjectContextParams(Uri uri)
+        private static LSP.VSGetProjectContextsParams CreateGetProjectContextParams(DocumentUri uri)
             => new LSP.VSGetProjectContextsParams()
             {
                 TextDocument = new LSP.TextDocumentItem { Uri = uri }

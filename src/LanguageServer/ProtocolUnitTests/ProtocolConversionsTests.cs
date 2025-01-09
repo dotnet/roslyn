@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 
                 Assert.Equal(expectedAbsoluteUri, ProtocolConversions.GetAbsoluteUriString(filePath));
 
-                var uri = ProtocolConversions.CreateAbsoluteUri(filePath);
-                Assert.Equal(expectedAbsoluteUri, uri.AbsoluteUri);
-                Assert.Equal(filePath, uri.LocalPath);
+                var uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
+                Assert.Equal(expectedAbsoluteUri, uri.GetRequiredParsedUri().AbsoluteUri);
+                Assert.Equal(filePath, uri.GetRequiredParsedUri().LocalPath);
             }
         }
 
@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         {
             Assert.Equal(expectedAbsoluteUri, ProtocolConversions.GetAbsoluteUriString(filePath));
 
-            var uri = ProtocolConversions.CreateAbsoluteUri(filePath);
-            Assert.Equal(expectedAbsoluteUri, uri.AbsoluteUri);
-            Assert.Equal(filePath.Replace('/', '\\'), uri.LocalPath);
+            var uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
+            Assert.Equal(expectedAbsoluteUri, uri.GetRequiredParsedUri().AbsoluteUri);
+            Assert.Equal(filePath.Replace('/', '\\'), uri.GetRequiredParsedUri().LocalPath);
         }
 
         [ConditionalTheory(typeof(WindowsOnly))]
@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         {
             Assert.Equal(expectedRawUri, ProtocolConversions.GetAbsoluteUriString(filePath));
 
-            var uri = ProtocolConversions.CreateAbsoluteUri(filePath);
-            Assert.Equal(expectedNormalizedUri, uri.AbsoluteUri);
-            Assert.Equal(Path.GetFullPath(filePath).Replace('/', '\\'), uri.LocalPath);
+            var uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
+            Assert.Equal(expectedNormalizedUri, uri.GetRequiredParsedUri().AbsoluteUri);
+            Assert.Equal(Path.GetFullPath(filePath).Replace('/', '\\'), uri.GetRequiredParsedUri().LocalPath);
         }
 
         [ConditionalTheory(typeof(UnixLikeOnly))]
@@ -105,9 +105,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         {
             Assert.Equal(expectedAbsoluteUri, ProtocolConversions.GetAbsoluteUriString(filePath));
 
-            var uri = ProtocolConversions.CreateAbsoluteUri(filePath);
-            Assert.Equal(expectedAbsoluteUri, uri.AbsoluteUri);
-            Assert.Equal(filePath, uri.LocalPath);
+            var uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
+            Assert.Equal(expectedAbsoluteUri, uri.GetRequiredParsedUri().AbsoluteUri);
+            Assert.Equal(filePath, uri.GetRequiredParsedUri().LocalPath);
         }
 
         [ConditionalTheory(typeof(WindowsOnly))]
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         public void CreateRelativePatternBaseUri_LocalPaths_Windows(string filePath, string expectedUri)
         {
             var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
-            Assert.Equal(expectedUri, uri.AbsoluteUri);
+            Assert.Equal(expectedUri, uri.GetRequiredParsedUri().AbsoluteUri);
         }
 
         [ConditionalTheory(typeof(UnixLikeOnly))]
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         public void CreateRelativePatternBaseUri_LocalPaths_Unix(string filePath, string expectedRelativeUri)
         {
             var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
-            Assert.Equal(expectedRelativeUri, uri.AbsoluteUri);
+            Assert.Equal(expectedRelativeUri, uri.GetRequiredParsedUri().AbsoluteUri);
         }
 
         [ConditionalTheory(typeof(UnixLikeOnly))]
@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         {
             Assert.Equal(expectedRawUri, ProtocolConversions.GetAbsoluteUriString(filePath));
 
-            var uri = ProtocolConversions.CreateAbsoluteUri(filePath);
-            Assert.Equal(expectedNormalizedUri, uri.AbsoluteUri);
-            Assert.Equal(filePath, uri.LocalPath);
+            var uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
+            Assert.Equal(expectedNormalizedUri, uri.GetRequiredParsedUri().AbsoluteUri);
+            Assert.Equal(filePath, uri.GetRequiredParsedUri().LocalPath);
         }
 
         [Theory]
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         [InlineData("xy://host/%2525%EE%89%9B/%C2%89%EC%9E%BD")]
         public void CreateAbsoluteUri_Urls(string url)
         {
-            Assert.Equal(url, ProtocolConversions.CreateAbsoluteUri(url).AbsoluteUri);
+            Assert.Equal(url, ProtocolConversions.CreateAbsoluteDocumentUri(url).GetRequiredParsedUri().AbsoluteUri);
         }
 
         [Fact]
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
             // Open an empty loose file.
-            var looseFileUri = ProtocolConversions.CreateAbsoluteUri(@"C:\SomeFile.cs");
+            var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
             await testLspServer.OpenDocumentAsync(looseFileUri, source).ConfigureAwait(false);
 
             var document = await GetTextDocumentAsync(testLspServer, looseFileUri);
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             Assert.True(projectContext.IsMiscellaneous);
         }
 
-        internal static async Task<TextDocument?> GetTextDocumentAsync(TestLspServer testLspServer, Uri uri)
+        internal static async Task<TextDocument?> GetTextDocumentAsync(TestLspServer testLspServer, DocumentUri uri)
         {
             var (_, _, textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new TextDocumentIdentifier { Uri = uri }, CancellationToken.None);
             return textDocument;

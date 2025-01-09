@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
         private protected static Task<ImmutableArray<TestDiagnosticResult>> RunGetDocumentPullDiagnosticsAsync(
             TestLspServer testLspServer,
-            Uri uri,
+            DocumentUri uri,
             bool useVSDiagnostics,
             string? previousResultId = null,
             bool useProgress = false,
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         /// </summary>
         private protected record TestDiagnosticResult(TextDocumentIdentifier TextDocument, string? ResultId, LSP.Diagnostic[]? Diagnostics)
         {
-            public Uri Uri { get; } = TextDocument.Uri;
+            public DocumentUri Uri { get; } = TextDocument.Uri;
         }
 
         [DiagnosticAnalyzer(InternalLanguageNames.TypeScript), PartNotDiscoverable]

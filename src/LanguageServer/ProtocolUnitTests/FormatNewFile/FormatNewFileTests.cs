@@ -74,11 +74,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SimplifyMethod
             {
                 Project = new TextDocumentIdentifier
                 {
-                    Uri = ProtocolConversions.CreateAbsoluteUri(project.FilePath)
+                    Uri = ProtocolConversions.CreateAbsoluteDocumentUri(project.FilePath)
                 },
                 Document = new TextDocumentIdentifier
                 {
-                    Uri = ProtocolConversions.CreateAbsoluteUri(newFilePath)
+                    Uri = ProtocolConversions.CreateAbsoluteDocumentUri(newFilePath)
                 },
                 Contents = input
             };

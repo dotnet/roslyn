@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Assert.Null(solution);
         }
 
-        private static async Task ExecuteDidOpen(TestLspServer testLspServer, Uri documentUri)
+        private static async Task ExecuteDidOpen(TestLspServer testLspServer, DocumentUri documentUri)
         {
             var didOpenParams = new LSP.DidOpenTextDocumentParams
             {

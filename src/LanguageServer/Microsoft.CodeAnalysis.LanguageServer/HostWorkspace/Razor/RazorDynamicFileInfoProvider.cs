@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
@@ -55,7 +56,7 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
     {
         _razorWorkspaceListenerInitializer.Value.NotifyDynamicFile(projectId);
 
-        var razorUri = ProtocolConversions.CreateAbsoluteUri(filePath);
+        var razorUri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
         var requestParams = new RazorProvideDynamicFileParams
         {
             RazorDocument = new()
@@ -77,7 +78,8 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 
         // Since we only sent one file over, we should get either zero or one URI back
         var responseUri = response.CSharpDocument.Uri;
-        var dynamicFileInfoFilePath = ProtocolConversions.GetDocumentFilePathFromUri(responseUri);
+        var parsedUri = responseUri.GetRequiredParsedUri();
+        var dynamicFileInfoFilePath = ProtocolConversions.GetDocumentFilePathFromUri(parsedUri);
 
         if (response.Updates is not null)
         {
@@ -113,7 +115,7 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
         {
             CSharpDocument = new()
             {
-                Uri = ProtocolConversions.CreateAbsoluteUri(filePath)
+                Uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath)
             }
         };
 

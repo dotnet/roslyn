@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -44,7 +45,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Open an empty loose file with a file URI.
-        var looseFileUri = ProtocolConversions.CreateAbsoluteUri(filePath);
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
         await testLspServer.OpenDocumentAsync(looseFileUri, source, languageId: "csharp").ConfigureAwait(false);
 
         // Verify file is added to the misc file workspace.
@@ -70,7 +71,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Open an empty loose file that hasn't been saved with a name.
-        var looseFileUri = ProtocolConversions.CreateAbsoluteUri(@"untitled:untitledFile");
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"untitled:untitledFile");
         await testLspServer.OpenDocumentAsync(looseFileUri, source, languageId: "csharp").ConfigureAwait(false);
 
         // Verify file is added to the misc file workspace.
@@ -78,7 +79,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
         Assert.True(workspace is LspMiscellaneousFilesWorkspace);
         AssertEx.NotNull(document);
         Assert.Equal(looseFileUri, document.GetURI());
-        Assert.Equal(looseFileUri.OriginalString, document.FilePath);
+        Assert.Equal(looseFileUri.UriString, document.FilePath);
     }
 
     [Theory, CombinatorialData]
@@ -100,7 +101,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var workspaceDocument = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
-        var expectedDocumentUri = ProtocolConversions.CreateAbsoluteUri(documentFilePath);
+        var expectedDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentFilePath);
 
         await testLspServer.OpenDocumentAsync(expectedDocumentUri).ConfigureAwait(false);
 
@@ -115,8 +116,8 @@ public class UriTests : AbstractLanguageServerProtocolTests
 
         // Try again, this time with a uri with different case sensitivity.  This is supported, and is needed by Xaml.
         {
-            var lowercaseUri = ProtocolConversions.CreateAbsoluteUri(documentFilePath.ToLowerInvariant());
-            Assert.NotEqual(expectedDocumentUri.AbsolutePath, lowercaseUri.AbsolutePath);
+            var lowercaseUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentFilePath.ToLowerInvariant());
+            Assert.NotEqual(expectedDocumentUri.GetRequiredParsedUri().AbsolutePath, lowercaseUri.GetRequiredParsedUri().AbsolutePath);
             var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = lowercaseUri }, CancellationToken.None);
             Assert.False(workspace is LspMiscellaneousFilesWorkspace);
             AssertEx.NotNull(document);
@@ -138,9 +139,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
 
         // Add a git version of this document. Instead of "file://FILEPATH" the uri is "git://FILEPATH"
 
-#pragma warning disable RS0030 // Do not use banned APIs
-        var gitDocumentUri = new Uri(fileDocumentUri.ToString().Replace("file", "git"));
-#pragma warning restore
+        var gitDocumentUri = new DocumentUri(fileDocumentUri.ToString().Replace("file", "git"));
 
         var gitDocumentText = "GitText";
         await testLspServer.OpenDocumentAsync(gitDocumentUri, gitDocumentText);
@@ -191,9 +190,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
 
         // Now make a request using the encoded document to ensure the server is able to find the document in misc C# files.
         var encodedUriString = @"git:/c:/Users/dabarbet/source/repos/ConsoleApp10/ConsoleApp10/Program.cs?%7B%7B%22path%22:%22c:%5C%5CUsers%5C%5Cdabarbet%5C%5Csource%5C%5Crepos%5C%5CConsoleApp10%5C%5CConsoleApp10%5C%5CProgram.cs%22,%22ref%22:%22~%22%7D%7D";
-#pragma warning disable RS0030 // Do not use banned APIs
-        var encodedUri = new Uri(encodedUriString, UriKind.Absolute);
-#pragma warning restore RS0030 // Do not use banned APIs
+        var encodedUri = new DocumentUri(encodedUriString);
         var info = await testLspServer.ExecuteRequestAsync<CustomResolveParams, ResolvedDocumentInfo>(CustomResolveHandler.MethodName,
                 new CustomResolveParams(new LSP.TextDocumentIdentifier { Uri = encodedUri }), CancellationToken.None);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
@@ -215,16 +212,14 @@ public class UriTests : AbstractLanguageServerProtocolTests
     {
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
-#pragma warning disable RS0030 // Do not use banned APIs
-        var upperCaseUri = new Uri(@"file:///C:/Users/dabarbet/source/repos/XUnitApp1/UnitTest1.cs", UriKind.Absolute);
-        var lowerCaseUri = new Uri(@"file:///c:/Users/dabarbet/source/repos/XUnitApp1/UnitTest1.cs", UriKind.Absolute);
-#pragma warning restore RS0030 // Do not use banned APIs
+        var upperCaseUri = new DocumentUri(@"file:///C:/Users/dabarbet/source/repos/XUnitApp1/UnitTest1.cs");
+        var lowerCaseUri = new DocumentUri(@"file:///c:/Users/dabarbet/source/repos/XUnitApp1/UnitTest1.cs");
 
         // Execute the request as JSON directly to avoid the test client serializing System.Uri.
         var requestJson = $$$"""
             {
                 "textDocument": {
-                    "uri": "{{{upperCaseUri.OriginalString}}}",
+                    "uri": "{{{upperCaseUri.UriString}}}",
                     "languageId": "csharp",
                     "text": "LSP text"
                 }
@@ -263,16 +258,14 @@ public class UriTests : AbstractLanguageServerProtocolTests
     {
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
-#pragma warning disable RS0030 // Do not use banned APIs
-        var upperCaseUri = new Uri(@"git:/Blah", UriKind.Absolute);
-        var lowerCaseUri = new Uri(@"git:/blah", UriKind.Absolute);
-#pragma warning restore RS0030 // Do not use banned APIs
+        var upperCaseUri = new DocumentUri(@"git:/Blah");
+        var lowerCaseUri = new DocumentUri(@"git:/blah");
 
         // Execute the request as JSON directly to avoid the test client serializing System.Uri.
         var requestJson = $$$"""
             {
                 "textDocument": {
-                    "uri": "{{{upperCaseUri.OriginalString}}}",
+                    "uri": "{{{upperCaseUri.UriString}}}",
                     "languageId": "csharp",
                     "text": "LSP text"
                 }
@@ -302,7 +295,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Open an empty loose file that hasn't been saved with a name.
-        var looseFileUri = ProtocolConversions.CreateAbsoluteUri(@"untitled:untitledFile");
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"untitled:untitledFile");
         await testLspServer.OpenDocumentAsync(looseFileUri, "hello", languageId: "csharp").ConfigureAwait(false);
 
         // Verify file is added to the misc file workspace.
@@ -310,7 +303,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
         Assert.True(workspace is LspMiscellaneousFilesWorkspace);
         AssertEx.NotNull(document);
         Assert.Equal(looseFileUri, document.GetURI());
-        Assert.Equal(looseFileUri.OriginalString, document.FilePath);
+        Assert.Equal(looseFileUri.UriString, document.FilePath);
 
         // Close the document (deleting the saved language information)
         await testLspServer.CloseDocumentAsync(looseFileUri);
@@ -321,6 +314,41 @@ public class UriTests : AbstractLanguageServerProtocolTests
                 new CustomResolveParams(new LSP.TextDocumentIdentifier { Uri = looseFileUri }), CancellationToken.None));
         Assert.False(testLspServer.GetServerAccessor().HasShutdownStarted());
         Assert.False(testLspServer.GetQueueAccessor()!.Value.IsComplete());
+    }
+
+    [Theory]
+    // Invalid URIs
+    [InlineData(true, "file://invalid^uri")]
+    [InlineData(false, "file://invalid^uri")]
+    [InlineData(true, "perforce://%239/some/file/here/source.cs")]
+    [InlineData(false, "perforce://%239/some/file/here/source.cs")]
+    // Valid URI, but System.Uri cannot parse it.
+    [InlineData(true, "vscode-notebook-cell://dev-container+7b2/workspaces/devkit-crash/notebook.ipynb")]
+    [InlineData(false, "vscode-notebook-cell://dev-container+7b2/workspaces/devkit-crash/notebook.ipynb")]
+    // Valid URI, but System.Uri cannot parse it.
+    [InlineData(true, "perforce://@=1454483/some/file/here/source.cs")]
+    [InlineData(false, "perforce://@=1454483/some/file/here/source.cs")]
+    public async Task TestOpenDocumentWithInvalidUri(bool mutatingLspWorkspace, string uriString)
+    {
+        // Create a server that supports LSP misc files
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        // Open file with a URI System.Uri cannot parse.  This should not crash the server.
+        var invalidUri = new DocumentUri(uriString);
+        // ParsedUri should be null as System.Uri cannot parse it.
+        Assert.Null(invalidUri.ParsedUri);
+        await testLspServer.OpenDocumentAsync(invalidUri, string.Empty, languageId: "csharp").ConfigureAwait(false);
+
+        // Verify requests succeed and that the file is in misc.
+        var info = await testLspServer.ExecuteRequestAsync<CustomResolveParams, ResolvedDocumentInfo>(CustomResolveHandler.MethodName,
+                new CustomResolveParams(new LSP.TextDocumentIdentifier { Uri = invalidUri }), CancellationToken.None);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, info!.WorkspaceKind);
+        Assert.Equal(LanguageNames.CSharp, info.ProjectLanguage);
+
+        // Verify we can modify the document in misc.
+        await testLspServer.InsertTextAsync(invalidUri, (0, 0, "hello"));
+        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = invalidUri }, CancellationToken.None);
+        Assert.Equal("hello", (await document!.GetTextAsync()).ToString());
     }
 
     private record class ResolvedDocumentInfo(string WorkspaceKind, string ProjectLanguage);

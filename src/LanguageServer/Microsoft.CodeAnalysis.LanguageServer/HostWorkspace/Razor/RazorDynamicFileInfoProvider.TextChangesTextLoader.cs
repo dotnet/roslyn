@@ -6,6 +6,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
@@ -18,14 +19,14 @@ internal partial class RazorDynamicFileInfoProvider
         byte[] checksum,
         SourceHashAlgorithm checksumAlgorithm,
         int? codePage,
-        Uri razorUri) : TextLoader
+        DocumentUri razorUri) : TextLoader
     {
         private readonly TextDocument? _document = document;
         private readonly IEnumerable<RazorDynamicFileUpdate> _updates = updates;
         private readonly byte[] _checksum = checksum;
         private readonly SourceHashAlgorithm _checksumAlgorithm = checksumAlgorithm;
         private readonly int? _codePage = codePage;
-        private readonly Uri _razorUri = razorUri;
+        private readonly DocumentUri _razorUri = razorUri;
 
         private readonly Lazy<SourceText> _emptySourceText = new Lazy<SourceText>(() =>
         {

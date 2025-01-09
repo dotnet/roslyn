@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -107,7 +108,7 @@ void M()
 
         private static async Task<LSP.TextEdit[]> RunFormatDocumentAsync(
             TestLspServer testLspServer,
-            Uri uri,
+            DocumentUri uri,
             bool insertSpaces = true,
             int tabSize = 4)
         {
@@ -115,7 +116,7 @@ void M()
                 CreateDocumentFormattingParams(uri, insertSpaces, tabSize), CancellationToken.None);
         }
 
-        private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(Uri uri, bool insertSpaces, int tabSize)
+        private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(DocumentUri uri, bool insertSpaces, int tabSize)
             => new LSP.DocumentFormattingParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(uri),

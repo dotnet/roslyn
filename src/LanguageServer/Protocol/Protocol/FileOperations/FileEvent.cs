@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [JsonPropertyName("uri")]
         [JsonConverter(typeof(DocumentUriConverter))]
-        public Uri Uri { get; set; }
+        public DocumentUri Uri { get; set; }
 
         /// <summary>
         /// Gets or sets the file change type.

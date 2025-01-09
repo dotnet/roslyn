@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
                 DefinitionIcon = new ImageElement(definitionGlyph.ToLSPImageId()),
                 Location = location,
-                DisplayPath = location?.Uri.LocalPath,
+                DisplayPath = location?.Uri.GetRequiredParsedUri().LocalPath,
                 Id = id,
                 Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : [],
                 ResolutionStatus = VSInternalResolutionStatusKind.ConfirmedAsReference,
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 return new LSP.Location
                 {
-                    Uri = ProtocolConversions.CreateAbsoluteUri(declarationFile.FilePath),
+                    Uri = ProtocolConversions.CreateAbsoluteDocumentUri(declarationFile.FilePath),
                     Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                 };
             }

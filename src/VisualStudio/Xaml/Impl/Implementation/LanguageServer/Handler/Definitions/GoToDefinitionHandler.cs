@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             if (sourceDefinition.Span != null)
             {
                 // If the Span is not null, use the span.
-                var document = await solution.GetTextDocumentAsync(new TextDocumentIdentifier { Uri = ProtocolConversions.CreateAbsoluteUri(sourceDefinition.FilePath) }, cancellationToken).ConfigureAwait(false);
+                var document = await solution.GetTextDocumentAsync(new TextDocumentIdentifier { Uri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceDefinition.FilePath) }, cancellationToken).ConfigureAwait(false);
                 if (document != null)
                 {
                     return await ProtocolConversions.TextSpanToLocationAsync(
@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                     var sourceText = SourceText.From(fileStream);
                     return new LSP.Location
                     {
-                        Uri = new Uri(sourceDefinition.FilePath),
+                        Uri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceDefinition.FilePath),
                         Range = ProtocolConversions.TextSpanToRange(sourceDefinition.Span.Value, sourceText)
                     };
                 }
@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
                 return new LSP.Location
                 {
-                    Uri = new Uri(sourceDefinition.FilePath),
+                    Uri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceDefinition.FilePath),
                     Range = new LSP.Range() { Start = position, End = position }
                 };
             }
@@ -182,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location
                         {
-                            Uri = new Uri(declarationFile.FilePath),
+                            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(declarationFile.FilePath),
                             Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                         });
                     }

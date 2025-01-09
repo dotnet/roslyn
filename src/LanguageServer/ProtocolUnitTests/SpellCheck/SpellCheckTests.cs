@@ -372,7 +372,7 @@ class {|Identifier:A|}
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
-            Assert.True(results.All(r => r.TextDocument!.Uri.LocalPath == "C:\\C.cs"));
+            Assert.True(results.All(r => r.TextDocument!.Uri.GetRequiredParsedUri().LocalPath == "C:\\C.cs"));
         }
 
         //        [Fact]
@@ -599,7 +599,7 @@ class {|Identifier:A|}
 
         private static async Task<VSInternalSpellCheckableRangeReport[]> RunGetDocumentSpellCheckSpansAsync(
             TestLspServer testLspServer,
-            Uri uri,
+            DocumentUri uri,
             string? previousResultId = null,
             bool useProgress = false)
         {
@@ -622,7 +622,7 @@ class {|Identifier:A|}
 
         private static async Task<VSInternalWorkspaceSpellCheckableReport[]> RunGetWorkspaceSpellCheckSpansAsync(
             TestLspServer testLspServer,
-            ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
+            ImmutableArray<(string resultId, DocumentUri uri)>? previousResults = null,
             bool useProgress = false)
         {
             BufferedProgress<VSInternalWorkspaceSpellCheckableReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceSpellCheckableReport[]>(null) : null;
@@ -654,7 +654,7 @@ class {|Identifier:A|}
         }
 
         private static VSInternalDocumentSpellCheckableParams CreateDocumentParams(
-            Uri uri,
+            DocumentUri uri,
             string? previousResultId = null,
             IProgress<VSInternalSpellCheckableRangeReport[]>? progress = null)
         {
@@ -667,7 +667,7 @@ class {|Identifier:A|}
         }
 
         private static VSInternalWorkspaceSpellCheckableParams CreateWorkspaceParams(
-            ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
+            ImmutableArray<(string resultId, DocumentUri uri)>? previousResults = null,
             IProgress<VSInternalWorkspaceSpellCheckableReport[]>? progress = null)
         {
             return new VSInternalWorkspaceSpellCheckableParams
@@ -677,7 +677,7 @@ class {|Identifier:A|}
             };
         }
 
-        private static ImmutableArray<(string resultId, Uri uri)> CreateParamsFromPreviousReports(VSInternalWorkspaceSpellCheckableReport[] results)
+        private static ImmutableArray<(string resultId, DocumentUri uri)> CreateParamsFromPreviousReports(VSInternalWorkspaceSpellCheckableReport[] results)
         {
             return [.. results.Select(r => (r.ResultId!, r.TextDocument.Uri))];
         }

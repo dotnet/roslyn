@@ -170,7 +170,7 @@ $@"<Workspace>
             var renameText = "RENAME";
             var renameParams = CreateRenameParams(new LSP.Location
             {
-                Uri = ProtocolConversions.CreateAbsoluteUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
+                Uri = ProtocolConversions.CreateAbsoluteDocumentUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
                 Range = new LSP.Range { Start = startPosition, End = endPosition }
             }, "RENAME");
 

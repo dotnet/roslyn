@@ -128,7 +128,7 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
             Assert.NotNull(results.Changes);
             Assert.Null(results.DocumentChanges);
 
-            Assert.True(results.Changes!.TryGetValue(ProtocolConversions.GetDocumentFilePathFromUri(documentUri), out edits));
+            Assert.True(results.Changes!.TryGetValue(ProtocolConversions.GetDocumentFilePathFromUri(documentUri.GetRequiredParsedUri()), out edits));
         }
 
         var documentText = await document.GetTextAsync();

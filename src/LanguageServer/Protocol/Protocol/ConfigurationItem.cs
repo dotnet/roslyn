@@ -21,7 +21,7 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonPropertyName("scopeUri")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonConverter(typeof(DocumentUriConverter))]
-        public Uri? ScopeUri
+        public DocumentUri? ScopeUri
         {
             get;
             set;

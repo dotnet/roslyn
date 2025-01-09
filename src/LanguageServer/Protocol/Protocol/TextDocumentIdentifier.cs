@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [JsonPropertyName("uri")]
         [JsonConverter(typeof(DocumentUriConverter))]
-        public Uri Uri
+        public DocumentUri Uri
         {
             get;
             set;
@@ -69,13 +69,13 @@ namespace Roslyn.LanguageServer.Protocol
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return this.Uri == null ? 89 : this.Uri.GetHashCode();
+            return this.Uri is null ? 89 : this.Uri.GetHashCode();
         }
 
         /// <inheritdoc/>
         public override string ToString()
         {
-            return this.Uri == null ? string.Empty : this.Uri.AbsolutePath;
+            return this.Uri.ToString();
         }
     }
 }

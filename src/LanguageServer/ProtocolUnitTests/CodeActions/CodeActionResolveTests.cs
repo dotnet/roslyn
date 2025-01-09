@@ -193,7 +193,7 @@ class {|caret:ABC|}
                 groupName: "Roslyn2",
                 applicableRange: new LSP.Range { Start = new Position { Line = 0, Character = 6 }, End = new Position { Line = 0, Character = 9 } },
                 diagnostics: null,
-                edit: GenerateRenameFileEdit(new List<(Uri, Uri)> { (documentUriBefore, documentUriAfter) }));
+                edit: GenerateRenameFileEdit(new List<(DocumentUri, DocumentUri)> { (documentUriBefore, documentUriAfter) }));
 
             AssertJsonEquals(expectedCodeAction, actualResolvedAction);
         }
@@ -343,7 +343,7 @@ class BCD
             var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
 
             var project = testWorkspace.CurrentSolution.Projects.Single();
-            var newDocumentUri = ProtocolConversions.CreateAbsoluteUri(Path.Combine(Path.GetDirectoryName(project.FilePath), "ABC.cs"));
+            var newDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(Path.GetDirectoryName(project.FilePath), "ABC.cs"));
             var existingDocumentUri = testWorkspace.CurrentSolution.GetRequiredDocument(testWorkspace.Documents.Single().Id).GetURI();
             var workspaceEdit = new WorkspaceEdit()
             {
@@ -470,7 +470,7 @@ class {|caret:BCD|}
             var existingDocumentUri = existingDocument.GetURI();
 
             Assert.Contains(Path.Combine("dir1", "dir2", "dir3"), existingDocument.FilePath);
-            var newDocumentUri = ProtocolConversions.CreateAbsoluteUri(
+            var newDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(
                 Path.Combine(Path.GetDirectoryName(existingDocument.FilePath), "BCD.cs"));
             var workspaceEdit = new WorkspaceEdit()
             {
@@ -583,7 +583,7 @@ class {|caret:BCD|}
                 }
             };
 
-        private static WorkspaceEdit GenerateRenameFileEdit(IList<(Uri oldUri, Uri newUri)> renameLocations)
+        private static WorkspaceEdit GenerateRenameFileEdit(IList<(DocumentUri oldUri, DocumentUri newUri)> renameLocations)
             => new()
             {
                 DocumentChanges = renameLocations.Select(

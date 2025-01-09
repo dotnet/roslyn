@@ -21,6 +21,7 @@ using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
@@ -127,7 +128,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         return languageServer;
     }
 
-    internal record TSRequest(Uri Document, string Project);
+    internal record TSRequest([property: JsonConverter(typeof(DocumentUriConverter))] DocumentUri Document, string Project);
 
     [ExportTypeScriptLspServiceFactory(typeof(TypeScriptHandler)), PartNotDiscoverable, Shared]
     internal class TypeScriptHandlerFactory : AbstractVSTypeScriptRequestHandlerFactory
@@ -157,7 +158,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 
         protected override TypeScriptTextDocumentIdentifier? GetTypeSciptTextDocumentIdentifier(TSRequest request)
         {
-            return new TypeScriptTextDocumentIdentifier(request.Document, request.Project);
+            return new TypeScriptTextDocumentIdentifier(request.Document.GetRequiredParsedUri(), request.Project);
         }
 
         protected override Task<int> HandleRequestAsync(TSRequest request, TypeScriptRequestContext context, CancellationToken cancellationToken)

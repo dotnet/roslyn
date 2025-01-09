@@ -191,13 +191,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // { "textDocument": { "uri": "<uri>" ... } ... }
             //
             // We can easily identify the URI for the request by looking for this structure
-            Uri? uri = null;
+            DocumentUri? uri = null;
             if (parameters.TryGetProperty("textDocument", out var textDocumentToken) ||
                 parameters.TryGetProperty("_vs_textDocument", out textDocumentToken))
             {
-                var uriToken = textDocumentToken.GetProperty("uri");
-                uri = JsonSerializer.Deserialize<Uri>(uriToken, ProtocolConversions.LspJsonSerializerOptions);
-                Contract.ThrowIfNull(uri, "Failed to deserialize uri property");
+                //var uriToken = textDocumentToken.GetProperty("uri");
+                var textDocumentIdentifier = JsonSerializer.Deserialize<TextDocumentIdentifier>(textDocumentToken, ProtocolConversions.LspJsonSerializerOptions);
+                Contract.ThrowIfNull(textDocumentIdentifier, "Failed to deserialize uri property");
+                uri = textDocumentIdentifier.Uri;
             }
             else if (parameters.TryGetProperty("data", out var dataToken))
             {
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 uri = data.TextDocument.Uri;
             }
 
-            if (uri == null)
+            if (uri is null)
             {
                 // This request is not for a textDocument and is not a resolve request.
                 Logger.LogInformation("Request did not contain a textDocument, using default language handler");

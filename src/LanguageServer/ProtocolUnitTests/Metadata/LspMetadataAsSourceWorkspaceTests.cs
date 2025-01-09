@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -116,10 +117,10 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
 
         Assert.NotNull(definitionFromMetadata);
         Assert.NotEmpty(definitionFromMetadata);
-        Assert.Contains("String.cs", definitionFromMetadata.Single().Uri.LocalPath);
+        Assert.Contains("String.cs", definitionFromMetadata.Single().Uri.UriString);
     }
 
-    private static async Task<Workspace> GetWorkspaceForDocument(TestLspServer testLspServer, Uri fileUri)
+    private static async Task<Workspace> GetWorkspaceForDocument(TestLspServer testLspServer, DocumentUri fileUri)
     {
         var (lspWorkspace, _, _) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = fileUri }, CancellationToken.None);
         return lspWorkspace!;

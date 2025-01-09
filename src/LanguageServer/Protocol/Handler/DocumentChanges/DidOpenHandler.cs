@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(DidOpenHandler)), Shared]
     [Method(LSP.Methods.TextDocumentDidOpenName)]
-    internal class DidOpenHandler : ILspServiceNotificationHandler<LSP.DidOpenTextDocumentParams>, ITextDocumentIdentifierHandler<LSP.DidOpenTextDocumentParams, Uri>
+    internal class DidOpenHandler : ILspServiceNotificationHandler<LSP.DidOpenTextDocumentParams>, ITextDocumentIdentifierHandler<LSP.DidOpenTextDocumentParams, LSP.TextDocumentItem>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => false;
 
-        public Uri GetTextDocumentIdentifier(LSP.DidOpenTextDocumentParams request) => request.TextDocument.Uri;
+        public LSP.TextDocumentItem GetTextDocumentIdentifier(LSP.DidOpenTextDocumentParams request) => request.TextDocument;
 
         public async Task HandleNotificationAsync(LSP.DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {

@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -457,11 +458,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             return (testLspServer, locationTyped, documentText.ToString());
         }
 
-        private static Task DidOpen(TestLspServer testLspServer, Uri uri) => testLspServer.OpenDocumentAsync(uri);
+        private static Task DidOpen(TestLspServer testLspServer, DocumentUri uri) => testLspServer.OpenDocumentAsync(uri);
 
-        private static async Task DidChange(TestLspServer testLspServer, Uri uri, params (int line, int column, string text)[] changes)
+        private static async Task DidChange(TestLspServer testLspServer, DocumentUri uri, params (int line, int column, string text)[] changes)
             => await testLspServer.InsertTextAsync(uri, changes);
 
-        private static async Task DidClose(TestLspServer testLspServer, Uri uri) => await testLspServer.CloseDocumentAsync(uri);
+        private static async Task DidClose(TestLspServer testLspServer, DocumentUri uri) => await testLspServer.CloseDocumentAsync(uri);
     }
 }

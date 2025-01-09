@@ -69,7 +69,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             testLspServer, document.GetURI(), useVSDiagnostics);
 
         Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
-        Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href);
+        Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href.ParsedUri);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/fsharp/issues/15972")]
@@ -636,7 +636,7 @@ class B {";
 
         // Assert that we have diagnostics even though the option is set to push.
         Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
-        Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href);
+        Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href.ParsedUri);
     }
 
     [Theory, CombinatorialData]
@@ -660,7 +660,7 @@ class B {";
 
         // Assert that we have diagnostics even though the option is set to push.
         Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
-        Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href);
+        Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href.ParsedUri);
     }
 
     [Theory, CombinatorialData]
@@ -1374,7 +1374,7 @@ class A {
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.False(results.Any(r => r.TextDocument!.Uri.LocalPath.Contains(".ts")));
+        Assert.False(results.Any(r => r.TextDocument!.Uri.GetRequiredParsedUri().LocalPath.Contains(".ts")));
     }
 
     [Theory, CombinatorialData]
@@ -1549,7 +1549,7 @@ class A {";
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         Assert.Equal(3, results.Length);
-        Assert.Equal(ProtocolConversions.CreateAbsoluteUri(@"C:\test1.cs"), results[0].TextDocument!.Uri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test1.cs"), results[0].TextDocument!.Uri);
         Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
         Assert.Equal(1, results[0].Diagnostics.Single().Range.Start.Line);
         AssertEx.Empty(results[1].Diagnostics);
@@ -1945,9 +1945,9 @@ class A {";
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
         Assert.Equal(3, results.Length);
-        Assert.Equal(@"C:/C.cs", results[0].TextDocument.Uri.AbsolutePath);
-        Assert.Equal(@"C:/CSProj1.csproj", results[1].TextDocument.Uri.AbsolutePath);
-        Assert.Equal(@"C:/C2.cs", results[2].TextDocument.Uri.AbsolutePath);
+        Assert.Equal(@"C:/C.cs", results[0].TextDocument.Uri.GetRequiredParsedUri().AbsolutePath);
+        Assert.Equal(@"C:/CSProj1.csproj", results[1].TextDocument.Uri.GetRequiredParsedUri().AbsolutePath);
+        Assert.Equal(@"C:/C2.cs", results[2].TextDocument.Uri.GetRequiredParsedUri().AbsolutePath);
     }
 
     [Theory, CombinatorialData]

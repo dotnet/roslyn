@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonPropertyName("oldUri")]
         [JsonRequired]
         [JsonConverter(typeof(DocumentUriConverter))]
-        public Uri OldUri
+        public DocumentUri OldUri
         {
             get;
             set;
@@ -42,7 +42,7 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonPropertyName("newUri")]
         [JsonRequired]
         [JsonConverter(typeof(DocumentUriConverter))]
-        public Uri NewUri
+        public DocumentUri NewUri
         {
             get;
             set;
