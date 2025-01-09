@@ -139,22 +139,6 @@ internal sealed partial class CSharpExtractMethodService
         public override bool IsFinalSpanSemanticallyValidSpan(
             ImmutableArray<StatementSyntax> returnStatements, CancellationToken cancellationToken)
         {
-            // return statement shouldn't contain any return value
-            if (returnStatements.Cast<ReturnStatementSyntax>().Any(r => r.Expression != null))
-                return false;
-
-            var container = returnStatements.First().AncestorsAndSelf().FirstOrDefault(n => n.IsReturnableConstruct());
-            if (container == null)
-                return false;
-
-            var body = container.GetBlockBody();
-            if (body == null)
-                return false;
-
-            // make sure that next token of the last token in the selection is the close braces of containing block
-            if (body.CloseBraceToken != GetLastTokenInSelection().GetNextToken(includeZeroWidth: true))
-                return false;
-
             return true;
         }
     }

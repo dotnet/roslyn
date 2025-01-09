@@ -7704,7 +7704,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
     public async Task Bug6313_1()
     {
-        var code = """
+        await TestExtractMethodAsync("""
             using System;
 
             class Program
@@ -7718,15 +7718,39 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                     Console.WriteLine();
                 }
             }
-            """;
+            """,
+            """
+            using System;
 
-        await ExpectExtractMethodToFailAsync(code);
+            class Program
+            {
+                void Test(bool b)
+                {
+                    bool flowControl = NewMethod(b);
+                    if (!flowControl)
+                    {
+                        return;
+                    }
+                    Console.WriteLine();
+                }
+
+                private static bool NewMethod(bool b)
+                {
+                    if (b)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
     public async Task Bug6313_2()
     {
-        var code = """
+        await TestExtractMethodAsync("""
             using System;
 
             class Program
@@ -7740,9 +7764,31 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                     Console.WriteLine();|]
                 }
             }
-            """;
+            """, """
+            using System;
 
-        await ExpectExtractMethodToFailAsync(code);
+            class Program
+            {
+                int Test(bool b)
+                {
+                    (bool flowControl, int value) = NewMethod(b);
+                    if (!flowControl)
+                    {
+                        return value;
+                    }
+                }
+
+                private static (bool flowControl, int value) NewMethod(bool b)
+                {
+                    if (b)
+                    {
+                        return (flowControl: false, value: 1);
+                    }
+                    Console.WriteLine();
+                    return (flowControl: true, value: default);
+                }
+            }
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
@@ -7939,7 +7985,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
     public async Task Bug6313_6()
     {
-        var code = """
+        await TestExtractMethodAsync("""
             using System;
 
             class Program
@@ -7957,8 +8003,36 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                     };
                 }
             }
-            """;
-        await ExpectExtractMethodToFailAsync(code);
+            """, """
+            using System;
+
+            class Program
+            {
+                void Test()
+                {
+                    Action d = () =>
+                    {
+                        bool flowControl = NewMethod();
+                        if (!flowControl)
+                        {
+                            return;
+                        }
+                        Console.WriteLine(1);
+                    };
+                }
+
+                private static bool NewMethod()
+                {
+                    int i = 1;
+                    if (i > 10)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540170")]
