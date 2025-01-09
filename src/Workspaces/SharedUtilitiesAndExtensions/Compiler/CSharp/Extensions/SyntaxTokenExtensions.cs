@@ -54,7 +54,6 @@ internal static partial class SyntaxTokenExtensions
     /// actual keywords, contextual keywords, and even 'var' and 'dynamic'
     /// </summary>
     /// <param name="token"></param>
-    /// <returns></returns>
     public static bool CouldBeKeyword(this SyntaxToken token)
     {
         if (token.IsKeyword())

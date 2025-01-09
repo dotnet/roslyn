@@ -366,7 +366,6 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Create a new <see cref="ScriptOptions"/> with the specified <see cref="OptimizationLevel"/>.
         /// </summary>
-        /// <returns></returns>
         public ScriptOptions WithOptimizationLevel(OptimizationLevel optimizationLevel)
             => optimizationLevel == OptimizationLevel ? this : new ScriptOptions(this) { OptimizationLevel = optimizationLevel };
 

@@ -1830,7 +1830,6 @@ public abstract class SyntaxGenerator : ILanguageService
     /// Creates an expression that denotes a simple identifier name.
     /// </summary>
     /// <param name="identifier"></param>
-    /// <returns></returns>
     public SyntaxNode IdentifierName(string identifier)
         => this.SyntaxGeneratorInternal.IdentifierName(identifier);
 
@@ -1924,7 +1923,6 @@ public abstract class SyntaxGenerator : ILanguageService
     /// Creates a name that denotes a type or namespace.
     /// </summary>
     /// <param name="namespaceOrTypeSymbol">The symbol to create a name for.</param>
-    /// <returns></returns>
     public abstract SyntaxNode NameExpression(INamespaceOrTypeSymbol namespaceOrTypeSymbol);
 
     /// <summary>

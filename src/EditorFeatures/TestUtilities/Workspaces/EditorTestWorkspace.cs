@@ -243,7 +243,6 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
     /// preserved. The markup may also contain the caret indicator.</param>
     /// <param name="baseDocuments">The set of documents from which the projection buffer 
     /// document will be composed.</param>
-    /// <returns></returns>
     public EditorTestHostDocument CreateProjectionBufferDocument(
         string markup,
         IList<EditorTestHostDocument> baseDocuments,
