@@ -60,7 +60,6 @@ internal abstract partial class AbstractExtractMethodService<
             /// <summary>
             /// check whether the selection is at the placed where read-only field is allowed to be extracted out
             /// </summary>
-            /// <returns></returns>
             protected abstract bool ReadOnlyFieldAllowed();
 
             protected abstract ExtractMethodFlowControlInformation GetStatementFlowControlInformation(

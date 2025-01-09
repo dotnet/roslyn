@@ -424,7 +424,6 @@ internal sealed partial class CSharpExtractMethodService
             /// returns which control flow construct was hit.
             /// </summary>
             /// <param name="statements"></param>
-            /// <returns></returns>
             private ImmutableArray<StatementSyntax> ConvertComplexControlFlowStatements(ImmutableArray<StatementSyntax> statements)
                 => statements.SelectAsArray(s => ConvertComplexControlFlowStatement(s));
 
