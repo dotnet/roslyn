@@ -455,6 +455,11 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             // A method invocation is considered as a read reference to the symbol
             // to ensure that we consider the method as "used".
             OnSymbolUsage(targetMethod, ValueUsageInfo.Read);
+
+            //// If the invoked method is a reduced extension method, also mark the original
+            //// method from which it was reduced as "used".
+            if (targetMethod.ReducedFrom != null)
+                OnSymbolUsage(targetMethod.ReducedFrom, ValueUsageInfo.Read);
         }
 
         private void AnalyzeNameOfOperation(OperationAnalysisContext operationContext)
