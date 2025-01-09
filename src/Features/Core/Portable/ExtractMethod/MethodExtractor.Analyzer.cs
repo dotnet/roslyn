@@ -63,7 +63,8 @@ internal abstract partial class AbstractExtractMethodService<
             /// <returns></returns>
             protected abstract bool ReadOnlyFieldAllowed();
 
-            protected abstract ExtractMethodFlowControlInformation GetStatementFlowControlInformation();
+            protected abstract ExtractMethodFlowControlInformation GetStatementFlowControlInformation(
+                ControlFlowAnalysis controlFlowAnalysis);
 
             public AnalyzerResult Analyze()
             {
@@ -214,7 +215,7 @@ internal abstract partial class AbstractExtractMethodService<
             {
                 return this.SelectionResult.IsExtractMethodOnExpression
                     ? ExtractMethodFlowControlInformation.Create(this.SemanticModel.Compilation, supportsComplexFlowControl: true, breakStatementCount: 0, continueStatementCount: 0, returnStatementCount: 0, endPointIsReachable: true)
-                    : GetStatementFlowControlInformation();
+                    : GetStatementFlowControlInformation(this.SelectionResult.GetStatementControlFlowAnalysis());
             }
 
             private OperationStatus GetOperationStatus(

@@ -43,12 +43,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return TypeOf methodBlock.BlockStatement IsNot SubNewStatementSyntax
                 End Function
 
-                Protected Overrides Function GetStatementFlowControlInformation() As ExtractMethodFlowControlInformation
+                Protected Overrides Function GetStatementFlowControlInformation(
+                        controlFlowAnalysis As ControlFlowAnalysis) As ExtractMethodFlowControlInformation
                     ' We do not currently support converting code with advanced flow control constructs in VB. So just
                     ' provide basic information that produces consistent behavior with how extract method has always
                     ' worked in VB.
-                    Dim controlFlowAnalysis = Me.SelectionResult.GetStatementControlFlowAnalysis()
-
                     Return ExtractMethodFlowControlInformation.Create(
                         Me.SemanticModel.Compilation,
                         supportsComplexFlowControl:=False,

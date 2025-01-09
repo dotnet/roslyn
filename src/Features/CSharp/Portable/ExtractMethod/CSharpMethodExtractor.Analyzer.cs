@@ -35,9 +35,9 @@ internal sealed partial class CSharpExtractMethodService
                     : info.ConvertedType;
             }
 
-            protected override ExtractMethodFlowControlInformation GetStatementFlowControlInformation()
+            protected override ExtractMethodFlowControlInformation GetStatementFlowControlInformation(
+                ControlFlowAnalysis controlFlowAnalysis)
             {
-                var controlFlowAnalysis = this.SelectionResult.GetStatementControlFlowAnalysis();
                 return ExtractMethodFlowControlInformation.Create(
                     this.SemanticModel.Compilation,
                     supportsComplexFlowControl: true,
