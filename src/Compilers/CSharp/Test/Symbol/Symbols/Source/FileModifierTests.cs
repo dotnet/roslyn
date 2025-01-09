@@ -7,10 +7,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,11 +22,18 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public class FileModifierTests : CSharpTestBase
 {
+    private readonly ITestOutputHelper _output;
+    public FileModifierTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact]
     public void LangVersion()
     {
@@ -1104,6 +1113,16 @@ public partial class C
     [ConditionalFact(typeof(IsEnglishLocal))]
     public void BadFileNames_04()
     {
+        _output.WriteLine("Cultures:");
+        _output.WriteLine("CurrentCulture: " + CultureInfo.CurrentCulture.Name);
+        _output.WriteLine("CurrentUICulture: " + CultureInfo.CurrentUICulture.Name);
+        _output.WriteLine("DefaultThreadCurrentCulture: " + CultureInfo.DefaultThreadCurrentCulture?.Name);
+        _output.WriteLine("DefaultThreadCurrentCulture: " + CultureInfo.DefaultThreadCurrentUICulture?.Name);
+        _output.WriteLine("InstalledUICulture: " + CultureInfo.InstalledUICulture.Name);
+
+        _output.WriteLine("CurrentThread CurrentCulture: " + Thread.CurrentThread.CurrentCulture.Name);
+        _output.WriteLine("CurrentThread CurrentUICulture: " + Thread.CurrentThread.CurrentUICulture.Name);
+
         var source1 = """
             new C(); // 1
 
@@ -1129,6 +1148,7 @@ public partial class C
         var classC = comp.GetMember("C");
         Assert.Equal("<_>F<no checksum>__C", classC.MetadataName);
         Assert.Null(comp.GetTypeByMetadataName("<_>F<no checksum>__C"));
+        Assert.Fail("blah");
     }
 
     [Fact]
