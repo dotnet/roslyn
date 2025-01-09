@@ -460,6 +460,8 @@ internal sealed partial class CSharpExtractMethodService
                 if (this.AnalyzerResult.CoreReturnType.SpecialType == SpecialType.System_Void)
                     return flowValueExpression;
 
+                // For reference types, return 'null', for everything else return 'default'.  TODO: in the future we
+                // should update this to return `null!` or `default!` if in a nullable context and not a value type.
                 var methodReturnDefaultValue = this.AnalyzerResult.CoreReturnType.IsReferenceType
                     ? LiteralExpression(SyntaxKind.NullLiteralExpression)
                     : LiteralExpression(SyntaxKind.DefaultLiteralExpression);
