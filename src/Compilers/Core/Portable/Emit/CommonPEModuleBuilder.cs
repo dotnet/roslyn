@@ -1083,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
 #nullable enable
 
-        internal PrivateImplementationDetails GetPrivateImplClass(TSyntaxNode? syntaxNode, DiagnosticBag diagnostics)
+        internal PrivateImplementationDetails GetPrivateImplClass(TSyntaxNode? syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             var result = _lazyPrivateImplementationDetails;
 
@@ -1093,12 +1093,12 @@ namespace Microsoft.CodeAnalysis.Emit
                         this,
                         this.SourceModule.Name,
                         Compilation.GetSubmissionSlotIndex(),
-                        this.GetSpecialType(SpecialType.System_Object, syntaxNode, diagnostics),
-                        this.GetSpecialType(SpecialType.System_ValueType, syntaxNode, diagnostics),
-                        this.GetSpecialType(SpecialType.System_Byte, syntaxNode, diagnostics),
-                        this.GetSpecialType(SpecialType.System_Int16, syntaxNode, diagnostics),
-                        this.GetSpecialType(SpecialType.System_Int32, syntaxNode, diagnostics),
-                        this.GetSpecialType(SpecialType.System_Int64, syntaxNode, diagnostics),
+                        this.GetSpecialType(SpecialType.System_Object, syntaxNodeOpt, diagnostics),
+                        this.GetSpecialType(SpecialType.System_ValueType, syntaxNodeOpt, diagnostics),
+                        this.GetSpecialType(SpecialType.System_Byte, syntaxNodeOpt, diagnostics),
+                        this.GetSpecialType(SpecialType.System_Int16, syntaxNodeOpt, diagnostics),
+                        this.GetSpecialType(SpecialType.System_Int32, syntaxNodeOpt, diagnostics),
+                        this.GetSpecialType(SpecialType.System_Int64, syntaxNodeOpt, diagnostics),
                         SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
                 if (Interlocked.CompareExchange(ref _lazyPrivateImplementationDetails, result, null) != null)
@@ -1110,9 +1110,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return result;
         }
 
-        internal override PrivateImplementationDetails GetPrivateImplClass(SyntaxNode? syntaxNode, DiagnosticBag diagnostics)
+        internal override PrivateImplementationDetails GetPrivateImplClass(SyntaxNode? syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            return GetPrivateImplClass((TSyntaxNode?)syntaxNode, diagnostics);
+            return GetPrivateImplClass((TSyntaxNode?)syntaxNodeOpt, diagnostics);
         }
 
         public PrivateImplementationDetails? FreezePrivateImplementationDetails()
