@@ -321,10 +321,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// if the type does not exist yet for the given <paramref name="text"/>.
         /// If the text cannot be encoded, returns <see langword="null"/>.
         /// </summary>
-        internal static Cci.IFieldReference? TryGetOrCreateFieldForStringValue<TArg>(
+        internal static Cci.IFieldReference? TryGetOrCreateFieldForStringValue(
             string text,
-            TArg arg,
-            Func<TArg, PrivateImplementationDetails> factory,
+            CommonPEModuleBuilder moduleBuilder,
+            SyntaxNode syntaxNode,
             DiagnosticBag diagnostics)
         {
             if (!text.TryGetUtf8ByteRepresentation(out byte[]? data, out _))
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return null;
             }
 
-            var @this = factory(arg);
+            var @this = moduleBuilder.GetPrivateImplClass(syntaxNode, diagnostics);
             return @this._dataSectionStringLiteralTypes.GetOrAdd(text, static (key, arg) =>
             {
                 var (@this, data, diagnostics) = arg;
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 MappedField dataField = @this.CreateDataField(data, alignment: 1);
 
-                Cci.IMethodDefinition bytesToStringHelper = @this.GetOrSynthesizeBytesToStringHelper(@this.ModuleBuilder.CommonCompilation, diagnostics);
+                Cci.IMethodDefinition bytesToStringHelper = @this.GetOrSynthesizeBytesToStringHelper(diagnostics);
 
                 return new DataSectionStringType(
                     name: name,
@@ -356,12 +356,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Gets the <see cref="BytesToStringHelper"/> or creates it if it does not exist yet.
         /// </summary>
-        private Cci.IMethodDefinition GetOrSynthesizeBytesToStringHelper(Compilation compilation, DiagnosticBag diagnostics)
+        private Cci.IMethodDefinition GetOrSynthesizeBytesToStringHelper(DiagnosticBag diagnostics)
         {
             var method = GetMethod(SynthesizedBytesToStringFunctionName);
 
             if (method is null)
             {
+                var compilation = ModuleBuilder.CommonCompilation;
                 var encodingUtf8 = getWellKnownTypeMember(compilation, WellKnownMember.System_Text_Encoding__get_UTF8);
                 var encodingGetString = getWellKnownTypeMember(compilation, WellKnownMember.System_Text_Encoding__GetString);
 
@@ -720,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _name = name;
             _containingType = containingType;
 
-            var stringField = new DataSectionStringField("s", this, containingType);
+            var stringField = new DataSectionStringField("s", this);
 
             var staticConstructor = synthesizeStaticConstructor((ITokenDeferral)containingType.ModuleBuilder, containingType, dataField, stringField, bytesToStringHelper, diagnostics);
 
@@ -773,17 +774,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override bool IsBeforeFieldInit => true;
 
         private sealed class DataSectionStringField(
-            string name, Cci.INamedTypeDefinition containingType, PrivateImplementationDetails privateImplDetails)
+            string name, Cci.INamedTypeDefinition containingType)
             : SynthesizedStaticFieldBase(name, containingType)
         {
-            private readonly PrivateImplementationDetails _privateImplDetails = privateImplDetails;
-
             public override ImmutableArray<byte> MappedData => default;
             public override bool IsReadOnly => true;
 
             public override Cci.ITypeReference GetType(EmitContext context)
             {
-                return _privateImplDetails.ModuleBuilder.GetPlatformType(Cci.PlatformType.SystemString, context);
+                return context.Module.GetPlatformType(Cci.PlatformType.SystemString, context);
             }
 
             public override string ToString()
@@ -825,8 +824,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _containingType = containingType;
             _name = name;
         }
-
-        public abstract override string ToString();
 
         public MetadataConstant? GetCompileTimeValue(EmitContext context) => null;
 
@@ -1216,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             private LengthParameterDefinition() { }
 
-            public static LengthParameterDefinition Instance { get; } = new LengthParameterDefinition();
+            public static readonly LengthParameterDefinition Instance = new LengthParameterDefinition();
 
             public override ushort Index => 0;
             public override string Name => "length";
