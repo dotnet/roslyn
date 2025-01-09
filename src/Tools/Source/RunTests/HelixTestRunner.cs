@@ -16,6 +16,7 @@ using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Services.Profile;
 using Newtonsoft.Json;
 
 namespace RunTests;
@@ -137,7 +138,7 @@ internal sealed class HelixTestRunner
         var queuedBy = GetEnv("BUILD_QUEUEDBY", "roslyn").Replace(" ", "");
         var jobName = GetEnv("SYSTEM_JOBDISPLAYNAME", "");
         var buildNumber = GetEnv("BUILD_BUILDNUMBER", "0");
-        var duplicateDir = Path.Combine(artifactsDir, ".duplicate");
+        var duplicateDir = Path.Combine(Path.GetDirectoryName(artifactsDir)!, ".duplicate");
 
         var builder = new StringBuilder();
         builder.AppendLine($"""
@@ -160,7 +161,7 @@ internal sealed class HelixTestRunner
 
         foreach (var workItemInfo in workItems)
         {
-            AppendHelixWorkItemProject(builder, workItemInfo, platform, artifactsDir,testOS);
+            AppendHelixWorkItemProject(builder, workItemInfo, platform, artifactsDir, testOS);
         }
 
         builder.AppendLine("""
