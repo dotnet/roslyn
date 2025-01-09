@@ -129,7 +129,7 @@ internal abstract partial class AbstractExtractMethodService<
 
         protected sealed class ParameterVariableSymbol(IParameterSymbol symbol, ITypeSymbol symbolType)
             : NotMovableVariableSymbol<ParameterVariableSymbol, IParameterSymbol>(
-                symbol, symbolType, displayOrder: 1)
+                symbol, symbolType, displayOrder: 0)
         {
             public override bool CanBeCapturedByLocalFunction => true;
 
@@ -148,7 +148,7 @@ internal abstract partial class AbstractExtractMethodService<
 
         protected sealed class LocalVariableSymbol(ILocalSymbol localSymbol, ITypeSymbol symbolType)
             : VariableSymbol<LocalVariableSymbol, ILocalSymbol>(
-                localSymbol, symbolType, displayOrder: 2)
+                localSymbol, symbolType, displayOrder: 1)
         {
             private readonly SyntaxAnnotation _annotation = new();
 
@@ -171,7 +171,7 @@ internal abstract partial class AbstractExtractMethodService<
 
         protected sealed class QueryVariableSymbol(IRangeVariableSymbol symbol, ITypeSymbol symbolType)
             : NotMovableVariableSymbol<QueryVariableSymbol, IRangeVariableSymbol>(
-                symbol, symbolType, displayOrder: 3)
+                symbol, symbolType, displayOrder: 2)
         {
             public override bool CanBeCapturedByLocalFunction => false;
 
