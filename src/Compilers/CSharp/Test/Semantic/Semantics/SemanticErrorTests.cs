@@ -1510,6 +1510,9 @@ class C
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
+                // (6,9): error CS0127: Since 'C.M1()' returns void, a return keyword must not be followed by an object expression
+                //         return true ? throw null : M2();
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("C.M1()").WithLocation(6, 9),
                 // (6,23): error CS0029: Cannot implicitly convert type '<throw expression>' to 'void'
                 //         return true ? throw null : M2();
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "throw null").WithArguments("<throw expression>", "void").WithLocation(6, 23));
@@ -15160,6 +15163,34 @@ class C : IEnumerable
                 // (9,7): warning CS0162: Unreachable code detected
                 //       yield return this;   // OK
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "yield")
+                );
+        }
+
+        [Fact]
+        public void CS1622ERR_ReturnInIterator_WrongType()
+        {
+            var text = @"
+#nullable enable
+
+using System.Collections;
+
+class C : IEnumerable
+{
+   public IEnumerator GetEnumerator()
+   {
+      yield return 1;
+      return 1;
+   }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (11,7): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //       return 1;
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(11, 7),
+                // (11,14): error CS0029: Cannot implicitly convert type 'int' to 'System.Collections.IEnumerator'
+                //       return 1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "System.Collections.IEnumerator").WithLocation(11, 14)
                 );
         }
 

@@ -3041,11 +3041,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors |= arg.HasErrors || ((object)arg.Type != null && arg.Type.IsErrorType());
             }
 
-            if (hasErrors)
-            {
-                return new BoundReturnStatement(syntax, refKind, BindToTypeForErrorRecovery(arg), @checked: CheckOverflowAtRuntime, hasErrors: true);
-            }
-
             // The return type could be null; we might be attempting to infer the return type either
             // because of method type inference, or because we are attempting to do error analysis
             // on a lambda expression of unknown return type.

@@ -11041,9 +11041,12 @@ public ref struct CustomHandler
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Net50);
         comp.VerifyDiagnostics(
-            // (17,9): error CS8150: By-value returns may only be used in methods that return by value
-            //         return $"{s}";
-            Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(17, 9));
+            // 0.cs(17,9): error CS8150: By-value returns may only be used in methods that return by value
+            //         return $"""{s}""";
+            Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(17, 9),
+            // 0.cs(17,16): error CS8151: The return expression must be of type 'CustomHandler' because this method returns by reference
+            //         return $"""{s}""";
+            Diagnostic(ErrorCode.ERR_RefReturnMustHaveIdentityConversion, expression).WithArguments("CustomHandler").WithLocation(17, 16));
     }
 
     [Theory]
