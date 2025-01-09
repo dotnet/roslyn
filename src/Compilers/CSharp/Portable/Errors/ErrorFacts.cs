@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UninitializedNonNullableBackingField:
                 case ErrorCode.WRN_AccessorDoesNotUseBackingField:
                 case ErrorCode.WRN_UnscopedRefAttributeOldRules:
-                case ErrorCode.WRN_VariableDeclarationNamedField:
+                case ErrorCode.ERR_VariableDeclarationNamedField:
                     return 1;
                 default:
                     return 0;
@@ -2478,7 +2478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_IteratorRefLikeElementType
                 or ErrorCode.WRN_UnscopedRefAttributeOldRules
                 or ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature
-                or ErrorCode.WRN_VariableDeclarationNamedField
+                or ErrorCode.ERR_VariableDeclarationNamedField
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

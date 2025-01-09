@@ -6886,11 +6886,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_FieldIsAmbiguous_Title" xml:space="preserve">
     <value>The 'field' keyword binds to a synthesized backing field for the property.</value>
   </data>
-  <data name="WRN_VariableDeclarationNamedField" xml:space="preserve">
+  <data name="ERR_VariableDeclarationNamedField" xml:space="preserve">
     <value>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. Unescaped references to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</value>
-  </data>
-  <data name="WRN_VariableDeclarationNamedField_Title" xml:space="preserve">
-    <value>References to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</value>
   </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>

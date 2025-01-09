@@ -1503,7 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var requiredVersion = MessageID.IDS_FeatureFieldKeyword.RequiredVersion();
                 if (Compilation.LanguageVersion >= requiredVersion)
                 {
-                    diagnostics.Add(ErrorCode.WRN_VariableDeclarationNamedField, syntax, requiredVersion.ToDisplayString());
+                    diagnostics.Add(ErrorCode.ERR_VariableDeclarationNamedField, syntax, requiredVersion.ToDisplayString());
                 }
             }
         }

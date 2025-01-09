@@ -346,7 +346,6 @@
                 case ErrorCode.WRN_ExperimentalWithMessage:
                 case ErrorCode.WRN_UnscopedRefAttributeOldRules:
                 case ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature:
-                case ErrorCode.WRN_VariableDeclarationNamedField:
                     return true;
                 default:
                     return false;

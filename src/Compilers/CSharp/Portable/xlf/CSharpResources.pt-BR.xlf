@@ -2347,6 +2347,11 @@
         <target state="translated">O objeto 'this' não pode ser usado antes que todos os seus campos serem atribuídos. Considere atualizar para a versão de linguagem '{0}' para auto-padrão dos campos não atribuídos.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VariableDeclarationNamedField">
+        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. Unescaped references to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</source>
+        <target state="new">In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. Unescaped references to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Um tipo de retorno semelhante à tarefa genérica era esperado, mas o tipo '{0}' encontrado no atributo 'AsyncMethodBuilder' não era adequado. Ele deve ser um tipo genérico não associado de arity um e seu tipo recipiente (se houver) deve ser não genérico.</target>
@@ -5496,16 +5501,6 @@
       <trans-unit id="WRN_UseDefViolation_Title">
         <source>Use of unassigned local variable</source>
         <target state="translated">Uso de variável local não atribuída</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_VariableDeclarationNamedField">
-        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. Unescaped references to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</source>
-        <target state="new">In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. Unescaped references to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_VariableDeclarationNamedField_Title">
-        <source>References to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</source>
-        <target state="new">References to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_WindowsExperimental">
