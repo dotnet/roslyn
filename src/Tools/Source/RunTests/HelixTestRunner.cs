@@ -56,9 +56,9 @@ internal sealed class HelixTestRunner
         var testHistory = await TestHistoryManager.GetTestHistoryAsync(options, cancellationToken);
         var workItems = AssemblyScheduler.Schedule(assemblies, testHistory);
 
-        var logsDir = Path.Combine(options.ArtifactsDirectory, options.Configuration);
+        // This is the directory our CI will upload for inspection
+        var logsDir = Path.Combine(options.ArtifactsDirectory, "log", options.Configuration);
         _ = Directory.CreateDirectory(logsDir);
-        Console.WriteLine($"Writing logs to {logsDir}");
 
         var helixProjectFileContent = GetHelixProjectFileContent(
             workItems,
