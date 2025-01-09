@@ -312,7 +312,7 @@ internal sealed class HelixTestRunner
             }
 
             builder.AppendLine($"""
-                    <HelixWorkItem Include=""{workItemInfo.DisplayName}"">
+                    <HelixWorkItem Include="{workItemInfo.DisplayName}">
                         <PayloadDirectory>{payloadDirectory}</PayloadDirectory>
                         <Command>
                             {escapedCommand}
