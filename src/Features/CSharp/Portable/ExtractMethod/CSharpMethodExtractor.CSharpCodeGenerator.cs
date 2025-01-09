@@ -188,17 +188,17 @@ internal sealed partial class CSharpExtractMethodService
                             //
                             //      switch (flowControl)
                             //      {
-                            //          case true: FlowControlConstruct1;
-                            //          case false: FlowControlConstruct2;
+                            //          case false: FlowControlConstruct1;
+                            //          case true: FlowControlConstruct2;
                             //      }
                             return SwitchStatement(
                                 IdentifierName(FlowControlName), [
                                     SwitchSection(
-                                        [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(true).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
-                                        [GetFlowStatement(true).WithoutTrivia()]),
-                                    SwitchSection(
                                         [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(false).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
-                                        [GetFlowStatement(false).WithoutTrivia()])]);
+                                        [GetFlowStatement(false).WithoutTrivia()]),
+                                    SwitchSection(
+                                        [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(true).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
+                                        [GetFlowStatement(true).WithoutTrivia()])]);
                         }
                         else
                         {
@@ -218,23 +218,47 @@ internal sealed partial class CSharpExtractMethodService
                     {
                         if (flowControlInformation.TryGetFallThroughFlowValue(out _))
                         {
-                            // If we have 'fallthrough' as as the final control flow value, then we'll just emit:
-                            //
-                            //      if (flowControl == false) FlowControlConstruct1;
-                            //      else if (flowControl == true) FlowControlConstruct2; // allowing fallthrough to happen automatically.
-                            return IfStatement(
-                                BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(false)),
-                                Block(GetFlowStatement(false)),
-                                ElseClause(IfStatement(
-                                    BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(true)),
-                                    Block(GetFlowStatement(true)))));
+                            if (flowControlInformation.BreakStatementCount == 0 && useBlock)
+                            {
+                                // Otherwise, if we have no break statements we'll emit the following as its shorter:
+                                //
+                                //      switch (flowControl)
+                                //      {
+                                //          case false: FlowControlConstruct1;
+                                //          case true: FlowControlConstruct2;
+                                //      }
+                                return SwitchStatement(
+                                    IdentifierName(FlowControlName), [
+                                        SwitchSection(
+                                            [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(false).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
+                                            [GetFlowStatement(false).WithoutTrivia()]),
+                                        SwitchSection(
+                                            [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(true).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
+                                            [GetFlowStatement(true).WithoutTrivia()])]);
+                            }
+                            else
+                            {
+                                // If we have 'fallthrough' as as the final control flow value, then we'll just emit:
+                                //
+                                //      if (flowControl == false) FlowControlConstruct1;
+                                //      else if (flowControl == true) FlowControlConstruct2; // allowing fallthrough to happen automatically.
+                                return IfStatement(
+                                    BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(false)),
+                                    Block(GetFlowStatement(false)),
+                                    ElseClause(IfStatement(
+                                        BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(true)),
+                                        Block(GetFlowStatement(true)))));
+                            }
                         }
                         else
                         {
                             // Otherwise, we'll emit:
-                            //      if (flowControl == false) FlowControlConstruct1;
-                            //      else if (flowControl == true) FlowControlConstruct2;
-                            //      else FlowControlConstruct3;
+                            //      if (flowControl == false)
+                            //          FlowControlConstruct1;
+                            //      else if (flowControl == true)
+                            //          FlowControlConstruct2;
+                            //      else
+                            //          FlowControlConstruct3;
                             return IfStatement(
                                 BinaryExpression(SyntaxKind.EqualsExpression, IdentifierName(FlowControlName), LiteralExpression(false)),
                                 Block(GetFlowStatement(false)),

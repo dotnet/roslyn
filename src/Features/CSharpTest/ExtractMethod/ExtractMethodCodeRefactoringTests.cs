@@ -6441,8 +6441,8 @@ $@"
                         (bool flowControl, int value) = {|Rename:NewMethod|}(v);
                         switch (flowControl)
                         {
-                            case true: return value;
                             case false: continue;
+                            case true: return value;
                         }
                     }
             
@@ -6603,8 +6603,8 @@ $@"
                         (bool flowControl, int value) = {|Rename:NewMethod|}(v);
                         switch (flowControl)
                         {
-                            case true: return value;
                             case false: continue;
+                            case true: return value;
                         }
                     }
             
@@ -6873,7 +6873,7 @@ $@"
                     {
                         [|if (v == 0)
                         {
-                            break;
+                            continue;
                         }
                         
                         if (v == 1)
@@ -6894,13 +6894,10 @@ $@"
                     foreach (var v in x)
                     {
                         (bool? flowControl, int value) = {|Rename:NewMethod|}(v);
-                        if (flowControl == false)
+                        switch (flowControl)
                         {
-                            break;
-                        }
-                        else if (flowControl == true)
-                        {
-                            return value;
+                            case false: continue;
+                            case true: return value;
                         }
                     }
             
@@ -7365,8 +7362,8 @@ $@"
                         var (flowControl, value) = {|Rename:NewMethod|}(v);
                         switch (flowControl)
                         {
-                            case true: return value;
                             case false: continue;
+                            case true: return value;
                         }
                     }
             
@@ -7530,8 +7527,8 @@ $@"
                         var (flowControl, value) = {|Rename:NewMethod|}(v);
                         switch (flowControl)
                         {
-                            case true: return value;
                             case false: continue;
+                            case true: return value;
                         }
                     }
             
@@ -7805,7 +7802,7 @@ $@"
                     {
                         [|if (v == 0)
                         {
-                            break;
+                            continue;
                         }
                         
                         if (v == 1)
@@ -7826,13 +7823,10 @@ $@"
                     foreach (var v in x)
                     {
                         var (flowControl, value) = {|Rename:NewMethod|}(v);
-                        if (flowControl == false)
+                        switch (flowControl)
                         {
-                            break;
-                        }
-                        else if (flowControl == true)
-                        {
-                            return value;
+                            case false: continue;
+                            case true: return value;
                         }
                     }
             
@@ -8307,8 +8301,8 @@ $@"
                         (bool flowControl, int value) = await {|Rename:NewMethod|}(v);
                         switch (flowControl)
                         {
-                            case true: return value;
                             case false: continue;
+                            case true: return value;
                         }
                     }
             
@@ -8476,8 +8470,8 @@ $@"
                         (bool flowControl, int value) = await {|Rename:NewMethod|}(v);
                         switch (flowControl)
                         {
-                            case true: return value;
                             case false: continue;
+                            case true: return value;
                         }
                     }
             
@@ -8757,7 +8751,7 @@ $@"
                     {
                         [|if (v == 0)
                         {
-                            break;
+                            continue;
                         }
                         await Task.Delay(0);
                         if (v == 1)
@@ -8780,13 +8774,10 @@ $@"
                     foreach (var v in x)
                     {
                         (bool? flowControl, int value) = await {|Rename:NewMethod|}(v);
-                        if (flowControl == false)
+                        switch (flowControl)
                         {
-                            break;
-                        }
-                        else if (flowControl == true)
-                        {
-                            return value;
+                            case false: continue;
+                            case true: return value;
                         }
                     }
             
