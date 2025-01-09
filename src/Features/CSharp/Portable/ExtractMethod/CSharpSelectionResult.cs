@@ -130,8 +130,8 @@ internal sealed partial class CSharpExtractMethodService
             return last.Parent.Parent;
         }
 
-        public override bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints)
-            => exitPoints.Any(n => n is not ReturnStatementSyntax);
+        public override bool ContainsUnsupportedExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints)
+            => exitPoints.Any(n => n is not (BreakStatementSyntax or ContinueStatementSyntax or ReturnStatementSyntax));
 
         public override ImmutableArray<StatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> exitPoints)
             => exitPoints.OfType<ReturnStatementSyntax>().ToImmutableArray().CastArray<StatementSyntax>();
@@ -139,22 +139,8 @@ internal sealed partial class CSharpExtractMethodService
         public override bool IsFinalSpanSemanticallyValidSpan(
             ImmutableArray<StatementSyntax> returnStatements, CancellationToken cancellationToken)
         {
-            // return statement shouldn't contain any return value
-            if (returnStatements.Cast<ReturnStatementSyntax>().Any(r => r.Expression != null))
-                return false;
-
-            var container = returnStatements.First().AncestorsAndSelf().FirstOrDefault(n => n.IsReturnableConstruct());
-            if (container == null)
-                return false;
-
-            var body = container.GetBlockBody();
-            if (body == null)
-                return false;
-
-            // make sure that next token of the last token in the selection is the close braces of containing block
-            if (body.CloseBraceToken != GetLastTokenInSelection().GetNextToken(includeZeroWidth: true))
-                return false;
-
+            // Once we've gotten this far, everything is valid for us to return.  Only VB has special additional logic
+            // it needs to apply at this point.
             return true;
         }
     }

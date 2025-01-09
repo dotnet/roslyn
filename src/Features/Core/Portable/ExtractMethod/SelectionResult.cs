@@ -59,7 +59,7 @@ internal abstract partial class AbstractExtractMethodService<
 
         public abstract ImmutableArray<TExecutableStatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> jumpsOutOfRegion);
         public abstract bool IsFinalSpanSemanticallyValidSpan(ImmutableArray<TExecutableStatementSyntax> returnStatements, CancellationToken cancellationToken);
-        public abstract bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints);
+        public abstract bool ContainsUnsupportedExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints);
 
         protected abstract OperationStatus ValidateLanguageSpecificRules(CancellationToken cancellationToken);
 
@@ -216,9 +216,6 @@ internal abstract partial class AbstractExtractMethodService<
             }
         }
 
-        public bool IsEndOfSelectionReachable()
-            => this.IsExtractMethodOnExpression || GetStatementControlFlowAnalysis().EndPointIsReachable;
-
         /// <summary>f
         /// convert text span to node range for the flow analysis API
         /// </summary>
@@ -284,7 +281,7 @@ internal abstract partial class AbstractExtractMethodService<
                 return false;
 
             // check something like continue, break, yield break, yield return, and etc
-            if (ContainsNonReturnExitPointsStatements(controlFlowAnalysisData.ExitPoints))
+            if (ContainsUnsupportedExitPointsStatements(controlFlowAnalysisData.ExitPoints))
                 return false;
 
             // okay, there is no branch out, check whether next statement can be executed normally

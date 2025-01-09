@@ -47,11 +47,6 @@ internal abstract partial class AbstractExtractMethodService<
 
             protected abstract bool IsInPrimaryConstructorBaseType();
 
-            /// <summary>
-            /// check whether selection contains return statement or not
-            /// </summary>
-            protected abstract bool ContainsReturnStatementInSelectedCode(ImmutableArray<SyntaxNode> exitPoints);
-
             protected virtual bool IsReadOutside(ISymbol symbol, HashSet<ISymbol> readOutsideMap)
                 => readOutsideMap.Contains(symbol);
 
@@ -66,6 +61,9 @@ internal abstract partial class AbstractExtractMethodService<
             /// check whether the selection is at the placed where read-only field is allowed to be extracted out
             /// </summary>
             protected abstract bool ReadOnlyFieldAllowed();
+
+            protected abstract ExtractMethodFlowControlInformation GetStatementFlowControlInformation(
+                ControlFlowAnalysis controlFlowAnalysis);
 
             public AnalyzerResult Analyze()
             {
@@ -118,13 +116,11 @@ internal abstract partial class AbstractExtractMethodService<
                 var shouldBeReadOnly = !isThisParameterWritten
                     && thisParameterBeingRead is { Type: { TypeKind: TypeKind.Struct, IsReadOnly: false } };
 
-                // check whether end of selection is reachable
-                var endOfSelectionReachable = this.SelectionResult.IsEndOfSelectionReachable();
-
                 // check whether the selection contains "&" over a symbol exist
                 var unsafeAddressTakenUsed = dataFlowAnalysisData.UnsafeAddressTaken.Intersect(variableInfoMap.Keys).Any();
 
-                var (variables, returnType, returnsByRef) = GetSignatureInformation(variableInfoMap);
+                var flowControlInformation = GetFlowControlInformation();
+                var (variables, returnType, returnsByRef) = GetSignatureInformation(variableInfoMap, flowControlInformation);
 
                 // collect method type variable used in selected code
                 var sortedMap = new SortedDictionary<int, ITypeParameterSymbol>();
@@ -143,30 +139,33 @@ internal abstract partial class AbstractExtractMethodService<
                     returnsByRef,
                     instanceMemberIsUsed,
                     shouldBeReadOnly,
-                    endOfSelectionReachable,
+                    flowControlInformation,
                     operationStatus);
             }
 
             private (ImmutableArray<VariableInfo> finalOrderedVariableInfos, ITypeSymbol returnType, bool returnsByRef)
-                GetSignatureInformation(Dictionary<ISymbol, VariableInfo> symbolMap)
+                GetSignatureInformation(Dictionary<ISymbol, VariableInfo> symbolMap, ExtractMethodFlowControlInformation flowControlInformation)
             {
                 var allVariableInfos = symbolMap.Values.Order().ToImmutableArray();
-
-                if (this.IsInExpressionOrHasReturnStatement())
+                if (this.SelectionResult.IsExtractMethodOnExpression ||
+                    flowControlInformation.ReturnStatementCount > 0)
                 {
-                    // check whether current selection contains return statement
+                    // If we're just selecting an expression, then we want the extract method to have the type of that
+                    // expression.  Similarly, if we're selecting a statement that contains a return statement, then we
+                    // want the extracted method to have the return type of the containing method.
+                    //
+                    // Note: if there's more complex flow control, that will be handled later on with an additional
+                    // value added to the return value.
                     var (returnType, returnsByRef) = SelectionResult.GetReturnTypeInfo(this.CancellationToken);
-
                     return (allVariableInfos, UnwrapTaskIfNeeded(returnType), returnsByRef);
                 }
                 else
                 {
-                    // no return statement
-                    var finalOrderedVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(allVariableInfos);
+                    var finalOrderedVariableInfos = MarkVariableInfosToUseAsReturnValueIfPossible(
+                        allVariableInfos, flowControlInformation.NeedsControlFlowValue());
                     var variablesToUseAsReturnValue = finalOrderedVariableInfos.WhereAsArray(v => v.UseAsReturnValue);
 
                     var returnType = GetReturnType(variablesToUseAsReturnValue);
-
                     return (finalOrderedVariableInfos, returnType, returnsByRef: false);
                 }
 
@@ -211,8 +210,12 @@ internal abstract partial class AbstractExtractMethodService<
                 }
             }
 
-            private bool IsInExpressionOrHasReturnStatement()
-                => SelectionResult.IsExtractMethodOnExpression || ContainsReturnStatementInSelectedCode();
+            private ExtractMethodFlowControlInformation GetFlowControlInformation()
+            {
+                return this.SelectionResult.IsExtractMethodOnExpression
+                    ? ExtractMethodFlowControlInformation.Create(this.SemanticModel.Compilation, supportsComplexFlowControl: true, breakStatementCount: 0, continueStatementCount: 0, returnStatementCount: 0, endPointIsReachable: true)
+                    : GetStatementFlowControlInformation(this.SelectionResult.GetStatementControlFlowAnalysis());
+            }
 
             private OperationStatus GetOperationStatus(
                 MultiDictionary<ISymbol, SyntaxToken> symbolMap,
@@ -304,19 +307,24 @@ internal abstract partial class AbstractExtractMethodService<
                 return symbolMap;
             }
 
-            private ImmutableArray<VariableInfo> MarkVariableInfosToUseAsReturnValueIfPossible(ImmutableArray<VariableInfo> variableInfo)
+            private ImmutableArray<VariableInfo> MarkVariableInfosToUseAsReturnValueIfPossible(
+                ImmutableArray<VariableInfo> variableInfos, bool hasFlowControlResult)
             {
-                var index = GetIndexOfVariableInfoToUseAsReturnValue(variableInfo, out var numberOfOutParameters, out var numberOfRefParameters);
+                var index = GetIndexOfVariableInfoToUseAsReturnValue(variableInfos, out var numberOfOutParameters, out var numberOfRefParameters);
 
-                // If there are any variables we'd make out/ref and this is async, then we need to make these the
-                // return values of the method since we can't actually have out/ref with an async method.
+                // If there are any variables we'd make out/ref and this is async, then we need to make these the return
+                // values of the method since we can't actually have out/ref with an async method.
+                //
+                // Similarly, if we have a flow control variable, then make that one of the return values of the method
+                // so that the caller can see what the called method wants to do.
                 var outRefCount = numberOfOutParameters + numberOfRefParameters;
-                if (outRefCount > 0 &&
+                var createAsyncTuple = outRefCount > 0 &&
                     this.SelectionResult.ContainsAwaitExpression() &&
-                    this.SyntaxFacts.SupportsTupleDeconstruction(this.SemanticDocument.Document.Project.ParseOptions!))
+                    this.SyntaxFacts.SupportsTupleDeconstruction(this.SemanticDocument.Document.Project.ParseOptions!);
+                if (createAsyncTuple || hasFlowControlResult)
                 {
-                    var result = new FixedSizeArrayBuilder<VariableInfo>(variableInfo.Length);
-                    foreach (var info in variableInfo)
+                    var result = new FixedSizeArrayBuilder<VariableInfo>(variableInfos.Length);
+                    foreach (var info in variableInfos)
                     {
                         result.Add(info.CanBeUsedAsReturnValue && info.ParameterModifier is ParameterBehavior.Out or ParameterBehavior.Ref
                             ? VariableInfo.CreateReturnValue(info)
@@ -328,9 +336,9 @@ internal abstract partial class AbstractExtractMethodService<
 
                 // If there's just one variable that would be ref/out, then make that the return value of the final method.
                 if (index >= 0)
-                    return variableInfo.SetItem(index, VariableInfo.CreateReturnValue(variableInfo[index]));
+                    return variableInfos.SetItem(index, VariableInfo.CreateReturnValue(variableInfos[index]));
 
-                return variableInfo;
+                return variableInfos;
             }
 
             /// <summary>
@@ -705,12 +713,6 @@ internal abstract partial class AbstractExtractMethodService<
                        parameter.ContainingSymbol != null &&
                        parameter.ContainingSymbol.ContainingType != null &&
                        parameter.ContainingSymbol.ContainingType.IsScriptClass;
-            }
-
-            private bool ContainsReturnStatementInSelectedCode()
-            {
-                Contract.ThrowIfTrue(SelectionResult.IsExtractMethodOnExpression);
-                return ContainsReturnStatementInSelectedCode(this.SelectionResult.GetStatementControlFlowAnalysis().ExitPoints);
             }
 
             private static void AddTypeParametersToMap(IEnumerable<ITypeParameterSymbol> typeParameters, IDictionary<int, ITypeParameterSymbol> sortedMap)
