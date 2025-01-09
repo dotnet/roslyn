@@ -139,6 +139,8 @@ internal sealed partial class CSharpExtractMethodService
         public override bool IsFinalSpanSemanticallyValidSpan(
             ImmutableArray<StatementSyntax> returnStatements, CancellationToken cancellationToken)
         {
+            // Once we've gotten this far, everything is valid for us to return.  Only VB has special additional logic
+            // it needs to apply at this point.
             return true;
         }
     }
