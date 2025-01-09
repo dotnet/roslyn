@@ -1431,10 +1431,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 op2 = BindToNaturalType(op2, diagnostics);
                 op1 = InferTypeForDiscardAssignment((BoundDiscardExpression)op1, op2, diagnostics);
             }
-            else
-            {
-                op1 = BindToTypeForErrorRecovery(op1);
-            }
 
             return BindAssignment(node, op1, op2, isRef, diagnostics);
         }
@@ -1488,6 +1484,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (op1.Type is { } lhsType && !lhsType.IsErrorType())
             {
+                Debug.Assert(!op1.NeedsToBeConverted()
+                    // These are only required to be converted in Debug to increase confidence that we've called BindToTypeForErrorRecovery or BindToNaturalType
+                    // on the operand. We're calling BindToTypeForErrorRecovery below, so we're good.
+                    || op1 is BoundParameter or BoundLocal
+                    || op1.HasAnyErrors);
+
+                if (op1.HasAnyErrors)
+                {
+                    op1 = BindToTypeForErrorRecovery(op1);
+                }
+
                 // Build bound conversion. The node might not be used if this is a dynamic conversion
                 // but diagnostics should be reported anyways.
                 var conversion = GenerateConversionForAssignment(lhsType, op2,
@@ -1510,6 +1517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                op1 = BindToTypeForErrorRecovery(op1);
                 op2 = BindToTypeForErrorRecovery(op2);
             }
 
