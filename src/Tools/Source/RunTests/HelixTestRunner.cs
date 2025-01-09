@@ -58,6 +58,7 @@ internal sealed class HelixTestRunner
 
         var logsDir = Path.Combine(options.ArtifactsDirectory, options.Configuration);
         _ = Directory.CreateDirectory(logsDir);
+        Console.WriteLine($"Writing logs to {logsDir}");
 
         var helixProjectFileContent = GetHelixProjectFileContent(
             workItems,
@@ -140,7 +141,7 @@ internal sealed class HelixTestRunner
 
         var builder = new StringBuilder();
         builder.AppendLine($"""
-            <Project Sdk=""Microsoft.DotNet.Helix.Sdk"" DefaultTargets=""Test"">
+            <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
             <PropertyGroup>
                 <TestRunNamePrefix>{jobName}_</TestRunNamePrefix>
                 <HelixSource>pr/{sourceBranch}</HelixSource>
