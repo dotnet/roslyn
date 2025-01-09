@@ -322,7 +322,7 @@ internal abstract partial class AbstractExtractMethodService<
                 var createAsyncTuple = outRefCount > 0 &&
                     this.SelectionResult.ContainsAwaitExpression() &&
                     this.SyntaxFacts.SupportsTupleDeconstruction(this.SemanticDocument.Document.Project.ParseOptions!);
-                if (hasFlowControlResult || createAsyncTuple)
+                if (createAsyncTuple || hasFlowControlResult)
                 {
                     var result = new FixedSizeArrayBuilder<VariableInfo>(variableInfos.Length);
                     foreach (var info in variableInfos)

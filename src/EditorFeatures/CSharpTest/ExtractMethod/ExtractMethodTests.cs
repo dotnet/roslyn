@@ -8448,7 +8448,8 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541668")]
     public async Task BreakInSelection()
     {
-        var code = """
+        await TestExtractMethodAsync(
+            """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -8482,8 +8483,49 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                     }
                 }
             }
-            """;
-        await ExpectExtractMethodToFailAsync(code);
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    string x1 = "Hello";
+                    switch (x1)
+                    {
+                        case null:
+                            int i1 = 10;
+                            break;
+                        default:
+                            i1 = NewMethod(ref x1);
+                            break;
+                    }
+                }
+
+                private static int NewMethod(ref string x1)
+                {
+                    int i1;
+                    switch (x1)
+                    {
+                        default:
+                            switch (x1)
+                            {
+                                default:
+                                    int j1 = 99;
+                                    i1 = 45;
+                                    x1 = "t";
+                                    string j2 = i1.ToString() + j1.ToString() + x1;
+                                    break;
+                            }
+                            break;
+                    }
+                    return i1;
+                }
+            }
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541671")]

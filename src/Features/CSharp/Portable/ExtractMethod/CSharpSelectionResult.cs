@@ -130,8 +130,8 @@ internal sealed partial class CSharpExtractMethodService
             return last.Parent.Parent;
         }
 
-        public override bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints)
-            => exitPoints.Any(n => n is not ReturnStatementSyntax);
+        public override bool ContainsUnsupportedExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints)
+            => exitPoints.Any(n => n is not (BreakStatementSyntax or ContinueStatementSyntax or ReturnStatementSyntax));
 
         public override ImmutableArray<StatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> exitPoints)
             => exitPoints.OfType<ReturnStatementSyntax>().ToImmutableArray().CastArray<StatementSyntax>();
