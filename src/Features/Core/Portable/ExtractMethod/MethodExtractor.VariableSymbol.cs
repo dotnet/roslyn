@@ -20,9 +20,9 @@ internal abstract partial class AbstractExtractMethodService<
         protected abstract class VariableSymbol : IComparable<VariableSymbol>
         {
             /// <summary>
-            /// Get the type of variable to use when generating code. May contain anonymous types in it. Note: this is
-            /// not necessarily the type symbol that can be directly accessed off of the underlying <see
-            /// cref="ISymbol"/> itself.  For example, it may have had nullability information changes applied to it.
+            /// Get the type of <see cref="GetSymbol"/> to use when generating code. May contain anonymous types in it.
+            /// Note: this is not necessarily the type symbol that can be directly accessed off of <see
+            /// cref="GetSymbol"/> itself.  For example, it may have had nullability information changes applied to it.
             /// </summary>
             public ITypeSymbol SymbolType { get; }
 
@@ -47,7 +47,11 @@ internal abstract partial class AbstractExtractMethodService<
                 }
             }
 
-            public abstract string Name { get; }
+            /// <summary>
+            /// The underlying symbol this points at.
+            /// </summary>
+            protected abstract ISymbol GetSymbol();
+
             public abstract bool CanBeCapturedByLocalFunction { get; }
 
             public abstract SyntaxAnnotation IdentifierTokenAnnotation { get; }
@@ -75,6 +79,11 @@ internal abstract partial class AbstractExtractMethodService<
                     _ => this.CompareToWorker(other),
                 };
             }
+
+            public string Name => this.GetSymbol().ToDisplayString(
+                new SymbolDisplayFormat(
+                    parameterOptions: SymbolDisplayParameterOptions.IncludeName,
+                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
         }
 
         protected abstract class VariableSymbol<TVariableSymbol, TSymbol>(
@@ -84,6 +93,8 @@ internal abstract partial class AbstractExtractMethodService<
             where TSymbol : ISymbol
         {
             protected TSymbol Symbol { get; } = symbol;
+
+            protected override ISymbol GetSymbol() => this.Symbol;
 
             protected sealed override int CompareToWorker(VariableSymbol right)
                 => this.CompareTo((TVariableSymbol)right);
@@ -101,11 +112,6 @@ internal abstract partial class AbstractExtractMethodService<
 
                 return locationLeft.SourceSpan.Start - locationRight.SourceSpan.Start;
             }
-
-            public override string Name => this.Symbol.ToDisplayString(
-                new SymbolDisplayFormat(
-                    parameterOptions: SymbolDisplayParameterOptions.IncludeName,
-                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers));
         }
 
         protected abstract class NotMovableVariableSymbol<TVariableSymbol, TSymbol>(
