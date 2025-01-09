@@ -182,12 +182,32 @@ internal sealed partial class CSharpExtractMethodService
                                 PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, IdentifierName(FlowControlName)),
                                 Block(GetFlowStatement(false)));
                         }
+                        else if (flowControlInformation.BreakStatementCount == 0 && useBlock)
+                        {
+                            // Otherwise, if we have no break statements we'll emit the following as its shorter:
+                            //
+                            //      switch (flowControl)
+                            //      {
+                            //          case true: FlowControlConstruct1;
+                            //          case false: FlowControlConstruct2;
+                            //      }
+                            return SwitchStatement(
+                                IdentifierName(FlowControlName), [
+                                    SwitchSection(
+                                        [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(true).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
+                                        [GetFlowStatement(true).WithoutTrivia()]),
+                                    SwitchSection(
+                                        [CaseSwitchLabel(CaseKeyword.WithTrailingTrivia(Space), LiteralExpression(false).WithoutTrivia(), ColonToken.WithTrailingTrivia(Space)).WithoutLeadingTrivia()],
+                                        [GetFlowStatement(false).WithoutTrivia()])]);
+                        }
                         else
                         {
                             // Otherwise, we'll emit:
                             //
-                            //      if (flowControl) FlowControlConstruct1;
-                            //      else FlowControlConstruct2;
+                            //      if (flowControl)
+                            //          FlowControlConstruct1;
+                            //      else
+                            //          FlowControlConstruct2;
                             return IfStatement(
                                 IdentifierName(FlowControlName),
                                 Block(GetFlowStatement(true)),
@@ -249,12 +269,15 @@ internal sealed partial class CSharpExtractMethodService
 
                 StatementSyntax GetFlowStatement(object value)
                 {
+                    // Being explicit about trivia ensures the formatter doesn't insert newlines in undesirable places.
+
+                    var semicolon = SemicolonToken.WithoutLeadingTrivia();
                     if (flowControlInformation.TryGetBreakFlowValue(out var breakValue) && Equals(breakValue, value))
-                        return BreakStatement();
+                        return BreakStatement(BreakKeyword.WithoutTrailingTrivia(), semicolon);
                     else if (flowControlInformation.TryGetContinueFlowValue(out var continueValue) && Equals(continueValue, value))
-                        return ContinueStatement();
+                        return ContinueStatement(ContinueKeyword.WithoutTrailingTrivia(), semicolon);
                     else if (flowControlInformation.TryGetReturnFlowValue(out var returnValue) && Equals(returnValue, value))
-                        return ReturnStatement(this.AnalyzerResult.CoreReturnType.SpecialType == SpecialType.System_Void ? null : IdentifierName(ReturnValueName));
+                        return ReturnStatement(ReturnKeyword.WithoutTrailingTrivia(), this.AnalyzerResult.CoreReturnType.SpecialType == SpecialType.System_Void ? null : IdentifierName(ReturnValueName).WithLeadingTrivia(Space).WithoutTrailingTrivia(), semicolon);
                     else
                         throw ExceptionUtilities.Unreachable();
                 }
