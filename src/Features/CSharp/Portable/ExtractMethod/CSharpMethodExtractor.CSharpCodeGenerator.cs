@@ -843,14 +843,6 @@ internal sealed partial class CSharpExtractMethodService
 
                 var hasNonControlFlowReturnValue = variableInfos.Length > 0 || this.AnalyzerResult.CoreReturnType.SpecialType != SpecialType.System_Void;
 
-                // Note, we do not use "Use var when apparent" here as no types are apparent when doing `... =
-                // NewMethod()`. If we have `use var elsewhere` we may try to generate `var (a, b, c)` if we're
-                // producing new variables for all variable infos.  If we're producing new variables only for some
-                // variables, we'll need to do something like `(Type a, b, c)`.  In that case, we'll use 'var' if the
-                // type is a built-in type, and varForBuiltInTypes is true.  Otherwise, if it's not built-in, we'll
-                // use "use var elsewhere" to determine what to do.
-                var varElsewhere = ((CSharpSimplifierOptions)this.ExtractMethodGenerationOptions.SimplifierOptions).VarElsewhere.Value;
-
                 var equalsValueClause = initialValue == null ? null : EqualsValueClause(initialValue);
                 if (variableInfos is [var singleVariable] && !needsControlFlowValue)
                 {
@@ -884,6 +876,14 @@ internal sealed partial class CSharpExtractMethodService
 
                 ExpressionSyntax CreateLeftExpression()
                 {
+                    // Note, we do not use "Use var when apparent" here as no types are apparent when doing `... =
+                    // NewMethod()`. If we have `use var elsewhere` we may try to generate `var (a, b, c)` if we're
+                    // producing new variables for all variable infos.  If we're producing new variables only for some
+                    // variables, we'll need to do something like `(Type a, b, c)`.  In that case, we'll use 'var' if
+                    // the type is a built-in type, and varForBuiltInTypes is true.  Otherwise, if it's not built-in,
+                    // we'll use "use var elsewhere" to determine what to do.
+                    var varElsewhere = ((CSharpSimplifierOptions)this.ExtractMethodGenerationOptions.SimplifierOptions).VarElsewhere.Value;
+
                     if (variableInfos.All(i => i.ReturnBehavior == ReturnBehavior.Initialization) && varElsewhere)
                     {
                         // Create `(a, b, c)` to represent the N values being returned.
