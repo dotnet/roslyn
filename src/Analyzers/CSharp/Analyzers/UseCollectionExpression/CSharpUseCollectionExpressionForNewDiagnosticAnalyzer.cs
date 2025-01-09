@@ -73,7 +73,7 @@ internal sealed partial class CSharpUseCollectionExpressionForNewDiagnosticAnaly
             return;
         }
 
-        // Because we want to replacing a `new X(enumerable)` with `[.. enumerable]` we need to make sure that the final
+        // Because we want to replace `new X(enumerable)` with `[.. enumerable]` we need to make sure that the final
         // type supports the collection initialization pattern (specifically that it exposes an Add method that takes
         // the element type).  This prevents us from working on certain types that do allow the former form but not the
         // latter.
