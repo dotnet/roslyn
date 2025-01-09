@@ -249,7 +249,7 @@ internal abstract partial class AbstractExtractMethodService<
             return OperationStatus.SucceededStatus;
         }
 
-        internal static string MakeMethodName(string prefix, string originalName, bool camelCase)
+        protected static string MakeMethodName(string prefix, string originalName, bool camelCase)
         {
             var startingWithLetter = originalName.ToCharArray().SkipWhile(c => !char.IsLetter(c)).ToArray();
             var name = startingWithLetter.Length == 0 ? originalName : new string(startingWithLetter);
