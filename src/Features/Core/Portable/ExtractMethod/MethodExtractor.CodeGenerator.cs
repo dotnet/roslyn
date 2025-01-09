@@ -32,6 +32,16 @@ internal abstract partial class AbstractExtractMethodService<
         public static readonly SyntaxAnnotation MethodDefinitionAnnotation = new();
         public static readonly SyntaxAnnotation CallSiteAnnotation = new();
         public static readonly SyntaxAnnotation InsertionPointAnnotation = new();
+
+        /// <summary>
+        /// Marks nodes that cause control flow to leave the extracted selection.  This is commonly constructs like <see
+        /// langword="return"/>, <see langword="break"/>, <see langword="continue"/> and the like.  We mark these with
+        /// annotations at the start of the extraction process so that we can find these nodes again later after they
+        /// have been extracted to rewrite them as needed.  Specifically, constructs like <see langword="break"/>, <see
+        /// langword="continue"/> cannot cross a method boundary.  As such, they must be translated to a <see
+        /// langword="return"/> statement that returns a value indicating the flow control construct that should be
+        /// executed at the callsite after the extracted method is called.
+        /// </summary>
         public static readonly SyntaxAnnotation ExitPointAnnotation = new();
 
         protected abstract class CodeGenerator
