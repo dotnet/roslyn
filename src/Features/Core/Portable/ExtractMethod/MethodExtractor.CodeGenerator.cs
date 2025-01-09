@@ -292,7 +292,7 @@ internal abstract partial class AbstractExtractMethodService<
                 ImmutableArray<TStatementSyntax> statements, CancellationToken cancellationToken)
             {
                 // If the newly extracted method isn't returning any data, and doesn't have complex flow control, then
-                // we want ot handle that here.  The case where we do need to pass data out is in AddAssignmentStatementToCallSite.
+                // we want to handle that here.  The case where we do need to pass data out is in AddAssignmentStatementToCallSite.
                 if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty &&
                     !AnalyzerResult.FlowControlInformation.NeedsControlFlowValue())
                 {
