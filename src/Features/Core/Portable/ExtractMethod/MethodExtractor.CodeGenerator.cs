@@ -356,8 +356,7 @@ internal abstract partial class AbstractExtractMethodService<
 
                 var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
 
-                if (this.SupportsComplexFlowControl &&
-                    this.AnalyzerResult.FlowControlInformation.TryGetFallThroughFlowValue(out var fallthroughValue))
+                if (this.AnalyzerResult.FlowControlInformation.TryGetFallThroughFlowValue(out var fallthroughValue))
                 {
                     return statements.Concat(CreateReturnStatement([CreateFlowControlReturnExpression(this.AnalyzerResult.FlowControlInformation, fallthroughValue)]));
                 }

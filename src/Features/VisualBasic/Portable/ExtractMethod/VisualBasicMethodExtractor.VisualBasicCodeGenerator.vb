@@ -52,8 +52,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)
                 End Sub
 
-                Protected Overrides ReadOnly Property SupportsComplexFlowControl As Boolean = False
-
                 Protected Overrides Function CreateBreakStatement() As ExecutableStatementSyntax
                     Throw ExceptionUtilities.Unreachable
                 End Function

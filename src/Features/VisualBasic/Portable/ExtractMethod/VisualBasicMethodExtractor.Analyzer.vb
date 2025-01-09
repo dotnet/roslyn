@@ -54,10 +54,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Dim compilation = Me.SemanticModel.Compilation
                     Return New ExtractMethodFlowControlInformation(
                         compilation,
+                        supportsComplexFlowControl:=False,
                         breakStatementCount:=0,
                         continueStatementCount:=0,
                         returnStatementCount:=If(Me.ContainsReturnStatementInSelectedCode(), 1, 0),
-                        endPointIsReachable:=Me.SelectionResult.IsExtractMethodOnExpression OrElse Me.SelectionResult.GetStatementControlFlowAnalysis().EndPointIsReachable)
+                        endPointIsReachable:=Me.SelectionResult.GetStatementControlFlowAnalysis().EndPointIsReachable)
                 End Function
             End Class
         End Class

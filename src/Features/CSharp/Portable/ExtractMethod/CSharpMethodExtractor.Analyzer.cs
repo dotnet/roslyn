@@ -43,6 +43,7 @@ internal sealed partial class CSharpExtractMethodService
                 var controlFlowAnalysis = this.SelectionResult.GetStatementControlFlowAnalysis();
                 return new(
                     this.SemanticModel.Compilation,
+                    supportsComplexFlowControl: true,
                     controlFlowAnalysis.ExitPoints.Count(n => n is BreakStatementSyntax),
                     controlFlowAnalysis.ExitPoints.Count(n => n is ContinueStatementSyntax),
                     controlFlowAnalysis.ExitPoints.Count(n => n is ReturnStatementSyntax),

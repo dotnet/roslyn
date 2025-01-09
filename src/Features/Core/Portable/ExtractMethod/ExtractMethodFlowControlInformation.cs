@@ -41,6 +41,7 @@ internal sealed class ExtractMethodFlowControlInformation
         ReturnStatementCount = returnStatementCount;
         EndPointIsReachable = endPointIsReachable;
 
+        ControlFlowValueType = _compilation.GetSpecialType(SpecialType.System_Void);
         if (supportsComplexFlowControl)
         {
             var controlFlowKindCount = GetControlFlowKindCount();
@@ -60,8 +61,6 @@ internal sealed class ExtractMethodFlowControlInformation
                 AssignFlowValues([0, 1, 2, 3]);
             }
         }
-
-        ControlFlowValueType = _compilation.GetSpecialType(SpecialType.System_Void);
     }
 
     private void AssignFlowValues(object?[] values)
