@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion;
@@ -18,10 +19,17 @@ public class FileSystemCompletionHelperTests
     {
         AssertEx.Equal(
             expected,
-            actual.Select(c => $"'{c.DisplayText}', {string.Join(", ", c.Tags)}, '{c.GetProperty(CommonCompletionItem.DescriptionProperty)}'"),
+            actual.Select(c => $"'{c.DisplayText}', {string.Join(", ", c.Tags)}, '{GetEncodedDescription(c)}'"),
             itemInspector: c => $"@\"{c}\"");
 
         Assert.True(actual.All(i => i.Rules == TestFileSystemCompletionHelper.CompletionRules));
+
+        static string GetEncodedDescription(CompletionItem actual)
+        {
+            return actual.TryGetObjectProperty<CompletionDescription>(CommonCompletionItem.DescriptionProperty, out var description)
+                ? string.Join("|", description.TaggedParts.SelectMany(d => new[] { d.Tag, d.Text }).Select(t => t.Escape('\\', ['|'])))
+                : string.Empty;
+        }
     }
 
     [ConditionalFact(typeof(WindowsOnly))]

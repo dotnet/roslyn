@@ -127,7 +127,7 @@ public sealed class CompletionItem : IComparable<CompletionItem>
         return false;
     }
 
-    internal bool TryGetObjectProperty<ValueType>(string name, [NotNullWhen(true)] out ValueType? value)
+    internal bool TryGetObjectProperty<TValue>(string name, [NotNullWhen(true)] out TValue? value)
     {
         // Don't search in _lazyPropertiesAsImmutableDictionary as TryGetProperty does
         // as that contains the objects converted to strings
@@ -135,7 +135,7 @@ public sealed class CompletionItem : IComparable<CompletionItem>
         {
             if (name == propName)
             {
-                value = (ValueType)propValue;
+                value = (TValue)propValue;
                 return true;
             }
         }

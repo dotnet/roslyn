@@ -404,7 +404,7 @@ internal sealed class CompletionSource : IAsyncExpandingCompletionSource
 
         var suggestionItemOptions = new AsyncCompletionData.SuggestionItemOptions(
             completionList.SuggestionModeItem.DisplayText,
-            completionList.SuggestionModeItem.TryGetProperty(CommonCompletionItem.DescriptionProperty, out var description) ? description : string.Empty);
+            completionList.SuggestionModeItem.TryGetObjectProperty<CompletionDescription>(CommonCompletionItem.DescriptionProperty, out var description) ? description.Text : string.Empty);
 
         return (new(completionItemList, suggestionItemOptions, selectionHint: AsyncCompletionData.InitialSelectionHint.SoftSelection, filters, isIncomplete: false, null), completionList);
     }
