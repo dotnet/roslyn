@@ -6,9 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
@@ -29,13 +31,12 @@ internal sealed class HelixTestRunner
 
     internal static async Task<int> RunAsync(Options options, ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
     {
-        Contract.Assert(options.UseHelix);
-        Contract.Assert(!options.IncludeHtml);
-        Contract.Assert(string.IsNullOrEmpty(options.TestFilter));
-        Contract.Assert(!string.IsNullOrEmpty(options.ArtifactsDirectory));
-        Contract.Assert(!string.IsNullOrEmpty(options.TestResultsDirectory));
-        Contract.Assert(!string.IsNullOrEmpty(options.HelixQueueName));
-        Contract.Assert(!string.IsNullOrEmpty(options.HelixApiAccessToken));
+        Verify(options.UseHelix);
+        Verify(!options.IncludeHtml);
+        Verify(string.IsNullOrEmpty(options.TestFilter));
+        Verify(!string.IsNullOrEmpty(options.ArtifactsDirectory));
+        Verify(!string.IsNullOrEmpty(options.HelixQueueName));
+        Verify(!string.IsNullOrEmpty(options.HelixApiAccessToken));
 
         // Currently, it's required for the client machine to use the same OS family as the target Helix queue.
         // We could relax this and allow for example Linux clients to kick off Windows jobs, but we'd have to
@@ -55,6 +56,9 @@ internal sealed class HelixTestRunner
         var testHistory = await TestHistoryManager.GetTestHistoryAsync(options, cancellationToken);
         var workItems = AssemblyScheduler.Schedule(assemblies, testHistory);
 
+        // Note: this should be an explicit argument
+        var executionDir = AppContext.BaseDirectory;
+
         var helixProjectFilePath = WriteHelixProjectFile(
             workItems,
             testOS,
@@ -62,7 +66,7 @@ internal sealed class HelixTestRunner
             platform,
             options.HelixQueueName,
             options.ArtifactsDirectory,
-            options.TestResultsDirectory);
+            executionDir);
 
         var arguments = $"build {helixProjectFilePath} -p:HelixAccessToken={options.HelixApiAccessToken}";
         var process = ProcessRunner.CreateProcess(
@@ -73,6 +77,14 @@ internal sealed class HelixTestRunner
             cancellationToken: cancellationToken);
         var processResult = await process.Result.ConfigureAwait(false);
         return processResult.ExitCode;
+
+        void Verify([DoesNotReturnIf(false)] bool condition, [CallerArgumentExpression("condition")] string? message = null)
+        {
+            if (!condition)
+            {
+                throw new Exception($"Verify failed: {message}");
+            }
+        }
     }
 
     private static string WriteHelixProjectFile(
@@ -82,7 +94,7 @@ internal sealed class HelixTestRunner
         string platform,
         string helixQueueName,
         string artifactsDir,
-        string testResultsDir)
+        string executionDir)
     {
         // Setup the environment variables that are required for the helix project.
         //
@@ -127,7 +139,7 @@ internal sealed class HelixTestRunner
 
         foreach (var workItemInfo in workItems)
         {
-            AppendHelixWorkItemProject(builder, workItemInfo, platform, artifactsDir, testResultsDir, testOS);
+            AppendHelixWorkItemProject(builder, workItemInfo, platform, artifactsDir, executionDir, testOS);
         }
 
         builder.AppendLine("</ItemGroup>");
@@ -174,7 +186,7 @@ internal sealed class HelixTestRunner
             WorkItemInfo workItemInfo,
             string platform,
             string artifactsDir,
-            string testResultsDir,
+            string executionDir,
             TestOS testOS)
         {
             var isUnix = testOS != TestOS.Windows;
@@ -231,13 +243,13 @@ internal sealed class HelixTestRunner
             AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
 
             var xmlResultsFilePath = Path.Combine(
-                testResultsDir,
+                executionDir,
                 $"workitem_{workItemInfo.PartitionIndex}.xml");
 
             // Build an rsp file to send to dotnet test that contains all the assemblies and tests to run.
             // This gets around command line length limitations and avoids weird escaping issues.
             // See https://docs.microsoft.com/en-us/dotnet/standard/commandline/syntax#response-files
-            var rspFileContent = GetRspFileContent(workItemInfo, platform, xmlResultsFilePath, testResultsDir);
+            var rspFileContent = GetRspFileContent(workItemInfo, platform, xmlResultsFilePath);
             var rspFileName = $"vstest_{workItemInfo.PartitionIndex}.rsp";
             File.WriteAllText(Path.Combine(payloadDirectory, rspFileName), rspFileContent);
 
@@ -354,8 +366,7 @@ internal sealed class HelixTestRunner
     private static string GetRspFileContent(
         WorkItemInfo workItem,
         string platform,
-        string xmlResultsFilePath,
-        string testResultsDirectory)
+        string xmlResultsFilePath)
     {
         var builder = new StringBuilder();
 
@@ -382,9 +393,6 @@ internal sealed class HelixTestRunner
         // Helix timeout is 15 minutes as helix jobs fully timeout in 30minutes.  So in order to capture dumps we need the timeout
         // to be 2x shorter than the expected test run time (15min) in case only the last test hangs.
         builder.AppendLine($"/Blame:{blameOption};TestTimeout=15minutes;DumpType=full");
-
-        // Specifies the results directory - this is where dumps from the blame options will get published.
-        builder.AppendLine($"/ResultsDirectory:{testResultsDirectory}");
 
         // Build the filter string
         var testMethods = workItem.Filters.SelectMany(x => x.Value);
