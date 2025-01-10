@@ -437,7 +437,6 @@ class X
                         case ErrorCode.WRN_FieldIsAmbiguous:
                         case ErrorCode.WRN_UninitializedNonNullableBackingField:
                         case ErrorCode.WRN_AccessorDoesNotUseBackingField:
-                        case ErrorCode.ERR_VariableDeclarationNamedField:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
