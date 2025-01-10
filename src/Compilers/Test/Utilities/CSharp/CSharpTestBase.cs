@@ -2544,9 +2544,17 @@ namespace System.Runtime.CompilerServices
             var cultureInfoHandler = @"
 public class CultureInfoNormalizer
 {
+    private static CultureInfo originalCulture;
+
     public static void Normalize()
     {
+        originalCulture = CultureInfo.CurrentCulture;
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+    }
+
+    public static void Reset()
+    {
+        CultureInfo.CurrentCulture = originalCulture;
     }
 }
 ";
