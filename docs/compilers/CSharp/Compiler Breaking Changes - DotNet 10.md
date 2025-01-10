@@ -237,6 +237,7 @@ The expression `field`, when used within a property accessor, refers to a synthe
 The warning CS9258 is reported when the identifier would have bound to a different symbol with language version 13 or earlier.
 
 To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+Alternatively, rename the existing member and the reference to that member to avoid a conflict with `field`.
 
 ```csharp
 class MyClass
