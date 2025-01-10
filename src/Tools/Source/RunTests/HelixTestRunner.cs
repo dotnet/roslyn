@@ -418,6 +418,7 @@ internal sealed class HelixTestRunner
                 MaybeAddSeparator();
                 builder.Append($"FullyQualifiedName={testMethod.FullyQualifiedName}");
             }
+            builder.AppendLine("\"");
 
             void MaybeAddSeparator(char separator = '|')
             {
