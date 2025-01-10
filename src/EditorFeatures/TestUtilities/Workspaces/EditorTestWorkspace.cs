@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -191,6 +193,27 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
         Contract.ThrowIfFalse(testDocument.IsSourceGenerated);
 
         testDocument.GetOpenTextContainer();
+    }
+
+    public TServiceInterface GetService<TServiceInterface>(string contentType)
+    {
+        var values = ExportProvider.GetExports<TServiceInterface, ContentTypeMetadata>();
+        return values.Single(value => value.Metadata.ContentTypes.Contains(contentType)).Value;
+    }
+
+    public TServiceInterface GetService<TServiceInterface>(string contentType, string name)
+    {
+        var values = ExportProvider.GetExports<TServiceInterface, OrderableContentTypeMetadata>();
+        return values.Single(value => value.Metadata.Name == name && value.Metadata.ContentTypes.Contains(contentType)).Value;
+    }
+
+    internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
+    {
+        // VisualStudioWorkspace asserts the main thread for this call, so do the same thing here to catch tests
+        // that fail to account for this possibility.
+        var threadingContext = ExportProvider.GetExportedValue<IThreadingContext>();
+        Contract.ThrowIfFalse(threadingContext.HasMainThread && threadingContext.JoinableTaskContext.IsOnMainThread);
+        return true;
     }
 
     /// <summary>

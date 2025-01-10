@@ -10,6 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
+#if F
     public partial class TestWorkspace<TDocument, TProject, TSolution> : ILspWorkspace
     {
         bool ILspWorkspace.SupportsMutation => _supportsLspMutation;
@@ -21,4 +22,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return ValueTaskFactory.CompletedTask;
         }
     }
+#endif
 }
