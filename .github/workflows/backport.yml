@@ -1,6 +1,7 @@
 name: Backport PR to branch
 on:
   issue_comment:
+   
     types: [created]
   schedule:
     # once a day at 13:00 UTC to cleanup old runs
@@ -24,17 +25,17 @@ jobs:
 
         ## Customer Impact
 
-        ## Regression
+        ## production
 
         - [ ] Yes
         - [ ] No
 
         [If yes, specify when the regression was introduced. Provide the PR or commit if known.]
 
-        ## Testing
+        ## production
 
         [How was the fix verified? How was the issue missed previously? What tests were added?]
 
-        ## Risk
+        ## 
 
-        [High/Medium/Low. Justify the indication by mentioning how risks were measured and addressed.]
+        [High]
