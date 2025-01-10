@@ -2102,7 +2102,7 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66950")]
-    public async Task TestWithMutableStructAndReadonlyMethod()
+    public async Task TestWithNonReadonlyStructAndReadonlyMethod()
     {
         await TestInRegularAndScriptAsync(
             """
@@ -2146,7 +2146,7 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66950")]
-    public async Task TestWithImmutableStruct()
+    public async Task TestWithReadonlyStruct()
     {
         await TestInRegularAndScriptAsync(
             """
