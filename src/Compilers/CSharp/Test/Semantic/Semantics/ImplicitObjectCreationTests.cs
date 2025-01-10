@@ -4587,8 +4587,9 @@ class X
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76499")]
-        public void Repro_76499_ValidSyntax()
+        public void PublicAPI_01()
         {
+            // target-typed object creation
             var source = """
                 static A Do()
                 {
@@ -4618,8 +4619,9 @@ class X
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76499")]
-        public void Repro_76499_1()
+        public void PublicAPI_02()
         {
+            // target-typed object creation with syntax errors
             var source = """
                 static A Do()
                 {
@@ -4649,8 +4651,9 @@ class X
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76499")]
-        public void Repro_76499_ExplicitlyTyped()
+        public void PublicAPI_03()
         {
+            // explicitly-typed object creation with syntax errors
             var source = """
                 static A Do()
                 {
@@ -4682,11 +4685,13 @@ class X
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76499")]
         public void Repro_76499_2()
         {
+            // explicit and target-typed object creation with syntax errors
+            // using non-records and overloaded constructors
             var source = """
                 class C
                 {
                     public C(int x, int y) { }
-                    //public C(int x, int y, int z) { }
+                    public C(int x, int y, int z) { }
 
                     public static void M()
                     {
@@ -4707,17 +4712,20 @@ class X
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
+
             var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
             var typeInfo = model.GetTypeInfo(node);
             Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
-        }
-        //     var symbolInfo = model.GetSymbolInfo(node);
-        //     Assert.Equal(null, symbolInfo.Symbol?.ToTestDisplayString()); // TODO: fix?
+            var members = model.GetMemberGroup(node).SelectAsArray(m => m.ToTestDisplayString());
+            string[] expectedMembers = ["C..ctor(System.Int32 x, System.Int32 y)", "C..ctor(System.Int32 x, System.Int32 y, System.Int32 z)"];
+            AssertEx.SequenceEqual(expectedMembers, members);
 
-        //     var explicitCreationNode = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
-        //     symbolInfo = model.GetSymbolInfo(explicitCreationNode);
-        //     Assert.Equal("C", symbolInfo.Symbol.ToTestDisplayString());
-        // }
+            var explicitCreationNode = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
+            members = model.GetMemberGroup(explicitCreationNode).SelectAsArray(m => m.ToTestDisplayString());
+            AssertEx.SequenceEqual(expectedMembers, members);
+        }
 
         [Fact]
         [WorkItem(50489, "https://github.com/dotnet/roslyn/issues/50489")]
