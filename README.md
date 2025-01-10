@@ -4,7 +4,7 @@
 
 <h1 align="center">The .NET Compiler Platform</h1>
 
-<p align="center"><a href="http://aka.ms/discord-csharp-roslyn" rel="nofollow"><img title="Chat on Discord" src="docs/img/discord-mark-white.png" /></a></p>
+<p align="center"><a href="http://aka.ms/discord-csharp-roslyn" rel="nofollow"><img title="Chat on Discord" src="docs/img/discord-mark-white.png" height="20" /></a></p>
 
 Roslyn is the open-source implementation of both the C# and Visual Basic compilers with an API surface for building code analysis tools.
 
