@@ -11,7 +11,7 @@ if (Test-Path $BasePath) {
     Get-ChildItem $BasePath *.vsman -Recurse -File |% {
         $version = (Get-Content $_.FullName | ConvertFrom-Json).info.buildVersion
         $fn = $_.Name
-        $vsmanFiles += "LibraryName.vsman{$version}=https://vsdrop.corp.microsoft.com/file/v1/$vstsDropNames;$fn"
+        $vsmanFiles += "$fn{$version}=https://vsdrop.corp.microsoft.com/file/v1/$vstsDropNames;$fn"
     }
 
     [string]::join(',',$vsmanFiles)
