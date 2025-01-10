@@ -7188,6 +7188,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (current.ContainingSymbol is FieldSymbol)
+            {
+                // Functions inside a field initializer are effectively static.
+                Debug.Assert(method.MethodKind is MethodKind.LambdaMethod or MethodKind.LocalFunction);
+                return 0;
+            }
+
             if (current.TryGetThisParameter(out var thisParameter) && thisParameter is not null)
             {
                 return GetOrCreateSlot(thisParameter);

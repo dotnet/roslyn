@@ -10588,5 +10588,63 @@ class C(string p)
                 //         [A(p)] void F() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(13, 21));
         }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [InlineData("")]
+        [InlineData("static ")]
+        public void Repro76528(string modifiers)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C
+                {
+                    public static string? field;
+
+                    public Action Prop1 { get; } = () =>
+                    {
+                        init();
+                        Console.WriteLine(field.Length);
+
+                        [MemberNotNull(nameof(field))]
+                        {{modifiers}}void init() => field ??= "";
+                    };
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [InlineData("")]
+        [InlineData("static ")]
+        public void Repro76528_FieldInitializer(string modifiers)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C
+                {
+                    public static string? field;
+
+                    public Action field2 = () =>
+                    {
+                        init();
+                        Console.WriteLine(field.Length);
+
+                        [MemberNotNull(nameof(field))]
+                        {{modifiers}}void init() => field ??= "";
+                    };
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
