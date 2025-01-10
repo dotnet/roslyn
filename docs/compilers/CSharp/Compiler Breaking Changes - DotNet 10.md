@@ -274,9 +274,8 @@ class MyClass
     {
         get
         {
-            // error CS9272: The 'field' keyword binds to a synthesized backing field for the property.
-            // Unescaped references to 'field' within the scope of this variable will refer to the
-            // synthesized field rather than this variable.
+            // error CS9272: 'field' is a keyword within a property accessor.
+            // Rename the variable or use the identifier '@field' instead.
             int field = 0;
             return @field;
         }
