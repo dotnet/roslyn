@@ -3029,25 +3029,31 @@ public class Child : Parent, IParent
 
             var expectedOutput = "abbccc";
 
-            foreach (var feature in new[] { "3", "1000", "off" })
+            var expectedIl = """
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  1
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  call       "void System.Console.Write(string)"
+                  IL_000a:  ldstr      "bb"
+                  IL_000f:  call       "void System.Console.Write(string)"
+                  IL_0014:  ldstr      "ccc"
+                  IL_0019:  call       "void System.Console.Write(string)"
+                  IL_001e:  ret
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: expectedOutput)
+                .VerifyDiagnostics()
+                .VerifyIL("<top-level-statements-entry-point>", expectedIl);
+
+            foreach (var feature in new[] { "3", "1000", "off", "true", "false", "", "-1", long.MaxValue.ToString(), null })
             {
                 CompileAndVerify(source,
                     parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", feature),
                     expectedOutput: expectedOutput)
                     .VerifyDiagnostics()
-                    .VerifyIL("<top-level-statements-entry-point>", """
-                    {
-                      // Code size       31 (0x1f)
-                      .maxstack  1
-                      IL_0000:  ldstr      "a"
-                      IL_0005:  call       "void System.Console.Write(string)"
-                      IL_000a:  ldstr      "bb"
-                      IL_000f:  call       "void System.Console.Write(string)"
-                      IL_0014:  ldstr      "ccc"
-                      IL_0019:  call       "void System.Console.Write(string)"
-                      IL_001e:  ret
-                    }
-                    """);
+                    .VerifyIL("<top-level-statements-entry-point>", expectedIl);
             }
 
             CompileAndVerify(source,
@@ -3245,9 +3251,8 @@ public class Child : Parent, IParent
                 parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", feature),
                 verify: Verification.FailsPEVerify with
                 {
-                    PEVerifyMessage = """
-                        Bad token as entry point in CLR header.
-                        """,
+                    // Metadata-only emit causes this error.
+                    PEVerifyMessage = "Bad token as entry point in CLR header.",
                 },
                 symbolValidator: static (ModuleSymbol module) =>
                 {
@@ -3259,6 +3264,218 @@ public class Child : Parent, IParent
                         """, module.TypeNames.Join("\n"));
                 })
                 .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_SharedType()
+        {
+            var source = """
+                using static System.Console;
+
+                Write("a");
+                Write("b");
+                Write("ccc");
+                Write("ddd");
+                """;
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                verify: Verification.Fails,
+                expectedOutput: "abcccddd",
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    var privateImplDetails = module.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
+
+                    // Data field types
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3
+                        System.Byte
+                        System.Byte
+                        """,
+                        privateImplDetails.GetMembers().OfType<FieldSymbol>().Select(f => f.Type.ToTestDisplayString()).Order().Join("\n"));
+
+                    // Nested types
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        __StaticArrayInitTypeSize=3
+                        <S>A96FAF705AF16834E6C632B61E964E1F
+                        <S>4B2212E31AC97FD4575A0B1C44D8843F
+                        <S>BE20CA004CC2993A396345E0D52DF013
+                        <S>1F6CEF082E150274999DD6657C23A29E
+                        """,
+                        privateImplDetails.GetTypeMembers().Select(t => t.Name).Join("\n"));
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_SharedValue()
+        {
+            var source = """
+                using static System.Console;
+
+                Write("a");
+                Write("a");
+                Write("bbb");
+                Write("bbb");
+                """;
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                verify: Verification.Fails,
+                expectedOutput: "aabbbbbb",
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    var privateImplDetails = module.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
+
+                    // Data field types
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3
+                        System.Byte
+                        """,
+                        privateImplDetails.GetMembers().OfType<FieldSymbol>().Select(f => f.Type.ToTestDisplayString()).Order().Join("\n"));
+
+                    // Nested types
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        __StaticArrayInitTypeSize=3
+                        <S>A96FAF705AF16834E6C632B61E964E1F
+                        <S>A6DC9C19EFE4ABBCBE168A8B4D34D73A
+                        """,
+                        privateImplDetails.GetTypeMembers().Select(t => t.Name).Join("\n"));
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_SharedType_ArrayInitializer()
+        {
+            var source = """
+                using System;
+                using static System.Console;
+
+                Write("abc");
+                M(new byte[] { 1, 2, 3 });
+
+                static void M(ReadOnlySpan<byte> x)
+                {
+                    foreach (var b in x)
+                    {
+                        Write(b);
+                    }
+                }
+                """;
+            CompileAndVerify(
+                CreateCompilationWithSpan(source,
+                    parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                    options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All)),
+                verify: Verification.Fails,
+                expectedOutput: "abc123",
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    // Data field types
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3
+                        """,
+                        module.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>").GetMembers()
+                            .OfType<FieldSymbol>().Select(f => f.Type.ToTestDisplayString()).Order().Join("\n"));
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_SharedValue_ArrayInitializer()
+        {
+            var source = """
+                using System;
+                using static System.Console;
+
+                Write("abc");
+                M(new byte[] { 97, 98, 99 });
+
+                static void M(ReadOnlySpan<byte> x)
+                {
+                    foreach (var b in x)
+                    {
+                        Write((char)b);
+                    }
+                }
+                """;
+            CompileAndVerify(
+                CreateCompilationWithSpan(source,
+                    parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                    options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All)),
+                verify: Verification.Fails,
+                expectedOutput: "abcabc",
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    // Data field types
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3
+                        """,
+                        module.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>").GetMembers()
+                            .OfType<FieldSymbol>().Select(f => f.Type.ToTestDisplayString()).Order().Join("\n"));
+                })
+                .VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// Tests a scenario that utilizes a private implementation detail class,
+        /// but doesn't use the string type, and the string type is not defined.
+        /// </summary>
+        [Fact]
+        public void PrivateImplDetailsWithoutString()
+        {
+            var source = """
+                class C
+                {
+                    bool M(int i) => i switch { 1 => true };
+                }
+
+                namespace System
+                {
+                    public class Object;
+                    public class ValueType;
+                    public struct Void;
+                    public struct Boolean;
+                    public struct Byte;
+                    public struct Int16;
+                    public struct Int32;
+                    public struct Int64;
+                    public class InvalidOperationException();
+                }
+                """;
+
+            var parseOptions = TestOptions.RegularPreview
+                .WithNoRefSafetyRulesAttribute()
+                .WithFeature("experimental-data-section-string-literals", "0");
+
+            CompileAndVerify(CreateEmptyCompilation(source, parseOptions: parseOptions),
+                verify: Verification.Skipped,
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    // PrivateImplementationDetails should be in the list.
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <Module>
+                        C
+                        Object
+                        ValueType
+                        Void
+                        Boolean
+                        Byte
+                        Int16
+                        Int32
+                        Int64
+                        InvalidOperationException
+                        <PrivateImplementationDetails>
+                        """, module.TypeNames.Join("\n"));
+                })
+                .VerifyDiagnostics(
+                    // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                    Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                    // (3,24): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered.
+                    //     bool M(int i) => i switch { 1 => true };
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("0").WithLocation(3, 24));
         }
     }
 }
