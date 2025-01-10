@@ -226,6 +226,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.KeyValuePairElementSyntax GenerateKeyValuePairElement()
             => InternalSyntaxFactory.KeyValuePairElement(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.ColonToken), GenerateIdentifierName());
 
+        private static Syntax.InternalSyntax.CollectionArgumentsSyntax GenerateCollectionArguments()
+            => InternalSyntaxFactory.CollectionArguments(InternalSyntaxFactory.Identifier("ArgsKeyword"), GenerateArgumentList());
+
         private static Syntax.InternalSyntax.QueryExpressionSyntax GenerateQueryExpression()
             => InternalSyntaxFactory.QueryExpression(GenerateFromClause(), GenerateQueryBody());
 
@@ -1593,6 +1596,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.KeyExpression);
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind);
             Assert.NotNull(node.ValueExpression);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestCollectionArgumentsFactoryAndProperties()
+        {
+            var node = GenerateCollectionArguments();
+
+            Assert.Equal(SyntaxKind.IdentifierToken, node.ArgsKeyword.Kind);
+            Assert.NotNull(node.ArgumentList);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -5758,6 +5772,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestKeyValuePairElementIdentityRewriter()
         {
             var oldNode = GenerateKeyValuePairElement();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestCollectionArgumentsTokenDeleteRewriter()
+        {
+            var oldNode = GenerateCollectionArguments();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCollectionArgumentsIdentityRewriter()
+        {
+            var oldNode = GenerateCollectionArguments();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -10483,6 +10523,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static KeyValuePairElementSyntax GenerateKeyValuePairElement()
             => SyntaxFactory.KeyValuePairElement(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.ColonToken), GenerateIdentifierName());
 
+        private static CollectionArgumentsSyntax GenerateCollectionArguments()
+            => SyntaxFactory.CollectionArguments(SyntaxFactory.Identifier("ArgsKeyword"), GenerateArgumentList());
+
         private static QueryExpressionSyntax GenerateQueryExpression()
             => SyntaxFactory.QueryExpression(GenerateFromClause(), GenerateQueryBody());
 
@@ -11851,6 +11894,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
             Assert.NotNull(node.ValueExpression);
             var newNode = node.WithKeyExpression(node.KeyExpression).WithColonToken(node.ColonToken).WithValueExpression(node.ValueExpression);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestCollectionArgumentsFactoryAndProperties()
+        {
+            var node = GenerateCollectionArguments();
+
+            Assert.Equal(SyntaxKind.IdentifierToken, node.ArgsKeyword.Kind());
+            Assert.NotNull(node.ArgumentList);
+            var newNode = node.WithArgsKeyword(node.ArgsKeyword).WithArgumentList(node.ArgumentList);
             Assert.Equal(node, newNode);
         }
 
@@ -16015,6 +16069,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestKeyValuePairElementIdentityRewriter()
         {
             var oldNode = GenerateKeyValuePairElement();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestCollectionArgumentsTokenDeleteRewriter()
+        {
+            var oldNode = GenerateCollectionArguments();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCollectionArgumentsIdentityRewriter()
+        {
+            var oldNode = GenerateCollectionArguments();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

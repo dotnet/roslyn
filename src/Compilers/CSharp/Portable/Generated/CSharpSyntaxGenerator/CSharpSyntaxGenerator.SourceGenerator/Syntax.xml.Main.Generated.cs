@@ -231,6 +231,9 @@ public partial class CSharpSyntaxVisitor<TResult>
     /// <summary>Called when the visitor visits a KeyValuePairElementSyntax node.</summary>
     public virtual TResult? VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a CollectionArgumentsSyntax node.</summary>
+    public virtual TResult? VisitCollectionArguments(CollectionArgumentsSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
     public virtual TResult? VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -969,6 +972,9 @@ public partial class CSharpSyntaxVisitor
     /// <summary>Called when the visitor visits a KeyValuePairElementSyntax node.</summary>
     public virtual void VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a CollectionArgumentsSyntax node.</summary>
+    public virtual void VisitCollectionArguments(CollectionArgumentsSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
     public virtual void VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -1706,6 +1712,9 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
 
     public override SyntaxNode? VisitKeyValuePairElement(KeyValuePairElementSyntax node)
         => node.Update((ExpressionSyntax?)Visit(node.KeyExpression) ?? throw new ArgumentNullException("keyExpression"), VisitToken(node.ColonToken), (ExpressionSyntax?)Visit(node.ValueExpression) ?? throw new ArgumentNullException("valueExpression"));
+
+    public override SyntaxNode? VisitCollectionArguments(CollectionArgumentsSyntax node)
+        => node.Update(VisitToken(node.ArgsKeyword), (ArgumentListSyntax?)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"));
 
     public override SyntaxNode? VisitQueryExpression(QueryExpressionSyntax node)
         => node.Update((FromClauseSyntax?)Visit(node.FromClause) ?? throw new ArgumentNullException("fromClause"), (QueryBodySyntax?)Visit(node.Body) ?? throw new ArgumentNullException("body"));
@@ -3438,6 +3447,17 @@ public static partial class SyntaxFactory
     /// <summary>Creates a new KeyValuePairElementSyntax instance.</summary>
     public static KeyValuePairElementSyntax KeyValuePairElement(ExpressionSyntax keyExpression, ExpressionSyntax valueExpression)
         => SyntaxFactory.KeyValuePairElement(keyExpression, SyntaxFactory.Token(SyntaxKind.ColonToken), valueExpression);
+
+    /// <summary>Creates a new CollectionArgumentsSyntax instance.</summary>
+    public static CollectionArgumentsSyntax CollectionArguments(SyntaxToken argsKeyword, ArgumentListSyntax argumentList)
+    {
+        if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+        return (CollectionArgumentsSyntax)Syntax.InternalSyntax.SyntaxFactory.CollectionArguments((Syntax.InternalSyntax.SyntaxToken)argsKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
+    }
+
+    /// <summary>Creates a new CollectionArgumentsSyntax instance.</summary>
+    public static CollectionArgumentsSyntax CollectionArguments(SyntaxToken argsKeyword)
+        => SyntaxFactory.CollectionArguments(argsKeyword, SyntaxFactory.ArgumentList());
 
     /// <summary>Creates a new QueryExpressionSyntax instance.</summary>
     public static QueryExpressionSyntax QueryExpression(FromClauseSyntax fromClause, QueryBodySyntax body)

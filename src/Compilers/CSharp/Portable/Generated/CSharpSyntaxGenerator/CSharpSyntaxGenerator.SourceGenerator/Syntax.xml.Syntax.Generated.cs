@@ -4331,6 +4331,50 @@ public sealed partial class KeyValuePairElementSyntax : CollectionElementSyntax
     public KeyValuePairElementSyntax WithValueExpression(ExpressionSyntax valueExpression) => Update(this.KeyExpression, this.ColonToken, valueExpression);
 }
 
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.CollectionArguments"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class CollectionArgumentsSyntax : CollectionElementSyntax
+{
+    private ArgumentListSyntax? argumentList;
+
+    internal CollectionArgumentsSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    public SyntaxToken ArgsKeyword => new SyntaxToken(this, ((InternalSyntax.CollectionArgumentsSyntax)this.Green).argsKeyword, Position, 0);
+
+    public ArgumentListSyntax ArgumentList => GetRed(ref this.argumentList, 1)!;
+
+    internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.argumentList, 1)! : null;
+
+    internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.argumentList : null;
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCollectionArguments(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCollectionArguments(this);
+
+    public CollectionArgumentsSyntax Update(SyntaxToken argsKeyword, ArgumentListSyntax argumentList)
+    {
+        if (argsKeyword != this.ArgsKeyword || argumentList != this.ArgumentList)
+        {
+            var newNode = SyntaxFactory.CollectionArguments(argsKeyword, argumentList);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public CollectionArgumentsSyntax WithArgsKeyword(SyntaxToken argsKeyword) => Update(argsKeyword, this.ArgumentList);
+    public CollectionArgumentsSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.ArgsKeyword, argumentList);
+
+    public CollectionArgumentsSyntax AddArgumentListArguments(params ArgumentSyntax[] items) => WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
+}
+
 public abstract partial class QueryClauseSyntax : CSharpSyntaxNode
 {
     internal QueryClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)

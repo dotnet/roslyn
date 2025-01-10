@@ -8,6 +8,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.ValueExpression.g
 Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.WithColonToken(Microsoft.CodeAnalysis.SyntaxToken colonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.WithKeyExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! keyExpression) -> Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.WithValueExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! valueExpression) -> Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax!
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.CollectionArguments = 9080 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.KeyValuePairElement = 9079 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitKeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 override Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void

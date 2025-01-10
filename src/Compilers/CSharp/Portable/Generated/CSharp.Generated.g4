@@ -856,9 +856,14 @@ collection_expression
   ;
 
 collection_element
-  : expression_element
+  : collection_arguments
+  | expression_element
   | key_value_pair_element
   | spread_element
+  ;
+
+collection_arguments
+  : syntax_token argument_list
   ;
 
 expression_element

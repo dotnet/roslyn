@@ -43365,5 +43365,23 @@ class Program
 
             CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: Verification.Skipped).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void Arguments_01()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IDictionary<string, int> x = [args(comparer: null), "one":1];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            // PROTOTYPE: Use CompileAndVerify() and expectedOutput.
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
