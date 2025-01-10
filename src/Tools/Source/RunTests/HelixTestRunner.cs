@@ -57,12 +57,9 @@ internal sealed class HelixTestRunner
         // Currently, it's required for the client machine to use the same OS family as the target Helix queue.
         // We could relax this and allow for example Linux clients to kick off Windows jobs, but we'd have to
         // figure out solutions for issues such as creating file paths in the correct format for the target machine.
-        var testOS = (RuntimeInformation.IsOSPlatform(OSPlatform.Windows), RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) switch
-        {
-            (true, _) => TestOS.Windows,
-            (_, true) => TestOS.Mac,
-            _ => TestOS.Linux
-        };
+        var testOS = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? TestOS.Windows
+            : RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? TestOS.Mac
+            : TestOS.Linux;
 
         var platform = !string.IsNullOrEmpty(options.Architecture) ? options.Architecture : "x64";
         var dotnetSdkVersion = GetDotNetSdkVersion(options.ArtifactsDirectory);
@@ -339,10 +336,10 @@ internal sealed class HelixTestRunner
 
             // We want to collect any dumps during the post command step here; these commands are ran after the
             // return value of the main command is captured; a Helix Job is considered to fail if the main command returns a
-            // non-zero error code, and we don't want the cleanup steps to interefere with that. PostCommands exist
+            // non-zero error code, and we don't want the cleanup steps to interfere with that. PostCommands exist
             // precisely to address this problem.
             //
-            // This is still necessary even with us setting  DOTNET_DbgMiniDumpName because the system can create 
+            // This is still necessary even with us setting DOTNET_DbgMiniDumpName because the system can create 
             // non .NET Core dump files that aren't controlled by that value.
             string command;
 
