@@ -40,19 +40,18 @@ return await parser.Parse(args).InvokeAsync(CancellationToken.None);
 
 static async Task RunAsync(ServerConfiguration serverConfiguration, CancellationToken cancellationToken)
 {
-    // Redirect Console.Out when using stdio to try prevent corruption of the LSP output
     if (serverConfiguration.UseStdIo)
     {
         if (serverConfiguration.ServerPipeName is not null)
         {
-            throw new Exception("Server cannot be started with both --stdio and --pipe options.");
+            throw new InvalidOperationException("Server cannot be started with both --stdio and --pipe options.");
         }
 
-        // Redirect Console.Out to try prevent the standard output stream from being corrupted.
+        // Redirect Console.Out to try prevent the standard output stream from being corrupted. 
+        // This should be done before the logger is created as it can write to the standard output.
         Console.SetOut(new StreamWriter(Console.OpenStandardError()));
     }
 
-    // Before we initalize the LSP server we can't send LSP log messages.
     // Create a console logger as a fallback to use before the LSP server starts.
     using var loggerFactory = LoggerFactory.Create(builder =>
     {
