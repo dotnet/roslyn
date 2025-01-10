@@ -20,9 +20,13 @@ The feature is currently implemented only for C#, not VB.
 
 The feature flag can take a non-negative integer threshold.
 Only string literals whose length (number of characters, not bytes) is greater than the threshold are emitted using the utf8 encoding strategy.
-If the flag is set, but no value is specified, the threshold defaults to 100.
+If the flag is set, but no value or an unrecognized value is specified, the threshold defaults to 100.
 Specifying 0 means all non-empty string literals are considered for the feature.
-Specifying `off` as the value turns the feature off (this is the default).
+
+The feature is turned off if
+- the feature flag is not specified, or
+- the string `off` is provided as the feature flag value, or
+- `null` is provided as the feature flag value (usually only possible using Roslyn APIs like `ParseOptions.WithFeatures`).
 
 The feature flag can be specified on the command line like `/features:experimental-data-section-string-literals` or `/features:experimental-data-section-string-literals=20`,
 or in a project file in a `<PropertyGroup>` like `<Features>$(Features);experimental-data-section-string-literals</Features>` or `<Features>$(Features);experimental-data-section-string-literals=20</Features>`.
