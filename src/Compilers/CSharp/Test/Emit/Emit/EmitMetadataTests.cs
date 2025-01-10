@@ -3043,20 +3043,47 @@ public class Child : Parent, IParent
                 }
                 """;
 
-            CompileAndVerify(source, expectedOutput: expectedOutput)
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput)
                 .VerifyDiagnostics()
                 .VerifyIL("<top-level-statements-entry-point>", expectedIl);
+            Assert.Null(verifier.Compilation.DataSectionStringLiteralThreshold);
 
-            foreach (var feature in new[] { "3", "1000", "off", "true", "false", "", "-1", long.MaxValue.ToString(), null })
+            foreach (var feature in new[] { "off", null })
             {
-                CompileAndVerify(source,
+                verifier = CompileAndVerify(source,
+                    parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", null),
+                    expectedOutput: expectedOutput)
+                    .VerifyDiagnostics()
+                    .VerifyIL("<top-level-statements-entry-point>", expectedIl);
+                Assert.Null(verifier.Compilation.DataSectionStringLiteralThreshold);
+            }
+
+            // unrecognized input => default value 100
+            foreach (var feature in new[] { "true", "false", "", "-1", long.MaxValue.ToString() })
+            {
+                verifier = CompileAndVerify(source,
                     parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", feature),
                     expectedOutput: expectedOutput)
                     .VerifyDiagnostics()
                     .VerifyIL("<top-level-statements-entry-point>", expectedIl);
+                Assert.Equal(100, verifier.Compilation.DataSectionStringLiteralThreshold);
             }
 
-            CompileAndVerify(source,
+            verifier = CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "1000"),
+                expectedOutput: expectedOutput)
+                .VerifyDiagnostics()
+                .VerifyIL("<top-level-statements-entry-point>", expectedIl);
+            Assert.Equal(1000, verifier.Compilation.DataSectionStringLiteralThreshold);
+
+            verifier = CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "3"),
+                expectedOutput: expectedOutput)
+                .VerifyDiagnostics()
+                .VerifyIL("<top-level-statements-entry-point>", expectedIl);
+            Assert.Equal(3, verifier.Compilation.DataSectionStringLiteralThreshold);
+
+            verifier = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "2"),
                 verify: Verification.Fails,
                 expectedOutput: expectedOutput)
@@ -3074,8 +3101,9 @@ public class Child : Parent, IParent
                   IL_001e:  ret
                 }
                 """);
+            Assert.Equal(2, verifier.Compilation.DataSectionStringLiteralThreshold);
 
-            CompileAndVerify(source,
+            verifier = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "1"),
                 verify: Verification.Fails,
                 expectedOutput: expectedOutput)
@@ -3093,8 +3121,9 @@ public class Child : Parent, IParent
                   IL_001e:  ret
                 }
                 """);
+            Assert.Equal(1, verifier.Compilation.DataSectionStringLiteralThreshold);
 
-            CompileAndVerify(source,
+            verifier = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
                 verify: Verification.Fails,
                 expectedOutput: expectedOutput)
@@ -3112,6 +3141,7 @@ public class Child : Parent, IParent
                   IL_001e:  ret
                 }
                 """);
+            Assert.Equal(0, verifier.Compilation.DataSectionStringLiteralThreshold);
         }
 
         [Fact]
@@ -3244,23 +3274,24 @@ public class Child : Parent, IParent
             [CombinatorialValues("0", "off")] string feature)
         {
             var source = """
-                System.Console.WriteLine("Hello");
+                class C
+                {
+                    void M()
+                    {
+                        System.Console.WriteLine("Hello");
+                    }
+                }
                 """;
             CompileAndVerify(source,
                 emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true),
                 parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", feature),
-                verify: Verification.FailsPEVerify with
-                {
-                    // Metadata-only emit causes this error.
-                    PEVerifyMessage = "Bad token as entry point in CLR header.",
-                },
                 symbolValidator: static (ModuleSymbol module) =>
                 {
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
                         <Module>
                         EmbeddedAttribute
                         RefSafetyRulesAttribute
-                        Program
+                        C
                         """, module.TypeNames.Join("\n"));
                 })
                 .VerifyDiagnostics();
@@ -3286,14 +3317,14 @@ public class Child : Parent, IParent
                 {
                     var privateImplDetails = module.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
 
-                    // Data field types
+                    // Data fields
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
-                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3
-                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3
-                        System.Byte
-                        System.Byte
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.64DAA44AD493FF28A96EFFAB6E77F1732A3D97D83241581B37DBD70A7A4900FE
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.730F75DAFD73E047B86ACB2DBD74E75DCB93272FA084A9082848F2341AA1ABB6
+                        System.Byte <PrivateImplementationDetails>.3E23E8160039594A33894F6564E1B1348BBD7A0088D42C4ACB73EEAED59C009D
+                        System.Byte <PrivateImplementationDetails>.CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB
                         """,
-                        privateImplDetails.GetMembers().OfType<FieldSymbol>().Select(f => f.Type.ToTestDisplayString()).Order().Join("\n"));
+                        privateImplDetails.GetMembers().OfType<FieldSymbol>().Select(f => f.ToTestDisplayString()).Order().Join("\n"));
 
                     // Nested types
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
@@ -3328,12 +3359,12 @@ public class Child : Parent, IParent
                 {
                     var privateImplDetails = module.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
 
-                    // Data field types
+                    // Data fields
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
-                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3
-                        System.Byte
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.3E744B9DC39389BAF0C5A0660589B8402F3DBB49B89B3E75F2C9355852A3C677
+                        System.Byte <PrivateImplementationDetails>.CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB
                         """,
-                        privateImplDetails.GetMembers().OfType<FieldSymbol>().Select(f => f.Type.ToTestDisplayString()).Order().Join("\n"));
+                        privateImplDetails.GetMembers().OfType<FieldSymbol>().Select(f => f.ToTestDisplayString()).Order().Join("\n"));
 
                     // Nested types
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
@@ -3372,13 +3403,13 @@ public class Child : Parent, IParent
                 expectedOutput: "abc123",
                 symbolValidator: static (ModuleSymbol module) =>
                 {
-                    // Data field types
+                    // Data fields
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
-                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3
-                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD
                         """,
                         module.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>").GetMembers()
-                            .OfType<FieldSymbol>().Select(f => f.Type.ToTestDisplayString()).Order().Join("\n"));
+                            .OfType<FieldSymbol>().Select(f => f.ToTestDisplayString()).Order().Join("\n"));
                 })
                 .VerifyDiagnostics();
         }
@@ -3409,12 +3440,12 @@ public class Child : Parent, IParent
                 expectedOutput: "abcabc",
                 symbolValidator: static (ModuleSymbol module) =>
                 {
-                    // Data field types
+                    // Data fields
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
-                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3
+                        <PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD
                         """,
                         module.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>").GetMembers()
-                            .OfType<FieldSymbol>().Select(f => f.Type.ToTestDisplayString()).Order().Join("\n"));
+                            .OfType<FieldSymbol>().Select(f => f.ToTestDisplayString()).Order().Join("\n"));
                 })
                 .VerifyDiagnostics();
         }
@@ -3427,6 +3458,8 @@ public class Child : Parent, IParent
         public void PrivateImplDetailsWithoutString()
         {
             var source = """
+                #pragma warning disable CS8509 // The switch expression does not handle all possible values of its input type
+
                 class C
                 {
                     bool M(int i) => i switch { 1 => true };
@@ -3472,10 +3505,7 @@ public class Child : Parent, IParent
                 })
                 .VerifyDiagnostics(
                     // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                    Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                    // (3,24): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered.
-                    //     bool M(int i) => i switch { 1 => true };
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("0").WithLocation(3, 24));
+                    Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
         }
     }
 }
