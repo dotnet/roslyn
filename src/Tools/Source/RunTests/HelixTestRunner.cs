@@ -231,7 +231,7 @@ internal sealed class HelixTestRunner
             var (postCommandFileName, postCommandContent) = GetHelixPostCommandContent(testOS);
             File.WriteAllText(Path.Combine(workItemPayloadDir, postCommandFileName), postCommandContent);
 
-            var commandPrefix = testOS != TestOS.Windows ? "./" : "";
+            var commandPrefix = testOS != TestOS.Windows ? "./" : "call ";
             builder.AppendLine($"""
                     <HelixWorkItem Include="{helixWorkItem.DisplayName}">
                         <PayloadDirectory>{workItemPayloadDir}</PayloadDirectory>
