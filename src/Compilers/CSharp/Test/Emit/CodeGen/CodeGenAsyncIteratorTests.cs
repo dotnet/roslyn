@@ -1810,15 +1810,21 @@ class C
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics(
-                // (8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                // source(8,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return default;
                 Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(8, 9),
-                // (10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                // source(8,16): error CS8716: There is no target type for the default literal.
+                //         return default;
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(8, 16),
+                // source(10,60): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.    
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M2()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M2").WithLocation(10, 60),
-                // (12,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                // source(12,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //         return default;
-                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(12, 9)
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(12, 9),
+                // source(12,16): error CS8716: There is no target type for the default literal.
+                //         return default;
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(12, 16)
                 );
         }
 

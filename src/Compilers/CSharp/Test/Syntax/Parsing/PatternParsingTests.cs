@@ -160,6 +160,9 @@ class C
                 // (15,16): error CS8115: A throw expression is not allowed in this context.
                 //         return throw null;
                 Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(15, 16),
+                // (15,9): error CS0127: Since 'C.Sample(bool, string)' returns void, a return keyword must not be followed by an object expression
+                //         return throw null;
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("C.Sample(bool, string)").WithLocation(15, 9),
                 // (14,9): warning CS0162: Unreachable code detected
                 //         (int, int) w = (1, throw null);
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "(").WithLocation(14, 9)

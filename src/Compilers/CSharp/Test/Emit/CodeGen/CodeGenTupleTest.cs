@@ -22273,6 +22273,9 @@ public class B
 
             var comp = CreateCompilationWithMscorlib40(source, references: new[] { lib.ToMetadataReference() });
             comp.VerifyDiagnostics(
+                // (4,17): error CS0127: Since 'B.M2()' returns void, a return keyword must not be followed by an object expression
+                //     void M2() { return A.M(); }
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("B.M2()").WithLocation(4, 17),
                 // (4,24): error CS0012: The type '(, )' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
                 //     void M2() { return A.M(); }
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("(, )", "System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
@@ -22313,6 +22316,9 @@ public class B
 
             var comp = CreateCompilationWithMscorlib40(source, references: new[] { lib.ToMetadataReference() });
             comp.VerifyDiagnostics(
+                // (4,17): error CS0127: Since 'B.M2()' returns void, a return keyword must not be followed by an object expression
+                //     void M2() { return A.M(); }
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("B.M2()").WithLocation(4, 17),
                 // (4,24): error CS0012: The type '(, )' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
                 //     void M2() { return A.M(); }
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("(, )", "System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
