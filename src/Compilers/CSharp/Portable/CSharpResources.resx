@@ -6887,7 +6887,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The 'field' keyword binds to a synthesized backing field for the property.</value>
   </data>
   <data name="ERR_VariableDeclarationNamedField" xml:space="preserve">
-    <value>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. Unescaped references to 'field' within the scope of this variable will refer to the synthesized field rather than this variable.</value>
+    <value>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</value>
   </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
