@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
@@ -16,10 +17,24 @@ using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.TeamFoundation.TestManagement.WebApi;
 using Microsoft.VisualStudio.Services.Profile;
 using Newtonsoft.Json;
 
 namespace RunTests;
+
+public sealed class HelixWorkItem(
+    int id,
+    ImmutableArray<string> assemblyFilePaths,
+    ImmutableArray<string> testMethodNames)
+{
+    public string DisplayName { get; } = $"workitem_{id}";
+    public int Id { get; } = id;
+    public ImmutableArray<string> AssemblyFilePaths { get; } = assemblyFilePaths;
+    public ImmutableArray<string> TestMethodNames { get; } = testMethodNames;
+
+    public override string ToString() => DisplayName;
+}
 
 internal sealed class HelixTestRunner
 {
@@ -49,29 +64,32 @@ internal sealed class HelixTestRunner
             _ => TestOS.Linux
         };
 
-        var isMac = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
         var platform = !string.IsNullOrEmpty(options.Architecture) ? options.Architecture : "x64";
         var dotnetSdkVersion = GetDotNetSdkVersion(options.ArtifactsDirectory);
+
+        // This is the directory where all of the work item payloads are stored.
+        var payloadsDir = Path.Combine(options.ArtifactsDirectory, "payloads");
+        var logsDir = Path.Combine(options.ArtifactsDirectory, "log", options.Configuration);
 
         // Retrieve test runtimes from azure devops historical data.
         var testHistory = await TestHistoryManager.GetTestHistoryAsync(options, cancellationToken);
         var workItems = AssemblyScheduler.Schedule(assemblies, testHistory);
-
-        // This is the directory our CI will upload for inspection
-        var logsDir = Path.Combine(options.ArtifactsDirectory, "log", options.Configuration);
-        _ = Directory.CreateDirectory(logsDir);
+        var helixWorkItems = workItems.Index().Select((tuple) => new HelixWorkItem(
+            tuple.Index,
+            tuple.Item.Filters.Keys.Select(x => x.AssemblyPath).ToImmutableArray(),
+            tuple.Item.Filters.Values.SelectMany(x => x).Select(x => x.FullyQualifiedName).ToImmutableArray()));
 
         var helixProjectFileContent = GetHelixProjectFileContent(
-            workItems,
+            helixWorkItems,
             testOS,
             dotnetSdkVersion,
             platform,
             options.HelixQueueName,
             options.ArtifactsDirectory,
-            logsDir);
+            payloadsDir);
 
         var helixFilePath = Path.Combine(options.ArtifactsDirectory, "helix.proj");
-        WriteAllTextAndLog(helixFilePath, helixProjectFileContent, logsDir);
+        File.WriteAllText(helixFilePath, helixProjectFileContent);
 
         var arguments = $"build -bl:{Path.Combine(logsDir, "helix.binlog")} {helixFilePath}";
         if (!string.IsNullOrEmpty(options.HelixApiAccessToken))
@@ -86,6 +104,8 @@ internal sealed class HelixTestRunner
             var queuedBy = GetEnv("BUILD_QUEUEDBY", "roslyn");
             arguments += $" -p:Creator={queuedBy}";
         }
+
+        CopyPayloadFilesToLogs(logsDir, payloadsDir);
 
         var process = ProcessRunner.CreateProcess(
             executable: options.DotnetFilePath,
@@ -109,13 +129,13 @@ internal sealed class HelixTestRunner
     /// Build up the contents of the helix project file. All paths should be relative to <paramref name="artifactsDir"/>.
     /// </summary>
     private static string GetHelixProjectFileContent(
-        ImmutableArray<WorkItemInfo> workItems,
+        IEnumerable<HelixWorkItem> helixWorkItems,
         TestOS testOS,
         string dotnetSdkVersion,
         string platform,
         string helixQueueName,
         string artifactsDir,
-        string logsDir)
+        string payloadsDir)
     {
         // Setup the environment variables that are required for the helix project.
         //
@@ -158,9 +178,9 @@ internal sealed class HelixTestRunner
                 <HelixCorrelationPayload Include="{duplicateDir}" />
             """);
 
-        foreach (var workItemInfo in workItems)
+        foreach (var helixWorkItem in helixWorkItems)
         {
-            AppendHelixWorkItemProject(builder, workItemInfo, platform, artifactsDir, logsDir, testOS);
+            AppendHelixWorkItemProject(builder, helixWorkItem, platform, artifactsDir, payloadsDir, testOS);
         }
 
         builder.AppendLine("""
@@ -170,44 +190,65 @@ internal sealed class HelixTestRunner
 
         return builder.ToString();
 
-        static void AddRehydrateTestFoldersCommand(StringBuilder commandBuilder, WorkItemInfo workItemInfo, bool isUnix)
-        {
-            // Rehydrate assemblies that we need to run as part of this work item.
-            foreach (var testAssembly in workItemInfo.Filters.Keys)
-            {
-                var directoryName = Path.GetDirectoryName(testAssembly.AssemblyPath);
-                if (isUnix)
-                {
-                    // If we're on unix make sure we have permissions to run the rehydrate script.
-                    commandBuilder.AppendLine($"chmod +x {directoryName}/rehydrate.sh");
-                }
-
-                commandBuilder.AppendLine(isUnix ? $"./{directoryName}/rehydrate.sh" : $@"call {directoryName}\rehydrate.cmd");
-                commandBuilder.AppendLine(isUnix ? $"ls -l {directoryName}" : $"dir {directoryName}");
-            }
-        }
-
-        static string GetHelixRelativeAssemblyPath(string assemblyPath)
-        {
-            var tfmDir = Path.GetDirectoryName(assemblyPath)!;
-            var configurationDir = Path.GetDirectoryName(tfmDir)!;
-            var projectDir = Path.GetDirectoryName(configurationDir)!;
-
-            var assemblyRelativePath = Path.Combine(Path.GetFileName(projectDir), Path.GetFileName(configurationDir), Path.GetFileName(tfmDir), Path.GetFileName(assemblyPath));
-            return assemblyRelativePath;
-        }
-
         static void AppendHelixWorkItemProject(
             StringBuilder builder,
-            WorkItemInfo workItemInfo,
+            HelixWorkItem helixWorkItem,
             string platform,
             string artifactsDir,
-            string logsDir,
+            string payloadsDir,
+            TestOS testOS)
+        {
+            var isUnix = testOS != TestOS.Windows;
+
+            // This is the work item payload directory. It needs to contain all of the assets needed to 
+            // run the tests on the machine. That includes the assemblies directories, the rsp files, etc ...
+            // will be used
+            var workItemPayloadDir = Path.Combine(payloadsDir, helixWorkItem.DisplayName);
+            _ = Directory.CreateDirectory(workItemPayloadDir);
+
+            var binDir = Path.Combine(artifactsDir, "bin");
+            var assemblyRelativeFilePaths = helixWorkItem.AssemblyFilePaths
+                .Select(x => Path.GetRelativePath(binDir, x))
+                .ToList();
+
+            foreach (var assemblyRelativePath in assemblyRelativeFilePaths)
+            {
+                var name = Path.GetDirectoryName(assemblyRelativePath)!;
+                var targetDir = Path.Combine(workItemPayloadDir, name);
+                var sourceDir = Path.Combine(binDir, name);
+                _ = Directory.CreateDirectory(Path.GetDirectoryName(targetDir)!);
+                Directory.CreateSymbolicLink(targetDir, sourceDir);
+            }
+
+            var rspFileName = $"vstest.rsp";
+            File.WriteAllText(
+                Path.Combine(workItemPayloadDir, rspFileName),
+                GetRspFileContent(assemblyRelativeFilePaths, helixWorkItem.TestMethodNames, platform));
+
+            var (commandFileName, commandContent) = GetHelixCommandContent(assemblyRelativeFilePaths, rspFileName, testOS);
+            File.WriteAllText(Path.Combine(workItemPayloadDir, commandFileName), commandContent);
+
+            var (postCommandFileName, postCommandContent) = GetHelixPostCommandContent(testOS);
+            File.WriteAllText(Path.Combine(workItemPayloadDir, postCommandFileName), postCommandContent);
+
+            var commandPrefix = testOS != TestOS.Windows ? "./" : "";
+            builder.AppendLine($"""
+                    <HelixWorkItem Include="{helixWorkItem.DisplayName}">
+                        <PayloadDirectory>{workItemPayloadDir}</PayloadDirectory>
+                        <Command>{commandPrefix}{commandFileName}</Command>
+                        <PostCommands>{commandPrefix}{postCommandFileName}</PostCommands>
+                        <Timeout>00:30:00</Timeout>
+                    </HelixWorkItem>
+                """);
+        }
+
+        static (string FileName, string Content) GetHelixCommandContent(
+            IEnumerable<string> assemblyRelativeFilePaths,
+            string vstestRspFileName,
             TestOS testOS)
         {
             var isUnix = testOS != TestOS.Windows;
             var isMac = testOS == TestOS.Mac;
-
             var setEnvironmentVariable = isUnix ? "export" : "set";
 
             var command = new StringBuilder();
@@ -250,34 +291,32 @@ internal sealed class HelixTestRunner
 
             command.AppendLine(isUnix ? "env | sort" : "set");
 
-            // Create a payload directory that contains all the assemblies in the work item in separate folders.
-            var payloadDirectory = Path.Combine(artifactsDir, "bin");
+            // Rehydrate assemblies that we need to run as part of this work item.
+            foreach (var assemblyRelativeFilePath in assemblyRelativeFilePaths)
+            {
+                var directoryName = Path.GetDirectoryName(assemblyRelativeFilePath);
+                if (isUnix)
+                {
+                    // If we're on unix make sure we have permissions to run the rehydrate script.
+                    command.AppendLine($"chmod +x {directoryName}/rehydrate.sh");
+                }
 
-            // Update the assembly groups to test with the assembly paths in the context of the helix work item.
-            workItemInfo = workItemInfo with { Filters = workItemInfo.Filters.ToImmutableSortedDictionary(kvp => kvp.Key with { AssemblyPath = GetHelixRelativeAssemblyPath(kvp.Key.AssemblyPath) }, kvp => kvp.Value) };
+                command.AppendLine(isUnix ? $"./{directoryName}/rehydrate.sh" : $@"call {directoryName}\rehydrate.cmd");
+                command.AppendLine(isUnix ? $"ls -l {directoryName}" : $"dir {directoryName}");
+            }
 
-            AddRehydrateTestFoldersCommand(command, workItemInfo, isUnix);
-
-            // Build an rsp file to send to dotnet test that contains all the assemblies and tests to run.
-            // This gets around command line length limitations and avoids weird escaping issues.
-            // See https://docs.microsoft.com/en-us/dotnet/standard/commandline/syntax#response-files
-            var rspFileName = $"vstest_{workItemInfo.PartitionIndex}.rsp";
-            var xmlResultsFileName = $"workitem_{workItemInfo.PartitionIndex}.xml";
-            var rspFileContent = GetRspFileContent(workItemInfo, platform, xmlResultsFileName);
-            WriteAllTextAndLog(Path.Combine(payloadDirectory, rspFileName), rspFileContent, logsDir);
-
-            // Build the command to run the rsp file.
-            // dotnet test does not pass rsp files correctly the vs test console, so we have to manually invoke vs test console.
+            // Build the command to run the rsp file. dotnet test does not pass rsp files correctly the vs test 
+            // console, so we have to manually invoke vs test console.
             // See https://github.com/microsoft/vstest/issues/3513
-            // The dotnet sdk includes the vstest.console.dll executable in the sdk folder in the installed version, so we look it up using the
-            // DOTNET_ROOT environment variable set by helix.
+            // The dotnet sdk includes the vstest.console.dll executable in the sdk folder in the installed version, 
+            // so we look it up using the/ DOTNET_ROOT environment variable set by helix.
             if (isUnix)
             {
                 // $ is a special character in msbuild so we replace it with %24 in the helix project.
                 // https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-special-characters?view=vs-2022
-                command.AppendLine("vstestConsolePath=%24(find %24{DOTNET_ROOT} -name \"vstest.console.dll\")");
-                command.AppendLine("echo %24{vstestConsolePath}");
-                command.AppendLine($"dotnet exec \"%24{{vstestConsolePath}}\" @{rspFileName}");
+                command.AppendLine("vstestConsolePath=$(find ${DOTNET_ROOT} -name \"vstest.console.dll\")");
+                command.AppendLine("echo ${vstestConsolePath}");
+                command.AppendLine($"dotnet exec \"${{vstestConsolePath}}\" @{vstestRspFileName}");
             }
             else
             {
@@ -288,11 +327,15 @@ internal sealed class HelixTestRunner
                 command.AppendLine("where /r %DOTNET_ROOT% vstest.console.dll > temp.txt");
                 command.AppendLine("set /p vstestConsolePath=<temp.txt");
                 command.AppendLine("echo %vstestConsolePath%");
-                command.AppendLine($"dotnet exec \"%vstestConsolePath%\" @{rspFileName}");
+                command.AppendLine($"dotnet exec \"%vstestConsolePath%\" @{vstestRspFileName}");
             }
 
-            // The command string contains characters like % which are not valid XML to pass into the helix csproj.
-            var escapedCommand = SecurityElement.Escape(command.ToString());
+            return (isUnix ? "command.sh" : "command.cmd", command.ToString());
+        }
+
+        static (string FileName, string Content) GetHelixPostCommandContent(TestOS testOS)
+        {
+            var isUnix = testOS != TestOS.Windows;
 
             // We want to collect any dumps during the post command step here; these commands are ran after the
             // return value of the main command is captured; a Helix Job is considered to fail if the main command returns a
@@ -301,32 +344,20 @@ internal sealed class HelixTestRunner
             //
             // This is still necessary even with us setting  DOTNET_DbgMiniDumpName because the system can create 
             // non .NET Core dump files that aren't controlled by that value.
-            var postCommands = new StringBuilder();
+            string command;
 
             if (isUnix)
             {
                 // Write out this command into a separate file; unfortunately the use of single quotes and ; that is required
                 // for the command to work causes too much escaping issues in MSBuild.
-                File.WriteAllText(Path.Combine(payloadDirectory, "copy-dumps.sh"), "find . -name '*.dmp' -exec cp {} $HELIX_DUMP_FOLDER \\;");
-                postCommands.AppendLine("./copy-dumps.sh");
+                command = "find . -name '*.dmp' -exec cp {} $HELIX_DUMP_FOLDER \\;";
             }
             else
             {
-                postCommands.AppendLine("for /r %%f in (*.dmp) do copy %%f %HELIX_DUMP_FOLDER%");
+                command = "for /r %%f in (*.dmp) do copy %%f %HELIX_DUMP_FOLDER%";
             }
 
-            builder.AppendLine($"""
-                    <HelixWorkItem Include="{workItemInfo.DisplayName}">
-                        <PayloadDirectory>{payloadDirectory}</PayloadDirectory>
-                        <Command>
-                            {escapedCommand}
-                        </Command>
-                        <PostCommands>
-                            {postCommands}
-                        </PostCommands>
-                        <Timeout>00:30:00</Timeout>
-                    </HelixWorkItem>
-                """);
+            return (isUnix ? "post-command.sh" : "post-command.cmd", command);
         }
     }
 
@@ -376,47 +407,41 @@ internal sealed class HelixTestRunner
         }
     }
 
+    /// <summary>
+    /// Build an rsp file to send to dotnet test that contains all the assemblies and tests to run.
+    /// This gets around command line length limitations and avoids weird escaping issues.
+    /// See https://docs.microsoft.com/en-us/dotnet/standard/commandline/syntax#response-files
+    /// </summary>
     private static string GetRspFileContent(
-        WorkItemInfo workItem,
-        string platform,
-        string xmlResultsFileName)
+        List<string> assemblyRelativeFilePaths,
+        IEnumerable<string> testMethodNames,
+        string platform)
     {
         var builder = new StringBuilder();
 
         // Add each assembly we want to test on a new line.
-        foreach (var assembly in workItem.Filters.Keys)
+        foreach (var filePath in assemblyRelativeFilePaths)
         {
-            builder.AppendLine($"\"{assembly.AssemblyPath}\"");
+            builder.AppendLine($"\"{filePath}\"");
         }
 
         builder.AppendLine($@"/Platform:{platform}");
-        builder.AppendLine($@"/Logger:xunit;LogFilePath={xmlResultsFileName}");
-        var blameOption = "CollectHangDump";
 
-        // The 'CollectDumps' option uses operating system features to collect dumps when a process crashes. We
-        // only enable the test executor blame feature in remaining cases, as the latter relies on ProcDump and
-        // interferes with automatic crash dump collection on Windows.
-        blameOption = "CollectDump;CollectHangDump";
+        // The xml file must end in test-results.xml for the Azure Pipelines reporter to pick it up.
+        builder.AppendLine($@"/Logger:xunit;LogFilePath=work-item-test-results.xml");
 
-        // The 25 minute timeout in integration tests accounts for the fact that VSIX deployment and/or experimental hive reset and
-        // configuration can take significant time (seems to vary from ~10 seconds to ~15 minutes), and the blame
-        // functionality cannot separate this configuration overhead from the first test which will eventually run.
-        // https://github.com/dotnet/roslyn/issues/59851
-        //
-        // Helix timeout is 15 minutes as helix jobs fully timeout in 30minutes.  So in order to capture dumps we need the timeout
-        // to be 2x shorter than the expected test run time (15min) in case only the last test hangs.
-        builder.AppendLine($"/Blame:{blameOption};TestTimeout=15minutes;DumpType=full");
+        // Specifies the results directory - this is where dumps from the blame options will get published. 
+        builder.AppendLine($"/ResultsDirectory:.");
 
         // Build the filter string
-        var testMethods = workItem.Filters.SelectMany(x => x.Value);
-        if (testMethods.Any())
+        if (testMethodNames.Any())
         {
             builder.Append("/TestCaseFilter:\"");
             var any = false;
-            foreach (var testMethod in testMethods)
+            foreach (var testMethodName in testMethodNames)
             {
                 MaybeAddSeparator();
-                builder.Append($"FullyQualifiedName={testMethod.FullyQualifiedName}");
+                builder.Append($"FullyQualifiedName={testMethodName}");
             }
             builder.AppendLine("\"");
 
@@ -435,14 +460,29 @@ internal sealed class HelixTestRunner
     }
 
     /// <summary>
-    /// Write a file to disk and put a copy of it in the logs directory so that it can be analyzed if 
-    /// there is an issue.
+    /// This method will copy the generated files from the payloads directory to the logs/{configuration} 
+    /// directory. This will cause them to be uploaded as part of the artifacts for the Helix run so that
+    /// we can see / debug them if there are any issues.
     /// </summary>
-    private static void WriteAllTextAndLog(string filePath, string contents, string logsDir)
+    private static void CopyPayloadFilesToLogs(string logsDir, string payloadsDir)
     {
-        File.WriteAllText(filePath, contents);
-        var logFilePath = Path.Combine(logsDir, Path.GetFileName(filePath));
+        _ = Directory.CreateDirectory(logsDir);
 
-        File.Copy(filePath, logFilePath, overwrite: false);
+        CopyDir(payloadsDir);
+        foreach (var workItemPayloadDir in Directory.EnumerateDirectories(payloadsDir))
+        {
+            CopyDir(workItemPayloadDir);
+        }
+
+        void CopyDir(string dir)
+        {
+            foreach (var filePath in Directory.EnumerateFiles(dir, "*", SearchOption.TopDirectoryOnly))
+            {
+                var relativePath = Path.GetRelativePath(payloadsDir, filePath);
+                var destinationPath = Path.Combine(logsDir, relativePath);
+                _ = Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+                File.Copy(filePath, destinationPath);
+            }
+        }
     }
 }
