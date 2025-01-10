@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis
         /// Returns the default value of the parameter. 
         /// </summary>
         /// <remarks>
-        /// Returns null if the parameter type is a struct and the default value of the parameter
-        /// is the default value of the struct type.
+        /// Returns null if the parameter type is a reference type or the default value of the type
+        /// if the parameter type is a struct.
         /// </remarks>
         /// <exception cref="System.InvalidOperationException">The parameter has no default value.</exception>
         object? ExplicitDefaultValue { get; }
