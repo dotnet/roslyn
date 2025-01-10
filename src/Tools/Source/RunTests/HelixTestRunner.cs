@@ -67,13 +67,11 @@ internal sealed class HelixTestRunner
             dotnetSdkVersion,
             platform,
             options.HelixQueueName,
-            options.ArtifactsDirectory);
+            options.ArtifactsDirectory,
+            logsDir);
 
         var helixFilePath = Path.Combine(options.ArtifactsDirectory, "helix.proj");
-        File.WriteAllText(helixFilePath, helixProjectFileContent);
-
-        // Copy the helix project file to the logs directory so it can be analyzed if there is an issue
-        File.Copy(helixFilePath, Path.Combine(logsDir, Path.GetFileName(helixFilePath)));
+        WriteAllTextAndLog(helixFilePath, helixProjectFileContent, logsDir);
 
         var arguments = $"build -bl:{Path.Combine(logsDir, "helix.binlog")} {helixFilePath}";
         if (!string.IsNullOrEmpty(options.HelixApiAccessToken))
@@ -116,7 +114,8 @@ internal sealed class HelixTestRunner
         string dotnetSdkVersion,
         string platform,
         string helixQueueName,
-        string artifactsDir)
+        string artifactsDir,
+        string logsDir)
     {
         // Setup the environment variables that are required for the helix project.
         //
@@ -161,7 +160,7 @@ internal sealed class HelixTestRunner
 
         foreach (var workItemInfo in workItems)
         {
-            AppendHelixWorkItemProject(builder, workItemInfo, platform, artifactsDir, testOS);
+            AppendHelixWorkItemProject(builder, workItemInfo, platform, artifactsDir, logsDir, testOS);
         }
 
         builder.AppendLine("""
@@ -203,6 +202,7 @@ internal sealed class HelixTestRunner
             WorkItemInfo workItemInfo,
             string platform,
             string artifactsDir,
+            string logsDir,
             TestOS testOS)
         {
             var isUnix = testOS != TestOS.Windows;
@@ -264,7 +264,7 @@ internal sealed class HelixTestRunner
             var rspFileName = $"vstest_{workItemInfo.PartitionIndex}.rsp";
             var xmlResultsFileName = $"workitem_{workItemInfo.PartitionIndex}.xml";
             var rspFileContent = GetRspFileContent(workItemInfo, platform, xmlResultsFileName);
-            File.WriteAllText(Path.Combine(payloadDirectory, rspFileName), rspFileContent);
+            WriteAllTextAndLog(Path.Combine(payloadDirectory, rspFileName), rspFileContent, logsDir);
 
             // Build the command to run the rsp file.
             // dotnet test does not pass rsp files correctly the vs test console, so we have to manually invoke vs test console.
@@ -431,5 +431,17 @@ internal sealed class HelixTestRunner
         }
 
         return builder.ToString();
+    }
+
+    /// <summary>
+    /// Write a file to disk and put a copy of it in the logs directory so that it can be analyzed if 
+    /// there is an issue.
+    /// </summary>
+    private static void WriteAllTextAndLog(string filePath, string contents, string logsDir)
+    {
+        File.WriteAllText(filePath, contents);
+        var logFilePath = Path.Combine(logsDir, Path.GetFileName(filePath));
+
+        File.Copy(filePath, logFilePath, overwrite: false);
     }
 }
