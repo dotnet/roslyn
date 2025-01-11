@@ -10,9 +10,15 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
+using Microsoft.CodeAnalysis.ExtractClass;
+using Microsoft.CodeAnalysis.ExtractInterface;
+using Microsoft.CodeAnalysis.InlineMethod;
+using Microsoft.CodeAnalysis.InlineTemporary;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
+using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -60,7 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                             codeActions.Add(GenerateVSCodeAction(
                                 request, documentText,
                                 suggestedAction: suggestedAction,
-                                codeActionKind: GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!),
+                                codeActionKind: GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!, suggestedAction),
                                 setPriority: set.Priority,
                                 applicableRange: set.ApplicableToSpan.HasValue ? ProtocolConversions.TextSpanToRange(set.ApplicableToSpan.Value, documentText) : null,
                                 currentSetNumber: currentSetNumber,
@@ -81,7 +87,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                             codeActions.AddRange(GenerateCodeActions(
                                 request,
                                 suggestedAction,
-                                GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!)));
+                                GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!, suggestedAction)));
                         }
                     }
                 }
@@ -92,7 +98,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         private static bool IsCodeActionNotSupportedByLSP(IUnifiedSuggestedAction suggestedAction)
             // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-            => suggestedAction.OriginalCodeAction is CodeActionWithOptions
+            => (suggestedAction.OriginalCodeAction is CodeActionWithOptions
+                && suggestedAction.OriginalCodeAction is not ExtractInterfaceCodeAction
+                && suggestedAction.OriginalCodeAction is not ExtractClassWithDialogCodeAction)
             // Skip code actions that requires non-document changes.  We can't apply them in LSP currently.
             // https://github.com/dotnet/roslyn/issues/48698
             || suggestedAction.OriginalCodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange);
@@ -319,8 +327,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 foreach (var suggestedAction in set.Actions)
                 {
-                    // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-                    if (suggestedAction.OriginalCodeAction is CodeActionWithOptions)
+                    if (IsCodeActionNotSupportedByLSP(suggestedAction))
                     {
                         continue;
                     }
@@ -403,15 +410,47 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             return actionSets;
         }
 
-        private static CodeActionKind GetCodeActionKindFromSuggestedActionCategoryName(string categoryName)
+        private static CodeActionKind GetCodeActionKindFromSuggestedActionCategoryName(string categoryName, IUnifiedSuggestedAction suggestedAction)
             => categoryName switch
             {
                 UnifiedPredefinedSuggestedActionCategoryNames.CodeFix => CodeActionKind.QuickFix,
-                UnifiedPredefinedSuggestedActionCategoryNames.Refactoring => CodeActionKind.Refactor,
+                UnifiedPredefinedSuggestedActionCategoryNames.Refactoring => GetRefactoringKind(suggestedAction),
                 UnifiedPredefinedSuggestedActionCategoryNames.StyleFix => CodeActionKind.QuickFix,
                 UnifiedPredefinedSuggestedActionCategoryNames.ErrorFix => CodeActionKind.QuickFix,
                 _ => throw ExceptionUtilities.UnexpectedValue(categoryName)
             };
+
+        private static CodeActionKind GetRefactoringKind(IUnifiedSuggestedAction suggestedAction)
+        {
+            if (suggestedAction is not ICodeRefactoringSuggestedAction refactoringAction)
+                return CodeActionKind.Refactor;
+
+            if (refactoringAction.CodeRefactoringProvider is ExtractInterfaceCodeRefactoringProvider
+                or AbstractExtractClassRefactoringProvider
+                or ExtractMethodCodeRefactoringProvider)
+                return CodeActionKind.RefactorExtract;
+
+            if (IsInstanceOfGenericType(typeof(AbstractInlineMethodRefactoringProvider<,,,>), refactoringAction.CodeRefactoringProvider)
+                || IsInstanceOfGenericType(typeof(AbstractInlineTemporaryCodeRefactoringProvider<,>), refactoringAction.CodeRefactoringProvider))
+                return CodeActionKind.RefactorInline;
+
+            return CodeActionKind.Refactor;
+
+            static bool IsInstanceOfGenericType(Type genericType, object instance)
+            {
+                Type type = instance.GetType();
+                while (type != null)
+                {
+                    if (type.IsGenericType &&
+                        type.GetGenericTypeDefinition() == genericType)
+                    {
+                        return true;
+                    }
+                    type = type.BaseType;
+                }
+                return false;
+            }
+        }
 
         private static LSP.VSInternalPriorityLevel? UnifiedSuggestedActionSetPriorityToPriorityLevel(CodeActionPriority priority)
             => priority switch
