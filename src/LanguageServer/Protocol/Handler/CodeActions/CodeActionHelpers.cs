@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
             static bool IsInstanceOfGenericType(Type genericType, object instance)
             {
-                Type type = instance.GetType();
+                Type? type = instance.GetType();
                 while (type != null)
                 {
                     if (type.IsGenericType &&
