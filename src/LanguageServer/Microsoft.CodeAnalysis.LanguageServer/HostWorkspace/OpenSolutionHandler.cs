@@ -11,9 +11,11 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(OpenSolutionHandler)), Shared]
-[Method("solution/open")]
+[Method(OpenSolutionName)]
 internal class OpenSolutionHandler : ILspServiceNotificationHandler<OpenSolutionHandler.NotificationParams>
 {
+    internal const string OpenSolutionName = "solution/open";
+
     private readonly LanguageServerProjectSystem _projectSystem;
 
     [ImportingConstructor]

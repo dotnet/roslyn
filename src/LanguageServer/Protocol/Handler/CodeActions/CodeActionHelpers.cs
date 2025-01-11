@@ -98,6 +98,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         private static bool IsCodeActionNotSupportedByLSP(IUnifiedSuggestedAction suggestedAction)
             // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
+            // Exceptions are made for ExtractClass and ExtractInterface because we have OptionsServices which
+            // provide reasonable defaults without user interaction.
             => (suggestedAction.OriginalCodeAction is CodeActionWithOptions
                 && suggestedAction.OriginalCodeAction is not ExtractInterfaceCodeAction
                 && suggestedAction.OriginalCodeAction is not ExtractClassWithDialogCodeAction)

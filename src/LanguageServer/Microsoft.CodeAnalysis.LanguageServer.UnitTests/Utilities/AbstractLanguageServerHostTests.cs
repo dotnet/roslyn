@@ -2,17 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Composition;
-using Nerdbank.Streams;
+using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
-using StreamJsonRpc;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit.Abstractions;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public abstract class AbstractLanguageServerHostTests : IDisposable
+public abstract partial class AbstractLanguageServerHostTests : IDisposable
 {
     protected TestOutputLogger TestOutputLogger { get; }
     protected TempRoot TempRoot { get; }
@@ -25,88 +29,127 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         MefCacheDirectory = TempRoot.CreateDirectory();
     }
 
-    protected Task<TestLspServer> CreateLanguageServerAsync(bool includeDevKitComponents = true)
-    {
-        return TestLspServer.CreateAsync(new ClientCapabilities(), TestOutputLogger, MefCacheDirectory.Path, includeDevKitComponents);
-    }
-
     public void Dispose()
     {
         TempRoot.Dispose();
     }
 
-    protected sealed class TestLspServer : IAsyncDisposable
+    private protected Task<TestLspServer> CreateLanguageServerAsync(bool includeDevKitComponents = true)
     {
-        private readonly Task _languageServerHostCompletionTask;
-        private readonly JsonRpc _clientRpc;
+        return TestLspServer.CreateAsync(new ClientCapabilities(), TestOutputLogger, MefCacheDirectory.Path, includeDevKitComponents);
+    }
 
-        private ServerCapabilities? _serverCapabilities;
+    private protected async Task<TestLspServer> CreateCSharpLanguageServerAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markupCode,
+        bool includeDevKitComponents = true)
+    {
+        string code;
+        int? cursorPosition;
+        ImmutableDictionary<string, ImmutableArray<TextSpan>> spans;
+        TestFileMarkupParser.GetPositionAndSpans(markupCode, out code, out cursorPosition, out spans);
 
-        internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, TestOutputLogger logger, string cacheDirectory, bool includeDevKitComponents = true, string[]? extensionPaths = null)
+        // Write project file
+        var projectDirectory = TempRoot.CreateDirectory();
+        var projectPath = Path.Combine(projectDirectory.Path, "Project.csproj");
+        await File.WriteAllTextAsync(projectPath, $"""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <OutputType>Library</OutputType>
+                <TargetFramework>net{Environment.Version.Major}.0</TargetFramework>
+              </PropertyGroup>
+            </Project>
+            """);
+
+        // Write code file
+        var codePath = Path.Combine(projectDirectory.Path, "Code.cs");
+        await File.WriteAllTextAsync(codePath, code);
+
+#pragma warning disable RS0030 // Do not use banned APIs
+        Uri codeUri = new(codePath);
+#pragma warning restore RS0030 // Do not use banned APIs
+        var text = SourceText.From(code);
+        Dictionary<Uri, SourceText> files = new() { [codeUri] = text };
+        var annotatedLocations = GetAnnotatedLocations(codeUri, text, spans);
+
+        // Create server and open the project
+        var server = await TestLspServer.CreateAsync(
+            new ClientCapabilities(),
+            TestOutputLogger,
+            MefCacheDirectory.Path,
+            includeDevKitComponents,
+            documents: files,
+            locations: annotatedLocations);
+
+        // Perform restore and mock up project restore client handler
+        ProcessUtilities.Run("dotnet", $"restore --project {projectPath}");
+        server.AddClientLocalRpcTarget(ProjectDependencyHelper.ProjectNeedsRestoreName, new Action<string[]>((projectFilePaths) => { }));
+
+        // Listen for project initialization
+        var projectInitialized = new TaskCompletionSource();
+        server.AddClientLocalRpcTarget(ProjectInitializationHandler.ProjectInitializationCompleteName, () => projectInitialized.SetResult());
+
+#pragma warning disable RS0030 // Do not use banned APIs
+        await server.OpenProjectsAsync([new(projectPath)]);
+#pragma warning restore RS0030 // Do not use banned APIs
+
+        // Wait for initialization
+        await projectInitialized.Task;
+
+        return server;
+    }
+
+    private protected static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(Uri codeUri, SourceText text, ImmutableDictionary<string, ImmutableArray<TextSpan>> spanMap)
+    {
+        var locations = new Dictionary<string, IList<LSP.Location>>();
+        foreach (var (name, spans) in spanMap)
         {
-            var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
-                logger.Factory, includeDevKitComponents, cacheDirectory, extensionPaths, out var _, out var assemblyLoader);
-            var testLspServer = new TestLspServer(exportProvider, logger, assemblyLoader);
-            var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
-            Assert.NotNull(initializeResponse?.Capabilities);
-            testLspServer._serverCapabilities = initializeResponse!.Capabilities;
+            var locationsForName = locations.GetValueOrDefault(name, []);
+            locationsForName.AddRange(spans.Select(span => ConvertTextSpanWithTextToLocation(span, text, codeUri)));
 
-            await testLspServer.ExecuteRequestAsync<InitializedParams, object>(Methods.InitializedName, new InitializedParams(), CancellationToken.None);
-
-            return testLspServer;
+            // Linked files will return duplicate annotated Locations for each document that links to the same file.
+            // Since the test output only cares about the actual file, make sure we de-dupe before returning.
+            locations[name] = [.. locationsForName.Distinct()];
         }
 
-        internal LanguageServerHost LanguageServerHost { get; }
-        public ExportProvider ExportProvider { get; }
+        return locations;
 
-        internal ServerCapabilities ServerCapabilities => _serverCapabilities ?? throw new InvalidOperationException("Initialize has not been called");
-
-        private TestLspServer(ExportProvider exportProvider, TestOutputLogger logger, IAssemblyLoader assemblyLoader)
+        static LSP.Location ConvertTextSpanWithTextToLocation(TextSpan span, SourceText text, Uri documentUri)
         {
-            var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader, logger.Factory);
-
-            var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            LanguageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, logger, typeRefResolver);
-
-            var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
-            _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, messageFormatter))
+            var location = new LSP.Location
             {
-                AllowModificationWhileListening = true,
-                ExceptionStrategy = ExceptionProcessing.ISerializable,
+                Uri = documentUri,
+                Range = ProtocolConversions.TextSpanToRange(span, text),
             };
 
-            _clientRpc.StartListening();
-
-            // This task completes when the server shuts down.  We store it so that we can wait for completion
-            // when we dispose of the test server.
-            LanguageServerHost.Start();
-
-            _languageServerHostCompletionTask = LanguageServerHost.WaitForExitAsync();
-            ExportProvider = exportProvider;
-        }
-
-        public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(string methodName, TRequestType request, CancellationToken cancellationToken) where TRequestType : class
-        {
-            var result = await _clientRpc.InvokeWithParameterObjectAsync<TResponseType>(methodName, request, cancellationToken: cancellationToken);
-            return result;
-        }
-
-        public void AddClientLocalRpcTarget(object target)
-        {
-            _clientRpc.AddLocalRpcTarget(target);
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await _clientRpc.InvokeAsync(Methods.ShutdownName);
-            await _clientRpc.NotifyAsync(Methods.ExitName);
-
-            // The language server host task should complete once shutdown and exit are called.
-#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
-            await _languageServerHostCompletionTask;
-#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
-
-            _clientRpc.Dispose();
+            return location;
         }
     }
+
+    private protected static TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId? projectContext = null)
+    {
+        var documentIdentifier = new VSTextDocumentIdentifier { Uri = uri };
+
+        if (projectContext != null)
+        {
+            documentIdentifier.ProjectContext = new VSProjectContext
+            {
+                Id = ProtocolConversions.ProjectIdToProjectContextId(projectContext),
+                Label = projectContext.DebugName!,
+                Kind = LSP.VSProjectKind.CSharp
+            };
+        }
+
+        return documentIdentifier;
+    }
+
+    private protected static CodeActionParams CreateCodeActionParams(LSP.Location location)
+        => new()
+        {
+            TextDocument = CreateTextDocumentIdentifier(location.Uri),
+            Range = location.Range,
+            Context = new CodeActionContext
+            {
+                // TODO - Code actions should respect context.
+            }
+        };
 }

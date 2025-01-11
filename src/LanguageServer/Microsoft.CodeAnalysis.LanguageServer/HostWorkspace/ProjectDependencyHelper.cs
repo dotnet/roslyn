@@ -11,11 +11,12 @@ using Microsoft.Extensions.Logging;
 using NuGet.ProjectModel;
 using NuGet.Versioning;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal static class ProjectDependencyHelper
 {
-    private const string ProjectNeedsRestoreName = "workspace/_roslyn_projectNeedsRestore";
+    internal const string ProjectNeedsRestoreName = "workspace/_roslyn_projectNeedsRestore";
 
     internal static bool NeedsRestore(ProjectFileInfo newProjectFileInfo, ProjectFileInfo? previousProjectFileInfo, ILogger logger)
     {
