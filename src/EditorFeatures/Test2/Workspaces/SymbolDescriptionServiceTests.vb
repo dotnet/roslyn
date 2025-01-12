@@ -104,14 +104,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-            class Foo
+            class Goo
             {
                 private static int $$x;
             }
         </Document>
     </Project>
 </Workspace>
-            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) static int Foo.x")
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) static int Goo.x")
         End Function
 
         <Fact>
@@ -120,14 +120,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-            class Foo
+            class Goo
             {
                 private readonly int $$x;
             }
         </Document>
     </Project>
 </Workspace>
-            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) readonly int Foo.x")
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) readonly int Goo.x")
         End Function
 
         <Fact>
@@ -136,14 +136,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-            class Foo
+            class Goo
             {
                 private volatile int $$x;
             }
         </Document>
     </Project>
 </Workspace>
-            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) volatile int Foo.x")
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) volatile int Goo.x")
         End Function
 
         <Fact>
@@ -152,14 +152,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-            class Foo
+            class Goo
             {
                 private static readonly int $$x;
             }
         </Document>
     </Project>
 </Workspace>
-            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) static readonly int Foo.x")
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) static readonly int Goo.x")
         End Function
 
         <Fact>
@@ -168,14 +168,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-            class Foo
+            class Goo
             {
                 private static volatile int $$x;
             }
         </Document>
     </Project>
 </Workspace>
-            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) static volatile int Foo.x")
+            Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) static volatile int Goo.x")
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33049")>

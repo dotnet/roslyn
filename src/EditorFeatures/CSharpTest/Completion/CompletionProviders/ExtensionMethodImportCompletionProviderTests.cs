@@ -98,7 +98,7 @@ public class ExtensionMethodImportCompletionProviderTests : AbstractCSharpComple
         var file1 = $@"
 using System;
 
-namespace Foo
+namespace Goo
 {{
     public static class ExtensionClass
     {{
@@ -126,7 +126,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [MemberData(nameof(ReferenceTypeData))]
@@ -137,7 +137,7 @@ namespace Baz
             using System;
             using MyInt = System.Int32;
 
-            namespace Foo
+            namespace Goo
             {
                 public static class ExtensionClass
                 {
@@ -166,7 +166,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [MemberData(nameof(ReferenceTypeData))]
@@ -177,7 +177,7 @@ namespace Baz
             using System;
             using MyInt = System.Int32;
 
-            namespace Foo
+            namespace Goo
             {
                 public static class ExtensionClass
                 {
@@ -206,7 +206,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [MemberData(nameof(ReferenceTypeData))]
@@ -217,7 +217,7 @@ namespace Baz
             using System;
             using MyAlias = System.Exception;
 
-            namespace Foo
+            namespace Goo
             {
                 public static class ExtensionClass
                 {
@@ -246,7 +246,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [MemberData(nameof(ReferenceTypeData))]
@@ -257,7 +257,7 @@ namespace Baz
             using System;
             using MyAlias = System.Collections.Generic.List<int>;
 
-            namespace Foo
+            namespace Goo
             {
                 public static class ExtensionClass
                 {
@@ -286,7 +286,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [MemberData(nameof(ReferenceTypeData))]
@@ -296,7 +296,7 @@ namespace Baz
         var file1 = """
             using DataTime = System.Exception;
 
-            namespace Foo
+            namespace Goo
             {
                 public static class ExtensionClass
                 {
@@ -325,7 +325,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [MemberData(nameof(ReferenceTypeData))]
@@ -336,7 +336,7 @@ namespace Baz
             using System;
             using GenericCollection = System.Collections.Generic;
 
-            namespace Foo
+            namespace Goo
             {
                 public static class ExtensionClass
                 {
@@ -366,7 +366,7 @@ namespace Baz
              "ExtentionMethod",
              displayTextSuffix: "<>",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [MemberData(nameof(ReferenceTypeData))]
@@ -376,7 +376,7 @@ namespace Baz
         var file1 = """
             using System;
 
-            namespace Foo
+            namespace Goo
             {
                 public static class ExtensionClass
                 {
@@ -406,7 +406,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [MemberData(nameof(AllTypeKindsWithReferenceTypeData))]
@@ -418,7 +418,7 @@ using System;
 
 public {typeKind} MyType {{ }}
 
-namespace Foo
+namespace Goo
 {{
     public static class ExtensionClass
     {{
@@ -445,7 +445,7 @@ namespace Foo
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [MemberData(nameof(AllTypeKindsWithReferenceTypeData))]
@@ -457,7 +457,7 @@ using System;
 
 public {typeKind} MyType {{ }}
 
-namespace Foo
+namespace Goo
 {{
     public static class ExtensionClass
     {{
@@ -484,7 +484,7 @@ namespace Foo
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     public static IEnumerable<object[]> TupleWithRefTypeData => CombineWithReferenceTypeData(
@@ -502,7 +502,7 @@ namespace Foo
         var file1 = $@"
 using System;
 
-namespace Foo
+namespace Goo
 {{
     public static class ExtensionClass
     {{
@@ -528,7 +528,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     public static IEnumerable<object[]> DerivableTypeKindsWithReferenceTypeData
@@ -545,7 +545,7 @@ public {baseType} MyBase {{ }}
 
 public class MyType : MyBase {{ }}
 
-namespace Foo
+namespace Goo
 {{
     public static class ExtensionClass
     {{
@@ -572,7 +572,7 @@ namespace Foo
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     public static IEnumerable<object[]> BounedGenericTypeWithRefTypeData => CombineWithReferenceTypeData(
@@ -591,7 +591,7 @@ namespace Foo
             using System;
             using System.Collections.Generic;
 
-            namespace Foo
+            namespace Goo
             {
                 public static class ExtensionClass
                 {
@@ -619,7 +619,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
     public static IEnumerable<object[]> TypeParameterWithRefTypeData => CombineWithReferenceTypeData(
         (new[]
@@ -637,7 +637,7 @@ namespace Baz
         var file1 = """
             using System;
 
-            namespace Foo
+            namespace Goo
             {
                 public static class ExtensionClass
                 {
@@ -668,7 +668,7 @@ namespace Baz
              "ExtentionMethod",
              displayTextSuffix: "<>",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [InlineData(ReferenceType.Project)]
@@ -679,7 +679,7 @@ namespace Baz
         var file1 = """
             using System;
 
-            namespace Foo
+            namespace Goo
             {
                 internal static class ExtensionClass
                 {
@@ -707,7 +707,7 @@ namespace Baz
         await VerifyImportItemIsAbsentAsync(
              markup,
              "ExtentionMethod",
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [Fact]
@@ -716,7 +716,7 @@ namespace Baz
         var file1 = """
             using System;
 
-            namespace Foo
+            namespace Goo
             {
                 internal static class ExtensionClass
                 {
@@ -745,7 +745,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodInternal,     // This is based on declared accessibility
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     // SymbolTreeInfo explicitly ignores non-public types from metadata(likely for perf reasons). So we don't need to test internals in PE reference
@@ -757,7 +757,7 @@ namespace Baz
         var file1 = """
             [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Project1")]
 
-            namespace Foo
+            namespace Goo
             {
                 internal static class ExtensionClass
                 {
@@ -784,7 +784,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodInternal,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [MemberData(nameof(ReferenceTypeData))]
@@ -798,7 +798,7 @@ namespace Baz
             {
             }
 
-            namespace Foo
+            namespace Goo
             {
                 public static class ExtensionClass
                 {
@@ -827,7 +827,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [InlineData("(1 + 1)")]
@@ -838,7 +838,7 @@ namespace Baz
         var file1 = """
             using System;
 
-            namespace Foo
+            namespace Goo
             {
                 public static class ExtensionClass
                 {
@@ -866,7 +866,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     public static IEnumerable<object[]> VBBuiltInTypes
@@ -907,7 +907,7 @@ Imports System
 Imports System.Runtime.CompilerServices
 
 Namespace NS
-    Public Module Foo
+    Public Module Goo
         <Extension>
         public Function ExtentionMethod(x As {vbType}) As Boolean
             Return True
@@ -943,7 +943,7 @@ namespace Baz
             Imports System
             Imports System.Runtime.CompilerServices
 
-            Public Module Foo
+            Public Module Goo
                 <Extension>
                 public Function ExtentionMethod(x As Integer) As Boolean
                     Return True
@@ -980,7 +980,7 @@ namespace Baz
             Imports System
             Imports System.Runtime.CompilerServices
 
-            Public Module Foo
+            Public Module Goo
                 <Extension>
                 public Function ExtentionMethod(x As Integer) As Boolean
                     Return True
@@ -1015,7 +1015,7 @@ namespace Baz
         var file1 = """
             using System;
 
-            namespace Foo
+            namespace Goo
             {
                 internal static class ExtensionClass
                 {
@@ -1045,10 +1045,10 @@ namespace Baz
              markup,
              "ExtentionMethod",
              glyph: (int)Glyph.ExtensionMethodInternal,     // This is based on declared accessibility
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
-    [InlineData("int", "Int32Method", "Foo")]
+    [InlineData("int", "Int32Method", "Goo")]
     [InlineData("string", "StringMethod", "Bar")]
     [Theory]
     public async Task TestIdenticalAliases(string type, string expectedMethodname, string expectedNamespace)
@@ -1056,7 +1056,7 @@ namespace Baz
         var file1 = """
             using X = System.String;
 
-            namespace Foo
+            namespace Goo
             {
                 using X = System.Int32;
 
@@ -1106,7 +1106,7 @@ namespace Baz
         var file1 = """
             using System;
 
-            namespace Foo
+            namespace Goo
             {
                 public static class ExtensionClass
                 {
@@ -1137,7 +1137,7 @@ namespace Baz
              markup,
              "ExtMethod",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [Fact]
@@ -1146,7 +1146,7 @@ namespace Baz
         var file1 = """
             using System;
 
-            namespace Foo
+            namespace Goo
             {
                 public static class ExtensionClass
                 {
@@ -1173,7 +1173,7 @@ namespace Baz
         await VerifyImportItemIsAbsentAsync(
              markup,
              "ExtMethod",
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42325")]
@@ -1182,7 +1182,7 @@ namespace Baz
         var file1 = """
             using System;
 
-            namespace Foo
+            namespace Goo
             {
                 public static partial class ExtensionClass
                 {
@@ -1194,7 +1194,7 @@ namespace Baz
         var currentFile = """
             using System;
 
-            namespace Foo
+            namespace Goo
             {
                 public static partial class ExtensionClass
                 {
@@ -1221,13 +1221,13 @@ namespace Baz
              markup,
              "ExtentionMethod1",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
 
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod2",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [InlineData(ReferenceType.Project, "public")]
@@ -1239,7 +1239,7 @@ namespace Baz
         var refDoc = $@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
 
-namespace Foo
+namespace Goo
 {{
     {accessibility} static class ExtensionClass
     {{
@@ -1250,7 +1250,7 @@ namespace Foo
         var srcDoc = """
             using System;
 
-            namespace Foo
+            namespace Goo
             {
                 internal static class ExtensionClass
                 {
@@ -1282,13 +1282,13 @@ namespace Foo
              markup,
              "ExtentionMethod1",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
 
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod2",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42325")]
@@ -1297,7 +1297,7 @@ namespace Foo
         var refDoc1 = """
             [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Project1")]
 
-            namespace Foo
+            namespace Goo
             {
                 internal static class ExtensionClass
                 {
@@ -1309,7 +1309,7 @@ namespace Foo
         var refDoc2 = """
             [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Project1")]
 
-            namespace Foo
+            namespace Goo
             {
                 internal static class ExtensionClass
                 {
@@ -1339,13 +1339,13 @@ namespace Foo
              markup,
              "ExtentionMethod1",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
 
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod2",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [InlineData("", "", false)]
@@ -1359,7 +1359,7 @@ using System;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
 
-namespace Foo
+namespace Goo
 {{
     {containerAccessibility} static class ExtensionClass
     {{
@@ -1389,14 +1389,14 @@ namespace Baz
                  markup,
                  "ExtentionMethod",
                  glyph: (int)Glyph.ExtensionMethodPublic,
-                 inlineDescription: "Foo");
+                 inlineDescription: "Goo");
         }
         else
         {
             await VerifyImportItemIsAbsentAsync(
                  markup,
                  "ExtentionMethod",
-                 inlineDescription: "Foo");
+                 inlineDescription: "Goo");
         }
     }
 
@@ -1414,7 +1414,7 @@ namespace Baz
         var refDoc = $@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
 
-namespace Foo
+namespace Goo
 {{
     public static class ExtensionClass
     {{
@@ -1457,7 +1457,7 @@ namespace Baz
              markup,
              expectedName,
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [InlineData(ReferenceType.Project, "[]", "ExtentionMethod2")]
@@ -1474,7 +1474,7 @@ namespace Baz
         var refDoc = $@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project1"")]
 
-namespace Foo
+namespace Goo
 {{
     public static class ExtensionClass
     {{
@@ -1518,7 +1518,7 @@ namespace Baz
              expectedName,
              displayTextSuffix: "<>",
              glyph: (int)Glyph.ExtensionMethodPublic,
-             inlineDescription: "Foo");
+             inlineDescription: "Goo");
     }
 
     [InlineData(ReferenceType.Project)]
@@ -1777,7 +1777,7 @@ namespace NS1
             {
             }
 
-            namespace Foo
+            namespace Goo
             {
                 public static class GooExtensions
                 {
@@ -1800,7 +1800,7 @@ namespace NS1
                 markup,
                 "Bar",
                 glyph: (int)Glyph.ExtensionMethodPublic,
-                inlineDescription: "Foo");
+                inlineDescription: "Goo");
     }
 
     [InlineData(ReferenceType.Project)]
@@ -1823,7 +1823,7 @@ namespace NS1
             {
             }
 
-            namespace Foo
+            namespace Goo
             {
                 public static class GooExtensions
                 {
@@ -1848,14 +1848,14 @@ namespace NS1
                     markup,
                     "Bar",
                     glyph: (int)Glyph.ExtensionMethodPublic,
-                    inlineDescription: "Foo");
+                    inlineDescription: "Goo");
         }
         else
         {
             await VerifyImportItemIsAbsentAsync(
                     markup,
                     "Bar",
-                    inlineDescription: "Foo");
+                    inlineDescription: "Goo");
         }
     }
 
@@ -1883,7 +1883,7 @@ namespace NS1
             {
             }
 
-            namespace Foo
+            namespace Goo
             {
                 public static class GooExtensions
                 {
@@ -1909,14 +1909,14 @@ namespace NS1
                     markup,
                     "Bar",
                     glyph: (int)Glyph.ExtensionMethodPublic,
-                    inlineDescription: "Foo");
+                    inlineDescription: "Goo");
         }
         else
         {
             await VerifyImportItemIsAbsentAsync(
                     markup,
                     "Bar",
-                    inlineDescription: "Foo");
+                    inlineDescription: "Goo");
         }
     }
 

@@ -1579,7 +1579,7 @@ End Module")
         Public Async Function XmlLiteral_NoDiagnostic() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Public Class C
-    Public Sub Foo()
+    Public Sub Goo()
         Dim xml = <tag><%= Me.M() %></tag>
     End Sub
 

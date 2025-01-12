@@ -9183,7 +9183,7 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
                 void Main()
                 {
                     int x, y;
-                    (x, y) = [|Foo()|];
+                    (x, y) = [|Goo()|];
                 }
             }
             """,
@@ -9195,10 +9195,10 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
                 void Main()
                 {
                     int x, y;
-                    (x, y) = Foo();
+                    (x, y) = Goo();
                 }
 
-                private (int x, int y) Foo()
+                private (int x, int y) Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -9217,7 +9217,7 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
             {
                 void Main()
                 {
-                    (x, y) = [|Foo()|];
+                    (x, y) = [|Goo()|];
                 }
             }
             """,
@@ -9228,10 +9228,10 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
             {
                 void Main()
                 {
-                    (x, y) = Foo();
+                    (x, y) = Goo();
                 }
 
-                private (object x, object y) Foo()
+                private (object x, object y) Goo()
                 {
                     throw new NotImplementedException();
                 }

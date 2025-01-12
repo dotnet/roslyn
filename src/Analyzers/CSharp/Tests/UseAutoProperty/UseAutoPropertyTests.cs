@@ -1972,9 +1972,9 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                     object Bar { get; }
                 }
 
-                class Foo : IFoo
+                class Goo : IFoo
                 {
-                    public Foo(object bar)
+                    public Goo(object bar)
                     {
                         this.bar = bar;
                     }
@@ -2001,9 +2001,9 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                     object Bar { get; set; }
                 }
 
-                class Foo : IFoo
+                class Goo : IFoo
                 {
-                    public Foo(object bar)
+                    public Goo(object bar)
                     {
                         this.bar = bar;
                     }
@@ -2709,7 +2709,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     {
         await TestInRegularAndScript1Async(
             """
-            public class Foo
+            public class Goo
             {
             	private readonly object o;
 
@@ -2717,7 +2717,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """,
             """
-            public class Foo
+            public class Goo
             {
             	public object O { get; }
             }
@@ -2729,7 +2729,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     {
         await TestInRegularAndScript1Async(
             """
-            public class Foo
+            public class Goo
             {
             	private readonly object o;
 
@@ -2737,7 +2737,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """,
             """
-            public class Foo
+            public class Goo
             {
                 public object O { get; }
             }
@@ -2752,7 +2752,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
-            public class Foo
+            public class Goo
             {
             	private readonly object o;
 
@@ -2770,7 +2770,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
-            public class Foo
+            public class Goo
             {
             	public object O { get; }
             }
@@ -2792,7 +2792,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
-            public class Foo
+            public class Goo
             {
             	private readonly object o;
 
@@ -2810,7 +2810,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
-            public class Foo
+            public class Goo
             {
                 public object O { get; }
             }

@@ -319,8 +319,8 @@ CodeStyleOptions2.QualifyFieldAccess);
             {
                 void M()
                 {
-                     var foo = 1;
-                     var test = new System.Collections.Generic.List<int> { [|foo|] };
+                     var goo = 1;
+                     var test = new System.Collections.Generic.List<int> { [|goo|] };
                 }
             }
             """,
@@ -336,8 +336,8 @@ CodeStyleOptions2.QualifyFieldAccess);
             {
                 void M()
                 {
-                     var foo = 1;
-                     var test = new System.Collections.Generic.List<int> { [|foo|] };
+                     var goo = 1;
+                     var test = new System.Collections.Generic.List<int> { [|goo|] };
                 }
             }
             """,
@@ -353,8 +353,8 @@ CodeStyleOptions2.QualifyFieldAccess);
             {
                 void M()
                 {
-                     var foo = 1;
-                     var test = new System.Collections.Generic.Dictionary<int, int> { { 2, [|foo|] } };
+                     var goo = 1;
+                     var test = new System.Collections.Generic.Dictionary<int, int> { { 2, [|goo|] } };
                 }
             }
             """,
@@ -1089,8 +1089,8 @@ CodeStyleOptions2.QualifyMethodAccess);
             {
                 void M()
                 {
-                     var foo = 1;
-                     var test = new System.Collections.Generic.List<int> { [|foo|] };
+                     var goo = 1;
+                     var test = new System.Collections.Generic.List<int> { [|goo|] };
                 }
             }
             """,
@@ -1123,8 +1123,8 @@ CodeStyleOptions2.QualifyMethodAccess);
             {
                 void M()
                 {
-                     var foo = 1;
-                     var test = new System.Collections.Generic.List<int> { [|foo|] };
+                     var goo = 1;
+                     var test = new System.Collections.Generic.List<int> { [|goo|] };
                 }
             }
             """,
@@ -1751,8 +1751,8 @@ CodeStyleOptions2.QualifyEventAccess);
             """
             class Program
             {
-                public int Foo { get; set; }
-                public static string Bar = nameof([|Foo|]);
+                public int Goo { get; set; }
+                public static string Bar = nameof([|Goo|]);
             }
             """,
 CodeStyleOptions2.QualifyPropertyAccess);
@@ -1765,8 +1765,8 @@ CodeStyleOptions2.QualifyPropertyAccess);
             """
             class Program
             {
-                public int Foo { get; set; }
-                public string Bar = nameof([|Foo|]);
+                public int Goo { get; set; }
+                public string Bar = nameof([|Goo|]);
             }
             """,
 CodeStyleOptions2.QualifyPropertyAccess);
@@ -1779,10 +1779,10 @@ CodeStyleOptions2.QualifyPropertyAccess);
             """
             class Program
             {
-                public int Foo { get; set; }
+                public int Goo { get; set; }
                 static void Main(string[] args)
                 {
-                    System.Console.WriteLine(nameof([|Foo|]));
+                    System.Console.WriteLine(nameof([|Goo|]));
                 }
             }
             """,
@@ -1796,10 +1796,10 @@ CodeStyleOptions2.QualifyPropertyAccess);
             """
             class Program
             {
-                public int Foo;
+                public int Goo;
                 static void Main(string[] args)
                 {
-                    System.Console.WriteLine(nameof([|Foo|]));
+                    System.Console.WriteLine(nameof([|Goo|]));
                 }
             }
             """,
@@ -1813,12 +1813,12 @@ CodeStyleOptions2.QualifyFieldAccess);
             """
             class Program
             {
-                public int Foo { get; set; }
+                public int Goo { get; set; }
                 static string Bar { get; set; }
 
                 static Program()
                 {
-                    Bar = nameof([|Foo|]);
+                    Bar = nameof([|Goo|]);
                 }
             }
             """,
@@ -1830,7 +1830,7 @@ CodeStyleOptions2.QualifyPropertyAccess);
     {
         await TestMissingAsyncWithOption(
             """
-            public class Foo
+            public class Goo
             {
                 public event EventHandler Bar;
 
@@ -1847,13 +1847,13 @@ CodeStyleOptions2.QualifyEventAccess);
             """
             public class Base
             {
-                public string Foo { get; }
-                public Base(string foo){}
+                public string Goo { get; }
+                public Base(string goo){}
             }
             public class Derived : Base
             {
                 public Derived()
-                    : base(nameof([|Foo|]))
+                    : base(nameof([|Goo|]))
                 {}
             }
             """,
@@ -1867,15 +1867,15 @@ CodeStyleOptions2.QualifyEventAccess);
             """
             public class C
             {
-                public string Foo { get; set; }
-                public string Bar { get => [|Foo|]; }
+                public string Goo { get; set; }
+                public string Bar { get => [|Goo|]; }
             }
             """,
             """
             public class C
             {
-                public string Foo { get; set; }
-                public string Bar { get => this.Foo; }
+                public string Goo { get; set; }
+                public string Bar { get => this.Goo; }
             }
             """,
 CodeStyleOptions2.QualifyPropertyAccess);
@@ -1888,15 +1888,15 @@ CodeStyleOptions2.QualifyPropertyAccess);
             """
             public class C
             {
-                public string Foo { get; set; }
-                public string Bar { get { return [|Foo|]; } => Foo; }
+                public string Goo { get; set; }
+                public string Bar { get { return [|Goo|]; } => Goo; }
             }
             """,
             """
             public class C
             {
-                public string Foo { get; set; }
-                public string Bar { get { return this.Foo; } => Foo; }
+                public string Goo { get; set; }
+                public string Bar { get { return this.Goo; } => Goo; }
             }
             """,
 CodeStyleOptions2.QualifyPropertyAccess);
@@ -1909,15 +1909,15 @@ CodeStyleOptions2.QualifyPropertyAccess);
             """
             public class C
             {
-                public string Foo { get; set; }
-                public string Bar { get { return Foo; } => [|Foo|]; }
+                public string Goo { get; set; }
+                public string Bar { get { return Goo; } => [|Goo|]; }
             }
             """,
             """
             public class C
             {
-                public string Foo { get; set; }
-                public string Bar { get { return Foo; } => this.Foo; }
+                public string Goo { get; set; }
+                public string Bar { get { return Goo; } => this.Goo; }
             }
             """,
 CodeStyleOptions2.QualifyPropertyAccess);
@@ -1930,20 +1930,20 @@ CodeStyleOptions2.QualifyPropertyAccess);
             """
             class C
             {
-                public int Foo { get; set }
+                public int Goo { get; set }
                 void M()
                 {
-                    var test = new System.Collections.Generic.List<int> { [|Foo|] };
+                    var test = new System.Collections.Generic.List<int> { [|Goo|] };
                 }
             }
             """,
             """
             class C
             {
-                public int Foo { get; set }
+                public int Goo { get; set }
                 void M()
                 {
-                    var test = new System.Collections.Generic.List<int> { this.Foo };
+                    var test = new System.Collections.Generic.List<int> { this.Goo };
                 }
             }
             """,
@@ -1957,20 +1957,20 @@ CodeStyleOptions2.QualifyPropertyAccess);
             """
             class C
             {
-                public int Foo { get; set }
+                public int Goo { get; set }
                 void M()
                 {
-                    var test = new System.Collections.Generic.List<int> { [|Foo|] };
+                    var test = new System.Collections.Generic.List<int> { [|Goo|] };
                 }
             }
             """,
             """
             class C
             {
-                public int Foo { get; set }
+                public int Goo { get; set }
                 void M()
                 {
-                    var test = new System.Collections.Generic.List<int> { this.Foo };
+                    var test = new System.Collections.Generic.List<int> { this.Goo };
                 }
             }
             """,
@@ -1984,12 +1984,12 @@ CodeStyleOptions2.QualifyPropertyAccess);
             """
             public class C
             {
-                public string Foo { get; set; }
+                public string Goo { get; set; }
                 public void Bar()
                 {
                     var c = new C
                     {
-                        [|Foo|] = string.Empty
+                        [|Goo|] = string.Empty
                     };
                 }
             }
@@ -2004,12 +2004,12 @@ CodeStyleOptions2.QualifyPropertyAccess);
             """
             public class C
             {
-                public string Foo;
+                public string Goo;
                 public void Bar()
                 {
                     var c = new C
                     {
-                        [|Foo|] = string.Empty
+                        [|Goo|] = string.Empty
                     };
                 }
             }
@@ -2025,12 +2025,12 @@ CodeStyleOptions2.QualifyFieldAccess);
             """
             public class C
             {
-                public string Foo;
+                public string Goo;
                 public void Bar()
                 {
                     var c = new C
                     {
-                        Foo = [|Foo|]
+                        Goo = [|Goo|]
                     };
                 }
             }
@@ -2038,12 +2038,12 @@ CodeStyleOptions2.QualifyFieldAccess);
             """
             public class C
             {
-                public string Foo;
+                public string Goo;
                 public void Bar()
                 {
                     var c = new C
                     {
-                        Foo = this.Foo
+                        Goo = this.Goo
                     };
                 }
             }

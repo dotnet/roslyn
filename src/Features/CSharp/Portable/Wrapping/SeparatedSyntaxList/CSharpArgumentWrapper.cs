@@ -68,7 +68,7 @@ internal sealed partial class CSharpArgumentWrapper
 
         if (declaration is InvocationExpressionSyntax or ElementAccessExpressionSyntax)
         {
-            // If we have something like  Foo(...)  or  this.Foo(...)  allow anywhere in the Foo(...)
+            // If we have something like  Goo(...)  or  this.Goo(...)  allow anywhere in the Goo(...)
             // section.
             var expr = (declaration as InvocationExpressionSyntax)?.Expression ??
                        ((ElementAccessExpressionSyntax)declaration).Expression;
@@ -78,7 +78,7 @@ internal sealed partial class CSharpArgumentWrapper
         }
         else if (declaration is BaseObjectCreationExpressionSyntax)
         {
-            // allow anywhere in `new Foo(...)`
+            // allow anywhere in `new Goo(...)`
             startToken = declaration.GetFirstToken();
         }
         else if (declaration is ConstructorInitializerSyntax constructorInitializer)
@@ -109,7 +109,7 @@ internal sealed partial class CSharpArgumentWrapper
 
     private static ExpressionSyntax? TryGetInvokedName(ExpressionSyntax expr)
     {
-        // `Foo(...)`.  Allow up through the 'Foo' portion
+        // `Goo(...)`.  Allow up through the 'Goo' portion
         if (expr is NameSyntax name)
             return name;
 
@@ -117,8 +117,8 @@ internal sealed partial class CSharpArgumentWrapper
         if (expr is ThisExpressionSyntax or BaseExpressionSyntax)
             return expr;
 
-        // expr.Foo(...) or expr?.Foo(...)
-        // All up through the 'Foo' portion.
+        // expr.Goo(...) or expr?.Goo(...)
+        // All up through the 'Goo' portion.
         //
         // Otherwise, only allow in the arg list.
         return (expr as MemberAccessExpressionSyntax)?.Name ??

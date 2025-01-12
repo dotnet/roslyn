@@ -732,9 +732,9 @@ using System.Collections.Generic;
 using System.Linq;
 public class C
 {
-    public Foo(List<int> myList)
+    public Goo(List<int> myList)
     {
-        var foo = myList.Where(i{|caret:|})
+        var goo = myList.Where(i{|caret:|})
     }
 }";
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);

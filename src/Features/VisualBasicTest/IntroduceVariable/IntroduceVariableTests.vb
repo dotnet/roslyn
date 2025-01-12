@@ -2965,7 +2965,7 @@ End Module"
         Public Async Function TestInAttribute() As Task
             Dim code = "
 Class C
-    Public Property Foo()
+    Public Property Goo()
 
     <Example([|3 + 3|])>
     Public Property Bar()
@@ -2974,7 +2974,7 @@ End Class
             Dim expected = "
 Class C
     Private Const {|Rename:V|} As Integer = 3 + 3
-    Public Property Foo()
+    Public Property Goo()
 
     <Example(V)>
     Public Property Bar()
@@ -3065,7 +3065,7 @@ End Class
             Await TestMissingAsync("
 Class C
     <Example( [| |] )>
-    Public Function Foo()
+    Public Function Goo()
     End Function
 End Class
 ")
@@ -3076,7 +3076,7 @@ End Class
             Dim source = "
 Class C
     Dim c As C
-    Sub Foo()
+    Sub Goo()
         Dim y = [|c|].c.c
     End Sub
 End Class
@@ -3084,7 +3084,7 @@ End Class
             Dim expected = "
 Class C
     Dim c As C
-    Sub Foo()
+    Sub Goo()
         Dim {|Rename:c1|} As C = c
         Dim y = c1.c.c
     End Sub
@@ -3098,7 +3098,7 @@ End Class
             Dim source = "
 Class C
     Dim c As C
-    Sub Foo()
+    Sub Goo()
         Dim y = [|Me.c|].c.c
     End Sub
 End Class
@@ -3106,7 +3106,7 @@ End Class
             Dim expected = "
 Class C
     Dim c As C
-    Sub Foo()
+    Sub Goo()
         Dim {|Rename:c1|} As C = Me.c
         Dim y = c1.c.c
     End Sub

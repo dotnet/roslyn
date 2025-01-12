@@ -5128,7 +5128,7 @@ namespace A
     {
         C Instance { get; }
 
-        async Task M() => await Instance.[|Foo|]();
+        async Task M() => await Instance.[|Goo|]();
     }
 }
 
@@ -5140,7 +5140,7 @@ namespace B
 
     static class Extensions
     {
-        public static Task Foo(this C instance) => null;
+        public static Task Goo(this C instance) => null;
     }
 }",
 @"
@@ -5154,7 +5154,7 @@ namespace A
     {
         C Instance { get; }
 
-        async Task M() => await Instance.Foo();
+        async Task M() => await Instance.Goo();
     }
 }
 
@@ -5166,7 +5166,7 @@ namespace B
 
     static class Extensions
     {
-        public static Task Foo(this C instance) => null;
+        public static Task Goo(this C instance) => null;
     }
 }", testHost);
     }

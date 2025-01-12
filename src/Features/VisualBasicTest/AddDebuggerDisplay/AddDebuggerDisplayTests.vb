@@ -27,12 +27,12 @@ End Class")
         <Fact>
         Public Async Function OfferedOnEmptyStruct() As Task
             Await VerifyVB.VerifyRefactoringAsync("
-[||]Structure Foo
+[||]Structure Goo
 End Structure", "
 Imports System.Diagnostics
 
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
-Structure Foo
+Structure Goo
     Private Function GetDebuggerDisplay() As String
         Return ToString()
     End Function
@@ -42,7 +42,7 @@ End Structure")
         <Fact>
         Public Async Function NotOfferedOnModule() As Task
             Dim code = "
-[||]Module Foo
+[||]Module Goo
 End Module"
 
             Await VerifyVB.VerifyRefactoringAsync(code, code)
@@ -61,7 +61,7 @@ End Interface"
         <Fact>
         Public Async Function NotOfferedOnEnum() As Task
             Dim code = "
-[||]Enum Foo
+[||]Enum Goo
     None
 End Enum"
 
@@ -71,7 +71,7 @@ End Enum"
         <Fact>
         Public Async Function NotOfferedOnDelegate() As Task
             Dim code = "
-[||]Delegate Sub Foo()"
+[||]Delegate Sub Goo()"
 
             Await VerifyVB.VerifyRefactoringAsync(code, code)
         End Function
@@ -80,7 +80,7 @@ End Enum"
         Public Async Function NotOfferedOnUnrelatedClassMembers() As Task
             Dim code = "
 Class C
-    [||]Public ReadOnly Property Foo As Integer
+    [||]Public ReadOnly Property Goo As Integer
 End Class"
 
             Await VerifyVB.VerifyRefactoringAsync(code, code)
@@ -91,7 +91,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync("
 Class C
     Public Overrides Function [||]ToString() As String
-        Return ""Foo""
+        Return ""Goo""
     End Function
 End Class", "
 Imports System.Diagnostics
@@ -99,7 +99,7 @@ Imports System.Diagnostics
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
     Public Overrides Function ToString() As String
-        Return ""Foo""
+        Return ""Goo""
     End Function
 
     Private Function GetDebuggerDisplay() As String
@@ -113,7 +113,7 @@ End Class")
             Await VerifyVB.VerifyRefactoringAsync("
 Class C
     Public Shadows Function [||]ToString() As String
-        Return ""Foo""
+        Return ""Goo""
     End Function
 End Class", "
 Imports System.Diagnostics
@@ -121,7 +121,7 @@ Imports System.Diagnostics
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
     Public Shadows Function ToString() As String
-        Return ""Foo""
+        Return ""Goo""
     End Function
 
     Private Function GetDebuggerDisplay() As String
@@ -135,7 +135,7 @@ End Class")
             Dim code = "
 Class A
     Public Overridable Function ToString(Optional bar As Integer = 0) As String
-        Return ""Foo""
+        Return ""Goo""
     End Function
 End Class
 
@@ -155,7 +155,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync("
 Class C
     Private Function [||]GetDebuggerDisplay() As String
-        Return ""Foo""
+        Return ""Goo""
     End Function
 End Class", "
 Imports System.Diagnostics
@@ -163,7 +163,7 @@ Imports System.Diagnostics
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
     Private Function GetDebuggerDisplay() As String
-        Return ""Foo""
+        Return ""Goo""
     End Function
 End Class")
         End Function
@@ -173,7 +173,7 @@ End Class")
             Dim code = "
 Class C
     Private Function [||]GetDebuggerDisplay(Optional bar As Integer = 0) As String
-        Return ""Foo""
+        Return ""Goo""
     End Function
 End Class"
 
@@ -218,7 +218,7 @@ End Class")
         <Fact>
         Public Async Function NotOfferedWhenAlreadySpecified() As Task
             Dim code = "
-<System.Diagnostics.DebuggerDisplay(""Foo"")>
+<System.Diagnostics.DebuggerDisplay(""Goo"")>
 [||]Class C
 End Class"
 
@@ -228,7 +228,7 @@ End Class"
         <Fact>
         Public Async Function NotOfferedWhenAlreadySpecifiedWithSuffix() As Task
             Dim code = "
-<System.Diagnostics.DebuggerDisplayAttribute(""Foo"")>
+<System.Diagnostics.DebuggerDisplayAttribute(""Goo"")>
 [||]Class C
 End Class"
 
@@ -238,12 +238,12 @@ End Class"
         <Fact>
         Public Async Function OfferedWhenAttributeWithTheSameNameIsSpecified() As Task
             Await VerifyVB.VerifyRefactoringAsync("
-<{|BC30002:BrokenCode.DebuggerDisplay|}(""Foo"")>
+<{|BC30002:BrokenCode.DebuggerDisplay|}(""Goo"")>
 [||]Class C
 End Class", "
 Imports System.Diagnostics
 
-<{|BC30002:BrokenCode.DebuggerDisplay|}(""Foo"")>
+<{|BC30002:BrokenCode.DebuggerDisplay|}(""Goo"")>
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
     Private Function GetDebuggerDisplay() As String
@@ -255,12 +255,12 @@ End Class")
         <Fact>
         Public Async Function OfferedWhenAttributeWithTheSameNameIsSpecifiedWithSuffix() As Task
             Await VerifyVB.VerifyRefactoringAsync("
-<{|BC30002:BrokenCode.DebuggerDisplayAttribute|}(""Foo"")>
+<{|BC30002:BrokenCode.DebuggerDisplayAttribute|}(""Goo"")>
 [||]Class C
 End Class", "
 Imports System.Diagnostics
 
-<{|BC30002:BrokenCode.DebuggerDisplayAttribute|}(""Foo"")>
+<{|BC30002:BrokenCode.DebuggerDisplayAttribute|}(""Goo"")>
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
     Private Function GetDebuggerDisplay() As String
@@ -274,7 +274,7 @@ End Class")
             Dim code = "
 Imports DD = System.Diagnostics.DebuggerDisplayAttribute
 
-<DD(""Foo"")>
+<DD(""Goo"")>
 [||]Class C
 End Class"
 
@@ -286,7 +286,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync("
 Imports System.Diagnostics
 
-<DebuggerDisplay(""Foo"")>
+<DebuggerDisplay(""Goo"")>
 Class A
 End Class
 
@@ -295,7 +295,7 @@ End Class
 End Class", "
 Imports System.Diagnostics
 
-<DebuggerDisplay(""Foo"")>
+<DebuggerDisplay(""Goo"")>
 Class A
 End Class
 
@@ -314,7 +314,7 @@ End Class")
             Await VerifyVB.VerifyRefactoringAsync("
 [||]Class C
     Public Shared Function GetDebuggerDisplay() As Object
-        Return ""Foo""
+        Return ""Goo""
     End Function
 End Class", "
 Imports System.Diagnostics
@@ -322,7 +322,7 @@ Imports System.Diagnostics
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
     Public Shared Function GetDebuggerDisplay() As Object
-        Return ""Foo""
+        Return ""Goo""
     End Function
 End Class")
         End Function
@@ -331,16 +331,16 @@ End Class")
         Public Async Function ExistingDebuggerDisplayMethodWithParameterIsNotUsed() As Task
             Await VerifyVB.VerifyRefactoringAsync("
 [||]Class C
-    Private Function GetDebuggerDisplay(Optional foo As Integer = 0) As String
-        Return ""Foo""
+    Private Function GetDebuggerDisplay(Optional goo As Integer = 0) As String
+        Return ""Goo""
     End Function
 End Class", "
 Imports System.Diagnostics
 
 <DebuggerDisplay(""{GetDebuggerDisplay(),nq}"")>
 Class C
-    Private Function GetDebuggerDisplay(Optional foo As Integer = 0) As String
-        Return ""Foo""
+    Private Function GetDebuggerDisplay(Optional goo As Integer = 0) As String
+        Return ""Goo""
     End Function
 
     Private Function GetDebuggerDisplay() As String

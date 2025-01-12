@@ -299,7 +299,7 @@ internal sealed partial class XmlDocCommentCompletionProvider : AbstractDocComme
         else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) &&
                  token.Parent is XmlTextAttributeSyntax xmlText)
         {
-            // Handle the other general text attributes: foo="bar$$
+            // Handle the other general text attributes: goo="bar$$
             attributeSyntax = xmlText;
         }
         else if (token.Parent.IsKind(SyntaxKind.XmlNameAttribute, out attributeSyntax) ||
@@ -307,7 +307,7 @@ internal sealed partial class XmlDocCommentCompletionProvider : AbstractDocComme
         {
             // When there's no attribute value yet, the parent attribute is returned:
             //     name="$$
-            //     foo="$$
+            //     goo="$$
             if (token != attributeSyntax.StartQuoteToken)
             {
                 attributeSyntax = null;

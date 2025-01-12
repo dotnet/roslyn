@@ -893,7 +893,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
             using System;
             partial class Bar
             {
-                partial void Foo();
+                partial void Goo();
                 partial $$
             }
             """;
@@ -902,12 +902,12 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
             using System;
             partial class Bar
             {
-                partial void Foo();
-                partial void Foo() => throw new NotImplementedException();$$
+                partial void Goo();
+                partial void Goo() => throw new NotImplementedException();$$
             }
             """;
 
-        await VerifyCustomCommitProviderAsync(text, "Foo()", expected);
+        await VerifyCustomCommitProviderAsync(text, "Goo()", expected);
     }
 
     [WpfFact]
@@ -925,7 +925,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
             using System;
             partial class Bar
             {
-                public partial void Foo();
+                public partial void Goo();
                 partial $$
             }
             """
@@ -935,13 +935,13 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
             using System;
             partial class Bar
             {
-                public partial void Foo();
-                public partial void Foo() => throw new NotImplementedException();$$
+                public partial void Goo();
+                public partial void Goo() => throw new NotImplementedException();$$
             }
             """
 ;
 
-        await VerifyCustomCommitProviderAsync(text, "Foo()", expected);
+        await VerifyCustomCommitProviderAsync(text, "Goo()", expected);
     }
 
     private Task VerifyItemExistsAsync(string markup, string expectedItem)

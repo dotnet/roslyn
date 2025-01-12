@@ -81,7 +81,7 @@ internal static partial class SyntaxGeneratorExtensions
 
         var originalParameter = methodSymbol.Parameters.First();
 
-        // Replace `[AllowNull] Foo` with `Foo` or `Foo?` (no longer needed after https://github.com/dotnet/roslyn/issues/39256?)
+        // Replace `[AllowNull] Goo` with `Goo` or `Goo?` (no longer needed after https://github.com/dotnet/roslyn/issues/39256?)
         var parameters = ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(
             originalParameter,
             type: constructedEquatableType.GetTypeArguments()[0],

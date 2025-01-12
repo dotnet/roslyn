@@ -961,11 +961,11 @@ class Bar
 }
         </Document>
         <Document>
-public class Foo
+public class Goo
 {
     private readonly Bar bar1 = [|new|]();
     private readonly Bar bar2;
-    public Foo(Bar bar)
+    public Goo(Bar bar)
     {
         this.bar2 = new [|Bar|]();
     }

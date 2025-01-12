@@ -370,7 +370,7 @@ public partial class SemanticClassifierTests
             """"
             using System.Diagnostics.CodeAnalysis;
 
-            public sealed record Foo
+            public sealed record Goo
             {
                 [StringSyntax(StringSyntaxAttribute.Json)]
                 public required string Bar { get; set; }
@@ -380,7 +380,7 @@ public partial class SemanticClassifierTests
             {
                 void Goo()
                 {
-                    var f = new Foo { [|Bar = """[1, 2, 3]"""|] };
+                    var f = new Goo { [|Bar = """[1, 2, 3]"""|] };
                 }
             }
             """" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
@@ -403,7 +403,7 @@ public partial class SemanticClassifierTests
             """"
             using System.Diagnostics.CodeAnalysis;
 
-            public sealed record Foo
+            public sealed record Goo
             {
                 [StringSyntax(StringSyntaxAttribute.Json)]
                 public required string Bar { get; set; }
@@ -414,7 +414,7 @@ public partial class SemanticClassifierTests
                 void Goo()
                 {
                     [|var v = """[1, 2, 3]""";|]
-                    var f = new Foo { Bar = v };
+                    var f = new Goo { Bar = v };
                 }
             }
             """" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
@@ -437,7 +437,7 @@ public partial class SemanticClassifierTests
             """"
             using System.Diagnostics.CodeAnalysis;
 
-            public sealed record Foo
+            public sealed record Goo
             {
                 [StringSyntax(StringSyntaxAttribute.Json)]
                 public required string Bar { get; set; }
@@ -447,7 +447,7 @@ public partial class SemanticClassifierTests
             {
                 void Goo()
                 {
-                    var f = new Foo { Bar =  "" };
+                    var f = new Goo { Bar =  "" };
                     f = f with { [|Bar = """[1, 2, 3]"""|] };
                 }
             }
@@ -471,7 +471,7 @@ public partial class SemanticClassifierTests
             """"
             using System.Diagnostics.CodeAnalysis;
 
-            public sealed record Foo
+            public sealed record Goo
             {
                 [StringSyntax(StringSyntaxAttribute.Json)]
                 public required string Bar { get; set; }
@@ -481,7 +481,7 @@ public partial class SemanticClassifierTests
             {
                 void Goo()
                 {
-                    var f = new Foo { Bar =  "" };
+                    var f = new Goo { Bar =  "" };
                     [|var v = """[1, 2, 3]""";|]
                     f = f with { Bar = v };
                 }
@@ -506,7 +506,7 @@ public partial class SemanticClassifierTests
             """"
             using System.Diagnostics.CodeAnalysis;
 
-            public sealed record Foo
+            public sealed record Goo
             {
                 [StringSyntax(StringSyntaxAttribute.Json)]
                 public required string Bar { get; set; }
@@ -516,7 +516,7 @@ public partial class SemanticClassifierTests
             {
                 void Goo()
                 {
-                    var f = new Foo { Bar =  "" };
+                    var f = new Goo { Bar =  "" };
                     string v;
                     [|v = """[1, 2, 3]""";|]
                     f = f with { Bar = v };

@@ -140,18 +140,18 @@ internal abstract partial class AbstractChainedExpressionWrapper<
         ArrayBuilder<ImmutableArray<SyntaxNodeOrToken>> chunks)
     {
         // Have to look for the first chunk after the first piece.  i.e. if the pieces
-        // starts with <c>.Foo().Bar().Baz()</c> then the chunks would be <c>.Bar()</c> 
+        // starts with <c>.Goo().Bar().Baz()</c> then the chunks would be <c>.Bar()</c> 
         // and <c>.Baz()</c>.
         //
-        // However, if we had <c>this.Foo().Bar().Baz()</c> then the chunks would be 
-        // <c>.Foo()</c> <c>.Bar()</c> and <c>.Baz()</c>.
+        // However, if we had <c>this.Goo().Bar().Baz()</c> then the chunks would be 
+        // <c>.Goo()</c> <c>.Bar()</c> and <c>.Baz()</c>.
         //
-        // Note: the only way to get the <c>.Foo().Bar().Baz()</c> case today is in VB in
+        // Note: the only way to get the <c>.Goo().Bar().Baz()</c> case today is in VB in
         // a 'with' statement.  if we have that, we don't want to wrap it into:
         //
         //  <code>
         //  with ...
-        //      .Foo()
+        //      .Goo()
         //      .Bar()
         //      .Baz()
         //  </code>
@@ -160,7 +160,7 @@ internal abstract partial class AbstractChainedExpressionWrapper<
         //
         //  <code>
         //  with ...
-        //      .Foo().Bar()
+        //      .Goo().Bar()
         //            .Baz()
         //  </code>
         var currentChunkStart = FindNextChunkStart(pieces, firstChunk: true, index: 1);

@@ -100,14 +100,14 @@ public sealed class AddDebuggerDisplayTests
     public async Task OfferedOnEmptyStruct()
     {
         await VerifyCS.VerifyRefactoringAsync("""
-            [||]struct Foo
+            [||]struct Goo
             {
             }
             """, """
             using System.Diagnostics;
 
             [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
-            struct Foo
+            struct Goo
             {
                 private string GetDebuggerDisplay()
                 {
@@ -121,7 +121,7 @@ public sealed class AddDebuggerDisplayTests
     public async Task NotOfferedOnStaticClass()
     {
         var code = """
-            [||]static class Foo
+            [||]static class Goo
             {
             }
             """;
@@ -146,7 +146,7 @@ public sealed class AddDebuggerDisplayTests
     public async Task NotOfferedOnEnum()
     {
         var code = """
-            [||]enum Foo
+            [||]enum Goo
             {
             }
             """;
@@ -158,7 +158,7 @@ public sealed class AddDebuggerDisplayTests
     public async Task NotOfferedOnDelegate()
     {
         var code = """
-            [||]delegate void Foo();
+            [||]delegate void Goo();
             """;
 
         await VerifyCS.VerifyRefactoringAsync(code, code);
@@ -170,7 +170,7 @@ public sealed class AddDebuggerDisplayTests
         var code = """
             class C
             {
-                [||]public int Foo { get; }
+                [||]public int Goo { get; }
             }
             """;
 
@@ -183,7 +183,7 @@ public sealed class AddDebuggerDisplayTests
         await VerifyCS.VerifyRefactoringAsync("""
             class C
             {
-                public override string [||]ToString() => "Foo";
+                public override string [||]ToString() => "Goo";
             }
             """, """
             using System.Diagnostics;
@@ -191,7 +191,7 @@ public sealed class AddDebuggerDisplayTests
             [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
             class C
             {
-                public override string ToString() => "Foo";
+                public override string ToString() => "Goo";
 
                 private string GetDebuggerDisplay()
                 {
@@ -207,7 +207,7 @@ public sealed class AddDebuggerDisplayTests
         await VerifyCS.VerifyRefactoringAsync("""
             class A
             {
-                public new string [||]ToString() => "Foo";
+                public new string [||]ToString() => "Goo";
             }
             """, """
             using System.Diagnostics;
@@ -215,7 +215,7 @@ public sealed class AddDebuggerDisplayTests
             [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
             class A
             {
-                public new string ToString() => "Foo";
+                public new string ToString() => "Goo";
 
                 private string GetDebuggerDisplay()
                 {
@@ -231,7 +231,7 @@ public sealed class AddDebuggerDisplayTests
         var code = """
             class A
             {
-                public virtual string ToString(int bar = 0) => "Foo";
+                public virtual string ToString(int bar = 0) => "Goo";
             }
 
             class B : A
@@ -249,7 +249,7 @@ public sealed class AddDebuggerDisplayTests
         await VerifyCS.VerifyRefactoringAsync("""
             class C
             {
-                private string [||]GetDebuggerDisplay() => "Foo";
+                private string [||]GetDebuggerDisplay() => "Goo";
             }
             """, """
             using System.Diagnostics;
@@ -257,7 +257,7 @@ public sealed class AddDebuggerDisplayTests
             [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
             class C
             {
-                private string GetDebuggerDisplay() => "Foo";
+                private string GetDebuggerDisplay() => "Goo";
             }
             """);
     }
@@ -268,7 +268,7 @@ public sealed class AddDebuggerDisplayTests
         var code = """
             class A
             {
-                private string [||]GetDebuggerDisplay(int bar = 0) => "Foo";
+                private string [||]GetDebuggerDisplay(int bar = 0) => "Goo";
             }
             """;
 
@@ -326,7 +326,7 @@ public sealed class AddDebuggerDisplayTests
     public async Task NotOfferedWhenAlreadySpecified()
     {
         var code = """
-            [System.Diagnostics.DebuggerDisplay("Foo")]
+            [System.Diagnostics.DebuggerDisplay("Goo")]
             [||]class C
             {
             }
@@ -339,7 +339,7 @@ public sealed class AddDebuggerDisplayTests
     public async Task NotOfferedWhenAlreadySpecifiedWithSuffix()
     {
         var code = """
-            [System.Diagnostics.DebuggerDisplayAttribute("Foo")]
+            [System.Diagnostics.DebuggerDisplayAttribute("Goo")]
             [||]class C
             {
             }
@@ -352,14 +352,14 @@ public sealed class AddDebuggerDisplayTests
     public async Task OfferedWhenAttributeWithTheSameNameIsSpecified()
     {
         await VerifyCS.VerifyRefactoringAsync("""
-            [{|CS0246:BrokenCode|}.DebuggerDisplay("Foo")]
+            [{|CS0246:BrokenCode|}.DebuggerDisplay("Goo")]
             [||]class C
             {
             }
             """, """
             using System.Diagnostics;
 
-            [{|CS0246:BrokenCode|}.DebuggerDisplay("Foo")]
+            [{|CS0246:BrokenCode|}.DebuggerDisplay("Goo")]
             [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
             [||]class C
             {
@@ -375,14 +375,14 @@ public sealed class AddDebuggerDisplayTests
     public async Task OfferedWhenAttributeWithTheSameNameIsSpecifiedWithSuffix()
     {
         await VerifyCS.VerifyRefactoringAsync("""
-            [{|CS0246:BrokenCode|}.DebuggerDisplayAttribute("Foo")]
+            [{|CS0246:BrokenCode|}.DebuggerDisplayAttribute("Goo")]
             [||]class C
             {
             }
             """, """
             using System.Diagnostics;
 
-            [{|CS0246:BrokenCode|}.DebuggerDisplayAttribute("Foo")]
+            [{|CS0246:BrokenCode|}.DebuggerDisplayAttribute("Goo")]
             [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
             [||]class C
             {
@@ -400,7 +400,7 @@ public sealed class AddDebuggerDisplayTests
         var code = """
             using DD = System.Diagnostics.DebuggerDisplayAttribute;
 
-            [DD("Foo")]
+            [DD("Goo")]
             [||]class C
             {
             }
@@ -415,7 +415,7 @@ public sealed class AddDebuggerDisplayTests
         await VerifyCS.VerifyRefactoringAsync("""
             using System.Diagnostics;
 
-            [DebuggerDisplay("Foo")]
+            [DebuggerDisplay("Goo")]
             class A
             {
             }
@@ -426,7 +426,7 @@ public sealed class AddDebuggerDisplayTests
             """, """
             using System.Diagnostics;
 
-            [DebuggerDisplay("Foo")]
+            [DebuggerDisplay("Goo")]
             class A
             {
             }
@@ -448,7 +448,7 @@ public sealed class AddDebuggerDisplayTests
         await VerifyCS.VerifyRefactoringAsync("""
             [||]class C
             {
-                public static object GetDebuggerDisplay() => "Foo";
+                public static object GetDebuggerDisplay() => "Goo";
             }
             """, """
             using System.Diagnostics;
@@ -456,7 +456,7 @@ public sealed class AddDebuggerDisplayTests
             [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
             class C
             {
-                public static object GetDebuggerDisplay() => "Foo";
+                public static object GetDebuggerDisplay() => "Goo";
             }
             """);
     }
@@ -467,7 +467,7 @@ public sealed class AddDebuggerDisplayTests
         await VerifyCS.VerifyRefactoringAsync("""
             [||]class C
             {
-                private string GetDebuggerDisplay(int foo = 0) => foo.ToString();
+                private string GetDebuggerDisplay(int goo = 0) => goo.ToString();
             }
             """, """
             using System.Diagnostics;
@@ -475,7 +475,7 @@ public sealed class AddDebuggerDisplayTests
             [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
             class C
             {
-                private string GetDebuggerDisplay(int foo = 0) => foo.ToString();
+                private string GetDebuggerDisplay(int goo = 0) => goo.ToString();
 
                 private string GetDebuggerDisplay()
                 {

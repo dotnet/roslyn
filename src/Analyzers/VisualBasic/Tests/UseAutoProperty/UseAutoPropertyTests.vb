@@ -1002,7 +1002,7 @@ Namespace RoslynSandbox
         ReadOnly Property Bar() As Object
     End Interface
 
-    Friend Class Foo
+    Friend Class Goo
         Implements IFoo
 
         Private [|_bar|] As Object
@@ -1025,7 +1025,7 @@ Namespace RoslynSandbox
         ReadOnly Property Bar() As Object
     End Interface
 
-    Friend Class Foo
+    Friend Class Goo
         Implements IFoo
 
         Private ReadOnly Property Bar() As Object Implements IFoo.Bar
@@ -1090,7 +1090,7 @@ end class")
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40622")>
         Public Async Function TestUseTabs() As Task
             Await TestInRegularAndScriptAsync(
-"Public Class Foo
+"Public Class Goo
 	[||]Private ReadOnly o2 As Object
 
 	Public ReadOnly Property O As Object
@@ -1099,7 +1099,7 @@ end class")
 		End Get
 	End Property
 End Class",
-"Public Class Foo
+"Public Class Goo
 	Public ReadOnly Property O As Object
 End Class", options:=[Option](FormattingOptions2.UseTabs, True))
         End Function
@@ -1107,7 +1107,7 @@ End Class", options:=[Option](FormattingOptions2.UseTabs, True))
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40622")>
         Public Async Function TestUseSpaces() As Task
             Await TestInRegularAndScriptAsync(
-"Public Class Foo
+"Public Class Goo
 	[||]Private ReadOnly o2 As Object
 
 	Public ReadOnly Property O As Object
@@ -1116,7 +1116,7 @@ End Class", options:=[Option](FormattingOptions2.UseTabs, True))
 		End Get
 	End Property
 End Class",
-"Public Class Foo
+"Public Class Goo
     Public ReadOnly Property O As Object
 End Class", options:=[Option](FormattingOptions2.UseTabs, False))
         End Function
@@ -1127,7 +1127,7 @@ End Class", options:=[Option](FormattingOptions2.UseTabs, False))
 "<Workspace>
     <Project Language = ""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document FilePath = ""z:\\file.vb"">
-Public Class Foo
+Public Class Goo
 	[||]Private ReadOnly o2 As Object
 
 	Public ReadOnly Property O As Object
@@ -1146,7 +1146,7 @@ indent_style = tab
 "<Workspace>
     <Project Language = ""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document FilePath = ""z:\\file.vb"">
-Public Class Foo
+Public Class Goo
 	Public ReadOnly Property O As Object
 End Class
         </Document>
@@ -1164,7 +1164,7 @@ indent_style = tab
 "<Workspace>
     <Project Language = ""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document FilePath = ""z:\\file.vb"">
-Public Class Foo
+Public Class Goo
 	[||]Private ReadOnly o2 As Object
 
 	Public ReadOnly Property O As Object
@@ -1183,7 +1183,7 @@ indent_style = space
 "<Workspace>
     <Project Language = ""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document FilePath = ""z:\\file.vb"">
-Public Class Foo
+Public Class Goo
     Public ReadOnly Property O As Object
 End Class
         </Document>

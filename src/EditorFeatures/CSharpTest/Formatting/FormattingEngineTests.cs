@@ -2917,7 +2917,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
             {
                 void M()
                 {
-                        foo:$$
+                        goo:$$
                 }
             }
             """;
@@ -2927,7 +2927,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
             {
                 void M()
                 {
-                foo:
+                goo:
                 }
             }
             """;

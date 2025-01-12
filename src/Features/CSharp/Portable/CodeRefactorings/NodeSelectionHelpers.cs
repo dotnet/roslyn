@@ -56,7 +56,7 @@ internal static class NodeSelectionHelpers
             // if we get a node that would not have an obtainable symbol (such as the ones below)
             // we return an empty list instead of filtering so we don't get other potentially
             // malformed syntax nodes.
-            // Consider pub[||] static int Foo;
+            // Consider pub[||] static int Goo;
             // Which has 2 member nodes (an incomplete and a field), but we'd only expect one
             return members.Any(m => m is GlobalStatementSyntax or IncompleteMemberSyntax)
                 ? []

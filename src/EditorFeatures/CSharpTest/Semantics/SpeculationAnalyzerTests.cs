@@ -428,7 +428,7 @@ public class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
             }
             class A
             {
-                public Indexer Foo { get; } = new Indexer();
+                public Indexer Goo { get; } = new Indexer();
             }
             class B : A
             {
@@ -438,7 +438,7 @@ public class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 static void Main(string[] args)
                 {
                     var b = new B();
-                    var y = ([|(A)b|]).Foo[1];
+                    var y = ([|(A)b|]).Goo[1];
                 }
             }
             """, replacementExpression: "b", semanticChanges: false);
@@ -454,18 +454,18 @@ public class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
             }
             class A
             {
-                public Indexer Foo { get; } = new Indexer();
+                public Indexer Goo { get; } = new Indexer();
             }
             class B : A
             {
-                public new Indexer Foo { get; } = new Indexer();
+                public new Indexer Goo { get; } = new Indexer();
             }
             class Program
             {
                 static void Main(string[] args)
                 {
                     var b = new B();
-                    var y = ([|(A)b|]).Foo[1];
+                    var y = ([|(A)b|]).Goo[1];
                 }
             }
             """, replacementExpression: "b", semanticChanges: true);
@@ -478,7 +478,7 @@ public class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
             public delegate void MyDelegate();
             class A
             {
-                public MyDelegate Foo { get; }
+                public MyDelegate Goo { get; }
             }
             class B : A
             {
@@ -488,7 +488,7 @@ public class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
                 static void Main(string[] args)
                 {
                     var b = new B();
-                    ([|(A)b|]).Foo();
+                    ([|(A)b|]).Goo();
                 }
             }
             """, replacementExpression: "b", semanticChanges: false);
@@ -501,18 +501,18 @@ public class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
             public delegate void MyDelegate();
             class A
             {
-                public MyDelegate Foo { get; }
+                public MyDelegate Goo { get; }
             }
             class B : A
             {
-                public new MyDelegate Foo { get; }
+                public new MyDelegate Goo { get; }
             }
             class Program
             {
                 static void Main(string[] args)
                 {
                     var b = new B();
-                    ([|(A)b|]).Foo();
+                    ([|(A)b|]).Goo();
                 }
             }
             """, replacementExpression: "b", semanticChanges: true);

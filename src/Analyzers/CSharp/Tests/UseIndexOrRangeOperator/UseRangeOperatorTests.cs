@@ -1053,7 +1053,7 @@ public sealed class UseRangeOperatorTests
                     public int Length => 0;
                     public string Substring(int start, int length) => this;
 
-                    string Foo(int x) => Substring([|1, x - 1|]);
+                    string Goo(int x) => Substring([|1, x - 1|]);
                 }
             }
             """;
@@ -1081,7 +1081,7 @@ public sealed class UseRangeOperatorTests
                     public int Length => 0;
                     public string Substring(int start, int length) => this;
 
-                    string Foo(int x) => this[1..x];
+                    string Goo(int x) => this[1..x];
                 }
             }
             """;
@@ -1104,7 +1104,7 @@ public sealed class UseRangeOperatorTests
                 public int Length => 0;
                 public C Slice(int start, int length) => this;
 
-                public C Foo(int x) => Slice([|1, x - 1|]);
+                public C Goo(int x) => Slice([|1, x - 1|]);
             }
             """;
         var fixedSource =
@@ -1114,7 +1114,7 @@ public sealed class UseRangeOperatorTests
                 public int Length => 0;
                 public C Slice(int start, int length) => this;
 
-                public C Foo(int x) => this[1..x];
+                public C Goo(int x) => this[1..x];
             }
             """;
 

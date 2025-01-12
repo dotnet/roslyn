@@ -33,8 +33,8 @@ public sealed class CSharpCodeActions() : AbstractEditorTest(nameof(CSharpCodeAc
     public async Task GenerateMethodInClosedFile()
     {
         var project = ProjectName;
-        await TestServices.SolutionExplorer.AddFileAsync(project, "Foo.cs", contents: """
-            public class Foo
+        await TestServices.SolutionExplorer.AddFileAsync(project, "Goo.cs", contents: """
+            public class Goo
             {
             }
             """, cancellationToken: HangMitigatingCancellationToken);
@@ -46,7 +46,7 @@ public sealed class CSharpCodeActions() : AbstractEditorTest(nameof(CSharpCodeAc
             {
                 public static void Main(string[] args)
                 {
-                    Foo f = new Foo();
+                    Goo f = new Goo();
                     f.Bar()$$
                 }
             }
@@ -54,10 +54,10 @@ public sealed class CSharpCodeActions() : AbstractEditorTest(nameof(CSharpCodeAc
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Generate method 'Bar'", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
-        await TestServices.SolutionVerifier.FileContentsAsync(project, "Foo.cs", """
+        await TestServices.SolutionVerifier.FileContentsAsync(project, "Goo.cs", """
             using System;
 
-            public class Foo
+            public class Goo
             {
                 internal void Bar()
                 {
@@ -447,7 +447,7 @@ public sealed class CSharpCodeActions() : AbstractEditorTest(nameof(CSharpCodeAc
             }
             """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-        var classifiedTokens = await TestServices.Editor.GetLightBulbPreviewClassificationsAsync("Generate method 'Foo'", HangMitigatingCancellationToken);
+        var classifiedTokens = await TestServices.Editor.GetLightBulbPreviewClassificationsAsync("Generate method 'Goo'", HangMitigatingCancellationToken);
         Assert.True(classifiedTokens.Any(c => c.Span.GetText().ToString() == "void" && c.ClassificationType.Classification == "keyword"));
     }
 

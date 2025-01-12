@@ -273,17 +273,17 @@ internal static class ConvertToRecordHelpers
     /// or default/null if there wasn't an assignment found. Returned in order of primary parameters.
     /// </returns>
     /// <remarks>
-    /// Example (assume we decided on positional parameters int Foo, bool Bar, int Baz):
+    /// Example (assume we decided on positional parameters int Goo, bool Bar, int Baz):
     /// <code>
-    /// public C(int foo, bool bar)
+    /// public C(int goo, bool bar)
     /// {
     ///     Bar = bar;
-    ///     Foo = foo;
+    ///     Goo = goo;
     ///     Mumble = 0;
     /// }
     /// </code>
-    /// we would return: [foo, bar, default]
-    /// where foo and bar are the nodes in the assignment, and default is factory constructed.
+    /// we would return: [goo, bar, default]
+    /// where goo and bar are the nodes in the assignment, and default is factory constructed.
     /// </remarks>
     public static ImmutableArray<ExpressionSyntax> GetAssignmentValuesForNonPrimaryConstructor(
         IConstructorBodyOperation operation,
@@ -345,12 +345,12 @@ internal static class ConvertToRecordHelpers
     /// values that were assigned to primary constructor parameters, in order of the passed in primary constructor
     /// </returns>
     /// <remarks>
-    ///  Example (assume we decided on positional parameters int Foo, bool Bar, int Baz):
+    ///  Example (assume we decided on positional parameters int Goo, bool Bar, int Baz):
     /// <code>
     /// var c = new C
     /// {
     ///     Bar = true;
-    ///     Foo = 10;
+    ///     Goo = 10;
     ///     Mumble = 0;
     /// };
     /// </code>

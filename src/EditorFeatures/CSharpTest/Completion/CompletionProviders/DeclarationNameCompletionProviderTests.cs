@@ -1715,7 +1715,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
             public class C
             {
-                public static bool Foo()
+                public static bool Goo()
                 {
                     object obj = null;
                     return obj is CancellationToken $$
@@ -1777,7 +1777,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
             public class C
             {
-                public static bool Foo()
+                public static bool Goo()
                 {
                     object obj = null;
                     return obj is CancellationToken to$$

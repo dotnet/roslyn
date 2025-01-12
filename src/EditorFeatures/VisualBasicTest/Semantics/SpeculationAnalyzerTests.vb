@@ -43,7 +43,7 @@ Class Indexer
     End Property
 End Class
 Class A
-    Public ReadOnly Property Foo As Indexer
+    Public ReadOnly Property Goo As Indexer
 End Class
 Class B
     Inherits A
@@ -51,7 +51,7 @@ End Class
 Class Program
     Sub Main()
         Dim b As B = New B()
-        Dim y As Integer = [|DirectCast(b, A)|].Foo(2)
+        Dim y As Integer = [|DirectCast(b, A)|].Goo(2)
     End Sub
 End Class
             </Code>.Value, "b", False)
@@ -68,16 +68,16 @@ Class Indexer
     End Property
 End Class
 Class A
-    Public ReadOnly Property Foo As Indexer
+    Public ReadOnly Property Goo As Indexer
 End Class
 Class B
     Inherits A
-    Public Shadows ReadOnly Property Foo As Indexer
+    Public Shadows ReadOnly Property Goo As Indexer
 End Class
 Class Program
     Sub Main()
         Dim b As B = New B()
-        Dim y As Integer = [|DirectCast(b, A)|].Foo(2)
+        Dim y As Integer = [|DirectCast(b, A)|].Goo(2)
     End Sub
 End Class
             </Code>.Value, "b", True)
@@ -88,7 +88,7 @@ End Class
             Test(<Code>
 Public Delegate Sub MyDelegate()
 Class A
-    Public ReadOnly Property Foo As MyDelegate
+    Public ReadOnly Property Goo As MyDelegate
 End Class
 Class B
     Inherits A
@@ -96,7 +96,7 @@ End Class
 Class Program
     Sub Main()
         Dim b As B = New B()
-        [|DirectCast(b, A)|].Foo.Invoke()
+        [|DirectCast(b, A)|].Goo.Invoke()
     End Sub
 End Class
             </Code>.Value, "b", False)
@@ -107,16 +107,16 @@ End Class
             Test(<Code>
 Public Delegate Sub MyDelegate()
 Class A
-    Public ReadOnly Property Foo As MyDelegate
+    Public ReadOnly Property Goo As MyDelegate
 End Class
 Class B
     Inherits A
-    Public Shadows ReadOnly Property Foo As MyDelegate
+    Public Shadows ReadOnly Property Goo As MyDelegate
 End Class
 Class Program
     Sub Main()
         Dim b As B = New B()
-        [|DirectCast(b, A)|].Foo.Invoke()
+        [|DirectCast(b, A)|].Goo.Invoke()
     End Sub
 End Class
             </Code>.Value, "b", True)

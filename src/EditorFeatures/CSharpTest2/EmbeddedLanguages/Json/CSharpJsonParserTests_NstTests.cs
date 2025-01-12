@@ -2566,14 +2566,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         [Fact]
         public void n_number_minus_sign_with_trailing_garbage_json()
         {
-            TestNST(@"@""[-foo]""", @"<Tree>
+            TestNST(@"@""[-goo]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
       <Array>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
           <Literal>
-            <NumberToken>-foo</NumberToken>
+            <NumberToken>-goo</NumberToken>
           </Literal>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
@@ -3736,14 +3736,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         [Fact]
         public void n_object_with_single_string_json()
         {
-            TestNST(@"@""{ """"foo"""" : """"bar"""", """"a"""" }""", @"<Tree>
+            TestNST(@"@""{ """"goo"""" : """"bar"""", """"a"""" }""", @"<Tree>
   <CompilationUnit>
     <Sequence>
       <Object>
         <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
         <Sequence>
           <Property>
-            <StringToken>""foo""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+            <StringToken>""goo""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
             <Literal>
               <StringToken>""bar""</StringToken>
@@ -6621,14 +6621,14 @@ line""</StringToken>
         [Fact]
         public void y_object_escaped_null_in_key_json()
         {
-            TestNST(@"@""{""""foo\u0000bar"""": 42}""", @"<Tree>
+            TestNST(@"@""{""""goo\u0000bar"""": 42}""", @"<Tree>
   <CompilationUnit>
     <Sequence>
       <Object>
         <OpenBraceToken>{</OpenBraceToken>
         <Sequence>
           <Property>
-            <StringToken>""foo\u0000bar""</StringToken>
+            <StringToken>""goo\u0000bar""</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
             <Literal>
               <NumberToken>42</NumberToken>

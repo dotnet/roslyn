@@ -591,7 +591,7 @@ public sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITest
             using System.Linq;
             class Bar
             {
-                private void Foo()
+                private void Goo()
                 {
                     var objects = new SpecificThingType[100];
                     var d = from obj in objects

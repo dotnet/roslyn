@@ -214,7 +214,7 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
         var markup = """
             interface I1
             {
-                void Foo();
+                void Goo();
                 int Prop { get; }
                 event EventHandler TestEvent;
             }
@@ -229,7 +229,7 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
         await VerifyItemIsAbsentAsync(markup, "TestEvent.add");
         await VerifyItemIsAbsentAsync(markup, "TestEvent.remove");
 
-        await VerifyItemExistsAsync(markup, "Foo", displayTextSuffix: "()");
+        await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "()");
         await VerifyItemExistsAsync(markup, "Prop");
         await VerifyItemExistsAsync(markup, "TestEvent");
     }

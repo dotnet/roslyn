@@ -269,7 +269,7 @@ end class")
 "
 class C
     sub M()
-        dim i = Foo()
+        dim i = Goo()
         [||]if true
             i = 0
         else
@@ -280,7 +280,7 @@ end class",
 "
 class C
     sub M()
-        dim i = Foo()
+        dim i = Goo()
         i = If(true, 0, 1)
     end sub
 end class")
@@ -513,7 +513,7 @@ end class")
 class C
     sub M(i as integer)
         [||]if true
-            i = Foo(
+            i = Goo(
                 1, 2, 3)
         else
             i = 1
@@ -524,7 +524,7 @@ end class",
 class C
     sub M(i as integer)
         i = If(true,
-            Foo(
+            Goo(
                 1, 2, 3),
             1)
     end sub
@@ -540,7 +540,7 @@ class C
         [||]if true
             i = 0
         else
-            i = Foo(
+            i = Goo(
                 1, 2, 3)
         end if
     end sub
@@ -550,7 +550,7 @@ class C
     sub M(i as integer)
         i = If(true,
             0,
-            Foo(
+            Goo(
                 1, 2, 3))
     end sub
 end class")
@@ -563,10 +563,10 @@ end class")
 class C
     sub M(i as integer)
         [||]if true
-            i = Foo(
+            i = Goo(
                 1, 2, 3)
         else
-            i = Foo(
+            i = Goo(
                 4, 5, 6)
         end if
     end sub
@@ -575,9 +575,9 @@ end class",
 class C
     sub M(i as integer)
         i = If(true,
-            Foo(
+            Goo(
                 1, 2, 3),
-            Foo(
+            Goo(
                 4, 5, 6))
     end sub
 end class")

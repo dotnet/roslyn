@@ -654,7 +654,7 @@ public sealed class CSharpMatchFolderAndNamespaceTests
             using {{declaredNamespace}};
             using Class1Alias = {{declaredNamespace}}.Class1;
 
-            namespace Foo
+            namespace Goo
             {
                 class RefClass
                 {
@@ -678,7 +678,7 @@ public sealed class CSharpMatchFolderAndNamespaceTests
             using System;
             using Class1Alias = {{DefaultNamespace}}.A.B.C.Class1;
 
-            namespace Foo
+            namespace Goo
             {
                 class RefClass
                 {

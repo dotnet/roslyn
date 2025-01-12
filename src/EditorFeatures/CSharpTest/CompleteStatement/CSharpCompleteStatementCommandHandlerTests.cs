@@ -4137,7 +4137,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     public void DoNotComplete_VerbatimStringAsMethodArgument_EndOfLine_NotEndOfString()
     {
         var code = """
-                        var code = Foo(@"$$
+                        var code = Goo(@"$$
             ") ;
             """;
         VerifyNoSpecialSemicolonHandling(code);
@@ -4148,7 +4148,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     {
 
         var code = """
-                        var code = Foo(@"  $$" //comments
+                        var code = Goo(@"  $$" //comments
             );
             """;
         VerifyNoSpecialSemicolonHandling(code);
@@ -4542,7 +4542,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
             using System;
             internal class TestMethodAttribute : Attribute
             {
-                readonly int i = Foo(3,4$$)
+                readonly int i = Goo(3,4$$)
 
                 [Test]
             }
@@ -4551,7 +4551,7 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
             using System;
             internal class TestMethodAttribute : Attribute
             {
-                readonly int i = Foo(3,4);$$
+                readonly int i = Goo(3,4);$$
 
                 [Test]
             }
@@ -4663,10 +4663,10 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
             {
                 void M()
                 {
-                    int i = Foo(4$$) + 1
+                    int i = Goo(4$$) + 1
                 }
 
-                private int Foo(int v)
+                private int Goo(int v)
                 {
                     return v;
                 }
@@ -4677,10 +4677,10 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
             {
                 void M()
                 {
-                    int i = Foo(4);$$ + 1
+                    int i = Goo(4);$$ + 1
                 }
 
-                private int Foo(int v)
+                private int Goo(int v)
                 {
                     return v;
                 }
@@ -4697,10 +4697,10 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
             {
                 void M()
                 {
-                    int i = Foo(Foo(4$$) + 1) + 2
+                    int i = Goo(Goo(4$$) + 1) + 2
                 }
 
-                private int Foo(int v)
+                private int Goo(int v)
                 {
                     return v;
                 }
@@ -4711,10 +4711,10 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
             {
                 void M()
                 {
-                    int i = Foo(Foo(4) + 1);$$ + 2
+                    int i = Goo(Goo(4) + 1);$$ + 2
                 }
 
-                private int Foo(int v)
+                private int Goo(int v)
                 {
                     return v;
                 }
@@ -4731,10 +4731,10 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
             {
                 void M()
                 {
-                    string i = Foo(4$$) as string
+                    string i = Goo(4$$) as string
                 }
 
-                object Foo(int v)
+                object Goo(int v)
                 {
                     return v.ToString();
                 }
@@ -4745,10 +4745,10 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
             {
                 void M()
                 {
-                    string i = Foo(4);$$ as string
+                    string i = Goo(4);$$ as string
                 }
 
-                object Foo(int v)
+                object Goo(int v)
                 {
                     return v.ToString();
                 }
@@ -4767,10 +4767,10 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 {
                     int j = 0;
                     int k = 0;
-                    int i = j < k ? Foo(j$$) : Foo(3)
+                    int i = j < k ? Goo(j$$) : Goo(3)
                 }
 
-                private int Foo(int j)
+                private int Goo(int j)
                 {
                     return j;
                 }
@@ -4782,10 +4782,10 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
                 {
                     int j = 0;
                     int k = 0;
-                    int i = j < k ? Foo(j);$$ : Foo(3)
+                    int i = j < k ? Goo(j);$$ : Goo(3)
                 }
 
-                private int Foo(int j)
+                private int Goo(int j)
                 {
                     return j;
                 }

@@ -19,11 +19,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeTypeAbstract
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50003")>
         Public Async Function TestMethod_CodeFix() As Task
             Await TestInRegularAndScript1Async("
-Public Class [|Foo|]
+Public Class [|Goo|]
     Public MustOverride Sub M()
 End Class",
 "
-Public MustInherit Class Foo
+Public MustInherit Class Goo
     Public MustOverride Sub M()
 End Class")
         End Function
@@ -31,7 +31,7 @@ End Class")
         <Fact>
         Public Async Function TestMethodEnclosingClassWithoutAccessibility_NoCodeFix() As Task
             Await TestMissingInRegularAndScriptAsync("
-Class Foo
+Class Goo
     Public MustOverride Sub [|M|]()
 End Class")
         End Function
@@ -42,7 +42,7 @@ End Class")
 ''' <summary>
 ''' Some class comment.
 ''' </summary>
-Public Class Foo
+Public Class Goo
     Public MustOverride Sub [|M|]()
 End Class")
         End Function
@@ -50,7 +50,7 @@ End Class")
         <Fact>
         Public Async Function TestProperty() As Task
             Await TestMissingInRegularAndScriptAsync("
-Public Class Foo
+Public Class Goo
     Public MustOverride Property [|P|] As Object
 End Class")
         End Function
@@ -58,7 +58,7 @@ End Class")
         <Fact>
         Public Async Function TestIndexer() As Task
             Await TestMissingInRegularAndScriptAsync("
-Public Class Foo
+Public Class Goo
     Default Public MustOverride Property [|Item|](ByVal o As Object) As Object
 End Class")
         End Function
@@ -66,7 +66,7 @@ End Class")
         <Fact>
         Public Async Function TestEvent() As Task
             Await TestMissingInRegularAndScriptAsync("
-Public Class Foo
+Public Class Goo
     Public MustOverride Custom Event [|E|] As EventHandler
 End Class")
         End Function
@@ -74,7 +74,7 @@ End Class")
         <Fact>
         Public Async Function TestMethodWithBody() As Task
             Await TestMissingInRegularAndScriptAsync("
-Public Class Foo
+Public Class Goo
     Public MustOverride Function [|M|]() As Integer
         Return 3
     End Function
@@ -85,7 +85,7 @@ End Class")
         Public Async Function TestPropertyWithBody() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
-Public Class Foo
+Public Class Goo
     Public MustOverride ReadOnly Property [|P|] As Integer
         Get
             Return 3
@@ -100,7 +100,7 @@ End Class")
 "
 Public Class C
     Public Structure S
-        Public MustOverride Sub [|Foo|]()
+        Public MustOverride Sub [|Goo|]()
     End Structure
 End Class")
         End Function
@@ -109,7 +109,7 @@ End Class")
         Public Async Function TestMethodEnclosingClassStatic() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
-Public Static Class Foo
+Public Static Class Goo
     Public MustOverride Sub [|M|]()
 End Class")
         End Function
@@ -139,18 +139,18 @@ End Namespace")
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54218")>
         Public Async Function TestMethod_PartialClass() As Task
             Await TestInRegularAndScriptAsync("
-Partial Public Class [|Foo|]
+Partial Public Class [|Goo|]
     Public MustOverride Sub M()
 End Class
 
-Partial Public Class Foo
+Partial Public Class Goo
 End Class",
 "
-Partial Public MustInherit Class Foo
+Partial Public MustInherit Class Goo
     Public MustOverride Sub M()
 End Class
 
-Partial Public Class Foo
+Partial Public Class Goo
 End Class")
         End Function
     End Class

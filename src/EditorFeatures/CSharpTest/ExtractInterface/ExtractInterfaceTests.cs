@@ -2012,7 +2012,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
 
             public class $$Class1(int count) 
             {
-                public async IAsyncEnumerable<int> Foo([EnumeratorCancellation] CancellationToken token)
+                public async IAsyncEnumerable<int> Goo([EnumeratorCancellation] CancellationToken token)
                 {
                     for (int i = 0; i < count; i++)
                     {
@@ -2032,12 +2032,12 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             
             public interface IClass1
             {
-                IAsyncEnumerable<int> Foo(CancellationToken token);
+                IAsyncEnumerable<int> Goo(CancellationToken token);
             }
 
             public class Class1(int count) : IClass1
             {
-                public async IAsyncEnumerable<int> Foo([EnumeratorCancellation] CancellationToken token)
+                public async IAsyncEnumerable<int> Goo([EnumeratorCancellation] CancellationToken token)
                 {
                     for (int i = 0; i < count; i++)
                     {

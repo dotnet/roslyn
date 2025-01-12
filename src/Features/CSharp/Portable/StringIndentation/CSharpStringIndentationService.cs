@@ -172,7 +172,7 @@ internal sealed class CSharpStringIndentationService() : IStringIndentationServi
 
         // A literal without errors must span at least three lines.  Like so:
         //      """
-        //      foo
+        //      goo
         //      """
         Contract.ThrowIfTrue(lastLine.LineNumber - firstLine.LineNumber < 2);
         indentSpan = TextSpan.FromBounds(firstLine.Start, lastLine.Start + offset);

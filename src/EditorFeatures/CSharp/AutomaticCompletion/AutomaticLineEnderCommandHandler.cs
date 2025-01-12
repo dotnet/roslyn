@@ -591,7 +591,7 @@ internal partial class AutomaticLineEnderCommandHandler(
         {
             // There is no parenthesis pair in the switchStatementNode, and the node before 'switch' is an expression
             // e.g.
-            // void Foo(int i)
+            // void Goo(int i)
             // {
             //    var c = (i + 1) swit$$ch
             // }

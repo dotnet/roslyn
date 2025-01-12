@@ -3337,7 +3337,7 @@ codeAction: ("True;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInte
             {
                 static string Name { set; get; }
 
-                static int {|CS0501:Foo|}(string s);
+                static int {|CS0501:Goo|}(string s);
             }
 
             class Program : IFoo
@@ -3358,7 +3358,7 @@ codeAction: ("True;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInte
             {
                 string Name { set; get; }
 
-                static int {|CS0501:Foo|}(string s);
+                static int {|CS0501:Goo|}(string s);
             }
 
             class Program : {|CS0535:IFoo|}
@@ -3370,7 +3370,7 @@ codeAction: ("True;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInte
             {
                 string Name { set; get; }
 
-                static int {|CS0501:Foo|}(string s);
+                static int {|CS0501:Goo|}(string s);
             }
 
             class Program : IFoo
@@ -11026,7 +11026,7 @@ interface I
             interface ITest
             {
                 int Bar { get; }
-                int Foo { get; }
+                int Goo { get; }
             }
 
             class Program : {|CS0535:{|CS0535:ITest|}|}
@@ -11037,7 +11037,7 @@ interface I
             interface ITest
             {
                 int Bar { get; }
-                int Foo { get; }
+                int Goo { get; }
             }
 
             class Program : ITest
@@ -11050,7 +11050,7 @@ interface I
                     }
                 }
 
-                public int Foo
+                public int Goo
                 {
                     get
                     {

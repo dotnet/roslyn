@@ -233,13 +233,13 @@ End Class
 imports System
 
 [||]class Class1
-    sub Foo()
+    sub Goo()
         Console.WriteLine()
     end sub
 end class
 
 class Class2
-    sub Foo()
+    sub Goo()
         Console.WriteLine()
     end sub
 end class
@@ -248,7 +248,7 @@ end class
 imports System
 
 class Class2
-    sub Foo()
+    sub Goo()
         Console.WriteLine()
     end sub
 end class
@@ -259,7 +259,7 @@ end class
 imports System
 
 class Class1
-    sub Foo()
+    sub Goo()
         Console.WriteLine()
     end sub
 end class
@@ -276,13 +276,13 @@ end class
 imports System
 
 class Class1
-    sub Foo()
+    sub Goo()
         Console.WriteLine()
     end sub
 end class
 
 [||]class Class2
-    sub Foo()
+    sub Goo()
         Console.WriteLine()
     end sub
 end class
@@ -291,7 +291,7 @@ end class
 imports System
 
 class Class1
-    sub Foo()
+    sub Goo()
         Console.WriteLine()
     end sub
 end class
@@ -302,7 +302,7 @@ end class
 imports System
 
 class Class2
-    sub Foo()
+    sub Goo()
         Console.WriteLine()
     end sub
 end class

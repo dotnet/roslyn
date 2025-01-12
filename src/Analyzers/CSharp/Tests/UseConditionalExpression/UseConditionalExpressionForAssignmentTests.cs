@@ -630,7 +630,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
             {
                 void M()
                 {
-                    int i = Foo();
+                    int i = Goo();
                     [|if|] (true)
                     {
                         i = 0;
@@ -641,7 +641,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                     }
                 }
 
-                int Foo() => 0;
+                int Goo() => 0;
             }
             """,
             """
@@ -649,11 +649,11 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
             {
                 void M()
                 {
-                    int i = Foo();
+                    int i = Goo();
                     i = true ? 0 : 1;
                 }
 
-                int Foo() => 0;
+                int Goo() => 0;
             }
             """);
     }
@@ -1298,7 +1298,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 {
                     [|if|] (true)
                     {
-                        i = Foo(
+                        i = Goo(
                             1, 2, 3);
                     }
                     else
@@ -1307,7 +1307,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                     }
                 }
 
-                int Foo(int x, int y, int z) => 0;
+                int Goo(int x, int y, int z) => 0;
             }
             """,
             """
@@ -1316,12 +1316,12 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 void M(int i)
                 {
                     i = true
-                        ? Foo(
+                        ? Goo(
                             1, 2, 3)
                         : 1;
                 }
 
-                int Foo(int x, int y, int z) => 0;
+                int Goo(int x, int y, int z) => 0;
             }
             """);
     }
@@ -1341,12 +1341,12 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                     }
                     else
                     {
-                        i = Foo(
+                        i = Goo(
                             1, 2, 3);
                     }
                 }
 
-                int Foo(int x, int y, int z) => 0;
+                int Goo(int x, int y, int z) => 0;
             }
             """,
             """
@@ -1356,11 +1356,11 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 {
                     i = true
                         ? 0
-                        : Foo(
+                        : Goo(
                             1, 2, 3);
                 }
 
-                int Foo(int x, int y, int z) => 0;
+                int Goo(int x, int y, int z) => 0;
             }
             """);
     }
@@ -1376,17 +1376,17 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 {
                     [|if|] (true)
                     {
-                        i = Foo(
+                        i = Goo(
                             1, 2, 3);
                     }
                     else
                     {
-                        i = Foo(
+                        i = Goo(
                             4, 5, 6);
                     }
                 }
 
-                int Foo(int x, int y, int z) => 0;
+                int Goo(int x, int y, int z) => 0;
             }
             """,
             """
@@ -1395,13 +1395,13 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 void M(int i)
                 {
                     i = true
-                        ? Foo(
+                        ? Goo(
                             1, 2, 3)
-                        : Foo(
+                        : Goo(
                             4, 5, 6);
                 }
 
-                int Foo(int x, int y, int z) => 0;
+                int Goo(int x, int y, int z) => 0;
             }
             """);
     }

@@ -626,7 +626,7 @@ public partial class InvertIfTests
             {
                 void Goo()
                 {
-                    [||]if (foo) 
+                    [||]if (goo) 
                         bar();
                     else
                         if (baz)
@@ -638,7 +638,7 @@ public partial class InvertIfTests
             {
                 void Goo()
                 {
-                    if (!foo)
+                    if (!goo)
                     {
                         if (baz)
                             Quux();
@@ -658,7 +658,7 @@ public partial class InvertIfTests
             {
                 void Goo()
                 {
-                    [||]if (foo) {
+                    [||]if (goo) {
                         x();
                         x();
                     } else {
@@ -672,7 +672,7 @@ public partial class InvertIfTests
             {
                 void Goo()
                 {
-                    if (!foo)
+                    if (!goo)
                     {
                         y();
                         y();

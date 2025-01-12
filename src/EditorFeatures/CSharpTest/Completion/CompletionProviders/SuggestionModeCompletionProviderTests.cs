@@ -1429,13 +1429,13 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
     {
         var markup = $@"
 using System;
-interface Foo
+interface Goo
 {{
     bool Bar() => true;
 }}
 class P
 {{
-    void M(Foo f)
+    void M(Goo f)
     {{
         f.Bar({(hasTypedChar ? "s" : "")}$$
     }}
@@ -1452,14 +1452,14 @@ class P
 
         var markup = $@"
 using System;
-interface Foo
+interface Goo
 {{
     bool Bar() => true;
     {overload}
 }}
 class P
 {{
-    void M(Foo f)
+    void M(Goo f)
     {{
         f.Bar({(hasTypedChar ? "s" : "")}$$
     }}
@@ -1482,14 +1482,14 @@ class P
     {
         var markup = $@"
 using System;
-interface Foo
+interface Goo
 {{
     bool Bar({overloadParameterList}) => true;
     bool Bar(Func<int, bool> predicate) => true;
 }}
 class P
 {{
-    void M(Foo f)
+    void M(Goo f)
     {{
         f.Bar($$)
     }}

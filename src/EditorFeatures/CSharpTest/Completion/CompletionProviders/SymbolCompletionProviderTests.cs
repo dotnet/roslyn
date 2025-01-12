@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -12291,11 +12291,11 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     F$$
                 }
 
-                private void Foo(int i)
+                private void Goo(int i)
                 {
                 }
 
-                private void Foo(int i, int c)
+                private void Goo(int i, int c)
                 {
                 }
             }
@@ -12305,19 +12305,19 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             {
                 private void Bar()
                 {
-                    Foo(){{commitChar}}
+                    Goo(){{commitChar}}
                 }
 
-                private void Foo(int i)
+                private void Goo(int i)
                 {
                 }
 
-                private void Foo(int i, int c)
+                private void Goo(int i, int c)
                 {
                 }
             }
             """;
-        await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
+        await VerifyProviderCommitAsync(markup, "Goo", expected, commitChar: commitChar);
     }
 
     [Theory]
@@ -12330,10 +12330,10 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             {
                 private void Bar()
                 {
-                    Foo(F$$);
+                    Goo(F$$);
                 }
 
-                private int Foo(int i)
+                private int Goo(int i)
                 {
                     return 1;
                 }
@@ -12344,16 +12344,16 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             {
                 private void Bar()
                 {
-                    Foo(Foo(){{commitChar}});
+                    Goo(Goo(){{commitChar}});
                 }
 
-                private int Foo(int i)
+                private int Goo(int i)
                 {
                     return 1;
                 }
             }
             """;
-        await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
+        await VerifyProviderCommitAsync(markup, "Goo", expected, commitChar: commitChar);
     }
 
     [Theory]
@@ -12370,7 +12370,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     Bar2(F$$);
                 }
 
-                private void Foo()
+                private void Goo()
                 {
                 }
 
@@ -12383,17 +12383,17 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             {
                 private void Bar()
                 {
-                    Bar2(Foo{{commitChar}});
+                    Bar2(Goo{{commitChar}});
                 }
 
-                private void Foo()
+                private void Goo()
                 {
                 }
 
                 void Bar2(Action t) { }
             }
             """;
-        await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
+        await VerifyProviderCommitAsync(markup, "Goo", expected, commitChar: commitChar);
     }
 
     [Theory]
@@ -13810,7 +13810,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             {
                 void M()
                 {
-                    int foo;
+                    int goo;
                     List<int> list;
                     if (list.Count < $$)
                     {
@@ -13820,7 +13820,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             """;
 
         await VerifyExpectedItemsAsync(source, [
-            ItemExpectation.Exists("foo"),
+            ItemExpectation.Exists("goo"),
             ItemExpectation.Exists("M"),
             ItemExpectation.Exists("System"),
             ItemExpectation.Absent("Int32"),

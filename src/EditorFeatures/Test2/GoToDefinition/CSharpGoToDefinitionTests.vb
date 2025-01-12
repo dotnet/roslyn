@@ -987,7 +987,7 @@ class D : C
         <Document>
 interface IFoo1 { void [|Bar|](); }
 
-class Foo : IFoo1
+class Goo : IFoo1
 {
     public void $$Bar()
     {
@@ -1009,7 +1009,7 @@ class Foo : IFoo1
         <Document>
 interface IFoo1 { void [|Bar|](); }
 
-class Foo : IFoo1
+class Goo : IFoo1
 {
     void IFoo1.$$Bar()
     {
@@ -1032,7 +1032,7 @@ class Foo : IFoo1
 interface IFoo1 { void [|Bar|](); }
 interface IFoo2 { void [|Bar|](); }
 
-class Foo : IFoo1, IFoo2
+class Goo : IFoo1, IFoo2
 {
     public void $$Bar()
     {

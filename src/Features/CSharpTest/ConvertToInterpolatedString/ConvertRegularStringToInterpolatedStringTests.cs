@@ -133,7 +133,7 @@ public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeA
             {
                 void M()
                 {
-                    var v = @[||]"string ""foo""
+                    var v = @[||]"string ""goo""
             }";
                 }
             }
@@ -143,7 +143,7 @@ public class ConvertRegularStringToInterpolatedStringTests : AbstractCSharpCodeA
             {
                 void M()
                 {
-                    var v = $@"string ""foo""
+                    var v = $@"string ""goo""
             }}";
                 }
             }

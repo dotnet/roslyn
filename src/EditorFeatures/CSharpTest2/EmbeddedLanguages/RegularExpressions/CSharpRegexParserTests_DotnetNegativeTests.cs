@@ -1867,13 +1867,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         public void NegativeTest56()
         {
             Test("""
-                @"foo(?<0>bar)"
+                @"goo(?<0>bar)"
                 """, $"""
                 <Tree>
                   <CompilationUnit>
                     <Sequence>
                       <Text>
-                        <TextToken>foo</TextToken>
+                        <TextToken>goo</TextToken>
                       </Text>
                       <CaptureGrouping>
                         <OpenParenToken>(</OpenParenToken>
@@ -1895,7 +1895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Diagnostic Message="{FeaturesResources.Capture_number_cannot_be_zero}" Span="[16..17)" Text="0" />
                   </Diagnostics>
                   <Captures>
-                    <Capture Name="0" Span="[10..22)" Text="foo(?&lt;0&gt;bar)" />
+                    <Capture Name="0" Span="[10..22)" Text="goo(?&lt;0&gt;bar)" />
                   </Captures>
                 </Tree>
                 """, RegexOptions.None);
@@ -1905,13 +1905,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         public void NegativeTest57()
         {
             Test("""
-                @"foo(?'0'bar)"
+                @"goo(?'0'bar)"
                 """, $"""
                 <Tree>
                   <CompilationUnit>
                     <Sequence>
                       <Text>
-                        <TextToken>foo</TextToken>
+                        <TextToken>goo</TextToken>
                       </Text>
                       <CaptureGrouping>
                         <OpenParenToken>(</OpenParenToken>
@@ -1933,7 +1933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Diagnostic Message="{FeaturesResources.Capture_number_cannot_be_zero}" Span="[16..17)" Text="0" />
                   </Diagnostics>
                   <Captures>
-                    <Capture Name="0" Span="[10..22)" Text="foo(?'0'bar)" />
+                    <Capture Name="0" Span="[10..22)" Text="goo(?'0'bar)" />
                   </Captures>
                 </Tree>
                 """, RegexOptions.None);
@@ -1943,13 +1943,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         public void NegativeTest58()
         {
             Test("""
-                @"foo(?<1bar)"
+                @"goo(?<1bar)"
                 """, $"""
                 <Tree>
                   <CompilationUnit>
                     <Sequence>
                       <Text>
-                        <TextToken>foo</TextToken>
+                        <TextToken>goo</TextToken>
                       </Text>
                       <CaptureGrouping>
                         <OpenParenToken>(</OpenParenToken>
@@ -1971,7 +1971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Diagnostic Message="{FeaturesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}" Span="[17..18)" Text="b" />
                   </Diagnostics>
                   <Captures>
-                    <Capture Name="0" Span="[10..21)" Text="foo(?&lt;1bar)" />
+                    <Capture Name="0" Span="[10..21)" Text="goo(?&lt;1bar)" />
                     <Capture Name="1" Span="[13..21)" Text="(?&lt;1bar)" />
                   </Captures>
                 </Tree>
@@ -1982,13 +1982,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         public void NegativeTest59()
         {
             Test("""
-                @"foo(?'1bar)"
+                @"goo(?'1bar)"
                 """, $"""
                 <Tree>
                   <CompilationUnit>
                     <Sequence>
                       <Text>
-                        <TextToken>foo</TextToken>
+                        <TextToken>goo</TextToken>
                       </Text>
                       <CaptureGrouping>
                         <OpenParenToken>(</OpenParenToken>
@@ -2010,7 +2010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Diagnostic Message="{FeaturesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}" Span="[17..18)" Text="b" />
                   </Diagnostics>
                   <Captures>
-                    <Capture Name="0" Span="[10..21)" Text="foo(?'1bar)" />
+                    <Capture Name="0" Span="[10..21)" Text="goo(?'1bar)" />
                     <Capture Name="1" Span="[13..21)" Text="(?'1bar)" />
                   </Captures>
                 </Tree>

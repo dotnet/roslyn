@@ -84,7 +84,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
         // {
         //     int i = 0;
         //     int j = 1;
-        //     Callee(Foo())
+        //     Callee(Goo())
         // }
         // void Callee(int i)
         // {
@@ -95,7 +95,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
         // {
         //     int i = 10;
         //     int j = 1;
-        //     int i1 = Foo();
+        //     int i1 = Goo();
         //     Bar(i1, out int j2);
         // }
         // void Callee(int i)
@@ -118,7 +118,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
         // Before:
         // void Caller(int i, int j)
         // {
-        //     Callee(Foo(), Bar());
+        //     Callee(Goo(), Bar());
         // }
         // void Callee(int i, int j)
         // {
@@ -127,7 +127,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
         // After:
         // void Caller(int i, int j)
         // {
-        //     int i1 = Foo();
+        //     int i1 = Goo();
         //     int j1 = Bar();
         //     DoSomething(i1, j1)
         // }

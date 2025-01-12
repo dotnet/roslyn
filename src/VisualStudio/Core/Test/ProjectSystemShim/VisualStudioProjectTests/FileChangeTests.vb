@@ -27,11 +27,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "project", LanguageNames.CSharp, projectInfo, CancellationToken.None)
 
-                project.AddSourceFile("Z:\Foo.cs")
+                project.AddSourceFile("Z:\Goo.cs")
 
                 Using project.CreateBatchScope()
                     ' This shouldn't throw
-                    Await environment.RaiseStaleFileChangeAsync("Z:\Foo.cs", Sub() project.RemoveSourceFile("Z:\Foo.cs"))
+                    Await environment.RaiseStaleFileChangeAsync("Z:\Goo.cs", Sub() project.RemoveSourceFile("Z:\Goo.cs"))
                 End Using
             End Using
         End Function
@@ -51,11 +51,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "project", LanguageNames.CSharp, projectInfo, CancellationToken.None)
 
-                project.AddSourceFile("Z:\Foo.cs")
+                project.AddSourceFile("Z:\Goo.cs")
 
                 Using project.CreateBatchScope()
                     ' This shouldn't throw
-                    Await environment.RaiseStaleFileChangeAsync("Z:\Foo.cs", Sub() project.RemoveFromWorkspace())
+                    Await environment.RaiseStaleFileChangeAsync("Z:\Goo.cs", Sub() project.RemoveFromWorkspace())
                 End Using
             End Using
         End Function

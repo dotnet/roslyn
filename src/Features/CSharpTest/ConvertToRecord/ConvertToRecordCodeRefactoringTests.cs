@@ -32,7 +32,7 @@ public class ConvertToRecordCodeRefactoringTests
             {
                 public record B
                 {
-                    public int Foo { get; init; }
+                    public int Goo { get; init; }
                 }
 
                 public class C : [|B|]
@@ -46,7 +46,7 @@ public class ConvertToRecordCodeRefactoringTests
             {
                 public record B
                 {
-                    public int Foo { get; init; }
+                    public int Goo { get; init; }
                 }
 
                 public class [|C : {|CS8865:B|}|]
@@ -60,7 +60,7 @@ public class ConvertToRecordCodeRefactoringTests
             {
                 public record B
                 {
-                    public int Foo { get; init; }
+                    public int Goo { get; init; }
                 }
 
                 public record C(int P) : B;
@@ -386,7 +386,7 @@ public class ConvertToRecordCodeRefactoringTests
             {
                 public record B
                 {
-                    public int Foo { get; init; }
+                    public int Goo { get; init; }
                 }
 
                 public class [|C|] : {|CS8865:B|}
@@ -400,7 +400,7 @@ public class ConvertToRecordCodeRefactoringTests
             {
                 public record B
                 {
-                    public int Foo { get; init; }
+                    public int Goo { get; init; }
                 }
 
                 public record C(int P) : B;
@@ -415,7 +415,7 @@ public class ConvertToRecordCodeRefactoringTests
         var initialMarkup = """
             namespace N
             {
-                public record B(int Foo, int Bar);
+                public record B(int Goo, int Bar);
 
                 public class [|{|CS1729:C|}|] : {|CS8865:B|}
                 {
@@ -426,9 +426,9 @@ public class ConvertToRecordCodeRefactoringTests
         var changedMarkup = """
             namespace N
             {
-                public record B(int Foo, int Bar);
+                public record B(int Goo, int Bar);
 
-                public record C(int Foo, int Bar, int P) : B(Foo, Bar);
+                public record C(int Goo, int Bar, int P) : B(Goo, Bar);
             }
             """;
         await TestRefactoringAsync(initialMarkup, changedMarkup);
@@ -441,9 +441,9 @@ public class ConvertToRecordCodeRefactoringTests
             namespace N
             {
                 /// <summary> B </summary>
-                /// <param name="Foo"> Foo is an int </param>
+                /// <param name="Goo"> Goo is an int </param>
                 /// <param name="Bar"> Bar is an int as well </param>
-                public record B(int Foo, int Bar);
+                public record B(int Goo, int Bar);
 
                 /// <summary> C inherits from B </summary>
                 public class [|{|CS1729:C|}|] : {|CS8865:B|}
@@ -457,15 +457,15 @@ public class ConvertToRecordCodeRefactoringTests
             namespace N
             {
                 /// <summary> B </summary>
-                /// <param name="Foo"> Foo is an int </param>
+                /// <param name="Goo"> Goo is an int </param>
                 /// <param name="Bar"> Bar is an int as well </param>
-                public record B(int Foo, int Bar);
+                public record B(int Goo, int Bar);
 
                 /// <summary> C inherits from B </summary>
-                /// <param name="Foo"><inheritdoc/></param>
+                /// <param name="Goo"><inheritdoc/></param>
                 /// <param name="Bar"><inheritdoc/></param>
                 /// <param name="P"> P can be initialized </param>
-                public record C(int Foo, int Bar, int P) : B(Foo, Bar);
+                public record C(int Goo, int Bar, int P) : B(Goo, Bar);
             }
             """;
         await TestRefactoringAsync(initialMarkup, changedMarkup);
@@ -477,17 +477,17 @@ public class ConvertToRecordCodeRefactoringTests
         var initialMarkup = """
             namespace N
             {
-                public record B(int Foo, int Bar);
+                public record B(int Goo, int Bar);
 
                 public class [|C|] : {|CS8865:B|}
                 {
                     public int P { get; init; }
 
-                    public {|CS1729:C|}(int p, int bar, int foo)
+                    public {|CS1729:C|}(int p, int bar, int goo)
                     {
                         P = p;
                         Bar = bar;
-                        Foo = foo;
+                        Goo = goo;
                     }
                 }
             }
@@ -495,9 +495,9 @@ public class ConvertToRecordCodeRefactoringTests
         var changedMarkup = """
             namespace N
             {
-                public record B(int Foo, int Bar);
+                public record B(int Goo, int Bar);
 
-                public record C(int P, int Bar, int Foo) : B(Foo, Bar);
+                public record C(int P, int Bar, int Goo) : B(Goo, Bar);
             }
             """;
         await TestRefactoringAsync(initialMarkup, changedMarkup);
@@ -511,14 +511,14 @@ public class ConvertToRecordCodeRefactoringTests
             {
                 public interface IInterface
                 {
-                    public int Foo();
+                    public int Goo();
                 }
 
                 public class [|C|] : IInterface
                 {
                     public int P { get; init; }
 
-                    public int Foo()
+                    public int Goo()
                     {
                         return P;
                     }
@@ -530,12 +530,12 @@ public class ConvertToRecordCodeRefactoringTests
             {
                 public interface IInterface
                 {
-                    public int Foo();
+                    public int Goo();
                 }
 
                 public record C(int P) : IInterface
                 {
-                    public int Foo()
+                    public int Goo()
                     {
                         return P;
                     }
@@ -920,7 +920,7 @@ public class ConvertToRecordCodeRefactoringTests
                     public int P { get; init; }
                     public bool B { get; init; }
                     private const int num = 10;
-                    public static int Foo = 100;
+                    public static int Goo = 100;
                     public static bool StaticProp { get; set; } = false;
 
                     public override bool Equals(object? other)
@@ -936,7 +936,7 @@ public class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B)
                 {
                     private const int num = 10;
-                    public static int Foo = 100;
+                    public static int Goo = 100;
                     public static bool StaticProp { get; set; } = false;
                 }
             }
@@ -1891,10 +1891,10 @@ public class ConvertToRecordCodeRefactoringTests
 
                     public override bool Equals(object? other)
                     {
-                        return Foo(other as C);
+                        return Goo(other as C);
                     }
 
-                    public bool Foo(C? c)
+                    public bool Goo(C? c)
                     {
                         return c?.B ?? false;
                     }
@@ -1915,10 +1915,10 @@ public class ConvertToRecordCodeRefactoringTests
                 {
                     public override bool {|CS0111:Equals|}(object? other)
                     {
-                        return Foo(other as C);
+                        return Goo(other as C);
                     }
 
-                    public bool Foo(C? c)
+                    public bool Goo(C? c)
                     {
                         return c?.B ?? false;
                     }
@@ -2504,13 +2504,13 @@ public class ConvertToRecordCodeRefactoringTests
                 {
                     public int P { get; init; }
                     public bool B { get; init; }
-                    int foo = 0;
+                    int goo = 0;
 
                     public C(C other)
                     {
                         P = other.P;
                         B = other.B;
-                        foo = other.foo;
+                        goo = other.goo;
                     }
                 }
             }
@@ -2520,7 +2520,7 @@ public class ConvertToRecordCodeRefactoringTests
             {
                 public record C(int P, bool B)
                 {
-                    int foo = 0;
+                    int goo = 0;
                 }
             }
             """;
@@ -2537,7 +2537,7 @@ public class ConvertToRecordCodeRefactoringTests
                 {
                     public int P { get; init; }
                     public bool B { get; init; }
-                    const int foo = 0;
+                    const int goo = 0;
                     public static int statFoo = 10;
                     public static bool StaticProp { get; set; } = false;
 
@@ -2554,7 +2554,7 @@ public class ConvertToRecordCodeRefactoringTests
             {
                 public record C(int P, bool B)
                 {
-                    const int foo = 0;
+                    const int goo = 0;
                     public static int statFoo = 10;
                     public static bool StaticProp { get; set; } = false;
                 }
@@ -2573,7 +2573,7 @@ public class ConvertToRecordCodeRefactoringTests
                 {
                     public int P { get; init; }
                     public bool B { get; init; }
-                    private int foo = 0;
+                    private int goo = 0;
 
                     public C(C other)
                     {
@@ -2588,7 +2588,7 @@ public class ConvertToRecordCodeRefactoringTests
             {
                 public record C(int P, bool B)
                 {
-                    private int foo = 0;
+                    private int goo = 0;
 
                     public C(C other)
                     {
@@ -2806,7 +2806,7 @@ public class ConvertToRecordCodeRefactoringTests
         var initialMarkup = """
             namespace N
             {
-                public record R(int Foo, int Bar)
+                public record R(int Goo, int Bar)
                 {
                     public int field = 10;
 
@@ -2830,7 +2830,7 @@ public class ConvertToRecordCodeRefactoringTests
                     public C(R r)
                     {
                         P = r.field;
-                        B = r.IsBarNum(r.Foo);
+                        B = r.IsBarNum(r.Goo);
                     }
                 }
             }
@@ -2838,7 +2838,7 @@ public class ConvertToRecordCodeRefactoringTests
         var changedMarkup = """
             namespace N
             {
-                public record R(int Foo, int Bar)
+                public record R(int Goo, int Bar)
                 {
                     public int field = 10;
 
@@ -2850,7 +2850,7 @@ public class ConvertToRecordCodeRefactoringTests
 
                 public record C(bool B, int P)
                 {
-                    public C(R r) : this(r.IsBarNum(r.Foo), r.field)
+                    public C(R r) : this(r.IsBarNum(r.Goo), r.field)
                     {
                     }
                 }
@@ -2865,7 +2865,7 @@ public class ConvertToRecordCodeRefactoringTests
         var initialMarkup = """
             namespace N
             {
-                public record R(int? Foo, int Bar)
+                public record R(int? Goo, int Bar)
                 {
                     public int field = 10;
 
@@ -2888,7 +2888,7 @@ public class ConvertToRecordCodeRefactoringTests
 
                     public C(R? r, int backup)
                     {
-                        P = r?.Foo ?? 10;
+                        P = r?.Goo ?? 10;
                         B = r?.IsBarNum(backup);
                     }
                 }
@@ -2897,7 +2897,7 @@ public class ConvertToRecordCodeRefactoringTests
         var changedMarkup = """
             namespace N
             {
-                public record R(int? Foo, int Bar)
+                public record R(int? Goo, int Bar)
                 {
                     public int field = 10;
 
@@ -2909,7 +2909,7 @@ public class ConvertToRecordCodeRefactoringTests
 
                 public record C(bool? B, int P)
                 {
-                    public C(R? r, int backup) : this(r?.IsBarNum(backup), r?.Foo ?? 10)
+                    public C(R? r, int backup) : this(r?.IsBarNum(backup), r?.Goo ?? 10)
                     {
                     }
                 }
@@ -4144,7 +4144,7 @@ public class ConvertToRecordCodeRefactoringTests
         var initialMarkup = """
             namespace N
             {
-                public record Foo
+                public record Goo
                 {
                     public int Bar { get; init; }
                 }
@@ -4152,14 +4152,14 @@ public class ConvertToRecordCodeRefactoringTests
                 public class [|C|]
                 {
                     public int P { get; init; }
-                    public Foo? B { get; init; }
+                    public Goo? B { get; init; }
 
                     public static C GetC()
                     {
                         return new C
                         {
                             P = 0,
-                            B = new Foo { Bar = 0 }
+                            B = new Goo { Bar = 0 }
                         };
                     }
                 }
@@ -4168,16 +4168,16 @@ public class ConvertToRecordCodeRefactoringTests
         var changedMarkup = """
             namespace N
             {
-                public record Foo
+                public record Goo
                 {
                     public int Bar { get; init; }
                 }
 
-                public record C(int P, Foo? B)
+                public record C(int P, Goo? B)
                 {
                     public static C GetC()
                     {
-                        return new C(0, new Foo { Bar = 0 });
+                        return new C(0, new Goo { Bar = 0 });
                     }
                 }
             }
@@ -4601,7 +4601,7 @@ public class ConvertToRecordCodeRefactoringTests
                 {
                     [|public int P { get; init; }
 
-                    public int Foo()
+                    public int Goo()
                     {
                         return 0;
                     }|]
@@ -4613,7 +4613,7 @@ public class ConvertToRecordCodeRefactoringTests
             {
                 public record C(int P)
                 {
-                    public int Foo()
+                    public int Goo()
                     {
                         return 0;
                     }

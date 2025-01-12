@@ -2791,7 +2791,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
 
         var expected =
             """
-            /// foo/$$
+            /// goo/$$
             class C
             {
             }
@@ -2818,7 +2818,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             """
             namespace N
             {
-                /// foo/$$
+                /// goo/$$
                 class C
                 {
                 }
@@ -2841,7 +2841,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
 
         var expected =
             """
-            /// foo
+            /// goo
             /// $$
             class C
             {
@@ -2869,7 +2869,7 @@ public sealed class DocumentationCommentTests : AbstractDocumentationCommentTest
             """
             namespace N
             {
-                /// foo
+                /// goo
                 /// $$
                 class C
                 {

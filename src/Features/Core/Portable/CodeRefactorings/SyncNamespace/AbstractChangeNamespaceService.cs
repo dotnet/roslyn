@@ -235,10 +235,10 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         // We don't try to remove all imports that might become unnecessary/invalid after the namespace change, 
         // just ones that fully match the old/new namespace. Because it's hard to get it right and will almost 
         // certainly cause perf issue.
-        // For example, if we are changing namespace `Foo.Bar` (which is the only namespace declaration with such name)
+        // For example, if we are changing namespace `Goo.Bar` (which is the only namespace declaration with such name)
         // to `A.B`, the using of name `Bar` in a different file below would remain untouched, even it's no longer valid:
         //
-        //      namespace Foo
+        //      namespace Goo
         //      {
         //          using Bar;
         //          ~~~~~~~~~
@@ -569,13 +569,13 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         //    relying on old namespace declaration for resolution. 
         //
         //      For example, in the code below, after we change namespace to 
-        //      "A.B.C", we will need to add "using Foo.Bar;".     
+        //      "A.B.C", we will need to add "using Goo.Bar;".     
         //
-        //      namespace Foo.Bar.Baz
+        //      namespace Goo.Bar.Baz
         //      {
         //          class C1
         //          {
-        //               C2 _c2;    // C2 is define in namespace "Foo.Bar" in another document.
+        //               C2 _c2;    // C2 is define in namespace "Goo.Bar" in another document.
         //          }
         //      }
         //
@@ -717,10 +717,10 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
             // Get inner most node in case of type used as a base type. e.g.
             //
-            //      public class Foo {}
-            //      public class Bar : Foo {}
+            //      public class Goo {}
+            //      public class Bar : Goo {}
             //
-            // For the reference to Foo where it is used as a base class, the BaseTypeSyntax and the TypeSyntax
+            // For the reference to Goo where it is used as a base class, the BaseTypeSyntax and the TypeSyntax
             // have exact same span.
 
             var refNode = root.FindNode(refLoc.ReferenceLocation.Location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);

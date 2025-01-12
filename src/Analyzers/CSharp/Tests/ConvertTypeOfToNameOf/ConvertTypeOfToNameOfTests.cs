@@ -104,10 +104,10 @@ public partial class ConvertTypeOfToNameOfTests
             {
                 void Method()
                 {
-                    var typeName = Foo([|typeof(System.String).Name|]);
+                    var typeName = Goo([|typeof(System.String).Name|]);
                 }
 
-                int Foo(String typeName) {
+                int Goo(String typeName) {
                     return 0;
                 }
             }
@@ -119,10 +119,10 @@ public partial class ConvertTypeOfToNameOfTests
             {
                 void Method()
                 {
-                    var typeName = Foo(nameof(String));
+                    var typeName = Goo(nameof(String));
                 }
 
-                int Foo(String typeName) {
+                int Goo(String typeName) {
                     return 0;
                 }
             }

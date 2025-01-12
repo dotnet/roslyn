@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 void Z() {}
             }
 
-            interface foo
+            interface goo
             {
                 void z() {}
 
@@ -128,9 +128,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             Assert.Equal(3, searchedSymbols.Length);
 
             // Search for 1 parent only (no children should match)
-            searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, "foo", CancellationToken.None);
+            searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, "goo", CancellationToken.None);
             Assert.Equal(1, searchedSymbols.Length);
-            Assert.Equal(0, searchedSymbols.Single(symbol => symbol.Name.Equals("foo")).Children.Length);
+            Assert.Equal(0, searchedSymbols.Single(symbol => symbol.Name.Equals("goo")).Children.Length);
 
             // Search for children only (across 2 parents)
             searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, "Method", CancellationToken.None);
@@ -142,7 +142,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, "app", CancellationToken.None);
             Assert.Equal(2, searchedSymbols.Length);
             Assert.Equal(0, searchedSymbols.Single(symbol => symbol.Name.Equals("App")).Children.Length);
-            Assert.Equal(1, searchedSymbols.Single(symbol => symbol.Name.Equals("foo")).Children.Length);
+            Assert.Equal(1, searchedSymbols.Single(symbol => symbol.Name.Equals("goo")).Children.Length);
 
             // No search results found
             searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, "xyz", CancellationToken.None);

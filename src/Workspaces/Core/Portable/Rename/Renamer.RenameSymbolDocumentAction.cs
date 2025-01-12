@@ -64,7 +64,7 @@ public static partial class Renamer
 
         /// <summary>
         /// Finds a matching type such that the display name of the type matches the name passed in, ignoring case. Case isn't used because
-        /// documents with name "Foo.cs" and "foo.cs" should still have the same type name
+        /// documents with name "Goo.cs" and "goo.cs" should still have the same type name
         /// </summary>
         private static async Task<SyntaxNode?> GetMatchingTypeDeclarationAsync(Document document, CancellationToken cancellationToken)
         {

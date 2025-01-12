@@ -568,7 +568,7 @@ public class ConsecutiveStatementPlacementTests
             using System;
             using System.Linq;
             using System.Collections.Generic;
-            public class Foo
+            public class Goo
             {
                 private int x;
                 // Valid #1

@@ -20,7 +20,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     {
         // No "move file" action because default namespace is not container of declared namespace
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar";
+        var declaredNamespace = "Goo.Bar";
 
         var expectedFolders = new List<string[]>();
 
@@ -47,7 +47,7 @@ namespace [||]{declaredNamespace}
     {
         // No "move file" action because default namespace is not container of declared namespace
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar";
+        var declaredNamespace = "Goo.Bar";
 
         var expectedFolders = new List<string[]>();
 
@@ -129,7 +129,7 @@ namespace [||]{declaredNamespace}
 }}  
         </Document>        
         <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-namespace Foo
+namespace Goo
 {{    
     class Class2
     {{
@@ -205,7 +205,7 @@ namespace [||]{declaredNamespace}
 }}  
         </Document>        
         <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-namespace Foo
+namespace Goo
 {{    
     class Class2
     {{
@@ -252,7 +252,7 @@ namespace [||]{declaredNamespace}
 }}  
         </Document>        
         <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-namespace Foo
+namespace Goo
 {{    
     class Class2
     {{
@@ -260,7 +260,7 @@ namespace Foo
 }}  
         </Document>      
         <Document Folders=""{documentPath3.folder}"" FilePath=""{documentPath3.filePath}""> 
-namespace Foo
+namespace Goo
 {{    
     class Class2
     {{
@@ -285,7 +285,7 @@ namespace Foo
         };
 
         var (folder, filePath) = CreateDocumentFilePath(["B.C"], "File1.cs");                          // file1 is in <root>\B.C\
-        var documentPath2 = CreateDocumentFilePath(["B", "Foo"], "File2.cs");   // file2 is in <root>\B\Foo\
+        var documentPath2 = CreateDocumentFilePath(["B", "Goo"], "File2.cs");   // file2 is in <root>\B\Goo\
 
         var code =
 $@"
@@ -300,7 +300,7 @@ namespace [||]{declaredNamespace}
 }}  
         </Document>        
         <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-namespace Foo
+namespace Goo
 {{    
     class Class2
     {{
@@ -323,8 +323,8 @@ namespace Foo
             (["B", "C", "D", "E"]),
         };
 
-        var (folder, filePath) = CreateDocumentFilePath(["Foo.Bar", "Baz"], "File1.cs");  // file1 is in <root>\Foo.Bar\Baz\
-        var documentPath2 = CreateDocumentFilePath(["B", "Foo"], "File2.cs");   // file2 is in <root>\B\Foo\
+        var (folder, filePath) = CreateDocumentFilePath(["Goo.Bar", "Baz"], "File1.cs");  // file1 is in <root>\Goo.Bar\Baz\
+        var documentPath2 = CreateDocumentFilePath(["B", "Goo"], "File2.cs");   // file2 is in <root>\B\Goo\
 
         var code =
 $@"
@@ -339,7 +339,7 @@ namespace [||]{declaredNamespace}
 }}  
         </Document>        
         <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-namespace Foo
+namespace Goo
 {{    
     class Class2
     {{
@@ -362,8 +362,8 @@ namespace Foo
             (["B", "C", "D", "E"]),
         };
 
-        var (folder, filePath) = CreateDocumentFilePath(["Foo.Bar", "Baz"], "File1.cs");  // file1 is in <root>\Foo.Bar\Baz\
-        var documentPath2 = CreateDocumentFilePath(["B", "Foo"], "File2.cs");   // file2 is in <root>\B\Foo\
+        var (folder, filePath) = CreateDocumentFilePath(["Goo.Bar", "Baz"], "File1.cs");  // file1 is in <root>\Goo.Bar\Baz\
+        var documentPath2 = CreateDocumentFilePath(["B", "Goo"], "File2.cs");   // file2 is in <root>\B\Goo\
 
         var code =
 $@"
@@ -377,7 +377,7 @@ class Class1
 }}  
         </Document>        
         <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
-namespace Foo;
+namespace Goo;
 
 class Class2
 {{

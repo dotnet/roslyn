@@ -984,15 +984,15 @@ internal partial class AutomaticLineEnderCommandHandler
         var objectCreationNodeWithoutInitializer = baseObjectCreationExpressionNode.WithInitializer(null);
         // Filter the non-comments trivia
         // e.g.
-        // Bar(new Foo() // I am some comments
+        // Bar(new Goo() // I am some comments
         // {
         //      $$
         // });
         // =>
-        // Bar(new Foo() // I am some comments);
+        // Bar(new Goo() // I am some comments);
         // In this case, 'I am somme comments' has an end of line triva, if not removed, it would make
         // the final result becomes
-        // Bar(new Foo() // I am some comments
+        // Bar(new Goo() // I am some comments
         // );
         var trivia = objectCreationNodeWithoutInitializer.GetTrailingTrivia().Where(trivia => trivia.IsSingleOrMultiLineComment());
         return objectCreationNodeWithoutInitializer.WithTrailingTrivia(trivia);

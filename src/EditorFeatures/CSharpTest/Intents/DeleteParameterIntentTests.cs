@@ -210,18 +210,18 @@ public class DeleteParameterIntentTests : IntentTestsBase
     public async Task TestDeleteThisParameterAsync()
     {
         var initialText = """
-            public class Foo
+            public class Goo
             {
                 static void Bar()
                 {
-                    var f = new Foo();
+                    var f = new Goo();
                     f.DoFoo();
                 }
             }
 
             public static class FooExtensions
             {
-                public static void DoFoo(this {|priorSelection:Foo|} foo)
+                public static void DoFoo(this {|priorSelection:Goo|} goo)
                 {
 
                 }
@@ -229,11 +229,11 @@ public class DeleteParameterIntentTests : IntentTestsBase
             """;
         var currentText =
             """
-            public class Foo
+            public class Goo
             {
                 static void Bar()
                 {
-                    var f = new Foo();
+                    var f = new Goo();
                     f.DoFoo();
                 }
             }
@@ -254,18 +254,18 @@ public class DeleteParameterIntentTests : IntentTestsBase
     public async Task TestDeleteParameterInExtensionMethodAsync()
     {
         var initialText = """
-            public class Foo
+            public class Goo
             {
                 static void Bar()
                 {
-                    var f = new Foo();
+                    var f = new Goo();
                     f.DoFoo({|priorSelection:1|}, 2);
                 }
             }
 
             public static class FooExtensions
             {
-                public static void DoFoo(this Foo foo, int value1, int value2)
+                public static void DoFoo(this Goo goo, int value1, int value2)
                 {
 
                 }
@@ -273,18 +273,18 @@ public class DeleteParameterIntentTests : IntentTestsBase
             """;
         var currentText =
             """
-            public class Foo
+            public class Goo
             {
                 static void Bar()
                 {
-                    var f = new Foo();
+                    var f = new Goo();
                     f.DoFoo(2);
                 }
             }
 
             public static class FooExtensions
             {
-                public static void DoFoo(this Foo foo, int value1, int value2)
+                public static void DoFoo(this Goo goo, int value1, int value2)
                 {
 
                 }
@@ -292,18 +292,18 @@ public class DeleteParameterIntentTests : IntentTestsBase
             """;
         var expectedText =
             """
-            public class Foo
+            public class Goo
             {
                 static void Bar()
                 {
-                    var f = new Foo();
+                    var f = new Goo();
                     f.DoFoo(2);
                 }
             }
 
             public static class FooExtensions
             {
-                public static void DoFoo(this Foo foo, int value2)
+                public static void DoFoo(this Goo goo, int value2)
                 {
 
                 }
@@ -317,18 +317,18 @@ public class DeleteParameterIntentTests : IntentTestsBase
     public async Task TestDeleteParameterOnDefinitionAsync()
     {
         var initialText = """
-            public class Foo
+            public class Goo
             {
                 static void Bar()
                 {
-                    var f = new Foo();
+                    var f = new Goo();
                     f.DoFoo(1, 2);
                 }
             }
 
             public static class FooExtensions
             {
-                public static void DoFoo(this Foo foo, int {|priorSelection:value1|}, int value2)
+                public static void DoFoo(this Goo goo, int {|priorSelection:value1|}, int value2)
                 {
 
                 }
@@ -336,18 +336,18 @@ public class DeleteParameterIntentTests : IntentTestsBase
             """;
         var currentText =
             """
-            public class Foo
+            public class Goo
             {
                 static void Bar()
                 {
-                    var f = new Foo();
+                    var f = new Goo();
                     f.DoFoo(2);
                 }
             }
 
             public static class FooExtensions
             {
-                public static void DoFoo(this Foo foo, int value1, int value2)
+                public static void DoFoo(this Goo goo, int value1, int value2)
                 {
 
                 }
@@ -355,18 +355,18 @@ public class DeleteParameterIntentTests : IntentTestsBase
             """;
         var expectedText =
             """
-            public class Foo
+            public class Goo
             {
                 static void Bar()
                 {
-                    var f = new Foo();
+                    var f = new Goo();
                     f.DoFoo(2);
                 }
             }
 
             public static class FooExtensions
             {
-                public static void DoFoo(this Foo foo, int value2)
+                public static void DoFoo(this Goo goo, int value2)
                 {
 
                 }

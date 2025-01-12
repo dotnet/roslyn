@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod()
                             End Sub
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod({|x:|}5)
                             End Sub
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod(x:=5)
                             End Sub
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod({|x:|}5, {|y:|}2.2)
                             End Sub
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod(x:=5, y:=2.2)
                             End Sub
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod({|x:|}-5, {|y:|}2.2)
                             End Sub
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod(x:=-5, y:=2.2)
                             End Sub
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod({|x:|}CInt(5.5), {|y:|}2.2)
                             End Sub
@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod(x:=CInt(5.5), y:=2.2)
                             End Sub
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod({|x:|}CType(5.5, Integer), {|y:|}2.2)
                             End Sub
@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod(x:=CType(5.5, Integer), y:=2.2)
                             End Sub
@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod({|x:|}CInt(-5.5), {|y:|}2.2)
                             End Sub
@@ -325,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod(x:=CInt(-5.5), y:=2.2)
                             End Sub
@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod({|x:|}CInt(-5.5), {|y:|}2.2, {|obj:|}New Object())
                             End Sub
@@ -364,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod(x:=CInt(-5.5), y:=2.2, obj:=New Object())
                             End Sub
@@ -386,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod()
                             End Sub
@@ -483,7 +483,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
                         &lt;Obsolete({|message:|}"test")&gt;
-                        Public Class Foo
+                        Public Class Goo
                             Sub TestMethod()
 
                             End Sub
@@ -497,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
                         &lt;Obsolete(message:="test")&gt;
-                        Public Class Foo
+                        Public Class Goo
                             Sub TestMethod()
 
                             End Sub
@@ -515,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod({|x:|}5,)
                             End Sub
@@ -532,7 +532,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod(x:=5,)
                             End Sub
@@ -554,7 +554,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod({|x:|}$"")
                             End Sub
@@ -571,7 +571,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true">
                     <Document>
-                        Class Foo
+                        Class Goo
                             Sub Main(args As String())
                                 TestMethod(x:=$"")
                             End Sub

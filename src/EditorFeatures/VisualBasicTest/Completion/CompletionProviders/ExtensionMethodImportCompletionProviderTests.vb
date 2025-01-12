@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 Imports System
 Imports System.Runtime.CompilerServices
 
-Namespace Foo
+Namespace Goo
     Public Module ExtensionModule
 
         <System.Runtime.CompilerServices.Extension()>
@@ -104,13 +104,13 @@ Public Class Bar
 End Class]]></Text>.Value
 
             Dim markup = GetMarkup(file2, file1, refType)
-            Await VerifyItemExistsAsync(markup, "ExtensionMethod1", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
-            Await VerifyItemExistsAsync(markup, "ExtensionMethod2", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
-            Await VerifyItemExistsAsync(markup, "ExtensionMethod3", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
-            Await VerifyItemExistsAsync(markup, "ExtensionMethod4", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
-            Await VerifyItemExistsAsync(markup, "ExtensionMethod5", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
-            Await VerifyItemExistsAsync(markup, "ExtensionMethod6", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
-            Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod7", inlineDescription:="Foo")
+            Await VerifyItemExistsAsync(markup, "ExtensionMethod1", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Goo")
+            Await VerifyItemExistsAsync(markup, "ExtensionMethod2", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Goo")
+            Await VerifyItemExistsAsync(markup, "ExtensionMethod3", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Goo")
+            Await VerifyItemExistsAsync(markup, "ExtensionMethod4", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Goo")
+            Await VerifyItemExistsAsync(markup, "ExtensionMethod5", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Goo")
+            Await VerifyItemExistsAsync(markup, "ExtensionMethod6", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Goo")
+            Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod7", inlineDescription:="Goo")
         End Function
 
         <InlineData(ReferenceType.None)>
@@ -123,7 +123,7 @@ End Class]]></Text>.Value
 Imports System
 Imports System.Runtime.CompilerServices
 
-Namespace Foo
+Namespace Goo
     Public Module ExtensionModule
 
         <Extension>
@@ -147,8 +147,8 @@ Public Class Bar
 End Class]]></Text>.Value
 
             Dim markup = GetMarkup(file2, file1, refType)
-            Await VerifyItemExistsAsync(markup, "ExtensionMethod1", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
-            Await VerifyItemExistsAsync(markup, "ExtensionMethod2", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Foo")
+            Await VerifyItemExistsAsync(markup, "ExtensionMethod1", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Goo")
+            Await VerifyItemExistsAsync(markup, "ExtensionMethod2", glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="Goo")
         End Function
 
         <InlineData(ReferenceType.None)>
@@ -161,7 +161,7 @@ End Class]]></Text>.Value
 Imports System
 Imports System.Runtime.CompilerServices
 
-Namespace foo
+Namespace goo
     Public Module ExtensionModule
 
         <Extension>
@@ -177,7 +177,7 @@ End Namespace]]></Text>.Value
 
             Dim file2 = <Text><![CDATA[
 Imports System
-Imports Foo
+Imports Goo
 
 Public Class Bar
     Sub M(x as exception)
@@ -186,8 +186,8 @@ Public Class Bar
 End Class]]></Text>.Value
 
             Dim markup = GetMarkup(file2, file1, refType)
-            Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod1", inlineDescription:="Foo")
-            Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod2", inlineDescription:="Foo")
+            Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod1", inlineDescription:="Goo")
+            Await VerifyItemIsAbsentAsync(markup, "ExtensionMethod2", inlineDescription:="Goo")
         End Function
 
         <InlineData(ReferenceType.None)>
@@ -200,7 +200,7 @@ Imports System
 Imports System.Runtime.CompilerServices
 
 Namespace NS
-    Public Module Foo
+    Public Module Goo
         <Extension>
         Public Function ExtentionMethod(x As Bar) As Boolean
             Return True
@@ -235,7 +235,7 @@ Imports System
 Imports System.Runtime.CompilerServices
 
 Namespace NS
-    Public Module Foo
+    Public Module Goo
         <Extension>
         Public Function ExtentionMethod(x As Bar) As Boolean
             Return True
@@ -276,7 +276,7 @@ Imports System
 Imports System.Runtime.CompilerServices
 
 Namespace NS
-    Public Module Foo
+    Public Module Goo
         <Extension>
         Public Function ExtentionMethod1(x As Integer) As Boolean
             Return True

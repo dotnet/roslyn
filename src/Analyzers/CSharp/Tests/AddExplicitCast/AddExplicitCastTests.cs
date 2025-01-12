@@ -730,7 +730,7 @@ public partial class AddExplicitCastTests(ITestOutputHelper logger)
             class Base {}
             class Derived : Base {}
             void M() {
-                Func<Base, Derived> foo = d => [||]d;
+                Func<Base, Derived> goo = d => [||]d;
             }
         }
         """,
@@ -742,7 +742,7 @@ public partial class AddExplicitCastTests(ITestOutputHelper logger)
             class Base {}
             class Derived : Base {}
             void M() {
-                Func<Base, Derived> foo = d => (Derived)d;
+                Func<Base, Derived> goo = d => (Derived)d;
             }
         }
         """);

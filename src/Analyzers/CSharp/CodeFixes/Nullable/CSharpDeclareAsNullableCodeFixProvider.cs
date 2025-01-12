@@ -193,7 +193,7 @@ internal sealed class CSharpDeclareAsNullableCodeFixProvider() : SyntaxEditorBas
             }
             else if (symbol is IFieldSymbol { CorrespondingTupleField: IFieldSymbol { Locations: [{ IsInSource: true } location] } })
             {
-                // Assigning a tuple field, eg. foo.Item1 = null
+                // Assigning a tuple field, eg. goo.Item1 = null
                 // The tupleField won't have DeclaringSyntaxReferences because it's implicitly declared, otherwise it
                 // would have fallen into the branch above. We can use the Locations instead, if there is one and it's in source
                 if (location.FindNode(cancellationToken) is TupleElementSyntax tupleElement)

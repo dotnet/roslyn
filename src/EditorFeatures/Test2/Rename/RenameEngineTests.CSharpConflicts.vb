@@ -83,14 +83,14 @@ class C
                             <Document>
 class C
 {
-    public delegate void Foo(int x);
+    public delegate void Goo(int x);
     public void FooMeth(int x)
     {
  
     }
     public void Sub()
     {
-        Foo {|Conflict:x|} = new Foo(FooMeth);
+        Goo {|Conflict:x|} = new Goo(FooMeth);
         int [|$$z|] = 1; // Rename z to x
         int y = {|Conflict:z|};
         x({|Conflict:z|}); // Renamed to x(x)
@@ -151,7 +151,7 @@ End Class
                             <Document>
 public class [|C|]
 {
-    public static void Foo()
+    public static void Goo()
     {
 
     }
@@ -186,18 +186,18 @@ class Proaasgram
             {|resolve:z|} = null;
             if (true)
             {
-                bool y = foo([|x|]);
+                bool y = goo([|x|]);
             }
             return true;
         };
     }
 
-    public  bool foo(int bar)
+    public  bool goo(int bar)
     {
         return true;
     }
 
-    public bool foo(object bar)
+    public bool goo(object bar)
     {
         return true;
     }
@@ -320,7 +320,7 @@ x.Ex();
 
 static class E
 {
-    public static void [|$$Ex|](this int x) { } // Rename Ex to Foo
+    public static void [|$$Ex|](this int x) { } // Rename Ex to Goo
 }
                             </Document>
                         </Project>
@@ -370,7 +370,7 @@ x.Ex();
 
 static class E
 {
-    public static void [|$$Ex|](this int x) { } // Rename Ex to Foo
+    public static void [|$$Ex|](this int x) { } // Rename Ex to Goo
 }
                             </Document>
                         </Project>
@@ -420,7 +420,7 @@ x.Ex();
 
 static class E
 {
-    public static void [|$$D|](this int x) { } // Rename Ex to Foo
+    public static void [|$$D|](this int x) { } // Rename Ex to Goo
 }
                             </Document>
                         </Project>
@@ -470,7 +470,7 @@ x.Ex();
 
 static class E
 {
-    public static void [|$$D|](this int x) { } // Rename Ex to Foo
+    public static void [|$$D|](this int x) { } // Rename Ex to Goo
 }
                             </Document>
                         </Project>
@@ -520,7 +520,7 @@ static class C
 
 static class E
 {
-    public static void [|$$D|](this int x) { } // Rename Ex to Foo
+    public static void [|$$D|](this int x) { } // Rename Ex to Goo
 }
                             </Document>
                         </Project>
@@ -545,20 +545,20 @@ static class E
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-class Foo
+class Goo
 {
-    int foo;
+    int goo;
     void Blah(int [|$$bar|])
     {
-        {|stmt2:foo|} = {|stmt1:bar|};
+        {|stmt2:goo|} = {|stmt1:bar|};
     }
 }
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="foo")
+                    </Workspace>, host:=host, renameTo:="goo")
 
-                    result.AssertLabeledSpansAre("stmt1", "this.foo = foo;", RelatedLocationType.NoConflict)
-                    result.AssertLabeledSpansAre("stmt2", "this.foo = foo;", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "this.goo = goo;", RelatedLocationType.NoConflict)
+                    result.AssertLabeledSpansAre("stmt2", "this.goo = goo;", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -569,22 +569,22 @@ class Foo
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-class Foo
+class Goo
 {
-    int foo;
+    int goo;
     void Blah(int [|$$bar|])
     {
-        {|resolved:foo|} = 23;
-        {|resolved2:foo|} = {|stmt1:bar|};
+        {|resolved:goo|} = 23;
+        {|resolved2:goo|} = {|stmt1:bar|};
     }
 }
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="foo")
+                    </Workspace>, host:=host, renameTo:="goo")
 
-                    result.AssertLabeledSpansAre("stmt1", "this.foo = foo;", RelatedLocationType.NoConflict)
-                    result.AssertLabeledSpansAre("resolved", "this.foo = 23;", RelatedLocationType.ResolvedNonReferenceConflict)
-                    result.AssertLabeledSpansAre("resolved2", "this.foo = foo;", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "this.goo = goo;", RelatedLocationType.NoConflict)
+                    result.AssertLabeledSpansAre("resolved", "this.goo = 23;", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("resolved2", "this.goo = goo;", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -595,7 +595,7 @@ class Foo
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-class Foo
+class Goo
 {
     int @if;
     void Blah(int {|Escape1:$$bar|})
@@ -622,22 +622,22 @@ class Foo
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-class Foo
+class Goo
 {
-    static int foo;
+    static int goo;
     void Blah(int [|$$bar|])
     {
-        {|Resolved:foo|} = 23;
-        {|Resolved2:foo|} = {|stmt1:bar|};
+        {|Resolved:goo|} = 23;
+        {|Resolved2:goo|} = {|stmt1:bar|};
     }
 }
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="foo")
+                    </Workspace>, host:=host, renameTo:="goo")
 
-                    result.AssertLabeledSpansAre("Resolved", "Foo.foo = 23;", RelatedLocationType.ResolvedNonReferenceConflict)
-                    result.AssertLabeledSpansAre("stmt1", "Foo.foo = foo;", RelatedLocationType.NoConflict)
-                    result.AssertLabeledSpansAre("Resolved2", "Foo.foo = foo;", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("Resolved", "Goo.goo = 23;", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("stmt1", "Goo.goo = goo;", RelatedLocationType.NoConflict)
+                    result.AssertLabeledSpansAre("Resolved2", "Goo.goo = goo;", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -649,7 +649,7 @@ class Foo
                         <Project Language="C#" CommonReferences="true">
                             <ProjectReference>VisualBasicAssembly</ProjectReference>
                             <Document>
-class Foo : FooBase
+class Goo : FooBase
 {
     void Blah(int bar)
     {
@@ -661,7 +661,7 @@ class Foo : FooBase
                         <Project Language="Visual Basic" AssemblyName="VisualBasicAssembly" CommonReferences="true">
                             <Document>
 Public Class FooBase
-    Protected [|foo|] As Integer
+    Protected [|goo|] As Integer
 End Class
                             </Document>
                         </Project>
@@ -686,7 +686,7 @@ namespace N1
     {
         public void Goo(int i)
         {
-            {|ReplacementCInt:Foo|}(i, i);
+            {|ReplacementCInt:Goo|}(i, i);
         }
     }
 }
@@ -699,7 +699,7 @@ namespace N2
     {
         public void Goo(string s)
         {
-            {|ReplacementCString:Foo|}(s, s);
+            {|ReplacementCString:Goo|}(s, s);
         }
     }
 }
@@ -726,7 +726,7 @@ static class C<T>
                             <Document>
 class {|Invalid:$$Foo|}
 {
-    {|Invalid:Foo|} foo;
+    {|Invalid:Goo|} goo;
 }
                                </Document>
                         </Project>
@@ -746,7 +746,7 @@ class {|Invalid:$$Foo|}
                             <Document>
 class {|Invalid:$$Foo|}
 {
-    {|Invalid:Foo|} foo;
+    {|Invalid:Goo|} goo;
 }
                                </Document>
                         </Project>
@@ -798,7 +798,7 @@ class Program
 {
     void M()
     {
-        int foo;
+        int goo;
         {|Replacement:Bar|}();
     }
 
@@ -808,9 +808,9 @@ class Program
 }
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="foo")
+                    </Workspace>, host:=host, renameTo:="goo")
 
-                    result.AssertLabeledSpansAre("Replacement", "this.foo();", RelatedLocationType.ResolvedReferenceConflict)
+                    result.AssertLabeledSpansAre("Replacement", "this.goo();", RelatedLocationType.ResolvedReferenceConflict)
                 End Using
             End Sub
 
@@ -823,16 +823,16 @@ class Program
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-class {|Conflict:Foo|}
+class {|Conflict:Goo|}
 {
     class [|$$Bar|]
     {
-        int {|Conflict:Foo|};
+        int {|Conflict:Goo|};
     }
 }
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="Foo")
+                    </Workspace>, host:=host, renameTo:="Goo")
 
                     result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
                 End Using
@@ -845,13 +845,13 @@ class {|Conflict:Foo|}
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-class {|Conflict:Foo|}
+class {|Conflict:Goo|}
 {
     int [|$$Bar|];
 }
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="Foo")
+                    </Workspace>, host:=host, renameTo:="Goo")
 
                     result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
                 End Using
@@ -869,10 +869,10 @@ class {|Invalid:$$Foo|}
 }
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="Foo@")
+                    </Workspace>, host:=host, renameTo:="Goo@")
 
                     result.AssertReplacementTextInvalid()
-                    result.AssertLabeledSpansAre("Invalid", "Foo@", RelatedLocationType.UnresolvedConflict)
+                    result.AssertLabeledSpansAre("Invalid", "Goo@", RelatedLocationType.UnresolvedConflict)
                 End Using
             End Sub
 
@@ -934,7 +934,7 @@ class Y : X
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
                             <Document>
-static class Foo
+static class Goo
 {
     static void {|Escape:Method$$|}() { }
 
@@ -949,7 +949,7 @@ static class Foo
                     </Workspace>, host:=host, renameTo:="if")
 
                     result.AssertLabeledSpecialSpansAre("Escape", "@if", RelatedLocationType.NoConflict)
-                    result.AssertLabeledSpansAre("Replacement", "Foo.@if();", RelatedLocationType.ResolvedReferenceConflict)
+                    result.AssertLabeledSpansAre("Replacement", "Goo.@if();", RelatedLocationType.ResolvedReferenceConflict)
                 End Using
             End Sub
 
@@ -1160,7 +1160,7 @@ class C
 {
     C Bar(int tag)
     {
-        return this.{|stmt1:Foo|}(1).{|stmt1:Foo|}(2);
+        return this.{|stmt1:Goo|}(1).{|stmt1:Goo|}(2);
     }
 }
 
@@ -1191,19 +1191,19 @@ class C
 {
     void [|$$Bar|](int tag)
     {
-        this.{|Resolved:Foo|}(1).{|Resolved:Foo|}(2);
+        this.{|Resolved:Goo|}(1).{|Resolved:Goo|}(2);
     }
 }
 
 static class E
 {
-    public static C Foo(this C x, int tag) { return x; }
+    public static C Goo(this C x, int tag) { return x; }
 }
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="Foo")
+                    </Workspace>, host:=host, renameTo:="Goo")
 
-                    result.AssertLabeledSpansAre("Resolved", "E.Foo(E.Foo(this, 1), 2);", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("Resolved", "E.Goo(E.Goo(this, 1), 2);", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -1220,21 +1220,21 @@ class C
 {
     void [|$$Bar|]<T>()
     {
-        {|Replacement:this.{|Resolved:Foo|}<int>()|};
+        {|Replacement:this.{|Resolved:Goo|}<int>()|};
     }
 }
  
  
 static class E
 {
-    public static void Foo<T>(this C x) { }
+    public static void Goo<T>(this C x) { }
 }
                             ]]></Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="Foo")
+                    </Workspace>, host:=host, renameTo:="Goo")
 
                     result.AssertLabeledSpansAre("Resolved", type:=RelatedLocationType.ResolvedNonReferenceConflict)
-                    result.AssertLabeledSpansAre("Replacement", "E.Foo<int>(this)")
+                    result.AssertLabeledSpansAre("Replacement", "E.Goo<int>(this)")
                 End Using
             End Sub
 
@@ -1251,21 +1251,21 @@ class C
 {
     void [|$$Bar|]<T>(T y)
     {
-        {|Replacement:this.{|Resolved:Foo|}(42)|};
+        {|Replacement:this.{|Resolved:Goo|}(42)|};
     }
 }
  
  
 static class E
 {
-    public static void Foo<T>(this C x, T y) { }
+    public static void Goo<T>(this C x, T y) { }
 }
                             ]]></Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="Foo")
+                    </Workspace>, host:=host, renameTo:="Goo")
 
                     result.AssertLabeledSpansAre("Resolved", type:=RelatedLocationType.ResolvedNonReferenceConflict)
-                    result.AssertLabeledSpansAre("Replacement", "E.Foo(this, 42)")
+                    result.AssertLabeledSpansAre("Replacement", "E.Goo(this, 42)")
                 End Using
             End Sub
 
@@ -1364,7 +1364,7 @@ class Program
 using System;
 
 [{|Special:Something|}()]
-class Foo{ }
+class Goo{ }
 
 public class [|$$SomethingAttribute|] : Attribute
 {
@@ -1388,7 +1388,7 @@ public class [|$$SomethingAttribute|] : Attribute
 using System;
 
 [[|Something|]()]
-class Foo{ }
+class Goo{ }
 
 public class [|$$SomethingAttribute|] : Attribute
 {
@@ -1411,7 +1411,7 @@ public class [|$$SomethingAttribute|] : Attribute
 using System;
 
 [[|SomethingAttribute|]()]
-class Foo { }
+class Goo { }
 
 public class [|$$SomethingAttribute|] : Attribute
 {
@@ -1511,7 +1511,7 @@ class B
 using System;
 class C
 {
-    void Foo()
+    void Goo()
     {
         { int x; }
         {|Stmt1:Bar|}();
@@ -1536,7 +1536,7 @@ class C
 using System;
 class C
 {
-    void Foo()
+    void Goo()
     {
         int x;
         {|Stmt1:Bar|}();
@@ -1637,12 +1637,12 @@ namespace N
 {
     class A<T>
     {
-        public virtual void Foo(T x) { }
+        public virtual void Goo(T x) { }
         class B<S> : A<B<S>>
         {
             class [|$$C|]<U> : B<{|Resolve1:C|}<U>> // Rename C to A
             {
-                public override void Foo({|Resolve2:A|}<{|Resolve3:A|}<T>.B<S>>.B<{|Resolve4:A|}<T>.B<S>.{|Resolve1:C|}<U>> x) { }
+                public override void Goo({|Resolve2:A|}<{|Resolve3:A|}<T>.B<S>>.B<{|Resolve4:A|}<T>.B<S>.{|Resolve1:C|}<U>> x) { }
             }
         }
     }
@@ -1694,7 +1694,7 @@ namespace N
 {
     interface I
     {
-       void Foo();
+       void Goo();
     }
 }
 class C
@@ -1702,9 +1702,9 @@ class C
     class E : {|Resolve:F|}.I
     {
         /// <summary>
-        /// This is a function <see cref="{|Resolve:F|}.I.Foo"/>
+        /// This is a function <see cref="{|Resolve:F|}.I.Goo"/>
         /// </summary>
-        public void Foo() { }
+        public void Goo() { }
     }
     class [|$$K|]
     {
@@ -1752,19 +1752,19 @@ class [|$$B|]
                         <Document FilePath="Test.cs">
 class Bar
     {
-        void Foo(int x) { }
+        void Goo(int x) { }
         void [|Boo|](object x) { }
         void Some()
         {
-            Foo(1);
+            Goo(1);
             {|Resolve:$$Boo|}(1);
         }
     }
                             </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("Resolve", "Foo((object)1);", RelatedLocationType.ResolvedReferenceConflict)
+                result.AssertLabeledSpansAre("Resolve", "Goo((object)1);", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
@@ -1806,13 +1806,13 @@ class Program
 using System;
 class A 
 {
-    static void [|Foo|]() { }  
+    static void [|Goo|]() { }  
     class B
     {
         delegate void Del();
         void Boo()
         {
-            Del d = new Del({|Stmt1:Foo|});
+            Del d = new Del({|Stmt1:Goo|});
             {|Stmt2:$$Foo|}();
         }
     }
@@ -1843,7 +1843,7 @@ class A
         void Bar() { }
         void Boo()
         {
-            Del d = new Del({|Stmt1:Foo|});
+            Del d = new Del({|Stmt1:Goo|});
         }
     }
 }
@@ -1869,7 +1869,7 @@ class A
     class B
     {
         Del Boo = new Del({|decl1:Bar|});
-        void Foo()
+        void Goo()
         {
             Boo({|Stmt2:Bar|});
             {|Stmt3:$$Bar|}(Boo);
@@ -1897,8 +1897,8 @@ using System;
 
 class A
 {
-    static void Foo(int i) { }
-    static void Foo(string s) { }
+    static void Goo(int i) { }
+    static void Goo(string s) { }
     
     class B
     {
@@ -1906,15 +1906,15 @@ class A
         void [|$$Bar|](string s) { }
         void Boo()
         {
-            Del d = new Del({|stmt1:Foo|});
+            Del d = new Del({|stmt1:Goo|});
         }
     }
 }
                        </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Del d = new Del(A.Foo);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "Del d = new Del(A.Goo);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -1932,7 +1932,7 @@ class A
     class B
     {
         Action<int> Bar = (int x) => { };
-        void Foo()
+        void Goo()
         {
             {|Stmt1:Baz|}(3);            
         }
@@ -2009,7 +2009,7 @@ namespace X
     {
 
         [{|Resolve:B|}]
-        class Foo { }    
+        class Goo { }    
     }
 }
                         </Document>
@@ -2040,14 +2040,14 @@ class A
     {        
         B b = new B();
         dynamic d = 1.5f;
-        b.{|stmt1:$$Boo|}(d); //Line 2 Rename Boo to Foo    
+        b.{|stmt1:$$Boo|}(d); //Line 2 Rename Boo to Goo    
     }
 }
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Foo", RelatedLocationType.NoConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
@@ -2105,12 +2105,12 @@ static class C
  
 static class E
 {
-    public static void [|$$Ex|](this int x) { } // Rename Ex to Foo
+    public static void [|$$Ex|](this int x) { } // Rename Ex to Goo
 }
 
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
                 result.AssertLabeledSpansAre("resolved", "Outer((string y) => Inner(x => x.Ex(), y), 0);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
@@ -2127,7 +2127,7 @@ using System;
  
 class C
 {
-    static void [|$$Foo|](int x, Action y) { } // Rename Foo to Bar
+    static void [|$$Foo|](int x, Action y) { } // Rename Goo to Bar
     static void Bar(dynamic x, Action y) { }
  
     static void Main()
@@ -2230,7 +2230,7 @@ public class A
 		/// <summary>
 		/// <see cref=" {|Resolve:D|}"/>  
 		/// </summary>
-		public static void [|$$foo|]() // Rename foo to D
+		public static void [|$$foo|]() // Rename goo to D
 		{
 		}
 	}
@@ -2260,7 +2260,7 @@ using System;
 class C
 {
     static void F&lt;T&gt;(Func&lt;int, T&gt; x) { }
-    static void [|$$B|](Func&lt;int, int&gt; x) { } // Rename Bar to Foo
+    static void [|$$B|](Func&lt;int, int&gt; x) { } // Rename Bar to Goo
 
     static void Main()
     {
@@ -2290,17 +2290,17 @@ class C
     void TestMethod()
     {
         int x = 1;
-        Func&lt;int&gt; y = delegate { return {|stmt1:Foo|}(x); };
+        Func&lt;int&gt; y = delegate { return {|stmt1:Goo|}(x); };
     }
 
-    int Foo&lt;T&gt;(T x) { return 1; }
+    int Goo&lt;T&gt;(T x) { return 1; }
     int [|$$Bar|](int x) { return 1; }
 }
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "return Foo<int>(x);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "return Goo<int>(x);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2321,7 +2321,7 @@ class C
         void Bar(int x) { }
         void sub()
         {
-            {|stmt1:Foo|}(1);
+            {|stmt1:Goo|}(1);
         }
     }
 }
@@ -2342,20 +2342,20 @@ class C
                         <Document FilePath="Test.cs"><![CDATA[
 class C
 {
-    public int Foo<T>(T x) { return 1; }
-    public int [|$$Bar|](string x) {return 1; } // Rename Bar to Foo
+    public int Goo<T>(T x) { return 1; }
+    public int [|$$Bar|](string x) {return 1; } // Rename Bar to Goo
     public void Test()
     {
         string one = "1";
-        {|stmt1:Foo|}(one);
+        {|stmt1:Goo|}(one);
     }
 }
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Foo<string>(one);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo<string>(one);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2368,12 +2368,12 @@ class C
                         <Document FilePath="Test.cs"><![CDATA[
 class C
 {
-    public static void Foo<T>(T x) { }
-    public static void [|$$Bar|](D<int> x) { } // Rename Bar to Foo
+    public static void Goo<T>(T x) { }
+    public static void [|$$Bar|](D<int> x) { } // Rename Bar to Goo
     public void Sub()
     {
         D<int> x = new D<int>();
-        {|stmt1:Foo|}(x); 
+        {|stmt1:Goo|}(x); 
     }
 }
 
@@ -2382,9 +2382,9 @@ class D<T>
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Foo<D<int>>(x);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo<D<int>>(x);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2398,20 +2398,20 @@ class D<T>
 using System.Linq.Expressions;
 class C
 {
-    public static int Foo<T>(T x) { return 1; }
+    public static int Goo<T>(T x) { return 1; }
     public static int [|$$Bar|]<T>(Expression<Func<int, T>> x) { return 1; }
-    Expression<Func<int, int>> x = (y) => Foo(1);
+    Expression<Func<int, int>> x = (y) => Goo(1);
     public void sub()
     {
-        {|stmt1:Foo|}(x);
+        {|stmt1:Goo|}(x);
     }
 }
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Foo<Expression<Func<int, int>>>(x);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo<Expression<Func<int, int>>>(x);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2429,7 +2429,7 @@ class C
     public void Sub()
     {
         var x = new int[] { 1, 2, 3 };
-        {|stmt1:Foo|}(x);
+        {|stmt1:Goo|}(x);
     }
 }
 ]]>
@@ -2450,20 +2450,20 @@ class C
                         <Document FilePath="Test.cs"><![CDATA[
 class C
 {
-    public void Foo<S>(S x) { }
+    public void Goo<S>(S x) { }
     public void [|$$Bar|](int[,] x) { }
     public void Sub()
     {
         var x = new int[,] { { 1, 2 }, { 2, 3 }  };
-        {|stmt1:Foo|}(x);
+        {|stmt1:Goo|}(x);
     }
 }
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Foo<int[,]>(x);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo<int[,]>(x);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2476,20 +2476,20 @@ class C
                         <Document FilePath="Test.cs"><![CDATA[
 class C
 {
-    public int Foo<T>(T x) { return 1; }
+    public int Goo<T>(T x) { return 1; }
     public int [|$$Bar|](int x) {return 1; }
     public void Sub(int x) { }
     public void Test()
     {
-        Sub({|stmt1:Foo|}(1));
+        Sub({|stmt1:Goo|}(1));
     }
 }
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Sub(Foo<int>(1));", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "Sub(Goo<int>(1));", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2503,19 +2503,19 @@ class C
 class C
 {
     public C(int x) { }
-    public int Foo<T>(T x) { return 1; }
+    public int Goo<T>(T x) { return 1; }
     public int [|$$Bar|](int x) {return 1; }
     public void Test()
     {
-        C c = new C({|stmt1:Foo|}(1));
+        C c = new C({|stmt1:Goo|}(1));
     }
 }
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "C c = new C(Foo<int>(1));", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "C c = new C(Goo<int>(1));", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2528,20 +2528,20 @@ class C
                         <Document FilePath="Test.cs"><![CDATA[
 class C
 {
-    public int Foo<T>(T x) { return 1; }
-    public int [|$$Bar|](int x) {return 1; } // Rename Bar to Foo
+    public int Goo<T>(T x) { return 1; }
+    public int [|$$Bar|](int x) {return 1; } // Rename Bar to Goo
     public void Test()
     {
         C c = new C();
-        c.{|stmt1:Foo|}(1);
+        c.{|stmt1:Goo|}(1);
     }
 }
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "c.Foo<int>(1);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "c.Goo<int>(1);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2555,19 +2555,19 @@ class C
 class C
 {
     delegate int FooDel<T>(T x);
-    public int Foo<T>(T x) { return 1; }
-    public int [|$$Bar|](int x) {return 1; } // Rename Bar to Foo
+    public int Goo<T>(T x) { return 1; }
+    public int [|$$Bar|](int x) {return 1; } // Rename Bar to Goo
     public void Test()
     {
-        FooDel<int> foodel = new FooDel<int>({|stmt1:Foo|});
+        FooDel<int> foodel = new FooDel<int>({|stmt1:Goo|});
     }
 }
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "FooDel<int> foodel = new FooDel<int>(Foo<int>);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "FooDel<int> foodel = new FooDel<int>(Goo<int>);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2581,19 +2581,19 @@ class C
 class C
 {
     delegate int FooDel(int x);
-    public int Foo<T>(T x) { return 1; }
-    public int [|$$Bar|](int x) {return 1; } // Rename Bar to Foo
+    public int Goo<T>(T x) { return 1; }
+    public int [|$$Bar|](int x) {return 1; } // Rename Bar to Goo
     public void Test()
     {
-        FooDel foodel = new FooDel({|stmt1:Foo|});
+        FooDel foodel = new FooDel({|stmt1:Goo|});
     }
 }
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "FooDel foodel = new FooDel(Foo<int>);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "FooDel foodel = new FooDel(Goo<int>);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2606,20 +2606,20 @@ class C
                         <Document FilePath="Test.cs"><![CDATA[
 class C
 {
-    public void Foo<T, S>(T x, S y) { }
+    public void Goo<T, S>(T x, S y) { }
     public void [|$$Bar|]<U, P>(U[] x, P y) { }
     public void Sub()
     {
         int[] x;
-        {|stmt1:Foo|}(x, new C());
+        {|stmt1:Goo|}(x, new C());
     }
 }
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Foo<int[], C>(x, new C());", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo<int[], C>(x, new C());", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2633,22 +2633,22 @@ class C
                         <Document FilePath="Test.cs"><![CDATA[
 class C
 {
-    public void Foo<T>(T x) { }
+    public void Goo<T>(T x) { }
 }
 class D : C
 {
     public void [|$$Bar|](int x) { }
     public void Sub()
     {
-        {|stmt1:Foo|}(1);
+        {|stmt1:Goo|}(1);
     }
 }
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "base.Foo(1);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "base.Goo(1);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2687,8 +2687,8 @@ class C
                         <Document FilePath="Test.cs"><![CDATA[
 class C
 {
-    public static void Foo<T>(T x) { }
-    public static void [|$$Bar|](int x) { } // Rename Bar to Foo
+    public static void Goo<T>(T x) { }
+    public static void [|$$Bar|](int x) { } // Rename Bar to Goo
     public void Sub()
     {
         
@@ -2699,15 +2699,15 @@ class D
 {
     public void Sub()
     {
-        C.{|stmt1:Foo|}(1);
+        C.{|stmt1:Goo|}(1);
     }
 }
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "C.Foo<int>(1);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "C.Goo<int>(1);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2720,21 +2720,21 @@ class D
                         <Document FilePath="Test.cs"><![CDATA[
 class C<T>
 {
-    public static void Foo<T>(T x) { }
-    public static void [|$$Bar|](C<int> x) { } // Rename Bar to Foo
+    public static void Goo<T>(T x) { }
+    public static void [|$$Bar|](C<int> x) { } // Rename Bar to Goo
     public void Sub()
     {
         C<int> x = new C<int>();
-        {|stmt1:Foo|}(x); 
+        {|stmt1:Goo|}(x); 
     }
 }
 
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Foo<C<int>>(x);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo<C<int>>(x);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2772,23 +2772,23 @@ class C
                         <Document FilePath="Test.cs"><![CDATA[
 class C<T>
 {
-    public static void Foo<T>(T x) { }
-    public static void [|$$Bar|](int x) { } // Rename Bar to Foo
+    public static void Goo<T>(T x) { }
+    public static void [|$$Bar|](int x) { } // Rename Bar to Goo
 }
 
 class D : C<int>
 {
     public void Test()
     {
-        {|stmt1:Foo|}(1);
+        {|stmt1:Goo|}(1);
     }
 }
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Foo<int>(1);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo<int>(1);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 
@@ -2801,11 +2801,11 @@ class D : C<int>
                         <Document FilePath="Test.cs"><![CDATA[
 class C
 {
-    public void Foo<T>(T y,out T x)
+    public void Goo<T>(T y,out T x)
     {
         x = y;
     }
-    public void [|$$Bar|](int y, out int x) // Rename Bar to Foo
+    public void [|$$Bar|](int y, out int x) // Rename Bar to Goo
     {
         x = 1;
     }
@@ -2813,16 +2813,16 @@ class C
     {
         int y = 1;
         int x;
-        {|stmt1:Foo|}(y, x); // error in code, but Foo is bound to Foo<T>
+        {|stmt1:Goo|}(y, x); // error in code, but Goo is bound to Goo<T>
     }
 }
 
 ]]>
                         </Document>
                     </Project>
-                </Workspace>, host:=host, renameTo:="Foo")
+                </Workspace>, host:=host, renameTo:="Goo")
 
-                result.AssertLabeledSpansAre("stmt1", "Foo<int>(y, x);", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("stmt1", "Goo<int>(y, x);", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
 #End Region

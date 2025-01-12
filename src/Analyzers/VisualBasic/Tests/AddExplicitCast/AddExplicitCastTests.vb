@@ -1926,7 +1926,7 @@ Class Program
     End Class
 
     Private Sub M()
-        Dim foo As Func(Of Base, Derived) = Function(d) d[||]
+        Dim goo As Func(Of Base, Derived) = Function(d) d[||]
     End Sub
 End Class",
 "Option Strict On
@@ -1941,7 +1941,7 @@ Class Program
     End Class
 
     Private Sub M()
-        Dim foo As Func(Of Base, Derived) = Function(d) CType(d, Derived)
+        Dim goo As Func(Of Base, Derived) = Function(d) CType(d, Derived)
     End Sub
 End Class")
         End Function

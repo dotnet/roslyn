@@ -1191,15 +1191,15 @@ Public Class Program2
         Inherits Base
     End Class
 
-    Public Sub Foo(ByRef d As Derived, i As Integer)
+    Public Sub Goo(ByRef d As Derived, i As Integer)
     End Sub
 
-    Public Sub Foo(ByRef d As Derived, d2 As Derived)
+    Public Sub Goo(ByRef d As Derived, d2 As Derived)
     End Sub
 
     Public Sub M()
         Dim b As Base = New Derived
-        Foo(b, 1)
+        Goo(b, 1)
     End Sub
 End Class]]>
                                 </Document>
@@ -1216,15 +1216,15 @@ Public Class Program3
         Inherits Base
     End Class
 
-    Public Sub Foo(ByRef d As Derived, i As Integer)
+    Public Sub Goo(ByRef d As Derived, i As Integer)
     End Sub
 
-    Public Sub Foo(ByRef d As Derived, d2 As Derived)
+    Public Sub Goo(ByRef d As Derived, d2 As Derived)
     End Sub
 
     Public Sub M()
         Dim b As Base = New Derived
-        Foo(b, 1)
+        Goo(b, 1)
     End Sub
 End Class]]>
                                 </Document>
@@ -1291,15 +1291,15 @@ Public Class Program2
         Inherits Base
     End Class
 
-    Public Sub Foo(ByRef d As Derived, i As Integer)
+    Public Sub Goo(ByRef d As Derived, i As Integer)
     End Sub
 
-    Public Sub Foo(ByRef d As Derived, d2 As Derived)
+    Public Sub Goo(ByRef d As Derived, d2 As Derived)
     End Sub
 
     Public Sub M()
         Dim b As Base = New Derived
-        Foo(b, 1)
+        Goo(b, 1)
     End Sub
 End Class]]>
                                    </Document>
@@ -1316,15 +1316,15 @@ Public Class Program3
         Inherits Base
     End Class
 
-    Public Sub Foo(ByRef d As Derived, i As Integer)
+    Public Sub Goo(ByRef d As Derived, i As Integer)
     End Sub
 
-    Public Sub Foo(ByRef d As Derived, d2 As Derived)
+    Public Sub Goo(ByRef d As Derived, d2 As Derived)
     End Sub
 
     Public Sub M()
         Dim b As Base = New Derived
-        Foo(b, 1)
+        Goo(b, 1)
     End Sub
 End Class]]>
                                    </Document>
@@ -1396,15 +1396,15 @@ Public Class Program2
         Inherits Base
     End Class
 
-    Public Sub Foo(ByRef d As Derived, i As Integer)
+    Public Sub Goo(ByRef d As Derived, i As Integer)
     End Sub
 
-    Public Sub Foo(ByRef d As Derived, d2 As Derived)
+    Public Sub Goo(ByRef d As Derived, d2 As Derived)
     End Sub
 
     Public Sub M()
         Dim b As Base = New Derived
-        Foo(b, 1)
+        Goo(b, 1)
     End Sub
 End Class]]>
                                 </Document>
@@ -1421,15 +1421,15 @@ Public Class Program3
         Inherits Base
     End Class
 
-    Public Sub Foo(ByRef d As Derived, i As Integer)
+    Public Sub Goo(ByRef d As Derived, i As Integer)
     End Sub
 
-    Public Sub Foo(ByRef d As Derived, d2 As Derived)
+    Public Sub Goo(ByRef d As Derived, d2 As Derived)
     End Sub
 
     Public Sub M()
         Dim b As Base = New Derived
-        Foo(b, 1)
+        Goo(b, 1)
     End Sub
 End Class]]>
                                 </Document>
@@ -1496,15 +1496,15 @@ Public Class Program2
         Inherits Base
     End Class
 
-    Public Sub Foo(ByRef d As Derived, i As Integer)
+    Public Sub Goo(ByRef d As Derived, i As Integer)
     End Sub
 
-    Public Sub Foo(ByRef d As Derived, d2 As Derived)
+    Public Sub Goo(ByRef d As Derived, d2 As Derived)
     End Sub
 
     Public Sub M()
         Dim b As Base = New Derived
-        Foo(CType(b, Derived), 1)
+        Goo(CType(b, Derived), 1)
     End Sub
 End Class]]>
                                    </Document>
@@ -1521,15 +1521,15 @@ Public Class Program3
         Inherits Base
     End Class
 
-    Public Sub Foo(ByRef d As Derived, i As Integer)
+    Public Sub Goo(ByRef d As Derived, i As Integer)
     End Sub
 
-    Public Sub Foo(ByRef d As Derived, d2 As Derived)
+    Public Sub Goo(ByRef d As Derived, d2 As Derived)
     End Sub
 
     Public Sub M()
         Dim b As Base = New Derived
-        Foo(b, 1)
+        Goo(b, 1)
     End Sub
 End Class]]>
                                    </Document>
@@ -1601,15 +1601,15 @@ Public Class Program2
         Inherits Base
     End Class
 
-    Public Sub Foo(ByRef d As Derived, i As Integer)
+    Public Sub Goo(ByRef d As Derived, i As Integer)
     End Sub
 
-    Public Sub Foo(ByRef d As Derived, d2 As Derived)
+    Public Sub Goo(ByRef d As Derived, d2 As Derived)
     End Sub
 
     Public Sub M()
         Dim b As Base = New Derived
-        Foo(b, 1)
+        Goo(b, 1)
     End Sub
 End Class]]>
                                 </Document>
@@ -1626,15 +1626,15 @@ Public Class Program3
         Inherits Base
     End Class
 
-    Public Sub Foo(ByRef d As Derived, i As Integer)
+    Public Sub Goo(ByRef d As Derived, i As Integer)
     End Sub
 
-    Public Sub Foo(ByRef d As Derived, d2 As Derived)
+    Public Sub Goo(ByRef d As Derived, d2 As Derived)
     End Sub
 
     Public Sub M()
         Dim b As Base = New Derived
-        Foo(b, 1)
+        Goo(b, 1)
     End Sub
 End Class]]>
                                 </Document>
@@ -1701,15 +1701,15 @@ Public Class Program2
         Inherits Base
     End Class
 
-    Public Sub Foo(ByRef d As Derived, i As Integer)
+    Public Sub Goo(ByRef d As Derived, i As Integer)
     End Sub
 
-    Public Sub Foo(ByRef d As Derived, d2 As Derived)
+    Public Sub Goo(ByRef d As Derived, d2 As Derived)
     End Sub
 
     Public Sub M()
         Dim b As Base = New Derived
-        Foo(CType(b, Derived), 1)
+        Goo(CType(b, Derived), 1)
     End Sub
 End Class]]>
                                    </Document>
@@ -1726,15 +1726,15 @@ Public Class Program3
         Inherits Base
     End Class
 
-    Public Sub Foo(ByRef d As Derived, i As Integer)
+    Public Sub Goo(ByRef d As Derived, i As Integer)
     End Sub
 
-    Public Sub Foo(ByRef d As Derived, d2 As Derived)
+    Public Sub Goo(ByRef d As Derived, d2 As Derived)
     End Sub
 
     Public Sub M()
         Dim b As Base = New Derived
-        Foo(CType(b, Derived), 1)
+        Goo(CType(b, Derived), 1)
     End Sub
 End Class]]>
                                    </Document>

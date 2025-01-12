@@ -31,11 +31,11 @@ internal static partial class OperationExtensions
         | x.Prop = 1               |      |  ✔️   |             |             |                 |
         | x.Prop += 1              |  ✔️  |  ✔️   |             |             |                 |
         | x.Prop++                 |  ✔️  |  ✔️   |             |             |                 |
-        | Foo(x.Prop)              |  ✔️  |       |             |             |                 |
-        | Foo(x.Prop),             |      |       |     ✔️      |             |                 |
-           where void Foo(in T v)
-        | Foo(out x.Prop)          |      |       |             |     ✔️      |                 |
-        | Foo(ref x.Prop)          |      |       |     ✔️      |     ✔️      |                 |
+        | Goo(x.Prop)              |  ✔️  |       |             |             |                 |
+        | Goo(x.Prop),             |      |       |     ✔️      |             |                 |
+           where void Goo(in T v)
+        | Goo(out x.Prop)          |      |       |             |     ✔️      |                 |
+        | Goo(ref x.Prop)          |      |       |     ✔️      |     ✔️      |                 |
         | nameof(x)                |      |       |             |             |       ✔️        | ️
         | sizeof(x)                |      |       |             |             |       ✔️        | ️
         | typeof(x)                |      |       |             |             |       ✔️        | ️

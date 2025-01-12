@@ -56,7 +56,7 @@ public sealed class PrepareRenameTests(ITestOutputHelper testOutputHelper) : Abs
 {
     void M()
     {
-        var {|caret:|}{|range:@foo|} = 1;
+        var {|caret:|}{|range:@goo|} = 1;
     }
 }";
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);

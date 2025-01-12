@@ -1055,7 +1055,7 @@ Namespace TestNs
             Return New T1()
         End Function
 
-        Public Shared Function Foo(item As T2) As T2
+        Public Shared Function Goo(item As T2) As T2
             Return item
         End Function
 
@@ -1076,7 +1076,7 @@ End Namespace"
             Dim expectedText1 = "
 Namespace TestNs
     Public Class Class1(Of T1 As New, T2, T3)
-        Public Shared Function Foo(item As T2) As T2
+        Public Shared Function Goo(item As T2) As T2
             Return item
         End Function
 
@@ -2519,12 +2519,12 @@ End Namespace
             Dim initialMarkup = "
 Namespace TestNs
     Public Class Class1
-        [|Public Shared Foo As Integer = 0, Goo As Integer = 0|]
+        [|Public Shared Goo As Integer = 0, Goo As Integer = 0|]
     End Class
 End Namespace"
             Dim newTypeName = "Class1Helpers"
             Dim newFileName = "Class1Helpers.vb"
-            Dim selection = ImmutableArray.Create("Foo", "Goo")
+            Dim selection = ImmutableArray.Create("Goo", "Goo")
             Dim expectedText1 = "
 Namespace TestNs
     Public Class Class1
@@ -2532,7 +2532,7 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Class Class1Helpers
-        Public Shared Foo As Integer = 0
+        Public Shared Goo As Integer = 0
         Public Shared Goo As Integer = 0
     End Class
 End Namespace
@@ -2551,7 +2551,7 @@ Namespace TestNs
 End Namespace"
             Dim newTypeName = "Class1Helpers"
             Dim newFileName = "Class1Helpers.vb"
-            Dim selection = ImmutableArray.Create("Foo")
+            Dim selection = ImmutableArray.Create("Goo")
             Dim expectedText1 = "
 Namespace TestNs
     Public Class Class1
@@ -2560,7 +2560,7 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Class Class1Helpers
-        Public Shared Foo As Integer = 0
+        Public Shared Goo As Integer = 0
     End Class
 End Namespace
 "
@@ -2573,7 +2573,7 @@ End Namespace
             Dim initialMarkup = "
 Namespace TestNs
     Public Class Class1
-        [|Public Shared Foo As Integer = 0
+        [|Public Shared Goo As Integer = 0
 
         Public Shared Function DoSomething() As Integer
             Return 4
@@ -2582,7 +2582,7 @@ Namespace TestNs
 End Namespace"
             Dim newTypeName = "Class1Helpers"
             Dim newFileName = "Class1Helpers.vb"
-            Dim selection = ImmutableArray.Create("Foo", "DoSomething")
+            Dim selection = ImmutableArray.Create("Goo", "DoSomething")
             Dim expectedText1 = "
 Namespace TestNs
     Public Class Class1
@@ -2590,7 +2590,7 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Class Class1Helpers
-        Public Shared Foo As Integer = 0
+        Public Shared Goo As Integer = 0
 
         Public Shared Function DoSomething() As Integer
             Return 4
@@ -2610,12 +2610,12 @@ Namespace TestNs
         Public Shared Function DoSomething() As Integer
             Return 4
         End [|Function
-        Public Shared Foo As Integer = 0|]
+        Public Shared Goo As Integer = 0|]
     End Class
 End Namespace"
             Dim newTypeName = "Class1Helpers"
             Dim newFileName = "Class1Helpers.vb"
-            Dim selection = ImmutableArray.Create("Foo")
+            Dim selection = ImmutableArray.Create("Goo")
             Dim expectedText1 = "
 Namespace TestNs
     Public Class Class1
@@ -2626,7 +2626,7 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Class Class1Helpers
-        Public Shared Foo As Integer = 0
+        Public Shared Goo As Integer = 0
     End Class
 End Namespace
 "
@@ -2644,7 +2644,7 @@ Namespace TestNs
                 Return 4
             [|End Get
         End Property
-        Public Shared Foo As Integer = 0
+        Public Shared Goo As Integer = 0
         Public Shared Function DoSometh|]ing() As Integer
             Return 4
         End Function
@@ -2652,7 +2652,7 @@ Namespace TestNs
 End Namespace"
             Dim newTypeName = "Class1Helpers"
             Dim newFileName = "Class1Helpers.vb"
-            Dim selection = ImmutableArray.Create("Foo", "DoSomething")
+            Dim selection = ImmutableArray.Create("Goo", "DoSomething")
             Dim expectedText1 = "
 Namespace TestNs
     Public Class Class1
@@ -2665,7 +2665,7 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Class Class1Helpers
-        Public Shared Foo As Integer = 0
+        Public Shared Goo As Integer = 0
 
         Public Shared Function DoSomething() As Integer
             Return 4
@@ -2687,7 +2687,7 @@ Namespace TestNs
                 Return 4
             End Get
         End Property
-        Public Shared Foo As Integer = 0
+        Public Shared Goo As Integer = 0
         Public Shared F|]unction DoSomething() As Integer
             Return 4
         End Function
@@ -2695,7 +2695,7 @@ Namespace TestNs
 End Namespace"
             Dim newTypeName = "Class1Helpers"
             Dim newFileName = "Class1Helpers.vb"
-            Dim selection = ImmutableArray.Create("Foo", "Prop")
+            Dim selection = ImmutableArray.Create("Goo", "Prop")
             Dim expectedText1 = "
 Namespace TestNs
     Public Class Class1
@@ -2706,7 +2706,7 @@ Namespace TestNs
 End Namespace"
             Dim expectedText2 = "Namespace TestNs
     Class Class1Helpers
-        Public Shared Foo As Integer = 0
+        Public Shared Goo As Integer = 0
 
         Public Shared ReadOnly Property Prop As Integer
             Get
@@ -2885,7 +2885,7 @@ End Namespace"
             Dim initialMarkup = "
 Namespace TestNs
     Public Class Class1
-        Public Shared Function Foo() As Integer
+        Public Shared Function Goo() As Integer
             [|Return 0|]
         End Function
     End Class

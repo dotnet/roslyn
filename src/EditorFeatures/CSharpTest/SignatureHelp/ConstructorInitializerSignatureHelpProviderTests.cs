@@ -200,16 +200,16 @@ public class ConstructorInitializerSignatureHelpProviderTests : AbstractCSharpSi
     public async Task TestThisInvocationWithNonEmptyArgumentList()
     {
         var markup = """
-            class Foo
+            class Goo
             {
-                public Foo(int a, int b) [|: this($$|]) { }
-                public Foo() { }
+                public Goo(int a, int b) [|: this($$|]) { }
+                public Goo() { }
             }
             """;
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 0),
+            new SignatureHelpTestItem("Goo()", string.Empty, null, currentParameterIndex: 0),
         };
 
         await TestAsync(markup, expectedOrderedItems);
@@ -238,16 +238,16 @@ public class ConstructorInitializerSignatureHelpProviderTests : AbstractCSharpSi
     public async Task TestThisInvocationWithoutClosingParenWithNonEmptyArgumentList()
     {
         var markup = """
-            class Foo
+            class Goo
             {
-                public Foo() { }
-                public Foo(int a, int b)  [|: this($$
+                public Goo() { }
+                public Goo(int a, int b)  [|: this($$
             |]}
             """;
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 0),
+            new SignatureHelpTestItem("Goo()", string.Empty, null, currentParameterIndex: 0),
         };
 
         await TestAsync(markup, expectedOrderedItems);
@@ -342,16 +342,16 @@ public class ConstructorInitializerSignatureHelpProviderTests : AbstractCSharpSi
     public async Task TestInvocationOnTriggerParensWithNonEmptyArgumentList()
     {
         var markup = """
-            class Foo
+            class Goo
             {
-                public Foo(int a) : this($$
-                public Foo() { }
+                public Goo(int a) : this($$
+                public Goo() { }
             }
             """;
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 0),
+            new SignatureHelpTestItem("Goo()", string.Empty, null, currentParameterIndex: 0),
         };
 
         await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
@@ -380,16 +380,16 @@ public class ConstructorInitializerSignatureHelpProviderTests : AbstractCSharpSi
     public async Task TestInvocationOnTriggerCommaWithNonEmptyArgumentList()
     {
         var markup = """
-            class Foo
+            class Goo
             {
-                public Foo(int a, int b) : this($$
-                public Foo() { }
+                public Goo(int a, int b) : this($$
+                public Goo() { }
             }
             """;
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 0),
+            new SignatureHelpTestItem("Goo()", string.Empty, null, currentParameterIndex: 0),
         };
 
         await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);

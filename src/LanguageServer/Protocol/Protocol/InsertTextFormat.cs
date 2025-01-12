@@ -22,7 +22,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// The primary text to be inserted is treated as a snippet.
         /// <para>
         /// A snippet can define tab stops and placeholders with <c>$1</c>, <c>$2</c>
-        /// and <c>${3:foo}</c>. <c>$0</c> defines the final tab stop and defaults to
+        /// and <c>${3:goo}</c>. <c>$0</c> defines the final tab stop and defaults to
         /// the end of the snippet. Placeholders with equal identifiers are
         /// linked, such that typing in one will update others too.
         /// </para>

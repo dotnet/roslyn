@@ -483,7 +483,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedAndSystemPlacedFirstIgnored()
     {
         var testCode = """
-            namespace Foo
+            namespace Goo
             {
                 [|using Microsoft.CodeAnalysis;
                 using SystemAction = System.Action;
@@ -514,7 +514,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             {|Warning:using System.Collections.Generic;|}
             {|Warning:using System.Collections;|}
 
-            namespace Foo
+            namespace Goo
             {
                 public class Bar
                 {
@@ -529,7 +529,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedAndAlphaSortIgnored()
     {
         var testCode = """
-            namespace Foo
+            namespace Goo
             {
                 [|using Microsoft.CodeAnalysis;
                 using SystemAction = System.Action;
@@ -560,7 +560,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             {|Warning:using System.Collections.Generic;|}
             {|Warning:using System.Collections;|}
 
-            namespace Foo
+            namespace Goo
             {
                 public class Bar
                 {
@@ -807,7 +807,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             using System.Collections.Generic;
             using System.Collections;|]
 
-            namespace Foo
+            namespace Goo
             {
                 public class Bar
                 {
@@ -816,7 +816,7 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             """;
 
         var fixedTestCode = """
-            namespace Foo
+            namespace Goo
             {
                 {|Warning:using Microsoft.CodeAnalysis;|}
                 {|Warning:using SystemAction = System.Action;|}

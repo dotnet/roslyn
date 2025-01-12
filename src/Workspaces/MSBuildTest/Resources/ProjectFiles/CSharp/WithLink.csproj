@@ -45,8 +45,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\OtherStuff\Foo.cs">
-      <Link>Blah\Foo.cs</Link>
+    <Compile Include="..\OtherStuff\Goo.cs">
+      <Link>Blah\Goo.cs</Link>
     </Compile>
     <Compile Include="CSharpClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

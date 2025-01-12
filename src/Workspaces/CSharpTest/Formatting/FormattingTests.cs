@@ -9435,7 +9435,7 @@ class C
                 @"
 public class Test
 {
-    public void Foo()
+    public void Goo()
     {
         (Action, Action, Action) tuple = (
             () => { Console.WriteLine(2.997e8); },
@@ -9447,7 +9447,7 @@ public class Test
                 @"
 public class Test
 {
-    public void Foo()
+    public void Goo()
     {
         (Action, Action, Action) tuple = (
             () => { Console.WriteLine(2.997e8); },
@@ -9465,7 +9465,7 @@ public class Test
                 @"
 public class Test
 {
-    public void Foo()
+    public void Goo()
     {
         (Action, Action, Action) tuple = (
             () => { Console.WriteLine(2.997e8); },
@@ -9477,7 +9477,7 @@ public class Test
                 @"
 public class Test
 {
-    public void Foo()
+    public void Goo()
     {
         (Action, Action, Action) tuple = (
             () => { Console.WriteLine(2.997e8); }                             ,        
@@ -10069,7 +10069,7 @@ class A
     {
         return a is
         {
-            Name: ""foo"",
+            Name: ""goo"",
         };
     }
 }",
@@ -10081,7 +10081,7 @@ class A
     public bool IsFoo(A a)
     {
         return a is {
-            Name: ""foo"",
+            Name: ""goo"",
         };
     }
 }");
@@ -10103,7 +10103,7 @@ class A
     public bool IsFoo(A a)
     {
         return a is {
-            Name: ""foo"",
+            Name: ""goo"",
         };
     }
 }",
@@ -10116,7 +10116,7 @@ class A
     {
         return a is
         {
-            Name: ""foo"",
+            Name: ""goo"",
         };
     }
 }", changedOptionSet: changingOptions);
@@ -10139,7 +10139,7 @@ class A
     public bool IsFoo(A a)
     {
         return a switch {
-            { Name: ""foo"" } => true,
+            { Name: ""goo"" } => true,
             _ => false,
         };
     }
@@ -10153,7 +10153,7 @@ class A
     {
         return a switch
         {
-            { Name: ""foo"" } => true,
+            { Name: ""goo"" } => true,
             _ => false,
         };
     }
@@ -10175,7 +10175,7 @@ class A
 
     public bool IsFoo(A a)
     {
-        return a is { Name: ""foo"" };
+        return a is { Name: ""goo"" };
     }
 }";
             await AssertFormatAsync(code, code, changedOptionSet: changingOptions);
