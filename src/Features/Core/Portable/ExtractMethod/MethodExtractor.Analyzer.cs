@@ -730,6 +730,9 @@ internal abstract partial class AbstractExtractMethodService<
                     return;
                 }
 
+                // Only care about type parameters declared outside of the span being selected.  If the type parameter
+                // is within the selection, that means it comes from a generic local function and would not otherwise be
+                // usable by the calling method.
                 var selectionSpan = this.SelectionResult.FinalSpan;
                 if (typeParameter.Locations is not [var location] || selectionSpan.Contains(location.SourceSpan))
                     return;
