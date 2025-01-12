@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Metalama.Compiler.Services;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

@@ -1455,9 +1455,25 @@ namespace Microsoft.CodeAnalysis
                     compilation, analyzerConfigProvider,
                     new(this.IsLongRunningProcess),
                     diagnostics);
+
                 foreach (var transformer in transformers)
                 {
-                    serviceProvider = (transformer as ISourceTransformerWithServices)?.InitializeServices(getServicesContext);
+                    try
+                    {
+                        serviceProvider = (transformer as ISourceTransformerWithServices)?.InitializeServices(getServicesContext);
+                    }
+                    catch (Exception ex)
+                    {
+                        var crashReportPath = CrashReporter.WriteCrashReport(ex);
+
+                        // Report a diagnostic.
+                        var diagnostic = Diagnostic.Create(new DiagnosticInfo(
+                            MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_ServiceInitializationFailed, ex.Message, crashReportPath ?? "<crash reporter failed>"));
+
+                        diagnostics.Add(diagnostic);
+
+                        return;
+                    }
 
                     if (serviceProvider != null)
                         break;
