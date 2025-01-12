@@ -5213,66 +5213,67 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ExpressionElementSyntax { Expression: CollectionExpressionSyntax nestedCollectionExpression } => @this.BindCollectionExpression(nestedCollectionExpression, diagnostics, nestingLevel + 1),
                     ExpressionElementSyntax expressionElementSyntax => @this.BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
                     KeyValuePairElementSyntax kvpElementSyntax => @this.BindKeyValuePair(kvpElementSyntax, diagnostics),
-                    SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics, @this),
+                    SpreadElementSyntax spreadElementSyntax => @this.BindSpreadElement(spreadElementSyntax, diagnostics),
+                    CollectionArgumentsSyntax collectionArgumentsSyntax => @this.BindCollectionArguments(collectionArgumentsSyntax, diagnostics),
                     _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
                 };
             }
+        }
 
-            static BoundNode bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this)
+        private BoundNode BindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            var expression = this.BindRValueWithoutTargetType(syntax.Expression, diagnostics);
+            ForEachEnumeratorInfo.Builder builder;
+            bool hasErrors = !this.GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
+                builder.IsIncomplete;
+            if (hasErrors)
             {
-                var expression = @this.BindRValueWithoutTargetType(syntax.Expression, diagnostics);
-                ForEachEnumeratorInfo.Builder builder;
-                bool hasErrors = !@this.GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
-                    builder.IsIncomplete;
-                if (hasErrors)
-                {
-                    return new BoundCollectionExpressionSpreadElement(
-                        syntax,
-                        expression,
-                        expressionPlaceholder: null,
-                        conversion: null,
-                        enumeratorInfoOpt: null,
-                        lengthOrCount: null,
-                        elementPlaceholder: null,
-                        iteratorBody: null,
-                        hasErrors);
-                }
-
-                Debug.Assert(expression.Type is { });
-
-                var expressionPlaceholder = new BoundCollectionExpressionSpreadExpressionPlaceholder(syntax.Expression, expression.Type);
-                var enumeratorInfo = builder.Build(location: default);
-                var collectionType = enumeratorInfo.CollectionType;
-                var useSiteInfo = @this.GetNewCompoundUseSiteInfo(diagnostics);
-                var conversion = @this.Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: @this.CheckOverflowAtRuntime, ref useSiteInfo);
-                Debug.Assert(conversion.IsValid);
-                diagnostics.Add(syntax.Expression, useSiteInfo);
-                var convertedExpression = @this.ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
-
-                BoundExpression? lengthOrCount;
-
-                if (enumeratorInfo is { InlineArraySpanType: not WellKnownType.Unknown })
-                {
-                    _ = expression.Type.HasInlineArrayAttribute(out int length);
-                    Debug.Assert(length > 0);
-                    lengthOrCount = new BoundLiteral(expression.Syntax, ConstantValue.Create(length), @this.GetSpecialType(SpecialType.System_Int32, diagnostics, expression.Syntax)) { WasCompilerGenerated = true };
-                }
-                else if (!@this.TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
-                {
-                    lengthOrCount = null;
-                }
-
                 return new BoundCollectionExpressionSpreadElement(
                     syntax,
                     expression,
-                    expressionPlaceholder: expressionPlaceholder,
-                    conversion: convertedExpression,
-                    enumeratorInfo,
-                    lengthOrCount: lengthOrCount,
+                    expressionPlaceholder: null,
+                    conversion: null,
+                    enumeratorInfoOpt: null,
+                    lengthOrCount: null,
                     elementPlaceholder: null,
                     iteratorBody: null,
-                    hasErrors: false);
+                    hasErrors);
             }
+
+            Debug.Assert(expression.Type is { });
+
+            var expressionPlaceholder = new BoundCollectionExpressionSpreadExpressionPlaceholder(syntax.Expression, expression.Type);
+            var enumeratorInfo = builder.Build(location: default);
+            var collectionType = enumeratorInfo.CollectionType;
+            var useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
+            var conversion = this.Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: this.CheckOverflowAtRuntime, ref useSiteInfo);
+            Debug.Assert(conversion.IsValid);
+            diagnostics.Add(syntax.Expression, useSiteInfo);
+            var convertedExpression = this.ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
+
+            BoundExpression? lengthOrCount;
+
+            if (enumeratorInfo is { InlineArraySpanType: not WellKnownType.Unknown })
+            {
+                _ = expression.Type.HasInlineArrayAttribute(out int length);
+                Debug.Assert(length > 0);
+                lengthOrCount = new BoundLiteral(expression.Syntax, ConstantValue.Create(length), this.GetSpecialType(SpecialType.System_Int32, diagnostics, expression.Syntax)) { WasCompilerGenerated = true };
+            }
+            else if (!this.TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
+            {
+                lengthOrCount = null;
+            }
+
+            return new BoundCollectionExpressionSpreadElement(
+                syntax,
+                expression,
+                expressionPlaceholder: expressionPlaceholder,
+                conversion: convertedExpression,
+                enumeratorInfo,
+                lengthOrCount: lengthOrCount,
+                elementPlaceholder: null,
+                iteratorBody: null,
+                hasErrors: false);
         }
 
         private BoundNode BindKeyValuePair(KeyValuePairElementSyntax syntax, BindingDiagnosticBag diagnostics)
@@ -5281,6 +5282,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             var key = BindValue(syntax.KeyExpression, diagnostics, BindValueKind.RValue);
             var value = BindValue(syntax.ValueExpression, diagnostics, BindValueKind.RValue);
             return new BoundKeyValuePairElement(syntax, key, value);
+        }
+
+        // Similar to BindImplicitObjectCreationExpression.
+        private BoundNode BindCollectionArguments(CollectionArgumentsSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax.ArgsKeyword);
+
+            var arguments = AnalyzedArguments.GetInstance();
+            BindArgumentsAndNames(syntax.ArgumentList, diagnostics, arguments, allowArglist: true);
+            var result = new BoundUnconvertedCollectionArguments(
+                syntax,
+                arguments.Arguments.ToImmutable(),
+                arguments.Names.ToImmutableOrNull(),
+                arguments.RefKinds.ToImmutableOrNull(),
+                binder: this);
+            arguments.Free();
+            return result;
         }
 #nullable disable
 

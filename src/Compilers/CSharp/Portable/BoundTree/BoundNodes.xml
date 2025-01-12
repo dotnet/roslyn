@@ -1921,6 +1921,10 @@
     <!-- An expression placeholder value representing the initialized collection. -->
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
     <!-- Constructor call to create the empty collection type. -->
+    <!--
+    PROTOTYPE: Should we bundle the collection arguments with the elements, as a single call, in the converted BoundCollectionExpression?
+    If so, this starts to feel like a lowered version of the collection expression. But if not, why not?
+    -->
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
     <!-- Construct method for collection types with [CollectionBuilder]. -->
     <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
@@ -1958,6 +1962,13 @@
     <Field Name="Value" Type="BoundExpression"/>
   </Node>
 
+  <Node Name="BoundUnconvertedCollectionArguments" Base="BoundNode">
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;(string Name, Location Location)?&gt;" Null="allow"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+    <Field Name="Binder" Type="Binder" Null="disallow"/>
+  </Node>
+  
   <!-- 
   Tuple literals can exist in two forms - literal and converted literal.
   This is the base node for both forms.

@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.KeyValuePairElement(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.ColonToken), GenerateIdentifierName());
 
         private static Syntax.InternalSyntax.CollectionArgumentsSyntax GenerateCollectionArguments()
-            => InternalSyntaxFactory.CollectionArguments(InternalSyntaxFactory.Identifier("ArgsKeyword"), GenerateArgumentList());
+            => InternalSyntaxFactory.CollectionArguments(InternalSyntaxFactory.Token(SyntaxKind.ArgsKeyword), GenerateArgumentList());
 
         private static Syntax.InternalSyntax.QueryExpressionSyntax GenerateQueryExpression()
             => InternalSyntaxFactory.QueryExpression(GenerateFromClause(), GenerateQueryBody());
@@ -1605,7 +1605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateCollectionArguments();
 
-            Assert.Equal(SyntaxKind.IdentifierToken, node.ArgsKeyword.Kind);
+            Assert.Equal(SyntaxKind.ArgsKeyword, node.ArgsKeyword.Kind);
             Assert.NotNull(node.ArgumentList);
 
             AttachAndCheckDiagnostics(node);
@@ -10524,7 +10524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.KeyValuePairElement(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.ColonToken), GenerateIdentifierName());
 
         private static CollectionArgumentsSyntax GenerateCollectionArguments()
-            => SyntaxFactory.CollectionArguments(SyntaxFactory.Identifier("ArgsKeyword"), GenerateArgumentList());
+            => SyntaxFactory.CollectionArguments(SyntaxFactory.Token(SyntaxKind.ArgsKeyword), GenerateArgumentList());
 
         private static QueryExpressionSyntax GenerateQueryExpression()
             => SyntaxFactory.QueryExpression(GenerateFromClause(), GenerateQueryBody());
@@ -11902,7 +11902,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateCollectionArguments();
 
-            Assert.Equal(SyntaxKind.IdentifierToken, node.ArgsKeyword.Kind());
+            Assert.Equal(SyntaxKind.ArgsKeyword, node.ArgsKeyword.Kind());
             Assert.NotNull(node.ArgumentList);
             var newNode = node.WithArgsKeyword(node.ArgsKeyword).WithArgumentList(node.ArgumentList);
             Assert.Equal(node, newNode);

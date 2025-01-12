@@ -14,16 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 
         public static readonly TheoryData<LanguageVersion> LanguageVersions = new([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
 
-        // PROTOTYPE: Update parser to generate a  specific CollectionExpressionSyntax.Arguments field.
-        // PROTOTYPE: Test [args].
-        // PROTOTYPE: Test [args()].
-        // PROTOTYPE: Test [args(), args].
-        // PROTOTYPE: Test [args(...),].
-        // PROTOTYPE: Test [args(x), args(y)].
-        // PROTOTYPE: Test [.. args()].
-        // PROTOTYPE: Test [x:args()].
-        // PROTOTYPE: Test [args():y].
-
         [Theory]
         [MemberData(nameof(LanguageVersions))]
         public void Arguments_01(LanguageVersion languageVersion)

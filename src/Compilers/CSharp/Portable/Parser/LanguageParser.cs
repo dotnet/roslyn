@@ -12721,6 +12721,11 @@ done:
             if (this.IsAtDotDotToken())
                 return _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore());
 
+            if (this.CurrentToken.ContextualKind == SyntaxKind.ArgsKeyword)
+                return _syntaxFactory.CollectionArguments(
+                    this.EatContextualToken(SyntaxKind.ArgsKeyword),
+                    this.ParseParenthesizedArgumentList());
+
             // Be resilient to `keyword:val` if the user hits that while typing out a full identifier.
             var expression = !this.IsPossibleExpression() && SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken
                 ? _syntaxFactory.IdentifierName(ConvertToIdentifier(this.EatTokenWithPrejudice(SyntaxKind.IdentifierToken)))

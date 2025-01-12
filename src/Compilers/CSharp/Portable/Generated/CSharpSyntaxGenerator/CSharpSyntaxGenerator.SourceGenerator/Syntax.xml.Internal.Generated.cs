@@ -29520,6 +29520,7 @@ internal partial class ContextAwareSyntax
     {
 #if DEBUG
         if (argsKeyword == null) throw new ArgumentNullException(nameof(argsKeyword));
+        if (argsKeyword.Kind != SyntaxKind.ArgsKeyword) throw new ArgumentException(nameof(argsKeyword));
         if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
 #endif
 
@@ -34830,6 +34831,7 @@ internal static partial class SyntaxFactory
     {
 #if DEBUG
         if (argsKeyword == null) throw new ArgumentNullException(nameof(argsKeyword));
+        if (argsKeyword.Kind != SyntaxKind.ArgsKeyword) throw new ArgumentException(nameof(argsKeyword));
         if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
 #endif
 

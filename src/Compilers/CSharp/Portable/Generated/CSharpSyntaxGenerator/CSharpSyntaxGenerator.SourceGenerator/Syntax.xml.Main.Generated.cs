@@ -3451,13 +3451,14 @@ public static partial class SyntaxFactory
     /// <summary>Creates a new CollectionArgumentsSyntax instance.</summary>
     public static CollectionArgumentsSyntax CollectionArguments(SyntaxToken argsKeyword, ArgumentListSyntax argumentList)
     {
+        if (argsKeyword.Kind() != SyntaxKind.ArgsKeyword) throw new ArgumentException(nameof(argsKeyword));
         if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
         return (CollectionArgumentsSyntax)Syntax.InternalSyntax.SyntaxFactory.CollectionArguments((Syntax.InternalSyntax.SyntaxToken)argsKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
     }
 
     /// <summary>Creates a new CollectionArgumentsSyntax instance.</summary>
-    public static CollectionArgumentsSyntax CollectionArguments(SyntaxToken argsKeyword)
-        => SyntaxFactory.CollectionArguments(argsKeyword, SyntaxFactory.ArgumentList());
+    public static CollectionArgumentsSyntax CollectionArguments(ArgumentListSyntax? argumentList = default)
+        => SyntaxFactory.CollectionArguments(SyntaxFactory.Token(SyntaxKind.ArgsKeyword), argumentList ?? SyntaxFactory.ArgumentList());
 
     /// <summary>Creates a new QueryExpressionSyntax instance.</summary>
     public static QueryExpressionSyntax QueryExpression(FromClauseSyntax fromClause, QueryBodySyntax body)

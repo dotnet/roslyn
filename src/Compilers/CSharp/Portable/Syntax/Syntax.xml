@@ -1849,7 +1849,9 @@
   </Node>
   <Node Name="CollectionArgumentsSyntax" Base="CollectionElementSyntax">
     <Kind Name="CollectionArguments"/>
-    <Field Name="ArgsKeyword" Type="SyntaxToken" />
+    <Field Name="ArgsKeyword" Type="SyntaxToken">
+      <Kind Name="ArgsKeyword"/>
+    </Field>
     <Field Name="ArgumentList" Type="ArgumentListSyntax" />
   </Node>
   <AbstractNode Name="QueryClauseSyntax" Base="CSharpSyntaxNode">

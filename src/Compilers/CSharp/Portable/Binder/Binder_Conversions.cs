@@ -895,6 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
+                // PROTOTYPE: Handle args(...).
                 collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, diagnostics);
                 Debug.Assert((collectionCreation is BoundNewT && !isExpanded && constructor is null) ||
                              (collectionCreation is BoundObjectCreationExpression creation && creation.Expanded == isExpanded && creation.Constructor == constructor));
@@ -913,6 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var collectionInitializerAddMethodBinder = new CollectionInitializerAddMethodBinder(syntax, targetType, this);
                 foreach (var element in elements)
                 {
+                    Debug.Assert(element is not BoundUnconvertedCollectionArguments); // PROTOTYPE: Handle args(...).
                     BoundNode convertedElement = element is BoundCollectionExpressionSpreadElement spreadElement ?
                         (BoundNode)BindCollectionExpressionSpreadElementAddMethod(
                             (SpreadElementSyntax)spreadElement.Syntax,
@@ -964,7 +966,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var elementConversions = conversion.UnderlyingConversions;
 
                 Debug.Assert(elementType is { });
-                Debug.Assert(elements.Length <= elementConversions.Length);
                 Debug.Assert(elementConversions.All(c => c.Exists));
 
                 int conversionIndex = 0;
@@ -973,6 +974,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundNode convertedElement;
                     switch (element)
                     {
+                        case BoundUnconvertedCollectionArguments collectionArguments:
+                            var creationExpression = BindCollectionArguments(targetType, collectionTypeKind, collectionArguments, diagnostics);
+                            collectionCreation ??= creationExpression;
+                            continue;
                         case BoundCollectionExpressionSpreadElement spreadElement:
                             convertedElement = bindSpreadElement(
                                 spreadElement,
@@ -1070,6 +1075,65 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics);
                 return element.Update(convertedKey, convertedValue);
             }
+        }
+
+        private BoundExpression BindCollectionArguments(
+            TypeSymbol targetType,
+            CollectionExpressionTypeKind collectionTypeKind,
+            BoundUnconvertedCollectionArguments collectionArguments,
+            BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(collectionTypeKind is CollectionExpressionTypeKind.DictionaryInterface); // PROTOTYPE: Handle other collection type kinds.
+
+            var syntax = collectionArguments.Syntax;
+            var type = GetWellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV, diagnostics, syntax).
+                                    Construct(((NamedTypeSymbol)targetType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+
+            try
+            {
+                analyzedArguments.Arguments.AddRange(collectionArguments.Arguments);
+                if (!collectionArguments.ArgumentNamesOpt.IsDefault)
+                {
+                    analyzedArguments.Names.AddRange(collectionArguments.ArgumentNamesOpt);
+                }
+                if (!collectionArguments.ArgumentRefKindsOpt.IsDefault)
+                {
+                    analyzedArguments.RefKinds.AddRange(collectionArguments.ArgumentRefKindsOpt);
+                }
+
+                if (TryPerformConstructorOverloadResolution(
+                        type,
+                        analyzedArguments,
+                        errorName: null, // PROTOTYPE: What is errorName?
+                        syntax.Location,
+                        suppressResultDiagnostics: false,
+                        diagnostics,
+                        out MemberResolutionResult<MethodSymbol> memberResolutionResult,
+                        out ImmutableArray<MethodSymbol> candidateConstructors,
+                        allowProtectedConstructorsOfBaseType: false,
+                        out CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo) &&
+                    !type.IsAbstract)
+                {
+                    return BindClassCreationExpressionContinued(
+                        syntax,
+                        typeNode: syntax,
+                        type, analyzedArguments,
+                        initializerSyntaxOpt: null,
+                        initializerTypeOpt: null,
+                        wasTargetTyped: true,
+                        memberResolutionResult,
+                        candidateConstructors,
+                        in overloadResolutionUseSiteInfo,
+                        diagnostics);
+                }
+            }
+            finally
+            {
+                analyzedArguments.Free();
+            }
+
+            return null; // PROTOTYPE: What does BindClassCreationExpression() return when overload resolution fails?
         }
 
         private bool HasCollectionInitializerTypeInProgress(SyntaxNode syntax, TypeSymbol targetType)
@@ -1892,6 +1956,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 reportedErrors = true;
                             }
                             break;
+                        case BoundUnconvertedCollectionArguments collectionArguments:
+                            // PROTOYTPE: Handle.
+                            throw ExceptionUtilities.UnexpectedValue(element);
                         default:
                             generateImplicitConversionError(diagnostics, (BoundExpression)element, elementType, ref useSiteInfo, ref reportedErrors);
                             break;

@@ -206,6 +206,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (element)
                 {
+                    case BoundUnconvertedCollectionArguments:
+                        // Collection arguments do not affect convertibility.
+                        continue;
                     case BoundCollectionExpressionSpreadElement spreadElement:
                         {
                             var elementConversion = GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo);
