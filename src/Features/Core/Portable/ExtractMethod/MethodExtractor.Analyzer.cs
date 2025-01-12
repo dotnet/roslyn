@@ -483,7 +483,7 @@ internal abstract partial class AbstractExtractMethodService<
                     if (symbol is IParameterSymbol && variableDeclared)
                         continue;
 
-                    var type = GetSymbolType(symbol);
+                    var type = GetSymbolTypeWithUpdatedNullability(symbol);
                     if (type == null)
                         continue;
 
@@ -527,16 +527,9 @@ internal abstract partial class AbstractExtractMethodService<
                     return disposer;
                 }
 
-                ITypeSymbol? GetSymbolType(ISymbol symbol)
+                ITypeSymbol? GetSymbolTypeWithUpdatedNullability(ISymbol symbol)
                 {
-                    var type = symbol switch
-                    {
-                        ILocalSymbol local => local.Type,
-                        IParameterSymbol parameter => parameter.Type,
-                        IRangeVariableSymbol rangeVariable => GetRangeVariableType(rangeVariable),
-                        _ => throw ExceptionUtilities.UnexpectedValue(symbol)
-                    };
-
+                    var type = GetUnderlyingSymbolType(symbol);
                     if (type is null)
                         return type;
 
@@ -576,6 +569,17 @@ internal abstract partial class AbstractExtractMethodService<
                         _ => throw ExceptionUtilities.UnexpectedValue(symbol)
                     };
                 }
+            }
+
+            private ITypeSymbol? GetUnderlyingSymbolType(ISymbol symbol)
+            {
+                return symbol switch
+                {
+                    ILocalSymbol local => local.Type,
+                    IParameterSymbol parameter => parameter.Type,
+                    IRangeVariableSymbol rangeVariable => GetRangeVariableType(rangeVariable),
+                    _ => throw ExceptionUtilities.UnexpectedValue(symbol)
+                };
             }
 
             private static void AddVariableToMap(IDictionary<ISymbol, VariableInfo> variableInfoMap, ISymbol localOrParameter, VariableInfo variableInfo)
@@ -745,17 +749,7 @@ internal abstract partial class AbstractExtractMethodService<
                 IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 foreach (var symbol in variableInfoMap.Keys)
-                {
-                    var type = symbol switch
-                    {
-                        IParameterSymbol parameter => parameter.Type,
-                        ILocalSymbol local => local.Type,
-                        IRangeVariableSymbol rangeVariable => GetRangeVariableType(rangeVariable),
-                        _ => throw ExceptionUtilities.UnexpectedValue(symbol),
-                    };
-
-                    AddTypeParametersToMap(TypeParameterCollector.Collect(type), sortedMap);
-                }
+                    AddTypeParametersToMap(TypeParameterCollector.Collect(GetUnderlyingSymbolType(symbol)), sortedMap);
             }
 
             private void AppendMethodTypeParameterFromConstraint(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
