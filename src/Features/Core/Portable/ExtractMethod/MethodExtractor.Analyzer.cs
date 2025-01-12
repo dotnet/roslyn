@@ -715,15 +715,13 @@ internal abstract partial class AbstractExtractMethodService<
                        parameter.ContainingSymbol.ContainingType.IsScriptClass;
             }
 
-            private static void AddTypeParametersToMap(IEnumerable<ITypeParameterSymbol> typeParameters, IDictionary<int, ITypeParameterSymbol> sortedMap)
+            private void AddTypeParametersToMap(IEnumerable<ITypeParameterSymbol> typeParameters, IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 foreach (var typeParameter in typeParameters)
-                {
                     AddTypeParameterToMap(typeParameter, sortedMap);
-                }
             }
 
-            private static void AddTypeParameterToMap(ITypeParameterSymbol typeParameter, IDictionary<int, ITypeParameterSymbol> sortedMap)
+            private void AddTypeParameterToMap(ITypeParameterSymbol typeParameter, IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 if (typeParameter == null ||
                     typeParameter.DeclaringMethod == null ||
@@ -731,6 +729,10 @@ internal abstract partial class AbstractExtractMethodService<
                 {
                     return;
                 }
+
+                var selectionSpan = this.SelectionResult.FinalSpan;
+                if (typeParameter.Locations is not [var location] || selectionSpan.Contains(location.SourceSpan))
+                    return;
 
                 sortedMap[typeParameter.Ordinal] = typeParameter;
             }
@@ -741,28 +743,19 @@ internal abstract partial class AbstractExtractMethodService<
             {
                 foreach (var symbol in variableInfoMap.Keys)
                 {
-                    switch (symbol)
+                    var type = symbol switch
                     {
-                        case IParameterSymbol parameter:
-                            AddTypeParametersToMap(TypeParameterCollector.Collect(parameter.Type), sortedMap);
-                            continue;
+                        IParameterSymbol parameter => parameter.Type,
+                        ILocalSymbol local => local.Type,
+                        IRangeVariableSymbol rangeVariable => GetRangeVariableType(rangeVariable),
+                        _ => throw ExceptionUtilities.UnexpectedValue(symbol),
+                    };
 
-                        case ILocalSymbol local:
-                            AddTypeParametersToMap(TypeParameterCollector.Collect(local.Type), sortedMap);
-                            continue;
-
-                        case IRangeVariableSymbol rangeVariable:
-                            var type = GetRangeVariableType(rangeVariable);
-                            AddTypeParametersToMap(TypeParameterCollector.Collect(type), sortedMap);
-                            continue;
-
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(symbol);
-                    }
+                    AddTypeParametersToMap(TypeParameterCollector.Collect(type), sortedMap);
                 }
             }
 
-            private static void AppendMethodTypeParameterFromConstraint(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
+            private void AppendMethodTypeParameterFromConstraint(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 var typeParametersInConstraint = new List<ITypeParameterSymbol>();
 
@@ -771,9 +764,7 @@ internal abstract partial class AbstractExtractMethodService<
                 {
                     var constraintTypes = typeParameter.ConstraintTypes;
                     if (constraintTypes.IsDefaultOrEmpty)
-                    {
                         continue;
-                    }
 
                     foreach (var type in constraintTypes)
                     {
@@ -784,21 +775,13 @@ internal abstract partial class AbstractExtractMethodService<
 
                 // pick up only valid type parameter and add them to the map
                 foreach (var typeParameter in typeParametersInConstraint)
-                {
                     AddTypeParameterToMap(typeParameter, sortedMap);
-                }
             }
 
-            private static void AppendMethodTypeParameterUsedDirectly(MultiDictionary<ISymbol, SyntaxToken> symbolMap, IDictionary<int, ITypeParameterSymbol> sortedMap)
+            private void AppendMethodTypeParameterUsedDirectly(MultiDictionary<ISymbol, SyntaxToken> symbolMap, IDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 foreach (var typeParameter in symbolMap.Keys.OfType<ITypeParameterSymbol>())
-                {
-                    if (typeParameter.DeclaringMethod != null &&
-                        !sortedMap.ContainsKey(typeParameter.Ordinal))
-                    {
-                        sortedMap[typeParameter.Ordinal] = typeParameter;
-                    }
-                }
+                    AddTypeParameterToMap(typeParameter, sortedMap);
             }
 
             private ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInConstraintList(
@@ -816,7 +799,7 @@ internal abstract partial class AbstractExtractMethodService<
                 return [.. sortedMap.Values];
             }
 
-            private static void AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
+            private void AppendTypeParametersInConstraintsUsedByConstructedTypeWithItsOwnConstraints(SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 using var _1 = PooledHashSet<ITypeSymbol>.GetInstance(out var visited);
                 using var _2 = PooledHashSet<ITypeParameterSymbol>.GetInstance(out var candidates);
@@ -877,7 +860,7 @@ internal abstract partial class AbstractExtractMethodService<
                 }
             }
 
-            private static ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
+            private ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
                 // add return type to the map
                 AddTypeParametersToMap(TypeParameterCollector.Collect(returnType), sortedMap);

@@ -9092,4 +9092,35 @@ $@"
             """,
             options: NoBraces());
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22597")]
+    public async Task TestFullyExtractedTypeParameter()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private void Test()
+                {
+                    [|void Goo<T>(T bar) => Console.WriteLine(bar);
+                    Goo(3);|]
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private void Test()
+                {
+                    {|Rename:NewMethod|}();
+                }
+
+                private static void NewMethod()
+                {
+                    void Goo<T>(T bar) => Console.WriteLine(bar);
+                    Goo(3);
+                }
+            }
+            """);
+    }
 }
