@@ -54,7 +54,7 @@ extends:
             packageParentPath: $(Pipeline.Workspace)/CI/VSInsertion-Windows
             allowPackageConflicts: true
             publishVstsFeed: VS
-        - task: MicroBuildInsertVsPayload@4
+        - task: MicroBuildInsertVsPayload@5
           displayName: 🏭 Insert VS Payload
           inputs:
             TeamName: $(TeamName)

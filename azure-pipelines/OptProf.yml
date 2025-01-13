@@ -90,7 +90,7 @@ stages:
         packagesToPush: $(Agent.TempDirectory)/VSInsertion-Windows/*.nupkg
         publishVstsFeed: 97a41293-2972-4f48-8c0e-05493ae82010 # VS feed
         allowPackageConflicts: true
-    - task: MicroBuildInsertVsPayload@4
+    - task: MicroBuildInsertVsPayload@5
       displayName: Insert VS Payload
       inputs:
         TeamName: $(TeamName)
