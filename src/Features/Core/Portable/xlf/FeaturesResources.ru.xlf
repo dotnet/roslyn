@@ -335,6 +335,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Не удается применить изменения, так как возникла непредвиденная ошибка: "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="new">Cannot determine valid range of statements to extract</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Cannot_include_class_0_in_character_range">
         <source>Cannot include class \{0} in character range</source>
         <target state="translated">Невозможно включить класс \{0} в диапазон символов</target>
@@ -523,6 +528,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Configure_severity_for_all_analyzers">
         <source>Configure severity for all analyzers</source>
         <target state="translated">Настройка серьезности для всех анализаторов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conflict_s_detected">
+        <source>Conflict(s) detected.</source>
+        <target state="new">Conflict(s) detected.</target>
         <note />
       </trans-unit>
       <trans-unit id="Constructors_not_allowed">
@@ -833,6 +843,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Создать операторы сравнения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_from_members">
+        <source>Generate constructor from members...</source>
+        <target state="new">Generate constructor from members...</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -1175,6 +1190,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Переместить содержимое в пространство имен...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_declaration_near_reference_may_change_semantics">
+        <source>Move declaration near reference (may change semantics)</source>
+        <target state="new">Move declaration near reference (may change semantics)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_file_to_0">
         <source>Move file to '{0}'</source>
         <target state="translated">Переместить файл в "{0}"</target>
@@ -1245,6 +1265,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Нет допустимого выделения для извлечения.</target>
         <note />
       </trans-unit>
+      <trans-unit id="No_valid_statement_range_to_extract">
+        <source>No valid statement range to extract</source>
+        <target state="new">No valid statement range to extract</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_all_code_paths_return">
+        <source>Not all code paths return</source>
+        <target state="new">Not all code paths return</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Not_enough_close_parens">
         <source>Not enough )'s</source>
         <target state="translated">Отсутствуют закрывающие круглые скобки</target>
@@ -1290,14 +1320,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Не удается обновить ссылку на свойство</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pull_0_up">
-        <source>Pull '{0}' up</source>
-        <target state="translated">Извлечь "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_0_up_to_1">
-        <source>Pull '{0}' up to '{1}'</source>
-        <target state="translated">Извлечь '{0}' в '{1}'</target>
+      <trans-unit id="Pull_0_up_to">
+        <source>Pull '{0}' up to ...</source>
+        <target state="new">Pull '{0}' up to ...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
@@ -2585,6 +2610,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Тихий</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_member_access_0">
+        <source>Simplify member access '{0}'</source>
+        <target state="new">Simplify member access '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_name_0">
+        <source>Simplify name '{0}'</source>
+        <target state="new">Simplify name '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_Imports_or_usings">
         <source>Sort Imports or usings</source>
         <target state="translated">Сортировать операторы Imports или директивы using</target>
@@ -2613,11 +2648,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Split_into_nested_0_statements">
         <source>Split into nested '{0}' statements</source>
         <target state="translated">Разделить на вложенные операторы "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="StreamMustSupportReadAndSeek">
-        <source>Stream must support read and seek operations.</source>
-        <target state="translated">Поток должен поддерживать операции чтения и поиска.</target>
         <note />
       </trans-unit>
       <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
@@ -2728,6 +2758,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Не удалось считать исходный файл "{0}" или PDB, созданный для содержащего проекта. Все изменения, внесенные в этот файл во время отладки, не будут применены, пока содержимое файла не будет соответствовать созданному источнику.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_create_0">
+        <source>Unable to create '{0}'</source>
+        <target state="new">Unable to create '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
@@ -3436,6 +3471,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">и обновлять сайты вызовов напрямую</target>
         <note />
       </trans-unit>
+      <trans-unit id="class_name">
+        <source>&lt;class name&gt;</source>
+        <target state="new">&lt;class name&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
         <source>class with explicit or sequential layout</source>
         <target state="translated">класс с явной или последовательной компоновкой</target>
@@ -3617,6 +3657,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <target state="translated">в источнике (атрибут)</target>
         <note />
       </trans-unit>
+      <trans-unit id="interface_name">
+        <source>&lt;interface name&gt;</source>
+        <target state="new">&lt;interface name&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
         <source>into extracted method to invoke at call sites</source>
         <target state="translated">в извлеченный метод для вызова на сайтах вызовов</target>
@@ -3733,6 +3778,11 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="month_full_description">
         <source>The "MMMM" custom format specifier represents the full name of the month. The localized name of the month is retrieved from the DateTimeFormatInfo.MonthNames property of the current or specified culture.</source>
         <target state="translated">Описатель пользовательского формата "MMMM" представляет полное название месяца. Локализованное название месяца извлекается из свойства DateTimeFormatInfo.MonthNames текущих или заданных языка и региональных параметров.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="namespace_name">
+        <source>&lt;namespace name&gt;</source>
+        <target state="new">&lt;namespace name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -3992,11 +4042,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Returns_colon">
         <source>Returns:</source>
         <target state="translated">Возврат:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Exceptions_colon">
-        <source>Exceptions:</source>
-        <target state="translated">Исключения:</target>
         <note />
       </trans-unit>
       <trans-unit id="Remarks_colon">
@@ -4718,11 +4763,6 @@ This version used in: {2}</source>
       <trans-unit id="Remove_separators">
         <source>Remove separators</source>
         <target state="translated">Удалить разделители</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor">
-        <source>Generate constructor...</source>
-        <target state="translated">Создать конструктор...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pick_members_to_be_used_as_constructor_parameters">

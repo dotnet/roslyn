@@ -1366,6 +1366,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_DoNotUseRequiredMember,
                      ERRID.ERR_UnsupportedRefReturningCallInWithStatement,
                      ERRID.ERR_TypeReserved,
+                     ERRID.ERR_UnmanagedConstraintNotSatisfied,
+                     ERRID.ERR_CannotApplyOverloadResolutionPriorityToOverride,
+                     ERRID.ERR_CannotApplyOverloadResolutionPriorityToMember,
                      ERRID.ERR_NextAvailable,
                      ERRID.WRN_UseOfObsoleteSymbol2,
                      ERRID.WRN_InvalidOverrideDueToTupleNames2,
@@ -1531,6 +1534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.WRN_UnableToLoadAnalyzer,
                      ERRID.WRN_AttributeIgnoredWhenPublicSigning,
                      ERRID.WRN_Experimental,
+                     ERRID.WRN_ExperimentalWithMessage,
                      ERRID.WRN_AttributeNotSupportedInVB,
                      ERRID.WRN_GeneratorFailedDuringInitialization,
                      ERRID.WRN_GeneratorFailedDuringGeneration,
@@ -1541,7 +1545,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.WRN_DuplicateAnalyzerReference,
                      ERRID.ERR_InvalidExperimentalDiagID,
                      ERRID.ERR_LockTypeUnsupported,
-                     ERRID.WRN_ConvertingLock
+                     ERRID.WRN_ConvertingLock,
+                     ERRID.ERR_EmbeddedAttributeMustFollowPattern
                     Return False
                 Case Else
                     ' NOTE: All error codes must be explicitly handled in the below select case statement

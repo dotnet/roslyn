@@ -69,7 +69,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         _openTextBufferProvider = openTextBufferProvider;
         _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
 
-        _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
+        _metadataReferences = [.. CreateMetadataReferences()];
 
         _openTextBufferProvider.AddListener(this);
     }

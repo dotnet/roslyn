@@ -145,8 +145,10 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
         if (TryGetExtensionsFromReference(this.Reference, out var extensions))
             return extensions;
 
+        var analyzerFileReference = GetAnalyzerFileReference(this.Reference);
+
         // otherwise, see whether we can pick it up from reference itself
-        if (this.Reference is not AnalyzerFileReference analyzerFileReference)
+        if (analyzerFileReference is null)
             return [];
 
         using var _ = ArrayBuilder<TExtension>.GetInstance(out var builder);
@@ -183,5 +185,17 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
         }
 
         return builder.ToImmutableAndClear();
+
+        static AnalyzerFileReference? GetAnalyzerFileReference(AnalyzerReference reference)
+        {
+            if (reference is AnalyzerFileReference analyzerFileReference)
+                return analyzerFileReference;
+#if NET
+            if (reference is IsolatedAnalyzerFileReference isolatedReference)
+                return isolatedReference.UnderlyingAnalyzerFileReference;
+#endif
+
+            return null;
+        }
     }
 }

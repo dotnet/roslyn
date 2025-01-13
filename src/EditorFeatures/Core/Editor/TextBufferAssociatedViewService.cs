@@ -100,7 +100,7 @@ internal class TextBufferAssociatedViewService : ITextViewConnectionListener, IT
                 return [];
             }
 
-            return set.ToList();
+            return [.. set];
         }
     }
 

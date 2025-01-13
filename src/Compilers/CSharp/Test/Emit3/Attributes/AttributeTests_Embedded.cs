@@ -7,6 +7,8 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var code = @"
 namespace Microsoft.CodeAnalysis
 {
-    internal class EmbeddedAttribute : System.Attribute { }
+    internal sealed class EmbeddedAttribute : System.Attribute { }
 }
 namespace TestReference
 {
@@ -91,7 +93,7 @@ class Program
             var module = CreateCompilation(@"
 namespace Microsoft.CodeAnalysis
 {
-    internal class EmbeddedAttribute : System.Attribute { }
+    internal sealed class EmbeddedAttribute : System.Attribute { }
 }
 namespace TestReference
 {
@@ -171,7 +173,7 @@ class Program
             var code = @"
 namespace Microsoft.CodeAnalysis
 {
-    public class EmbeddedAttribute : System.Attribute { }
+    internal sealed class EmbeddedAttribute : System.Attribute { }
 }
 namespace OtherNamespace
 {
@@ -193,61 +195,488 @@ class Test
             CompileAndVerify(code, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), verify: Verification.Passes, expectedOutput: "3");
         }
 
-        [Fact]
-        public void EmbeddedAttributeInSourceShouldTriggerAnErrorIfCompilerNeedsToGenerateOne()
+        [Theory]
+        [CombinatorialData]
+        public void EmbeddedAttributeFromSourceValidation_Valid(
+            [CombinatorialValues("internal", "public")] string ctorAccessModifier,
+            [CombinatorialValues(
+                "System.AttributeTargets.Class | System.AttributeTargets.Struct | System.AttributeTargets.Interface | System.AttributeTargets.Enum | System.AttributeTargets.Delegate",
+                "System.AttributeTargets.All",
+                "")]
+            string targetsList)
         {
-            var code = @"
-namespace Microsoft.CodeAnalysis
-{
-    public class EmbeddedAttribute : System.Attribute { }
-}
-class Test
-{
-    public void M(in int p)
-    {
-        // This should trigger generating another EmbeddedAttribute
-    }
-}";
+            var targets = targetsList != "" ? $", System.AttributeUsage({targetsList})" : "";
 
-            CreateCompilation(code, assemblyName: "testModule").VerifyEmitDiagnostics(
-                // (4,18): error CS8336: The type name 'Microsoft.CodeAnalysis.EmbeddedAttribute' is reserved to be used by the compiler.
-                //     public class EmbeddedAttribute : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_TypeReserved, "EmbeddedAttribute").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(4, 18));
+            var code = $$"""
+                namespace Microsoft.CodeAnalysis
+                {
+                    [Embedded{{targets}}]
+                    internal sealed class EmbeddedAttribute : System.Attribute
+                    {
+                        {{ctorAccessModifier}} EmbeddedAttribute() { }
+                    }
+                }
+
+                [Microsoft.CodeAnalysis.Embedded]
+                public class Test
+                {
+                    public static void Main()
+                    {
+                        M(1);
+                    }
+
+                    public static void M(in int p)
+                    {
+                        System.Console.WriteLine("M");
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(code, targetFramework: TargetFramework.NetStandard20, expectedOutput: "M", symbolValidator: module =>
+            {
+                var embeddedAttribute = module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
+                Assert.NotNull(embeddedAttribute);
+                Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", embeddedAttribute.GetAttributes().Single(a => a.AttributeClass.Name != "AttributeUsageAttribute").AttributeClass.ToTestDisplayString());
+            });
+
+            verifier.VerifyDiagnostics();
+
+            var reference = verifier.Compilation.EmitToImageReference();
+
+            var comp2 = CreateCompilation("""
+                Test.M(1);
+                """, references: [reference], targetFramework: TargetFramework.NetStandard20);
+
+            comp2.VerifyDiagnostics(
+                // (1,1): error CS0103: The name 'Test' does not exist in the current context
+                // Test.M(1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Test").WithArguments("Test").WithLocation(1, 1));
+
+            comp2 = CreateCompilation("""
+                public class Test
+                {
+                    public static void M(in int p) {}
+                }
+                """, references: [reference], targetFramework: TargetFramework.NetStandard20);
+
+            CompileAndVerify(comp2, symbolValidator: module =>
+            {
+                var embeddedAttribute = module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
+                Assert.NotNull(embeddedAttribute);
+                Assert.Equal(["System.Runtime.CompilerServices.CompilerGeneratedAttribute", "Microsoft.CodeAnalysis.EmbeddedAttribute"], embeddedAttribute.GetAttributes().Select(a => a.AttributeClass.ToTestDisplayString()));
+            }).VerifyDiagnostics();
         }
 
         [Fact]
-        public void EmbeddedAttributeInReferencedModuleShouldTriggerAnErrorIfCompilerNeedsToGenerateOne()
+        public void EmbeddedAttributeFromSourceValidation_Public()
         {
-            var module = CreateCompilation(options: TestOptions.ReleaseModule, assemblyName: "testModule", source: @"
-namespace Microsoft.CodeAnalysis
-{
-    public class EmbeddedAttribute : System.Attribute { }
-}");
+            var code = """
+                namespace Microsoft.CodeAnalysis
+                {
+                    [Embedded]
+                    public sealed class EmbeddedAttribute : System.Attribute
+                    {
+                        public EmbeddedAttribute() { }
+                    }
+                }
+                class Test
+                {
+                    public void M(in int p)
+                    {
+                        // This would trigger generating another EmbeddedAttribute, if we hadn't already defined one
+                    }
+                }
+                """;
 
-            var moduleRef = ModuleMetadata.CreateFromImage(module.EmitToArray()).GetReference();
+            CreateCompilation(code, assemblyName: "testModule", targetFramework: TargetFramework.NetStandard20).VerifyEmitDiagnostics(
+                // (4,25): error CS9271: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
+                //     public sealed class EmbeddedAttribute : System.Attribute
+                Diagnostic(ErrorCode.ERR_EmbeddedAttributeMustFollowPattern, "EmbeddedAttribute").WithLocation(4, 25));
+        }
 
-            var code = @"
-class Test
-{
-    public void M(in int p)
-    {
-        // This should trigger generating another EmbeddedAttribute
-    }
-}";
+        [Fact]
+        public void EmbeddedAttributeFromSourceValidation_NoSealed()
+        {
+            var code = """
+                namespace Microsoft.CodeAnalysis
+                {
+                    [Embedded]
+                    internal class EmbeddedAttribute : System.Attribute
+                    {
+                        public EmbeddedAttribute() { }
+                    }
+                }
+                class Test
+                {
+                    public void M(in int p)
+                    {
+                        // This would trigger generating another EmbeddedAttribute, if we hadn't already defined one
+                    }
+                }
+                """;
 
-            CreateCompilation(code, references: new[] { moduleRef }).VerifyEmitDiagnostics(
-                // error CS8004: Type 'EmbeddedAttribute' exported from module 'testModule.netmodule' conflicts with type declared in primary module of this assembly.
-                Diagnostic(ErrorCode.ERR_ExportedTypeConflictsWithDeclaration).WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute", "testModule.netmodule").WithLocation(1, 1));
+            CreateCompilation(code, assemblyName: "testModule", targetFramework: TargetFramework.NetStandard20).VerifyEmitDiagnostics(
+                // (4,20): error CS9271: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
+                //     internal class EmbeddedAttribute : System.Attribute
+                Diagnostic(ErrorCode.ERR_EmbeddedAttributeMustFollowPattern, "EmbeddedAttribute").WithLocation(4, 20));
+        }
+
+        [Fact]
+        public void EmbeddedAttributeFromSourceValidation_File()
+        {
+            var code = """
+                namespace Microsoft.CodeAnalysis
+                {
+                    [Embedded]
+                    file sealed class EmbeddedAttribute : System.Attribute
+                    {
+                        public EmbeddedAttribute() { }
+                    }
+                }
+                class Test
+                {
+                    public void M(in int p)
+                    {
+                        // This would trigger generating another EmbeddedAttribute, if we hadn't already defined one
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(code, targetFramework: TargetFramework.NetStandard20, symbolValidator: module =>
+            {
+                var codeAnalysisNamespace = (NamespaceSymbol)module.GlobalNamespace.GetMember("Microsoft.CodeAnalysis");
+                var embeddedAttributes = codeAnalysisNamespace.GetMembers("EmbeddedAttribute").Cast<NamedTypeSymbol>().ToArray();
+                Assert.Equal(2, embeddedAttributes.Length);
+                var embeddedAttribute = embeddedAttributes.Where(t => !t.IsFileLocal).Single();
+                Assert.NotNull(embeddedAttribute);
+                Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", embeddedAttribute.ToTestDisplayString());
+
+                var embeddedAttributeFile = embeddedAttributes.Where(t => t.IsFileLocal).Single();
+                Assert.NotNull(embeddedAttributeFile);
+                Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute@<unknown>", embeddedAttributeFile.ToTestDisplayString());
+                Assert.NotSame(embeddedAttribute, embeddedAttributeFile);
+
+                AssertEx.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute@<unknown>", embeddedAttributeFile.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            });
+        }
+
+        [Theory]
+        [InlineData("private")]
+        [InlineData("protected")]
+        [InlineData("protected internal")]
+        [InlineData("private protected")]
+        public void EmbeddedAttributeFromSourceValidation_CtorAccessibility(string ctorAccessModifier)
+        {
+            var code = $$"""
+                namespace Microsoft.CodeAnalysis
+                {
+                    [Embedded]
+                    internal sealed class EmbeddedAttribute : System.Attribute
+                    {
+                        {{ctorAccessModifier}} EmbeddedAttribute() { }
+                    }
+                }
+                class Test
+                {
+                    public void M(in int p)
+                    {
+                        // This would trigger generating another EmbeddedAttribute, if we hadn't already defined one
+                    }
+                }
+                """;
+
+            List<DiagnosticDescription> diagnostics = [
+                // (4,27): error CS9271: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
+                //     internal sealed class EmbeddedAttribute : System.Attribute
+                Diagnostic(ErrorCode.ERR_EmbeddedAttributeMustFollowPattern, "EmbeddedAttribute").WithLocation(4, 27),
+            ];
+
+            if (ctorAccessModifier != "private")
+            {
+                diagnostics.Add(
+                    // (6,27): warning CS0628: 'EmbeddedAttribute.EmbeddedAttribute()': new protected member declared in sealed type
+                    //         private protected EmbeddedAttribute() { }
+                    Diagnostic(ErrorCode.WRN_ProtectedInSealed, "EmbeddedAttribute").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute.EmbeddedAttribute()").WithLocation(6, 10 + ctorAccessModifier.Length)
+                );
+            }
+
+            CreateCompilation(code, assemblyName: "testModule", targetFramework: TargetFramework.NetStandard20)
+                .VerifyEmitDiagnostics(diagnostics.ToArray());
+        }
+
+        [Theory, CombinatorialData]
+        public void EmbeddedAttributeFromSourceValidation_MissingEmbeddedAttributeApplicationGeneratesAttributeApplication(bool hasObsolete)
+        {
+            var code = $$"""
+                namespace Microsoft.CodeAnalysis
+                {
+                    {{(hasObsolete ? "[System.Obsolete]" : "")}}
+                    internal sealed class EmbeddedAttribute : System.Attribute
+                    {
+                        public EmbeddedAttribute() { }
+                    }
+                }
+                class Test
+                {
+                    public void M(in int p)
+                    {
+                        // This would trigger generating EmbeddedAttribute if we hadn't defined one
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(code, assemblyName: "testModule", targetFramework: TargetFramework.NetStandard20);
+            var embeddedAttribute = comp.Assembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
+            Assert.True(embeddedAttribute.HasCodeAnalysisEmbeddedAttribute);
+
+            CompileAndVerify(comp, symbolValidator: static module =>
+                {
+                    var embeddedAttribute = module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
+                    Assert.NotNull(embeddedAttribute);
+                    Assert.Equal(["Microsoft.CodeAnalysis.EmbeddedAttribute"], embeddedAttribute.GetAttributes().Where(a => a.AttributeClass.Name != "ObsoleteAttribute").Select(a => a.AttributeClass.ToTestDisplayString()));
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void EmbeddedAttributeFromSourceValidation_MissingEmbeddedAttributeApplicationGeneratesAttributeApplication_Partial()
+        {
+            var code = """
+                namespace Microsoft.CodeAnalysis
+                {
+                    internal sealed partial class EmbeddedAttribute : System.Attribute
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([code, code]);
+            var sourceDeclaration = comp.SourceAssembly.GetTypeByMetadataName("Microsoft.CodeAnalysis.EmbeddedAttribute");
+
+            Assert.Equal(2, sourceDeclaration.Locations.Length);
+
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var embeddedAttribute = module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
+                Assert.NotNull(embeddedAttribute);
+                Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", embeddedAttribute.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void EmbeddedAttributeFromSourceValidation_Generic()
+        {
+            var code = """
+                namespace Microsoft.CodeAnalysis
+                {
+                    [Embedded<int>]
+                    internal sealed class EmbeddedAttribute<T> : System.Attribute
+                    {
+                        public EmbeddedAttribute() { }
+                    }
+                }
+                class Test
+                {
+                    public void M(in int p)
+                    {
+                        // This should trigger generating another EmbeddedAttribute
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(code, assemblyName: "testModule", targetFramework: TargetFramework.NetStandard20);
+            CompileAndVerify(comp, symbolValidator: verifyModule).VerifyDiagnostics();
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var nonGenericAttribute = module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
+                Assert.NotNull(nonGenericAttribute);
+                Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", nonGenericAttribute.ToTestDisplayString());
+
+                var genericAttribute = module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "`1");
+                Assert.NotNull(genericAttribute);
+                Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute<T>", genericAttribute.ToTestDisplayString());
+
+                var isReadonlyAttribute = module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.IsReadOnlyAttribute.FullName);
+                Assert.NotNull(isReadonlyAttribute);
+                AssertEx.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", isReadonlyAttribute.GetAttributes().Single(a => a.AttributeClass.Name == "EmbeddedAttribute").AttributeClass.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void EmbeddedAttributeFromSourceValidation_Generic_BothDefined()
+        {
+            var code = """
+                namespace Microsoft.CodeAnalysis
+                {
+                    [Embedded<int>]
+                    internal sealed class EmbeddedAttribute<T> : System.Attribute
+                    {
+                        public EmbeddedAttribute() { }
+                    }
+
+                    internal sealed class EmbeddedAttribute : System.Attribute {}
+                }
+                class Test
+                {
+                    public void M(in int p)
+                    {
+                        // This would trigger generating another EmbeddedAttribute, if we hadn't already defined one
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(code, assemblyName: "testModule", targetFramework: TargetFramework.NetStandard20);
+            CompileAndVerify(comp, symbolValidator: verifyModule).VerifyDiagnostics();
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var nonGenericAttribute = module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
+                Assert.NotNull(nonGenericAttribute);
+                Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", nonGenericAttribute.ToTestDisplayString());
+
+                var genericAttribute = module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName + "`1");
+                Assert.NotNull(genericAttribute);
+                Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute<T>", genericAttribute.ToTestDisplayString());
+
+                var isReadonlyAttribute = module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.IsReadOnlyAttribute.FullName);
+                Assert.NotNull(isReadonlyAttribute);
+                AssertEx.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", isReadonlyAttribute.GetAttributes().Single(a => a.AttributeClass.Name == "EmbeddedAttribute").AttributeClass.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void EmbeddedAttributeFromSourceValidation_Static()
+        {
+            var code = """
+                namespace Microsoft.CodeAnalysis
+                {
+                    [Embedded]
+                    internal sealed static class EmbeddedAttribute : System.Attribute
+                    {
+                    }
+                }
+                class Test
+                {
+                    public void M(in int p)
+                    {
+                        // This would trigger generating another EmbeddedAttribute, if we hadn't already defined one
+                    }
+                }
+                """;
+
+            CreateCompilation(code, assemblyName: "testModule", targetFramework: TargetFramework.NetStandard20).VerifyEmitDiagnostics(
+                // (3,6): error CS0616: 'EmbeddedAttribute' is not an attribute class
+                //     [Embedded]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Embedded").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(3, 6),
+                // (4,34): error CS0441: 'EmbeddedAttribute': a type cannot be both static and sealed
+                //     internal sealed static class EmbeddedAttribute : System.Attribute
+                Diagnostic(ErrorCode.ERR_SealedStaticClass, "EmbeddedAttribute").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(4, 34),
+                // (4,34): error CS9271: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
+                //     internal sealed static class EmbeddedAttribute : System.Attribute
+                Diagnostic(ErrorCode.ERR_EmbeddedAttributeMustFollowPattern, "EmbeddedAttribute").WithLocation(4, 34),
+                // (4,54): error CS0713: Static class 'EmbeddedAttribute' cannot derive from type 'Attribute'. Static classes must derive from object.
+                //     internal sealed static class EmbeddedAttribute : System.Attribute
+                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "System.Attribute").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute", "System.Attribute").WithLocation(4, 54));
+        }
+
+        [Fact]
+        public void EmbeddedAttributeFromSourceValidation_WrongBaseType()
+        {
+            var code = """
+                namespace Microsoft.CodeAnalysis
+                {
+                    [Embedded]
+                    internal sealed class EmbeddedAttribute
+                    {
+                        public EmbeddedAttribute() { }
+                    }
+                }
+                class Test
+                {
+                    public void M(in int p)
+                    {
+                        // This would trigger generating another EmbeddedAttribute, if we hadn't already defined one
+                    }
+                }
+                """;
+
+            CreateCompilation(code, assemblyName: "testModule", targetFramework: TargetFramework.NetStandard20).VerifyEmitDiagnostics(
+                // (3,6): error CS0616: 'EmbeddedAttribute' is not an attribute class
+                //     [Embedded]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Embedded").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(3, 6),
+                // (4,27): error CS9271: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
+                //     internal sealed class EmbeddedAttribute
+                Diagnostic(ErrorCode.ERR_EmbeddedAttributeMustFollowPattern, "EmbeddedAttribute").WithLocation(4, 27));
+        }
+
+        [Theory]
+        [InlineData("AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Enum | AttributeTargets.Delegate")]
+        [InlineData("AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Enum | AttributeTargets.Delegate")]
+        [InlineData("AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Delegate")]
+        [InlineData("AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Delegate")]
+        [InlineData("AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Enum")]
+        public void EmbeddedAttributeFromSourceValidation_AttributeUsage(string targets)
+        {
+            var code = $$"""
+                using System;
+                namespace Microsoft.CodeAnalysis
+                {
+                    [Embedded, AttributeUsage({{targets}})]
+                    internal sealed class EmbeddedAttribute : System.Attribute
+                    {
+                        internal EmbeddedAttribute() { }
+                    }
+                }
+                class Test
+                {
+                    public void M(in int p)
+                    {
+                        // This would trigger generating EmbeddedAttribute if we hadn't defined one
+                    }
+                }
+                """;
+
+            List<DiagnosticDescription> diagnostics = [];
+            if (!targets.Contains("Class"))
+            {
+                diagnostics.Add(
+                    // (4,6): error CS0592: Attribute 'Embedded' is not valid on this declaration type. It is only valid on 'struct, enum, interface, delegate' declarations.
+                    //     [Embedded, AttributeUsage(AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Enum | AttributeTargets.Delegate)]
+                    Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Embedded").WithArguments("Embedded", "struct, enum, interface, delegate").WithLocation(4, 6)
+                );
+            }
+
+            diagnostics.Add(
+                // (5,27): error CS9271: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
+                //     internal sealed class EmbeddedAttribute : System.Attribute
+                Diagnostic(ErrorCode.ERR_EmbeddedAttributeMustFollowPattern, "EmbeddedAttribute").WithLocation(5, 27)
+            );
+
+            CreateCompilation(code, assemblyName: "testModule", targetFramework: TargetFramework.NetStandard20)
+                .VerifyEmitDiagnostics(diagnostics.ToArray());
         }
 
         [Fact]
         public void EmbeddedAttributeForwardedToAnotherAssemblyShouldTriggerAnError()
         {
-            var reference = CreateCompilation(@"
-namespace Microsoft.CodeAnalysis
-{
-    public class EmbeddedAttribute : System.Attribute { }
-}", assemblyName: "reference").ToMetadataReference();
+            var reference = CompileIL("""
+                .assembly extern mscorlib { }
+                .assembly testRef
+                {
+                }
+
+                .class public auto ansi beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
+                    extends [mscorlib]System.Attribute
+                {
+                    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+                    {
+                        ldarg.0
+                        call instance void [mscorlib]System.Attribute::.ctor()
+                        ret
+                    }
+                }
+                """, prependDefaultHeader: false);
 
             var code = @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(Microsoft.CodeAnalysis.EmbeddedAttribute))]
@@ -267,15 +696,35 @@ class Test
         [Fact]
         public void CompilerShouldIgnorePublicEmbeddedAttributesInReferencedAssemblies()
         {
-            var reference = CreateCompilation(assemblyName: "testRef", parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), source: @"
-namespace Microsoft.CodeAnalysis
-{
-    public class EmbeddedAttribute : System.Attribute { }
-}
-namespace OtherNamespace
-{
-    public class TestReference { }
-}").ToMetadataReference();
+            var reference = CompileIL("""
+                .assembly extern mscorlib { }
+                .assembly testRef
+                {
+                }
+
+                .class public auto ansi beforefieldinit OtherNamespace.TestReference
+                    extends [mscorlib]System.Object
+                {
+                    // Methods
+                    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+                    {
+                        ldarg.0
+                        call instance void [mscorlib]System.Object::.ctor()
+                        ret
+                    }
+                }
+
+                .class public auto ansi beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
+                    extends [mscorlib]System.Attribute
+                {
+                    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+                    {
+                        ldarg.0
+                        call instance void [mscorlib]System.Attribute::.ctor()
+                        ret
+                    }
+                }
+                """, prependDefaultHeader: false);
 
             var code = @"
 class Test
@@ -492,7 +941,7 @@ public class Test
             var compilation1 = CreateCompilation(parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), source: @"
 namespace Microsoft.CodeAnalysis
 {
-    public class EmbeddedAttribute : System.Attribute { }
+    internal sealed class EmbeddedAttribute : System.Attribute { }
 }
 [Microsoft.CodeAnalysis.Embedded]
 public class TestReference1 { }

@@ -33,6 +33,8 @@ variables:
     value: false
   - name: Codeql.SkipTaskAutoInjection
     value: true
+  - name: SignType
+    value: ''
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
@@ -143,9 +145,14 @@ extends:
             ArtifactName: AssetManifests
 
         steps:
-        - powershell: Write-Host "##vso[task.setvariable variable=OriginalBuildNumber;isreadonly=true]$('$(Build.BuildNumber)')"
+        - task: Powershell@2
           displayName: Setting OriginalBuildNumber variable
           condition: succeeded()
+          inputs:
+            targetType: inline
+            script: |
+              $originalBuildNumber = "$(Build.BuildNumber)".Split(' - ')[0]
+              Write-Host "##vso[task.setvariable variable=OriginalBuildNumber;isreadonly=true]$originalBuildNumber"
 
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName;isreadonly=true]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
@@ -334,5 +341,6 @@ extends:
         # Symbol validation is not entirely reliable as of yet, so should be turned off until
         # https://github.com/dotnet/arcade/issues/2871 is resolved.
         enableSymbolValidation: false
+        enableSigningValidation: false
         enableSourceLinkValidation: false
         SDLValidationParameters: false

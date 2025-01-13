@@ -12327,6 +12327,53 @@ End Class
             Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
+
+        <Fact()>
+        Public Sub CompilerLoweringPreserveAttribute_01()
+            Dim source1 = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter)>
+Public Class Preserve1Attribute
+    Inherits Attribute
+End Class
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Parameter)>
+Public Class Preserve2Attribute
+    Inherits Attribute
+End Class
+
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter)>
+Public Class Preserve3Attribute
+    Inherits Attribute
+End Class
+"
+            Dim source2 = "
+Imports System.Threading.Tasks
+
+Class Test1
+    Async Function M2(<Preserve1,Preserve2,Preserve3> x As Integer) As Task(Of Integer)
+        Await Task.Yield()
+        Return x
+    End Function
+End Class
+"
+
+            Dim validate = Sub(m As ModuleSymbol)
+                               AssertEx.SequenceEqual(
+                                   {"Preserve1Attribute"},
+                                   m.GlobalNamespace.GetMember("Test1.VB$StateMachine_1_M2.$VB$Local_x").GetAttributes().Select(Function(a) a.ToString()))
+                           End Sub
+
+            Dim comp1 = CreateCompilation(
+                {source1, source2, CompilerLoweringPreserveAttributeDefinition},
+                options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            CompileAndVerify(comp1, symbolValidator:=validate).VerifyDiagnostics()
+        End Sub
+
     End Class
 End Namespace
 

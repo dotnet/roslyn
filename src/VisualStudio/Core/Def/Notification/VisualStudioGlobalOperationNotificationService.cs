@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -11,13 +12,9 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Notification;
 
 [Export(typeof(IGlobalOperationNotificationService)), Shared]
-internal partial class VisualStudioGlobalOperationNotificationService : AbstractGlobalOperationNotificationService
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioGlobalOperationNotificationService(
-        IAsynchronousOperationListenerProvider listenerProvider)
-        : base(listenerProvider)
-    {
-    }
-}
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal partial class VisualStudioGlobalOperationNotificationService(
+    IThreadingContext threadingContext,
+    IAsynchronousOperationListenerProvider listenerProvider)
+    : AbstractGlobalOperationNotificationService(listenerProvider, threadingContext.DisposalToken);

@@ -89,7 +89,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
 
         var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(caretLocation));
 
-        var topLevelAction = Assert.Single(results.Where(action => action.Title == titlePath[0]));
+        var topLevelAction = Assert.Single(results, action => action.Title == titlePath[0]);
         var introduceConstant = topLevelAction.Children.FirstOrDefault(
             r => JsonSerializer.Deserialize<CodeActionResolveData>((JsonElement)r.Data!, ProtocolConversions.LspJsonSerializerOptions)!.UniqueIdentifier == titlePath[1]);
 
@@ -306,7 +306,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
     {
         var result = await testLspServer.ExecuteRequestAsync<CodeActionParams, CodeAction[]>(
             LSP.Methods.TextDocumentCodeActionName, codeActionParams, CancellationToken.None);
-        return result.Cast<VSInternalCodeAction>().ToArray();
+        return [.. result.Cast<VSInternalCodeAction>()];
     }
 
     private static async Task<VSInternalCodeAction> RunGetCodeActionResolveAsync(

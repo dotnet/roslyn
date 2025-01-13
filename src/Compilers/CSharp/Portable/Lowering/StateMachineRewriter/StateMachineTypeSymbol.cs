@@ -85,5 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override bool AreLocalsZeroed => KickoffMethod.AreLocalsZeroed;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
+        internal override bool HasCompilerLoweringPreserveAttribute => false;
     }
 }

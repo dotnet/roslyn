@@ -11,11 +11,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 namespace Microsoft.CodeAnalysis.CSharp;
 
 [ExportLanguageService(typeof(IFileBannerFactsService), LanguageNames.CSharp), Shared]
-internal class CSharpFileBannerFactsService : CSharpFileBannerFacts, IFileBannerFactsService
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpFileBannerFactsService()
-    {
-    }
-}
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpFileBannerFactsService() : CSharpFileBannerFacts, IFileBannerFactsService;

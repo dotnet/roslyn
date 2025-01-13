@@ -312,7 +312,7 @@ internal abstract partial class AbstractNavigateToSearchService
                 }
             }
 
-            _lookupTable = ImmutableArray.CreateRange(lookupTable);
+            _lookupTable = [.. lookupTable];
         }
 
         public bool Contains(DeclaredSymbolInfoKind item)

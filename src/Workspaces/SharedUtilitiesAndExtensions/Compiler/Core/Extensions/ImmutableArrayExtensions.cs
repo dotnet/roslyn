@@ -43,7 +43,7 @@ namespace Roslyn.Utilities
         public static ImmutableArray<T> ToImmutableAndClear<T>(this ImmutableArray<T>.Builder builder)
         {
             if (builder.Count == 0)
-                return ImmutableArray<T>.Empty;
+                return [];
 
             if (builder.Count == builder.Capacity)
                 return builder.MoveToImmutable();

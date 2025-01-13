@@ -31,14 +31,14 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 
-public abstract class EditAndContinueWorkspaceTestBase : TestBase
+public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
 {
     private protected static readonly Guid s_solutionTelemetryId = Guid.Parse("00000000-AAAA-AAAA-AAAA-000000000000");
     private protected static readonly Guid s_defaultProjectTelemetryId = Guid.Parse("00000000-AAAA-AAAA-AAAA-111111111111");
     private protected static readonly Regex s_timePropertiesRegex = new("[|](EmitDifferenceMilliseconds|TotalAnalysisMilliseconds)=[0-9]+");
 
     private protected static readonly ActiveStatementSpanProvider s_noActiveSpans =
-        (_, _, _) => new(ImmutableArray<ActiveStatementSpan>.Empty);
+        (_, _, _) => new([]);
 
     private protected const TargetFramework DefaultTargetFramework = TargetFramework.NetStandard20;
 
@@ -50,6 +50,21 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
     {
         LoadedModules = []
     };
+
+    /// <summary>
+    /// Streams that are verified to be disposed at the end of the debug session (by default).
+    /// </summary>
+    private ImmutableList<Stream> _disposalVerifiedStreams = [];
+
+    public override void Dispose()
+    {
+        base.Dispose();
+
+        foreach (var stream in _disposalVerifiedStreams)
+        {
+            Assert.False(stream.CanRead);
+        }
+    }
 
     internal TestWorkspace CreateWorkspace(out Solution solution, out EditAndContinueService service, Type[]? additionalParts = null)
     {
@@ -147,7 +162,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
             solution,
             _debuggerService,
             sourceTextProvider: sourceTextProvider ?? NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+            captureMatchingDocuments: [],
             captureAllMatchingDocuments: false,
             reportDiagnostics: true,
             CancellationToken.None);
@@ -175,7 +190,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
     internal void ExitBreakState(
         DebuggingSession session)
     {
-        _debuggerService.GetActiveStatementsImpl = () => ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
+        _debuggerService.GetActiveStatementsImpl = () => [];
         session.BreakStateOrCapabilitiesChanged(inBreakState: false);
     }
 
@@ -185,6 +200,9 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
     internal static void CommitSolutionUpdate(DebuggingSession session)
         => session.CommitSolutionUpdate();
 
+    internal static void DiscardSolutionUpdate(DebuggingSession session)
+        => session.DiscardSolutionUpdate();
+
     internal static void EndDebuggingSession(DebuggingSession session)
         => session.EndSession(out _);
 
@@ -193,7 +211,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
         Solution solution,
         ActiveStatementSpanProvider? activeStatementSpanProvider = null)
     {
-        var result = await session.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
+        var result = await session.EmitSolutionUpdateAsync(solution, runningProjects: [], activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
         return (result.ModuleUpdates, result.Diagnostics.ToDiagnosticData(solution));
     }
 
@@ -290,11 +308,13 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
         var moduleId = moduleMetadata.GetModuleVersionId();
 
         // associate the binaries with the project (assumes a single project)
+
         _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(moduleId)
         {
             OpenAssemblyStreamImpl = () =>
             {
                 var stream = new MemoryStream();
+                ImmutableInterlocked.Update(ref _disposalVerifiedStreams, s => s.Add(stream));
                 peImage.WriteToStream(stream);
                 stream.Position = 0;
                 return stream;
@@ -302,6 +322,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
             OpenPdbStreamImpl = () =>
             {
                 var stream = new MemoryStream();
+                ImmutableInterlocked.Update(ref _disposalVerifiedStreams, s => s.Add(stream));
                 pdbImage.WriteToStream(stream);
                 stream.Position = 0;
                 return stream;
@@ -347,7 +368,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
         return DocumentInfo.Create(
             DocumentId.CreateNewId(projectId, name),
             name: name,
-            folders: Array.Empty<string>(),
+            folders: [],
             sourceCodeKind: SourceCodeKind.Regular,
             loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), path)),
             filePath: path,

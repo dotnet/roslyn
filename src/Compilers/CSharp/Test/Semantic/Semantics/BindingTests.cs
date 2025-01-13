@@ -3962,5 +3962,123 @@ public class MainVersion
 ");
             CompileAndVerify(compilation).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ElseIf_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void M(bool a, bool b)
+    {
+        if (a)
+        {}
+        else if (b)
+        {}
+    }
+}";
+            var comp = CreateCompilation(source);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var ids = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().ToArray();
+
+            var id = ids[1];
+
+            Assert.Equal("b", id.ToString());
+            Assert.Equal("System.Boolean b", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            id = ids[0];
+
+            Assert.Equal("a", id.ToString());
+            Assert.Equal("System.Boolean a", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Boolean a", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            id = ids[1];
+            Assert.Equal("System.Boolean b", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ElseIf_02()
+        {
+            var source =
+@"
+class Program
+{
+    static void M(bool a, object b)
+    {
+        if (a)
+        {}
+        else if (b is bool bb && bb)
+        {
+            bb = false;
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var ids = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().ToArray();
+
+            var id = ids[1];
+
+            Assert.Equal("b", id.ToString());
+            Assert.Equal("System.Object b", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            id = ids[0];
+
+            Assert.Equal("a", id.ToString());
+            Assert.Equal("System.Boolean a", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            var ifStmt = tree.GetRoot().DescendantNodes().OfType<IfStatementSyntax>().First();
+
+            var operationString = @"
+IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (a) ... }')
+  Condition:
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+  WhenTrue:
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+  WhenFalse:
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'if (b is bo ... }')
+      Locals: Local_1: System.Boolean bb
+      IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (b is bo ... }')
+        Condition:
+          IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'b is bool bb && bb')
+            Left:
+              IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'b is bool bb')
+                Value:
+                  IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'b')
+                Pattern:
+                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'bool bb') (InputType: System.Object, NarrowedType: System.Boolean, DeclaredSymbol: System.Boolean bb, MatchesNull: False)
+            Right:
+              ILocalReferenceOperation: bb (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'bb')
+        WhenTrue:
+          IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'bb = false;')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'bb = false')
+                  Left:
+                    ILocalReferenceOperation: bb (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'bb')
+                  Right:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+        WhenFalse:
+          null
+";
+
+            VerifyOperationTree(comp, model.GetOperation(ifStmt), operationString);
+
+            model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Boolean a", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            id = ids[1];
+            Assert.Equal("System.Object b", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            VerifyOperationTree(comp, model.GetOperation(ifStmt), operationString);
+        }
     }
 }

@@ -363,7 +363,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 if (project == null)
                 {
                     // projectId no longer exist
-                    return ImmutableHashSet<string>.Empty;
+                    return [];
                 }
 
                 // set ids set

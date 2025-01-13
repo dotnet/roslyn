@@ -1607,7 +1607,7 @@ internal sealed class SyntaxComparer(
             newToken.Text, Math.Min(newToken.Text.Length, LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation));
 
     private static ImmutableArray<T> CreateArrayForDistanceCalculation<T>(IEnumerable<T>? enumerable)
-        => enumerable is null ? [] : enumerable.Take(LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation).ToImmutableArray();
+        => enumerable is null ? [] : [.. enumerable.Take(LongestCommonSubsequence.MaxSequenceLengthForDistanceCalculation)];
 
     /// <summary>
     /// Calculates the distance between two sequences of syntax tokens, disregarding trivia. 

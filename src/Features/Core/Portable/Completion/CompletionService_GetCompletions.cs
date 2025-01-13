@@ -69,7 +69,8 @@ public abstract partial class CompletionService
          CancellationToken cancellationToken = default)
     {
         // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
-        (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+        document = GetDocumentWithFrozenPartialSemantics(document, cancellationToken);
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var completionListSpan = GetDefaultCompletionListSpan(text, caretPosition);
@@ -85,7 +86,7 @@ public abstract partial class CompletionService
         var triggeredProviders = GetTriggeredProviders(document, providers, caretPosition, options, trigger, roles, text);
 
         var additionalAugmentingProviders = await GetAugmentingProvidersAsync(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
-        triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
+        triggeredProviders = [.. triggeredProviders.Except(additionalAugmentingProviders)];
 
         // PERF: Many CompletionProviders compute identical contexts. This actually shows up on the 2-core typing test.
         // so we try to share a single SyntaxContext based on document/caretPosition among all providers to reduce repeat computation.
@@ -177,14 +178,12 @@ public abstract partial class CompletionService
     /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
     /// we get into this transient state.
     /// </summary>
-    private async Task<(Document document, SemanticModel? semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
+    private Document GetDocumentWithFrozenPartialSemantics(Document document, CancellationToken cancellationToken)
     {
         if (_suppressPartialSemantics)
-        {
-            return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
-        }
+            return document;
 
-        return await document.GetFullOrPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        return document.WithFrozenPartialSemantics(cancellationToken);
     }
 
     private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
@@ -357,7 +356,7 @@ public abstract partial class CompletionService
         {
             if (!options.PerformSort)
             {
-                return new(this);
+                return [.. this];
             }
 
             // Use a list to do the sorting as it's significantly faster than doing so on a SegmentedList.
@@ -366,7 +365,7 @@ public abstract partial class CompletionService
             {
                 list.AddRange(this);
                 list.Sort();
-                return new(list);
+                return [.. list];
             }
             finally
             {

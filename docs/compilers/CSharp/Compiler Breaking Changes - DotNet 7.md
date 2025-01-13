@@ -1,4 +1,6 @@
-# This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
+# Breaking changes in Roslyn after .NET 6.0.100 through .NET 7.0.100
+
+This document lists known breaking changes in Roslyn after .NET 6 general release (.NET SDK version 6.0.100) through .NET 7 general release (.NET SDK version 7.0.100).
 
 ## All locals of restricted types are disallowed in async methods 
 

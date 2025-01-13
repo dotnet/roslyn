@@ -369,7 +369,7 @@ public class SolutionServiceTests
 
         await VerifySolutionUpdate(workspace, s =>
         {
-            return s.AddAnalyzerConfigDocuments(ImmutableArray.Create(analyzerConfigDocumentInfo));
+            return s.AddAnalyzerConfigDocuments([analyzerConfigDocumentInfo]);
         });
 
         workspace.OnAnalyzerConfigDocumentAdded(analyzerConfigDocumentInfo);
@@ -1046,6 +1046,48 @@ public class SolutionServiceTests
 
         objectReference1.AssertHeld();
         objectReference2.AssertReleased();
+    }
+
+    [Fact]
+    public void TestActiveAndRelatedDocumentSemanticModelCached()
+    {
+        using var workspace = TestWorkspace.Create("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+                        class Program1
+                        {
+                        }
+                    </Document>
+                    <Document FilePath="File2.cs">
+                        class Program2
+                        {
+                        }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document IsLinkFile="true" LinkAssemblyName="Assembly1" LinkFilePath="File1.cs" />
+                </Project>
+            </Workspace>
+            """, composition: s_compositionWithFirstDocumentIsActiveAndVisible);
+        using var remoteWorkspace = CreateRemoteWorkspace();
+
+        var solution = workspace.CurrentSolution;
+
+        var project1 = solution.Projects.Single(p => p.AssemblyName == "Assembly1");
+        var project2 = solution.Projects.Single(p => p.AssemblyName == "Assembly2");
+        var document1 = project1.Documents.First();
+        var document2 = project1.Documents.Last();
+        var document3 = project2.Documents.Single();
+
+        // Only the semantic model for the active document should be cached.
+        var objectReference1 = ObjectReference.CreateFromFactory(() => document1.GetSemanticModelAsync().GetAwaiter().GetResult());
+        var objectReference2 = ObjectReference.CreateFromFactory(() => document2.GetSemanticModelAsync().GetAwaiter().GetResult());
+        var objectReference3 = ObjectReference.CreateFromFactory(() => document3.GetSemanticModelAsync().GetAwaiter().GetResult());
+
+        objectReference1.AssertHeld();
+        objectReference2.AssertReleased();
+        objectReference3.AssertHeld();
     }
 
     [Fact]

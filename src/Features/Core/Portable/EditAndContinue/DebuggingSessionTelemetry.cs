@@ -116,6 +116,9 @@ internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
                 // Ids of all projects whose binaries were successfully updated during the session.
                 map["ProjectIdsWithAppliedChanges"] = editSessionData.Committed ? editSessionData.ProjectsWithValidDelta.Select(ProjectIdToPii) : "";
 
+                // Ids of all projects whose binaries had their initial baselines updated (the projects were rebuilt during debugging session).
+                map["ProjectIdsWithUpdatedBaselines"] = editSessionData.ProjectsWithUpdatedBaselines.Select(ProjectIdToPii);
+
                 // Total milliseconds it took to emit the delta in this edit session.
                 map["EmitDifferenceMilliseconds"] = (long)editSessionData.EmitDifferenceTime.TotalMilliseconds;
 

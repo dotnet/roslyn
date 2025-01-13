@@ -416,10 +416,28 @@ public class Document : TextDocument
         => this.Project.Solution.WithDocumentFilePath(this.Id, filePath).GetRequiredDocument(Id);
 
     /// <summary>
-    /// Get the text changes between this document and a prior version of the same document.
-    /// The changes, when applied to the text of the old document, will produce the text of the current document.
+    /// Get the text changes between this document and a prior version of the same document. The changes, when applied
+    /// to the text of the old document, will produce the text of the current document.
     /// </summary>
     public async Task<IEnumerable<TextChange>> GetTextChangesAsync(Document oldDocument, CancellationToken cancellationToken = default)
+    {
+        return await GetTextChangesAsync(useAsync: true, oldDocument, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Similar to <see cref="GetTextChangesAsync(Document, CancellationToken)"/>, but should be used when in a forced
+    /// synchronous context.
+    /// </summary>
+    internal ImmutableArray<TextChange> GetTextChangesSynchronously(
+        Document oldDocument, CancellationToken cancellationToken)
+    {
+        // Should always complete synchronously since we passed in 'useAsync: false'
+        var result = GetTextChangesAsync(useAsync: false, oldDocument, cancellationToken);
+        return result.VerifyCompleted();
+    }
+
+    private async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
+        bool useAsync, Document oldDocument, CancellationToken cancellationToken)
     {
         try
         {
@@ -443,10 +461,10 @@ public class Document : TextDocument
                     var container = text.Container;
                     if (container != null)
                     {
-                        var textChanges = text.GetTextChanges(oldText).ToList();
+                        var textChanges = text.GetTextChanges(oldText).ToImmutableArray();
 
                         // if changes are significant (not the whole document being replaced) then use these changes
-                        if (textChanges.Count > 1 || (textChanges.Count == 1 && textChanges[0].Span != new TextSpan(0, oldText.Length)))
+                        if (textChanges.Length > 1 || (textChanges.Length == 1 && textChanges[0].Span != new TextSpan(0, oldText.Length)))
                         {
                             return textChanges;
                         }
@@ -456,17 +474,18 @@ public class Document : TextDocument
                 // get changes by diffing the trees
                 if (this.SupportsSyntaxTree)
                 {
-                    var tree = (await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
-                    var oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    var tree = useAsync ? await GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false) : this.GetSyntaxTreeSynchronously(cancellationToken);
+                    var oldTree = useAsync ? await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false) : oldDocument.GetSyntaxTreeSynchronously(cancellationToken);
 
+                    RoslynDebug.Assert(tree is object);
                     RoslynDebug.Assert(oldTree is object);
-                    return tree.GetChanges(oldTree);
+                    return [.. tree.GetChanges(oldTree)];
                 }
 
-                text = await this.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                text = useAsync ? await this.GetTextAsync(cancellationToken).ConfigureAwait(false) : this.GetTextSynchronously(cancellationToken);
+                oldText = useAsync ? await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false) : oldDocument.GetTextSynchronously(cancellationToken);
 
-                return text.GetTextChanges(oldText).ToList();
+                return [.. text.GetTextChanges(oldText)];
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -487,18 +506,35 @@ public class Document : TextDocument
         return filteredDocumentIds.Remove(this.Id);
     }
 
+    /// <inheritdoc cref="WithFrozenPartialSemantics(bool, CancellationToken)"/>
+    internal Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
+        => WithFrozenPartialSemantics(forceFreeze: false, cancellationToken);
+
     /// <summary>
-    /// Creates a branched version of this document that has its semantic model frozen in whatever state it is available at the time,
-    /// assuming a background process is constructing the semantics asynchronously. Repeated calls to this method may return
-    /// documents with increasingly more complete semantics.
+    /// Creates a branched version of this document that has its semantic model frozen in whatever state it is available
+    /// at the time, assuming a background process is constructing the semantics asynchronously. Repeated calls to this
+    /// method may return documents with increasingly more complete semantics.
     /// <para/>
     /// Use this method to gain access to potentially incomplete semantics quickly.
-    /// <para/> Note: this will give back a solution where this <see cref="Document"/>'s project will not run
-    /// generators when getting its compilation.  However, all other projects will still run generators when their
-    /// compilations are requested.
+    /// <para/> Note: this will give back a solution where this <see cref="Document"/>'s project will not run generators
+    /// when getting its compilation.  However, all other projects will still run generators when their compilations are
+    /// requested.
     /// </summary>
-    internal virtual Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
+    /// <param name="forceFreeze">If <see langword="true"/> then a forked document will be returned no matter what. This
+    /// should be used when the caller wants to ensure that further forks of that document will remain frozen and will
+    /// not run generators/skeletons. For example, if it is about to transform the document many times, and is fine with
+    /// the original semantic information they started with.  If <see langword="false"/> then this same document may be
+    /// returned if the compilation for its <see cref="Project"/> was already produced.  In this case, generators and
+    /// skeletons will already have been run, so returning the same instance will be fast when getting semantics.
+    /// However, this does mean that future forks of this instance will continue running generators/skeletons.  This
+    /// should be used for most clients that intend to just query for semantic information and do not intend to make any
+    /// further changes.
+    /// </param>
+    internal virtual Document WithFrozenPartialSemantics(bool forceFreeze, CancellationToken cancellationToken)
     {
+        if (!forceFreeze && this.Project.TryGetCompilation(out _))
+            return this;
+
         var solution = this.Project.Solution;
 
         // only produce doc with frozen semantics if this workspace has support for that, as without
@@ -546,7 +582,7 @@ public class Document : TextDocument
     {
         var newAsyncLazy = AsyncLazy.Create(static async (arg, cancellationToken) =>
         {
-            var options = await arg.self.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = await arg.self.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
             return new DocumentOptionSet(options, arg.solutionOptions, arg.self.Project.Language);
         },
         arg: (self: this, solutionOptions));
@@ -555,9 +591,9 @@ public class Document : TextDocument
     }
 #pragma warning restore
 
-    internal async ValueTask<StructuredAnalyzerConfigOptions> GetAnalyzerConfigOptionsAsync(CancellationToken cancellationToken)
+    internal async ValueTask<StructuredAnalyzerConfigOptions> GetHostAnalyzerConfigOptionsAsync(CancellationToken cancellationToken)
     {
-        var provider = (ProjectState.ProjectAnalyzerConfigOptionsProvider)Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+        var provider = (ProjectState.ProjectHostAnalyzerConfigOptionsProvider)Project.State.HostAnalyzerOptions.AnalyzerConfigOptionsProvider;
         return await provider.GetOptionsAsync(DocumentState, cancellationToken).ConfigureAwait(false);
     }
 

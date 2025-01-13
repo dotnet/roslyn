@@ -171,6 +171,12 @@ internal static class RenameUtilities
             return TokenRenameInfo.CreateMemberGroupTokenInfo(symbolInfo.CandidateSymbols);
         }
 
+        // If we have overload resolution issues at the callsite, we generally don't want to rename (as it's unclear
+        // which overload the user is actually calling).  However, if there is just a single overload, there's no real
+        // issue since it's clear which one the user wants to rename in that case.
+        if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure && symbolInfo.CandidateSymbols.Length == 1)
+            return TokenRenameInfo.CreateMemberGroupTokenInfo(symbolInfo.CandidateSymbols);
+
         if (RenameLocation.ShouldRename(symbolInfo.CandidateReason) &&
             symbolInfo.CandidateSymbols.Length == 1)
         {
@@ -205,19 +211,15 @@ internal static class RenameUtilities
         ISymbol symbol, Solution solution, CancellationToken cancellationToken)
     {
         if (symbol.IsPropertyAccessor())
-        {
             return ((IMethodSymbol)symbol).AssociatedSymbol;
-        }
 
         if (symbol.IsOverride && symbol.GetOverriddenMember() != null)
         {
-            var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(
-                symbol.GetOverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
+            var originalSourceSymbol = SymbolFinder.FindSourceDefinition(
+                symbol.GetOverriddenMember(), solution, cancellationToken);
 
             if (originalSourceSymbol != null)
-            {
                 return await TryGetPropertyFromAccessorOrAnOverrideAsync(originalSourceSymbol, solution, cancellationToken).ConfigureAwait(false);
-            }
         }
 
         if (symbol.Kind == SymbolKind.Method &&
@@ -230,9 +232,7 @@ internal static class RenameUtilities
             {
                 var propertyAccessorOrAnOverride = await TryGetPropertyFromAccessorOrAnOverrideAsync(methodImplementor, solution, cancellationToken).ConfigureAwait(false);
                 if (propertyAccessorOrAnOverride != null)
-                {
                     return propertyAccessorOrAnOverride;
-                }
             }
         }
 
@@ -319,8 +319,8 @@ internal static class RenameUtilities
         Contract.ThrowIfNull(solution);
 
         // Make sure we're on the original source definition if we can be
-        var foundSymbol = await SymbolFinder.FindSourceDefinitionAsync(
-            symbol, solution, cancellationToken).ConfigureAwait(false);
+        var foundSymbol = SymbolFinder.FindSourceDefinition(
+            symbol, solution, cancellationToken);
 
         var bestSymbol = foundSymbol ?? symbol;
         symbol = bestSymbol;
@@ -378,7 +378,7 @@ internal static class RenameUtilities
         }
 
         // in case this is e.g. an overridden property accessor, we'll treat the property itself as the definition symbol
-        var property = await RenameUtilities.TryGetPropertyFromAccessorOrAnOverrideAsync(bestSymbol, solution, cancellationToken).ConfigureAwait(false);
+        var property = await TryGetPropertyFromAccessorOrAnOverrideAsync(bestSymbol, solution, cancellationToken).ConfigureAwait(false);
 
         return property ?? bestSymbol;
     }

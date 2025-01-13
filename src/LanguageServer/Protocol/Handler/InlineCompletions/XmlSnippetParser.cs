@@ -9,6 +9,7 @@ using System.IO;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
@@ -32,13 +33,13 @@ internal partial class XmlSnippetParser
     {
     }
 
-    internal ParsedXmlSnippet? GetParsedXmlSnippet(SnippetInfo matchingSnippetInfo, RequestContext context)
+    internal ParsedXmlSnippet? GetParsedXmlSnippet(SnippetInfo matchingSnippetInfo, ILspLogger logger)
     {
         if (_parsedSnippetsCache.TryGetValue(matchingSnippetInfo.Title, out var cachedSnippet))
         {
             if (cachedSnippet == null)
             {
-                context.TraceWarning($"Returning a null cached snippet for {matchingSnippetInfo.Title}");
+                logger.LogWarning($"Returning a null cached snippet for {matchingSnippetInfo.Title}");
             }
 
             return cachedSnippet;
@@ -47,13 +48,13 @@ internal partial class XmlSnippetParser
         ParsedXmlSnippet? parsedSnippet = null;
         try
         {
-            context.TraceInformation($"Reading snippet for {matchingSnippetInfo.Title} with path {matchingSnippetInfo.Path}");
+            logger.LogInformation($"Reading snippet for {matchingSnippetInfo.Title} with path {matchingSnippetInfo.Path}");
             parsedSnippet = GetAndParseSnippetFromFile(matchingSnippetInfo);
         }
         catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
         {
-            context.TraceError($"Got exception parsing xml snippet {matchingSnippetInfo.Title} from file {matchingSnippetInfo.Path}");
-            context.TraceException(ex);
+            logger.LogError($"Got exception parsing xml snippet {matchingSnippetInfo.Title} from file {matchingSnippetInfo.Path}");
+            logger.LogException(ex);
         }
 
         // Add the snippet to the cache regardless of if we succeeded in parsing it.

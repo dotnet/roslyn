@@ -1,4 +1,6 @@
-# This document lists known breaking changes in Roslyn after .NET 9 all the way to .NET 10.
+# Breaking changes in Roslyn after .NET 9.0.100 through .NET 10.0.100
+
+This document lists known breaking changes in Roslyn after .NET 9 general release (.NET SDK version 9.0.100) through .NET 10 general release (.NET SDK version 10.0.100).
 
 ## `Span<T>` and `ReadOnlySpan<T>` overloads are applicable in more scenarios in C# 14 and newer
 
@@ -17,7 +19,7 @@ Assert.Equal([2], x); // previously Assert.Equal<T>(T[], T[]), now ambiguous wit
 Assert.Equal([2], x.AsSpan()); // workaround
 
 var y = new int[] { 1, 2 };
-var s = new ArraySegment<int>(x, 1, 1);
+var s = new ArraySegment<int>(y, 1, 1);
 Assert.Equal(y, s); // previously Assert.Equal<T>(T, T), now ambiguous with Assert.Equal<T>(Span<T>, Span<T>)
 Assert.Equal(y.AsSpan(), s); // workaround
 ```
@@ -37,8 +39,23 @@ static class C
     public static void R<T>(IEnumerable<T> e) => Console.Write(1);
     public static void R<T>(Span<T> s) => Console.Write(2);
     // another workaround:
-    [OverloadResolutionPriority(1)]
     public static void R<T>(ReadOnlySpan<T> s) => Console.Write(3);
+}
+```
+
+For that reason, `ReadOnlySpan<T>` is generally preferred over `Span<T>` by overload resolution in C# 14.
+In some cases, that might lead to compilation breaks,
+for example when there are overloads for both `Span<T>` and `ReadOnlySpan<T>`, both taking and returning the same span type:
+
+```cs
+double[] x = new double[0];
+Span<ulong> y = MemoryMarshal.Cast<double, ulong>(x); // previously worked, now compilation error
+Span<ulong> z = MemoryMarshal.Cast<double, ulong>(x.AsSpan()); // workaround
+
+static class MemoryMarshal
+{
+    public static ReadOnlySpan<TTo> Cast<TFrom, TTo>(ReadOnlySpan<TFrom> span) => default;
+    public static Span<TTo> Cast<TFrom, TTo>(Span<TFrom> span) => default;
 }
 ```
 
@@ -86,4 +103,93 @@ class C
         public ValueTask DisposeAsync() => throw null;
     }
 }
+```
+
+## Set state of enumerator object to "after" during disposal
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+The state machine for enumerators incorrectly allowed resuming execution after the enumerator was disposed.  
+Now, `MoveNext()` on a disposed enumerator properly returns `false` without executing any more user code.
+
+```csharp
+var enumerator = C.GetEnumerator();
+
+Console.Write(enumerator.MoveNext()); // prints True
+Console.Write(enumerator.Current); // prints 1
+
+enumerator.Dispose();
+
+Console.Write(enumerator.MoveNext()); // now prints False
+
+class C
+{
+    public static IEnumerator<int> GetEnumerator()
+    {
+        yield return 1;
+        Console.Write("not executed after disposal")
+        yield return 2;
+    }
+}
+```
+
+## `UnscopedRefAttribute` cannot be used with old ref safety rules
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+The `UnscopedRefAttribute` unintentionally affected code compiled by new Roslyn compiler versions
+even when the code was compiled in the context of the earlier ref safety rules
+(i.e., targeting C# 10 or earlier with net6.0 or earlier).
+However, the attribute should not have an effect in that context, and that is now fixed.
+
+Code that previously did not report any errors in C# 10 or earlier with net6.0 or earlier can now fail to compile:
+
+```cs
+using System.Diagnostics.CodeAnalysis;
+struct S
+{
+    public int F;
+
+    // previously allowed in C# 10 with net6.0
+    // now fails with the same error as if the [UnscopedRef] wasn't there:
+    // error CS8170: Struct members cannot return 'this' or other instance members by reference
+    [UnscopedRef] public ref int Ref() => ref F;
+}
+```
+
+To prevent misunderstanding (thinking the attribute has an effect
+but it actually does not because your code is compiled with the earlier ref safety rules),
+a warning is reported when the attribute is used in C# 10 or earlier with net6.0 or earlier:
+
+```cs
+using System.Diagnostics.CodeAnalysis;
+struct S
+{
+    // both are errors in C# 10 with net6.0:
+    // warning CS9269: UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.
+    [UnscopedRef] public ref int Ref() => throw null!;
+    public static void M([UnscopedRef] ref int x) { }
+}
+```
+
+## `Microsoft.CodeAnalysis.EmbeddedAttribute` is validated on declaration
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+The compiler now validates the shape of `Microsoft.CodeAnalysis.EmbeddedAttribute` when declared in source. Previously, the compiler
+would allow user-defined declarations of this attribute, but only when it didn't need to generate one itself. We now validate that:
+
+1. It must be internal
+2. It must be a class
+3. It must be sealed
+4. It must be non-static
+5. It must have an internal or public parameterless constructor
+6. It must inherit from System.Attribute.
+7. It must be allowed on any type declaration (class, struct, interface, enum, or delegate)
+
+```cs
+namespace Microsoft.CodeAnalysis;
+
+// Previously, sometimes allowed. Now, CS9271
+public class EmbeddedAttribute : Attribute {}
 ```

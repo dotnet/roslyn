@@ -67,17 +67,17 @@ internal static class EditorConfigNamingStylesExtensions
     public static NamingStyle AsNamingStyle(this NamingScheme namingScheme)
         => new(
             Guid.NewGuid(),
-            namingScheme.OptionName,
-            namingScheme.Prefix,
-            namingScheme.Suffix,
-            namingScheme.WordSeparator,
-            namingScheme.Capitalization);
+            namingScheme.OptionName.Value,
+            namingScheme.Prefix.Value,
+            namingScheme.Suffix.Value,
+            namingScheme.WordSeparator.Value,
+            namingScheme.Capitalization.Value);
 
     public static SymbolSpecification AsSymbolSpecification(this ApplicableSymbolInfo applicableSymbolInfo)
         => new(
             Guid.NewGuid(),
-            applicableSymbolInfo.OptionName,
-            applicableSymbolInfo.SymbolKinds,
-            applicableSymbolInfo.Accessibilities,
-            applicableSymbolInfo.Modifiers);
+            applicableSymbolInfo.OptionName.Value,
+            applicableSymbolInfo.SymbolKinds.Value,
+            applicableSymbolInfo.Accessibilities.Value,
+            applicableSymbolInfo.Modifiers.Value);
 }

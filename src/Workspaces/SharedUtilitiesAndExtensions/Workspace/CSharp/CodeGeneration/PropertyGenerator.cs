@@ -94,12 +94,13 @@ internal static class PropertyGenerator
     {
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(property.ExplicitInterfaceImplementations);
 
+        var isExplicit = explicitInterfaceSpecifier is not null;
         var declaration = IndexerDeclaration(
-                attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), info),
+                attributeLists: GenerateAttributes(property, isExplicit, info),
                 modifiers: GenerateModifiers(property, destination, info),
                 type: GenerateTypeSyntax(property),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
-                parameterList: ParameterGenerator.GenerateBracketedParameterList(property.Parameters, explicitInterfaceSpecifier != null, info),
+                parameterList: ParameterGenerator.GenerateBracketedParameterList(property.Parameters, isExplicit: isExplicit, info),
                 accessorList: GenerateAccessorList(property, destination, info, cancellationToken));
         declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
@@ -107,7 +108,7 @@ internal static class PropertyGenerator
             AddAnnotationsTo(property, declaration));
     }
 
-    private static MemberDeclarationSyntax GeneratePropertyDeclaration(
+    private static PropertyDeclarationSyntax GeneratePropertyDeclaration(
        IPropertySymbol property, CodeGenerationDestination destination,
        CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
     {
@@ -117,10 +118,11 @@ internal static class PropertyGenerator
 
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(property.ExplicitInterfaceImplementations);
 
+        var isExplicit = explicitInterfaceSpecifier is not null;
         var accessorList = GenerateAccessorList(property, destination, info, cancellationToken);
 
         var propertyDeclaration = PropertyDeclaration(
-            attributeLists: AttributeGenerator.GenerateAttributeLists(property.GetAttributes(), info),
+            attributeLists: GenerateAttributes(property, isExplicit, info),
             modifiers: GenerateModifiers(property, destination, info),
             type: GenerateTypeSyntax(property),
             explicitInterfaceSpecifier: explicitInterfaceSpecifier,
@@ -134,6 +136,23 @@ internal static class PropertyGenerator
 
         return AddFormatterAndCodeGeneratorAnnotationsTo(
             AddAnnotationsTo(property, propertyDeclaration));
+    }
+
+    private static SyntaxList<AttributeListSyntax> GenerateAttributes(
+        IPropertySymbol property, bool isExplicit, CSharpCodeGenerationContextInfo info)
+    {
+        if (isExplicit)
+        {
+            return default;
+        }
+
+        var attributes = property.GetAttributes();
+        if (attributes.Length == 0)
+        {
+            return default;
+        }
+
+        return AttributeGenerator.GenerateAttributeLists(attributes, info);
     }
 
     private static TypeSyntax GenerateTypeSyntax(IPropertySymbol property)
@@ -179,19 +198,15 @@ internal static class PropertyGenerator
     private static PropertyDeclarationSyntax UseExpressionBodyIfDesired(
         CSharpCodeGenerationContextInfo info, PropertyDeclarationSyntax declaration, CancellationToken cancellationToken)
     {
-        if (declaration.ExpressionBody == null)
+        if (declaration.ExpressionBody == null &&
+            declaration.Initializer == null &&
+            TryGetExpressionBody(
+                declaration, info.LanguageVersion, info.Options.PreferExpressionBodiedProperties.Value, cancellationToken,
+                out var expressionBody, out var semicolonToken))
         {
-            if (declaration.Initializer == null)
-            {
-                if (TryGetExpressionBody(
-                        declaration, info.LanguageVersion, info.Options.PreferExpressionBodiedProperties.Value, cancellationToken,
-                        out var expressionBody, out var semicolonToken))
-                {
-                    declaration = declaration.WithAccessorList(null)
-                                             .WithExpressionBody(expressionBody)
-                                             .WithSemicolonToken(semicolonToken);
-                }
-            }
+            declaration = declaration.WithAccessorList(null)
+                                     .WithExpressionBody(expressionBody)
+                                     .WithSemicolonToken(semicolonToken);
         }
 
         return declaration;

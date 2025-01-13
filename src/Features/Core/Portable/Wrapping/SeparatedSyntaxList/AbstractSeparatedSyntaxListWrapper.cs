@@ -83,6 +83,6 @@ internal abstract partial class AbstractSeparatedSyntaxListWrapper<
 
         var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         return new SeparatedSyntaxListCodeActionComputer(
-            this, document, sourceText, options, listSyntax, listItems, cancellationToken);
+            this, document, sourceText, options, listSyntax, listItems);
     }
 }

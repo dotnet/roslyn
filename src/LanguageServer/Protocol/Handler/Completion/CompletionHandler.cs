@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -99,16 +101,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (completionListResult == null)
                 return null;
 
-            var (list, isIncomplete, resultId) = completionListResult.Value;
+            var (list, isIncomplete, isHardSelection, resultId) = completionListResult.Value;
 
             var result = await CompletionResultFactory
-                .ConvertToLspCompletionListAsync(document, capabilityHelper, list, isIncomplete, resultId, cancellationToken)
+                .ConvertToLspCompletionListAsync(document, capabilityHelper, list, isIncomplete, isHardSelection, resultId, cancellationToken)
                 .ConfigureAwait(false);
 
             return result;
         }
 
-        private static async Task<(CompletionList CompletionList, bool IsIncomplete, long ResultId)?> GetFilteredCompletionListAsync(
+        private static async Task<(CompletionList CompletionList, bool IsIncomplete, bool isHardSelection, long ResultId)?> GetFilteredCompletionListAsync(
             LSP.CompletionContext? context,
             Document document,
             SourceText sourceText,
@@ -157,9 +159,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 completionList = completionList.WithSpan(defaultSpan);
             }
 
-            var (filteredCompletionList, isIncomplete) = FilterCompletionList(completionList, completionListMaxSize, completionTrigger, sourceText);
+            var (filteredCompletionList, isIncomplete, isHardSelection) = FilterCompletionList(completionList, completionListMaxSize, completionTrigger, sourceText, capabilityHelper);
 
-            return (filteredCompletionList, isIncomplete, resultId);
+            return (filteredCompletionList, isIncomplete, isHardSelection, resultId);
         }
 
         private static async Task<(CompletionList CompletionList, long ResultId)?> CalculateListAsync(
@@ -184,17 +186,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return (completionList, resultId);
         }
 
-        private static (CompletionList CompletionList, bool IsIncomplete) FilterCompletionList(
+        private static (CompletionList CompletionList, bool IsIncomplete, bool isHardSelection) FilterCompletionList(
             CompletionList completionList,
             int completionListMaxSize,
             CompletionTrigger completionTrigger,
-            SourceText sourceText)
+            SourceText sourceText,
+            CompletionCapabilityHelper completionCapabilityHelper)
         {
-            if (completionListMaxSize < 0 || completionListMaxSize >= completionList.ItemsList.Count)
-                return (completionList, false);
-
             var filterText = sourceText.GetSubText(completionList.Span).ToString();
             var filterReason = GetFilterReason(completionTrigger);
+
+            // Determine if the list should be hard selected or soft selected.
+            var isFilterTextAllPunctuation = CompletionService.IsAllPunctuation(filterText);
+
+            // If we only had punctuation - we set soft selection and the list to be incomplete so we get called back when the user continues typing.
+            // If they type something that is not punctuation, we may need to update the hard vs soft selection.
+            // For example, typing '_' should initially be soft selection, but if the user types 'o' we should hard select '_otherVar' (if it exists).
+            // This isn't perfect - ideally we would make this determination every time a filter character is typed, but we do not get called back
+            // for typing filter characters in LSP (unless we always set isIncomplete, which is expensive).
+            var isHardSelection = completionList.SuggestionModeItem is null && !isFilterTextAllPunctuation;
+            var isIncomplete = isFilterTextAllPunctuation;
+
+            // If our completion list hasn't hit the max size, we don't need to do anything filtering
+            if (completionListMaxSize < 0 || completionListMaxSize >= completionList.ItemsList.Count)
+                return (completionList, isIncomplete, isHardSelection);
 
             // Use pattern matching to determine which items are most relevant out of the calculated items.
             using var _ = ArrayBuilder<MatchResult>.GetInstance(out var matchResultsBuilder);
@@ -239,9 +254,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Currently the VS client does not remember to re-request, so the completion list only ever shows items from "Som"
             // so we always set the isIncomplete flag to true when the original list size (computed when no filter text was typed) is too large.
             // VS bug here - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1335142
-            var isIncomplete = completionList.ItemsList.Count > newCompletionList.ItemsList.Count;
+            isIncomplete |= completionCapabilityHelper.SupportVSInternalClientCapabilities
+                ? completionList.ItemsList.Count > newCompletionList.ItemsList.Count
+                : matchResultsBuilder.Count > filteredList.Length;
 
-            return (newCompletionList, isIncomplete);
+            return (newCompletionList, isIncomplete, isHardSelection);
 
             static CompletionFilterReason GetFilterReason(CompletionTrigger trigger)
             {

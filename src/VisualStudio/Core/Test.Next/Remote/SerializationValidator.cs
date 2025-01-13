@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 // using .Result here since we don't want to convert all calls to this to async.
                 // and none of ChecksumWithChildren actually use async
-                Children = ImmutableArray.CreateRange(collection.Select(c => validator.GetValueAsync<T>(c).Result));
+                Children = [.. collection.Select(c => validator.GetValueAsync<T>(c).Result)];
             }
 
             public int Count => Children.Length;

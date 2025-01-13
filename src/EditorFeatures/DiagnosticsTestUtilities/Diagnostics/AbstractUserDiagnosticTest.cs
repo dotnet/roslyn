@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             AnalyzerReference[] analyzerReferences;
             if (analyzer != null)
             {
-                var analyzerImageReference = new AnalyzerImageReference(ImmutableArray.Create(analyzer));
+                var analyzerImageReference = new AnalyzerImageReference([analyzer]);
                 analyzerReferences = [analyzerImageReference];
             }
             else
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             if (diagnostics.IsEmpty())
             {
-                return (ImmutableArray<Diagnostic>.Empty, ImmutableArray<CodeAction>.Empty, null);
+                return ([], ImmutableArray<CodeAction>.Empty, null);
             }
 
             var scope = GetFixAllScope(annotation);
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     document, span, scope.Value, CancellationToken.None).ConfigureAwait(false);
                 if (documentsAndSpansToFix.IsEmpty)
                 {
-                    return (ImmutableArray<Diagnostic>.Empty, ImmutableArray<CodeAction>.Empty, null);
+                    return ([], ImmutableArray<CodeAction>.Empty, null);
                 }
             }
 
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var context = new CodeFixContext(
                     document,
                     diagnostic.Location.SourceSpan,
-                    ImmutableArray.Create(diagnostic),
+                    [diagnostic],
                     (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
                     CancellationToken.None);
 

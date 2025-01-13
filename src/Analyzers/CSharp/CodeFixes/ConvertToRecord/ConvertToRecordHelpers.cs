@@ -489,7 +489,6 @@ internal static class ConvertToRecordHelpers
     /// </summary>
     /// <param name="operation"></param>
     /// <param name="methodSymbol">the symbol of the equals method</param>
-    /// <returns></returns>
     private static ImmutableArray<IFieldSymbol> GetEqualizedFields(
         IMethodBodyOperation operation,
         IMethodSymbol methodSymbol)

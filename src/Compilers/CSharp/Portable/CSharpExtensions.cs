@@ -1632,7 +1632,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>If the call represented by <paramref name="node"/> is referenced in an InterceptsLocationAttribute, returns the original definition symbol which is decorated with that attribute. Otherwise, returns null.</summary>
-        [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
+        /// <seealso href="https://github.com/dotnet/roslyn/issues/72093"/>
+        /// <seealso href="https://github.com/dotnet/csharplang/issues/7009"/>
         public static IMethodSymbol? GetInterceptorMethod(this SemanticModel? semanticModel, InvocationExpressionSyntax node, CancellationToken cancellationToken = default)
         {
             var csModel = semanticModel as CSharpSemanticModel;
@@ -1643,7 +1644,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If <paramref name="node"/> cannot be intercepted syntactically, returns null.
         /// Otherwise, returns an instance which can be used to intercept the call denoted by <paramref name="node"/>.
         /// </summary>
-        [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
+        /// <seealso href="https://github.com/dotnet/roslyn/issues/72133" />
+        /// <seealso href="https://github.com/dotnet/csharplang/issues/7009" />
         public static InterceptableLocation? GetInterceptableLocation(this SemanticModel? semanticModel, InvocationExpressionSyntax node, CancellationToken cancellationToken = default)
         {
             var csModel = semanticModel as CSharpSemanticModel;
@@ -1653,7 +1655,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets an attribute list syntax consisting of an InterceptsLocationAttribute, which intercepts the call referenced by parameter <paramref name="location"/>.
         /// </summary>
-        [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
+        /// <seealso href="https://github.com/dotnet/roslyn/issues/72133" />
+        /// <seealso href="https://github.com/dotnet/csharplang/issues/7009" />
         public static string GetInterceptsLocationAttributeSyntax(this InterceptableLocation location)
         {
             return $"""[global::System.Runtime.CompilerServices.InterceptsLocationAttribute({location.Version}, "{location.Data}")]""";

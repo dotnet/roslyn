@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             If xmlDeclaration IsNot Nothing AndAlso
                xmlDeclaration.LessThanQuestionToken = currentToken AndAlso
                TypeOf xmlDeclaration.Parent Is XmlDocumentSyntax AndAlso
-               Not TypeOf xmlDeclaration.Parent.Parent Is XmlNodeSyntax Then
+               TypeOf xmlDeclaration.Parent.Parent IsNot XmlNodeSyntax Then
                 Return True
             End If
 
@@ -191,14 +191,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             If startTag IsNot Nothing AndAlso
                startTag.LessThanToken = currentToken AndAlso
                TypeOf startTag.Parent Is XmlElementSyntax AndAlso
-               Not TypeOf startTag.Parent.Parent Is XmlNodeSyntax Then
+               TypeOf startTag.Parent.Parent IsNot XmlNodeSyntax Then
                 Return True
             End If
 
             Dim emptyTag = TryCast(currentToken.Parent, XmlEmptyElementSyntax)
             If emptyTag IsNot Nothing AndAlso
                emptyTag.LessThanToken = currentToken AndAlso
-               Not TypeOf emptyTag.Parent Is XmlNodeSyntax Then
+               TypeOf emptyTag.Parent IsNot XmlNodeSyntax Then
                 Return True
             End If
 

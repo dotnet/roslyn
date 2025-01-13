@@ -2,41 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
-using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 
 /// <summary>
 /// The TaggerProvider that calls upon the service in order to locate the spans and names
 /// </summary>
-[Export(typeof(IViewTaggerProvider))]
-[VSUtilities.ContentType(ContentTypeNames.RoslynContentType)]
-[TagType(typeof(InlineHintDataTag))]
-[VSUtilities.Name(nameof(InlineHintsDataTaggerProvider))]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-[method: ImportingConstructor]
-internal partial class InlineHintsDataTaggerProvider(
+internal sealed partial class InlineHintsDataTaggerProvider<TAdditionalInformation>(
     TaggerHost taggerHost,
-    [Import(AllowDefault = true)] IInlineHintKeyProcessor inlineHintKeyProcessor)
-    : AsynchronousViewTaggerProvider<InlineHintDataTag>(taggerHost, FeatureAttribute.InlineHints)
+    IInlineHintKeyProcessor inlineHintKeyProcessor)
+    : AsynchronousViewportTaggerProvider<InlineHintDataTag<TAdditionalInformation>>(taggerHost, FeatureAttribute.InlineHints)
+    where TAdditionalInformation : class
 {
     private readonly IInlineHintKeyProcessor _inlineHintKeyProcessor = inlineHintKeyProcessor;
 
@@ -74,28 +63,12 @@ internal partial class InlineHintsDataTaggerProvider(
                 option.Equals(InlineHintsOptionsStorage.ForCollectionExpressions)));
     }
 
-    protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
-    {
-        this.ThreadingContext.ThrowIfNotOnUIThread();
-        Contract.ThrowIfNull(textView);
-
-        // Find the visible span some 100 lines +/- what's actually in view.  This way
-        // if the user scrolls up/down, we'll already have the results.
-        var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
-        if (visibleSpanOpt == null)
-        {
-            // Couldn't find anything visible, just fall back to tagging all hint locations
-            base.AddSpansToTag(textView, subjectBuffer, ref result);
-            return;
-        }
-
-        result.Add(visibleSpanOpt.Value);
-    }
-
     protected override async Task ProduceTagsAsync(
-        TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
+        TaggerContext<InlineHintDataTag<TAdditionalInformation>> context,
+        DocumentSnapshotSpan spanToTag,
+        CancellationToken cancellationToken)
     {
-        var document = documentSnapshotSpan.Document;
+        var document = spanToTag.Document;
         if (document == null)
             return;
 
@@ -111,7 +84,7 @@ internal partial class InlineHintsDataTaggerProvider(
 
         var options = GlobalOptions.GetInlineHintsOptions(document.Project.Language);
 
-        var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+        var snapshotSpan = spanToTag.SnapshotSpan;
         var hints = await service.GetInlineHintsAsync(
             document, snapshotSpan.Span.ToTextSpan(), options,
             displayAllOverride: _inlineHintKeyProcessor?.State is true,
@@ -123,12 +96,12 @@ internal partial class InlineHintsDataTaggerProvider(
             if (hint.DisplayParts.Sum(p => p.ToString().Length) == 0)
                 continue;
 
-            context.AddTag(new TagSpan<InlineHintDataTag>(
+            context.AddTag(new TagSpan<InlineHintDataTag<TAdditionalInformation>>(
                 hint.Span.ToSnapshotSpan(snapshotSpan.Snapshot),
-                new InlineHintDataTag(this, snapshotSpan.Snapshot, hint)));
+                new(this, snapshotSpan.Snapshot, hint)));
         }
     }
 
-    protected override bool TagEquals(InlineHintDataTag tag1, InlineHintDataTag tag2)
+    protected override bool TagEquals(InlineHintDataTag<TAdditionalInformation> tag1, InlineHintDataTag<TAdditionalInformation> tag2)
         => tag1.Equals(tag2);
 }
