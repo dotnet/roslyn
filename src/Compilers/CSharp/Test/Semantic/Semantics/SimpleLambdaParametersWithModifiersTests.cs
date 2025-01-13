@@ -1125,7 +1125,7 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
     }
 
     [Theory, CombinatorialData]
-    public void TestScopedOnLambdaDelegateNotOnDelegate(bool includeType)
+    public void TestScopedOnLambdaNotOnDelegate(bool includeType)
     {
         var compilation = CreateCompilationWithSpan($$"""
             using System;
