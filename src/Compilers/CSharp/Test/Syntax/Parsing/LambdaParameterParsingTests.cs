@@ -4,14 +4,10 @@
 
 #nullable disable
 
-using System;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
