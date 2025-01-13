@@ -519,24 +519,27 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.Ref, IsOptional: false }]);
     }
 
-    [Fact]
-    public void TestOverloadResolution2()
+    [Theory, CombinatorialData]
+    public void TestOverloadResolution2(bool passByRef)
     {
-        var compilation = CreateCompilation("""
+        var compilation = CompileAndVerify($$"""
+            using System;
+
             delegate void D(ref int x);
             delegate void E(int x);
 
             class C
             {
-                void M()
+                static void Main()
                 {
-                    M1((ref x) => { });
+                    M1(({{(passByRef ? "ref" : "")}} x) => { });
                 }
 
-                void M1(D d) { }
-                void M1(E e) { }
+                static void M1(D d) { Console.WriteLine(0); }
+                static void M1(E e) { Console.WriteLine(1); }
             }
-            """).VerifyDiagnostics();
+            """,
+            expectedOutput: passByRef ? "0" : "1").VerifyDiagnostics().Compilation;
 
         var tree = compilation.SyntaxTrees.Single();
         var root = tree.GetRoot();
@@ -546,7 +549,41 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
 
         Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
-        Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.Ref, IsOptional: false }]);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, IsOptional: false } parameter] &&
+            parameter.RefKind == (passByRef ? RefKind.Ref : RefKind.None));
+    }
+
+    [Fact]
+    public void TestOverloadResolution3()
+    {
+        var compilation = CompileAndVerify("""
+            using System;
+
+            delegate void D(ref int x);
+            delegate void E(int x);
+
+            class C
+            {
+                static void Main()
+                {
+                    M1((x) => { });
+                }
+
+                static void M1(D d) { Console.WriteLine(0); }
+                static void M1(E e) { Console.WriteLine(1); }
+            }
+            """,
+            expectedOutput: "1").VerifyDiagnostics().Compilation;
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None, IsOptional: false }]);
     }
 
     [Fact]
