@@ -5681,7 +5681,7 @@ class C {
             EOF();
         }
 
-        [Fact, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
         public void ScopedAsParameterName_06_CSharp13()
         {
             string source = "(scoped scoped) => { }";
@@ -5712,7 +5712,7 @@ class C {
             EOF();
         }
 
-        [Fact, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
         public void ScopedAsParameterName_06_Preview()
         {
             string source = "(scoped scoped) => { }";
