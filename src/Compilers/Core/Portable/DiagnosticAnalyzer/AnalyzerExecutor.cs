@@ -749,14 +749,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 getKind: null, filterSpan, isGeneratedCode, cancellationToken);
         }
 
-        /// <summary>
-        /// Our own copy of this helper so we don't pull in System.Linq.
-        /// </summary>
-        private static bool Any<T>(ImmutableArray<T> array)
-        {
-            return array.Length > 0;
-        }
-
         private void ExecuteBlockActionsCore<TBlockStartAction, TBlockAction, TNodeAction, TNode, TLanguageKindEnum>(
            ImmutableArray<TBlockStartAction> startActions,
            ImmutableArray<TBlockAction> actions,
@@ -779,7 +771,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(declaredNode != null);
             Debug.Assert(declaredSymbol != null);
             Debug.Assert(CanHaveExecutableCodeBlock(declaredSymbol));
-            Debug.Assert(Any(startActions) || Any(endActions) || Any(actions));
+            Debug.Assert(startActions.Length > 0 || endActions.Length > 0 || actions.Length > 0);
             Debug.Assert(!executableBlocks.IsEmpty);
 
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
@@ -865,13 +857,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     var executableNodeActionsByKind = GetNodeActionsByKind(syntaxNodeActions);
                     var syntaxNodesToAnalyze = getNodesToAnalyze(executableBlocks).CastArray<SyntaxNode>();
-                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: Any(startActions), cancellationToken);
+                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: startActions.Length > 0, cancellationToken);
                 }
                 else if (operationActions != null)
                 {
                     var operationActionsByKind = GetOperationActionsByKind(operationActions);
                     var operationsToAnalyze = getNodesToAnalyze(executableBlocks).CastArray<IOperation>();
-                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: Any(startActions), cancellationToken);
+                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: startActions.Length > 0, cancellationToken);
                 }
             }
 
@@ -902,8 +894,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var blockAction in blockActions)
             {
-                var codeBlockAction = blockAction as CodeBlockAnalyzerAction;
-                if (codeBlockAction != null)
+                if (blockAction is CodeBlockAnalyzerAction codeBlockAction)
                 {
                     var context = new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel,
                         AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
@@ -911,7 +902,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ExecuteAndCatchIfThrows(
                         codeBlockAction.Analyzer,
                         data => data.action(data.context),
-                        (action: codeBlockAction.Action, context: context),
+                        (action: codeBlockAction.Action, context),
                         new AnalysisContextInfo(Compilation, declaredSymbol, declaredNode),
                         cancellationToken);
                 }
