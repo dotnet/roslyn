@@ -944,24 +944,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var nodeActionsByKind = PooledDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.GetInstance();
             foreach (var nodeAction in nodeActions)
-            {
-                foreach (var kind in nodeAction.Kinds)
-                {
-                    if (!nodeActionsByKind.TryGetValue(kind, out var actionsForKind))
-                    {
-                        nodeActionsByKind.Add(kind, actionsForKind = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance());
-                    }
+                AddNodeActionsByKind(nodeActionsByKind, nodeAction);
 
-                    actionsForKind.Add(nodeAction);
-                }
-            }
-
-            var mapBuilder = ImmutableSegmentedDictionary.CreateBuilder<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>();
-            foreach (var (kind, builder) in nodeActionsByKind)
-                mapBuilder.Add(kind, builder.ToImmutableAndFree());
-
-            nodeActionsByKind.Free();
-            return mapBuilder.ToImmutable();
+            return CreateSegmentedDictionary(nodeActionsByKind);
         }
 
         internal static ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> GetNodeActionsByKind<TLanguageKindEnum>(
@@ -972,18 +957,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var nodeActionsByKind = PooledDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.GetInstance();
             foreach (var nodeAction in nodeActions)
+                AddNodeActionsByKind(nodeActionsByKind, nodeAction);
+
+            return CreateSegmentedDictionary(nodeActionsByKind);
+        }
+
+        private static void AddNodeActionsByKind<TLanguageKindEnum>(PooledDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind, SyntaxNodeAnalyzerAction<TLanguageKindEnum> nodeAction) where TLanguageKindEnum : struct
+        {
+            foreach (var kind in nodeAction.Kinds)
             {
-                foreach (var kind in nodeAction.Kinds)
+                if (!nodeActionsByKind.TryGetValue(kind, out var actionsForKind))
                 {
-                    if (!nodeActionsByKind.TryGetValue(kind, out var actionsForKind))
-                    {
-                        nodeActionsByKind.Add(kind, actionsForKind = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance());
-                    }
-
-                    actionsForKind.Add(nodeAction);
+                    nodeActionsByKind.Add(kind, actionsForKind = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance());
                 }
-            }
 
+                actionsForKind.Add(nodeAction);
+            }
+        }
+
+        private static ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> CreateSegmentedDictionary<TLanguageKindEnum>(PooledDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind) where TLanguageKindEnum : struct
+        {
             var mapBuilder = ImmutableSegmentedDictionary.CreateBuilder<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>();
             foreach (var (kind, builder) in nodeActionsByKind)
                 mapBuilder.Add(kind, builder.ToImmutableAndFree());
