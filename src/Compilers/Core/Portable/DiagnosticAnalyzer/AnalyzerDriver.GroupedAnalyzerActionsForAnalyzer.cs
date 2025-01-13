@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             AnalyzerActions.GetSyntaxNodeActions<TLanguageKindEnum>(_analyzer) :
                             AnalyzerActions.GetSyntaxNodeActions<TLanguageKindEnum>();
                         VerifyActions(nodeActions, _analyzer);
-                        var analyzerActionsByKind = !nodeActions.IsEmpty
-                            ? AnalyzerExecutor.GetNodeActionsByKind(nodeActions)
-                            : ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.Empty;
+                        var analyzerActionsByKind = !nodeActions.IsEmpty ?
+                            AnalyzerExecutor.GetNodeActionsByKind(nodeActions) :
+                            ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.Empty;
                         RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyNodeActionsByKind, analyzerActionsByKind);
                     }
 
@@ -91,9 +91,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         var operationActions = GetFilteredActions(AnalyzerActions.OperationActions);
                         VerifyActions(operationActions, _analyzer);
-                        var analyzerActionsByKind = operationActions.Length > 0
-                            ? AnalyzerExecutor.GetOperationActionsByKind(operationActions)
-                            : ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>.Empty;
+                        var analyzerActionsByKind = operationActions.Length > 0 ?
+                            AnalyzerExecutor.GetOperationActionsByKind(operationActions) :
+                            ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>.Empty;
                         RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyOperationActionsByKind, analyzerActionsByKind);
                     }
 
