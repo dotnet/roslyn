@@ -19243,7 +19243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76731")]
-        public void TestCategoryWithDash()
+        public void TestCategoryWithNumber()
         {
             Test("""
                 @"[\p{IsLatin-1Supplement}]"
@@ -19269,6 +19269,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   </CompilationUnit>
                   <Captures>
                     <Capture Name="0" Span="[10..35)" Text="[\p{IsLatin-1Supplement}]" />
+                  </Captures>
+                </Tree>
+                """, RegexOptions.None);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76731")]
+        public void TestCategoryWithUnderscore()
+        {
+            Test("""
+                @"[\p{_xmlW}]"
+                """, """
+                <Tree>
+                  <CompilationUnit>
+                    <Sequence>
+                      <CharacterClass>
+                        <OpenBracketToken>[</OpenBracketToken>
+                        <Sequence>
+                          <CategoryEscape>
+                            <BackslashToken>\</BackslashToken>
+                            <TextToken>p</TextToken>
+                            <OpenBraceToken>{</OpenBraceToken>
+                            <EscapeCategoryToken>_xmlW</EscapeCategoryToken>
+                            <CloseBraceToken>}</CloseBraceToken>
+                          </CategoryEscape>
+                        </Sequence>
+                        <CloseBracketToken>]</CloseBracketToken>
+                      </CharacterClass>
+                    </Sequence>
+                    <EndOfFile />
+                  </CompilationUnit>
+                  <Captures>
+                    <Capture Name="0" Span="[10..21)" Text="[\p{_xmlW}]" />
                   </Captures>
                 </Tree>
                 """, RegexOptions.None);
