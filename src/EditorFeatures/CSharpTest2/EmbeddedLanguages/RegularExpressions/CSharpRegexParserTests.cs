@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml.Linq;
@@ -395,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             foreach (var (charClass, _) in RegexCharClass.EscapeCategories)
             {
                 foreach (var ch in charClass)
-                    Assert.True(RegexLexer.IsEscapeCategoryChar(VirtualChar.Create(ch, span: default)));
+                    Assert.True(RegexLexer.IsEscapeCategoryChar(VirtualChar.Create(new Rune(ch), span: default)));
             }
         }
     }
