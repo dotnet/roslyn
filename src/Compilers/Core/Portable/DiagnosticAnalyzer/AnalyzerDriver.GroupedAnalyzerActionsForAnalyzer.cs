@@ -4,8 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         var operationActions = GetFilteredActions(AnalyzerActions.OperationActions);
                         VerifyActions(operationActions, _analyzer);
-                        var analyzerActionsByKind = operationActions.Any()
+                        var analyzerActionsByKind = operationActions.Length > 0
                             ? AnalyzerExecutor.GetOperationActionsByKind(operationActions)
                             : ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>.Empty;
                         RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyOperationActionsByKind, analyzerActionsByKind);
