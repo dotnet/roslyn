@@ -5692,7 +5692,7 @@ class C {
         public void ScopedAsParameterName_06(bool isCSharp13)
         {
             string source = "(scoped scoped) => { }";
-            UsingExpression(source, isCSharp13 ? TestOptions.Regular13 : null);
+            UsingExpression(source, isCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
