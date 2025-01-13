@@ -653,6 +653,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
+        public void IdentifierToken_UsingDeclarationSyntax_01(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                class C
+                {
+                    object P1 { set { using (var field = GetDisposable()) { } } }
+                    object P2 { set { using (var @field = GetDisposable()) { } } }
+                    static IDisposable GetDisposable() => null;
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,34): error CS9272: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { set { using (var field = GetDisposable()) { } } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field = GetDisposable()").WithArguments("preview").WithLocation(4, 34));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void IdentifierToken_UsingDeclarationSyntax_02(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        {
+            string source = """
+                using System;
+                class C
+                {
+                    object P1 { set { using var field = GetDisposable(); } }
+                    object P2 { set { using var @field = GetDisposable(); } }
+                    static IDisposable GetDisposable() => null;
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,33): error CS9272: In language version preview, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.
+                    //     object P1 { set { using var field = GetDisposable(); } }
+                    Diagnostic(ErrorCode.ERR_VariableDeclarationNamedField, "field = GetDisposable()").WithArguments("preview").WithLocation(4, 33));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void IdentifierToken_TypeParameterSyntax(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
