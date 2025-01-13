@@ -5681,11 +5681,11 @@ class C {
             EOF();
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
-        public void ScopedAsParameterName_06(bool isCSharp13)
+        [Fact, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_06_CSharp13()
         {
             string source = "(scoped scoped) => { }";
-            UsingExpression(source, isCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
+            UsingExpression(source, TestOptions.Regular13);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -5698,6 +5698,34 @@ class C {
                         {
                             N(SyntaxKind.IdentifierToken, "scoped");
                         }
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_06_Preview()
+        {
+            string source = "(scoped scoped) => { }";
+            UsingExpression(source, TestOptions.RegularPreview);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.IdentifierToken, "scoped");
                     }
                     N(SyntaxKind.CloseParenToken);
