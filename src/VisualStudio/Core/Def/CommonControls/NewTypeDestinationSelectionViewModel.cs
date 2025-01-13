@@ -20,8 +20,8 @@ internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChan
         string.Empty,
         string.Empty,
         [],
-        null,
-        false
+        syntaxFactsService: null,
+        canAddDocument: false
     );
 
     private readonly string _fileExtension;
