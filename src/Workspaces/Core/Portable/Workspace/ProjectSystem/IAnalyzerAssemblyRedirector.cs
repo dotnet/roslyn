@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Diagnostics.Redirecting;
+namespace Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 
 /// <summary>
 /// Any MEF component implementing this interface will be used to redirect analyzer assemblies.
 /// </summary>
 internal interface IAnalyzerAssemblyRedirector
 {
-    /// <summary>
-    /// Consulted whenever an <see cref="AnalyzerFileReference"/> is created to determine its full path.
-    /// </summary>
     /// <param name="fullPath">
     /// Original full path of the analyzer assembly.
     /// </param>
