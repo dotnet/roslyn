@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
@@ -385,6 +386,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 var (token, _, chars) = JustParseTree($@"@""{text}""", RegexOptions.None, conversionFailureOk: false);
                 Assert.False(token.IsMissing);
                 Assert.False(chars.IsDefaultOrEmpty);
+            }
+        }
+
+        [Fact]
+        public void TestRegexCharClassCharacters()
+        {
+            foreach (var (charClass, _) in RegexCharClass.EscapeCategories)
+            {
+                foreach (var ch in charClass)
+                    Assert.True(RegexLexer.IsEscapeCategoryChar(VirtualChar.Create(ch, span: default)));
             }
         }
     }

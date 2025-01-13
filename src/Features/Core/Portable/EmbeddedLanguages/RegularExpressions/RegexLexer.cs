@@ -252,7 +252,7 @@ internal struct RegexLexer
         return token;
     }
 
-    private static bool IsEscapeCategoryChar(VirtualChar ch)
+    public static bool IsEscapeCategoryChar(VirtualChar ch)
         => ch.Value is '-' or '_' or
            (>= 'a' and <= 'z') or
            (>= 'A' and <= 'Z') or
