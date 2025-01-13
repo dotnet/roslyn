@@ -15,9 +15,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly DiagnosticAnalyzer _analyzer;
             private readonly bool _analyzerActionsNeedFiltering;
 
-            /// <summary>
-            /// Represented as a dictionary 
-            /// </summary>
             private ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> _lazyNodeActionsByKind;
             private ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> _lazyOperationActionsByKind;
             private ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> _lazyCodeBlockStartActions;
