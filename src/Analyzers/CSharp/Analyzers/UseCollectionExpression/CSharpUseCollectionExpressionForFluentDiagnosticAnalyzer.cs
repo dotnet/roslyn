@@ -102,7 +102,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,
             context.Options,
-            additionalLocations: ImmutableArray.Create(invocation.GetLocation()),
+            additionalLocations: [invocation.GetLocation()],
             properties: analysisResult.Value.ChangesSemantics ? ChangesSemantics : null));
 
         return;

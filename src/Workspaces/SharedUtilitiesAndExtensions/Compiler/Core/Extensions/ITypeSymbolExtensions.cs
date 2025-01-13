@@ -447,17 +447,17 @@ internal static partial class ITypeSymbolExtensions
             return [];
         }
 
-        return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(within).ToImmutableArray();
+        return [.. containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(within)];
     }
 
     public static ImmutableArray<T> GetAccessibleMembersInThisAndBaseTypes<T>(this ITypeSymbol? containingType, string memberName, ISymbol within) where T : class, ISymbol
     {
         if (containingType == null)
         {
-            return ImmutableArray<T>.Empty;
+            return [];
         }
 
-        return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(memberName, within).ToImmutableArray();
+        return [.. containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(memberName, within)];
     }
 
     public static bool? AreMoreSpecificThan(this IList<ITypeSymbol> t1, IList<ITypeSymbol> t2)
@@ -588,8 +588,8 @@ internal static partial class ITypeSymbolExtensions
         // We should not have gotten here unless there were identity conversions between the
         // two types.
 
-        var allTypeArgs1 = n1.GetAllTypeArguments().ToList();
-        var allTypeArgs2 = n2.GetAllTypeArguments().ToList();
+        var allTypeArgs1 = n1.GetAllTypeArguments();
+        var allTypeArgs2 = n2.GetAllTypeArguments();
 
         return allTypeArgs1.AreMoreSpecificThan(allTypeArgs2);
     }

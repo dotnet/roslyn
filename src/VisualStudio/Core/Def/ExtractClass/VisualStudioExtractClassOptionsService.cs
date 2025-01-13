@@ -84,7 +84,7 @@ internal sealed class VisualStudioExtractClassOptionsService(
             containingNamespaceDisplay,
             document.Project.Language,
             generatedNameTypeParameterSuffix,
-            conflictingTypeNames.ToImmutableArray(),
+            [.. conflictingTypeNames],
             document.GetRequiredLanguageService<ISyntaxFactsService>());
 
         var dialog = new ExtractClassDialog(viewModel);

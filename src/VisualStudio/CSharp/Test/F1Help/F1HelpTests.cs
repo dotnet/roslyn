@@ -1995,6 +1995,17 @@ public class C
     }
 
     [Fact]
+    public async Task TestScoped()
+    {
+        await Test_KeywordAsync("""
+            sc[||]oped var r = new R();
+            ref struct R
+            {
+            }
+            """, "scoped");
+    }
+
+    [Fact]
     public async Task TestDefaultConstraint()
     {
         await Test_KeywordAsync("""

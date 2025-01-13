@@ -7680,16 +7680,21 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
             {
                 void Test(bool b)
                 {
-                    NewMethod(b);
-                }
-
-                private static void NewMethod(bool b)
-                {
-                    if (b)
+                    bool flowControl = NewMethod(b);
+                    if (!flowControl)
                     {
                         return;
                     }
+                }
+
+                private static bool NewMethod(bool b)
+                {
+                    if (b)
+                    {
+                        return false;
+                    }
                     Console.WriteLine();
+                    return true;
                 }
             }
             """;
@@ -7699,7 +7704,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
     public async Task Bug6313_1()
     {
-        var code = """
+        await TestExtractMethodAsync("""
             using System;
 
             class Program
@@ -7713,15 +7718,39 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                     Console.WriteLine();
                 }
             }
-            """;
+            """,
+            """
+            using System;
 
-        await ExpectExtractMethodToFailAsync(code);
+            class Program
+            {
+                void Test(bool b)
+                {
+                    bool flowControl = NewMethod(b);
+                    if (!flowControl)
+                    {
+                        return;
+                    }
+                    Console.WriteLine();
+                }
+
+                private static bool NewMethod(bool b)
+                {
+                    if (b)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
     public async Task Bug6313_2()
     {
-        var code = """
+        await TestExtractMethodAsync("""
             using System;
 
             class Program
@@ -7735,9 +7764,31 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                     Console.WriteLine();|]
                 }
             }
-            """;
+            """, """
+            using System;
 
-        await ExpectExtractMethodToFailAsync(code);
+            class Program
+            {
+                int Test(bool b)
+                {
+                    (bool flowControl, int value) = NewMethod(b);
+                    if (!flowControl)
+                    {
+                        return value;
+                    }
+                }
+
+                private static (bool flowControl, int value) NewMethod(bool b)
+                {
+                    if (b)
+                    {
+                        return (flowControl: false, value: 1);
+                    }
+                    Console.WriteLine();
+                    return (flowControl: true, value: default);
+                }
+            }
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
@@ -7774,15 +7825,19 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
             {
                 void Test()
                 {
-                    NewMethod();
+                    bool flowControl = NewMethod();
+                    if (!flowControl)
+                    {
+                        return;
+                    }
                 }
 
-                private static void NewMethod()
+                private static bool NewMethod()
                 {
                     bool b = true;
                     if (b)
                     {
-                        return;
+                        return false;
                     }
 
                     Action d = () =>
@@ -7793,6 +7848,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                         }
                         Console.WriteLine(1);
                     };
+                    return true;
                 }
             }
             """;
@@ -7903,18 +7959,23 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 {
                     Action d = () =>
                     {
-                        NewMethod();
+                        bool flowControl = NewMethod();
+                        if (!flowControl)
+                        {
+                            return;
+                        }
                     };
                 }
 
-                private static void NewMethod()
+                private static bool NewMethod()
                 {
                     int i = 1;
                     if (i > 10)
                     {
-                        return;
+                        return false;
                     }
                     Console.WriteLine(1);
+                    return true;
                 }
             }
             """;
@@ -7924,7 +7985,7 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
     public async Task Bug6313_6()
     {
-        var code = """
+        await TestExtractMethodAsync("""
             using System;
 
             class Program
@@ -7942,8 +8003,36 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                     };
                 }
             }
-            """;
-        await ExpectExtractMethodToFailAsync(code);
+            """, """
+            using System;
+
+            class Program
+            {
+                void Test()
+                {
+                    Action d = () =>
+                    {
+                        bool flowControl = NewMethod();
+                        if (!flowControl)
+                        {
+                            return;
+                        }
+                        Console.WriteLine(1);
+                    };
+                }
+
+                private static bool NewMethod()
+                {
+                    int i = 1;
+                    if (i > 10)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540170")]
@@ -8433,7 +8522,8 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541668")]
     public async Task BreakInSelection()
     {
-        var code = """
+        await TestExtractMethodAsync(
+            """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -8467,8 +8557,49 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                     }
                 }
             }
-            """;
-        await ExpectExtractMethodToFailAsync(code);
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    string x1 = "Hello";
+                    switch (x1)
+                    {
+                        case null:
+                            int i1 = 10;
+                            break;
+                        default:
+                            i1 = NewMethod(ref x1);
+                            break;
+                    }
+                }
+
+                private static int NewMethod(ref string x1)
+                {
+                    int i1;
+                    switch (x1)
+                    {
+                        default:
+                            switch (x1)
+                            {
+                                default:
+                                    int j1 = 99;
+                                    i1 = 45;
+                                    x1 = "t";
+                                    string j2 = i1.ToString() + j1.ToString() + x1;
+                                    break;
+                            }
+                            break;
+                    }
+                    return i1;
+                }
+            }
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541671")]
@@ -12041,20 +12172,26 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                         test = null;
 
                         var a = test != null;
-                        NewMethod(ref test, a);
+                        bool flowControl = NewMethod(ref test, a);
+                        if (!flowControl)
+                        {
+                            return;
+                        }
                     }
 
-                    private static void NewMethod(ref object test, bool a)
+                    private static bool NewMethod(ref object test, bool a)
                     {
                         if (a)
                         {
-                            return;
+                            return false;
                         }
 
                         if (A == a)
                         {
                             test = new object();
                         }
+
+                        return true;
                     }
                 }
             }
@@ -12091,19 +12228,25 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 {
                     test = null;
                     var a = test != null;
-                    NewMethod(ref test, a);
+                    bool flowControl = NewMethod(ref test, a);
+                    if (!flowControl)
+                    {
+                        return;
+                    }
                 }
 
-                private static void NewMethod(ref object test, bool a)
+                private static bool NewMethod(ref object test, bool a)
                 {
                     if (a)
                     {
-                        return;
+                        return false;
                     }
                     if (A == a)
                     {
                         test = new object();
                     }
+
+                    return true;
                 }
             }
             """;

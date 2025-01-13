@@ -207,7 +207,7 @@ internal abstract class AbstractListItemFactory
         // Special case: System.Object doesn't have a base type
         if (namedTypeSymbol.SpecialType == SpecialType.System_Object)
         {
-            return ImmutableArray<ObjectListItem>.Empty;
+            return [];
         }
 
         var symbolBuilder = ImmutableArray.CreateBuilder<INamedTypeSymbol>();
@@ -234,7 +234,7 @@ internal abstract class AbstractListItemFactory
 
         if (parentListItem is not TypeListItem parentTypeItem)
         {
-            return ImmutableArray<ObjectListItem>.Empty;
+            return [];
         }
 
         var typeSymbol = parentTypeItem.ResolveTypedSymbol(compilation);
@@ -394,7 +394,7 @@ internal abstract class AbstractListItemFactory
 
         if (parentListItem is not TypeListItem parentTypeItem)
         {
-            return ImmutableArray<ObjectListItem>.Empty;
+            return [];
         }
 
         var typeSymbol = parentTypeItem.ResolveTypedSymbol(compilation);
@@ -586,7 +586,7 @@ internal abstract class AbstractListItemFactory
         var projectIds = solution.ProjectIds;
         if (!projectIds.Any())
         {
-            return ImmutableArray<ObjectListItem>.Empty;
+            return [];
         }
 
         var projectListItemBuilder = ImmutableArray.CreateBuilder<ObjectListItem>();
@@ -643,7 +643,7 @@ internal abstract class AbstractListItemFactory
 
         if (!compilation.References.Any())
         {
-            return ImmutableArray<ObjectListItem>.Empty;
+            return [];
         }
 
         var builder = ArrayBuilder<ObjectListItem>.GetInstance();

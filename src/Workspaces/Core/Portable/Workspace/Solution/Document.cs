@@ -479,13 +479,13 @@ public class Document : TextDocument
 
                     RoslynDebug.Assert(tree is object);
                     RoslynDebug.Assert(oldTree is object);
-                    return tree.GetChanges(oldTree).ToImmutableArray();
+                    return [.. tree.GetChanges(oldTree)];
                 }
 
                 text = useAsync ? await this.GetTextAsync(cancellationToken).ConfigureAwait(false) : this.GetTextSynchronously(cancellationToken);
                 oldText = useAsync ? await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false) : oldDocument.GetTextSynchronously(cancellationToken);
 
-                return text.GetTextChanges(oldText).ToImmutableArray();
+                return [.. text.GetTextChanges(oldText)];
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

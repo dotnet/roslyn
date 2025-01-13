@@ -166,7 +166,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             var remainingArguments = _arguments.Skip(argumentCount).ToImmutableArray();
             var remainingParameterNames = _service.GenerateParameterNames(
                 _document, remainingArguments,
-                delegatedConstructor.Parameters.Select(p => p.Name).ToList(),
+                [.. delegatedConstructor.Parameters.Select(p => p.Name)],
                 _parameterNamingRule,
                 cancellationToken);
 
@@ -287,7 +287,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             var semanticModel = _document.SemanticModel;
             var allTypes = _arguments.Select(a => _service.GetArgumentType(_document.SemanticModel, a, cancellationToken));
 
-            return allTypes.Select(t => FixType(t, semanticModel, allTypeParameters)).ToImmutableArray();
+            return [.. allTypes.Select(t => FixType(t, semanticModel, allTypeParameters))];
         }
 
         private static ITypeSymbol FixType(ITypeSymbol typeSymbol, SemanticModel semanticModel, IEnumerable<ITypeParameterSymbol> allTypeParameters)

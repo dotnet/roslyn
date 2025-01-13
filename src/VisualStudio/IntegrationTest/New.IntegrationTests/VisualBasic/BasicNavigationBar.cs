@@ -70,11 +70,11 @@ End Structure";
         Assert.Equal("A", await TestServices.Editor.GetNavigationBarSelectionAsync(NavigationBarDropdownKind.Member, HangMitigatingCancellationToken));
 
         await TestServices.Editor.ExpandNavigationBarAsync(NavigationBarDropdownKind.Member, HangMitigatingCancellationToken);
-        expectedItems = new[]
-        {
+        expectedItems =
+        [
             "A",
             "B",
-        };
+        ];
 
         Assert.Equal(expectedItems, await TestServices.Editor.GetNavigationBarItemsAsync(NavigationBarDropdownKind.Member, HangMitigatingCancellationToken));
         await TestServices.Editor.SelectNavigationBarItemAsync(NavigationBarDropdownKind.Member, "B", HangMitigatingCancellationToken);

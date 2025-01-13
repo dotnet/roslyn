@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Build and add synthesized return type attributes for this method symbol.
         ''' </summary>
-        Friend Overridable Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overridable Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
         End Sub
 
         ''' <summary>

@@ -34,8 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
                 End With
             Else
                 For Each child In node.ChildNodes()
-                    If Not TypeOf child Is T AndAlso
-                       Not TypeOf child Is LambdaExpressionSyntax Then
+                    If TypeOf child IsNot T AndAlso
+                       TypeOf child IsNot LambdaExpressionSyntax Then
 
                         HighlightRelatedStatements(Of T)(child, highlights, blockKind, checkReturns)
                     End If
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
             End If
 
             For Each child In node.ChildNodes()
-                If Not TypeOf child Is LambdaExpressionSyntax Then
+                If TypeOf child IsNot LambdaExpressionSyntax Then
                     HighlightRelatedAwaits(child, highlights, cancellationToken)
                 End If
             Next
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
                 End With
             Else
                 For Each child In node.ChildNodes()
-                    If Not TypeOf child Is LambdaExpressionSyntax Then
+                    If TypeOf child IsNot LambdaExpressionSyntax Then
                         HighlightRelatedYieldStatements(Of T)(child, highlights)
                     End If
                 Next

@@ -69,7 +69,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             var textChanges = await cleanedDocument.GetTextChangesAsync(
                 document, cancellationToken).ConfigureAwait(false);
 
-            return textChanges.ToImmutableArray();
+            return [.. textChanges];
         }
 
         public sealed override async Task<AddImportFixData> TryGetFixDataAsync(

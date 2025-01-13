@@ -93,7 +93,7 @@ internal sealed class ConstructorInitializerPlacementDiagnosticAnalyzer : Abstra
             colonToken.GetLocation(),
             notificationOption,
             context.Options,
-            additionalLocations: ImmutableArray.Create(initializer.GetLocation()),
+            additionalLocations: [initializer.GetLocation()],
             properties: null));
     }
 }

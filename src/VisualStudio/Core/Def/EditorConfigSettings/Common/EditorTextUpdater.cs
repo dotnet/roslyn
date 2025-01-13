@@ -32,6 +32,6 @@ internal class EditorTextUpdater
             return;
         }
 
-        TextEditApplication.UpdateText(changes.ToImmutableArray(), buffer, EditOptions.DefaultMinimalChange);
+        TextEditApplication.UpdateText([.. changes], buffer, EditOptions.DefaultMinimalChange);
     }
 }

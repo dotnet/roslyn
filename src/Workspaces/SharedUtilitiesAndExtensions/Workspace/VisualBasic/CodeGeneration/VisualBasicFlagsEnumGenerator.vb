@@ -6,27 +6,32 @@ Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editing
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Friend Class VisualBasicFlagsEnumGenerator
+    Friend NotInheritable Class VisualBasicFlagsEnumGenerator
         Inherits AbstractFlagsEnumGenerator
 
-        Public Shared ReadOnly Instance As VisualBasicFlagsEnumGenerator = New VisualBasicFlagsEnumGenerator
+        Public Shared ReadOnly Instance As New VisualBasicFlagsEnumGenerator
 
         Private Sub New()
         End Sub
 
+        Protected Overrides ReadOnly Property SyntaxGenerator As SyntaxGeneratorInternal
+            Get
+                Return VisualBasicSyntaxGeneratorInternal.Instance
+            End Get
+        End Property
+
         Protected Overrides Function CreateExplicitlyCastedLiteralValue(
-                generator As SyntaxGenerator,
                 enumType As INamedTypeSymbol,
                 underlyingSpecialType As SpecialType,
                 constantValue As Object) As SyntaxNode
-            Dim expression = ExpressionGenerator.GenerateNonEnumValueExpression(
+            Dim expression = GenerateNonEnumValueExpression(
                 enumType.EnumUnderlyingType, constantValue, canUseFieldReference:=True)
             Dim constantValueULong = underlyingSpecialType.ConvertUnderlyingValueToUInt64(constantValue)
             If constantValueULong = 0 Then
                 Return expression
             End If
 
-            Return generator.ConvertExpression(enumType, expression)
+            Return Me.SyntaxGenerator.ConvertExpression(enumType, expression)
         End Function
 
         Protected Overrides Function IsValidName(enumType As INamedTypeSymbol, name As String) As Boolean

@@ -2356,6 +2356,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnscopedRefAttributeOldRules = 9269,
         WRN_InterceptsLocationAttributeUnsupportedSignature = 9270,
 
+        ERR_EmbeddedAttributeMustFollowPattern = 9271,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
 

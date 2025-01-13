@@ -68,62 +68,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me.MoveToNextSyntaxNodeInTrivia()
 
             Else
-                Dim parser As New Parser(Me)
-
-                Me.IsScanningXmlDoc = True
-                Me._isStartingFirstXmlDocLine = True
-
-                ' NOTE: Documentation comment syntax trivia must have at least one child xml node, because 
-                '       all the ['''] trivia are created as leading trivia for appropriate tokens.
-                '       This means that we have to create at least one XmlText having trailing
-                '       EOL to represent an empty documentation comment: ['''<eol>]
-                '
-                '       The problem with this approach is that in presence of some errors (like
-                '       not closed XML tags) we create missing tokens needed to represent the nodes
-                '       *after* that last <eol> of the doc comment trivia, that means all the locations 
-                '       of created diagnostics will land on the first character of the next line
-                '       after documentation comment
-                '
-                '       To workaround this we parse XML nodes in two phases: 
-                '         - in the first phase we detect the last DocCommentLineBreak and create 
-                '         end-of-xml token instead; this should force all diagnostics to be 
-                '         reported on the next token location;
-                '         - in the second phase we continue parsing XML nodes but don't create 
-                '         end-of-xml token which should just result in parsing one single node 
-                '         of XmlText type containing EOL;
-                '       Then we merge the results and create resulting DocumentationCommentTrivia
-
-                ' The first phase
-                Me._endOfXmlInsteadOfLastDocCommentLineBreak = True
-                Dim nodes = parser.ParseXmlContent(ScannerState.Content)
-
-                ' The second phase
-                Me._endOfXmlInsteadOfLastDocCommentLineBreak = False
-                If nodes.Count = 0 AndAlso parser.CurrentToken.Kind = SyntaxKind.EndOfXmlToken Then
-                    ' This must be an empty documentation comment, we need to reset scanner so 
-                    ' that the doc comment exterior trivia ([''']) lands on the final XmlNode
-
-                    ResetLineBufferOffset()
-                    restorePoint.RestoreTokens(includeLookAhead:=False)
+                Using parser = New Parser(Me)
+                    Me.IsScanningXmlDoc = True
                     Me._isStartingFirstXmlDocLine = True
-                End If
 
-                nodes = parser.ParseRestOfDocCommentContent(nodes)
-                Me.IsScanningXmlDoc = False
+                    ' NOTE: Documentation comment syntax trivia must have at least one child xml node, because 
+                    '       all the ['''] trivia are created as leading trivia for appropriate tokens.
+                    '       This means that we have to create at least one XmlText having trailing
+                    '       EOL to represent an empty documentation comment: ['''<eol>]
+                    '
+                    '       The problem with this approach is that in presence of some errors (like
+                    '       not closed XML tags) we create missing tokens needed to represent the nodes
+                    '       *after* that last <eol> of the doc comment trivia, that means all the locations 
+                    '       of created diagnostics will land on the first character of the next line
+                    '       after documentation comment
+                    '
+                    '       To workaround this we parse XML nodes in two phases: 
+                    '         - in the first phase we detect the last DocCommentLineBreak and create 
+                    '         end-of-xml token instead; this should force all diagnostics to be 
+                    '         reported on the next token location;
+                    '         - in the second phase we continue parsing XML nodes but don't create 
+                    '         end-of-xml token which should just result in parsing one single node 
+                    '         of XmlText type containing EOL;
+                    '       Then we merge the results and create resulting DocumentationCommentTrivia
 
-                Debug.Assert(nodes.Any)
-                Debug.Assert(nodes(0).FullWidth > 0, "should at least get {'''EoL} ")
+                    ' The first phase
+                    Me._endOfXmlInsteadOfLastDocCommentLineBreak = True
+                    Dim nodes = parser.ParseXmlContent(ScannerState.Content)
 
-                ' restore _currentToken and lookahead,
-                ' but keep offset and PP state
-                ResetLineBufferOffset()
+                    ' The second phase
+                    Me._endOfXmlInsteadOfLastDocCommentLineBreak = False
+                    If nodes.Count = 0 AndAlso parser.CurrentToken.Kind = SyntaxKind.EndOfXmlToken Then
+                        ' This must be an empty documentation comment, we need to reset scanner so 
+                        ' that the doc comment exterior trivia ([''']) lands on the final XmlNode
 
-                docCommentSyntax = SyntaxFactory.DocumentationCommentTrivia(nodes)
+                        ResetLineBufferOffset()
+                        restorePoint.RestoreTokens(includeLookAhead:=False)
+                        Me._isStartingFirstXmlDocLine = True
+                    End If
 
-                If Me.Options.DocumentationMode < DocumentationMode.Diagnose Then
-                    ' All diagnostics coming from documentation comment are ignored
-                    docCommentSyntax.ClearFlags(GreenNode.NodeFlags.ContainsDiagnostics)
-                End If
+                    nodes = parser.ParseRestOfDocCommentContent(nodes)
+                    Me.IsScanningXmlDoc = False
+
+                    Debug.Assert(nodes.Any)
+                    Debug.Assert(nodes(0).FullWidth > 0, "should at least get {'''EoL} ")
+
+                    ' restore _currentToken and lookahead,
+                    ' but keep offset and PP state
+                    ResetLineBufferOffset()
+
+                    docCommentSyntax = SyntaxFactory.DocumentationCommentTrivia(nodes)
+
+                    If Me.Options.DocumentationMode < DocumentationMode.Diagnose Then
+                        ' All diagnostics coming from documentation comment are ignored
+                        docCommentSyntax.ClearFlags(GreenNode.NodeFlags.ContainsDiagnostics)
+                    End If
+                End Using
             End If
 
             ' RESTORE lookahead state and current token if there were any

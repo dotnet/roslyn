@@ -55,7 +55,7 @@ internal sealed class MakeLocalFunctionStaticDiagnosticAnalyzer : AbstractBuiltI
                 localFunction.Identifier.GetLocation(),
                 option.Notification,
                 context.Options,
-                additionalLocations: ImmutableArray.Create(localFunction.GetLocation()),
+                additionalLocations: [localFunction.GetLocation()],
                 properties: null));
         }
     }

@@ -1992,6 +1992,11 @@
         <target state="translated">Türler ve diğer adlar 'gerekli' olarak adlandırılamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
         <source>Target runtime doesn't support by-ref-like generics.</source>
         <target state="translated">Hedef çalışma zamanı başvuru benzeri genel türleri desteklemez.</target>

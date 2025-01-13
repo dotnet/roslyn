@@ -107,6 +107,11 @@
         <target state="translated">Lista wymaganych składowych dla „{0}” jest źle sformułowana i nie można jej zinterpretować.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</source>
+        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje domyślnej implementacji interfejsu.</target>

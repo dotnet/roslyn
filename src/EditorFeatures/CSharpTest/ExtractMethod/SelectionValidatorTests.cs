@@ -662,7 +662,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             {
                 void Method1()
                 {
-                    short[,] arr = {|r:new short[,] { {|b:{ 19, 19, 19 }|}, { 19, 19, 19 } }|};
+                    short[,] arr = new short[,] { {|r:{|b:{ 19, 19, 19 }|}|}, { 19, 19, 19 } };
                 }
             }
             """;
@@ -677,7 +677,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             {
                 void Method1()
                 {
-                    short[,] arr = {|r:{ {|b:{ 19, 19, 19 }|}, { 19, 19, 19 } }|};
+                    short[,] arr = { {|r:{|b:{ 19, 19, 19 }|}|}s, { 19, 19, 19 } };
                 }
             }
             """;
@@ -704,19 +704,39 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
     [Fact]
     public async Task SelectIfWithReturn()
     {
-        var code = """
+        await TestExtractMethodAsync("""
             class A
             {
                 public void Method1()
                 {
                     bool b = true;
-                    {|b:if (b)
-                        return;|}
+                    [|if (b)
+                        return;|]
                     return;
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
+            """, """
+            class A
+            {
+                public void Method1()
+                {
+                    bool b = true;
+                    bool flowControl = NewMethod(b);
+                    if (!flowControl)
+                    {
+                        return;
+                    }
+                    return;
+                }
+
+                private static bool NewMethod(bool b)
+                {
+                    if (b)
+                        return false;
+                    return true;
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -740,33 +760,56 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
     [Fact]
     public async Task SelectReturnButNotAllCodePathsContainAReturn()
     {
-        var code = """
+        await TestExtractMethodAsync("""
             class A
             {
                 public void Method1(bool b1, bool b2)
                 {
                     if (b1)
                     {
-                        {|b:if (b2)
+                        [|if (b2)
                             return;
-                        Console.WriteLine();|}
+                        Console.WriteLine();|]
                     }
                     Console.WriteLine();
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
+            """, """
+            class A
+            {
+                public void Method1(bool b1, bool b2)
+                {
+                    if (b1)
+                    {
+                        bool flowControl = NewMethod(b2);
+                        if (!flowControl)
+                        {
+                            return;
+                        }
+                    }
+                    Console.WriteLine();
+                }
+
+                private static bool NewMethod(bool b2)
+                {
+                    if (b2)
+                        return false;
+                    Console.WriteLine();
+                    return true;
+                }
+            }
+            """);
     }
 
     [Fact]
     public async Task SelectIfBranchWhereNotAllPathsReturn()
     {
-        var code = """
+        await TestExtractMethodAsync("""
             class A
             {
                 int Method8(int i)
                 {
-                    {|b:if (i > 100)
+                    [|if (i > 100)
                     {
                         return i++;
                     }
@@ -777,12 +820,42 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                     else
                     {
                         i++;
-                    }|}
+                    }|]
                     return i;
                 }
             }
-            """;
-        await TestSelectionAsync(code, expectedFail: true);
+            """, """
+            class A
+            {
+                int Method8(int i)
+                {
+                    (bool flowControl, int value) = NewMethod(ref i);
+                    if (!flowControl)
+                    {
+                        return value;
+                    }
+                    return i;
+                }
+
+                private static (bool flowControl, int value) NewMethod(ref int i)
+                {
+                    if (i > 100)
+                    {
+                        return (flowControl: false, value: i++);
+                    }
+                    else if (i > 90)
+                    {
+                        return (flowControl: false, value: i--);
+                    }
+                    else
+                    {
+                        i++;
+                    }
+
+                    return (flowControl: true, value: default);
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -1404,7 +1477,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
 
             class Program
             {
-                int[] array = {|r:new int[{|b:1|}] { 1 }|};
+                int[] array = new int[{|r:{|b:1|}|}] { 1 };
             }
             """;
         await TestSelectionAsync(code);
@@ -1476,7 +1549,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                         if (s.X < 3)
                         {
                             s = GetS();
-                            {|r:{|b:s|}.Z = 10f;|}
+                            {|r:{|b:s|}|}.Z = 10f;
                         }
                         else
                         {
@@ -1520,7 +1593,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
     {
         var code = """
             using System;
-            class C { void M() { {|r:var x = new { {|b:String|} = true }; |}} }
+            class C { void M() { {|r:var x = new { {|b:String|} = true };|} } }
             """;
         await TestSelectionAsync(code);
     }
@@ -1532,7 +1605,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
             using System;
             class C { void M() { 
             var String = 1;
-            {|r:var x = new { {|b:String|} };|}
+            var x = new { {|r:{|b:String|}|} };
             } }
             """;
         await TestSelectionAsync(code);
@@ -1674,7 +1747,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 static void Main(string[] args)
                 {
                     A a = new A();
-                    var l = {|r:{|b:a|}?.Length |}?? 0;
+                    var l = {|r:{|b:a|}|}?.Length ?? 0;
                 }
             }
             class A
@@ -1717,7 +1790,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 static void Main(string[] args)
                 {
                     A a = new A();
-                    var l = {|r:a?.{|b:Prop|}?.Length |}?? 0;
+                    var l = {|r:a?.{|b:Prop|}?.Length|} ?? 0;
                 }
             }
             class A
@@ -1769,7 +1842,7 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 static void Main(string[] args)
                 {
                     A a = new A();
-                    var l = {|r:a?.{|b:Method()|}?.Length |}?? 0;
+                    var l = {|r:a?.{|b:Method()|}?.Length|} ?? 0;
                 }
             }
             class A

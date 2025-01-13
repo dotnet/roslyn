@@ -6240,7 +6240,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             </Workspace>
             """;
 
-        await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.field}) int C.x"), Usage("") });
+        await VerifyWithReferenceWorkerAsync(markup, [MainDescription($"({FeaturesResources.field}) int C.x"), Usage("")]);
     }
 
     [Fact]
@@ -6276,7 +6276,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, expectsWarningGlyph: true);
 
-        await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
+        await VerifyWithReferenceWorkerAsync(markup, [expectedDescription]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37097")]
@@ -6312,7 +6312,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, expectsWarningGlyph: true);
 
-        await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
+        await VerifyWithReferenceWorkerAsync(markup, [expectedDescription]);
     }
 
     [Fact]
@@ -6354,7 +6354,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """,
             expectsWarningGlyph: true);
 
-        await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
+        await VerifyWithReferenceWorkerAsync(markup, [expectedDescription]);
     }
 
     [Fact]
@@ -6395,7 +6395,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, expectsWarningGlyph: true);
-        await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
+        await VerifyWithReferenceWorkerAsync(markup, [expectedDescription]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962353")]
@@ -6450,7 +6450,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             </Workspace>
             """;
 
-        await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.local_variable}) int x"), Usage("") });
+        await VerifyWithReferenceWorkerAsync(markup, [MainDescription($"({FeaturesResources.local_variable}) int x"), Usage("")]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
@@ -6480,13 +6480,13 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             </Workspace>
             """;
 
-        await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.local_variable}) int x"), Usage($"""
+        await VerifyWithReferenceWorkerAsync(markup, [MainDescription($"({FeaturesResources.local_variable}) int x"), Usage($"""
 
             {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
             {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
-            """, expectsWarningGlyph: true) });
+            """, expectsWarningGlyph: true)]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
@@ -6512,7 +6512,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             </Workspace>
             """;
 
-        await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.label}) LABEL"), Usage("") });
+        await VerifyWithReferenceWorkerAsync(markup, [MainDescription($"({FeaturesResources.label}) LABEL"), Usage("")]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
@@ -6539,7 +6539,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             </Workspace>
             """;
 
-        await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.range_variable}) int y"), Usage("") });
+        await VerifyWithReferenceWorkerAsync(markup, [MainDescription($"({FeaturesResources.range_variable}) int y"), Usage("")]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019766")]
@@ -8368,7 +8368,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             Documentation("A generic method T."),
             item => Assert.Equal(
                 item.Sections.First(section => section.Kind == QuickInfoSectionKinds.DocumentationComments).TaggedParts.Select(p => p.Tag).ToArray(),
-                new[] { "Text", "Space", "TypeParameter", "Text" }));
+                ["Text", "Space", "TypeParameter", "Text"]));
     }
 
     [Fact]
@@ -10144,8 +10144,8 @@ AnonymousTypes(
             """;
         var description = $"string 'a.@string {{ get; }}";
 
-        await VerifyWithMscorlib45Async(markup, new[]
-        {
+        await VerifyWithMscorlib45Async(markup,
+        [
             MainDescription(description),
             AnonymousTypes(
                 $$"""
@@ -10153,7 +10153,7 @@ AnonymousTypes(
                 {{FeaturesResources.Types_colon}}
                     'a {{FeaturesResources.is_}} new { string @string }
                 """)
-        });
+        ]);
     }
 
     [Theory, CombinatorialData]

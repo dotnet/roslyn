@@ -154,7 +154,6 @@ public static partial class SymbolFinder
     /// <param name="symbol">The symbol to find corresponding matches for.</param>
     /// <param name="compilation">A compilation to find the corresponding symbol within. The compilation may or may not be the origin of the symbol.</param>
     /// <param name="cancellationToken">A CancellationToken.</param>
-    /// <returns></returns>
     public static IEnumerable<TSymbol> FindSimilarSymbols<TSymbol>(TSymbol symbol, Compilation compilation, CancellationToken cancellationToken = default)
         where TSymbol : ISymbol
     {

@@ -14,8 +14,8 @@ internal readonly struct SerializableDiagnosticAnalysisResults(
     ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo)> telemetry)
 {
     public static readonly SerializableDiagnosticAnalysisResults Empty = new(
-        ImmutableArray<(string, SerializableDiagnosticMap)>.Empty,
-        ImmutableArray<(string, AnalyzerTelemetryInfo)>.Empty);
+        [],
+        []);
 
     [DataMember(Order = 0)]
     internal readonly ImmutableArray<(string analyzerId, SerializableDiagnosticMap diagnosticMap)> Diagnostics = diagnostics;

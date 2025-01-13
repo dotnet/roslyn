@@ -24,6 +24,7 @@ internal sealed class LanguageServerTestComposition
         ILoggerFactory loggerFactory,
         bool includeDevKitComponents,
         string cacheDirectory,
+        string[]? extensionPaths,
         out ServerConfiguration serverConfiguration,
         out IAssemblyLoader assemblyLoader)
     {
@@ -33,12 +34,13 @@ internal sealed class LanguageServerTestComposition
             StarredCompletionsPath: null,
             TelemetryLevel: null,
             SessionId: null,
-            ExtensionAssemblyPaths: [],
+            ExtensionAssemblyPaths: extensionPaths ?? [],
             DevKitDependencyPath: devKitDependencyPath,
             RazorSourceGenerator: null,
             RazorDesignTimePath: null,
             ExtensionLogDirectory: string.Empty,
-            ServerPipeName: null);
+            ServerPipeName: null,
+            UseStdIo: false);
         var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
         assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
         return ExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, devKitDependencyPath, cacheDirectory, loggerFactory);

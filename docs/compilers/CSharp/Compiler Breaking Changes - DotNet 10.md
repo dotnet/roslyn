@@ -19,7 +19,7 @@ Assert.Equal([2], x); // previously Assert.Equal<T>(T[], T[]), now ambiguous wit
 Assert.Equal([2], x.AsSpan()); // workaround
 
 var y = new int[] { 1, 2 };
-var s = new ArraySegment<int>(x, 1, 1);
+var s = new ArraySegment<int>(y, 1, 1);
 Assert.Equal(y, s); // previously Assert.Equal<T>(T, T), now ambiguous with Assert.Equal<T>(Span<T>, Span<T>)
 Assert.Equal(y.AsSpan(), s); // workaround
 ```
@@ -39,8 +39,23 @@ static class C
     public static void R<T>(IEnumerable<T> e) => Console.Write(1);
     public static void R<T>(Span<T> s) => Console.Write(2);
     // another workaround:
-    [OverloadResolutionPriority(1)]
     public static void R<T>(ReadOnlySpan<T> s) => Console.Write(3);
+}
+```
+
+For that reason, `ReadOnlySpan<T>` is generally preferred over `Span<T>` by overload resolution in C# 14.
+In some cases, that might lead to compilation breaks,
+for example when there are overloads for both `Span<T>` and `ReadOnlySpan<T>`, both taking and returning the same span type:
+
+```cs
+double[] x = new double[0];
+Span<ulong> y = MemoryMarshal.Cast<double, ulong>(x); // previously worked, now compilation error
+Span<ulong> z = MemoryMarshal.Cast<double, ulong>(x.AsSpan()); // workaround
+
+static class MemoryMarshal
+{
+    public static ReadOnlySpan<TTo> Cast<TFrom, TTo>(ReadOnlySpan<TFrom> span) => default;
+    public static Span<TTo> Cast<TFrom, TTo>(Span<TFrom> span) => default;
 }
 ```
 
@@ -155,4 +170,26 @@ struct S
     [UnscopedRef] public ref int Ref() => throw null!;
     public static void M([UnscopedRef] ref int x) { }
 }
+```
+
+## `Microsoft.CodeAnalysis.EmbeddedAttribute` is validated on declaration
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+The compiler now validates the shape of `Microsoft.CodeAnalysis.EmbeddedAttribute` when declared in source. Previously, the compiler
+would allow user-defined declarations of this attribute, but only when it didn't need to generate one itself. We now validate that:
+
+1. It must be internal
+2. It must be a class
+3. It must be sealed
+4. It must be non-static
+5. It must have an internal or public parameterless constructor
+6. It must inherit from System.Attribute.
+7. It must be allowed on any type declaration (class, struct, interface, enum, or delegate)
+
+```cs
+namespace Microsoft.CodeAnalysis;
+
+// Previously, sometimes allowed. Now, CS9271
+public class EmbeddedAttribute : Attribute {}
 ```

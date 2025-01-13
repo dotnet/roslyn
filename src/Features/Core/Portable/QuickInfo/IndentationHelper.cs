@@ -23,7 +23,6 @@ internal static class IndentationHelper
     /// <param name="text"></param>
     /// <param name="classifiedSpans">The initial set of spans to align.</param>
     /// <param name="tabSize">The number of spaces to </param>
-    /// <returns></returns>
     public static ImmutableArray<ClassifiedSpan> GetSpansWithAlignedIndentation(
         SourceText text,
         ImmutableArray<ClassifiedSpan> classifiedSpans,

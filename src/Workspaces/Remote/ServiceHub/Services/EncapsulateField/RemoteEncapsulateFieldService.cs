@@ -41,7 +41,7 @@ internal sealed class RemoteEncapsulateFieldService(in BrokeredServiceBase.Servi
             {
                 var resolved = SymbolKey.ResolveString(key, compilation, cancellationToken: cancellationToken).GetAnySymbol() as IFieldSymbol;
                 if (resolved == null)
-                    return ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>.Empty;
+                    return [];
 
                 fields.Add(resolved);
             }

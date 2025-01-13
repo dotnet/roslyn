@@ -74,7 +74,6 @@ internal static class AddParameterService
     /// Adds a parameter to a method.
     /// </summary>
     /// <param name="newParameterIndex"><see langword="null"/> to add as the final parameter</param>
-    /// <returns></returns>
     public static async Task<Solution> AddParameterAsync<TExpressionSyntax>(
         Document invocationDocument,
         IMethodSymbol method,
@@ -218,10 +217,9 @@ internal static class AddParameterService
         var referencedSymbols = await SymbolFinder.FindReferencesAsync(
             method, invocationDocument.Project.Solution, cancellationToken).ConfigureAwait(false);
 
-        return referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition)
+        return [.. referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition)
                                 .OfType<IMethodSymbol>()
-                                .Distinct()
-                                .ToImmutableArray();
+                                .Distinct()];
     }
 
     private static IParameterSymbol CreateParameterSymbol(

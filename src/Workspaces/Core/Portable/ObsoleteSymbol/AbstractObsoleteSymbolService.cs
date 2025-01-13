@@ -46,7 +46,7 @@ internal abstract class AbstractObsoleteSymbolService(int? dimKeywordKind) : IOb
             }
 
             if (result is null)
-                return ImmutableArray<TextSpan>.Empty;
+                return [];
 
             result.RemoveDuplicates();
             return result.ToImmutableAndClear();
