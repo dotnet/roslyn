@@ -2580,6 +2580,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(shouldExecuteSyntaxNodeActions || shouldExecuteOperationActions || shouldExecuteCodeBlockActions || shouldExecuteOperationBlockActions);
             Debug.Assert(!isInGeneratedCode || !DoNotAnalyzeGeneratedCode);
 
+            var filteredNodesToAnalyze = ArrayBuilder<SyntaxNode>.GetInstance();
+
             var symbol = symbolEvent.Symbol;
 
             var semanticModel = symbolEvent.SemanticModelWithCachedBoundNodes ??
@@ -2596,6 +2598,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             declarationAnalysisData.Free();
+            filteredNodesToAnalyze.Free();
 
             return;
 
@@ -2626,7 +2629,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // in the code block to ensure the analyzer can correctly report code block end diagnostics.
                     if (declarationAnalysisData.IsPartialAnalysis && !groupedActionsForAnalyzer.HasCodeBlockStartActions)
                     {
-                        var filteredNodesToAnalyze = ArrayBuilder<SyntaxNode>.GetInstance(nodesToAnalyze.Count);
+                        filteredNodesToAnalyze.Clear();
                         foreach (var node in nodesToAnalyze)
                         {
                             if (analysisScope.ShouldAnalyze(node))
@@ -2634,7 +2637,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
 
                         executeSyntaxNodeActions(analyzer, groupedActionsForAnalyzer, filteredNodesToAnalyze);
-                        filteredNodesToAnalyze.Free();
                     }
                     else
                     {
