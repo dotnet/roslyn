@@ -2614,7 +2614,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActions.GroupedActionsByAnalyzer)
                 {
                     var nodeActionsByKind = groupedActionsForAnalyzer.NodeActionsByAnalyzerAndKind;
-                    if (nodeActionsByKind.IsEmpty || !analysisScope.Contains(analyzer))
+                    if (nodeActionsByKind.Count == 0 || !analysisScope.Contains(analyzer))
                     {
                         continue;
                     }
@@ -2743,7 +2743,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActions.GroupedActionsByAnalyzer)
                 {
                     var operationActionsByKind = groupedActionsForAnalyzer.OperationActionsByAnalyzerAndKind;
-                    if (operationActionsByKind.IsEmpty || !analysisScope.Contains(analyzer))
+                    if (operationActionsByKind.Count == 0 || !analysisScope.Contains(analyzer))
                     {
                         continue;
                     }
