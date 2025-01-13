@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics;
@@ -951,8 +952,15 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
 
         var semanticModel = compilation.GetSemanticModel(tree);
         var operation = (IAnonymousFunctionOperation)semanticModel.GetOperation(lambda)!;
-
         Assert.NotNull(operation);
+
+        compilation.VerifyOperationTree(lambda, """
+            IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '(ref x) => { return; }')
+              IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ return; }')
+                IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return;')
+                  ReturnedValue:
+                    null
+            """);
 
         var symbol = operation.Symbol;
 
