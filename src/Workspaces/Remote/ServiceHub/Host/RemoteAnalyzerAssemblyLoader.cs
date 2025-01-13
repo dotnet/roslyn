@@ -4,7 +4,6 @@
 
 using System.IO;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics.Redirecting;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
 
@@ -17,8 +16,8 @@ internal sealed class RemoteAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
 {
     private readonly string _baseDirectory;
 
-    public RemoteAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers = default, ImmutableArray<IAnalyzerAssemblyRedirector> externalRedirectors = default)
-        : base(externalResolvers, externalRedirectors)
+    public RemoteAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+        : base(externalResolvers ?? [])
     {
         _baseDirectory = baseDirectory;
     }

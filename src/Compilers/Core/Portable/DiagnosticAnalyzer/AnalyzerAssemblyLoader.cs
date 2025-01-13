@@ -9,7 +9,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis.Diagnostics.Redirecting;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
@@ -77,8 +76,6 @@ namespace Microsoft.CodeAnalysis
         /// When multiple resolvers are present they are consulted in-order, with the first resolver to return a non-null
         /// <see cref="Assembly"/> winning.</remarks>
         private readonly ImmutableArray<IAnalyzerAssemblyResolver> _externalResolvers;
-
-        private readonly ImmutableArray<IAnalyzerAssemblyRedirector> _externalRedirectors;
 
         /// <summary>
         /// Whether or not we're disposed.  Once disposed, all functionality on this type should throw.
@@ -425,42 +422,6 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
-            return null;
-        }
-
-        internal string? RedirectAssemblyPathExternally(string fullPath)
-        {
-            CheckIfDisposed();
-
-            if (!_externalRedirectors.IsDefaultOrEmpty)
-            {
-                string? redirectedPath = null;
-
-                foreach (IAnalyzerAssemblyRedirector redirector in _externalRedirectors)
-                {
-                    try
-                    {
-                        if (redirector.RedirectPath(fullPath) is { } currentlyRedirectedPath)
-                        {
-                            if (redirectedPath == null)
-                            {
-                                redirectedPath = currentlyRedirectedPath;
-                            }
-                            else if (redirectedPath != currentlyRedirectedPath)
-                            {
-                                throw new InvalidOperationException($"Multiple redirectors disagree on the path to redirect '{fullPath}' to ('{redirectedPath}' vs '{currentlyRedirectedPath}').");
-                            }
-                        }
-                    }
-                    catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Diagnostic))
-                    {
-                        // Ignore if the external redirector throws.
-                    }
-                }
-
-                return redirectedPath;
-            }
-
             return null;
         }
     }

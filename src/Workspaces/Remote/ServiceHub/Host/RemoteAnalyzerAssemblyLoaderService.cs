@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis.Diagnostics.Redirecting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -19,6 +18,5 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RemoteAnalyzerAssemblyLoaderService(
-    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers,
-    [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> externalRedirectors)
-    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers.ToImmutableArray(), externalRedirectors.ToImmutableArray());
+    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
+    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers.ToImmutableArray());

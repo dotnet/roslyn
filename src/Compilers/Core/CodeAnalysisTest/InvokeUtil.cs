@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var tempRoot = new TempRoot();
             AnalyzerAssemblyLoader loader = kind switch
             {
-                AnalyzerTestKind.LoadDirect => new DefaultAnalyzerAssemblyLoader(externalResolvers.ToImmutableArray(), externalRedirectors: default),
+                AnalyzerTestKind.LoadDirect => new DefaultAnalyzerAssemblyLoader(externalResolvers.ToImmutableArray()),
                 AnalyzerTestKind.ShadowLoad => new ShadowCopyAnalyzerAssemblyLoader(tempRoot.CreateDirectory().Path, externalResolvers.ToImmutableArray()),
                 _ => throw ExceptionUtilities.Unreachable()
             };

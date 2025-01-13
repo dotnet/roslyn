@@ -13,7 +13,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
-using Microsoft.CodeAnalysis.Diagnostics.Redirecting;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -46,17 +45,16 @@ namespace Microsoft.CodeAnalysis
         internal AssemblyLoadContext CompilerLoadContext => _compilerLoadContext;
         internal AnalyzerLoadOption AnalyzerLoadOption => _loadOption;
 
-        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers, ImmutableArray<IAnalyzerAssemblyRedirector> externalRedirectors)
-            : this(null, AnalyzerLoadOption.LoadFromDisk, externalResolvers, externalRedirectors)
+        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+            : this(null, AnalyzerLoadOption.LoadFromDisk, externalResolvers)
         {
         }
 
-        internal AnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, AnalyzerLoadOption loadOption, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers, ImmutableArray<IAnalyzerAssemblyRedirector> externalRedirectors)
+        internal AnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, AnalyzerLoadOption loadOption, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
         {
             _loadOption = loadOption;
             _compilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
-            _externalResolvers = [.. externalResolvers.NullToEmpty(), new CompilerAnalyzerAssemblyResolver(_compilerLoadContext)];
-            _externalRedirectors = externalRedirectors;
+            _externalResolvers = [.. externalResolvers, new CompilerAnalyzerAssemblyResolver(_compilerLoadContext)];
         }
 
         public bool IsHostAssembly(Assembly assembly)

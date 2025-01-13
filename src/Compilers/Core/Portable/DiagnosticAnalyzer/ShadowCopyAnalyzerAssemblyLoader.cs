@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Reflection;
-using Microsoft.CodeAnalysis.Diagnostics.Redirecting;
 
 #if NET
 using System.Runtime.Loader;
@@ -45,16 +44,16 @@ namespace Microsoft.CodeAnalysis
         internal int CopyCount => _mvidPathMap.Count;
 
 #if NET
-        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers = default, ImmutableArray<IAnalyzerAssemblyRedirector> externalRedirectors = default)
-            : this(null, baseDirectory, externalResolvers, externalRedirectors)
+        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+            : this(null, baseDirectory, externalResolvers)
         {
         }
 
-        public ShadowCopyAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers = default, ImmutableArray<IAnalyzerAssemblyRedirector> externalRedirectors = default)
-            : base(compilerLoadContext, AnalyzerLoadOption.LoadFromDisk, externalResolvers, externalRedirectors)
+        public ShadowCopyAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+            : base(compilerLoadContext, AnalyzerLoadOption.LoadFromDisk, externalResolvers ?? [])
 #else
-        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers = default, ImmutableArray<IAnalyzerAssemblyRedirector> externalRedirectors = default)
-            : base(externalResolvers, externalRedirectors)
+        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+            : base(externalResolvers ?? [])
 #endif
         {
             if (baseDirectory is null)

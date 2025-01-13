@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
 
+            FullPath = fullPath;
             _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
-            FullPath = getAssemblyLocation(fullPath, assemblyLoader);
 
             _diagnosticAnalyzers = new(this, typeof(DiagnosticAnalyzerAttribute), GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
             _generators = new(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false, coerceFunction: CoerceGeneratorType);
@@ -63,23 +63,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
             assemblyLoader.AddDependencyLocation(fullPath);
-
-            static string getAssemblyLocation(string fullPath, IAnalyzerAssemblyLoader assemblyLoader)
-            {
-                // We use reflection because AnalyzerAssemblyLoader can come from a different assembly (it's source-shared).
-                var location = (string?)assemblyLoader.GetType()
-                    .GetMethod(
-                        nameof(AnalyzerAssemblyLoader.RedirectAssemblyPathExternally),
-                        BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)?
-                    .Invoke(assemblyLoader, [fullPath]);
-
-                if (!string.IsNullOrEmpty(location))
-                {
-                    return location;
-                }
-
-                return fullPath;
-            }
         }
 
         public IAnalyzerAssemblyLoader AssemblyLoader => _assemblyLoader;

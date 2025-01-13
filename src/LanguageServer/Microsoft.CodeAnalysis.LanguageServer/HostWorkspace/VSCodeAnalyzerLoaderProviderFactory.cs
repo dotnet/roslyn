@@ -4,7 +4,6 @@
 
 using System.Composition;
 using System.Reflection;
-using Microsoft.CodeAnalysis.Diagnostics.Redirecting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
@@ -18,9 +17,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal sealed class VSCodeAnalyzerLoaderProviderFactory(
     ExtensionAssemblyManager extensionAssemblyManager,
     ILoggerFactory loggerFactory,
-    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers,
-    [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> externalRedirectors)
-    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers, externalRedirectors)
+    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
+    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers)
 {
     protected override IAnalyzerAssemblyLoaderInternal WrapLoader(IAnalyzerAssemblyLoaderInternal baseLoader)
         => new VSCodeExtensionAssemblyAnalyzerLoader(baseLoader, extensionAssemblyManager, loggerFactory.CreateLogger<VSCodeExtensionAssemblyAnalyzerLoader>());
