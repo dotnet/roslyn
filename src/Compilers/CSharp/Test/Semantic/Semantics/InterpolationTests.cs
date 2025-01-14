@@ -19151,6 +19151,8 @@ literal:literal
                     $"{a.}"='a'
                 }
 
+                a switch { 1 => null } = 1;
+
                 class C
                 {
                 }

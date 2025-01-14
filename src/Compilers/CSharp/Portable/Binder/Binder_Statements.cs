@@ -1488,9 +1488,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // These are only required to be converted in Debug to increase confidence that we've called BindToTypeForErrorRecovery or BindToNaturalType
                     // on the operand. We're calling BindToTypeForErrorRecovery below, so we're good.
                     || op1 is BoundParameter or BoundLocal
-                    || op1.HasAnyErrors);
+                    || op1.HasErrors);
 
-                if (op1.HasAnyErrors)
+                if (op1.HasErrors)
                 {
                     op1 = BindToTypeForErrorRecovery(op1);
                 }
