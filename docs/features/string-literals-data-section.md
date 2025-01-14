@@ -145,10 +145,6 @@ e.g., startup performance and the overhead of keeping track of these types.
 The generated types are returned from reflection like `Assembly.GetTypes()`
 which might impact the performance of Dependency Injection and similar systems.
 
-> [!NOTE]
-> In practice, there might not be many generated types, it depends on the kind of the program
-> (whether it has lots of short strings or a few large strings) and how [the threshold](#configuration) is configured.
-
 ## Implementation
 
 `CodeGenerator` obtains [configuration of the feature flag](#configuration) from `Compilation` passed to its constructor.
