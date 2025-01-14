@@ -59,6 +59,7 @@ extends:
       codeSignValidation:
         enabled: ${{ parameters.EnableProductionSDL }}
         break: true
+        additionalTargetsGlobPattern: -|Variables-*\*.ps1;-|APIScanInputs-*\**;-|test_symbols-*\**;-|MicroBuild\**
         policyFile: $(MBSIGN_APPFOLDER)\CSVTestSignPolicy.xml
       policheck:
         enabled: ${{ parameters.EnableProductionSDL }}
