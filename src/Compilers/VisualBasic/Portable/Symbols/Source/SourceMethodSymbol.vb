@@ -1434,7 +1434,7 @@ lReportErrorOnTwoTokens:
             Return Me.GetAttributesBag().Attributes
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             ' Emit synthesized STAThreadAttribute for this method if both the following requirements are met:
@@ -1454,7 +1454,7 @@ lReportErrorOnTwoTokens:
             End If
         End Sub
 
-        Friend Overrides Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedReturnTypeAttributes(ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedReturnTypeAttributes(attributes)
 
             If Me.ReturnType.ContainsTupleNames() Then

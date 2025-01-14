@@ -648,7 +648,7 @@ internal partial class ItemManager
             // model (and all the previously filtered items), but switch over to soft
             // selection.
             return new FilteredCompletionModel(
-                items: ImmutableArray<CompletionItemWithHighlight>.Empty, selectedItemIndex,
+                items: [], selectedItemIndex,
                 filters: _snapshotData.SelectedFilters, selectionHint: UpdateSelectionHint.SoftSelected, centerSelection: true, uniqueItem: null);
         }
 

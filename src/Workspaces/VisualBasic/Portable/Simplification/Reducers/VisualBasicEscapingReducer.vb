@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                 ' Always escape keywords as identifier if they are not part of a qualified name or member access
                 ' e.g. Class [Class]
-                If Not TypeOf (parent) Is ExpressionSyntax Then
+                If TypeOf (parent) IsNot ExpressionSyntax Then
                     Return identifier
                 Else
                     ' always escape keywords on the left side of a dot

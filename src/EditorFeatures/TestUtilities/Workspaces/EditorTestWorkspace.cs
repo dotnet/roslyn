@@ -243,7 +243,6 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
     /// preserved. The markup may also contain the caret indicator.</param>
     /// <param name="baseDocuments">The set of documents from which the projection buffer 
     /// document will be composed.</param>
-    /// <returns></returns>
     public EditorTestHostDocument CreateProjectionBufferDocument(
         string markup,
         IList<EditorTestHostDocument> baseDocuments,
@@ -262,7 +261,7 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
         {
             mappedSpans[string.Empty] = mappedSpans.TryGetValue(string.Empty, out var emptyTextSpans)
                 ? emptyTextSpans
-                : ImmutableArray<TextSpan>.Empty;
+                : [];
             foreach (var span in document.SelectedSpans)
             {
                 var snapshotSpan = span.ToSnapshotSpan(document.GetTextBuffer().CurrentSnapshot);
@@ -272,11 +271,11 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
 
             // Order unnamed spans as they would be ordered by the normal span finding 
             // algorithm in MarkupTestFile
-            mappedSpans[string.Empty] = mappedSpans[string.Empty].OrderBy(s => s.End).ThenBy(s => -s.Start).ToImmutableArray();
+            mappedSpans[string.Empty] = [.. mappedSpans[string.Empty].OrderBy(s => s.End).ThenBy(s => -s.Start)];
 
             foreach (var (key, spans) in document.AnnotatedSpans)
             {
-                mappedSpans[key] = mappedSpans.TryGetValue(key, out var textSpans) ? textSpans : ImmutableArray<TextSpan>.Empty;
+                mappedSpans[key] = mappedSpans.TryGetValue(key, out var textSpans) ? textSpans : [];
 
                 foreach (var span in spans)
                 {

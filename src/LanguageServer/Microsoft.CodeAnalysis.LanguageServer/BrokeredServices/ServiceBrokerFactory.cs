@@ -43,7 +43,7 @@ internal class ServiceBrokerFactory
     {
         _exportProvider = exportProvider;
         _bridgeCompletionTask = Task.CompletedTask;
-        _onServiceBrokerInitialized = onServiceBrokerInitialized.ToImmutableArray();
+        _onServiceBrokerInitialized = [.. onServiceBrokerInitialized];
         _wrappedServiceBroker = wrappedServiceBroker;
     }
 

@@ -100,7 +100,7 @@
       "title": "@Snippets_behavior;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
       "enum": [ "neverInclude", "alwaysInclude", "includeAfterTypingIdentifierQuestionTab" ],
-      "enumItemLabels": [ "@Never_include_snippets;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Always_include_snippets;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Include_snippets_when_Tab_is_typed_after_an_identifier;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" ],
+      "enumItemLabels": [ "@Never_include_snippets;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Always_include_snippets;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Include_snippets_when_Tab_is_typed_after_an_identifier;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll" ],
       "default": "alwaysInclude",
       "order": 50,
       "migration": {
@@ -136,7 +136,7 @@
     },
     // CompletionOptionsStorage.EnterKeyBehavior
     "textEditor.csharp.intellisense.returnKeyCompletionBehavior": {
-      "title": "@Enter_key_behavior_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "title": "@Enter_key_behavior;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
       "enum": [ "never", "afterFullyTypedWord", "always" ],
       "enumItemLabels": [ "@Never_add_new_line_on_enter;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Only_add_new_line_on_enter_after_end_of_fully_typed_word;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Always_add_new_line_on_enter;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" ],
@@ -209,6 +209,11 @@
       "type": "boolean",
       "default": false,
       "order": 90,
+      "messages": [
+        {
+          "text": "@Experimental_feature;..\\Microsoft.VisualStudio.LanguageServices.dll"
+        }
+      ],
       "migration": {
         "pass": {
           "input": {
@@ -220,9 +225,14 @@
     },
     // CompletionOptionsStorage.ShowNewSnippetExperienceUserOption
     "textEditor.csharp.intellisense.showNewSnippetExperience": {
-      "title": "@Show_new_snippet_experience_experimental;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "title": "@Show_new_snippet_experience;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": false,
+      "messages": [
+        {
+          "text": "@Experimental_feature;..\\Microsoft.VisualStudio.LanguageServices.dll"
+        }
+      ],
       "alternateDefault": {
         // CompletionOptionsStorage.ShowNewSnippetExperienceFeatureFlag
         "flagName": "Roslyn.SnippetCompletion",
@@ -241,7 +251,7 @@
   },
   "categories": {
     "textEditor.csharp":{
-      "title": "C#"
+      "title": "@101;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
     },
     "textEditor.csharp.intellisense": {
       "title": "@103;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",

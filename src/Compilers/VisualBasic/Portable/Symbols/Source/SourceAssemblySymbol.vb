@@ -1508,7 +1508,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return guidString IsNot Nothing
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             Debug.Assert(_lazyEmitExtensionAttribute <> ThreeState.Unknown)

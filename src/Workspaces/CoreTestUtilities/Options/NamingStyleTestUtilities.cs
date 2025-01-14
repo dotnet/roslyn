@@ -9,6 +9,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
@@ -67,4 +68,13 @@ internal static class NamingStyleTestUtilities
 
         return xml.ToString();
     }
+
+    public static SymbolSpecification.SymbolKindOrTypeKind ToSymbolKindOrTypeKind(object symbolOrTypeKind)
+        => symbolOrTypeKind switch
+        {
+            TypeKind typeKind => new SymbolSpecification.SymbolKindOrTypeKind(typeKind),
+            SymbolKind symbolKind => new SymbolSpecification.SymbolKindOrTypeKind(symbolKind),
+            MethodKind methodKind => new SymbolSpecification.SymbolKindOrTypeKind(methodKind),
+            _ => throw ExceptionUtilities.UnexpectedValue(symbolOrTypeKind),
+        };
 }

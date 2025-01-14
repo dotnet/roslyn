@@ -183,7 +183,7 @@ public static partial class SymbolFinder
                         }
                     }
 
-                    return builder.Distinct(SymbolEquivalenceComparer.Instance).ToImmutableArray();
+                    return [.. builder.Distinct(SymbolEquivalenceComparer.Instance)];
                 }
             }
 
@@ -380,6 +380,6 @@ public static partial class SymbolFinder
             }
         }
 
-        return results.Distinct(SymbolEquivalenceComparer.Instance).ToImmutableArray();
+        return [.. results.Distinct(SymbolEquivalenceComparer.Instance)];
     }
 }

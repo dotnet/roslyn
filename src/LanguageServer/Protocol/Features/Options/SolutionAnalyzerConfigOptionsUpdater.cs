@@ -91,7 +91,7 @@ internal sealed class SolutionAnalyzerConfigOptionsUpdater(IGlobalOptionService 
                             NamingStylePreferencesEditorConfigSerializer.WriteNamingStylePreferencesToEditorConfig(
                                 preferences.SymbolSpecifications,
                                 preferences.NamingStyles,
-                                preferences.NamingRules,
+                                preferences.Rules.NamingRules,
                                 language,
                                 entryWriter: (name, value) => lazyBuilder[name] = value,
                                 triviaWriter: null,

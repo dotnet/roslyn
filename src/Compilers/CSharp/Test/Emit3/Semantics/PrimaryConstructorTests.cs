@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -22359,6 +22360,259 @@ internal partial class EditorDocumentManagerListener
                 //     public C2() { } // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C2").WithArguments("property", "Text").WithLocation(12, 12)
                 );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_01([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+public " + keyword + @" Test1(
+    [Preserve1]
+    [Preserve2]
+    [Preserve3]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp2, symbolValidator: validate).VerifyDiagnostics();
+
+            var comp3 = CreateCompilation([source2], references: [comp1.EmitToImageReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp3, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "Preserve1Attribute",
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>P").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_02([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+public record " + keyword + @" Test1(
+    [Preserve1]
+    [Preserve2]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition, IsExternalInitTypeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            var comp2 = CreateCompilation([source2, IsExternalInitTypeDefinition], references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp2, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            var comp3 = CreateCompilation([source2, IsExternalInitTypeDefinition], references: [comp1.EmitToImageReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp3, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>k__BackingField").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_03([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source1 = @"
+using System;
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+";
+
+            string source2 = @"
+public record " + keyword + @" Test1(
+    [field: Preserve1]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, IsExternalInitTypeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)",
+                        "Preserve1Attribute"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>k__BackingField").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_04_Retargeting([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source0 = @"
+public class Test0 {}
+";
+
+            var comp0 = CreateCompilation(source0);
+
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+public " + keyword + @" Test1(
+    [Preserve1]
+    [Preserve2]
+    [Preserve3]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, CompilerLoweringPreserveAttributeDefinition],
+                references: [comp0.ToMetadataReference()],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            Assert.IsType<RetargetingNamedTypeSymbol>(comp2.GetTypeByMetadataName("Preserve1Attribute"));
+
+            CompileAndVerify(comp2, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "Preserve1Attribute",
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>P").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_05_Generic([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source0 = @"
+public class Test0 {}
+";
+
+            var comp0 = CreateCompilation(source0);
+
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute<T> : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute<T> : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute<T> : Attribute { }
+";
+
+            string source2 = @"
+public " + keyword + @" Test1(
+    [Preserve1<int>]
+    [Preserve2<int>]
+    [Preserve3<int>]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, CompilerLoweringPreserveAttributeDefinition],
+                references: [comp0.ToMetadataReference()],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            CompileAndVerify(comp2, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "Preserve1Attribute<System.Int32>",
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>P").GetAttributes().Select(a => a.ToString()));
+            }
         }
     }
 }

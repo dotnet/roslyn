@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 Documents = docs,
                 AdditionalDocuments = additionalDocs,
                 AnalyzerConfigDocuments = analyzerConfigDocs,
-                ProjectReferences = project.GetProjectReferences().ToImmutableArray(),
+                ProjectReferences = [.. project.GetProjectReferences()],
                 PackageReferences = packageReferences,
                 ProjectCapabilities = projectCapabilities,
                 ContentFilePaths = contentFileInfo,
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             static FileGlobs GetFileGlobs(GlobResult g)
             {
-                return new FileGlobs(g.IncludeGlobs.ToImmutableArray(), g.Excludes.ToImmutableArray(), g.Removes.ToImmutableArray());
+                return new FileGlobs([.. g.IncludeGlobs], [.. g.Excludes], [.. g.Removes]);
             }
         }
 

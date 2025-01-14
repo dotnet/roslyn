@@ -432,6 +432,11 @@
         <target state="translated">Введите значение места вызова или выберите другой тип введения значения</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_key_behavior">
+        <source>Enter key behavior</source>
+        <target state="new">Enter key behavior</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enter_key_behavior_colon">
         <source>Enter key behavior:</source>
         <target state="new">Enter key behavior:</target>
@@ -455,6 +460,11 @@
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
         <target state="translated">Ошибка при обновлении подавлений: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Experimental_feature">
+        <source>Experimental feature</source>
+        <target state="new">Experimental feature</target>
         <note />
       </trans-unit>
       <trans-unit id="External_sources">
@@ -528,8 +538,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Highlight_matching_portions_of_completion_list_items">
-        <source>_Highlight matching portions of completion list items</source>
-        <target state="new">_Highlight matching portions of completion list items</target>
+        <source>Highlight matching portions of completion list items</source>
+        <target state="new">Highlight matching portions of completion list items</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
@@ -1392,9 +1402,14 @@
         <target state="translated">Показывать ошибки и предупреждения компилятора для:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_completion_item_filters">
+      <trans-unit id="Show_completion_item__filters">
         <source>Show completion item _filters</source>
         <target state="new">Show completion item _filters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_item_filters">
+        <source>Show completion item filters</source>
+        <target state="new">Show completion item filters</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list">
@@ -1402,14 +1417,19 @@
         <target state="translated">Показать список завершения</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
+      <trans-unit id="Show_completion_list_after_a_character_is__deleted">
         <source>Show completion list after a character is _deleted</source>
         <target state="new">Show completion list after a character is _deleted</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
+        <source>Show completion list after a character is deleted</source>
+        <target state="new">Show completion list after a character is deleted</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
-        <source>_Show completion list after a character is typed</source>
-        <target state="new">_Show completion list after a character is typed</target>
+        <source>Show completion list after a character is typed</source>
+        <target state="new">Show completion list after a character is typed</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
@@ -1558,8 +1578,13 @@
         <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
+        <source>Tab twice to insert arguments</source>
+        <target state="needs-review-translation">Дважды нажмите клавишу TAB, чтобы вставить аргументы (экспериментальная функция)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Tab_twice_to_insert_arguments_experimental">
         <source>Tab twice to insert arguments (experimental)</source>
-        <target state="translated">Дважды нажмите клавишу TAB, чтобы вставить аргументы (экспериментальная функция)</target>
+        <target state="new">Tab twice to insert arguments (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -1857,9 +1882,19 @@
         <target state="translated">Элемент "{0}" будет изменен на открытый.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_Highlight_matching_portions_of_completion_list_items">
+        <source>_Highlight matching portions of completion list items</source>
+        <target state="new">_Highlight matching portions of completion list items</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>_Only add new line on enter after end of fully typed word</source>
         <target state="new">_Only add new line on enter after end of fully typed word</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_Show_completion_list_after_a_character_is_typed">
+        <source>_Show completion list after a character is typed</source>
+        <target state="new">_Show completion list after a character is typed</target>
         <note />
       </trans-unit>
       <trans-unit id="at_the_end_of_the_line_of_code">

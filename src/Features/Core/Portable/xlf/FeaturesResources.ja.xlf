@@ -335,6 +335,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">変更を適用できません。予期しないエラー: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="new">Cannot determine valid range of statements to extract</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Cannot_include_class_0_in_character_range">
         <source>Cannot include class \{0} in character range</source>
         <target state="translated">文字範囲にクラス \{0} を含めることはできません</target>
@@ -1258,6 +1263,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
         <target state="translated">抽出を行うための有効な選択がありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_valid_statement_range_to_extract">
+        <source>No valid statement range to extract</source>
+        <target state="new">No valid statement range to extract</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">

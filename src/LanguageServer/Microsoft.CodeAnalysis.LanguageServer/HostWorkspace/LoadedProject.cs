@@ -37,8 +37,8 @@ internal sealed class LoadedProject : IDisposable
     /// </summary>
     private Lazy<ImmutableArray<Matcher>>? _mostRecentFileMatchers;
     private IWatchedFile? _mostRecentProjectAssetsFileWatcher;
-    private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = ImmutableArray<CommandLineReference>.Empty;
-    private ImmutableArray<CommandLineAnalyzerReference> _mostRecentAnalyzerReferences = ImmutableArray<CommandLineAnalyzerReference>.Empty;
+    private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = [];
+    private ImmutableArray<CommandLineAnalyzerReference> _mostRecentAnalyzerReferences = [];
 
     public LoadedProject(ProjectSystemProject projectSystemProject, SolutionServices solutionServices, IFileChangeWatcher fileWatcher, ProjectTargetFrameworkManager targetFrameworkManager)
     {
@@ -211,7 +211,7 @@ internal sealed class LoadedProject : IDisposable
             newProjectInfo.AdditionalDocuments.Where(TreatAsIsDynamicFile),
             _mostRecentFileInfo?.AdditionalDocuments.Where(TreatAsIsDynamicFile),
             DocumentFileInfoComparer.Instance,
-            document => _projectSystemProject.AddDynamicSourceFile(document.FilePath, folders: ImmutableArray<string>.Empty),
+            document => _projectSystemProject.AddDynamicSourceFile(document.FilePath, folders: []),
             document => _projectSystemProject.RemoveDynamicSourceFile(document.FilePath),
             "Project {0} now has {1} dynamic file(s).");
 
@@ -221,14 +221,14 @@ internal sealed class LoadedProject : IDisposable
 
         _mostRecentFileMatchers = new Lazy<ImmutableArray<Matcher>>(() =>
         {
-            return newProjectInfo.FileGlobs.Select(glob =>
+            return [.. newProjectInfo.FileGlobs.Select(glob =>
             {
                 var matcher = new Matcher();
                 matcher.AddIncludePatterns(glob.Includes);
                 matcher.AddExcludePatterns(glob.Excludes);
                 matcher.AddExcludePatterns(glob.Removes);
                 return matcher;
-            }).ToImmutableArray();
+            })];
         });
         _mostRecentFileInfo = newProjectInfo;
 

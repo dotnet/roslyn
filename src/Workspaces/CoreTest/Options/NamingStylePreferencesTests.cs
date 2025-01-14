@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
 {
     [Trait(Traits.Feature, Traits.Features.NamingStyle)]
-    public class NamingStylePreferencesUpgradeTests
+    public class NamingStylePreferencesTests
     {
         private static string ReserializePreferences(string serializedPreferences)
         {
@@ -24,6 +24,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
 
         private static void AssertTrimmedEqual(string expected, string actual)
             => Assert.Equal(expected.Trim(), actual.Trim());
+
+        [Fact]
+        public void Equality()
+        {
+            Assert.True(
+                NamingStylePreferences.FromXElement(XElement.Parse(NamingStylePreferences.DefaultNamingPreferencesString)).Equals(
+                NamingStylePreferences.FromXElement(XElement.Parse(NamingStylePreferences.DefaultNamingPreferencesString))));
+        }
 
         [Fact]
         public void TestPreserveDefaultPreferences()

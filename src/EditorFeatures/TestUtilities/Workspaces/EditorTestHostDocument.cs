@@ -20,12 +20,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities;
 
 public class EditorTestHostDocument : TestHostDocument
 {
-    private static readonly ImmutableArray<string> s_defaultRoles = ImmutableArray.Create<string>
-        (PredefinedTextViewRoles.Analyzable,
+    private static readonly ImmutableArray<string> s_defaultRoles =
+    [
+        PredefinedTextViewRoles.Analyzable,
         PredefinedTextViewRoles.Document,
         PredefinedTextViewRoles.Editable,
         PredefinedTextViewRoles.Interactive,
-        PredefinedTextViewRoles.Zoomable);
+        PredefinedTextViewRoles.Zoomable,
+    ];
 
     private readonly ImmutableArray<string> _roles;
 

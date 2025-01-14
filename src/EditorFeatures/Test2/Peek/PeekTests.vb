@@ -463,7 +463,6 @@ public partial class D
             ''' Returns the text of the identifier line, starting at the identifier and ending at end of the line.
             ''' </summary>
             ''' <param name="index"></param>
-            ''' <returns></returns>
             Friend Function GetRemainingIdentifierLineTextOnDisk(index As Integer) As String
                 Dim documentResult = DirectCast(Items(index), IDocumentPeekResult)
                 Dim textBufferService = _workspace.GetService(Of ITextBufferFactoryService)

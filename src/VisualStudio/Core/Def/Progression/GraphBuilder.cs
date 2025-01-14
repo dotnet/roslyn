@@ -849,7 +849,7 @@ internal sealed partial class GraphBuilder
     {
         using (_gate.DisposableWait(cancellationToken))
         {
-            return _createdNodes.ToImmutableArray();
+            return [.. _createdNodes];
         }
     }
 }

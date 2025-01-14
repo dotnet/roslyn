@@ -132,11 +132,6 @@
         <target state="translated">La selección automática se ha deshabilitado debido a una posible declaración de variable de patrón.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
-        <source>Cannot determine valid range of statements to extract</source>
-        <target state="translated">No se puede determinar el intervalo válido de instrucciones que se van a extraer</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">Cambiar a la expresión "as"</target>
@@ -365,11 +360,6 @@
       <trans-unit id="The_selected_code_is_inside_an_unsafe_context">
         <source>The selected code is inside an unsafe context.</source>
         <target state="translated">El código seleccionado se encuentra dentro de un contexto no seguro.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_statement_range_to_extract">
-        <source>No valid statement range to extract</source>
-        <target state="translated">No hay un intervalo válido de instrucciones para extraer.</target>
         <note />
       </trans-unit>
       <trans-unit id="deprecated">

@@ -51,30 +51,15 @@ namespace RunTests
         /// </summary>
         private static readonly int s_maxMethodCount = 500;
 
-        private readonly Options _options;
-
-        internal AssemblyScheduler(Options options)
-        {
-            _options = options;
-        }
-
-        public async Task<ImmutableArray<WorkItemInfo>> ScheduleAsync(ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
+        public static ImmutableArray<WorkItemInfo> Schedule(
+            ImmutableArray<AssemblyInfo> assemblies,
+            ImmutableDictionary<string, TimeSpan> testHistory)
         {
             Logger.Log($"Scheduling {assemblies.Length} assemblies");
 
-            if (_options.Sequential || !_options.UseHelix)
-            {
-                Logger.Log("Building work items with one assembly each.");
-                // return individual work items per assembly that contain all the tests in that assembly.
-                return CreateWorkItemsForFullAssemblies(assemblies);
-            }
-
             var orderedTypeInfos = assemblies.ToImmutableSortedDictionary(assembly => assembly, GetTypeInfoList);
-
             ConsoleUtil.WriteLine($"Found {orderedTypeInfos.Values.SelectMany(t => t).SelectMany(t => t.Tests).Count()} tests to run in {orderedTypeInfos.Keys.Count()} assemblies");
 
-            // Retrieve test runtimes from azure devops historical data.
-            var testHistory = await TestHistoryManager.GetTestHistoryAsync(_options, cancellationToken);
             if (testHistory.IsEmpty)
             {
                 // We didn't have any test history from azure devops, just partition by test count.
@@ -101,19 +86,6 @@ namespace RunTests
                 addFunc: (currentTest, accumulatedExecutionTime) => currentTest.ExecutionTime + accumulatedExecutionTime);
             LogWorkItems(workItems);
             return workItems;
-
-            static ImmutableArray<WorkItemInfo> CreateWorkItemsForFullAssemblies(ImmutableArray<AssemblyInfo> assemblies)
-            {
-                var workItems = new List<WorkItemInfo>();
-                var partitionIndex = 0;
-                foreach (var assembly in assemblies)
-                {
-                    var currentWorkItem = ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>>.Empty.Add(assembly, ImmutableArray<TestMethodInfo>.Empty);
-                    workItems.Add(new WorkItemInfo(currentWorkItem, partitionIndex++));
-                }
-
-                return workItems.ToImmutableArray();
-            }
         }
 
         private static ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> UpdateTestsWithExecutionTimes(
@@ -179,7 +151,7 @@ namespace RunTests
             }
         }
 
-        private ImmutableArray<WorkItemInfo> BuildWorkItems<TWeight>(
+        private static ImmutableArray<WorkItemInfo> BuildWorkItems<TWeight>(
             ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> typeInfos,
             Func<TWeight, bool> isOverLimitFunc,
             Func<TestMethodInfo, TWeight, TWeight> addFunc) where TWeight : struct

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 public ResolvedReferencesBuilder(IEnumerable<MetadataReference> metadataReferences)
                 {
-                    _metadataReferences = metadataReferences.ToImmutableArray();
+                    _metadataReferences = [.. metadataReferences];
                     _pathToIndicesMap = CreatePathToIndexMap(_metadataReferences);
                     _indicesToRemove = [];
                     _projectReferences = ImmutableHashSet.CreateBuilder<ProjectReference>();

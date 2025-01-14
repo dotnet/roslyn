@@ -169,7 +169,7 @@ internal static partial class ISymbolExtensions
     }
 
     public static ImmutableArray<ISymbol> ImplicitInterfaceImplementations(this ISymbol symbol)
-        => symbol.ExplicitOrImplicitInterfaceImplementations().Except(symbol.ExplicitInterfaceImplementations()).ToImmutableArray();
+        => [.. symbol.ExplicitOrImplicitInterfaceImplementations().Except(symbol.ExplicitInterfaceImplementations())];
 
     public static bool IsOverridable([NotNullWhen(true)] this ISymbol? symbol)
     {
@@ -517,7 +517,7 @@ internal static partial class ISymbolExtensions
                     types = types.Concat((method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullableAnnotation(method.ReturnNullableAnnotation));
                 }
 
-                return delegateType.TryConstruct(types.ToArray());
+                return delegateType.TryConstruct([.. types]);
             }
         }
 

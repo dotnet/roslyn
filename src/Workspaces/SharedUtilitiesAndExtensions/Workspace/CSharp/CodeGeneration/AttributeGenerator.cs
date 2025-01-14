@@ -72,14 +72,14 @@ internal static class AttributeGenerator
             return null;
 
         var attributeArguments = GenerateAttributeArgumentList(
-            info.Generator, attribute, reusableSyntax);
+            attribute, reusableSyntax);
         return attribute.AttributeClass.GenerateTypeSyntax() is NameSyntax nameSyntax
             ? Attribute(nameSyntax, attributeArguments)
             : null;
     }
 
     private static AttributeArgumentListSyntax? GenerateAttributeArgumentList(
-        SyntaxGenerator generator, AttributeData attribute, AttributeSyntax? existingSyntax)
+        AttributeData attribute, AttributeSyntax? existingSyntax)
     {
         if (attribute.ConstructorArguments.Length == 0 && attribute.NamedArguments.Length == 0)
             return null;
@@ -117,7 +117,7 @@ internal static class AttributeGenerator
                 }
             }
 
-            return ExpressionGenerator.GenerateExpression(generator, constant);
+            return ExpressionGenerator.GenerateExpression(constant);
         }
     }
 }

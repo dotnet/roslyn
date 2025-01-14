@@ -1392,8 +1392,11 @@ Additional information: {1}</value>
   <data name="Symbols_without_references" xml:space="preserve">
     <value>Symbols without references</value>
   </data>
-  <data name="Tab_twice_to_insert_arguments" xml:space="preserve">
+  <data name="Tab_twice_to_insert_arguments_experimental" xml:space="preserve">
     <value>Tab twice to insert arguments (experimental)</value>
+  </data>
+  <data name="Tab_twice_to_insert_arguments" xml:space="preserve">
+    <value>Tab twice to insert arguments</value>
   </data>
   <data name="Apply" xml:space="preserve">
     <value>Apply</value>
@@ -1874,19 +1877,25 @@ Additional information: {1}</value>
   <data name="Performance" xml:space="preserve">
     <value>Performance</value>
   </data>
-  <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
-    <value>_Show completion list after a character is typed</value>
-  </data>
-  <data name="Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
+  <data name="_Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
     <value>_Highlight matching portions of completion list items</value>
   </data>
+  <data name="Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
+    <value>Highlight matching portions of completion list items</value>
+  </data>
   <data name="Show_completion_item_filters" xml:space="preserve">
+    <value>Show completion item filters</value>
+  </data>
+  <data name="Show_completion_item__filters" xml:space="preserve">
     <value>Show completion item _filters</value>
   </data>
   <data name="Snippets_behavior" xml:space="preserve">
     <value>Snippets behavior</value>
   </data>
   <data name="Show_completion_list_after_a_character_is_deleted" xml:space="preserve">
+    <value>Show completion list after a character is deleted</value>
+  </data>
+  <data name="Show_completion_list_after_a_character_is__deleted" xml:space="preserve">
     <value>Show completion list after a character is _deleted</value>
   </data>
   <data name="Never_include_snippets" xml:space="preserve">
@@ -1913,6 +1922,9 @@ Additional information: {1}</value>
   <data name="Enter_key_behavior_colon" xml:space="preserve">
     <value>Enter key behavior:</value>
   </data>
+  <data name="Enter_key_behavior" xml:space="preserve">
+    <value>Enter key behavior</value>
+  </data>
   <data name="Show_preview_for_rename_tracking" xml:space="preserve">
     <value>Show preview for rename _tracking</value>
   </data>
@@ -1924,5 +1936,14 @@ Additional information: {1}</value>
   </data>
   <data name="Show_Remove_Unused_References_command_in_Solution_Explorer" xml:space="preserve">
     <value>Show "Remove Unused References" command in Solution Explorer</value>
+  </data>
+  <data name="_Show_completion_list_after_a_character_is_typed" xml:space="preserve">
+    <value>_Show completion list after a character is typed</value>
+  </data>
+  <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
+    <value>Show completion list after a character is typed</value>
+  </data>
+  <data name="Experimental_feature" xml:space="preserve">
+    <value>Experimental feature</value>
   </data>
 </root>

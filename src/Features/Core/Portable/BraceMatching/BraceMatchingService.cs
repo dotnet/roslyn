@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching;
 internal sealed class BraceMatchingService(
     [ImportMany] IEnumerable<Lazy<IBraceMatcher, LanguageMetadata>> braceMatchers) : IBraceMatchingService
 {
-    private readonly ImmutableArray<Lazy<IBraceMatcher, LanguageMetadata>> _braceMatchers = braceMatchers.ToImmutableArray();
+    private readonly ImmutableArray<Lazy<IBraceMatcher, LanguageMetadata>> _braceMatchers = [.. braceMatchers];
 
     public async Task<BraceMatchingResult?> GetMatchingBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
     {

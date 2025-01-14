@@ -49,6 +49,43 @@ public class InterceptorsTests : CSharpTestBase
 
     private static string GetAttributeArgs(InterceptableLocation location) => $@"{location.Version}, ""{location.Data}""";
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76641")]
+    public void UnsupportedWarningWave()
+    {
+        var source = ("""
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+            """, "Program.cs");
+        var interceptors = $$"""
+            using System.Runtime.CompilerServices;
+            using System;
+            class D
+            {
+                [InterceptsLocation("Program.cs", 1, 3)]
+                public static void M() => Console.Write(1);
+            }
+            """;
+
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularWithInterceptors, options: TestOptions.DebugExe.WithWarningLevel(8));
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularWithInterceptors, options: TestOptions.DebugExe.WithWarningLevel(9));
+        comp.VerifyEmitDiagnostics(
+            // (5,6): warning CS9270: 'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)
+            //     [InterceptsLocation("Program.cs", 1, 3)]
+            Diagnostic(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, @"InterceptsLocation(""Program.cs"", 1, 3)").WithLocation(5, 6));
+
+        comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (5,6): warning CS9270: 'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)
+            //     [InterceptsLocation("Program.cs", 1, 3)]
+            Diagnostic(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, @"InterceptsLocation(""Program.cs"", 1, 3)").WithLocation(5, 6));
+    }
+
     [Fact]
     public void FeatureFlag()
     {

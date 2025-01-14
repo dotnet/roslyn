@@ -28,7 +28,7 @@ internal sealed class TestChangeSignatureOptionsService() : IChangeSignatureOpti
     {
         var list = parameters.ToListOfParameters();
         var updateParameters = UpdatedSignature != null
-            ? UpdatedSignature.Select(item => item.IsExisting ? list[item.OldIndex ?? -1] : item.GetAddedParameter(document.Document)).ToImmutableArray()
+            ? [.. UpdatedSignature.Select(item => item.IsExisting ? list[item.OldIndex ?? -1] : item.GetAddedParameter(document.Document))]
             : new ImmutableArray<Parameter>();
         return new ChangeSignatureOptionsResult(new SignatureChange(
                 parameters,

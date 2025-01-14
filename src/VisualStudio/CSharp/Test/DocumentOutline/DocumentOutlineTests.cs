@@ -96,7 +96,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             static DocumentSymbolDataViewModel ReplaceChildren(DocumentSymbolDataViewModel symbolToUpdate, ImmutableArray<DocumentSymbolDataViewModel> newChildren)
             {
                 var data = symbolToUpdate.Data;
-                var symbolData = data with { Children = ImmutableArray<DocumentSymbolData>.Empty };
+                var symbolData = data with { Children = [] };
                 return new DocumentSymbolDataViewModel(symbolData, newChildren);
             }
 

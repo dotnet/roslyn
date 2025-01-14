@@ -128,7 +128,6 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
     /// Indicates if the given expression statement operation has an explicit "Call" statement syntax indicating explicit discard.
     /// For example, VB "Call" statement.
     /// </summary>
-    /// <returns></returns>
     protected abstract bool IsCallStatement(IExpressionStatementOperation expressionStatement);
 
     /// <summary>
@@ -147,7 +146,6 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
     ///             and hence can be removed completely. For example, if the assigned value is a constant or a reference
     ///             to a local/parameter, then it has no side effects, but if it is method invocation, it may have side effects.
     /// </summary>
-    /// <returns></returns>
     private static PropertiesMap CreatePropertiesMap()
     {
         var builder = ImmutableDictionary.CreateBuilder<(UnusedValuePreference preference, bool isUnusedLocalAssignment, bool isRemovableAssignment),

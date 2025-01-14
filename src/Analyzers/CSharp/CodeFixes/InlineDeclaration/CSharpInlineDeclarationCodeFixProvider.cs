@@ -246,7 +246,7 @@ internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxE
             return [.. switchSection.Statements];
 
         if (pseudoBlock is CompilationUnitSyntax compilationUnit)
-            return compilationUnit.Members.OfType<GlobalStatementSyntax>().Select(g => g.Statement).ToImmutableArray();
+            return [.. compilationUnit.Members.OfType<GlobalStatementSyntax>().Select(g => g.Statement)];
 
         return [];
     }

@@ -116,7 +116,7 @@ internal abstract class AbstractMergeIfStatementsCodeRefactoringProvider : CodeR
                blockFacts.IsScopeBlock(parent) &&
                blockFacts.GetExecutableBlockStatements(parent).Count == statements.Count)
         {
-            statements = ImmutableArray.Create(parent);
+            statements = [parent];
         }
 
         return statements;

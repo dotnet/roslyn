@@ -556,7 +556,6 @@ internal abstract class AbstractSpeculationAnalyzer<
     /// <summary>
     /// Checks whether the semantic symbols for the <see cref="OriginalExpression"/> and <see cref="ReplacedExpression"/> are non-null and compatible.
     /// </summary>
-    /// <returns></returns>
     public bool SymbolsForOriginalAndReplacedNodesAreCompatible()
     {
         if (this.SpeculativeSemanticModel == null)

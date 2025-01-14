@@ -310,7 +310,7 @@ public class SyntaxEditor
 
     private sealed class InsertChange(SyntaxNode node, IEnumerable<SyntaxNode> newNodes, bool isBefore) : Change(node)
     {
-        private readonly List<SyntaxNode> _newNodes = newNodes.ToList();
+        private readonly List<SyntaxNode> _newNodes = [.. newNodes];
 
         protected override SyntaxNode Apply(SyntaxNode root, SyntaxNode currentNode, SyntaxGenerator generator)
             => isBefore
