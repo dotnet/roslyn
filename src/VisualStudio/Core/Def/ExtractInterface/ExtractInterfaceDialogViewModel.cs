@@ -31,7 +31,8 @@ internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
         ImmutableArray<LanguageServices.Utilities.MemberSymbolViewModel> memberViewModels,
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
-        string languageName)
+        string languageName,
+        bool canAddDocument)
     {
         _notificationService = notificationService;
 
@@ -49,7 +50,8 @@ internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
             defaultNamespace,
             generatedNameTypeParameterSuffix,
             [.. conflictingTypeNames],
-            syntaxFactsService);
+            syntaxFactsService,
+            canAddDocument);
     }
 
     internal bool TrySubmit()
