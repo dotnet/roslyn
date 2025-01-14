@@ -19169,7 +19169,13 @@ literal:literal
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(5, 10),
                 // (6,2): error CS1002: ; expected
                 // }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 2)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 2),
+                // (8,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // a switch { 1 => null } = 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "a switch { 1 => null }").WithLocation(8, 1),
+                // (8,3): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered.
+                // a switch { 1 => null } = 1;
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("0").WithLocation(8, 3)
             );
 
             var tree = comp.SyntaxTrees[0];
