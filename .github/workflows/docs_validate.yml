@@ -1,0 +1,22 @@
+name: 📃 Docfx Validate
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: 📚 docfx
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+    - name: ⚙ Install prerequisites
+      run: |
+        ./init.ps1 -UpgradePrerequisites
+        dotnet --info
+      shell: pwsh
+    - name: 📚 Verify docfx build
+      run: dotnet docfx docfx/docfx.json --warningsAsErrors --disableGitFeatures
+      if: runner.os == 'Linux'
