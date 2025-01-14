@@ -1,11 +1,17 @@
-trigger: none # We only want to trigger manually or based on a schedule
-pr: none
-#schedules:
-#- cron: "0 3 * * *" # Daily @ 8 PM PST
-#  displayName: Daily vs-insertion
-#  branches:
-#    include:
-#    - microbuild
+trigger:
+  batch: true
+  branches:
+    include:
+    - main
+    - microbuild
+    - 'validate/*'
+  paths:
+    exclude:
+    - doc/
+    - '*.md'
+    - .vscode/
+    - azure-pipelines/release.yml
+    - azure-pipelines/vs-insertion.yml
 
 parameters:
 # As an entrypoint pipeline yml file, all parameters here show up in the Queue Run dialog.
@@ -26,7 +32,11 @@ parameters:
 - name: EnableAPIScan
   displayName: Include APIScan with compliance tools
   type: boolean
-  default: false # enable in individual repos only AFTER updating TSAOptions.json with your own values
+  default: false
+- name: EnableProductionSDL
+  displayName: Enable Production SDL
+  type: boolean
+  default: false
 
 resources:
   repositories:
@@ -39,21 +49,22 @@ variables:
 - template: GlobalVariables.yml
 
 extends:
-  template: azure-pipelines/MicroBuild.1ES.Official.yml@MicroBuildTemplate
+  template: azure-pipelines/MicroBuild.1ES.Unofficial.yml@MicroBuildTemplate
   parameters:
     sdl:
       sourceAnalysisPool: VSEngSS-MicroBuild2022-1ES
-      codeSignValidation:
-        enabled: true
-        break: true
-        additionalTargetsGlobPattern: -|Variables-*\*.ps1;-|APIScanInputs-*\**;-|test_symbols-*\**;-|MicroBuild\**
-      policheck:
-        enabled: true
-        exclusionsFile: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
       suppression:
         suppressionFile: $(System.DefaultWorkingDirectory)\azure-pipelines\falsepositives.gdnsuppress
+      enableProductionSDL: ${{ parameters.EnableProductionSDL }}
+      codeSignValidation:
+        enabled: ${{ parameters.EnableProductionSDL }}
+        break: true
+        policyFile: $(MBSIGN_APPFOLDER)\CSVTestSignPolicy.xml
+      policheck:
+        enabled: ${{ parameters.EnableProductionSDL }}
+        exclusionsFile: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
       sbom:
-        enabled: true
+        enabled: ${{ parameters.EnableProductionSDL }}
     stages:
     - stage: Build
       variables:
@@ -62,7 +73,7 @@ extends:
       - template: /azure-pipelines/build.yml@self
         parameters:
           Is1ESPT: true
-          RealSign: true
+          RealSign: false
           # ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
           EnableAPIScan: ${{ parameters.EnableAPIScan }}
           windowsPool: VSEngSS-MicroBuild2022-1ES
@@ -77,6 +88,3 @@ extends:
             os: macOS
           EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
           RunTests: ${{ parameters.RunTests }}
-    - template: /azure-pipelines/prepare-insertion-stages.yml@self
-      parameters:
-        RealSign: true

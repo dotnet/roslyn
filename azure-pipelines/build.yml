@@ -313,3 +313,4 @@ jobs:
     - template: apiscan.yml
       parameters:
         windowsPool: ${{ parameters.windowsPool }}
+        RealSign: ${{ parameters.RealSign }}

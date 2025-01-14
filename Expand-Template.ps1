@@ -156,7 +156,7 @@ try {
     $YmlReplacements = @{
         "(?m)^\s+- microbuild`r?`n"=""
     }
-    Replace-Placeholders -Path "azure-pipelines\official.yml" -Replacements $YmlReplacements
+    Replace-Placeholders -Path "azure-pipelines\unofficial.yml" -Replacements $YmlReplacements
     Replace-Placeholders -Path "azure-pipelines.yml" -Replacements $YmlReplacements
 
     $YmlReplacements = @{}

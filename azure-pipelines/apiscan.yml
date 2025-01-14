@@ -1,6 +1,8 @@
 parameters:
 - name: windowsPool
   type: object
+- name: RealSign
+  type: boolean
 
 jobs:
 - job: apiscan
@@ -9,6 +11,12 @@ jobs:
   pool: ${{ parameters.windowsPool }}
   timeoutInMinutes: 120
   templateContext:
+    ${{ if not(parameters.RealSign) }}:
+      mb:
+        signing: # if the build is test-signed, install the signing plugin so that CSVTestSignPolicy.xml is available
+          enabled: true
+          zipSources: false
+          signType: test
     outputs:
     - output: pipelineArtifact
       displayName: 📢 collect apiscan artifact
