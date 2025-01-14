@@ -782,7 +782,7 @@ public partial class MetadataAsSourceTests
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42986")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76676")]
         public async Task TestParamsScoped()
         {
             var metadataSource = """
