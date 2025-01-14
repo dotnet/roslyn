@@ -60,7 +60,7 @@ extends:
             TeamName: $(TeamName)
             TeamEmail: $(TeamEmail)
             InsertionPayloadName: $(Build.Repository.Name) $(Build.BuildNumber)
-            InsertionBuildPolicy: Request Perf DDRITs
+            InsertionBuildPolicies: Request Perf DDRITs
             InsertionReviewers: $(Build.RequestedFor) # Append `,Your team name` (without quotes)
             AutoCompletePR: true
             AutoCompleteMergeStrategy: Squash
