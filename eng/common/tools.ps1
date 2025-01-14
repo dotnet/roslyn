@@ -321,7 +321,7 @@ function InstallDotNet([string] $dotnetRoot,
   $variations += @($installParameters)
 
   $dotnetBuilds = $installParameters.Clone()
-  $dotnetbuilds.AzureFeed = "https://dotnetbuilds.azureedge.net/public"
+  $dotnetbuilds.AzureFeed = "https://ci.dot.net/public"
   $variations += @($dotnetBuilds)
 
   if ($runtimeSourceFeed) {
@@ -892,7 +892,7 @@ function IsWindowsPlatform() {
 }
 
 function Get-Darc($version) {
-  $darcPath  = "$TempDir\darc\$(New-Guid)"
+  $darcPath  = "$TempDir\darc\$([guid]::NewGuid())"
   if ($version -ne $null) {
     & $PSScriptRoot\darc-init.ps1 -toolpath $darcPath -darcVersion $version | Out-Host
   } else {
