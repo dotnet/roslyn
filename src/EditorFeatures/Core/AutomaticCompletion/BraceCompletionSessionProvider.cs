@@ -48,8 +48,7 @@ internal partial class BraceCompletionSessionProvider(
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        var isResponsive = textView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionOptionId);
-        var responsiveThreshold = isResponsive ? textView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionThresholdOptionId) : -1;
+        var responsiveCompletion = textView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionOptionId);
 
         var textSnapshot = openingPoint.Snapshot;
         var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -69,7 +68,7 @@ internal partial class BraceCompletionSessionProvider(
                     session = new BraceCompletionSession(
                         this, textView, openingPoint.Snapshot.TextBuffer,
                         openingPoint, openingBrace, closingBrace,
-                        undoHistory, editorSession, responsiveThreshold);
+                        undoHistory, editorSession, responsiveCompletion);
                     return true;
                 }
             }
