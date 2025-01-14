@@ -10,11 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.ExtractInterface;
-using Microsoft.CodeAnalysis.InlineMethod;
-using Microsoft.CodeAnalysis.InlineTemporary;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
@@ -427,31 +424,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             if (suggestedAction is not ICodeRefactoringSuggestedAction refactoringAction)
                 return CodeActionKind.Refactor;
 
-            if (refactoringAction.CodeRefactoringProvider is ExtractInterfaceCodeRefactoringProvider
-                or AbstractExtractClassRefactoringProvider
-                or ExtractMethodCodeRefactoringProvider)
-                return CodeActionKind.RefactorExtract;
-
-            if (IsInstanceOfGenericType(typeof(AbstractInlineMethodRefactoringProvider<,,,>), refactoringAction.CodeRefactoringProvider)
-                || IsInstanceOfGenericType(typeof(AbstractInlineTemporaryCodeRefactoringProvider<,>), refactoringAction.CodeRefactoringProvider))
-                return CodeActionKind.RefactorInline;
-
-            return CodeActionKind.Refactor;
-
-            static bool IsInstanceOfGenericType(Type genericType, object instance)
+            return refactoringAction.CodeRefactoringProvider.Kind switch
             {
-                Type? type = instance.GetType();
-                while (type != null)
-                {
-                    if (type.IsGenericType &&
-                        type.GetGenericTypeDefinition() == genericType)
-                    {
-                        return true;
-                    }
-                    type = type.BaseType;
-                }
-                return false;
-            }
+                CodeRefactoringKind.Extract => CodeActionKind.RefactorExtract,
+                CodeRefactoringKind.Inline => CodeActionKind.RefactorInline,
+                _ => CodeActionKind.Refactor,
+            };
         }
 
         private static LSP.VSInternalPriorityLevel? UnifiedSuggestedActionSetPriorityToPriorityLevel(CodeActionPriority priority)

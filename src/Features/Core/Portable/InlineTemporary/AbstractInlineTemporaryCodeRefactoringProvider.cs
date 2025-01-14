@@ -19,6 +19,8 @@ internal abstract class AbstractInlineTemporaryCodeRefactoringProvider<
     where TIdentifierNameSyntax : SyntaxNode
     where TVariableDeclaratorSyntax : SyntaxNode
 {
+    internal override CodeRefactoringKind Kind => CodeRefactoringKind.Inline;
+
     protected static async Task<ImmutableArray<TIdentifierNameSyntax>> GetReferenceLocationsAsync(
         Document document,
         TVariableDeclaratorSyntax variableDeclarator,

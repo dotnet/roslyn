@@ -79,6 +79,8 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
         _semanticFactsService = semanticFactsService;
     }
 
+    internal override CodeRefactoringKind Kind => CodeRefactoringKind.Inline;
+
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, _, cancellationToken) = context;
