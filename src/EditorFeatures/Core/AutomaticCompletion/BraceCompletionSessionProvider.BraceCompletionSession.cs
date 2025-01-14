@@ -33,22 +33,25 @@ internal partial class BraceCompletionSessionProvider
     // want to re-implement logics base session provider already provides. so I ported editor's default session and 
     // modified it little bit so that we can use it as base class.
     private class BraceCompletionSession(
+        BraceCompletionSessionProvider provider,
         ITextView textView,
         ITextBuffer subjectBuffer,
         SnapshotPoint openingPoint,
         char openingBrace,
         char closingBrace,
         ITextUndoHistory undoHistory,
-        IEditorOperationsFactoryService editorOperationsFactoryService,
-        EditorOptionsService editorOptionsService,
         IBraceCompletionService service,
-        IThreadingContext threadingContext) : IBraceCompletionSession
+        bool responsiveCompletion) : IBraceCompletionSession
     {
-        private readonly ITextUndoHistory _undoHistory = undoHistory;
-        private readonly IEditorOperations _editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
-        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+        private readonly BraceCompletionSessionProvider _provider = provider;
+
+        private readonly IEditorOperations _editorOperations = provider._editorOperationsFactoryService.GetEditorOperations(textView);
         private readonly IBraceCompletionService _service = service;
-        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly ITextUndoHistory _undoHistory = undoHistory;
+        private readonly bool _responsiveCompletion = responsiveCompletion;
+
+        private IThreadingContext ThreadingContext => _provider._threadingContext;
+        private EditorOptionsService EditorOptionsService => _provider._editorOptionsService;
 
         public char OpeningBrace { get; } = openingBrace;
         public char ClosingBrace { get; } = closingBrace;
@@ -63,17 +66,31 @@ internal partial class BraceCompletionSessionProvider
 
         public void Start()
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
 
-            // Brace completion is not cancellable.
-            var success = _threadingContext.JoinableTaskFactory.Run(() => TryStartAsync(CancellationToken.None));
-            if (!success)
+            // Brace completion is cancellable if the user has the 'responsive completion' option enabled. 200 ms was
+            // chosen as the default timeout with the editor as a good balance of having enough time for computation,
+            // while canceling early enough to not be too disruptive.
+            var cancellationTokenSource = new CancellationTokenSource();
+            if (_responsiveCompletion)
+                cancellationTokenSource.CancelAfter(200);
+
+            try
+            {
+                var success = ThreadingContext.JoinableTaskFactory.Run(() => TryStartAsync(cancellationTokenSource.Token));
+                if (!success)
+                    EndSession();
+            }
+            catch (OperationCanceledException)
+            {
                 EndSession();
+            }
         }
 
         private async Task<bool> TryStartAsync(CancellationToken cancellationToken)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
+            cancellationToken.ThrowIfCancellationRequested();
             var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
             if (closingSnapshotPoint.Position < 1)
@@ -118,7 +135,7 @@ internal partial class BraceCompletionSessionProvider
 
             if (TryGetBraceCompletionContext(out var contextAfterStart, cancellationToken))
             {
-                var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), contextAfterStart.Document.LanguageServices, explicitFormat: false);
+                var indentationOptions = SubjectBuffer.GetIndentationOptions(EditorOptionsService, document.Project.GetFallbackAnalyzerOptions(), contextAfterStart.Document.LanguageServices, explicitFormat: false);
                 var changesAfterStart = _service.GetTextChangesAfterCompletion(contextAfterStart, indentationOptions, cancellationToken);
                 if (changesAfterStart != null)
                 {
@@ -132,7 +149,7 @@ internal partial class BraceCompletionSessionProvider
 
         public void PreBackspace(out bool handledCommand)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
             handledCommand = false;
 
             var caretPos = this.GetCaretPosition();
@@ -172,7 +189,7 @@ internal partial class BraceCompletionSessionProvider
 
         public void PreOverType(out bool handledCommand)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
             handledCommand = false;
             if (ClosingPoint == null)
             {
@@ -240,7 +257,7 @@ internal partial class BraceCompletionSessionProvider
 
         public void PreTab(out bool handledCommand)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
             handledCommand = false;
 
             if (!HasForwardTyping)
@@ -264,7 +281,7 @@ internal partial class BraceCompletionSessionProvider
 
         public void PostReturn()
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
             if (this.GetCaretPosition().HasValue)
             {
                 var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
@@ -276,7 +293,7 @@ internal partial class BraceCompletionSessionProvider
                         return;
                     }
 
-                    var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsService, context.FallbackOptions, context.Document.LanguageServices, explicitFormat: false);
+                    var indentationOptions = SubjectBuffer.GetIndentationOptions(EditorOptionsService, context.FallbackOptions, context.Document.LanguageServices, explicitFormat: false);
                     var changesAfterReturn = _service.GetTextChangeAfterReturn(context, indentationOptions, CancellationToken.None);
                     if (changesAfterReturn != null)
                     {
@@ -321,7 +338,7 @@ internal partial class BraceCompletionSessionProvider
         {
             get
             {
-                _threadingContext.ThrowIfNotOnUIThread();
+                ThreadingContext.ThrowIfNotOnUIThread();
                 var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                 if (closingSnapshotPoint.Position > 0)
@@ -366,7 +383,7 @@ internal partial class BraceCompletionSessionProvider
 
         private void MoveCaretToClosingPoint()
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
             var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
             // find the position just after the closing brace in the view's text buffer
@@ -396,7 +413,7 @@ internal partial class BraceCompletionSessionProvider
 
         private BraceCompletionContext GetBraceCompletionContext(ParsedDocument document, StructuredAnalyzerConfigOptions fallbackOptions)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
             var snapshot = SubjectBuffer.CurrentSnapshot;
 
             var closingSnapshotPoint = ClosingPoint.GetPosition(snapshot);
@@ -409,7 +426,7 @@ internal partial class BraceCompletionSessionProvider
 
         private void ApplyBraceCompletionResult(BraceCompletionResult result)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            ThreadingContext.ThrowIfNotOnUIThread();
             using var edit = SubjectBuffer.CreateEdit();
             foreach (var change in result.TextChanges)
             {
