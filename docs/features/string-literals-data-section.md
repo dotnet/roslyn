@@ -52,7 +52,7 @@ That puts the string literal on the UserString heap of the PE file.
 
 The utf8 string literal encoding emit strategy emits `ldsfld` of a field in a generated class instead.
 
-For every string literal, a unique internal static class is generated which:
+For every unique string literal, a unique internal static class is generated which:
 - has name composed of `<S>` followed by a hex-encoded XXH128 hash of the string
   (collisions [should not happen][xxh128] with XXH128 and so they aren't currently detected or reported, the behavior in that case is undefined),
 - is nested in the `<PrivateImplementationDetails>` type to avoid polluting the global namespace
@@ -188,7 +188,7 @@ Ahead-of-time compilation tools would need to be updated to recognize this new p
 The threshold could be determined automatically with some objective, for example,
 use the utf8 encoding emit strategy for the lowest number of string literals necessary to avoid overflowing the UserString heap.
 
-The set of string literals is not know up front in the compiler, it is discovered lazily (and in parallel) by the emit layer.
+The set of string literals is not known up front in the compiler, it is discovered lazily (and in parallel) by the emit layer.
 However, we could continue emitting `ldstr` instructions and fix them up in a separate phase after we have seen all the string literals
 (and hence can determine the automatic threshold).
 The `ldstr` and `ldsfld` instructions have the same size, so fixup would be a straightforward replace.
