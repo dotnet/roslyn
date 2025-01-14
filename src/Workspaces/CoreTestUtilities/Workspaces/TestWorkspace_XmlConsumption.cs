@@ -744,9 +744,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var metadataReference = MetadataReference.CreateFromImage(image, new MetadataReferenceProperties(aliases: aliases), includeXmlDocComments ? new DeferredDocumentationProvider(compilation) : null);
             if (referencesOnDisk)
             {
-#if F
                 AssemblyResolver.TestAccessor.AddInMemoryImage(metadataReference, "unknown", image);
-#endif
             }
 
             return metadataReference;
