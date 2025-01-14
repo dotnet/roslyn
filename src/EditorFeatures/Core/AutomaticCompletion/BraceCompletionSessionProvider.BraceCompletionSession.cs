@@ -68,15 +68,14 @@ internal partial class BraceCompletionSessionProvider
         {
             ThreadingContext.ThrowIfNotOnUIThread();
 
+            // Brace completion is cancellable if the user has the 'responsive completion' option enabled.
             var cancellationTokenSource = new CancellationTokenSource();
-            var cancellationToken = cancellationTokenSource.Token;
-
             if (_timeoutThreshold > 0)
                 cancellationTokenSource.CancelAfter(_timeoutThreshold);
 
             try
             {
-                var success = ThreadingContext.JoinableTaskFactory.Run(() => TryStartAsync(cancellationToken));
+                var success = ThreadingContext.JoinableTaskFactory.Run(() => TryStartAsync(cancellationTokenSource.Token));
                 if (!success)
                     EndSession();
             }
