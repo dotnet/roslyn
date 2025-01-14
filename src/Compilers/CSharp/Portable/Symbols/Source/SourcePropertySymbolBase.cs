@@ -1839,10 +1839,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
             }
-
-            if (this.IsAutoPropertyOrUsesFieldKeyword)
+            else if (this.IsAutoPropertyOrUsesFieldKeyword)
             {
-                if (!this.IsStatic && type.ContainsPointerOrFunctionPointer() && (ContainingType.IsRecord || ContainingType.IsRecordStruct))
+                if (!this.IsStatic && (ContainingType.IsRecord || ContainingType.IsRecordStruct) && type.IsPointerOrFunctionPointer())
                 {
                     // The type '{0}' may not be used for a field of a record.
                     diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, TypeLocation, type);

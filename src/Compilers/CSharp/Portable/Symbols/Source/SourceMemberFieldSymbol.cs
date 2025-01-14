@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, getTypeErrorLocation(), type);
             }
-            else if (!this.IsStatic && type.ContainsPointerOrFunctionPointer() && (ContainingType.IsRecord || ContainingType.IsRecordStruct))
+            else if (!this.IsStatic && (ContainingType.IsRecord || ContainingType.IsRecordStruct) && type.IsPointerOrFunctionPointer())
             {
                 // The type '{0}' may not be used for a field of a record.
                 diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, getTypeErrorLocation(), type);

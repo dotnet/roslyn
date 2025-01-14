@@ -1252,12 +1252,6 @@ unsafe record C(
                 // 0.cs(7,5): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     int* P1, // 1
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(7, 5),
-                // 0.cs(8,5): error CS8908: The type 'int*[]' may not be used for a field of a record.
-                //     int*[] P2,
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*[]").WithArguments("int*[]").WithLocation(8, 5),
-                // 0.cs(9,5): error CS8908: The type 'C<int*[]>' may not be used for a field of a record.
-                //     C<int*[]> P3,
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "C<int*[]>").WithArguments("C<int*[]>").WithLocation(9, 5),
                 // 0.cs(10,5): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
                 //     delegate*<int, int> P4, // 2
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<int, int>").WithArguments("delegate*<int, int>").WithLocation(10, 5),
@@ -1278,10 +1272,7 @@ unsafe record C(
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 5),
                 // 0.cs(15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
                 //     RefLike P9, // 8
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5),
-                // 0.cs(16,5): error CS8908: The type 'delegate*<void>[]' may not be used for a field of a record.
-                //     delegate*<void>[] P10);
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<void>[]").WithArguments("delegate*<void>[]").WithLocation(16, 5)];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)];
 
             comp.VerifyDiagnostics(expected);
             comp.VerifyEmitDiagnostics(expected);
@@ -1319,12 +1310,6 @@ unsafe record C(
                 // 0.cs(7,5): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     int* P1, // 1
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(7, 5),
-                // 0.cs(8,5): error CS8908: The type 'int*[]' may not be used for a field of a record.
-                //     int*[] P2,
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*[]").WithArguments("int*[]").WithLocation(8, 5),
-                // 0.cs(9,5): error CS8908: The type 'C<int*[]>' may not be used for a field of a record.
-                //     C<int*[]> P3,
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "C<int*[]>").WithArguments("C<int*[]>").WithLocation(9, 5),
                 // 0.cs(10,5): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
                 //     delegate*<int, int> P4, // 2
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<int, int>").WithArguments("delegate*<int, int>").WithLocation(10, 5),
@@ -1345,10 +1330,7 @@ unsafe record C(
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 5),
                 // 0.cs(15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
                 //     RefLike P9, // 8
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5),
-                // 0.cs(16,5): error CS8908: The type 'delegate*<void>[]' may not be used for a field of a record.
-                //     delegate*<void>[] P10);
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<void>[]").WithArguments("delegate*<void>[]").WithLocation(16, 5)];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)];
 
             comp.VerifyDiagnostics(expected);
             comp.VerifyEmitDiagnostics(expected);
@@ -1384,12 +1366,6 @@ public unsafe record C
                 // 0.cs(8,12): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     public int* f1; // 1
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(8, 12),
-                // 0.cs(9,12): error CS8908: The type 'int*[]' may not be used for a field of a record.
-                //     public int*[] f2;
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*[]").WithArguments("int*[]").WithLocation(9, 12),
-                // 0.cs(10,12): error CS8908: The type 'C<int*[]>' may not be used for a field of a record.
-                //     public C<int*[]> f3;
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "C<int*[]>").WithArguments("C<int*[]>").WithLocation(10, 12),
                 // 0.cs(11,12): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
                 //     public delegate*<int, int> f4; // 3
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<int, int>").WithArguments("delegate*<int, int>").WithLocation(11, 12),
@@ -1407,10 +1383,7 @@ public unsafe record C
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(15, 12),
                 // 0.cs(16,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
                 //     public RefLike f9; // 8
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12),
-                // 0.cs(17,12): error CS8908: The type 'delegate*<void>[]' may not be used for a field of a record.
-                //     public delegate*<void>[] f10;
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<void>[]").WithArguments("delegate*<void>[]").WithLocation(17, 12)];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12)];
             comp.VerifyDiagnostics(expected);
             comp.VerifyEmitDiagnostics(expected);
         }
@@ -1445,12 +1418,6 @@ public unsafe record C
                 // 0.cs(8,12): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     public int* f1 { get; set; } // 1
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(8, 12),
-                // 0.cs(9,12): error CS8908: The type 'int*[]' may not be used for a field of a record.
-                //     public int*[] f2 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*[]").WithArguments("int*[]").WithLocation(9, 12),
-                // 0.cs(10,12): error CS8908: The type 'C<int*[]>' may not be used for a field of a record.
-                //     public C<int*[]> f3 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "C<int*[]>").WithArguments("C<int*[]>").WithLocation(10, 12),
                 // 0.cs(11,12): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
                 //     public delegate*<int, int> f4 { get; set; } // 2
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<int, int>").WithArguments("delegate*<int, int>").WithLocation(11, 12),
@@ -1468,10 +1435,7 @@ public unsafe record C
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(15, 12),
                 // 0.cs(16,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
                 //     public RefLike f9 { get; set; } // 8
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12),
-                // 0.cs(17,12): error CS8908: The type 'delegate*<void>[]' may not be used for a field of a record.
-                //     public delegate*<void>[] f10 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<void>[]").WithArguments("delegate*<void>[]").WithLocation(17, 12)];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12)];
 
             comp.VerifyDiagnostics(expected);
             comp.VerifyEmitDiagnostics(expected);
