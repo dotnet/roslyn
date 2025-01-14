@@ -12,6 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// Converts the LSP spec URI string into our custom wrapper for URI strings.
 /// We do not convert directly to <see cref="System.Uri"/> as it is unable to handle
 /// certain valid RFC spec URIs.  We do not want serialization / deserialization to fail if we cannot parse the URI.
+/// See https://github.com/dotnet/runtime/issues/64707
 /// </summary>
 internal class DocumentUriConverter : JsonConverter<DocumentUri>
 {

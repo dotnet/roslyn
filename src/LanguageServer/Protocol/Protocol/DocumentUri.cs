@@ -80,10 +80,12 @@ internal sealed class DocumentUri : IEquatable<DocumentUri>
             return true;
         }
 
-        // If either of the URIs cannot be parsed, we'll compare the original URI strings.
+        // If either of the URIs cannot be parsed
         if (otherUri.ParsedUri is null || this.ParsedUri is null)
         {
-            return this.UriString == otherUri.UriString;
+            // Bail if we cannot parse either of the URIs.  We already determined the URI strings are not equal
+            // and we need to be able to parse the URIs to do deeper equivalency checks.
+            return false;
         }
 
         // Next we compare the parsed URIs to handle various casing and encoding scenarios (for example - different schemes may handle casing differently).
