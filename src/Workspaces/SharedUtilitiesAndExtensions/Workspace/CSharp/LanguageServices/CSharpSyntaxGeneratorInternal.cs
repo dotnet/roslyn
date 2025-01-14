@@ -125,8 +125,8 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
 
     public override SyntaxNode InterpolationFormatClause(string format)
         => SyntaxFactory.InterpolationFormatClause(
-                ColonToken,
-                SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, format, format, default));
+            ColonToken,
+            SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, format, format, default));
 
     public override SyntaxNode TypeParameterList(IEnumerable<string> typeParameterNames)
         => SyntaxFactory.TypeParameterList([.. typeParameterNames.Select(SyntaxFactory.TypeParameter)]);
@@ -139,6 +139,9 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
         bool isScoped, RefKind refKind, bool isParams, bool forFunctionPointerReturnParameter = false)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var result);
+
+        if (isParams)
+            result.Add(ParamsKeyword);
 
         if (isScoped)
             result.Add(ScopedKeyword);
@@ -170,9 +173,6 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
                 result.Add(ReadOnlyKeyword);
                 break;
         }
-
-        if (isParams)
-            result.Add(ParamsKeyword);
 
         return SyntaxFactory.TokenList(result);
     }
