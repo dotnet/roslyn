@@ -8619,20 +8619,32 @@ class Program
             var compilation = CreateCompilation(source, parseOptions: options);
 
             var diagnostics = new List<DiagnosticDescription>();
-            if (isCSharp13 && lambdaModifier == "params" && lambdaType == "")
-            {
-                diagnostics.Add(
-                    // (7,16): error CS8652: The feature 'simple lambda parameter modifiers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         D d = (params  a) => { };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "params  a").WithArguments("simple lambda parameter modifiers"));
-            }
 
-            if (delegateModifier == "" && lambdaModifier == "params")
+            if (lambdaModifier == "params")
             {
-                diagnostics.Add(
-                    // (7,24): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
-                    //         D d = (params  a) => { };
-                    Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "a").WithArguments("1"));
+                if (lambdaType is "")
+                {
+                    diagnostics.Add(
+                        // (7,16): error CS9272: Implicitly typed lambda parameter 'a' cannot have the 'params' modifier.
+                        //         D d = (params  a) => { };
+                        Diagnostic(ErrorCode.ERR_ImplicitlyTypedParamsParameter, "params").WithArguments("a").WithLocation(7, 16));
+
+                    if (isCSharp13)
+                    {
+                        diagnostics.Add(
+                            // (7,16): error CS8652: The feature 'simple lambda parameter modifiers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                            //         D d = (params  a) => { };
+                            Diagnostic(ErrorCode.ERR_FeatureInPreview, "params  a").WithArguments("simple lambda parameter modifiers"));
+                    }
+                }
+
+                if (delegateModifier == "")
+                {
+                    diagnostics.Add(
+                        // (7,24): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                        //         D d = (params  a) => { };
+                        Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "a").WithArguments("1"));
+                }
             }
 
             compilation.VerifyDiagnostics([.. diagnostics]);

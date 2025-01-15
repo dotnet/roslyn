@@ -556,6 +556,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (parsingLambdaParams)
                         {
                             MessageID.IDS_FeatureLambdaParamsArray.CheckFeatureAvailability(diagnostics, modifier);
+
+                            if (parameter is ParameterSyntax { Type: null, Identifier.Text: var parameterIdentifier })
+                            {
+                                diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedParamsParameter, modifier, parameterIdentifier);
+                            }
                         }
                         break;
 

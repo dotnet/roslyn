@@ -7470,6 +7470,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ImplicitlyTypedDefaultParameter" xml:space="preserve">
     <value>Implicitly typed lambda parameter '{0}' cannot have a default value.</value>
   </data>
+  <data name="ERR_ImplicitlyTypedParamsParameter" xml:space="preserve">
+    <value>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</value>
+  </data>
   <data name="WRN_OptionalParamValueMismatch" xml:space="preserve">
     <value>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</value>
   </data>
