@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -155,6 +156,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
             workspace.GlobalOptions.SetEditorOptions(textView.Options.GlobalOptions, document.Project.Language);
 
+            // Disable responsive-completion so that we don't cancel our work in the event that brace completion is
+            // taking too long.
+            textView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, false);
             if (provider.TryCreateSession(textView, openingPoint, opening, closing, out var session))
             {
                 return new Holder(workspace, session);
