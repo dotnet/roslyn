@@ -12710,8 +12710,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
-        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</source>
-        <target state="translated">Kombinovaná délka uživatelských řetězců, které používá tento program, překročila povolený limit. Zkuste omezit použití řetězcových literálů.</target>
+        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
+        <target state="needs-review-translation">Kombinovaná délka uživatelských řetězců, které používá tento program, překročila povolený limit. Zkuste omezit použití řetězcových literálů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
