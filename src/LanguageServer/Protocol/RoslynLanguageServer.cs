@@ -195,9 +195,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             if (parameters.TryGetProperty("textDocument", out var textDocumentToken) ||
                 parameters.TryGetProperty("_vs_textDocument", out textDocumentToken))
             {
-                //var uriToken = textDocumentToken.GetProperty("uri");
                 var textDocumentIdentifier = JsonSerializer.Deserialize<TextDocumentIdentifier>(textDocumentToken, ProtocolConversions.LspJsonSerializerOptions);
-                Contract.ThrowIfNull(textDocumentIdentifier, "Failed to deserialize uri property");
+                Contract.ThrowIfNull(textDocumentIdentifier, "Failed to deserialize text document identifier property");
                 uri = textDocumentIdentifier.Uri;
             }
             else if (parameters.TryGetProperty("data", out var dataToken))
