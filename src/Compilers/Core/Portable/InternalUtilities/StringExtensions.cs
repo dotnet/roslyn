@@ -283,9 +283,9 @@ namespace Roslyn.Utilities
             [NotNullWhen(returnValue: true)] out byte[]? result,
             [NotNullWhen(returnValue: false)] out string? error)
         {
+            s_lazyUtf8 ??= new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
             try
             {
-                s_lazyUtf8 ??= new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
                 result = s_lazyUtf8.GetBytes(s);
                 error = null;
                 return true;

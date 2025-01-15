@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal bool IsFrozen => _frozen != 0;
 
         /// <summary>
-        /// Gets a field that can be used to cache an array allocated to store data from a corresponding <see cref="CreateDataField"/> call.
+        /// Gets a field that can be used to cache an array allocated to store data from a corresponding <see cref="GetOrAddDataField"/> call.
         /// </summary>
         /// <param name="data">The data that will be used to initialize the field.</param>
         /// <param name="arrayType">The type of the field, e.g. int[].</param>
@@ -282,14 +282,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// type has an appropriate size and .pack, it can be used. Otherwise, a type is generated of the same size as
         /// the data, and that type needs its .pack set to the alignment required for the underlying data. While that
         /// .pack value isn't required by anything else in the compiler (the compiler always aligns RVA fields at 8-byte
-        /// boundaries, which accomodates any element type that's relevant), it is necessary for IL rewriters. Such rewriters
+        /// boundaries, which accommodates any element type that's relevant), it is necessary for IL rewriters. Such rewriters
         /// also need to ensure an appropriate alignment is maintained for the RVA field, and while they could also simplify
         /// by choosing a worst-case alignment as does the compiler, they may instead use the .pack value as the alignment
         /// to use for that field, since it's an opaque blob with no other indication as to what kind of data is
         /// stored and what alignment might be required.
         /// </param>
         /// <returns>The field. This may have been newly created or may be an existing field previously created for the same data and alignment.</returns>
-        internal MappedField CreateDataField(ImmutableArray<byte> data, ushort alignment)
+        internal MappedField GetOrAddDataField(ImmutableArray<byte> data, ushort alignment)
         {
             return _mappedFields.GetOrAdd((data, alignment), static (key, @this) =>
             {
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 string name = "<S>" + DataToHexViaXxHash128(data);
 
-                MappedField dataField = @this.CreateDataField(data, alignment: 1);
+                MappedField dataField = @this.GetOrAddDataField(data, alignment: 1);
 
                 Cci.IMethodDefinition bytesToStringHelper = @this.GetOrSynthesizeBytesToStringHelper(diagnostics);
 
@@ -1215,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             public static readonly LengthParameterDefinition Instance = new LengthParameterDefinition();
 
-            public override ushort Index => 0;
+            public override ushort Index => 1;
             public override string Name => "length";
             public override Cci.ITypeReference GetType(EmitContext context) => context.Module.GetPlatformType(Cci.PlatformType.SystemInt32, context);
         }
