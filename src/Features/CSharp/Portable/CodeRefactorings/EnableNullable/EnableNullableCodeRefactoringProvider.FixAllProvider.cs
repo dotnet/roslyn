@@ -15,7 +15,7 @@ using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable;
 
-internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
 {
     internal sealed override CodeAnalysis.CodeRefactorings.FixAllProvider? GetFixAllProvider()
         => FixAllProvider.Instance;
@@ -29,7 +29,7 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
         }
 
         public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-            => ImmutableArray.Create(FixAllScope.Solution);
+            => [FixAllScope.Solution];
 
         public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {

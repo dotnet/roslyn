@@ -60,7 +60,7 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFi
         var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
 
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         var simplifierOptions = new CSharpSimplifierOptions(configOptions);
 
         // Read the preferred placement option and verify if it can be applied to this code file. There are cases
@@ -227,7 +227,7 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFi
         var usingsToAdd = namespaceDeclarationMap.Values.SelectMany(result => result.usingsFromNamespace)
             .Select(directive => directive.WithAdditionalAnnotations(Formatter.Annotation, s_warningAnnotation));
 
-        var (deduplicatedUsings, orphanedTrivia) = RemoveDuplicateUsings(compilationUnit.Usings, usingsToAdd.ToImmutableArray());
+        var (deduplicatedUsings, orphanedTrivia) = RemoveDuplicateUsings(compilationUnit.Usings, [.. usingsToAdd]);
 
         // Update the compilation unit with the usings from the namespace declaration.
         var newUsings = compilationUnitWithReplacedNamespaces.Usings.AddRange(deduplicatedUsings);

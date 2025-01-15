@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckDefinitionInvariant();
 
             ImmutableArray<CSharpAttributeData> userDefined = AdaptedMethodSymbol.GetReturnTypeAttributes();
-            ArrayBuilder<SynthesizedAttributeData> synthesized = null;
+            ArrayBuilder<CSharpAttributeData> synthesized = null;
             AdaptedMethodSymbol.AddSynthesizedReturnTypeAttributes((PEModuleBuilder)context.Module, ref synthesized);
 
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
@@ -658,12 +658,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// signature).
         /// WARN WARN WARN: We won't have a final value for this until declaration
         /// diagnostics have been computed for all <see cref="SourceMemberContainerTypeSymbol"/>s, so pass
-        /// ignoringInterfaceImplementationChanges: true if you need a value sooner
+        /// option: <see cref="IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges"/> if you need a value sooner
         /// and aren't concerned about tweaks made to satisfy interface implementation 
         /// requirements.
         /// NOTE: Not ignoring changes can only result in a value that is more true.
+        ///
+        /// Use IsMetadataVirtualOption.ForceCompleteIfNeeded in DEBUG/assertion code
+        /// to get the final value.
         /// </summary>
-        internal abstract bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false);
+        internal abstract bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None);
+
+        internal enum IsMetadataVirtualOption
+        {
+            None = 0,
+            IgnoreInterfaceImplementationChanges,
+#if DEBUG
+            ForceCompleteIfNeeded
+#endif
+        }
 
         internal virtual bool ReturnValueIsMarshalledExplicitly
         {

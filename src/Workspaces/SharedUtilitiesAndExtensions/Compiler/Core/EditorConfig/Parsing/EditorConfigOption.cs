@@ -9,4 +9,4 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing;
 /// <summary>
 /// Base option that all editorconfig option inherit from.
 /// </summary>
-internal record class EditorConfigOption(Section Section, TextSpan? Span);
+internal abstract record class EditorConfigOption(Section Section, TextSpan? Span);

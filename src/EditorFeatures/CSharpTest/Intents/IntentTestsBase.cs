@@ -21,7 +21,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents;
 
-public class IntentTestsBase
+public abstract class IntentTestsBase
 {
     internal static async Task VerifyIntentMissingAsync(
         string intentName,

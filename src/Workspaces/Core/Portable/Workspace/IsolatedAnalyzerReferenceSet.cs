@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -37,4 +38,30 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         SolutionServices solutionServices,
         Func<Task<ImmutableArray<AnalyzerReference>>> getReferencesAsync,
         CancellationToken cancellationToken);
+
+    private static ValueTask<ImmutableArray<AnalyzerReference>> DefaultCreateIsolatedAnalyzerReferencesAsync(
+        ImmutableArray<AnalyzerReference> references)
+    {
+        return ValueTaskFactory.FromResult(references);
+    }
+
+    private static async ValueTask<ImmutableArray<AnalyzerReference>> DefaultCreateIsolatedAnalyzerReferencesAsync(
+        Func<Task<ImmutableArray<AnalyzerReference>>> getReferencesAsync)
+    {
+        return await getReferencesAsync().ConfigureAwait(false);
+    }
+
+    public static Guid TryGetFileReferenceMvid(string filePath)
+    {
+        try
+        {
+            return AssemblyUtilities.ReadMvid(filePath);
+        }
+        catch
+        {
+            // We have a reference but the file the reference is pointing to might not actually exist on disk. In that
+            // case, rather than crashing, we will handle it gracefully.
+            return Guid.Empty;
+        }
+    }
 }

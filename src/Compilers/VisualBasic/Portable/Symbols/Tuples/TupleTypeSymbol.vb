@@ -107,6 +107,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
+            Get
+                Return Me._underlyingType.HasCompilerLoweringPreserveAttribute
+            End Get
+        End Property
+
         ''' <summary>
         ''' Get the default fields for the tuple's elements (in order and cached).
         ''' </summary>

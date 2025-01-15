@@ -185,6 +185,7 @@ internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWit
                 return accessorDeclaration.WithBody(null)
                                           .WithExpressionBody(arrowExpression)
                                           .WithSemicolonToken(semicolonToken)
+                                          .WithTrailingTrivia(accessorDeclaration.Body.GetTrailingTrivia())
                                           .WithAdditionalAnnotations(Formatter.Annotation);
             }
         }
@@ -286,7 +287,7 @@ internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWit
         return (TNode)rewriter.Visit(node);
     }
 
-    private class Rewriter(SemanticModel semanticModel, IParameterSymbol parameter) : CSharpSyntaxRewriter
+    private sealed class Rewriter(SemanticModel semanticModel, IParameterSymbol parameter) : CSharpSyntaxRewriter
     {
         private readonly SemanticModel _semanticModel = semanticModel;
         private readonly IParameterSymbol _parameter = parameter;

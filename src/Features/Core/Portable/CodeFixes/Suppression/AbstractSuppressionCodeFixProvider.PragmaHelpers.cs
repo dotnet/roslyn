@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
 
-internal partial class AbstractSuppressionCodeFixProvider
+internal abstract partial class AbstractSuppressionCodeFixProvider
 {
     /// <summary>
     /// Helper methods for pragma based suppression code actions.

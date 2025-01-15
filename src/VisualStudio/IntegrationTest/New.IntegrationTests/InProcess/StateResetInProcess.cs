@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.InlineRename;
@@ -38,11 +39,13 @@ internal partial class StateResetInProcess
     /// Contains the persistence slots of tool windows to close between tests.
     /// </summary>
     /// <seealso cref="__VSFPROPID.VSFPROPID_GuidPersistenceSlot"/>
-    private static readonly ImmutableHashSet<Guid> s_windowsToClose = ImmutableHashSet.Create(
+    private static readonly ImmutableHashSet<Guid> s_windowsToClose =
+    [
         FindReferencesWindowInProcess.FindReferencesWindowGuid,
         new Guid(EnvDTE.Constants.vsWindowKindObjectBrowser),
         new Guid(ToolWindowGuids80.CodedefinitionWindow),
-        VSConstants.StandardToolWindows.Immediate);
+        VSConstants.StandardToolWindows.Immediate,
+    ];
 
     public async Task ResetGlobalOptionsAsync(CancellationToken cancellationToken)
     {
@@ -63,6 +66,7 @@ internal partial class StateResetInProcess
         ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
         ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution);
         ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
+        ResetPerLanguageOption(globalOptions, FormattingOptions2.IndentationSize);
         ResetPerLanguageOption(globalOptions, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened);
         ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces);
         ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.TriggerInArgumentLists);

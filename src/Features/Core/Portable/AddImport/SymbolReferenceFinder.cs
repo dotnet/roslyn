@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    private partial class SymbolReferenceFinder
+    private sealed partial class SymbolReferenceFinder
     {
         private const string AttributeSuffix = nameof(Attribute);
 
@@ -40,6 +40,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         private readonly ISymbolSearchService _symbolSearchService;
         private readonly AddImportOptions _options;
         private readonly ImmutableArray<PackageSource> _packageSources;
+
+        /// <summary>
+        /// If the search is being conducted inside of a `using/import` directive.
+        /// </summary>
+        private readonly bool _isWithinImport;
 
         public SymbolReferenceFinder(
             AbstractAddImportFeatureService<TSimpleNameSyntax> owner,
@@ -64,6 +69,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             _syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             _namespacesInScope = GetNamespacesInScope(cancellationToken);
+            _isWithinImport = owner.IsWithinImport(node);
         }
 
         private ISet<INamespaceSymbol> GetNamespacesInScope(CancellationToken cancellationToken)
@@ -98,6 +104,12 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         private async Task<ImmutableArray<SymbolReference>> DoAsync(SearchScope searchScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            // Within a using/import directive, we don't want to offer to add other imports.  We only want to offer to
+            // add nuget packages.  So bail out immediately on all symbolic searches.  The only searches we aactually
+            // perform are done in FindNugetOrReferenceAssemblyReferencesAsync.
+            if (_isWithinImport)
+                return [];
 
             // Spin off tasks to do all our searching in parallel
             using var _1 = ArrayBuilder<Task<ImmutableArray<SymbolReference>>>.GetInstance(out var tasks);
@@ -165,10 +177,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             SearchScope searchScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!_owner.CanAddImportForType(_diagnosticId, _node, out var nameNode))
-            {
+            if (!_owner.CanAddImportForTypeOrNamespace(_diagnosticId, _node, out var nameNode))
                 return [];
-            }
 
             CalculateContext(
                 nameNode, _syntaxFacts,
@@ -571,7 +581,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
         }
 
-        protected bool ExpressionBinds(
+        private bool ExpressionBinds(
             TSimpleNameSyntax nameNode, bool checkForExtensionMethods, CancellationToken cancellationToken)
         {
             // See if the name binds to something other then the error type. If it does, there's nothing further we need to do.

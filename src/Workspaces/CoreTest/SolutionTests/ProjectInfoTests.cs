@@ -6,8 +6,10 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -182,13 +184,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var documentInfo = DocumentInfo.Create(DocumentId.CreateNewId(projectId), "doc");
             var instance = ProjectInfo.Create(name: "Name", id: ProjectId.CreateNewId(), version: VersionStamp.Default, assemblyName: "AssemblyName", language: "C#");
 
+            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithId(value), opt => opt.Id, ProjectId.CreateNewId(), defaultThrows: true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithVersion(value), opt => opt.Version, VersionStamp.Create());
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithName(value), opt => opt.Name, "New", defaultThrows: true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithAssemblyName(value), opt => opt.AssemblyName, "New", defaultThrows: true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithFilePath(value), opt => opt.FilePath, "New");
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithOutputFilePath(value), opt => opt.OutputFilePath, "New");
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithOutputRefFilePath(value), opt => opt.OutputRefFilePath, "New");
-            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithCompilationOutputInfo(value), opt => opt.CompilationOutputInfo, new CompilationOutputInfo("NewPath"));
+            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithCompilationOutputInfo(value), opt => opt.CompilationOutputInfo, new CompilationOutputInfo("NewPath", TempRoot.Root));
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithDefaultNamespace(value), opt => opt.DefaultNamespace, "New");
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithChecksumAlgorithm(value), opt => opt.ChecksumAlgorithm, SourceHashAlgorithm.None);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithHasAllInformation(value), opt => opt.HasAllInformation, false);

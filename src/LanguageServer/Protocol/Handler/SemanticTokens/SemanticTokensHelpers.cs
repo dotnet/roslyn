@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 data.Add(tokenModifiers);
             }
 
-            return data.ToArray();
+            return [.. data];
         }
 
         private static int ComputeNextToken(

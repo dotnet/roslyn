@@ -10,6 +10,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
@@ -30,7 +31,7 @@ internal partial class PickMembersDialog : DialogWindow
     public string SelectAll => ServicesVSResources.Select_All;
     public string DeselectAll => ServicesVSResources.Deselect_All;
     public string OK => ServicesVSResources.OK;
-    public string Cancel => ServicesVSResources.Cancel;
+    public string Cancel => EditorFeaturesResources.Cancel;
 
     internal PickMembersDialog(PickMembersDialogViewModel viewModel, string title)
     {

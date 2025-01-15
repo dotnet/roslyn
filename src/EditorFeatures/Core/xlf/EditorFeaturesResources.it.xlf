@@ -17,11 +17,6 @@
         <target state="translated">Applicazione delle modifiche in corso</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">Non è possibile passare al simbolo sotto il punto di inserimento.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">Calcolo delle informazioni su 'Incapsula campo'</target>
@@ -40,6 +35,11 @@
       <trans-unit id="Describe_with_Copilot">
         <source>Describe with Copilot</source>
         <target state="translated">Descrivi con Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="translated">"Descrivi con Copilot" non è disponibile perché il documento di riferimento è escluso dall'organizzazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="_0_declarations_and_interceptors">
         <source>'{0}' declarations and interceptors</source>
-        <target state="new">'{0}' declarations and interceptors</target>
+        <target state="translated">'{0}' dichiarazioni e intercettori</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_implemented_members">
@@ -790,11 +790,6 @@
       <trans-unit id="Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated">
         <source>Rename operation was not properly completed. Some file might not have been updated.</source>
         <target state="translated">L'operazione di ridenominazione non è stata completata correttamente. Alcuni file potrebbero non essere stati aggiornati.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">Rinomina '{0}' in '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">

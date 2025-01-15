@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal partial class ISymbolExtensions2
+internal static partial class ISymbolExtensions2
 {
     [Obsolete("Use overload without ISymbolDisplayService")]
     public static ImmutableArray<TSymbol> Sort<TSymbol>(
@@ -132,9 +132,7 @@ internal partial class ISymbolExtensions2
         SemanticModel semanticModel,
         int position)
     {
-        return GetMethodOrIndexerOrEventParameters(symbol)
-                     .Select(p => p.Type.ToMinimalDisplayString(semanticModel, position))
-                     .ToArray();
+        return [.. GetMethodOrIndexerOrEventParameters(symbol).Select(p => p.Type.ToMinimalDisplayString(semanticModel, position))];
     }
 
     private static ImmutableArray<IParameterSymbol> GetMethodOrIndexerOrEventParameters(ISymbol symbol)

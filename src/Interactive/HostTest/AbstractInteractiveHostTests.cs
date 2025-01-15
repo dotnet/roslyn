@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         public static ImmutableArray<string> SplitLines(string text)
         {
-            return ImmutableArray.Create(text.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
+            return ImmutableArray.Create(text.Split(["\r\n"], StringSplitOptions.RemoveEmptyEntries));
         }
 
         public async Task<bool> LoadReference(string reference)

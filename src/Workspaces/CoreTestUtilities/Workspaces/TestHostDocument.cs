@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             ISourceGenerator? generator = null)
         {
             Contract.ThrowIfNull(filePath);
+            Contract.ThrowIfFalse(generator == null || PathUtilities.IsAbsolute(filePath));
 
             ExportProvider = exportProvider;
             LanguageServiceProvider = languageServiceProvider;
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             get
             {
-                return _folders ?? ImmutableArray.Create<string>();
+                return _folders ?? [];
             }
         }
 

@@ -347,7 +347,7 @@ internal abstract class AbstractCodeCleanerService : ICodeCleanerService
             tokenSpans.Add(TextSpan.FromBounds(start, end));
         }
 
-        return tokenSpans.ToNormalizedSpans().ToImmutableArray();
+        return [.. tokenSpans.ToNormalizedSpans()];
     }
 
     /// <summary>
@@ -633,7 +633,7 @@ internal abstract class AbstractCodeCleanerService : ICodeCleanerService
     /// <summary>
     /// Internal annotation type to mark span location in the tree.
     /// </summary>
-    private class SpanMarker
+    private sealed class SpanMarker
     {
         /// <summary>
         /// Indicates the current marker type

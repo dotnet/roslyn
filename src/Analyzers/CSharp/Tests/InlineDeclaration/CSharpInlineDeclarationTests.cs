@@ -4,12 +4,15 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.InlineDeclaration;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -18,15 +21,22 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
-public partial class CSharpInlineDeclarationTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public CSharpInlineDeclarationTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpInlineDeclarationDiagnosticAnalyzer(), new CSharpInlineDeclarationCodeFixProvider());
+
+    private readonly CodeStyleOption2<bool> s_offWithInfo = new(false, NotificationOption2.Suggestion);
+
+    // specify all options explicitly to override defaults.
+    private OptionsCollection ExplicitTypeEverywhere()
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.VarElsewhere, s_offWithInfo },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, s_offWithInfo },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, s_offWithInfo },
+        };
 
     [Fact]
     public async Task InlineVariable1()
@@ -2433,15 +2443,21 @@ public partial class CSharpInlineDeclarationTests : AbstractCSharpDiagnosticProv
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44429")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/44429")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74736")]
     public async Task TopLevelStatement()
     {
-        await TestMissingAsync("""
+        await TestAsync("""
             [|int|] i;
             if (int.TryParse(v, out i))
             {
             }
-            """, new TestParameters(TestOptions.Regular));
+            """, """
+            if (int.TryParse(v, out int i))
+            {
+            }
+            """, CSharpParseOptions.Default);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47041")]
@@ -2511,5 +2527,173 @@ public partial class CSharpInlineDeclarationTests : AbstractCSharpDiagnosticProv
                 }
             }
             """);
+    }
+
+    [Fact]
+    public async Task TestInSwitchSection()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M(object o)
+                {
+                    switch (o)
+                    {
+                        case string s:
+                            [|int|] i;
+                            if (int.TryParse(v, out i))
+                            {
+                            }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(object o)
+                {
+                    switch (o)
+                    {
+                        case string s:
+                            if (int.TryParse(v, out int i))
+                            {
+                            }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/35993")]
+    public async Task InlineTemporarySpacing(
+        bool preferIntrinsicPredefinedTypeKeywordInDeclaration,
+        ReportDiagnostic preferIntrinsicPredefinedTypeKeywordInDeclarationDiagnostic,
+        bool varForBuiltInTypes,
+        ReportDiagnostic varForBuiltInTypesDiagnostic,
+        bool ignoreSpacing)
+    {
+        if (preferIntrinsicPredefinedTypeKeywordInDeclarationDiagnostic == ReportDiagnostic.Default ||
+            varForBuiltInTypesDiagnostic == ReportDiagnostic.Default)
+        {
+            return;
+        }
+
+        var expectedType = varForBuiltInTypes ? "var" : preferIntrinsicPredefinedTypeKeywordInDeclaration ? "bool" : "Boolean";
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            namespace ClassLibrary5
+            {
+                public class Class1
+                {
+                    void A()
+                    {
+                        bool [||]x;
+                        var result = B(out x);
+                    }
+
+                    object B(out bool x)
+                    {
+                        x = default;
+                        return default;
+                    }
+                }
+            }
+            """,
+            $$"""
+            using System;
+
+            namespace ClassLibrary5
+            {
+                public class Class1
+                {
+                    void A()
+                    {
+                        var result = B(out {{expectedType}} x);
+                    }
+
+                    object B(out bool x)
+                    {
+                        x = default;
+                        return default;
+                    }
+                }
+            }
+            """, options: new(LanguageNames.CSharp)
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, new CodeStyleOption2<bool>(preferIntrinsicPredefinedTypeKeywordInDeclaration, new NotificationOption2(preferIntrinsicPredefinedTypeKeywordInDeclarationDiagnostic, false)) },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, new CodeStyleOption2<bool>(varForBuiltInTypes, new NotificationOption2(varForBuiltInTypesDiagnostic, false)) },
+                { CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, ignoreSpacing },
+            });
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62805")]
+    public async Task TestDirectiveWithFixAll1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                #region outer
+                void M(out int a, out int b)
+                {
+                    #region inner
+                    {|FixAllInDocument:int|} c;
+                    int d;
+                    M(out c, out d);
+                    #endregion
+                }
+                #endregion
+            }
+            """,
+            """
+            class C
+            {
+                #region outer
+                void M(out int a, out int b)
+                {
+                    #region inner
+                    M(out int c, out int d);
+                    #endregion
+                }
+                #endregion
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32427")]
+    public async Task TestExplicitTypeEverywhere()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            public class Class1<TFirst, TSecond>
+            {
+                void A(Dictionary<TFirst, TSecond> map, TFirst first)
+                {
+                    [|TSecond|] x;
+                    if (map.TryGetValue(first, out x))
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            
+            public class Class1<TFirst, TSecond>
+            {
+                void A(Dictionary<TFirst, TSecond> map, TFirst first)
+                {
+                    if (map.TryGetValue(first, out TSecond x))
+                    {
+                    }
+                }
+            }
+            """, options: ExplicitTypeEverywhere());
     }
 }

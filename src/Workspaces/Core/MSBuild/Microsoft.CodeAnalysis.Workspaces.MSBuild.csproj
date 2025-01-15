@@ -50,6 +50,7 @@
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Shared\NamedPipeUtil.cs" Link="InternalUtilities\NamedPipeUtil.cs" />
     <Compile Include="..\MSBuild.BuildHost\Rpc\Contracts\*.cs" Link="Rpc\Contracts\%(FileName).cs"/>
   </ItemGroup>
   <ItemGroup>
@@ -87,7 +88,7 @@
   -->
   <Target Name="DeployNetFrameworkBuildHost" BeforeTargets="_GetPackageFiles;AssignTargetPaths" Condition="'$(DesignTimeBuild)' != 'true'">
     <!-- If we're not doing source build, we will include a net472 version for the broadest compatibility -->
-    <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
+    <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>net472</TargetFramework>
         <ContentFolderName>BuildHost-net472</ContentFolderName>

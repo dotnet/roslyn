@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.GenerateType;
 
 internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNameSyntax, TObjectCreationExpressionSyntax, TExpressionSyntax, TTypeDeclarationSyntax, TArgumentSyntax>
 {
-    private partial class Editor
+    private sealed partial class Editor
     {
         private async Task<INamedTypeSymbol> GenerateNamedTypeAsync()
         {
@@ -317,14 +317,14 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                     : TypeKind.Class;
         }
 
-        protected IList<ITypeParameterSymbol> GetAvailableTypeParameters()
+        private IList<ITypeParameterSymbol> GetAvailableTypeParameters()
         {
             var availableInnerTypeParameters = _service.GetTypeParameters(_state, _semanticDocument.SemanticModel, _cancellationToken);
             var availableOuterTypeParameters = !_intoNamespace && _state.TypeToGenerateInOpt != null
                 ? _state.TypeToGenerateInOpt.GetAllTypeParameters()
                 : [];
 
-            return availableOuterTypeParameters.Concat(availableInnerTypeParameters).ToList();
+            return [.. availableOuterTypeParameters, .. availableInnerTypeParameters];
         }
     }
 

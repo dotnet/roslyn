@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageService.TypeInferenceService;
 
-internal partial class AbstractTypeInferenceService : ITypeInferenceService
+internal abstract partial class AbstractTypeInferenceService : ITypeInferenceService
 {
     protected abstract class AbstractTypeInferrer
     {
@@ -75,9 +75,7 @@ internal partial class AbstractTypeInferenceService : ITypeInferenceService
 
         private ImmutableArray<TypeInferenceInfo> Filter(IEnumerable<TypeInferenceInfo> types, bool filterUnusable = true)
         {
-            return types.Where(filterUnusable ? IsUsableTypeFunc : s_isNotNull)
-                        .Distinct()
-                        .ToImmutableArray();
+            return [.. types.Where(filterUnusable ? IsUsableTypeFunc : s_isNotNull).Distinct()];
         }
 
         protected IEnumerable<TypeInferenceInfo> CreateResult(SpecialType type, NullableAnnotation nullableAnnotation = NullableAnnotation.None)

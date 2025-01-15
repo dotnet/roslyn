@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 /// such as 'record Student(int Id) : Person($$"first", "last");`.
 /// </summary>
 [ExportSignatureHelpProvider("PrimaryConstructorBaseTypeSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
+internal sealed partial class PrimaryConstructorBaseTypeSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -101,8 +101,8 @@ internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : Abstrac
         var currentConstructor = semanticModel.GetSymbolInfo(baseTypeSyntax, cancellationToken).Symbol;
         var selectedItem = TryGetSelectedIndex(accessibleConstructors, currentConstructor);
 
-        return CreateSignatureHelpItems(accessibleConstructors.SelectAsArray(c =>
-            Convert(c, baseTypeSyntax.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
+        return CreateSignatureHelpItems([.. accessibleConstructors.SelectAsArray(c =>
+            Convert(c, baseTypeSyntax.ArgumentList.OpenParenToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService))],
             textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem, parameterIndexOverride: -1);
     }
 
@@ -133,7 +133,7 @@ internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : Abstrac
             GetPreambleParts(constructor, semanticModel, position),
             GetSeparatorParts(),
             GetPostambleParts(),
-            constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
+            [.. constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
         return item;
 
         static IList<SymbolDisplayPart> GetPreambleParts(

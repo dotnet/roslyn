@@ -28,9 +28,8 @@ internal class NamingStyleSettingsProvider : SettingsProviderBase<NamingStyleSet
         options.GetInitialLocationAndValue<NamingStylePreferences>(NamingStyleOptions.NamingPreferences, out var location, out var namingPreferences);
 
         var fileName = (location.LocationKind != LocationKind.VisualStudio) ? options.EditorConfigFileName : null;
-        var namingRules = namingPreferences.NamingRules.Select(r => r.GetRule(namingPreferences));
         var allStyles = RoslynEnumerableExtensions.DistinctBy(namingPreferences.NamingStyles, s => s.Name).ToArray();
-        var namingStyles = namingRules.Select(namingRule => new NamingStyleSetting(namingRule, allStyles, SettingsUpdater, fileName));
+        var namingStyles = namingPreferences.Rules.NamingRules.Select(namingRule => new NamingStyleSetting(namingRule, allStyles, SettingsUpdater, fileName));
 
         AddRange(namingStyles);
     }

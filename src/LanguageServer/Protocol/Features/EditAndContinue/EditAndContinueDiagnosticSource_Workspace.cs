@@ -37,7 +37,9 @@ internal static partial class EditAndContinueDiagnosticSource
 
     public static async ValueTask<ImmutableArray<IDiagnosticSource>> CreateWorkspaceDiagnosticSourcesAsync(Solution solution, Func<Document, bool> isDocumentOpen, CancellationToken cancellationToken)
     {
-        if (solution.Services.GetRequiredService<IEditAndContinueWorkspaceService>().SessionTracker is not { IsSessionActive: true } sessionStateTracker)
+        // Do not report EnC diagnostics for a non-host workspace, or if Hot Reload/EnC session is not active.
+        if (solution.WorkspaceKind != WorkspaceKind.Host ||
+            solution.Services.GetService<IEditAndContinueWorkspaceService>()?.SessionTracker is not { IsSessionActive: true } sessionStateTracker)
         {
             return [];
         }
@@ -57,7 +59,7 @@ internal static partial class EditAndContinueDiagnosticSource
             var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             if (document != null && !isDocumentOpen(document))
             {
-                sources.Add(new ClosedDocumentSource(document, diagnostics.ToImmutableArray()));
+                sources.Add(new ClosedDocumentSource(document, [.. diagnostics]));
             }
         }
 
@@ -68,7 +70,7 @@ internal static partial class EditAndContinueDiagnosticSource
             group data by data.ProjectId into projectData
             let project = solution.GetProject(projectData.Key)
             where project != null
-            select new ProjectSource(project, projectData.ToImmutableArray()));
+            select new ProjectSource(project, [.. projectData]));
 
         return sources.ToImmutable();
     }

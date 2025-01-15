@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (isStatic ? DeclarationModifiers.Static : DeclarationModifiers.None);
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -101,7 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => _property.Location;
 
         protected override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
-            => _property.GetAttributeDeclarations();
+        {
+            // The backing field for a partial property may have been calculated for either
+            // the definition part or the implementation part. Regardless, we should use
+            // the attributes from the definition part.
+            var property = (_property as SourcePropertySymbol)?.SourcePartialDefinitionPart ?? _property;
+            return property.GetAttributeDeclarations();
+        }
 
         public override Symbol AssociatedSymbol
             => _property;
@@ -149,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
 
-            if (!allAttributeSyntaxNodes.IsEmpty && _property.IsAutoPropertyWithGetAccessor)
+            if (!allAttributeSyntaxNodes.IsEmpty && _property.IsAutoPropertyOrUsesFieldKeyword)
             {
                 CheckForFieldTargetedAttribute(diagnostics);
             }

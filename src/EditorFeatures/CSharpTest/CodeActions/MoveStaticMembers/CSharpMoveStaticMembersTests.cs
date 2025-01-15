@@ -3221,10 +3221,9 @@ namespace TestNs1
         }
     }
 }";
-        await new Test("", ImmutableArray<string>.Empty, "")
+        await new Test("", [], "")
         {
             TestCode = initialMarkup,
-            FixedCode = initialMarkup,
         }.RunAsync().ConfigureAwait(false);
     }
 
@@ -3239,10 +3238,9 @@ namespace TestNs1
         public st[||] {|CS1519:int|} TestField = 0;
     }
 }";
-        await new Test("", ImmutableArray<string>.Empty, "")
+        await new Test("", [], "")
         {
             TestCode = initialMarkup,
-            FixedCode = initialMarkup,
         }.RunAsync().ConfigureAwait(false);
     }
 
@@ -3257,10 +3255,9 @@ namespace TestNs1
         public st [|{|CS1519:int|} Test|]Field = 0;
     }
 }";
-        await new Test("", ImmutableArray<string>.Empty, "")
+        await new Test("", [], "")
         {
             TestCode = initialMarkup,
-            FixedCode = initialMarkup,
         }.RunAsync().ConfigureAwait(false);
     }
 
@@ -3275,10 +3272,9 @@ namespace TestNs1
         [|public st {|CS1519:int|} TestField = 0;|]
     }
 }";
-        await new Test("", ImmutableArray<string>.Empty, "")
+        await new Test("", [], "")
         {
             TestCode = initialMarkup,
-            FixedCode = initialMarkup,
         }.RunAsync().ConfigureAwait(false);
     }
 
@@ -3293,10 +3289,9 @@ namespace TestNs1
         [|publicc {|CS1585:static|} int TestField = 0;|]
     }
 }";
-        await new Test("", ImmutableArray<string>.Empty, "")
+        await new Test("", [], "")
         {
             TestCode = initialMarkup,
-            FixedCode = initialMarkup,
         }.RunAsync().ConfigureAwait(false);
     }
 
@@ -3386,10 +3381,9 @@ using System;
 [||]Console.WriteLine(5);
 ";
 
-        await new Test("", ImmutableArray<string>.Empty, "")
+        await new Test("", [], "")
         {
             TestCode = initialMarkup,
-            FixedCode = initialMarkup,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
             TestState =
             {
@@ -3407,10 +3401,9 @@ using System;
 [|Console.WriteLine(5);|]
 ";
 
-        await new Test("", ImmutableArray<string>.Empty, "")
+        await new Test("", [], "")
         {
             TestCode = initialMarkup,
-            FixedCode = initialMarkup,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
             TestState =
             {
@@ -3431,10 +3424,9 @@ static int Do[||]Something()
 }
 ";
 
-        await new Test("", ImmutableArray<string>.Empty, "")
+        await new Test("", [], "")
         {
             TestCode = initialMarkup,
-            FixedCode = initialMarkup,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp10,
             TestState =
             {
@@ -3480,7 +3472,7 @@ static int Do[||]Something()
             testOptionsService.SelectedMembers = _selection;
             testOptionsService.Filename = _destinationName;
             testOptionsService.CreateNew = _createNew;
-            testOptionsService.ExpectedPrecheckedMembers = _testPreselection ? _selection : ImmutableArray<string>.Empty;
+            testOptionsService.ExpectedPrecheckedMembers = _testPreselection ? _selection : [];
 
             return Task.FromResult<Workspace>(workspace);
         }
@@ -3554,10 +3546,9 @@ static int Do[||]Something()
 
     private static async Task TestNoRefactoringAsync(string initialMarkup)
     {
-        await new Test("", ImmutableArray<string>.Empty, "")
+        await new Test("", [], "")
         {
             TestCode = initialMarkup,
-            FixedCode = initialMarkup,
         }.RunAsync().ConfigureAwait(false);
     }
 }

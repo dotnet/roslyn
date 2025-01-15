@@ -47,6 +47,9 @@ internal partial class BraceCompletionSessionProvider(
     public bool TryCreateSession(ITextView textView, SnapshotPoint openingPoint, char openingBrace, char closingBrace, out IBraceCompletionSession session)
     {
         _threadingContext.ThrowIfNotOnUIThread();
+
+        var responsiveCompletion = textView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionOptionId);
+
         var textSnapshot = openingPoint.Snapshot;
         var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document != null)
@@ -63,9 +66,9 @@ internal partial class BraceCompletionSessionProvider(
                 {
                     var undoHistory = _undoManager.GetTextBufferUndoManager(textView.TextBuffer).TextBufferUndoHistory;
                     session = new BraceCompletionSession(
-                        textView, openingPoint.Snapshot.TextBuffer, openingPoint, openingBrace, closingBrace,
-                        undoHistory, _editorOperationsFactoryService, _editorOptionsService,
-                        editorSession, _threadingContext);
+                        this, textView, openingPoint.Snapshot.TextBuffer,
+                        openingPoint, openingBrace, closingBrace,
+                        undoHistory, editorSession, responsiveCompletion);
                     return true;
                 }
             }

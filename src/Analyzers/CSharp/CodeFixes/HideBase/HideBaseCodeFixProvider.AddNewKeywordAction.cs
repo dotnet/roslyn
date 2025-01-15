@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase;
 
 using static CSharpSyntaxTokens;
 
-internal partial class HideBaseCodeFixProvider
+internal sealed partial class HideBaseCodeFixProvider
 {
-    private class AddNewKeywordAction(Document document, SyntaxNode node) : CodeAction
+    private sealed class AddNewKeywordAction(Document document, SyntaxNode node) : CodeAction
     {
         private readonly Document _document = document;
         private readonly SyntaxNode _node = node;
@@ -30,7 +30,7 @@ internal partial class HideBaseCodeFixProvider
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var configOptions = await _document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var configOptions = await _document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var newNode = GetNewNode(_node, configOptions.GetOption(CSharpCodeStyleOptions.PreferredModifierOrder).Value);
             var newRoot = root.ReplaceNode(_node, newNode);

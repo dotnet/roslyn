@@ -139,7 +139,7 @@ internal abstract class AbstractDocumentationCommentService<
                         AppendTextTokens(sb, GetTextTokens(xmlTextAttribute));
                         break;
                     default:
-                        Debug.Assert(false, $"Unexpected XML syntax kind {attribute.RawKind}");
+                        RoslynDebug.Assert(false, $"Unexpected XML syntax kind {attribute.RawKind}");
                         break;
                 }
             }

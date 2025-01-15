@@ -14655,7 +14655,7 @@ BC32081: 'New' constraint cannot be specified multiple times for the same type p
             Dim expectedErrors1 = <errors><![CDATA[
 BC32082: Type argument 'Derived' is declared 'MustInherit' and does not satisfy the 'New' constraint for type parameter 'S'.
                 Dim x As New C2(Of Base).C2Inner(Of Derived)
-                                                    ~~~~~~~
+                    ~
      ]]></errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub

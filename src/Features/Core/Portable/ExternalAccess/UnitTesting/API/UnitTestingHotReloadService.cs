@@ -95,7 +95,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
         Contract.ThrowIfFalse(sessionId != default, "Session has not started");
 
         var results = await _encService
-            .EmitSolutionUpdateAsync(sessionId, solution, s_solutionActiveStatementSpanProvider, cancellationToken)
+            .EmitSolutionUpdateAsync(sessionId, solution, runningProjects: [], s_solutionActiveStatementSpanProvider, cancellationToken)
             .ConfigureAwait(false);
 
         if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
@@ -126,7 +126,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
                 update.UpdatedMethods,
                 update.UpdatedTypes));
 
-        var diagnostics = await results.GetAllDiagnosticsAsync(solution, cancellationToken).ConfigureAwait(false);
+        var diagnostics = results.GetAllDiagnostics();
 
         return (updates, diagnostics);
     }

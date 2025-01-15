@@ -70,7 +70,7 @@ internal partial class SerializerService
             {
                 case AnalyzerFileReference fileReference:
                     writer.WriteString(fileReference.FullPath);
-                    writer.WriteGuid(TryGetAnalyzerFileReferenceMvid(fileReference));
+                    writer.WriteGuid(IsolatedAnalyzerReferenceSet.TryGetFileReferenceMvid(fileReference.FullPath));
                     break;
 
                 case AnalyzerImageReference analyzerImageReference:
@@ -499,20 +499,6 @@ internal partial class SerializerService
             // We have a reference but the file the reference is pointing to might not actually exist on disk. In that
             // case, rather than crashing, we will handle it gracefully.
             return null;
-        }
-    }
-
-    private static Guid TryGetAnalyzerFileReferenceMvid(AnalyzerFileReference file)
-    {
-        try
-        {
-            return AssemblyUtilities.ReadMvid(file.FullPath);
-        }
-        catch
-        {
-            // We have a reference but the file the reference is pointing to might not actually exist on disk. In that
-            // case, rather than crashing, we will handle it gracefully.
-            return Guid.Empty;
         }
     }
 

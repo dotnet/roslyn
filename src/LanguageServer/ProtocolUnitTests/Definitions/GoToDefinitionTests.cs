@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
                 Uri = ProtocolConversions.CreateAbsoluteUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
                 Range = new LSP.Range { Start = position, End = position }
             });
-            AssertLocationsEqual(ImmutableArray.Create(TestSpanMapper.MappedFileLocation), results);
+            AssertLocationsEqual([TestSpanMapper.MappedFileLocation], results);
         }
 
         [Theory, CombinatorialData]
@@ -222,6 +223,56 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Single(results);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGotoDefinitionAsync_SourceGeneratedDocument(bool mutatingLspWorkspace)
+        {
+            var source =
+                """
+                namespace M
+                {
+                    class A
+                    {
+                        public {|caret:|}B b;
+                    }
+                }
+                """;
+            var generated =
+                """
+                namespace M
+                {
+                    class B
+                    {
+                    }
+                }
+                """;
+
+            await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+            await AddGeneratorAsync(new SingleFileTestGenerator(generated), testLspServer.TestWorkspace);
+
+            var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            var result = Assert.Single(results);
+            Assert.Equal(SourceGeneratedDocumentUri.Scheme, result.Uri.Scheme);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGotoDefinitionMetadataIncludesTypeAsync(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                class A
+                {
+                    void M()
+                    {
+                        System.Console.Write("Hel{|caret:|}lo");
+                    }
+                }
+                """;
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            Assert.True(results.Single().Uri.OriginalString.EndsWith("String.cs"));
         }
 
         private static async Task<LSP.Location[]> RunGotoDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)

@@ -8,9 +8,9 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -70,21 +70,37 @@ internal sealed class SolutionAnalyzerConfigOptionsUpdater(IGlobalOptionService 
                             continue;
                         }
 
-                        lazyBuilder ??= ImmutableDictionary.CreateBuilder<string, string>(AnalyzerConfigOptions.KeyComparer);
-
-                        // copy existing option values:
-                        foreach (var oldKey in languageOptions.Keys)
+                        if (lazyBuilder == null)
                         {
-                            if (languageOptions.TryGetValue(oldKey, out var oldValue))
+                            lazyBuilder = ImmutableDictionary.CreateBuilder<string, string>(AnalyzerConfigOptions.KeyComparer);
+
+                            // copy existing option values:
+                            foreach (var oldKey in languageOptions.Keys)
                             {
-                                lazyBuilder.Add(oldKey, oldValue);
+                                if (languageOptions.TryGetValue(oldKey, out var oldValue))
+                                {
+                                    lazyBuilder.Add(oldKey, oldValue);
+                                }
                             }
                         }
 
                         // update changed values:
                         var configName = key.Option.Definition.ConfigName;
-                        var configValue = key.Option.Definition.Serializer.Serialize(value);
-                        lazyBuilder[configName] = configValue;
+                        if (value is NamingStylePreferences preferences)
+                        {
+                            NamingStylePreferencesEditorConfigSerializer.WriteNamingStylePreferencesToEditorConfig(
+                                preferences.SymbolSpecifications,
+                                preferences.NamingStyles,
+                                preferences.Rules.NamingRules,
+                                language,
+                                entryWriter: (name, value) => lazyBuilder[name] = value,
+                                triviaWriter: null,
+                                setPrioritiesToPreserveOrder: true);
+                        }
+                        else
+                        {
+                            lazyBuilder[configName] = key.Option.Definition.Serializer.Serialize(value);
+                        }
                     }
 
                     if (lazyBuilder != null)

@@ -181,7 +181,6 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
         /// </param>
         /// <param name="ordinalInInvocation">ordinal of the arguments of function: (a,b) or (a,b,c) in the example above</param>
         /// <param name="ordinalInLambda">ordinal of the lambda parameters, e.g. a, b or c.</param>
-        /// <returns></returns>
         private ImmutableArray<ITypeSymbol> GetTypeSymbols(
             ImmutableArray<ISymbol> candidateSymbols,
             string argumentName,
@@ -528,6 +527,6 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
         protected static ImmutableArray<ISymbol> SuppressDefaultTupleElements(INamespaceOrTypeSymbol container, ImmutableArray<ISymbol> symbols)
             => container is not INamedTypeSymbol { IsTupleType: true } namedType
                 ? symbols
-                : symbols.Where(s => s is not IFieldSymbol).Concat(namedType.TupleElements).ToImmutableArray();
+                : [.. symbols.Where(s => s is not IFieldSymbol), .. namedType.TupleElements];
     }
 }

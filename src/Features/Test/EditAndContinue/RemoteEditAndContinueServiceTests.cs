@@ -142,10 +142,10 @@ public class RemoteEditAndContinueServiceTests
             debuggerService: new MockManagedEditAndContinueDebuggerService()
             {
                 IsEditAndContinueAvailable = _ => new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForModule, "can't do enc"),
-                GetActiveStatementsImpl = () => ImmutableArray.Create(as1)
+                GetActiveStatementsImpl = () => [as1]
             },
             sourceTextProvider: NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: ImmutableArray.Create(documentId),
+            captureMatchingDocuments: [documentId],
             captureAllMatchingDocuments: false,
             reportDiagnostics: true,
             CancellationToken.None);
@@ -173,24 +173,25 @@ public class RemoteEditAndContinueServiceTests
 
         var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
 
-        mockEncService.EmitSolutionUpdateImpl = (solution, activeStatementSpanProvider) =>
+        mockEncService.EmitSolutionUpdateImpl = (solution, runningProjects, activeStatementSpanProvider) =>
         {
             var project = solution.GetRequiredProject(projectId);
             Assert.Equal("proj", project.Name);
             AssertEx.Equal(activeSpans1, activeStatementSpanProvider(documentId, "test.cs", CancellationToken.None).AsTask().Result);
+            AssertEx.Equal([project.Id], runningProjects);
 
             var deltas = ImmutableArray.Create(new ManagedHotReloadUpdate(
                 module: moduleId1,
                 moduleName: "mod",
                 projectId: projectId,
-                ilDelta: ImmutableArray.Create<byte>(1, 2),
-                metadataDelta: ImmutableArray.Create<byte>(3, 4),
-                pdbDelta: ImmutableArray.Create<byte>(5, 6),
-                updatedMethods: ImmutableArray.Create(0x06000001),
-                updatedTypes: ImmutableArray.Create(0x02000001),
-                sequencePoints: ImmutableArray.Create(new SequencePointUpdates("file.cs", ImmutableArray.Create(new SourceLineUpdate(1, 2)))),
-                activeStatements: ImmutableArray.Create(new ManagedActiveStatementUpdate(instructionId1.Method.Method, instructionId1.ILOffset, span1.ToSourceSpan())),
-                exceptionRegions: ImmutableArray.Create(exceptionRegionUpdate1),
+                ilDelta: [1, 2],
+                metadataDelta: [3, 4],
+                pdbDelta: [5, 6],
+                updatedMethods: [0x06000001],
+                updatedTypes: [0x02000001],
+                sequencePoints: [new SequencePointUpdates("file.cs", [new SourceLineUpdate(1, 2)])],
+                activeStatements: [new ManagedActiveStatementUpdate(instructionId1.Method.Method, instructionId1.ILOffset, span1.ToSourceSpan())],
+                exceptionRegions: [exceptionRegionUpdate1],
                 requiredCapabilities: EditAndContinueCapabilities.Baseline.ToStringArray()));
 
             var syntaxTree = solution.GetRequiredDocument(documentId).GetSyntaxTreeSynchronously(CancellationToken.None)!;
@@ -200,24 +201,27 @@ public class RemoteEditAndContinueServiceTests
             var syntaxError = Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), new[] { "doc", "syntax error" });
 
             var updates = new ModuleUpdates(ModuleUpdateStatus.Ready, deltas);
-            var diagnostics = ImmutableArray.Create(new ProjectDiagnostics(project.Id, ImmutableArray.Create(documentDiagnostic, projectDiagnostic)));
-            var documentsWithRudeEdits = ImmutableArray.Create((documentId, ImmutableArray<RudeEditDiagnostic>.Empty));
+            var diagnostics = ImmutableArray.Create(new ProjectDiagnostics(project.Id, [documentDiagnostic, projectDiagnostic]));
+            var documentsWithRudeEdits = ImmutableArray.Create(new ProjectDiagnostics(project.Id, []));
 
             return new()
             {
+                Solution = solution,
                 ModuleUpdates = updates,
                 Diagnostics = diagnostics,
-                RudeEdits = documentsWithRudeEdits,
-                SyntaxError = syntaxError
+                RudeEdits = [],
+                SyntaxError = syntaxError,
+                ProjectsToRebuild = [project.Id],
+                ProjectsToRestart = [project.Id],
             };
         };
 
-        var (updates, _, _, syntaxErrorData) = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, CancellationToken.None);
-        AssertEx.Equal($"[{projectId}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "syntax error")}", Inspect(syntaxErrorData!));
+        var results = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, runningProjects: [project.Id], activeStatementSpanProvider, CancellationToken.None);
+        AssertEx.Equal($"[{projectId}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "syntax error")}", Inspect(results.SyntaxError!));
 
-        Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
 
-        var delta = updates.Updates.Single();
+        var delta = results.ModuleUpdates.Updates.Single();
         Assert.Equal(moduleId1, delta.Module);
         AssertEx.Equal(new byte[] { 1, 2 }, delta.ILDelta);
         AssertEx.Equal(new byte[] { 3, 4 }, delta.MetadataDelta);
@@ -253,10 +257,10 @@ public class RemoteEditAndContinueServiceTests
         mockEncService.GetBaseActiveStatementSpansImpl = (solution, documentIds) =>
         {
             AssertEx.Equal(new[] { documentId, inProcOnlyDocumentId }, documentIds);
-            return ImmutableArray.Create(ImmutableArray.Create(activeStatementSpan1));
+            return [[activeStatementSpan1]];
         };
 
-        var baseActiveSpans = await sessionProxy.GetBaseActiveStatementSpansAsync(localWorkspace.CurrentSolution, ImmutableArray.Create(documentId, inProcOnlyDocumentId), CancellationToken.None);
+        var baseActiveSpans = await sessionProxy.GetBaseActiveStatementSpansAsync(localWorkspace.CurrentSolution, [documentId, inProcOnlyDocumentId], CancellationToken.None);
         Assert.Equal(activeStatementSpan1, baseActiveSpans.Single().Single());
 
         // GetDocumentActiveStatementSpans
@@ -265,7 +269,7 @@ public class RemoteEditAndContinueServiceTests
         {
             Assert.Equal("test.cs", document.Name);
             AssertEx.Equal(activeSpans1, activeStatementSpanProvider(documentId, "test.cs", CancellationToken.None).AsTask().Result);
-            return ImmutableArray.Create(activeStatementSpan1);
+            return [activeStatementSpan1];
         };
 
         Assert.Empty(await sessionProxy.GetAdjustedActiveStatementSpansAsync(inProcOnlyDocument, activeStatementSpanProvider, CancellationToken.None));
@@ -282,7 +286,7 @@ public class RemoteEditAndContinueServiceTests
 
         // GetDocumentDiagnosticsAsync
 
-        mockEncService.GetDocumentDiagnosticsImpl = (document, activeStatementProvider) => ImmutableArray.Create(diagnostic);
+        mockEncService.GetDocumentDiagnosticsImpl = (document, activeStatementProvider) => [diagnostic];
 
         Assert.Empty(await proxy.GetDocumentDiagnosticsAsync(inProcOnlyDocument, activeStatementSpanProvider, CancellationToken.None));
         Assert.Equal(diagnostic.GetMessage(), (await proxy.GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, CancellationToken.None)).Single().Message);

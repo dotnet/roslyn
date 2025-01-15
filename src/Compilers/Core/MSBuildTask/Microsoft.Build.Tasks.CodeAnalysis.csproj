@@ -59,6 +59,8 @@
     <Compile Include="..\Portable\InternalUtilities\ReflectionUtilities.cs" />
     <Compile Include="..\Portable\InternalUtilities\RoslynString.cs" />
     <Compile Include="..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs" />
+    <Compile Include="..\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" />
+    <Compile Include="..\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="ErrorString.resx" GenerateSource="true" />
@@ -74,15 +76,15 @@
   </ItemGroup>
 
   <!-- Generate a .targets file that sets $(CompilerApiVersion) to the current Roslyn version -->
-  <PropertyGroup>
-    <CompilerVersionTargetsFileIntermediatePath>$(IntermediateOutputPath)Microsoft.Managed.Core.CurrentVersions.targets</CompilerVersionTargetsFileIntermediatePath>
-  </PropertyGroup>
+  <ItemGroup>
+    <CompilerVersionTargetsFile Include="$(IntermediateOutputPath)Microsoft.Managed.Core.CurrentVersions.targets" />
+  </ItemGroup>
 
   <Target Name="GenerateCompilerVersionTargets"
           BeforeTargets="AssignTargetPaths"
           DependsOnTargets="GenerateCompilerVersionTargetsFile">
     <ItemGroup>
-      <Content Include="$(CompilerVersionTargetsFileIntermediatePath)">
+      <Content Include="@(CompilerVersionTargetsFile)">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <Pack>true</Pack>
         <BuildAction>None</BuildAction>
@@ -93,7 +95,7 @@
   </Target>
 
   <Target Name="GenerateCompilerVersionTargetsFile"
-          Outputs="$(CompilerVersionTargetsFileIntermediatePath)">
+          Outputs="@(CompilerVersionTargetsFile)">
 
     <PropertyGroup>
       <_CompilerApiVersion>$([System.Version]::Parse($(VersionPrefix)).Major).$([System.Version]::Parse($(VersionPrefix)).Minor)</_CompilerApiVersion>
@@ -106,7 +108,7 @@
       </_CompilerVersionTargetsFileContent>
     </PropertyGroup>
 
-    <WriteLinesToFile File="$(CompilerVersionTargetsFileIntermediatePath)"
+    <WriteLinesToFile File="@(CompilerVersionTargetsFile)"
                       Lines="$(_CompilerVersionTargetsFileContent)"
                       Overwrite="true"
                       WriteOnlyWhenDifferent="true" />

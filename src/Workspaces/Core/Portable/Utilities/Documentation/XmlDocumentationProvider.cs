@@ -28,7 +28,6 @@ public abstract class XmlDocumentationProvider : DocumentationProvider
     /// Gets the source stream for the XML document.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns></returns>
     protected abstract Stream GetSourceStream(CancellationToken cancellationToken);
 
     /// <summary>

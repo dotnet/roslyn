@@ -6,6 +6,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -164,12 +165,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return Task.CompletedTask;
         }
 
-        public override string GetLanguageForRequest(string methodName, object? serializedParameters)
+        public override bool TryGetLanguageForRequest(string methodName, object? serializedParameters, [NotNullWhen(true)] out string? language)
         {
             if (serializedParameters == null)
             {
                 Logger.LogInformation("No request parameters given, using default language handler");
-                return LanguageServerConstants.DefaultLanguageName;
+                language = LanguageServerConstants.DefaultLanguageName;
+                return true;
             }
 
             // We implement the STJ language server so this must be a JsonElement.
@@ -179,7 +181,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // as we do not want languages to be able to override them.
             if (ShouldUseDefaultLanguage(methodName))
             {
-                return LanguageServerConstants.DefaultLanguageName;
+                language = LanguageServerConstants.DefaultLanguageName;
+                return true;
             }
 
             var lspWorkspaceManager = GetLspServices().GetRequiredService<LspWorkspaceManager>();
@@ -188,34 +191,41 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // { "textDocument": { "uri": "<uri>" ... } ... }
             //
             // We can easily identify the URI for the request by looking for this structure
+            Uri? uri = null;
             if (parameters.TryGetProperty("textDocument", out var textDocumentToken) ||
                 parameters.TryGetProperty("_vs_textDocument", out textDocumentToken))
             {
                 var uriToken = textDocumentToken.GetProperty("uri");
-                var uri = JsonSerializer.Deserialize<Uri>(uriToken, ProtocolConversions.LspJsonSerializerOptions);
+                uri = JsonSerializer.Deserialize<Uri>(uriToken, ProtocolConversions.LspJsonSerializerOptions);
                 Contract.ThrowIfNull(uri, "Failed to deserialize uri property");
-                var language = lspWorkspaceManager.GetLanguageForUri(uri);
-                Logger.LogInformation($"Using {language} from request text document");
-                return language;
             }
-
-            // All the LSP resolve params have the following known json structure
-            // { "data": { "TextDocument": { "uri": "<uri>" ... } ... } ... }
-            //
-            // We can deserialize the data object using our unified DocumentResolveData.
-            //var dataToken = parameters["data"];
-            if (parameters.TryGetProperty("data", out var dataToken))
+            else if (parameters.TryGetProperty("data", out var dataToken))
             {
+                // All the LSP resolve params have the following known json structure
+                // { "data": { "TextDocument": { "uri": "<uri>" ... } ... } ... }
+                //
+                // We can deserialize the data object using our unified DocumentResolveData.
+                //var dataToken = parameters["data"];
                 var data = JsonSerializer.Deserialize<DocumentResolveData>(dataToken, ProtocolConversions.LspJsonSerializerOptions);
                 Contract.ThrowIfNull(data, "Failed to document resolve data object");
-                var language = lspWorkspaceManager.GetLanguageForUri(data.TextDocument.Uri);
-                Logger.LogInformation($"Using {language} from data text document");
-                return language;
+                uri = data.TextDocument.Uri;
             }
 
-            // This request is not for a textDocument and is not a resolve request.
-            Logger.LogInformation("Request did not contain a textDocument, using default language handler");
-            return LanguageServerConstants.DefaultLanguageName;
+            if (uri == null)
+            {
+                // This request is not for a textDocument and is not a resolve request.
+                Logger.LogInformation("Request did not contain a textDocument, using default language handler");
+                language = LanguageServerConstants.DefaultLanguageName;
+                return true;
+            }
+
+            if (!lspWorkspaceManager.TryGetLanguageForUri(uri, out language))
+            {
+                Logger.LogError($"Failed to get language for {uri} with language {language}");
+                return false;
+            }
+
+            return true;
 
             static bool ShouldUseDefaultLanguage(string methodName)
             {

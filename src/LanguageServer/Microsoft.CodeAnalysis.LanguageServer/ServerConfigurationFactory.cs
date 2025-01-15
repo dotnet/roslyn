@@ -43,7 +43,7 @@ internal class ServerConfigurationFactory
 
 internal record class ServerConfiguration(
     bool LaunchDebugger,
-    LogLevel MinimumLogLevel,
+    LogConfiguration LogConfiguration,
     string? StarredCompletionsPath,
     string? TelemetryLevel,
     string? SessionId,
@@ -51,4 +51,26 @@ internal record class ServerConfiguration(
     string? DevKitDependencyPath,
     string? RazorSourceGenerator,
     string? RazorDesignTimePath,
+    string? ServerPipeName,
+    bool UseStdIo,
     string ExtensionLogDirectory);
+
+internal class LogConfiguration
+{
+    private int _currentLogLevel;
+
+    public LogConfiguration(LogLevel initialLogLevel)
+    {
+        _currentLogLevel = (int)initialLogLevel;
+    }
+
+    public void UpdateLogLevel(LogLevel level)
+    {
+        Interlocked.Exchange(ref _currentLogLevel, (int)level);
+    }
+
+    public LogLevel GetLogLevel()
+    {
+        return (LogLevel)_currentLogLevel;
+    }
+}

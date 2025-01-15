@@ -34,6 +34,7 @@ This document provides guidance for thinking about language interactions and tes
 - Performance and stress testing
 - Can build VS
 - Check that `Obsolete` is honored for members used in binding/lowering
+- LangVersion
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
@@ -51,6 +52,9 @@ This document provides guidance for thinking about language interactions and tes
 - events (including add/remove accessors)
 - Parameter modifiers: ref, out, in, ref readonly, params (for array, for non-array)
 - Attributes (including generic attributes and security attributes)
+  - Compiler-recognized attributes should not have any effect in earlier LangVersions,
+    except a LangVersion error should be reported when functionality depending on the attribute is used
+    (for example, InlineArray conversion to Span).
 - Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
 - Default and constant values
 - Partial classes
@@ -116,6 +120,7 @@ This document provides guidance for thinking about language interactions and tes
 - extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
 - UTF8 String Literals (string literals with 'u8' or 'U8' type suffix).
 - Inline array element access and slicing.
+- Collection expressions and spread elements
 
 # Misc
 - reserved keywords (sometimes contextual)
@@ -345,6 +350,8 @@ __makeref( x )
 - Function type (in type inference comparing function types of lambdas or method groups)
 - UTF8 String Literal (string constant value to ```byte[]```, ```Span<byte>```, or ```ReadOnlySpan<byte>``` types)
 - Inline arrays (conversions to Span and ReadOnlySpan)
+- Collection expression conversions
+- Span conversions (from array to (ReadOnly)Span, or from string or (ReadOnly)Span to ReadOnlySpan)
 
 ## Types 
 

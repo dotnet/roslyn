@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
-internal partial class ObjectCreationExpressionSignatureHelpProvider
+internal sealed partial class ObjectCreationExpressionSignatureHelpProvider
 {
     private static SignatureHelpItem ConvertNormalTypeConstructor(
         IMethodSymbol constructor,
@@ -31,7 +31,7 @@ internal partial class ObjectCreationExpressionSignatureHelpProvider
             GetNormalTypePreambleParts(constructor, semanticModel, position),
             GetSeparatorParts(),
             GetNormalTypePostambleParts(),
-            constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
+            [.. constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
 
         return item;
     }

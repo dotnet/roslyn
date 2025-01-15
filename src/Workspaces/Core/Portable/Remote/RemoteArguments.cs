@@ -198,10 +198,10 @@ internal readonly struct SerializableReferenceLocation(
 }
 
 [DataContract]
-internal class SerializableSymbolGroup(HashSet<SerializableSymbolAndProjectId> symbols) : IEquatable<SerializableSymbolGroup>
+internal sealed class SerializableSymbolGroup(HashSet<SerializableSymbolAndProjectId> symbols) : IEquatable<SerializableSymbolGroup>
 {
     [DataMember(Order = 0)]
-    public readonly HashSet<SerializableSymbolAndProjectId> Symbols = new HashSet<SerializableSymbolAndProjectId>(symbols);
+    public readonly HashSet<SerializableSymbolAndProjectId> Symbols = [.. symbols];
 
     private int _hashCode;
 
@@ -234,8 +234,7 @@ internal class SerializableSymbolGroup(HashSet<SerializableSymbolAndProjectId> s
 
     public static SerializableSymbolGroup Dehydrate(Solution solution, SymbolGroup group, CancellationToken cancellationToken)
     {
-        return new SerializableSymbolGroup(new HashSet<SerializableSymbolAndProjectId>(
-            group.Symbols.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken))));
+        return new SerializableSymbolGroup([.. group.Symbols.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken))]);
     }
 }
 

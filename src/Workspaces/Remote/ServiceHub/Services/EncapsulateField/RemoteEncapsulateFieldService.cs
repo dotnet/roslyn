@@ -41,12 +41,12 @@ internal sealed class RemoteEncapsulateFieldService(in BrokeredServiceBase.Servi
             {
                 var resolved = SymbolKey.ResolveString(key, compilation, cancellationToken: cancellationToken).GetAnySymbol() as IFieldSymbol;
                 if (resolved == null)
-                    return ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>.Empty;
+                    return [];
 
                 fields.Add(resolved);
             }
 
-            var service = document.GetRequiredLanguageService<AbstractEncapsulateFieldService>();
+            var service = document.GetRequiredLanguageService<IEncapsulateFieldService>();
 
             var newSolution = await service.EncapsulateFieldsAsync(
                 document, fields.ToImmutable(), updateReferences, cancellationToken).ConfigureAwait(false);

@@ -613,9 +613,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if (_lazyExportedTypes.IsDefault)
             {
-                _lazyExportedTypes = CalculateExportedTypes();
+                var initialized = ImmutableInterlocked.InterlockedInitialize(ref _lazyExportedTypes, CalculateExportedTypes());
 
-                if (_lazyExportedTypes.Length > 0)
+                if (initialized && _lazyExportedTypes.Length > 0)
                 {
                     ReportExportedTypeNameCollisions(_lazyExportedTypes, diagnostics);
                 }

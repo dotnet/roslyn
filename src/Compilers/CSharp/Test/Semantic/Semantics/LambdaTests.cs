@@ -414,7 +414,8 @@ public delegate void Y(List<string> addin);
 
             var comp1 = CreateCompilation(
                 Parse(text1),
-                new[] { TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(true) },
+                targetFramework: TargetFramework.NetFramework,
+                references: [TestReferences.SymbolsTests.NoPia.StdOleNetFramework.WithEmbedInteropTypes(true)],
                 options: TestOptions.ReleaseDll);
 
             var text2 = @"
@@ -429,22 +430,24 @@ public class Program
 
             var comp2 = CreateCompilation(
                 Parse(text2),
-                new MetadataReference[]
-                    {
+                targetFramework: TargetFramework.NetFramework,
+                references:
+                    [
                         new CSharpCompilationReference(comp1),
-                        TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(true)
-                    },
+                        TestReferences.SymbolsTests.NoPia.StdOleNetFramework.WithEmbedInteropTypes(true)
+                    ],
                 options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp2, expectedOutput: "Y").Diagnostics.Verify();
 
             var comp3 = CreateCompilation(
                 Parse(text2),
-                new MetadataReference[]
-                    {
+                targetFramework: TargetFramework.NetFramework,
+                references:
+                    [
                         comp1.EmitToImageReference(),
-                        TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(true)
-                    },
+                        TestReferences.SymbolsTests.NoPia.StdOleNetFramework.WithEmbedInteropTypes(true)
+                    ],
                 options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp3, expectedOutput: "Y").Diagnostics.Verify();
@@ -5360,15 +5363,9 @@ class Program
                 // (7,18): error CS1547: Keyword 'void' cannot be used in this context
                 //         d = (ref void () => { });
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(7, 18),
-                // (7,26): error CS8917: The delegate type could not be inferred.
-                //         d = (ref void () => { });
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(7, 26),
                 // (8,27): error CS1547: Keyword 'void' cannot be used in this context
                 //         d = (ref readonly void () => { });
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(8, 27),
-                // (8,35): error CS8917: The delegate type could not be inferred.
-                //         d = (ref readonly void () => { });
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(8, 35));
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(8, 27));
         }
 
         [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
@@ -8555,6 +8552,82 @@ class Program
                 // (1,19): error CS0027: Keyword 'this' is not available in the current context
                 // var lam = (params this int[] xs) => xs.Length;
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(1, 19));
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_01()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+class Test1
+{
+    System.Func<T> M2<[Preserve1][Preserve2]T>(T x)
+    {
+        return () => x;
+    }
+}
+";
+            var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>c__DisplayClass0_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_02()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+class Test1
+{
+    System.Func<int> M2([Preserve1][Preserve2][Preserve3]int x)
+    {
+        return () => x;
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<>c__DisplayClass0_0.x").GetAttributes().Select(a => a.ToString()));
+            }
         }
     }
 }

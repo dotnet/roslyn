@@ -96,10 +96,7 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             ifStatement.GetFirstToken().GetLocation(),
             option.Notification,
             context.Options,
-            ImmutableArray.Create(
-                ifStatement.GetLocation(),
-                trueStatement.GetLocation(),
-                whenPartMatch.GetLocation()),
+            [ifStatement.GetLocation(), trueStatement.GetLocation(), whenPartMatch.GetLocation()],
             properties));
     }
 }

@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentForStatementCondition(original, rewrittenCondition, factory);
         }
 
-        public override BoundStatement InstrumentIfStatement(BoundIfStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentIfStatementConditionalGoto(BoundIfStatement original, BoundStatement rewritten)
         {
-            return Previous.InstrumentIfStatement(original, rewritten);
+            return Previous.InstrumentIfStatementConditionalGoto(original, rewritten);
         }
 
         public override BoundExpression InstrumentIfStatementCondition(BoundIfStatement original, BoundExpression rewrittenCondition, SyntheticBoundNodeFactory factory)

@@ -10,12 +10,11 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable;
 
-internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
+internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
 {
-    private partial class State
+    private sealed partial class State
     {
-        private bool IsInBlockContext(
-            CancellationToken cancellationToken)
+        private bool IsInBlockContext(CancellationToken cancellationToken)
         {
             if (!IsInTypeDeclarationOrValidCompilationUnit())
             {

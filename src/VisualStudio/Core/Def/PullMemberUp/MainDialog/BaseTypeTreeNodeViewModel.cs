@@ -54,12 +54,11 @@ internal class BaseTypeTreeNodeViewModel : SymbolViewModel<INamedTypeSymbol>
             var currentTreeNode = queue.Dequeue();
             var currentTypeSymbol = currentTreeNode.Symbol;
 
-            currentTreeNode.BaseTypeNodes = currentTypeSymbol.Interfaces
+            currentTreeNode.BaseTypeNodes = [.. currentTypeSymbol.Interfaces
                 .Concat(currentTypeSymbol.BaseType)
                 .Where(baseType => baseType != null && MemberAndDestinationValidator.IsDestinationValid(solution, baseType, cancellationToken))
                 .OrderBy(baseType => baseType.ToDisplayString())
-                .Select(baseType => new BaseTypeTreeNodeViewModel(baseType, glyphService) { IsChecked = false, IsExpanded = true })
-                .ToImmutableArray();
+                .Select(baseType => new BaseTypeTreeNodeViewModel(baseType, glyphService) { IsChecked = false, IsExpanded = true })];
 
             foreach (var node in currentTreeNode.BaseTypeNodes)
             {

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractClass;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.ExtractClass;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -37,7 +38,7 @@ public class ExtractClassTests
 
         protected override IEnumerable<CodeRefactoringProvider> GetCodeRefactoringProviders()
         {
-            var service = new TestExtractClassOptionsService(DialogSelection, SameFile, IsClassDeclarationSelection)
+            var service = new TestExtractClassOptionsService(DialogSelection, WorkspaceKind != CodeAnalysis.WorkspaceKind.MiscellaneousFiles ? SameFile : true, IsClassDeclarationSelection)
             {
                 FileName = FileName
             };
@@ -115,7 +116,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
         }.RunAsync();
     }
 
@@ -131,11 +131,24 @@ public class ExtractClassTests
                 }
             }
             """;
+        var expected = """
+            internal class MyBase
+            {
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }
+
+            class Test : MyBase
+            {
+            }
+            """;
 
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
+            FixedCode = expected,
             WorkspaceKind = WorkspaceKind.MiscellaneousFiles
         }.RunAsync();
     }
@@ -432,7 +445,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp9,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -450,7 +462,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -466,7 +477,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -484,7 +494,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -500,7 +509,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -521,7 +529,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp10,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -542,7 +549,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -2817,8 +2823,7 @@ public class ExtractClassTests
             """;
         await new Test
         {
-            TestCode = input,
-            FixedCode = input
+            TestCode = input
         }.RunAsync();
     }
 
@@ -2836,8 +2841,7 @@ public class ExtractClassTests
             """;
         await new Test
         {
-            TestCode = input,
-            FixedCode = input
+            TestCode = input
         }.RunAsync();
     }
 
@@ -2850,7 +2854,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState =
             {
@@ -2987,8 +2990,7 @@ public class ExtractClassTests
 
         await new Test()
         {
-            TestCode = code,
-            FixedCode = code
+            TestCode = code
         }.RunAsync();
     }
 
@@ -3009,8 +3011,7 @@ public class ExtractClassTests
 
         await new Test()
         {
-            TestCode = code,
-            FixedCode = code
+            TestCode = code
         }.RunAsync();
     }
 
@@ -3100,7 +3101,7 @@ public class ExtractClassTests
     private static IEnumerable<(string name, bool makeAbstract)> MakeSelection(params string[] memberNames)
        => memberNames.Select(m => (m, false));
 
-    private class TestExtractClassOptionsService : IExtractClassOptionsService
+    private sealed class TestExtractClassOptionsService : IExtractClassOptionsService
     {
         private readonly IEnumerable<(string name, bool makeAbstract)>? _dialogSelection;
         private readonly bool _sameFile;
@@ -3116,7 +3117,12 @@ public class ExtractClassTests
         public string FileName { get; set; } = "MyBase.cs";
         public string BaseName { get; set; } = "MyBase";
 
-        public Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalSymbol, ImmutableArray<ISymbol> selectedMembers, CancellationToken cancellationToken)
+        public ExtractClassOptions? GetExtractClassOptions(
+            Document document,
+            INamedTypeSymbol originalSymbol,
+            ImmutableArray<ISymbol> selectedMembers,
+            SyntaxFormattingOptions formattingOptions,
+            CancellationToken cancellationToken)
         {
             var availableMembers = originalSymbol.GetMembers().Where(member => MemberAndDestinationValidator.IsMemberValid(member));
 
@@ -3140,13 +3146,12 @@ public class ExtractClassTests
                 selections = _dialogSelection.Select(selection => (member: availableMembers.Single(symbol => symbol.Name == selection.name), selection.makeAbstract));
             }
 
-            var memberAnalysis = selections.Select(s =>
+            var memberAnalysis = selections.SelectAsArray(s =>
                 new ExtractClassMemberAnalysisResult(
                     s.member,
-                    s.makeAbstract))
-                .ToImmutableArray();
+                    s.makeAbstract));
 
-            return Task.FromResult<ExtractClassOptions?>(new ExtractClassOptions(FileName, BaseName, _sameFile, memberAnalysis));
+            return new ExtractClassOptions(FileName, BaseName, _sameFile, memberAnalysis);
         }
     }
 }

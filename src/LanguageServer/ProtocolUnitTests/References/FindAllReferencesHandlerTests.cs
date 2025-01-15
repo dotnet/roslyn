@@ -203,7 +203,7 @@ class A
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
             var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
-            Assert.NotNull(results[0].Location.Uri);
+            Assert.NotNull(results[0].Location!.Uri);
             AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 1);
         }
 
@@ -270,6 +270,37 @@ class C
             Assert.Equal(9, textRuns.Count());
         }
 
+        [Theory, CombinatorialData]
+        public async Task TestFindAllReferencesAsync_PreprocessingSymbol(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                #define {|reference:PREPROCESSING_SYMBOL|}
+                #define MORE_PREPROCESSING_SYMBOL
+
+                #if {|reference:PREPROCESSING_SYMBOL|}
+                namespace SimpleNamespace;
+                #elif true && (!false || {|caret:|}{|reference:PREPROCESSING_SYMBOL|})
+                namespace AnotherNamespace;
+                #elif MORE_PREPROCESSING_SYMBOL
+                namespace MoreSimpleNamespace;
+                #else
+                namespace ComplexNamespace;
+                #endif
+
+                // PREPROCESSING_SYMBOL
+                class PREPROCESSING_SYMBOL
+                {
+                }
+                """;
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+
+            // Do not assert the glyph
+            AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
+        }
+
         private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)
             => new LSP.ReferenceParams()
             {
@@ -288,7 +319,7 @@ class C
             if (progress != null)
             {
                 Assert.Null(results);
-                results = UnwrapProgress<LSP.VSInternalReferenceItem>(progress.Value).ToArray();
+                results = [.. UnwrapProgress<LSP.VSInternalReferenceItem>(progress.Value)];
             }
 
             // Results are returned in a non-deterministic order, so we order them by location
@@ -305,7 +336,7 @@ class C
             if (progress != null)
             {
                 Assert.Null(results);
-                results = UnwrapProgress<LSP.Location>(progress.Value).ToArray();
+                results = [.. UnwrapProgress<LSP.Location>(progress.Value)];
             }
 
             // Results are returned in a non-deterministic order, so we order them by location
@@ -319,9 +350,8 @@ class C
             // with the test creating one, and the handler another, we have to unwrap.
             // Additionally, the VS LSP protocol specifies T from IProgress<T> as an object and not as the actual T type
             // so we have to correctly convert the JObject into the expected type.
-            return progress.GetValues()
-                .SelectMany(r => (List<object>)r).Select(r => JsonSerializer.Deserialize<T>((JsonElement)r, ProtocolConversions.LspJsonSerializerOptions))
-                .ToArray();
+            return [.. progress.GetValues()
+                .SelectMany(r => (List<object>)r).Select(r => JsonSerializer.Deserialize<T>((JsonElement)r, ProtocolConversions.LspJsonSerializerOptions))];
         }
 
         private static void AssertValidDefinitionProperties(LSP.VSInternalReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph)

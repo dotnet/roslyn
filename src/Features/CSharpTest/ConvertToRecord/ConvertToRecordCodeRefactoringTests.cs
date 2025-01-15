@@ -4515,7 +4515,9 @@ public class ConvertToRecordCodeRefactoringTests
         }.RunAsync();
     }
 
+#pragma warning disable RS1042 // Do not implement
     private sealed class ConvertToRecordTestGenerator : ISourceGenerator
+#pragma warning restore RS1042 // Do not implement
     {
         public void Initialize(GeneratorInitializationContext context) { }
 
@@ -4748,13 +4750,13 @@ public class ConvertToRecordCodeRefactoringTests
     private class TestAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(new DiagnosticDescriptor(
+            => [new DiagnosticDescriptor(
                 "CS8865",
                 "Only records may inherit from records.",
                 "Only records may inherit from records.",
                 "Compiler error",
                 DiagnosticSeverity.Error,
-                isEnabledByDefault: true));
+                isEnabledByDefault: true)];
 
         public override void Initialize(AnalysisContext context)
         {

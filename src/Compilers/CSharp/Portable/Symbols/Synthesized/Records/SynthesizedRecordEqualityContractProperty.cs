@@ -32,10 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 },
                 hasInitializer: false,
                 hasExplicitAccessMod: false,
-                isAutoProperty: false,
+                hasAutoPropertyGet: false,
+                hasAutoPropertySet: false,
                 isExpressionBodied: false,
-                isInitOnly: false,
                 accessorsHaveImplementation: true,
+                getterUsesFieldKeyword: false,
+                setterUsesFieldKeyword: false,
                 RefKind.None,
                 PropertyName,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             VerifyOverridesEqualityContractFromBase(this, diagnostics);
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
             {
                 base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

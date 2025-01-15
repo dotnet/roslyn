@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
     {
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
             var expected = new LSP.SymbolInformation[]
             {
                 CreateSymbolInformation(LSP.SymbolKind.Class, "A", testLspServer.GetLocations("class").Single(), Glyph.ClassInternal),
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
                 Kind = kind,
                 Name = name,
                 Range = location.Range,
-                Children = new LSP.DocumentSymbol[0],
+                Children = [],
                 Detail = detail,
 #pragma warning disable 618 // obsolete member
                 Deprecated = false,

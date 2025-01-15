@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationOperatorSymbol(
+internal sealed class CodeGenerationOperatorSymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility accessibility,
@@ -32,7 +32,7 @@ internal class CodeGenerationOperatorSymbol(
          refKind: RefKind.None,
          explicitInterfaceImplementations: default,
          GetMetadataName(operatorKind),
-         typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+         typeParameters: [],
          parameters,
          returnTypeAttributes,
          documentationCommentXml)

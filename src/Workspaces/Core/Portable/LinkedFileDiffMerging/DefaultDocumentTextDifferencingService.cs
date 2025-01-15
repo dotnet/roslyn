@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis;
 
 [ExportWorkspaceService(typeof(IDocumentTextDifferencingService), ServiceLayer.Default), Shared]
-internal class DefaultDocumentTextDifferencingService : IDocumentTextDifferencingService
+internal sealed class DefaultDocumentTextDifferencingService : IDocumentTextDifferencingService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -27,6 +27,6 @@ internal class DefaultDocumentTextDifferencingService : IDocumentTextDifferencin
     public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, TextDifferenceTypes preferredDifferenceType, CancellationToken cancellationToken)
     {
         var changes = await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false);
-        return changes.ToImmutableArray();
+        return [.. changes];
     }
 }

@@ -131,24 +131,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsExplicitFinalizerOverride => (_bits & IsExplicitFinalizerOverrideBit) != 0;
             public bool IsExplicitClassOverride => (_bits & IsExplicitClassOverrideBit) != 0;
             public bool IsExplicitOverrideIsPopulated => (_bits & IsExplicitOverrideIsPopulatedBit) != 0;
-            public bool IsObsoleteAttributePopulated => (_bits & IsObsoleteAttributePopulatedBit) != 0;
-            public bool IsCustomAttributesPopulated => (_bits & IsCustomAttributesPopulatedBit) != 0;
-            public bool IsUseSiteDiagnosticPopulated => (_bits & IsUseSiteDiagnosticPopulatedBit) != 0;
-            public bool IsConditionalPopulated => (_bits & IsConditionalPopulatedBit) != 0;
-            public bool IsOverriddenOrHiddenMembersPopulated => (_bits & IsOverriddenOrHiddenMembersPopulatedBit) != 0;
+            public bool IsObsoleteAttributePopulated => (Volatile.Read(ref _bits) & IsObsoleteAttributePopulatedBit) != 0;
+            public bool IsCustomAttributesPopulated => (Volatile.Read(ref _bits) & IsCustomAttributesPopulatedBit) != 0;
+            public bool IsUseSiteDiagnosticPopulated => (Volatile.Read(ref _bits) & IsUseSiteDiagnosticPopulatedBit) != 0;
+            public bool IsConditionalPopulated => (Volatile.Read(ref _bits) & IsConditionalPopulatedBit) != 0;
+            public bool IsOverriddenOrHiddenMembersPopulated => (Volatile.Read(ref _bits) & IsOverriddenOrHiddenMembersPopulatedBit) != 0;
             public bool IsReadOnly => (_bits & IsReadOnlyBit) != 0;
             public bool IsReadOnlyPopulated => (_bits & IsReadOnlyPopulatedBit) != 0;
             public bool DoesNotReturn => (_bits & DoesNotReturnBit) != 0;
             public bool IsDoesNotReturnPopulated => (_bits & IsDoesNotReturnPopulatedBit) != 0;
-            public bool IsMemberNotNullPopulated => (_bits & IsMemberNotNullPopulatedBit) != 0;
+            public bool IsMemberNotNullPopulated => (Volatile.Read(ref _bits) & IsMemberNotNullPopulatedBit) != 0;
             public bool IsInitOnly => (_bits & IsInitOnlyBit) != 0;
             public bool IsInitOnlyPopulated => (_bits & IsInitOnlyPopulatedBit) != 0;
-            public bool IsUnmanagedCallersOnlyAttributePopulated => (_bits & IsUnmanagedCallersOnlyAttributePopulatedBit) != 0;
+            public bool IsUnmanagedCallersOnlyAttributePopulated => (Volatile.Read(ref _bits) & IsUnmanagedCallersOnlyAttributePopulatedBit) != 0;
             public bool HasSetsRequiredMembers => (_bits & HasSetsRequiredMembersBit) != 0;
             public bool HasSetsRequiredMembersPopulated => (_bits & HasSetsRequiredMembersPopulatedBit) != 0;
             public bool IsUnscopedRef => (_bits & IsUnscopedRefBit) != 0;
             public bool IsUnscopedRefPopulated => (_bits & IsUnscopedRefPopulatedBit) != 0;
-            public bool IsOverloadResolutionPriorityPopulated => (_bits & OverloadResolutionPriorityPopulatedBit) != 0;
+            public bool IsOverloadResolutionPriorityPopulated => (Volatile.Read(ref _bits) & OverloadResolutionPriorityPopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool IsStatic => HasFlag(MethodAttributes.Static);
 
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => HasFlag(MethodAttributes.Virtual);
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => HasFlag(MethodAttributes.Virtual);
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => HasFlag(MethodAttributes.NewSlot);
 
@@ -1653,12 +1653,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             throw ExceptionUtilities.Unreachable();
         }
 
-        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             throw ExceptionUtilities.Unreachable();
         }
@@ -1702,11 +1702,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return builderArgument is not null;
         }
 
-        internal override int? TryGetOverloadResolutionPriority()
+        internal override int TryGetOverloadResolutionPriority()
         {
             if (!_packedFlags.IsOverloadResolutionPriorityPopulated)
             {
-                if (_containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, out int priority))
+                if (_containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, out int priority) &&
+                    priority != 0)
                 {
                     Interlocked.CompareExchange(ref AccessUncommonFields()._lazyOverloadResolutionPriority, priority, 0);
                 }
@@ -1721,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _packedFlags.SetIsOverloadResolutionPriorityPopulated();
             }
 
-            return _uncommonFields?._lazyOverloadResolutionPriority;
+            return _uncommonFields?._lazyOverloadResolutionPriority ?? 0;
         }
     }
 }

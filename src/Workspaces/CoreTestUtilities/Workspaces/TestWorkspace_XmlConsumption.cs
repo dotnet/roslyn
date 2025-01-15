@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private const string CommonReferencesNet6Name = "CommonReferencesNet6";
         private const string CommonReferencesNet7Name = "CommonReferencesNet7";
         private const string CommonReferencesNet8Name = "CommonReferencesNet8";
+        private const string CommonReferencesNet9Name = "CommonReferencesNet9";
         private const string CommonReferencesNetStandard20Name = "CommonReferencesNetStandard20";
         private const string CommonReferencesMinCorlibName = "CommonReferencesMinCorlib";
         private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
@@ -127,25 +128,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var assemblyName = GetAssemblyName(projectElement, ref projectId);
 
-            string filePath;
+            string projectFilePath;
 
             var projectName = projectElement.Attribute(ProjectNameAttribute)?.Value ?? assemblyName;
 
             if (projectElement.Attribute(FilePathAttributeName) != null)
             {
-                filePath = projectElement.Attribute(FilePathAttributeName).Value;
-                if (string.Compare(filePath, NullFilePath, StringComparison.Ordinal) == 0)
+                projectFilePath = projectElement.Attribute(FilePathAttributeName).Value;
+                if (string.Compare(projectFilePath, NullFilePath, StringComparison.Ordinal) == 0)
                 {
                     // allow explicit null file path
-                    filePath = null;
+                    projectFilePath = null;
                 }
             }
             else
             {
-                filePath = projectName +
+                projectFilePath = projectName +
                     (language == LanguageNames.CSharp ? ".csproj" :
                      language == LanguageNames.VisualBasic ? ".vbproj" : ("." + language));
             }
+
+            var projectOutputDir = AbstractTestHostProject.GetTestOutputDirectory(projectFilePath);
 
             var languageServices = Services.GetLanguageServices(language);
 
@@ -188,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 MarkupTestFile.GetPositionAndSpans(markupCode,
                     out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
-                var documentFilePath = typeof(SingleFileTestGenerator).Assembly.GetName().Name + '\\' + typeof(SingleFileTestGenerator).FullName + '\\' + name;
+                var documentFilePath = Path.Combine(projectOutputDir, "obj", typeof(SingleFileTestGenerator).Assembly.GetName().Name, typeof(SingleFileTestGenerator).FullName, name);
                 var document = CreateDocument(exportProvider, languageServices, code, name, documentFilePath, cursorPosition, spans, generator: testGenerator);
                 documents.Add(document);
 
@@ -225,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 analyzerConfigDocuments.Add(document);
             }
 
-            return CreateProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, additionalDocuments, analyzerConfigDocuments, filePath: filePath, analyzerReferences: analyzers, defaultNamespace: rootNamespace);
+            return CreateProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, additionalDocuments, analyzerConfigDocuments, filePath: projectFilePath, analyzerReferences: analyzers, defaultNamespace: rootNamespace);
         }
 
         private static ParseOptions GetParseOptions(XElement projectElement, string language, HostLanguageServices languageServices)
@@ -416,8 +419,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (compilationOptionsElement != null)
             {
-                globalImports = compilationOptionsElement.Elements(GlobalImportElementName)
-                                                         .Select(x => GlobalImport.Parse(x.Value)).ToList();
+                globalImports = [.. compilationOptionsElement.Elements(GlobalImportElementName).Select(x => GlobalImport.Parse(x.Value))];
                 var rootNamespaceAttribute = compilationOptionsElement.Attribute(RootNamespaceAttributeName);
                 if (rootNamespaceAttribute != null)
                 {
@@ -711,8 +713,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return null;
             }
 
-            var folderContainers = folderAttribute.Value.Split(new[] { PathUtilities.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
-            return new ReadOnlyCollection<string>(folderContainers.ToList());
+            var folderContainers = folderAttribute.Value.Split([PathUtilities.DirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
+            return new ReadOnlyCollection<string>([.. folderContainers]);
         }
 
         /// <summary>
@@ -935,6 +937,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)net8).Value)
             {
                 references = [.. TargetFrameworkUtil.GetReferences(TargetFramework.Net80)];
+            }
+
+            var net9 = element.Attribute(CommonReferencesNet9Name);
+            if (net9 != null &&
+                ((bool?)net9).HasValue &&
+                ((bool?)net9).Value)
+            {
+                references = [.. TargetFrameworkUtil.GetReferences(TargetFramework.Net90)];
             }
 
             var mincorlib = element.Attribute(CommonReferencesMinCorlibName);

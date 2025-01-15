@@ -59,6 +59,11 @@ internal sealed partial class ProjectSystemProject
     private readonly HashSet<string> _projectAnalyzerPaths = [];
 
     /// <summary>
+    /// The set of SDK code style analyzer reference paths that the project knows about.
+    /// </summary>
+    private readonly HashSet<string> _sdkCodeStyleAnalyzerPaths = [];
+
+    /// <summary>
     /// Paths to analyzers we want to add when the current batch completes.
     /// </summary>
     private readonly List<string> _analyzersAddedInBatch = [];
@@ -80,7 +85,9 @@ internal sealed partial class ProjectSystemProject
     private string? _compilationOutputAssemblyFilePath;
     private string? _outputFilePath;
     private string? _outputRefFilePath;
+    private string? _generatedFilesOutputDirectory;
     private string? _defaultNamespace;
+    private bool _hasSdkCodeStyleAnalyzers;
 
     /// <summary>
     /// If this project is the 'primary' project the project system cares about for a group of Roslyn projects that
@@ -215,8 +222,8 @@ internal sealed partial class ProjectSystemProject
 
             return language switch
             {
-                LanguageNames.VisualBasic => [new(rootPath, ".vb")],
-                LanguageNames.CSharp => [new(rootPath, ".cs"), new(rootPath, ".razor"), new(rootPath, ".cshtml")],
+                LanguageNames.VisualBasic => [new(rootPath, [".vb"])],
+                LanguageNames.CSharp => [new(rootPath, [".cs", ".razor", ".cshtml"])],
                 _ => []
             };
         }
@@ -376,6 +383,18 @@ internal sealed partial class ProjectSystemProject
             s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithAssemblyPath(value)));
     }
 
+    /// <summary>
+    /// The path to the source generated files.
+    /// </summary>
+    internal string? GeneratedFilesOutputDirectory
+    {
+        get => _generatedFilesOutputDirectory;
+        set => ChangeProjectOutputPath(
+            ref _generatedFilesOutputDirectory,
+            value,
+            s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithGeneratedFilesOutputDirectory(value)));
+    }
+
     public string? OutputFilePath
     {
         get => _outputFilePath;
@@ -441,14 +460,20 @@ internal sealed partial class ProjectSystemProject
         ChangeProjectProperty(ref _runAnalyzers, runAnalyzers, s => s.WithRunAnalyzers(Id, runAnalyzers));
     }
 
+    internal bool HasSdkCodeStyleAnalyzers
+    {
+        get => _hasSdkCodeStyleAnalyzers;
+        set => ChangeProjectProperty(ref _hasSdkCodeStyleAnalyzers, value, s => s.WithHasSdkCodeStyleAnalyzers(Id, value));
+    }
+
     /// <summary>
     /// The default namespace of the project.
     /// </summary>
     /// <remarks>
-    /// In C#, this is defined as the value of "rootnamespace" msbuild property. Right now VB doesn't 
+    /// In C#, this is defined as the value of "rootnamespace" msbuild property. Right now VB doesn't
     /// have the concept of "default namespace", but we conjure one in workspace by assigning the value
     /// of the project's root namespace to it. So various features can choose to use it for their own purpose.
-    /// 
+    ///
     /// In the future, we might consider officially exposing "default namespace" for VB project
     /// (e.g.through a "defaultnamespace" msbuild property)
     /// </remarks>
@@ -459,8 +484,8 @@ internal sealed partial class ProjectSystemProject
     }
 
     /// <summary>
-    /// The max language version supported for this project, if applicable. Useful to help indicate what 
-    /// language version features should be suggested to a user, as well as if they can be upgraded. 
+    /// The max language version supported for this project, if applicable. Useful to help indicate what
+    /// language version features should be suggested to a user, as well as if they can be upgraded.
     /// </summary>
     internal string? MaxLangVersion
     {
@@ -891,7 +916,7 @@ internal sealed partial class ProjectSystemProject
                 // Don't get confused by _filePath and filePath.
                 // VisualStudioProject._filePath points to csproj/vbproj of the project
                 // and the parameter filePath points to dynamic file such as ASP.NET .g.cs files.
-                // 
+                //
                 // Also, provider is free-threaded. so fine to call Wait rather than JTF.
                 fileInfo = provider.Value.GetDynamicFileInfoAsync(
                     projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
@@ -982,7 +1007,7 @@ internal sealed partial class ProjectSystemProject
         {
             if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out fileInfoPath))
             {
-                // given file doesn't belong to this project. 
+                // given file doesn't belong to this project.
                 // this happen since the event this is handling is shared between all projects
                 return;
             }
@@ -1004,10 +1029,21 @@ internal sealed partial class ProjectSystemProject
 
         var mappedPaths = GetMappedAnalyzerPaths(fullPath);
 
+        bool containsSdkCodeStyleAnalyzers;
+
         using var _ = CreateBatchScope();
 
         using (_gate.DisposableWait())
         {
+            if (IsSdkCodeStyleAnalyzer(fullPath))
+            {
+                // Track the sdk code style analyzer paths
+                _sdkCodeStyleAnalyzerPaths.Add(fullPath);
+            }
+
+            // Determine if we are still using SDK CodeStyle analyzers while access to _sdkCodeStyleAnalyzerPaths is gated.
+            containsSdkCodeStyleAnalyzers = _sdkCodeStyleAnalyzerPaths.Count > 0;
+
             // check all mapped paths first, so that all analyzers are either added or not
             foreach (var mappedFullPath in mappedPaths)
             {
@@ -1025,6 +1061,8 @@ internal sealed partial class ProjectSystemProject
                     _analyzersAddedInBatch.Add(mappedFullPath);
             }
         }
+
+        HasSdkCodeStyleAnalyzers = containsSdkCodeStyleAnalyzers;
     }
 
     public void RemoveAnalyzerReference(string fullPath)
@@ -1034,10 +1072,21 @@ internal sealed partial class ProjectSystemProject
 
         var mappedPaths = GetMappedAnalyzerPaths(fullPath);
 
+        bool containsSdkCodeStyleAnalyzers;
+
         using var _ = CreateBatchScope();
 
         using (_gate.DisposableWait())
         {
+            if (IsSdkCodeStyleAnalyzer(fullPath))
+            {
+                // Track the sdk code style analyzer paths
+                _sdkCodeStyleAnalyzerPaths.Remove(fullPath);
+            }
+
+            // Determine if we are still using SDK CodeStyle analyzers while access to _sdkCodeStyleAnalyzerPaths is gated.
+            containsSdkCodeStyleAnalyzers = _sdkCodeStyleAnalyzerPaths.Count > 0;
+
             // check all mapped paths first, so that all analyzers are either removed or not
             foreach (var mappedFullPath in mappedPaths)
             {
@@ -1055,10 +1104,43 @@ internal sealed partial class ProjectSystemProject
                     _analyzersRemovedInBatch.Add(mappedFullPath);
             }
         }
+
+        HasSdkCodeStyleAnalyzers = containsSdkCodeStyleAnalyzers;
     }
 
+    private OneOrMany<string> GetMappedAnalyzerPaths(string fullPath)
+    {
+        fullPath = Path.GetFullPath(fullPath);
+
+        if (IsSdkCodeStyleAnalyzer(fullPath))
+        {
+            // We discard the CodeStyle analyzers added by the SDK when the EnforceCodeStyleInBuild property is set.
+            // The same analyzers ship in-box as part of the Features layer and are version matched to the compiler.
+            return OneOrMany<string>.Empty;
+        }
+
+        if (IsSdkRazorSourceGenerator(fullPath))
+        {
+            // Map all files in the SDK directory that contains the Razor source generator to source generator files loaded from VSIX.
+            // Include the generator and all its dependencies shipped in VSIX, discard the generator and all dependencies in the SDK
+            return GetMappedRazorSourceGenerator(fullPath);
+        }
+
+        return OneOrMany.Create(fullPath);
+    }
+
+    private static readonly string s_csharpCodeStyleAnalyzerSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk", "codestyle", "cs");
+    private static readonly string s_visualBasicCodeStyleAnalyzerSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk", "codestyle", "vb");
+
+    private bool IsSdkCodeStyleAnalyzer(string fullPath) => Language switch
+    {
+        LanguageNames.CSharp => DirectoryNameEndsWith(fullPath, s_csharpCodeStyleAnalyzerSdkDirectory),
+        LanguageNames.VisualBasic => DirectoryNameEndsWith(fullPath, s_visualBasicCodeStyleAnalyzerSdkDirectory),
+        _ => false,
+    };
+
     internal const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
-    private static readonly string s_razorSourceGeneratorSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators") + PathUtilities.DirectorySeparatorStr;
+    private static readonly string s_razorSourceGeneratorSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators");
     private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
     [
         "Microsoft.NET.Sdk.Razor.SourceGenerators",
@@ -1068,32 +1150,32 @@ internal sealed partial class ProjectSystemProject
     private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyRootedFileNames = s_razorSourceGeneratorAssemblyNames.SelectAsArray(
         assemblyName => PathUtilities.DirectorySeparatorStr + assemblyName + ".dll");
 
-    private OneOrMany<string> GetMappedAnalyzerPaths(string fullPath)
+    private static bool IsSdkRazorSourceGenerator(string fullPath) => DirectoryNameEndsWith(fullPath, s_razorSourceGeneratorSdkDirectory);
+
+    private OneOrMany<string> GetMappedRazorSourceGenerator(string fullPath)
     {
-        fullPath = Path.GetFullPath(fullPath);
-        // Map all files in the SDK directory that contains the Razor source generator to source generator files loaded from VSIX.
-        // Include the generator and all its dependencies shipped in VSIX, discard the generator and all dependencies in the SDK
-        if (fullPath.LastIndexOf(s_razorSourceGeneratorSdkDirectory, StringComparison.OrdinalIgnoreCase) + s_razorSourceGeneratorSdkDirectory.Length - 1 ==
-            fullPath.LastIndexOf(Path.DirectorySeparatorChar))
+        var vsixRazorAnalyzers = _hostInfo.HostDiagnosticAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
+            predicate: item => item.extensionId == RazorVsixExtensionId,
+            selector: item => item.reference.FullPath);
+
+        if (!vsixRazorAnalyzers.IsEmpty)
         {
-            var vsixRazorAnalyzers = _hostInfo.HostDiagnosticAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
-                predicate: item => item.extensionId == RazorVsixExtensionId,
-                selector: item => item.reference.FullPath);
-
-            if (!vsixRazorAnalyzers.IsEmpty)
+            if (s_razorSourceGeneratorAssemblyRootedFileNames.Any(
+                static (fileName, fullPath) => fullPath.EndsWith(fileName, StringComparison.OrdinalIgnoreCase), fullPath))
             {
-                if (s_razorSourceGeneratorAssemblyRootedFileNames.Any(
-                    static (fileName, fullPath) => fullPath.EndsWith(fileName, StringComparison.OrdinalIgnoreCase), fullPath))
-                {
-                    return OneOrMany.Create(vsixRazorAnalyzers);
-                }
-
-                return OneOrMany.Create(ImmutableArray<string>.Empty);
+                return OneOrMany.Create(vsixRazorAnalyzers);
             }
+
+            return OneOrMany<string>.Empty;
         }
 
         return OneOrMany.Create(fullPath);
     }
+
+    private static string CreateDirectoryPathFragment(params string[] paths) => Path.Combine([" ", .. paths, " "]).Trim();
+
+    private static bool DirectoryNameEndsWith(string fullPath, string ending) => fullPath.LastIndexOf(ending, StringComparison.OrdinalIgnoreCase) + ending.Length - 1 ==
+        fullPath.LastIndexOf(Path.DirectorySeparatorChar);
 
     #endregion
 

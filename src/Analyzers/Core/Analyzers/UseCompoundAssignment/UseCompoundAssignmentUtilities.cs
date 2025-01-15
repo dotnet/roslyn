@@ -48,16 +48,15 @@ internal static class UseCompoundAssignmentUtilities
         bool isTopLevel, CancellationToken cancellationToken)
     {
         if (expr == null)
-        {
             return false;
-        }
 
         // it basically has to be of the form "a.b.c", where all components are locals,
         // parameters or fields.  Basically, nothing that can cause arbitrary user code
         // execution when being evaluated by the compiler.
 
         if (syntaxFacts.IsThisExpression(expr) ||
-            syntaxFacts.IsBaseExpression(expr))
+            syntaxFacts.IsBaseExpression(expr) ||
+            syntaxFacts.IsFieldExpression(expr))
         {
             // Referencing this/base like  this.a.b.c causes no side effects itself.
             return true;

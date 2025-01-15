@@ -21,13 +21,8 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public SimplifyTypeNamesTests(ITestOutputHelper logger)
-        : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new SimplifyTypeNamesCodeFixProvider());
 
@@ -2247,6 +2242,34 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
                 {
                     D.B x = new [|D.B|]();
                 }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75026")]
+    public async Task SimplifyUnmentionableTypeParameter3()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            public class C<T>;
+
+            public class D : C<[|D.E|]>
+            {
+                public class E;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75026")]
+    public async Task SimplifyUnmentionableTypeParameter3_PrimaryCtor()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            public class C<T>;
+
+            public class D() : C<[|D.E|]>()
+            {
+                public class E;
             }
             """);
     }
@@ -7197,7 +7220,7 @@ namespace N
     }
 
     [Fact]
-    public async Task TestNint1_NoNumericIntPtr()
+    public async Task TestNint1_NoNumericIntPtr_CSharp10_NoRuntimeSupport()
     {
         var source =
             """
@@ -7207,7 +7230,8 @@ namespace N
             }
             """;
         var featureOptions = PreferIntrinsicTypeEverywhere;
-        await TestMissingInRegularAndScriptAsync(source, new TestParameters(options: featureOptions));
+        await TestMissingInRegularAndScriptAsync(
+            source, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10), options: featureOptions));
     }
 
     [Fact]
@@ -7234,13 +7258,13 @@ namespace N
     }
 
     [Fact]
-    public async Task TestNint1_WithNumericIntPtr_CSharp8()
+    public async Task TestNint1_WithNumericIntPtr_CSharp10()
     {
         var featureOptions = PreferIntrinsicTypeEverywhere;
         await TestMissingInRegularAndScriptAsync(
             """
             <Workspace>
-                <Project Language="C#" CommonReferencesNet7="true" LanguageVersion="8">
+                <Project Language="C#" CommonReferencesNet7="true" LanguageVersion="10">
                     <Document>class A
             {
                 [|System.IntPtr|] i;
@@ -7250,8 +7274,26 @@ namespace N
             """, new TestParameters(options: featureOptions));
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74973")]
+    [InlineData(LanguageVersion.CSharp9)]
+    [InlineData(LanguageVersion.CSharp10)]
+    [InlineData(LanguageVersion.CSharp11)]
+    public async Task TestNint1_WithNumericIntPtr_NoRuntimeSupport(LanguageVersion version)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{version.ToDisplayString()}}">
+                    <Document>class A
+            {
+                [|System.IntPtr|] i;
+            }</Document>
+                </Project>
+            </Workspace>
+            """, new TestParameters(options: PreferIntrinsicTypeEverywhere));
+    }
+
     [Fact]
-    public async Task TestNUint1_NoNumericIntPtr()
+    public async Task TestNUint1_NoNumericIntPtr_CSharp10_NoRuntimeSupport()
     {
         var source =
             """
@@ -7261,7 +7303,8 @@ namespace N
             }
             """;
         var featureOptions = PreferIntrinsicTypeEverywhere;
-        await TestMissingInRegularAndScriptAsync(source, new TestParameters(options: featureOptions));
+        await TestMissingInRegularAndScriptAsync(
+            source, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10), options: featureOptions));
     }
 
     [Fact]
@@ -7304,39 +7347,63 @@ namespace N
             """, new TestParameters(options: featureOptions));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75162")]
+    public async Task TestEditorBrowsable1()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            using System.ComponentModel;
+
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            class Base
+            {
+                public static void Method() { }
+            }
+
+            class Derived : Base { }
+
+            class Test
+            {
+                void M()
+                {
+                    [|Derived|].Method();
+                }
+            }
+            """);
+    }
+
     private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
         => await TestInRegularAndScript1Async(code, expected, index, new TestParameters(options: PreferIntrinsicTypeEverywhere));
 
     private OptionsCollection PreferIntrinsicTypeEverywhere
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error },
             { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError },
         };
 
     private OptionsCollection PreferIntrinsicTypeInDeclaration
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error },
             { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithSilent },
         };
 
     private OptionsCollection PreferIntrinsicTypeInMemberAccess
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption2.Error },
             { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithSilent },
         };
 
     private OptionsCollection PreferImplicitTypeEverywhere
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
             { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
             { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
         };
 
-    private readonly CodeStyleOption2<bool> offWithSilent = new CodeStyleOption2<bool>(false, NotificationOption2.Silent);
-    private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
-    private readonly CodeStyleOption2<bool> onWithError = new CodeStyleOption2<bool>(true, NotificationOption2.Error);
+    private readonly CodeStyleOption2<bool> offWithSilent = new(false, NotificationOption2.Silent);
+    private readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
+    private readonly CodeStyleOption2<bool> onWithError = new(true, NotificationOption2.Error);
 }

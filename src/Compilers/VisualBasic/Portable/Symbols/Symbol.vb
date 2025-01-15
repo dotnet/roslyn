@@ -604,7 +604,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          SymbolKind.Event,
                          SymbolKind.Parameter,
                          SymbolKind.TypeParameter,
-                         SymbolKind.ErrorType
+                         SymbolKind.ErrorType,
+                         SymbolKind.Preprocessing
                         Exit Select
 
                     Case SymbolKind.NamedType

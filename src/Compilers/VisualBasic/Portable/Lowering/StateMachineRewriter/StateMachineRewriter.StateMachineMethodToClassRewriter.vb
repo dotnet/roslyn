@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -107,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Protected MustOverride ReadOnly Property FirstIncreasingResumableState As StateMachineState
-            Protected MustOverride ReadOnly Property EncMissingStateMessage As String
+            Protected MustOverride ReadOnly Property EncMissingStateErrorCode As HotReloadExceptionCode
 
             ''' <summary>
             ''' Implementation-specific name for labels to mark state machine resume points.
@@ -222,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function GenerateMissingStateDispatch() As BoundStatement
-                Return _resumableStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(CachedState, isLValue:=False), EncMissingStateMessage)
+                Return _resumableStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(CachedState, isLValue:=False), EncMissingStateErrorCode)
             End Function
 
 #Region "Visitors"

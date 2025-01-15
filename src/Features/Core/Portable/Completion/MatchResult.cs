@@ -46,7 +46,7 @@ internal readonly struct MatchResult(
 
     public static IComparer<MatchResult> SortingComparer { get; } = new Comparer();
 
-    private class Comparer : IComparer<MatchResult>
+    private sealed class Comparer : IComparer<MatchResult>
     {
         // This comparison is used for sorting items in the completion list for the original sorting.
 
@@ -80,4 +80,7 @@ internal readonly struct MatchResult(
             return x.IndexInOriginalSortedOrder - y.IndexInOriginalSortedOrder;
         }
     }
+
+    public override string ToString()
+        => this.CompletionItem.ToString();
 }

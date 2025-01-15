@@ -16,7 +16,7 @@ using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedCla
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 
-public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
+public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
 {
     protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, ImmutableArray<TextSpan> spans, ParseOptions? options, TestHost testHost)
     {
@@ -30,9 +30,11 @@ public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     public async Task VarAtTypeMemberLevel(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-    var goo }",
+            """
+            class C
+            {
+                var goo }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -46,9 +48,11 @@ public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     public async Task TestNamespace(TestHost testHost)
     {
         await TestAsync(
-@"namespace N
-{
-}",
+            """
+            namespace N
+            {
+            }
+            """,
             testHost,
             Keyword("namespace"),
             Namespace("N"),
@@ -60,8 +64,10 @@ public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     public async Task TestFileScopedNamespace(TestHost testHost)
     {
         await TestAsync(
-@"namespace N;
-",
+            """
+            namespace N;
+
+            """,
             testHost,
             Keyword("namespace"),
             Namespace("N"),
@@ -117,12 +123,14 @@ public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     public async Task VarAsMethodParameter(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-    void M(var v)
-    {
-    }
-}",
+            """
+            class C
+            {
+                void M(var v)
+                {
+                }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -142,16 +150,18 @@ public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     public async Task YieldYield(TestHost testHost)
     {
         await TestAsync(
-@"using System.Collections.Generic;
+            """
+            using System.Collections.Generic;
 
-class yield
-{
-    IEnumerable<yield> M()
-    {
-        yield yield = new yield();
-        yield return yield;
-    }
-}",
+            class yield
+            {
+                IEnumerable<yield> M()
+                {
+                    yield yield = new yield();
+                    yield return yield;
+                }
+            }
+            """,
             testHost,
             Keyword("using"),
             Identifier("System"),
@@ -191,16 +201,18 @@ class yield
     public async Task YieldYieldAsSpans(TestHost testHost)
     {
         await TestAsync(
-@"using System.Collections.Generic;
+            """
+            using System.Collections.Generic;
 
-class yield
-{
-    IEnumerable<yield> M()
-    {
-        [|yield yield = new yield();|]
-        [|yield return yield;|]
-    }
-}",
+            class yield
+            {
+                IEnumerable<yield> M()
+                {
+                    [|yield yield = new yield();|]
+                    [|yield return yield;|]
+                }
+            }
+            """,
             testHost,
             Identifier("yield"),
             Local("yield"),
@@ -230,8 +242,10 @@ class yield
     public async Task YieldFixed(TestHost testHost)
     {
         await TestInMethodAsync(
-@"yield return this.items[0]; yield break; fixed (int* i = 0) {
-}",
+            """
+            yield return this.items[0]; yield break; fixed (int* i = 0) {
+            }
+            """,
             testHost,
             ControlKeyword("yield"),
             ControlKeyword("return"),
@@ -258,6 +272,48 @@ class yield
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/40741")]
+    public async Task TestAwait(TestHost testHost)
+    {
+        await TestAsync(
+            """
+            using System.Threading.Tasks;
+
+            class X
+            {
+                async Task M()
+                {
+                    await M();
+                }
+            }
+            """,
+            testHost,
+            Keyword("using"),
+            Identifier("System"),
+            Operators.Dot,
+            Identifier("Threading"),
+            Operators.Dot,
+            Identifier("Tasks"),
+            Punctuation.Semicolon,
+            Keyword("class"),
+            Class("X"),
+            Punctuation.OpenCurly,
+            Keyword("async"),
+            Identifier("Task"),
+            Method("M"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            ControlKeyword("await"),
+            Identifier("M"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.Semicolon,
+            Punctuation.CloseCurly,
+            Punctuation.CloseCurly);
+    }
+
+    [Theory, CombinatorialData]
     public async Task PartialClass(TestHost testHost)
     {
         await TestAsync("public partial class Goo",
@@ -272,9 +328,11 @@ class yield
     public async Task PartialMethod(TestHost testHost)
     {
         await TestInClassAsync(
-@"public partial void M()
-{
-}",
+            """
+            public partial void M()
+            {
+            }
+            """,
             testHost,
             Keyword("public"),
             Keyword("partial"),
@@ -307,17 +365,19 @@ class yield
     public async Task PartialClassStructInterface(TestHost testHost)
     {
         await TestAsync(
-@"partial class T1
-{
-}
+            """
+            partial class T1
+            {
+            }
 
-partial struct T2
-{
-}
+            partial struct T2
+            {
+            }
 
-partial interface T3
-{
-}",
+            partial interface T3
+            {
+            }
+            """,
             testHost,
             Keyword("partial"),
             Keyword("class"),
@@ -356,9 +416,13 @@ partial interface T3
     [Theory, CombinatorialData]
     public async Task VerbatimStringLiterals1(TestHost testHost)
     {
-        await TestInMethodAsync(@"@""goo""",
+        await TestInMethodAsync("""
+            @"goo"
+            """,
             testHost,
-            Verbatim(@"@""goo"""));
+            Verbatim("""
+                @"goo"
+                """));
     }
 
     [Theory, CombinatorialData]
@@ -366,7 +430,9 @@ partial interface T3
     {
         await TestInMethodAsync(@"@""goo""u8",
             testHost,
-            Verbatim(@"@""goo"""),
+            Verbatim("""
+                @"goo"
+                """),
             Keyword("u8"));
     }
 
@@ -375,7 +441,9 @@ partial interface T3
     {
         await TestInMethodAsync(@"@""goo""U8",
             testHost,
-            Verbatim(@"@""goo"""),
+            Verbatim("""
+                @"goo"
+                """),
             Keyword("U8"));
     }
 
@@ -385,9 +453,13 @@ partial interface T3
     [Theory, CombinatorialData]
     public async Task VerbatimStringLiterals2(TestHost testHost)
     {
-        await TestAsync(@"@""",
+        await TestAsync("""
+            @"
+            """,
             testHost,
-            Verbatim(@"@"""));
+            Verbatim("""
+                @"
+                """));
     }
 
     /// <summary>
@@ -396,10 +468,14 @@ partial interface T3
     [Theory, CombinatorialData]
     public async Task VerbatimStringLiterals3(TestHost testHost)
     {
-        await TestAsync(@"goo @""",
+        await TestAsync("""
+            goo @"
+            """,
             testHost,
             Identifier("goo"),
-            Verbatim(@"@"""));
+            Verbatim("""
+                @"
+                """));
     }
 
     /// <summary>
@@ -408,32 +484,40 @@ partial interface T3
     [Theory, CombinatorialData]
     public async Task VerbatimStringLiterals4(TestHost testHost)
     {
-        var code = @"
+        var code = """
 
-@"" goo bar 
 
-";
+            @" goo bar 
+
+
+            """;
         await TestAsync(code,
             testHost,
-            Verbatim(@"@"" goo bar 
+            Verbatim("""
+                @" goo bar 
 
-"));
+
+                """));
     }
 
     [Theory, CombinatorialData]
     public async Task VerbatimStringLiterals5(TestHost testHost)
     {
-        var code = @"
+        var code = """
 
-@"" goo bar
-and 
-on a new line "" 
-more stuff";
+
+            @" goo bar
+            and 
+            on a new line " 
+            more stuff
+            """;
         await TestInMethodAsync(code,
             testHost,
-            Verbatim(@"@"" goo bar
-and 
-on a new line """),
+            Verbatim("""
+                @" goo bar
+                and 
+                on a new line "
+                """),
             Identifier("more"),
             Local("stuff"));
     }
@@ -441,17 +525,21 @@ on a new line """),
     [Theory, CombinatorialData]
     public async Task VerbatimStringLiteralsUtf8_03(TestHost testHost)
     {
-        var code = @"
+        var code = """
 
-@"" goo bar
-and 
-on a new line ""u8 
-more stuff";
+
+            @" goo bar
+            and 
+            on a new line "u8 
+            more stuff
+            """;
         await TestInMethodAsync(code,
             testHost,
-            Verbatim(@"@"" goo bar
-and 
-on a new line """),
+            Verbatim("""
+                @" goo bar
+                and 
+                on a new line "
+                """),
             Keyword("u8"),
             Identifier("more"),
             Local("stuff"));
@@ -460,17 +548,21 @@ on a new line """),
     [Theory, CombinatorialData]
     public async Task VerbatimStringLiteralsUtf8_04(TestHost testHost)
     {
-        var code = @"
+        var code = """
 
-@"" goo bar
-and 
-on a new line ""U8 
-more stuff";
+
+            @" goo bar
+            and 
+            on a new line "U8 
+            more stuff
+            """;
         await TestInMethodAsync(code,
             testHost,
-            Verbatim(@"@"" goo bar
-and 
-on a new line """),
+            Verbatim("""
+                @" goo bar
+                and 
+                on a new line "
+                """),
             Keyword("U8"),
             Identifier("more"),
             Local("stuff"));
@@ -492,7 +584,9 @@ on a new line """),
             Keyword("string"),
             script ? Field("s") : Local("s"),
             Operators.Equals,
-            Verbatim(@"@""""""/*"""),
+            Verbatim(""""
+                @"""/*"
+                """"),
             Punctuation.Semicolon);
     }
 
@@ -511,7 +605,9 @@ on a new line """),
             Keyword("string"),
             script ? Field("s") : Local("s"),
             Operators.Equals,
-            Verbatim(@"@""""""/*"""),
+            Verbatim(""""
+                @"""/*"
+                """"),
             Keyword("u8"),
             Punctuation.Semicolon);
     }
@@ -531,7 +627,9 @@ on a new line """),
             Keyword("string"),
             script ? Field("s") : Local("s"),
             Operators.Equals,
-            Verbatim(@"@""""""/*"""),
+            Verbatim(""""
+                @"""/*"
+                """"),
             Keyword("u8"),
             Punctuation.Semicolon);
     }
@@ -539,52 +637,76 @@ on a new line """),
     [Theory, CombinatorialData]
     public async Task StringLiteral1(TestHost testHost)
     {
-        await TestAsync(@"""goo""",
+        await TestAsync("""
+            "goo"
+            """,
             testHost,
-            String(@"""goo"""));
+            String("""
+                "goo"
+                """));
     }
 
     [Theory, CombinatorialData]
     public async Task StringLiteralUtf8_01(TestHost testHost)
     {
-        await TestAsync(@"""goo""u8",
+        await TestAsync("""
+            "goo"u8
+            """,
             testHost,
-            String(@"""goo"""),
+            String("""
+                "goo"
+                """),
             Keyword("u8"));
     }
 
     [Theory, CombinatorialData]
     public async Task StringLiteralUtf8_02(TestHost testHost)
     {
-        await TestAsync(@"""goo""U8",
+        await TestAsync("""
+            "goo"U8
+            """,
             testHost,
-            String(@"""goo"""),
+            String("""
+                "goo"
+                """),
             Keyword("U8"));
     }
 
     [Theory, CombinatorialData]
     public async Task StringLiteral2(TestHost testHost)
     {
-        await TestAsync(@"""""",
+        await TestAsync("""
+            ""
+            """,
             testHost,
-            String(@""""""));
+            String("""
+                ""
+                """));
     }
 
     [Theory, CombinatorialData]
     public async Task StringLiteralUtf8_03(TestHost testHost)
     {
-        await TestAsync(@"""""u8",
+        await TestAsync("""
+            ""u8
+            """,
             testHost,
-            String(@""""""),
+            String("""
+                ""
+                """),
             Keyword("u8"));
     }
 
     [Theory, CombinatorialData]
     public async Task StringLiteralUtf8_04(TestHost testHost)
     {
-        await TestAsync(@"""""U8",
+        await TestAsync("""
+            ""U8
+            """,
             testHost,
-            String(@""""""),
+            String("""
+                ""
+                """),
             Keyword("U8"));
     }
 
@@ -667,7 +789,9 @@ on a new line """),
     [Theory, CombinatorialData]
     public async Task LinqWhere2(TestHost testHost)
     {
-        var code = @"from it in goo where it > ""bar""";
+        var code = """
+            from it in goo where it > "bar"
+            """;
         await TestInExpressionAsync(code,
             testHost,
             Keyword("from"),
@@ -677,7 +801,9 @@ on a new line """),
             Keyword("where"),
             Identifier("it"),
             Operators.GreaterThan,
-            String(@"""bar"""));
+            String("""
+                "bar"
+                """));
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
@@ -704,13 +830,15 @@ on a new line """),
     public async Task LinqKeywordsAtNamespaceLevel(bool script, TestHost testHost)
     {
         // the contextual keywords are actual keywords since we parse top level field declaration and only give a semantic error
-        var code = @"object goo = from goo in goo
-             join goo in goo on goo equals goo
-             group goo by goo into goo
-             let goo = goo
-             where goo
-             orderby goo ascending, goo descending
-             select goo;";
+        var code = """
+            object goo = from goo in goo
+                         join goo in goo on goo equals goo
+                         group goo by goo into goo
+                         let goo = goo
+                         where goo
+                         orderby goo ascending, goo descending
+                         select goo;
+            """;
 
         var parseOptions = script ? Options.Script : null;
 
@@ -761,10 +889,12 @@ on a new line """),
     public async Task ContextualKeywordsAsFieldName(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-    int yield, get, set, value, add, remove, global, partial, where, alias;
-}",
+            """
+            class C
+            {
+                int yield, get, set, value, add, remove, global, partial, where, alias;
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -797,16 +927,18 @@ on a new line """),
     public async Task LinqKeywordsInFieldInitializer(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-    int a = from a in a
-            join a in a on a equals a
-            group a by a into a
-            let a = a
-            where a
-            orderby a ascending, a descending
-            select a;
-}",
+            """
+            class C
+            {
+                int a = from a in a
+                        join a in a on a equals a
+                        group a by a into a
+                        let a = a
+                        where a
+                        orderby a ascending, a descending
+                        select a;
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -854,58 +986,60 @@ on a new line """),
     public async Task LinqKeywordsAsTypeName(TestHost testHost)
     {
         await TestAsync(
-@"class var
-{
-}
+            """
+            class var
+            {
+            }
 
-struct from
-{
-}
+            struct from
+            {
+            }
 
-interface join
-{
-}
+            interface join
+            {
+            }
 
-enum on
-{
-}
+            enum on
+            {
+            }
 
-delegate equals { }
-class group
-{
-}
+            delegate equals { }
+            class group
+            {
+            }
 
-class by
-{
-}
+            class by
+            {
+            }
 
-class into
-{
-}
+            class into
+            {
+            }
 
-class let
-{
-}
+            class let
+            {
+            }
 
-class where
-{
-}
+            class where
+            {
+            }
 
-class orderby
-{
-}
+            class orderby
+            {
+            }
 
-class ascending
-{
-}
+            class ascending
+            {
+            }
 
-class descending
-{
-}
+            class descending
+            {
+            }
 
-class select
-{
-}",
+            class select
+            {
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("var"),
@@ -969,12 +1103,14 @@ class select
     public async Task LinqKeywordsAsMethodParameters(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-    orderby M(var goo, from goo, join goo, on goo, equals goo, group goo, by goo, into goo, let goo, where goo, orderby goo, ascending goo, descending goo, select goo)
-    {
-    }
-}",
+            """
+            class C
+            {
+                orderby M(var goo, from goo, join goo, on goo, equals goo, group goo, by goo, into goo, let goo, where goo, orderby goo, ascending goo, descending goo, select goo)
+                {
+                }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -1033,24 +1169,26 @@ class select
     public async Task LinqKeywordsInLocalVariableDeclarations(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        var goo = (var)goo as var;
-        from goo = (from)goo as from;
-        join goo = (join)goo as join;
-        on goo = (on)goo as on;
-        equals goo = (equals)goo as equals;
-        group goo = (group)goo as group;
-        by goo = (by)goo as by;
-        into goo = (into)goo as into;
-        orderby goo = (orderby)goo as orderby;
-        ascending goo = (ascending)goo as ascending;
-        descending goo = (descending)goo as descending;
-        select goo = (select)goo as select;
-    }
-}",
+            """
+            class C
+            {
+                void M()
+                {
+                    var goo = (var)goo as var;
+                    from goo = (from)goo as from;
+                    join goo = (join)goo as join;
+                    on goo = (on)goo as on;
+                    equals goo = (equals)goo as equals;
+                    group goo = (group)goo as group;
+                    by goo = (by)goo as by;
+                    into goo = (into)goo as into;
+                    orderby goo = (orderby)goo as orderby;
+                    ascending goo = (ascending)goo as ascending;
+                    descending goo = (descending)goo as descending;
+                    select goo = (select)goo as select;
+                }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -1188,10 +1326,12 @@ class select
     public async Task LinqKeywordsAsFieldNames(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-    int var, from, join, on, into, equals, let, orderby, ascending, descending, select, group, by, partial;
-}",
+            """
+            class C
+            {
+                int var, from, join, on, into, equals, let, orderby, ascending, descending, select, group, by, partial;
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -1232,11 +1372,13 @@ class select
     public async Task LinqKeywordsAtFieldLevelInvalid(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-    string Property { from a in a join a in a on a equals a group a by a into a let a = a where a orderby a ascending, 
-a descending select a; }
-}",
+            """
+            class C
+            {
+                string Property { from a in a join a in a on a equals a group a by a into a let a = a where a orderby a ascending, 
+            a descending select a; }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -1306,11 +1448,13 @@ a descending select a; }
     [Theory, CombinatorialData]
     public async Task CommentAsLeadingTrivia1(TestHost testHost)
     {
-        var code = @"
-class Bar { 
-  // goo
-  void Method1() { }
-}";
+        var code = """
+
+            class Bar { 
+              // goo
+              void Method1() { }
+            }
+            """;
         await TestAsync(code,
             testHost,
             Keyword("class"),
@@ -1329,8 +1473,10 @@ class Bar {
     [Theory, CombinatorialData]
     public async Task ShebangAsFirstCommentInScript(TestHost testHost)
     {
-        var code = @"#!/usr/bin/env scriptcs
-System.Console.WriteLine();";
+        var code = """
+            #!/usr/bin/env scriptcs
+            System.Console.WriteLine();
+            """;
 
         var expected = new[]
         {
@@ -1351,8 +1497,10 @@ System.Console.WriteLine();";
     [Theory, CombinatorialData]
     public async Task ShebangAsFirstCommentInNonScript(TestHost testHost)
     {
-        var code = @"#!/usr/bin/env scriptcs
-System.Console.WriteLine();";
+        var code = """
+            #!/usr/bin/env scriptcs
+            System.Console.WriteLine();
+            """;
 
         var expected = new[]
         {
@@ -1374,8 +1522,10 @@ System.Console.WriteLine();";
     [Theory, CombinatorialData]
     public async Task ShebangNotAsFirstCommentInScript(TestHost testHost)
     {
-        var code = @" #!/usr/bin/env scriptcs
-System.Console.WriteLine();";
+        var code = """
+             #!/usr/bin/env scriptcs
+            System.Console.WriteLine();
+            """;
 
         var expected = new[]
         {
@@ -1397,12 +1547,14 @@ System.Console.WriteLine();";
     [Theory, CombinatorialData]
     public async Task CommentAsMethodBodyContent(TestHost testHost)
     {
-        var code = @"
-class Bar { 
-  void Method1() {
-// goo
-}
-}";
+        var code = """
+
+            class Bar { 
+              void Method1() {
+            // goo
+            }
+            }
+            """;
         await TestAsync(code,
             testHost,
             Keyword("class"),
@@ -1422,11 +1574,13 @@ class Bar {
     public async Task CommentMix1(TestHost testHost)
     {
         await TestAsync(
-@"// comment1 /*
-class cl
-{
-}
-//comment2 */",
+            """
+            // comment1 /*
+            class cl
+            {
+            }
+            //comment2 */
+            """,
             testHost,
             Comment("// comment1 /*"),
             Keyword("class"),
@@ -1454,9 +1608,11 @@ class cl
     [Theory, CombinatorialData]
     public async Task XmlDocCommentOnClass(TestHost testHost)
     {
-        var code = @"
-/// <summary>something</summary>
-class Bar { }";
+        var code = """
+
+            /// <summary>something</summary>
+            class Bar { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1477,11 +1633,13 @@ class Bar { }";
     [Theory, CombinatorialData]
     public async Task XmlDocCommentOnClassWithIndent(TestHost testHost)
     {
-        var code = @"
-    /// <summary>
-    /// something
-    /// </summary>
-    class Bar { }";
+        var code = """
+
+                /// <summary>
+                /// something
+                /// </summary>
+                class Bar { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1505,9 +1663,11 @@ class Bar { }";
     [Theory, CombinatorialData]
     public async Task XmlDocComment_EntityReference(TestHost testHost)
     {
-        var code = @"
-/// <summary>&#65;</summary>
-class Bar { }";
+        var code = """
+
+            /// <summary>&#65;</summary>
+            class Bar { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1528,10 +1688,12 @@ class Bar { }";
     [Theory, CombinatorialData]
     public async Task XmlDocComment_ExteriorTriviaInsideCloseTag(TestHost testHost)
     {
-        var code = @"
-/// <summary>something</
-/// summary>
-class Bar { }";
+        var code = """
+
+            /// <summary>something</
+            /// summary>
+            class Bar { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1550,16 +1712,101 @@ class Bar { }";
             Punctuation.CloseCurly);
     }
 
+    [Theory]
+    [InlineData(TestHost.InProcess, "true", false)]
+    [InlineData(TestHost.OutOfProcess, "true", false)]
+    [InlineData(TestHost.InProcess, "return", true)]
+    [InlineData(TestHost.OutOfProcess, "return", true)]
+    [InlineData(TestHost.InProcess, "with", false)]
+    [InlineData(TestHost.OutOfProcess, "with", false)]
+    public async Task XmlDocComment_LangWordAttribute_Keywords(TestHost testHost, string langword, bool isControlKeyword)
+    {
+        await TestAsync(
+            $$"""
+            /// <summary>
+            /// <see langword="{{langword}}"/>
+            /// </summary>
+            class MyClass
+            {
+            }
+            """,
+            testHost,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("see"),
+            XmlDoc.AttributeName("langword"),
+            XmlDoc.Delimiter("="),
+            XmlDoc.AttributeQuotes("\""),
+            isControlKeyword ? ControlKeyword(langword) : Keyword(langword),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.Delimiter("/>"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            Keyword("class"),
+            Class("MyClass"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task XmlDocComment_LangWordAttribute_NonKeyword(TestHost testHost)
+    {
+        await TestAsync(
+            """
+            /// <summary>
+            /// <see langword="MyWord"/>
+            /// </summary>
+            class MyClass
+            {
+            }
+            """, testHost,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("see"),
+            XmlDoc.AttributeName("langword"),
+            XmlDoc.Delimiter("="),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeValue("MyWord"),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.Delimiter("/>"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            Keyword("class"),
+            Class("MyClass"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+    }
+
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531155")]
     [CombinatorialData]
     public async Task XmlDocComment_ExteriorTriviaInsideCRef(TestHost testHost)
     {
-        var code = @"
-/// <see cref=""System.
-/// Int32""/>
-class C
-{
-}";
+        var code = """
+
+            /// <see cref="System.
+            /// Int32"/>
+            class C
+            {
+            }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1568,12 +1815,16 @@ class C
             XmlDoc.Name("see"),
             XmlDoc.AttributeName("cref"),
             XmlDoc.Delimiter("="),
-            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeQuotes("""
+                "
+                """),
             Identifier("System"),
             Operators.Dot,
             XmlDoc.Delimiter("///"),
             Identifier("Int32"),
-            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeQuotes("""
+                "
+                """),
             XmlDoc.Delimiter("/>"),
             Keyword("class"),
             Class("C"),
@@ -1584,11 +1835,13 @@ class C
     [Theory, CombinatorialData]
     public async Task XmlDocCommentOnClassWithExteriorTrivia(TestHost testHost)
     {
-        var code = @"
-/// <summary>
-/// something
-/// </summary>
-class Bar { }";
+        var code = """
+
+            /// <summary>
+            /// something
+            /// </summary>
+            class Bar { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1613,10 +1866,12 @@ class Bar { }";
     public async Task XmlDocComment_ExteriorTriviaNoText(TestHost testHost)
     {
         var code =
-@"///<summary>
-///something
-///</summary>
-class Bar { }";
+            """
+            ///<summary>
+            ///something
+            ///</summary>
+            class Bar { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1638,9 +1893,11 @@ class Bar { }";
     [Theory, CombinatorialData]
     public async Task XmlDocComment_EmptyElement(TestHost testHost)
     {
-        var code = @"
-/// <summary />
-class Bar { }";
+        var code = """
+
+            /// <summary />
+            class Bar { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1657,9 +1914,11 @@ class Bar { }";
     [Theory, CombinatorialData]
     public async Task XmlDocComment_Attribute(TestHost testHost)
     {
-        var code = @"
-/// <summary attribute=""value"">something</summary>
-class Bar { }";
+        var code = """
+
+            /// <summary attribute="value">something</summary>
+            class Bar { }
+            """;
 
         await TestAsync(code,
             testHost,
@@ -1669,9 +1928,13 @@ class Bar { }";
             XmlDoc.Name("summary"),
             XmlDoc.AttributeName("attribute"),
             XmlDoc.Delimiter("="),
-            XmlDoc.AttributeQuotes(@""""),
+            XmlDoc.AttributeQuotes("""
+                "
+                """),
             XmlDoc.AttributeValue(@"value"),
-            XmlDoc.AttributeQuotes(@""""),
+            XmlDoc.AttributeQuotes("""
+                "
+                """),
             XmlDoc.Delimiter(">"),
             XmlDoc.Text("something"),
             XmlDoc.Delimiter("</"),
@@ -1686,9 +1949,11 @@ class Bar { }";
     [Theory, CombinatorialData]
     public async Task XmlDocComment_AttributeInEmptyElement(TestHost testHost)
     {
-        var code = @"
-/// <summary attribute=""value"" />
-class Bar { }";
+        var code = """
+
+            /// <summary attribute="value" />
+            class Bar { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1697,9 +1962,13 @@ class Bar { }";
             XmlDoc.Name("summary"),
             XmlDoc.AttributeName("attribute"),
             XmlDoc.Delimiter("="),
-            XmlDoc.AttributeQuotes(@""""),
+            XmlDoc.AttributeQuotes("""
+                "
+                """),
             XmlDoc.AttributeValue(@"value"),
-            XmlDoc.AttributeQuotes(@""""),
+            XmlDoc.AttributeQuotes("""
+                "
+                """),
             XmlDoc.Delimiter("/>"),
             Keyword("class"),
             Class("Bar"),
@@ -1710,9 +1979,11 @@ class Bar { }";
     [Theory, CombinatorialData]
     public async Task XmlDocComment_ExtraSpaces(TestHost testHost)
     {
-        var code = @"
-///   <   summary   attribute    =   ""value""     />
-class Bar { }";
+        var code = """
+
+            ///   <   summary   attribute    =   "value"     />
+            class Bar { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1721,9 +1992,13 @@ class Bar { }";
             XmlDoc.Name("summary"),
             XmlDoc.AttributeName("attribute"),
             XmlDoc.Delimiter("="),
-            XmlDoc.AttributeQuotes(@""""),
+            XmlDoc.AttributeQuotes("""
+                "
+                """),
             XmlDoc.AttributeValue(@"value"),
-            XmlDoc.AttributeQuotes(@""""),
+            XmlDoc.AttributeQuotes("""
+                "
+                """),
             XmlDoc.Delimiter("/>"),
             Keyword("class"),
             Class("Bar"),
@@ -1734,9 +2009,11 @@ class Bar { }";
     [Theory, CombinatorialData]
     public async Task XmlDocComment_XmlComment(TestHost testHost)
     {
-        var code = @"
-///<!--comment-->
-class Bar { }";
+        var code = """
+
+            ///<!--comment-->
+            class Bar { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1752,10 +2029,12 @@ class Bar { }";
     [Theory, CombinatorialData]
     public async Task XmlDocComment_XmlCommentWithExteriorTrivia(TestHost testHost)
     {
-        var code = @"
-///<!--first
-///second-->
-class Bar { }";
+        var code = """
+
+            ///<!--first
+            ///second-->
+            class Bar { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1773,9 +2052,11 @@ class Bar { }";
     [Theory, CombinatorialData]
     public async Task XmlDocComment_XmlCommentInElement(TestHost testHost)
     {
-        var code = @"
-///<summary><!--comment--></summary>
-class Bar { }";
+        var code = """
+
+            ///<summary><!--comment--></summary>
+            class Bar { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1798,11 +2079,13 @@ class Bar { }";
     [WorkItem("https://github.com/dotnet/roslyn/pull/31410")]
     public async Task XmlDocComment_MalformedXmlDocComment(TestHost testHost)
     {
-        var code = @"
-///<summary>
-///<a: b, c />.
-///</summary>
-class C { }";
+        var code = """
+
+            ///<summary>
+            ///<a: b, c />.
+            ///</summary>
+            class C { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1832,10 +2115,12 @@ class C { }";
     public async Task MultilineXmlDocComment_ExteriorTrivia(TestHost testHost)
     {
         var code =
-@"/**<summary>
-*comment
-*</summary>*/
-class Bar { }";
+            """
+            /**<summary>
+            *comment
+            *</summary>*/
+            class Bar { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("/**"),
@@ -1858,10 +2143,12 @@ class Bar { }";
     [Theory, CombinatorialData]
     public async Task XmlDocComment_CDataWithExteriorTrivia(TestHost testHost)
     {
-        var code = @"
-///<![CDATA[first
-///second]]>
-class Bar { }";
+        var code = """
+
+            ///<![CDATA[first
+            ///second]]>
+            class Bar { }
+            """;
         await TestAsync(code,
             testHost,
             XmlDoc.Delimiter("///"),
@@ -1880,14 +2167,16 @@ class Bar { }";
     public async Task XmlDocComment_ProcessingDirective(TestHost testHost)
     {
         await TestAsync(
-@"/// <summary><?goo
-/// ?></summary>
-public class Program
-{
-    static void Main()
-    {
-    }
-}",
+            """
+            /// <summary><?goo
+            /// ?></summary>
+            public class Program
+            {
+                static void Main()
+                {
+                }
+            }
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Text(" "),
@@ -2142,10 +2431,12 @@ public class Program
     public async Task GenericParameter_Method(TestHost testHost)
     {
         await TestInClassAsync(
-@"T M<T>(T t)
-{
-    return default(T);
-}",
+            """
+            T M<T>(T t)
+            {
+                return default(T);
+            }
+            """,
             testHost,
             Identifier("T"),
             Method("M"),
@@ -2182,9 +2473,11 @@ public class Program
     public async Task BaseClass(TestHost testHost)
     {
         await TestAsync(
-@"class C : B
-{
-}",
+            """
+            class C : B
+            {
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -2220,9 +2513,11 @@ public class Program
     public async Task TestAngleBracketsOnGenericConstraints_Bug932262(TestHost testHost)
     {
         await TestAsync(
-@"class C<T> where T : A<T>
-{
-}",
+            """
+            class C<T> where T : A<T>
+            {
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -2316,9 +2611,11 @@ public class Program
     public async Task AttributeTargetSpecifiersOnDelegate(TestHost testHost)
     {
         await TestInClassAsync(
-@"[type: A]
-[return: A]
-delegate void M();",
+            """
+            [type: A]
+            [return: A]
+            delegate void M();
+            """,
             testHost,
             Punctuation.OpenBracket,
             Keyword("type"),
@@ -2342,11 +2639,13 @@ delegate void M();",
     public async Task AttributeTargetSpecifiersOnMethod(TestHost testHost)
     {
         await TestInClassAsync(
-@"[return: A]
-[method: A]
-void M()
-{
-}",
+            """
+            [return: A]
+            [method: A]
+            void M()
+            {
+            }
+            """,
             testHost,
             Punctuation.OpenBracket,
             Keyword("return"),
@@ -2370,13 +2669,15 @@ void M()
     public async Task AttributeTargetSpecifiersOnCtor(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-    [method: A]
-    C()
-    {
-    }
-}",
+            """
+            class C
+            {
+                [method: A]
+                C()
+                {
+                }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -2398,13 +2699,15 @@ void M()
     public async Task AttributeTargetSpecifiersOnDtor(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-    [method: A]
-    ~C()
-    {
-    }
-}",
+            """
+            class C
+            {
+                [method: A]
+                ~C()
+                {
+                }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -2427,11 +2730,13 @@ void M()
     public async Task AttributeTargetSpecifiersOnOperator(TestHost testHost)
     {
         await TestInClassAsync(
-@"[method: A]
-[return: A]
-static T operator +(T a, T b)
-{
-}",
+            """
+            [method: A]
+            [return: A]
+            static T operator +(T a, T b)
+            {
+            }
+            """,
             testHost,
             Punctuation.OpenBracket,
             Keyword("method"),
@@ -2462,21 +2767,23 @@ static T operator +(T a, T b)
     public async Task AttributeTargetSpecifiersOnEventDeclaration(TestHost testHost)
     {
         await TestInClassAsync(
-@"[event: A]
-event A E
-{
-    [param: Test]
-    [method: Test]
-    add
-    {
-    }
+            """
+            [event: A]
+            event A E
+            {
+                [param: Test]
+                [method: Test]
+                add
+                {
+                }
 
-    [param: Test]
-    [method: Test]
-    remove
-    {
-    }
-}",
+                [param: Test]
+                [method: Test]
+                remove
+                {
+                }
+            }
+            """,
             testHost,
             Punctuation.OpenBracket,
             Keyword("event"),
@@ -2520,20 +2827,22 @@ event A E
     public async Task AttributeTargetSpecifiersOnPropertyAccessors(TestHost testHost)
     {
         await TestInClassAsync(
-@"int P
-{
-    [return: T]
-    [method: T]
-    get
-    {
-    }
+            """
+            int P
+            {
+                [return: T]
+                [method: T]
+                get
+                {
+                }
 
-    [param: T]
-    [method: T]
-    set
-    {
-    }
-}",
+                [param: T]
+                [method: T]
+                set
+                {
+                }
+            }
+            """,
             testHost,
             Keyword("int"),
             Property("P"),
@@ -2571,8 +2880,10 @@ event A E
     public async Task AttributeTargetSpecifiersOnIndexers(TestHost testHost)
     {
         await TestInClassAsync(
-@"[property: A]
-int this[int i] { get; set; }",
+            """
+            [property: A]
+            int this[int i] { get; set; }
+            """,
             testHost,
             Punctuation.OpenBracket,
             Keyword("property"),
@@ -2597,20 +2908,22 @@ int this[int i] { get; set; }",
     public async Task AttributeTargetSpecifiersOnIndexerAccessors(TestHost testHost)
     {
         await TestInClassAsync(
-@"int this[int i]
-{
-    [return: T]
-    [method: T]
-    get
-    {
-    }
+            """
+            int this[int i]
+            {
+                [return: T]
+                [method: T]
+                get
+                {
+                }
 
-    [param: T]
-    [method: T]
-    set
-    {
-    }
-}",
+                [param: T]
+                [method: T]
+                set
+                {
+                }
+            }
+            """,
             testHost,
             Keyword("int"),
             Keyword("this"),
@@ -2652,8 +2965,10 @@ int this[int i] { get; set; }",
     public async Task AttributeTargetSpecifiersOnField(TestHost testHost)
     {
         await TestInClassAsync(
-@"[field: A]
-const int a = 0;",
+            """
+            [field: A]
+            const int a = 0;
+            """,
             testHost,
             Punctuation.OpenBracket,
             Keyword("field"),
@@ -2673,189 +2988,191 @@ const int a = 0;",
     public async Task TestAllKeywords(TestHost testHost)
     {
         await TestAsync(
-@"using System;
-#region TaoRegion
-namespace MyNamespace
-{
-    abstract class Goo : Bar
-    {
-        bool goo = default(bool);
-        byte goo1;
-        char goo2;
-        const int goo3 = 999;
-        decimal goo4;
-
-        delegate void D();
-        delegate* managed<int, int> mgdfun;
-        delegate* unmanaged<int, int> unmgdfun;
-
-        double goo5;
-
-        enum MyEnum
-        {
-            one,
-            two,
-            three
-        };
-
-        event D MyEvent;
-
-        float goo6;
-        static int x;
-        long goo7;
-        sbyte goo8;
-        short goo9;
-        int goo10 = sizeof(int);
-        string goo11;
-        uint goo12;
-        ulong goo13;
-        volatile ushort goo14;
-
-        struct SomeStruct
-        {
-        }
-
-        protected virtual void someMethod()
-        {
-        }
-
-        public Goo(int i)
-        {
-            bool var = i is int;
-            try
+            """
+            using System;
+            #region TaoRegion
+            namespace MyNamespace
             {
-                while (true)
+                abstract class Goo : Bar
                 {
-                    continue;
-                    break;
+                    bool goo = default(bool);
+                    byte goo1;
+                    char goo2;
+                    const int goo3 = 999;
+                    decimal goo4;
+
+                    delegate void D();
+                    delegate* managed<int, int> mgdfun;
+                    delegate* unmanaged<int, int> unmgdfun;
+
+                    double goo5;
+
+                    enum MyEnum
+                    {
+                        one,
+                        two,
+                        three
+                    };
+
+                    event D MyEvent;
+
+                    float goo6;
+                    static int x;
+                    long goo7;
+                    sbyte goo8;
+                    short goo9;
+                    int goo10 = sizeof(int);
+                    string goo11;
+                    uint goo12;
+                    ulong goo13;
+                    volatile ushort goo14;
+
+                    struct SomeStruct
+                    {
+                    }
+
+                    protected virtual void someMethod()
+                    {
+                    }
+
+                    public Goo(int i)
+                    {
+                        bool var = i is int;
+                        try
+                        {
+                            while (true)
+                            {
+                                continue;
+                                break;
+                            }
+
+                            switch (goo)
+                            {
+                                case true:
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        catch (System.Exception)
+                        {
+                        }
+                        finally
+                        {
+                        }
+
+                        checked
+                        {
+                            int i2 = 10000;
+                            i2++;
+                        }
+
+                        do
+                        {
+                        }
+                        while (true);
+                        if (false)
+                        {
+                        }
+                        else
+                        {
+                        }
+
+                        unsafe
+                        {
+                            fixed (int* p = &x)
+                            {
+                            }
+
+                            char* buffer = stackalloc char[16];
+                        }
+
+                        for (int i1 = 0; i1 < 10; i1++)
+                        {
+                        }
+
+                        System.Collections.ArrayList al = new System.Collections.ArrayList();
+                        foreach (object o in al)
+                        {
+                            object o1 = o;
+                        }
+
+                        lock (this)
+                        {
+                        }
+                    }
+
+                    Goo method(Bar i, out int z)
+                    {
+                        z = 5;
+                        return i as Goo;
+                    }
+
+                    public static explicit operator Goo(int i)
+                    {
+                        return new Baz(1);
+                    }
+
+                    public static implicit operator Goo(double x)
+                    {
+                        return new Baz(1);
+                    }
+
+                    public extern void doSomething();
+
+                    internal void method2(object o)
+                    {
+                        if (o == null)
+                            goto Output;
+                        if (o is Baz)
+                            return;
+                        else
+                            throw new System.Exception();
+                        Output:
+                        Console.WriteLine("Finished");
+                    }
                 }
 
-                switch (goo)
+                sealed class Baz : Goo
                 {
-                    case true:
-                        break;
-                    default:
-                        break;
-                }
-            }
-            catch (System.Exception)
-            {
-            }
-            finally
-            {
-            }
+                    readonly int field;
 
-            checked
-            {
-                int i2 = 10000;
-                i2++;
-            }
+                    public Baz(int i) : base(i)
+                    {
+                    }
 
-            do
-            {
-            }
-            while (true);
-            if (false)
-            {
-            }
-            else
-            {
-            }
+                    public void someOtherMethod(ref int i, System.Type c)
+                    {
+                        int f = 1;
+                        someOtherMethod(ref f, typeof(int));
+                    }
 
-            unsafe
-            {
-                fixed (int* p = &x)
-                {
+                    protected override void someMethod()
+                    {
+                        unchecked
+                        {
+                            int i = 1;
+                            i++;
+                        }
+                    }
+
+                    private void method(params object[] args)
+                    {
+                    }
+
+                    private string aMethod(object o) => o switch
+                    {
+                        int => string.Empty,
+                        _ when true => throw new System.Exception()
+                    };
                 }
 
-                char* buffer = stackalloc char[16];
+                interface Bar
+                {
+                }
             }
-
-            for (int i1 = 0; i1 < 10; i1++)
-            {
-            }
-
-            System.Collections.ArrayList al = new System.Collections.ArrayList();
-            foreach (object o in al)
-            {
-                object o1 = o;
-            }
-
-            lock (this)
-            {
-            }
-        }
-
-        Goo method(Bar i, out int z)
-        {
-            z = 5;
-            return i as Goo;
-        }
-
-        public static explicit operator Goo(int i)
-        {
-            return new Baz(1);
-        }
-
-        public static implicit operator Goo(double x)
-        {
-            return new Baz(1);
-        }
-
-        public extern void doSomething();
-
-        internal void method2(object o)
-        {
-            if (o == null)
-                goto Output;
-            if (o is Baz)
-                return;
-            else
-                throw new System.Exception();
-            Output:
-            Console.WriteLine(""Finished"");
-        }
-    }
-
-    sealed class Baz : Goo
-    {
-        readonly int field;
-
-        public Baz(int i) : base(i)
-        {
-        }
-
-        public void someOtherMethod(ref int i, System.Type c)
-        {
-            int f = 1;
-            someOtherMethod(ref f, typeof(int));
-        }
-
-        protected override void someMethod()
-        {
-            unchecked
-            {
-                int i = 1;
-                i++;
-            }
-        }
-
-        private void method(params object[] args)
-        {
-        }
-
-        private string aMethod(object o) => o switch
-        {
-            int => string.Empty,
-            _ when true => throw new System.Exception()
-        };
-    }
-
-    interface Bar
-    {
-    }
-}
-#endregion TaoRegion",
+            #endregion TaoRegion
+            """,
             testHost,
             [new CSharpParseOptions(LanguageVersion.CSharp8)],
             Keyword("using"),
@@ -3252,7 +3569,9 @@ namespace MyNamespace
             Operators.Dot,
             Identifier("WriteLine"),
             Punctuation.OpenParen,
-            String(@"""Finished"""),
+            String("""
+                "Finished"
+                """),
             Punctuation.CloseParen,
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
@@ -3387,60 +3706,62 @@ namespace MyNamespace
     public async Task TestAllOperators(TestHost testHost)
     {
         await TestAsync(
-@"using IO = System.IO;
+            """
+            using IO = System.IO;
 
-public class Goo<T>
-{
-    public void method()
-    {
-        int[] a = new int[5];
-        int[] var = {
-            1,
-            2,
-            3,
-            4,
-            5
-        };
-        int i = a[i];
-        Goo<T> f = new Goo<int>();
-        f.method();
-        i = i + i - i * i / i % i & i | i ^ i;
-        bool b = true & false | true ^ false;
-        b = !b;
-        i = ~i;
-        b = i < i && i > i;
-        int? ii = 5;
-        int f = true ? 1 : 0;
-        i++;
-        i--;
-        b = true && false || true;
-        i << 5;
-        i >> 5;
-        i >>> 5;
-        b = i == i && i != i && i <= i && i >= i;
-        i += 5.0;
-        i -= i;
-        i *= i;
-        i /= i;
-        i %= i;
-        i &= i;
-        i |= i;
-        i ^= i;
-        i <<= i;
-        i >>= i;
-        i >>>= i;
-        i ??= i;
-        object s = x => x + 1;
-        Point point;
-        unsafe
-        {
-            Point* p = &point;
-            p->x = 10;
-        }
+            public class Goo<T>
+            {
+                public void method()
+                {
+                    int[] a = new int[5];
+                    int[] var = {
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    };
+                    int i = a[i];
+                    Goo<T> f = new Goo<int>();
+                    f.method();
+                    i = i + i - i * i / i % i & i | i ^ i;
+                    bool b = true & false | true ^ false;
+                    b = !b;
+                    i = ~i;
+                    b = i < i && i > i;
+                    int? ii = 5;
+                    int f = true ? 1 : 0;
+                    i++;
+                    i--;
+                    b = true && false || true;
+                    i << 5;
+                    i >> 5;
+                    i >>> 5;
+                    b = i == i && i != i && i <= i && i >= i;
+                    i += 5.0;
+                    i -= i;
+                    i *= i;
+                    i /= i;
+                    i %= i;
+                    i &= i;
+                    i |= i;
+                    i ^= i;
+                    i <<= i;
+                    i >>= i;
+                    i >>>= i;
+                    i ??= i;
+                    object s = x => x + 1;
+                    Point point;
+                    unsafe
+                    {
+                        Point* p = &point;
+                        p->x = 10;
+                    }
 
-        IO::BinaryReader br = null;
-    }
-}",
+                    IO::BinaryReader br = null;
+                }
+            }
+            """,
             testHost,
             Keyword("using"),
             Identifier("IO"),
@@ -3719,22 +4040,24 @@ public class Goo<T>
     public async Task TestPartialMethodWithNamePartial(TestHost testHost)
     {
         await TestAsync(
-@"partial class C
-{
-    partial void partial(string bar);
+            """
+            partial class C
+            {
+                partial void partial(string bar);
 
-    partial void partial(string baz)
-    {
-    }
+                partial void partial(string baz)
+                {
+                }
 
-    partial int Goo();
+                partial int Goo();
 
-    partial int Goo()
-    {
-    }
+                partial int Goo()
+                {
+                }
 
-    public partial void partial void
-}",
+                public partial void partial void
+            }
+            """,
             testHost,
             Keyword("partial"),
             Keyword("class"),
@@ -3782,16 +4105,18 @@ public class Goo<T>
     public async Task ValueInSetterAndAnonymousTypePropertyName(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-    int P
-    {
-        set
-        {
-            var t = new { value = value };
-        }
-    }
-}",
+            """
+            class C
+            {
+                int P
+                {
+                    set
+                    {
+                        var t = new { value = value };
+                    }
+                }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -3821,17 +4146,19 @@ public class Goo<T>
     public async Task TestValueInLabel(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-    int X
-    {
-        set
-        {
-        value:
-            ;
-        }
-    }
-}",
+            """
+            class C
+            {
+                int X
+                {
+                    set
+                    {
+                    value:
+                        ;
+                    }
+                }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -3854,19 +4181,21 @@ public class Goo<T>
     public async Task TestGenericVar(TestHost testHost)
     {
         await TestAsync(
-@"using System;
+            """
+            using System;
 
-static class Program
-{
-    static void Main()
-    {
-        var x = 1;
-    }
-}
+            static class Program
+            {
+                static void Main()
+                {
+                    var x = 1;
+                }
+            }
 
-class var<T>
-{
-}",
+            class var<T>
+            {
+            }
+            """,
             testHost,
             Keyword("using"),
             Identifier("System"),
@@ -3904,22 +4233,24 @@ class var<T>
     public async Task TestInaccessibleVar(TestHost testHost)
     {
         await TestAsync(
-@"using System;
+            """
+            using System;
 
-class A
-{
-    private class var
-    {
-    }
-}
+            class A
+            {
+                private class var
+                {
+                }
+            }
 
-class B : A
-{
-    static void Main()
-    {
-        var x = 1;
-    }
-}",
+            class B : A
+            {
+                static void Main()
+                {
+                    var x = 1;
+                }
+            }
+            """,
             testHost,
             Keyword("using"),
             Identifier("System"),
@@ -3959,13 +4290,15 @@ class B : A
     public async Task TestEscapedVar(TestHost testHost)
     {
         await TestAsync(
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        @var v = 1;
-    }
-}",
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    @var v = 1;
+                }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("Program"),
@@ -3995,23 +4328,25 @@ class B : A
     public async Task TestVar(TestHost testHost)
     {
         await TestAsync(
-@"class Program
-{
-    class var<T>
-    {
-    }
+            """
+            class Program
+            {
+                class var<T>
+                {
+                }
 
-    static var<int> GetVarT()
-    {
-        return null;
-    }
+                static var<int> GetVarT()
+                {
+                    return null;
+                }
 
-    static void Main()
-    {
-        var x = GetVarT();
-        var y = new var<int>();
-    }
-}",
+                static void Main()
+                {
+                    var x = GetVarT();
+                    var y = new var<int>();
+                }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("Program"),
@@ -4071,15 +4406,17 @@ class B : A
     public async Task TestVar2(TestHost testHost)
     {
         await TestAsync(
-@"class Program
-{
-    void Main(string[] args)
-    {
-        foreach (var v in args)
-        {
-        }
-    }
-}",
+            """
+            class Program
+            {
+                void Main(string[] args)
+                {
+                    foreach (var v in args)
+                    {
+                    }
+                }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("Program"),
@@ -4109,53 +4446,69 @@ class B : A
     [Theory, CombinatorialData]
     public async Task InterpolatedStrings1(TestHost testHost)
     {
-        var code = @"
-var x = ""World"";
-var y = $""Hello, {x}"";
-";
+        var code = """
+
+            var x = "World";
+            var y = $"Hello, {x}";
+
+            """;
         await TestInMethodAsync(code,
             testHost,
             Keyword("var"),
             Local("x"),
             Operators.Equals,
-            String("\"World\""),
+            String("""
+                "World"
+                """),
             Punctuation.Semicolon,
             Keyword("var"),
             Local("y"),
             Operators.Equals,
-            String("$\""),
+            String("""
+                $"
+                """),
             String("Hello, "),
             Punctuation.OpenCurly,
             Identifier("x"),
             Punctuation.CloseCurly,
-            String("\""),
+            String("""
+                "
+                """),
             Punctuation.Semicolon);
     }
 
     [Theory, CombinatorialData]
     public async Task InterpolatedStrings2(TestHost testHost)
     {
-        var code = @"
-var a = ""Hello"";
-var b = ""World"";
-var c = $""{a}, {b}"";
-";
+        var code = """
+
+            var a = "Hello";
+            var b = "World";
+            var c = $"{a}, {b}";
+
+            """;
         await TestInMethodAsync(code,
             testHost,
             Keyword("var"),
             Local("a"),
             Operators.Equals,
-            String("\"Hello\""),
+            String("""
+                "Hello"
+                """),
             Punctuation.Semicolon,
             Keyword("var"),
             Local("b"),
             Operators.Equals,
-            String("\"World\""),
+            String("""
+                "World"
+                """),
             Punctuation.Semicolon,
             Keyword("var"),
             Local("c"),
             Operators.Equals,
-            String("$\""),
+            String("""
+                $"
+                """),
             Punctuation.OpenCurly,
             Identifier("a"),
             Punctuation.CloseCurly,
@@ -4163,34 +4516,44 @@ var c = $""{a}, {b}"";
             Punctuation.OpenCurly,
             Identifier("b"),
             Punctuation.CloseCurly,
-            String("\""),
+            String("""
+                "
+                """),
             Punctuation.Semicolon);
     }
 
     [Theory, CombinatorialData]
     public async Task InterpolatedStrings3(TestHost testHost)
     {
-        var code = @"
-var a = ""Hello"";
-var b = ""World"";
-var c = $@""{a}, {b}"";
-";
+        var code = """
+
+            var a = "Hello";
+            var b = "World";
+            var c = $@"{a}, {b}";
+
+            """;
         await TestInMethodAsync(code,
             testHost,
             Keyword("var"),
             Local("a"),
             Operators.Equals,
-            String("\"Hello\""),
+            String("""
+                "Hello"
+                """),
             Punctuation.Semicolon,
             Keyword("var"),
             Local("b"),
             Operators.Equals,
-            String("\"World\""),
+            String("""
+                "World"
+                """),
             Punctuation.Semicolon,
             Keyword("var"),
             Local("c"),
             Operators.Equals,
-            Verbatim("$@\""),
+            Verbatim("""
+                $@"
+                """),
             Punctuation.OpenCurly,
             Identifier("a"),
             Punctuation.CloseCurly,
@@ -4198,21 +4561,25 @@ var c = $@""{a}, {b}"";
             Punctuation.OpenCurly,
             Identifier("b"),
             Punctuation.CloseCurly,
-            Verbatim("\""),
+            Verbatim("""
+                "
+                """),
             Punctuation.Semicolon);
     }
 
     [Theory, CombinatorialData]
     public async Task ExceptionFilter1(TestHost testHost)
     {
-        var code = @"
-try
-{
-}
-catch when (true)
-{
-}
-";
+        var code = """
+
+            try
+            {
+            }
+            catch when (true)
+            {
+            }
+
+            """;
         await TestInMethodAsync(code,
             testHost,
             ControlKeyword("try"),
@@ -4230,14 +4597,16 @@ catch when (true)
     [Theory, CombinatorialData]
     public async Task ExceptionFilter2(TestHost testHost)
     {
-        var code = @"
-try
-{
-}
-catch (System.Exception) when (true)
-{
-}
-";
+        var code = """
+
+            try
+            {
+            }
+            catch (System.Exception) when (true)
+            {
+            }
+
+            """;
         await TestInMethodAsync(code,
             testHost,
             ControlKeyword("try"),
@@ -4260,8 +4629,10 @@ catch (System.Exception) when (true)
     [Theory, CombinatorialData]
     public async Task OutVar(TestHost testHost)
     {
-        var code = @"
-F(out var);";
+        var code = """
+
+            F(out var);
+            """;
         await TestInMethodAsync(code,
             testHost,
             Identifier("F"),
@@ -4275,35 +4646,45 @@ F(out var);";
     [Theory, CombinatorialData]
     public async Task ReferenceDirective(TestHost testHost)
     {
-        var code = @"
-#r ""file.dll""";
+        var code = """
+
+            #r "file.dll"
+            """;
         await TestAsync(code,
             testHost,
             PPKeyword("#"),
             PPKeyword("r"),
-            String("\"file.dll\""));
+            String("""
+                "file.dll"
+                """));
     }
 
     [Theory, CombinatorialData]
     public async Task LoadDirective(TestHost testHost)
     {
-        var code = @"
-#load ""file.csx""";
+        var code = """
+
+            #load "file.csx"
+            """;
         await TestAsync(code,
             testHost,
             PPKeyword("#"),
             PPKeyword("load"),
-            String("\"file.csx\""));
+            String("""
+                "file.csx"
+                """));
     }
 
     [Theory, CombinatorialData]
     public async Task IncompleteAwaitInNonAsyncContext(TestHost testHost)
     {
-        var code = @"
-void M()
-{
-    var x = await
-}";
+        var code = """
+
+            void M()
+            {
+                var x = await
+            }
+            """;
         await TestInClassAsync(code,
             testHost,
             Keyword("void"),
@@ -4321,11 +4702,13 @@ void M()
     [Theory, CombinatorialData]
     public async Task CompleteAwaitInNonAsyncContext(TestHost testHost)
     {
-        var code = @"
-void M()
-{
-    var x = await;
-}";
+        var code = """
+
+            void M()
+            {
+                var x = await;
+            }
+            """;
         await TestInClassAsync(code,
             testHost,
             Keyword("void"),
@@ -4411,14 +4794,16 @@ void M()
     public async Task TestConflictMarkers1(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-<<<<<<< Start
-    public void Goo();
-=======
-    public void Bar();
->>>>>>> End
-}",
+            """
+            class C
+            {
+            <<<<<<< Start
+                public void Goo();
+            =======
+                public void Bar();
+            >>>>>>> End
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -4445,16 +4830,18 @@ void M()
     public async Task TestConflictMarkers2(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-<<<<<<< Start
-    public void Goo();
-||||||| Baseline
-    int removed;
-=======
-    public void Bar();
->>>>>>> End
-}",
+            """
+            class C
+            {
+            <<<<<<< Start
+                public void Goo();
+            ||||||| Baseline
+                int removed;
+            =======
+                public void Bar();
+            >>>>>>> End
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -4484,9 +4871,11 @@ void M()
     [Theory, CombinatorialData]
     public async Task TestUnmanagedConstraint_InsideMethod(TestHost testHost)
     {
-        await TestInMethodAsync(@"
-var unmanaged = 0;
-unmanaged++;",
+        await TestInMethodAsync("""
+
+            var unmanaged = 0;
+            unmanaged++;
+            """,
             testHost,
             Keyword("var"),
             Local("unmanaged"),
@@ -4520,9 +4909,11 @@ unmanaged++;",
     [Theory, CombinatorialData]
     public async Task TestUnmanagedConstraint_Type_ExistingInterface(TestHost testHost)
     {
-        await TestAsync(@"
-interface unmanaged {}
-class X<T> where T : unmanaged { }",
+        await TestAsync("""
+
+            interface unmanaged {}
+            class X<T> where T : unmanaged { }
+            """,
             testHost,
             Keyword("interface"),
             Interface("unmanaged"),
@@ -4544,12 +4935,14 @@ class X<T> where T : unmanaged { }",
     [Theory, CombinatorialData]
     public async Task TestUnmanagedConstraint_Type_ExistingInterfaceButOutOfScope(TestHost testHost)
     {
-        await TestAsync(@"
-namespace OtherScope
-{
-    interface unmanaged {}
-}
-class X<T> where T : unmanaged { }",
+        await TestAsync("""
+
+            namespace OtherScope
+            {
+                interface unmanaged {}
+            }
+            class X<T> where T : unmanaged { }
+            """,
             testHost,
             Keyword("namespace"),
             Namespace("OtherScope"),
@@ -4575,11 +4968,13 @@ class X<T> where T : unmanaged { }",
     [Theory, CombinatorialData]
     public async Task TestUnmanagedConstraint_Method_Keyword(TestHost testHost)
     {
-        await TestAsync(@"
-class X
-{
-    void M<T>() where T : unmanaged { }
-}",
+        await TestAsync("""
+
+            class X
+            {
+                void M<T>() where T : unmanaged { }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("X"),
@@ -4603,12 +4998,14 @@ class X
     [Theory, CombinatorialData]
     public async Task TestUnmanagedConstraint_Method_ExistingInterface(TestHost testHost)
     {
-        await TestAsync(@"
-interface unmanaged {}
-class X
-{
-    void M<T>() where T : unmanaged { }
-}",
+        await TestAsync("""
+
+            interface unmanaged {}
+            class X
+            {
+                void M<T>() where T : unmanaged { }
+            }
+            """,
             testHost,
             Keyword("interface"),
             Interface("unmanaged"),
@@ -4636,15 +5033,17 @@ class X
     [Theory, CombinatorialData]
     public async Task TestUnmanagedConstraint_Method_ExistingInterfaceButOutOfScope(TestHost testHost)
     {
-        await TestAsync(@"
-namespace OtherScope
-{
-    interface unmanaged {}
-}
-class X
-{
-    void M<T>() where T : unmanaged { }
-}",
+        await TestAsync("""
+
+            namespace OtherScope
+            {
+                interface unmanaged {}
+            }
+            class X
+            {
+                void M<T>() where T : unmanaged { }
+            }
+            """,
             testHost,
             Keyword("namespace"),
             Namespace("OtherScope"),
@@ -4697,9 +5096,11 @@ class X
     [Theory, CombinatorialData]
     public async Task TestUnmanagedConstraint_Delegate_ExistingInterface(TestHost testHost)
     {
-        await TestAsync(@"
-interface unmanaged {}
-delegate void D<T>() where T : unmanaged;",
+        await TestAsync("""
+
+            interface unmanaged {}
+            delegate void D<T>() where T : unmanaged;
+            """,
             testHost,
             Keyword("interface"),
             Interface("unmanaged"),
@@ -4723,12 +5124,14 @@ delegate void D<T>() where T : unmanaged;",
     [Theory, CombinatorialData]
     public async Task TestUnmanagedConstraint_Delegate_ExistingInterfaceButOutOfScope(TestHost testHost)
     {
-        await TestAsync(@"
-namespace OtherScope
-{
-    interface unmanaged {}
-}
-delegate void D<T>() where T : unmanaged;",
+        await TestAsync("""
+
+            namespace OtherScope
+            {
+                interface unmanaged {}
+            }
+            delegate void D<T>() where T : unmanaged;
+            """,
             testHost,
             Keyword("namespace"),
             Namespace("OtherScope"),
@@ -4756,14 +5159,16 @@ delegate void D<T>() where T : unmanaged;",
     [Theory, CombinatorialData]
     public async Task TestUnmanagedConstraint_LocalFunction_Keyword(TestHost testHost)
     {
-        await TestAsync(@"
-class X
-{
-    void N()
-    {
-        void M<T>() where T : unmanaged { }
-    }
-}",
+        await TestAsync("""
+
+            class X
+            {
+                void N()
+                {
+                    void M<T>() where T : unmanaged { }
+                }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("X"),
@@ -4793,15 +5198,17 @@ class X
     [Theory, CombinatorialData]
     public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterface(TestHost testHost)
     {
-        await TestAsync(@"
-interface unmanaged {}
-class X
-{
-    void N()
-    {
-        void M<T>() where T : unmanaged { }
-    }
-}",
+        await TestAsync("""
+
+            interface unmanaged {}
+            class X
+            {
+                void N()
+                {
+                    void M<T>() where T : unmanaged { }
+                }
+            }
+            """,
             testHost,
             Keyword("interface"),
             Interface("unmanaged"),
@@ -4835,18 +5242,20 @@ class X
     [Theory, CombinatorialData]
     public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterfaceButOutOfScope(TestHost testHost)
     {
-        await TestAsync(@"
-namespace OtherScope
-{
-    interface unmanaged {}
-}
-class X
-{
-    void N()
-    {
-        void M<T>() where T : unmanaged { }
-    }
-}",
+        await TestAsync("""
+
+            namespace OtherScope
+            {
+                interface unmanaged {}
+            }
+            class X
+            {
+                void N()
+                {
+                    void M<T>() where T : unmanaged { }
+                }
+            }
+            """,
             testHost,
             Keyword("namespace"),
             Namespace("OtherScope"),
@@ -4884,12 +5293,14 @@ class X
     [Theory, CombinatorialData]
     public async Task TestDeclarationIsPattern(TestHost testHost)
     {
-        await TestInMethodAsync(@"
-object foo;
+        await TestInMethodAsync("""
 
-if (foo is Action action)
-{
-}",
+            object foo;
+
+            if (foo is Action action)
+            {
+            }
+            """,
             testHost,
             Keyword("object"),
             Local("foo"),
@@ -4908,14 +5319,16 @@ if (foo is Action action)
     [Theory, CombinatorialData]
     public async Task TestDeclarationSwitchPattern(TestHost testHost)
     {
-        await TestInMethodAsync(@"
-object y;
+        await TestInMethodAsync("""
 
-switch (y)
-{
-    case int x:
-        break;
-}",
+            object y;
+
+            switch (y)
+            {
+                case int x:
+                    break;
+            }
+            """,
 testHost,
             Keyword("object"),
             Local("y"),
@@ -4937,8 +5350,10 @@ testHost,
     [Theory, CombinatorialData]
     public async Task TestDeclarationExpression(TestHost testHost)
     {
-        await TestInMethodAsync(@"
-int (foo, bar) = (1, 2);",
+        await TestInMethodAsync("""
+
+            int (foo, bar) = (1, 2);
+            """,
             testHost,
             Keyword("int"),
             Punctuation.OpenParen,
@@ -4959,14 +5374,16 @@ int (foo, bar) = (1, 2);",
     [WorkItem("https://github.com/dotnet/roslyn/issues/18956")]
     public async Task TestListPattern(TestHost testHost)
     {
-        await TestInMethodAsync(@"
-switch (new int[0])
-{
-    case [1, 2]:
-        break;
-    case [1, .. var end]:
-        break;
-}",
+        await TestInMethodAsync("""
+
+            switch (new int[0])
+            {
+                case [1, 2]:
+                    break;
+                case [1, .. var end]:
+                    break;
+            }
+            """,
         testHost,
         ControlKeyword("switch"),
         Punctuation.OpenParen,
@@ -5004,11 +5421,13 @@ switch (new int[0])
     [WorkItem("https://github.com/dotnet/roslyn/issues/18956")]
     public async Task TestListPattern2(TestHost testHost)
     {
-        await TestInMethodAsync(@"
-_ = x switch
-{
-    [var start, .. var end] => 1
-}",
+        await TestInMethodAsync("""
+
+            _ = x switch
+            {
+                [var start, .. var end] => 1
+            }
+            """,
         testHost,
         Identifier("_"),
         Operators.Equals,
@@ -5032,9 +5451,11 @@ _ = x switch
     [WorkItem("https://github.com/dotnet/roslyn/issues/18956")]
     public async Task TestVarPattern(TestHost testHost)
     {
-        await TestInMethodAsync(@"
-_ = 1 is var x;
-",
+        await TestInMethodAsync("""
+
+            _ = 1 is var x;
+
+            """,
         testHost,
         Identifier("_"),
         Operators.Equals,
@@ -5048,8 +5469,10 @@ _ = 1 is var x;
     [Theory, CombinatorialData]
     public async Task TestTupleTypeSyntax(TestHost testHost)
     {
-        await TestInClassAsync(@"
-public (int a, int b) Get() => null;",
+        await TestInClassAsync("""
+
+            public (int a, int b) Get() => null;
+            """,
             testHost,
             Keyword("public"),
             Punctuation.OpenParen,
@@ -5070,10 +5493,12 @@ public (int a, int b) Get() => null;",
     [Theory, CombinatorialData]
     public async Task TestOutParameter(TestHost testHost)
     {
-        await TestInMethodAsync(@"
-if (int.TryParse(""1"", out int x))
-{
-}",
+        await TestInMethodAsync("""
+
+            if (int.TryParse("1", out int x))
+            {
+            }
+            """,
             testHost,
             ControlKeyword("if"),
             Punctuation.OpenParen,
@@ -5081,7 +5506,9 @@ if (int.TryParse(""1"", out int x))
             Operators.Dot,
             Identifier("TryParse"),
             Punctuation.OpenParen,
-            String(@"""1"""),
+            String("""
+                "1"
+                """),
             Punctuation.Comma,
             Keyword("out"),
             Keyword("int"),
@@ -5095,9 +5522,11 @@ if (int.TryParse(""1"", out int x))
     [Theory, CombinatorialData]
     public async Task TestOutParameter2(TestHost testHost)
     {
-        await TestInClassAsync(@"
-int F = int.TryParse(""1"", out int x) ? x : -1;
-",
+        await TestInClassAsync("""
+
+            int F = int.TryParse("1", out int x) ? x : -1;
+
+            """,
             testHost,
             Keyword("int"),
             Field("F"),
@@ -5106,7 +5535,9 @@ int F = int.TryParse(""1"", out int x) ? x : -1;
             Operators.Dot,
             Identifier("TryParse"),
             Punctuation.OpenParen,
-            String(@"""1"""),
+            String("""
+                "1"
+                """),
             Punctuation.Comma,
             Keyword("out"),
             Keyword("int"),
@@ -5187,9 +5618,11 @@ int F = int.TryParse(""1"", out int x) ? x : -1;
     [CombinatorialData]
     public async Task ForEachVariableStatement(TestHost testHost)
     {
-        await TestInMethodAsync(@"
-foreach (var (x, y) in new[] { (1, 2) });
-",
+        await TestInMethodAsync("""
+
+            foreach (var (x, y) in new[] { (1, 2) });
+
+            """,
             testHost,
             ControlKeyword("foreach"),
             Punctuation.OpenParen,
@@ -5217,9 +5650,11 @@ foreach (var (x, y) in new[] { (1, 2) });
     [Theory, CombinatorialData]
     public async Task CatchDeclarationStatement(TestHost testHost)
     {
-        await TestInMethodAsync(@"
-try { } catch (Exception ex) { }
-",
+        await TestInMethodAsync("""
+
+            try { } catch (Exception ex) { }
+
+            """,
             testHost,
             ControlKeyword("try"),
             Punctuation.OpenCurly,
@@ -5236,9 +5671,11 @@ try { } catch (Exception ex) { }
     [Theory, CombinatorialData]
     public async Task TestNotNullConstraint_InsideMethod(TestHost testHost)
     {
-        await TestInMethodAsync(@"
-var notnull = 0;
-notnull++;",
+        await TestInMethodAsync("""
+
+            var notnull = 0;
+            notnull++;
+            """,
             testHost,
             Keyword("var"),
             Local("notnull"),
@@ -5272,9 +5709,11 @@ notnull++;",
     [Theory, CombinatorialData]
     public async Task TestNotNullConstraint_Type_ExistingInterface(TestHost testHost)
     {
-        await TestAsync(@"
-interface notnull {}
-class X<T> where T : notnull { }",
+        await TestAsync("""
+
+            interface notnull {}
+            class X<T> where T : notnull { }
+            """,
             testHost,
             Keyword("interface"),
             Interface("notnull"),
@@ -5296,12 +5735,14 @@ class X<T> where T : notnull { }",
     [Theory, CombinatorialData]
     public async Task TestNotNullConstraint_Type_ExistingInterfaceButOutOfScope(TestHost testHost)
     {
-        await TestAsync(@"
-namespace OtherScope
-{
-    interface notnull {}
-}
-class X<T> where T : notnull { }",
+        await TestAsync("""
+
+            namespace OtherScope
+            {
+                interface notnull {}
+            }
+            class X<T> where T : notnull { }
+            """,
             testHost,
             Keyword("namespace"),
             Namespace("OtherScope"),
@@ -5327,11 +5768,13 @@ class X<T> where T : notnull { }",
     [Theory, CombinatorialData]
     public async Task TestNotNullConstraint_Method_Keyword(TestHost testHost)
     {
-        await TestAsync(@"
-class X
-{
-    void M<T>() where T : notnull { }
-}",
+        await TestAsync("""
+
+            class X
+            {
+                void M<T>() where T : notnull { }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("X"),
@@ -5355,12 +5798,14 @@ class X
     [Theory, CombinatorialData]
     public async Task TestNotNullConstraint_Method_ExistingInterface(TestHost testHost)
     {
-        await TestAsync(@"
-interface notnull {}
-class X
-{
-    void M<T>() where T : notnull { }
-}",
+        await TestAsync("""
+
+            interface notnull {}
+            class X
+            {
+                void M<T>() where T : notnull { }
+            }
+            """,
             testHost,
             Keyword("interface"),
             Interface("notnull"),
@@ -5388,15 +5833,17 @@ class X
     [Theory, CombinatorialData]
     public async Task TestNotNullConstraint_Method_ExistingInterfaceButOutOfScope(TestHost testHost)
     {
-        await TestAsync(@"
-namespace OtherScope
-{
-    interface notnull {}
-}
-class X
-{
-    void M<T>() where T : notnull { }
-}",
+        await TestAsync("""
+
+            namespace OtherScope
+            {
+                interface notnull {}
+            }
+            class X
+            {
+                void M<T>() where T : notnull { }
+            }
+            """,
             testHost,
             Keyword("namespace"),
             Namespace("OtherScope"),
@@ -5449,9 +5896,11 @@ class X
     [Theory, CombinatorialData]
     public async Task TestNotNullConstraint_Delegate_ExistingInterface(TestHost testHost)
     {
-        await TestAsync(@"
-interface notnull {}
-delegate void D<T>() where T : notnull;",
+        await TestAsync("""
+
+            interface notnull {}
+            delegate void D<T>() where T : notnull;
+            """,
             testHost,
             Keyword("interface"),
             Interface("notnull"),
@@ -5475,12 +5924,14 @@ delegate void D<T>() where T : notnull;",
     [Theory, CombinatorialData]
     public async Task TestNotNullConstraint_Delegate_ExistingInterfaceButOutOfScope(TestHost testHost)
     {
-        await TestAsync(@"
-namespace OtherScope
-{
-    interface notnull {}
-}
-delegate void D<T>() where T : notnull;",
+        await TestAsync("""
+
+            namespace OtherScope
+            {
+                interface notnull {}
+            }
+            delegate void D<T>() where T : notnull;
+            """,
             testHost,
             Keyword("namespace"),
             Namespace("OtherScope"),
@@ -5508,14 +5959,16 @@ delegate void D<T>() where T : notnull;",
     [Theory, CombinatorialData]
     public async Task TestNotNullConstraint_LocalFunction_Keyword(TestHost testHost)
     {
-        await TestAsync(@"
-class X
-{
-    void N()
-    {
-        void M<T>() where T : notnull { }
-    }
-}",
+        await TestAsync("""
+
+            class X
+            {
+                void N()
+                {
+                    void M<T>() where T : notnull { }
+                }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("X"),
@@ -5545,15 +5998,17 @@ class X
     [Theory, CombinatorialData]
     public async Task TestNotNullConstraint_LocalFunction_ExistingInterface(TestHost testHost)
     {
-        await TestAsync(@"
-interface notnull {}
-class X
-{
-    void N()
-    {
-        void M<T>() where T : notnull { }
-    }
-}",
+        await TestAsync("""
+
+            interface notnull {}
+            class X
+            {
+                void N()
+                {
+                    void M<T>() where T : notnull { }
+                }
+            }
+            """,
             testHost,
             Keyword("interface"),
             Interface("notnull"),
@@ -5587,18 +6042,20 @@ class X
     [Theory, CombinatorialData]
     public async Task TestNotNullConstraint_LocalFunction_ExistingInterfaceButOutOfScope(TestHost testHost)
     {
-        await TestAsync(@"
-namespace OtherScope
-{
-    interface notnull {}
-}
-class X
-{
-    void N()
-    {
-        void M<T>() where T : notnull { }
-    }
-}",
+        await TestAsync("""
+
+            namespace OtherScope
+            {
+                interface notnull {}
+            }
+            class X
+            {
+                void N()
+                {
+                    void M<T>() where T : notnull { }
+                }
+            }
+            """,
             testHost,
             Keyword("namespace"),
             Namespace("OtherScope"),
@@ -5637,11 +6094,13 @@ class X
     [WorkItem("https://github.com/dotnet/roslyn/issues/45807")]
     public async Task FunctionPointer(TestHost testHost)
     {
-        var code = @"
-class C
-{
-    delegate* unmanaged[Stdcall, SuppressGCTransition] <int, int> x;
-}";
+        var code = """
+
+            class C
+            {
+                delegate* unmanaged[Stdcall, SuppressGCTransition] <int, int> x;
+            }
+            """;
 
         await TestAsync(code,
             testHost,
@@ -5695,9 +6154,11 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48094")]
     public async Task TestXmlAttributeNameSpan2()
     {
-        var source = @"
-/// <param
-/// name=""value""></param>";
+        var source = """
+
+            /// <param
+            /// name="value"></param>
+            """;
         using var workspace = CreateWorkspace(source, options: null, TestHost.InProcess);
         var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
@@ -5725,14 +6186,16 @@ class C
     [CombinatorialData]
     public async Task TestStaticLocalFunction(TestHost testHost)
     {
-        var code = @"
-class C
-{
-    public static void M()
-    {
-        static void LocalFunc() { }
-    }
-}";
+        var code = """
+
+            class C
+            {
+                public static void M()
+                {
+                    static void LocalFunc() { }
+                }
+            }
+            """;
 
         await TestAsync(code,
             testHost,
@@ -5763,14 +6226,16 @@ class C
     [CombinatorialData]
     public async Task TestConstantLocalVariable(TestHost testHost)
     {
-        var code = @"
-class C
-{
-    public static void M()
-    {
-        const int Zero = 0;
-    }
-}";
+        var code = """
+
+            class C
+            {
+                public static void M()
+                {
+                    const int Zero = 0;
+                }
+            }
+            """;
 
         await TestAsync(code,
             testHost,
@@ -5799,14 +6264,16 @@ class C
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteral(TestHost testHost)
     {
-        var code = @"
-class C
-{
-    public static void M(int x)
-    {
-        var s = """"""Hello world"""""";
-    }
-}";
+        var code = """"
+
+            class C
+            {
+                public static void M(int x)
+                {
+                    var s = """Hello world""";
+                }
+            }
+            """";
 
         await TestAsync(code,
             testHost,
@@ -5826,7 +6293,9 @@ class C
             Keyword("var"),
             Local("s"),
             Operators.Equals,
-            String("\"\"\"Hello world\"\"\""),
+            String(""""
+                """Hello world"""
+                """"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
@@ -5835,14 +6304,16 @@ class C
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralUtf8_01(TestHost testHost)
     {
-        var code = @"
-class C
-{
-    public static void M(int x)
-    {
-        var s = """"""Hello world""""""u8;
-    }
-}";
+        var code = """"
+
+            class C
+            {
+                public static void M(int x)
+                {
+                    var s = """Hello world"""u8;
+                }
+            }
+            """";
 
         await TestAsync(code,
             testHost,
@@ -5862,7 +6333,9 @@ class C
             Keyword("var"),
             Local("s"),
             Operators.Equals,
-            String("\"\"\"Hello world\"\"\""),
+            String(""""
+                """Hello world"""
+                """"),
             Keyword("u8"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
@@ -5872,14 +6345,16 @@ class C
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralUtf8_02(TestHost testHost)
     {
-        var code = @"
-class C
-{
-    public static void M(int x)
-    {
-        var s = """"""Hello world""""""U8;
-    }
-}";
+        var code = """"
+
+            class C
+            {
+                public static void M(int x)
+                {
+                    var s = """Hello world"""U8;
+                }
+            }
+            """";
 
         await TestAsync(code,
             testHost,
@@ -5899,7 +6374,9 @@ class C
             Keyword("var"),
             Local("s"),
             Operators.Equals,
-            String("\"\"\"Hello world\"\"\""),
+            String(""""
+                """Hello world"""
+                """"),
             Keyword("U8"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
@@ -5909,16 +6386,18 @@ class C
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralMultiline(TestHost testHost)
     {
-        var code = @"
-class C
-{
-    public static void M(int x)
-    {
-        var s = """"""
-      Hello world
-   """""";
-    }
-}";
+        var code = """"
+
+            class C
+            {
+                public static void M(int x)
+                {
+                    var s = """
+                  Hello world
+               """;
+                }
+            }
+            """";
 
         await TestAsync(code,
             testHost,
@@ -5938,9 +6417,11 @@ class C
             Keyword("var"),
             Local("s"),
             Operators.Equals,
-            String(@"""""""
-      Hello world
-   """""""),
+            String(""""
+                """
+                      Hello world
+                   """
+                """"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
@@ -5949,16 +6430,18 @@ class C
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralMultilineUtf8_01(TestHost testHost)
     {
-        var code = @"
-class C
-{
-    public static void M(int x)
-    {
-        var s = """"""
-      Hello world
-   """"""u8;
-    }
-}";
+        var code = """"
+
+            class C
+            {
+                public static void M(int x)
+                {
+                    var s = """
+                  Hello world
+               """u8;
+                }
+            }
+            """";
 
         await TestAsync(code,
             testHost,
@@ -5978,9 +6461,11 @@ class C
             Keyword("var"),
             Local("s"),
             Operators.Equals,
-            String(@"""""""
-      Hello world
-   """""""),
+            String(""""
+                """
+                      Hello world
+                   """
+                """"),
             Keyword("u8"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
@@ -5990,16 +6475,18 @@ class C
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralMultilineUtf8_02(TestHost testHost)
     {
-        var code = @"
-class C
-{
-    public static void M(int x)
-    {
-        var s = """"""
-      Hello world
-   """"""U8;
-    }
-}";
+        var code = """"
+
+            class C
+            {
+                public static void M(int x)
+                {
+                    var s = """
+                  Hello world
+               """U8;
+                }
+            }
+            """";
 
         await TestAsync(code,
             testHost,
@@ -6019,9 +6506,11 @@ class C
             Keyword("var"),
             Local("s"),
             Operators.Equals,
-            String(@"""""""
-      Hello world
-   """""""),
+            String(""""
+                """
+                      Hello world
+                   """
+                """"),
             Keyword("U8"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
@@ -6031,14 +6520,16 @@ class C
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralInterpolation1(TestHost testHost)
     {
-        var code = @"
-class C
-{
-    public static void M(int x)
-    {
-        var s = $""""""{x}"""""";
-    }
-}";
+        var code = """"
+
+            class C
+            {
+                public static void M(int x)
+                {
+                    var s = $"""{x}""";
+                }
+            }
+            """";
 
         await TestAsync(code,
             testHost,
@@ -6058,11 +6549,15 @@ class C
             Keyword("var"),
             Local("s"),
             Operators.Equals,
-            String("$\"\"\""),
+            String(""""
+                $"""
+                """"),
             Punctuation.OpenCurly,
             Identifier("x"),
             Punctuation.CloseCurly,
-            String("\"\"\""),
+            String(""""
+                """
+                """"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
@@ -6071,14 +6566,16 @@ class C
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralInterpolation2(TestHost testHost)
     {
-        var code = @"
-class C
-{
-    public static void M(int x)
-    {
-        var s = $$""""""{{x}}"""""";
-    }
-}";
+        var code = """"
+
+            class C
+            {
+                public static void M(int x)
+                {
+                    var s = $$"""{{x}}""";
+                }
+            }
+            """";
 
         await TestAsync(code,
             testHost,
@@ -6098,11 +6595,15 @@ class C
             Keyword("var"),
             Local("s"),
             Operators.Equals,
-            String("$$\"\"\""),
+            String(""""
+                $$"""
+                """"),
             PunctuationText("{{"),
             Identifier("x"),
             PunctuationText("}}"),
-            String("\"\"\""),
+            String(""""
+                """
+                """"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
@@ -6111,14 +6612,16 @@ class C
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralInterpolation3(TestHost testHost)
     {
-        var code = @"
-class C
-{
-    public static void M(int x)
-    {
-        var s = $$""""""{{{x}}}"""""";
-    }
-}";
+        var code = """"
+
+            class C
+            {
+                public static void M(int x)
+                {
+                    var s = $$"""{{{x}}}""";
+                }
+            }
+            """";
 
         await TestAsync(code,
             testHost,
@@ -6138,13 +6641,17 @@ class C
             Keyword("var"),
             Local("s"),
             Operators.Equals,
-            String("$$\"\"\""),
+            String(""""
+                $$"""
+                """"),
             String("{"),
             PunctuationText("{{"),
             Identifier("x"),
             PunctuationText("}}"),
             String("}"),
-            String("\"\"\""),
+            String(""""
+                """
+                """"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
@@ -6154,10 +6661,12 @@ class C
     public async Task CheckedUserDefinedOperators_01(TestHost testHost)
     {
         await TestInClassAsync(
-@"
-static T operator checked -(T a)
-{
-}",
+            """
+
+            static T operator checked -(T a)
+            {
+            }
+            """,
             testHost,
             Keyword("static"),
             Identifier("T"),
@@ -6176,10 +6685,12 @@ static T operator checked -(T a)
     public async Task CheckedUserDefinedOperators_02(TestHost testHost)
     {
         await TestInClassAsync(
-@"
-static T operator checked +(T a, T b)
-{
-}",
+            """
+
+            static T operator checked +(T a, T b)
+            {
+            }
+            """,
             testHost,
             Keyword("static"),
             Identifier("T"),
@@ -6201,10 +6712,12 @@ static T operator checked +(T a, T b)
     public async Task CheckedUserDefinedOperators_03(TestHost testHost)
     {
         await TestInClassAsync(
-@"
-static explicit operator checked T(T a)
-{
-}",
+            """
+
+            static explicit operator checked T(T a)
+            {
+            }
+            """,
             testHost,
             Keyword("static"),
             Keyword("explicit"),
@@ -6223,10 +6736,12 @@ static explicit operator checked T(T a)
     public async Task CheckedUserDefinedOperators_04(TestHost testHost)
     {
         await TestInClassAsync(
-@"
-static T I1.operator checked -(T a)
-{
-}",
+            """
+
+            static T I1.operator checked -(T a)
+            {
+            }
+            """,
             testHost,
             Keyword("static"),
             Identifier("T"),
@@ -6247,10 +6762,12 @@ static T I1.operator checked -(T a)
     public async Task CheckedUserDefinedOperators_05(TestHost testHost)
     {
         await TestInClassAsync(
-@"
-static T I1.operator checked +(T a, T b)
-{
-}",
+            """
+
+            static T I1.operator checked +(T a, T b)
+            {
+            }
+            """,
             testHost,
             Keyword("static"),
             Identifier("T"),
@@ -6274,10 +6791,12 @@ static T I1.operator checked +(T a, T b)
     public async Task CheckedUserDefinedOperators_06(TestHost testHost)
     {
         await TestInClassAsync(
-@"
-static explicit I1.operator checked T(T a)
-{
-}",
+            """
+
+            static explicit I1.operator checked T(T a)
+            {
+            }
+            """,
             testHost,
             Keyword("static"),
             Keyword("explicit"),
@@ -6298,10 +6817,12 @@ static explicit I1.operator checked T(T a)
     public async Task UnsignedRightShift_01(TestHost testHost)
     {
         await TestInClassAsync(
-@"
-static T operator >>>(T a, int b)
-{
-}",
+            """
+
+            static T operator >>>(T a, int b)
+            {
+            }
+            """,
             testHost,
             Keyword("static"),
             Identifier("T"),
@@ -6322,10 +6843,12 @@ static T operator >>>(T a, int b)
     public async Task UnsignedRightShift_02(TestHost testHost)
     {
         await TestInClassAsync(
-@"
-static T I1.operator checked >>>(T a, T b)
-{
-}",
+            """
+
+            static T I1.operator checked >>>(T a, T b)
+            {
+            }
+            """,
             testHost,
             Keyword("static"),
             Identifier("T"),
@@ -6349,12 +6872,14 @@ static T I1.operator checked >>>(T a, T b)
     public async Task TestExclamationExclamation(TestHost testHost)
     {
         await TestAsync(
-@"class C
-{
-    void M(string v!!)
-    {
-    }
-}",
+            """
+            class C
+            {
+                void M(string v!!)
+                {
+                }
+            }
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -6570,7 +7095,9 @@ static T I1.operator checked >>>(T a, T b)
             Keyword("string"),
             Parameter("s"),
             Operators.Equals,
-            String(@"""a string"""),
+            String("""
+                "a string"
+                """),
             Punctuation.CloseParen,
             Operators.EqualsGreaterThan,
             Identifier("s"),

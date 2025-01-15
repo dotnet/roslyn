@@ -2523,6 +2523,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
+        Private Protected Overrides Function MapToCompilation(moduleBeingBuilt As CommonPEModuleBuilder) As EmitBaseline
+            Return EmitHelpers.MapToCompilation(Me, DirectCast(moduleBeingBuilt, PEDeltaAssemblyBuilder))
+        End Function
+
         Friend Overrides Function GenerateResources(
             moduleBuilder As CommonPEModuleBuilder,
             win32Resources As Stream,
@@ -2838,6 +2842,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New MissingNamespaceSymbol(
                        container.EnsureVbSymbolOrNothing(Of NamespaceSymbol)(NameOf(container)),
                        name)
+        End Function
+
+        Protected Overrides Function CommonCreatePreprocessingSymbol(name As String) As IPreprocessingSymbol
+            Return New PreprocessingSymbol(name)
         End Function
 
         Protected Overrides Function CommonCreateArrayTypeSymbol(elementType As ITypeSymbol, rank As Integer, elementNullableAnnotation As NullableAnnotation) As IArrayTypeSymbol

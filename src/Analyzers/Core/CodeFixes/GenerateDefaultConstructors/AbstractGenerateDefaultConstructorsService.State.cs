@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 
 internal abstract partial class AbstractGenerateDefaultConstructorsService<TService>
 {
-    private class State
+    private sealed class State
     {
         public INamedTypeSymbol? ClassType { get; private set; }
 
@@ -79,10 +79,9 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
             var destinationProvider = semanticDocument.Project.Solution.Services.GetLanguageServices(ClassType.Language);
             var isCaseSensitive = syntaxFacts.IsCaseSensitive;
 
-            UnimplementedConstructors =
-                baseType.InstanceConstructors
-                        .WhereAsArray(c => c.IsAccessibleWithin(ClassType) &&
-                                           IsMissing(c, classConstructors, isCaseSensitive));
+            UnimplementedConstructors = baseType
+                .InstanceConstructors
+                .WhereAsArray(c => c.IsAccessibleWithin(ClassType) && IsMissing(c, classConstructors, isCaseSensitive));
 
             return UnimplementedConstructors.Length > 0;
         }

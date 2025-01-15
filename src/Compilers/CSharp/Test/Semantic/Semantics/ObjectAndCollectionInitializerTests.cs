@@ -1006,18 +1006,21 @@ class X
 }
 ";
             string expectedOperationTree = @"
-IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  z = null }')
+  IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  z = null }')
   Arguments(0)
-  Initializer: 
+  Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ z = null }')
       Initializers(1):
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: D, IsInvalid) (Syntax: 'z = null')
-            Left: 
+            Left:
               IEventReferenceOperation: event D MemberInitializerTest.z (OperationKind.EventReference, Type: D, IsInvalid) (Syntax: 'z')
-                Instance Receiver: 
+                Instance Receiver:
                   IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'z')
-            Right: 
-              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+            Right:
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: D, Constant: null, IsImplicit) (Syntax: 'null')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                Operand:
+                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0070: The event 'MemberInitializerTest.z' can only appear on the left hand side of += or -= (except when used from within the type 'MemberInitializerTest')
@@ -1818,16 +1821,19 @@ class MemberInitializerTest
             string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: X..ctor()) (OperationKind.ObjectCreation, Type: X, IsInvalid) (Syntax: 'new X() { x = 0 }')
   Arguments(0)
-  Initializer: 
+  Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: X, IsInvalid) (Syntax: '{ x = 0 }')
       Initializers(1):
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: X, IsInvalid) (Syntax: 'x = 0')
-            Left: 
+            Left:
               IFieldReferenceOperation: X.x (Static) (OperationKind.FieldReference, Type: X, IsInvalid) (Syntax: 'x')
-                Instance Receiver: 
+                Instance Receiver:
                   null
-            Right: 
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+            Right:
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: X, Constant: 0, IsImplicit) (Syntax: '0')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand:
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1914: Static field or property 'X.x' cannot be assigned in an object initializer
@@ -1857,22 +1863,22 @@ class MemberInitializerTest
             string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  Prop = 1 }')
   Arguments(0)
-  Initializer: 
+  Initializer:
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: MemberInitializerTest, IsInvalid) (Syntax: '{ x = 1, Prop = 1 }')
       Initializers(2):
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'x = 1')
-            Left: 
+            Left:
               IFieldReferenceOperation: System.Int32 MemberInitializerTest.x (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
-                Instance Receiver: 
+                Instance Receiver:
                   null
-            Right: 
+            Right:
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'Prop = 1')
-            Left: 
+            Left:
               IPropertyReferenceOperation: System.Int32 MemberInitializerTest.Prop { get; set; } (Static) (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'Prop')
-                Instance Receiver: 
+                Instance Receiver:
                   null
-            Right: 
+            Right:
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -2841,8 +2847,16 @@ IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System
               Children(2):
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s"", IsInvalid) (Syntax: '""s""')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'var')
-              Children(0)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'var')
+              Left:
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'var')
+                  Children(1):
+                      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'var')
+                        Children(1):
+                            IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Dictionary<System.Object, System.Object>, IsInvalid, IsImplicit) (Syntax: 'Dictionary< ... ct, object>')
+              Right:
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'var')
+                  Children(0)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'x = 1')
               Left:
                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x')
@@ -2872,9 +2886,6 @@ IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System
                 // (8,13): error CS0747: Invalid initializer member declarator
                 //             {"s", 1 },
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"{""s"", 1 }").WithLocation(8, 13),
-                // (9,9): error CS0103: The name 'var' does not exist in the current context
-                //         var x = 1;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(9, 9),
                 // (9,9): error CS0747: Invalid initializer member declarator
                 //         var x = 1;
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var").WithLocation(9, 9)

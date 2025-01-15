@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Interop;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -23,6 +24,7 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -52,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Session.ReplacementTextChanged += OnReplacementTextChanged;
             Session.ReplacementsComputed += OnReplacementsComputed;
             Session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
+            Session.CommitStateChange += CommitStateChange;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
             var smartRenameSession = smartRenameSessionFactory?.Value.CreateSmartRenameSession(Session.TriggerSpan);
@@ -62,6 +65,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             RegisterOleComponent();
         }
+
+        private void CommitStateChange(object sender, EventArgs args)
+            => Visibility = this.Session.IsCommitInProgress ? Visibility.Collapsed : Visibility.Visible;
 
         public SmartRenameViewModel? SmartRenameViewModel { get; }
 
@@ -208,6 +214,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public TextSpan StartingSelection { get; }
 
+        private Visibility _visibility;
+        public Visibility Visibility
+        {
+            get => _visibility;
+            set => Set(ref _visibility, value);
+        }
+
         public bool Submit()
         {
             if (StatusSeverity == Severity.Error)
@@ -216,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             SmartRenameViewModel?.Commit(IdentifierText);
-            Session.Commit();
+            Session.InitiateCommit();
             return true;
         }
 
@@ -310,6 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     Session.ReplacementTextChanged -= OnReplacementTextChanged;
                     Session.ReplacementsComputed -= OnReplacementsComputed;
+                    Session.CommitStateChange -= CommitStateChange;
 
                     if (SmartRenameViewModel is not null)
                     {

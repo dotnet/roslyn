@@ -8,16 +8,18 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
 
-internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
+using static GenerateFromMembersHelpers;
+
+internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider
 {
-    private class State
+    private sealed class State
     {
         public ImmutableArray<ConstructorCandidate> ConstructorCandidates { get; private set; }
 

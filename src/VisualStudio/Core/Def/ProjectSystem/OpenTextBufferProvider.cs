@@ -40,7 +40,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
     private readonly IVsRunningDocumentTable4 _runningDocumentTable;
 
-    private ImmutableArray<IOpenTextBufferEventListener> _listeners = ImmutableArray<IOpenTextBufferEventListener>.Empty;
+    private ImmutableArray<IOpenTextBufferEventListener> _listeners = [];
 
     /// <summary>
     /// The map from monikers to open text buffers; because we can only fetch the text buffer on the UI thread, all updates to this must be done from the UI thread.

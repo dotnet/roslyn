@@ -57,10 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView = textView;
             this.DataContext = model;
 
-            this.Visibility = textView.HasAggregateFocus ? Visibility.Visible : Visibility.Collapsed;
-
             _textView.GotAggregateFocus += OnTextViewGotAggregateFocus;
-            _textView.LostAggregateFocus += OnTextViewLostAggregateFocus;
             _textView.VisualElement.SizeChanged += OnElementSizeChanged;
             this.SizeChanged += OnElementSizeChanged;
 
@@ -90,10 +87,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             ResolvableConflictBorder.StrokeThickness = RenameFixupTagDefinition.StrokeThickness;
-            ResolvableConflictBorder.StrokeDashArray = new DoubleCollection(RenameFixupTagDefinition.StrokeDashArray);
+            ResolvableConflictBorder.StrokeDashArray = [.. RenameFixupTagDefinition.StrokeDashArray];
 
             UnresolvableConflictBorder.StrokeThickness = RenameConflictTagDefinition.StrokeThickness;
-            UnresolvableConflictBorder.StrokeDashArray = new DoubleCollection(RenameConflictTagDefinition.StrokeDashArray);
+            UnresolvableConflictBorder.StrokeDashArray = [.. RenameConflictTagDefinition.StrokeDashArray];
 
             this.Focus();
             textView.Caret.IsHidden = false;
@@ -311,12 +308,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnTextViewGotAggregateFocus(object sender, EventArgs e)
         {
-            this.Visibility = Visibility.Visible;
             PositionDashboard();
         }
-
-        private void OnTextViewLostAggregateFocus(object sender, EventArgs e)
-            => this.Visibility = Visibility.Collapsed;
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
@@ -331,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             try
             {
-                _model.Session.Commit();
+                _model.Session.InitiateCommit();
                 _textView.VisualElement.Focus();
             }
             catch (NotSupportedException ex)
@@ -365,7 +358,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public override void Dispose()
         {
             _textView.GotAggregateFocus -= OnTextViewGotAggregateFocus;
-            _textView.LostAggregateFocus -= OnTextViewLostAggregateFocus;
             _textView.VisualElement.SizeChanged -= OnElementSizeChanged;
             this.SizeChanged -= OnElementSizeChanged;
 

@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 [ExportSignatureHelpProvider(nameof(InitializerExpressionSignatureHelpProvider), LanguageNames.CSharp), Shared]
-internal partial class InitializerExpressionSignatureHelpProvider : AbstractOrdinaryMethodSignatureHelpProvider
+internal sealed partial class InitializerExpressionSignatureHelpProvider : AbstractOrdinaryMethodSignatureHelpProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -70,8 +70,8 @@ internal partial class InitializerExpressionSignatureHelpProvider : AbstractOrdi
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        return CreateCollectionInitializerSignatureHelpItems(addMethods.Select(s =>
-            ConvertMethodGroupMethod(document, s, initializerExpression.OpenBraceToken.SpanStart, semanticModel)).ToList(),
+        return CreateCollectionInitializerSignatureHelpItems([.. addMethods.Select(s =>
+            ConvertMethodGroupMethod(document, s, initializerExpression.OpenBraceToken.SpanStart, semanticModel))],
             textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
     }
 

@@ -36,6 +36,6 @@ internal static class NamingExtensions
         this Document document, CancellationToken cancellationToken)
     {
         var options = await document.GetNamingStylePreferencesAsync(cancellationToken).ConfigureAwait(false);
-        return options.CreateRules().NamingRules.AddRange(FallbackNamingRules.Default);
+        return options.Rules.NamingRules.AddRange(FallbackNamingRules.Default);
     }
 }

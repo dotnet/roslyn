@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationConversionSymbol(
+internal sealed class CodeGenerationConversionSymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility declaredAccessibility,
@@ -33,8 +33,8 @@ internal class CodeGenerationConversionSymbol(
           name: isImplicit
                   ? WellKnownMemberNames.ImplicitConversionName
                   : WellKnownMemberNames.ExplicitConversionName,
-          typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
-          parameters: ImmutableArray.Create(fromType),
+          typeParameters: [],
+          parameters: [fromType],
           returnTypeAttributes: toTypeAttributes,
           documentationCommentXml)
 {

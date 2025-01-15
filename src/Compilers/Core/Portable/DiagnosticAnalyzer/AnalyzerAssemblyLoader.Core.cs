@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_loadContextByDirectory.TryGetValue(fullDirectoryPath, out loadContext))
                 {
+                    CodeAnalysisEventSource.Log.CreateAssemblyLoadContext(fullDirectoryPath);
                     loadContext = new DirectoryLoadContext(fullDirectoryPath, this);
                     _loadContextByDirectory[fullDirectoryPath] = loadContext;
                 }
@@ -111,9 +112,11 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     context.Unload();
+                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContext(context.Directory);
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
                 {
+                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContextException(context.Directory, ex.ToString());
                 }
             }
 
@@ -227,7 +230,19 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly AssemblyLoadContext _compilerAlc = compilerContext;
 
-            public Assembly? ResolveAssembly(AssemblyName assemblyName) => _compilerAlc.LoadFromAssemblyName(assemblyName);
+            public Assembly? ResolveAssembly(AssemblyName assemblyName)
+            {
+                try
+                {
+                    return _compilerAlc.LoadFromAssemblyName(assemblyName);
+                }
+                catch
+                {
+                    // The LoadFromAssemblyName method will throw if the assembly cannot be found. Need
+                    // to catch this exception and return null to satisfy the interface contract.
+                    return null;
+                }
+            }
         }
     }
 }

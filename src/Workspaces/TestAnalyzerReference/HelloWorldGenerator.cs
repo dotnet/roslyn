@@ -9,7 +9,9 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.TestSourceGenerator
 {
     [Generator]
+#pragma warning disable RS1042 // Do not implement
     public sealed class HelloWorldGenerator : ISourceGenerator
+#pragma warning restore RS1042 // Do not implement
     {
         public const string GeneratedEnglishClassName = "HelloWorld";
         public const string GeneratedSpanishClassName = "HolaMundo";

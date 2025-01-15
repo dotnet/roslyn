@@ -337,7 +337,7 @@ class B : C, A
             // Find references on definition C.Boo()
             var typeC = comp.GetTypeByMetadataName("C");
             boo = typeC.GetMembers("Boo").First();
-            result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
+            result = [.. (await SymbolFinder.FindReferencesAsync(boo, solution))];
             Assert.Equal(2, result.Count); // 2 symbols found
 
             expectedMatchedLines = [3, 13, 14];
@@ -348,7 +348,7 @@ class B : C, A
             // Find references on definition A.Boo()
             var typeA = comp.GetTypeByMetadataName("A");
             boo = typeA.GetMembers("Boo").First();
-            result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
+            result = [.. (await SymbolFinder.FindReferencesAsync(boo, solution))];
             Assert.Equal(2, result.Count); // 2 symbols found
 
             expectedMatchedLines = [7, 12];
@@ -461,7 +461,7 @@ namespace N
         public virtual void SomeMethod() { }
     }
 }
-", MscorlibRefPortable);
+", MscorlibPP7Ref);
 
             // create a normal assembly with a type derived from the portable base and overriding the method
             solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
@@ -473,7 +473,7 @@ namespace M
         public override void SomeMethod() { }
     }
 }
-", MscorlibRef, solution.Projects.Single(pid => pid.Name == "PortableProject").Id);
+", Net40.References.mscorlib, solution.Projects.Single(pid => pid.Name == "PortableProject").Id);
 
             // get symbols for methods
             var portableCompilation = await solution.Projects.Single(p => p.Name == "PortableProject").GetCompilationAsync();

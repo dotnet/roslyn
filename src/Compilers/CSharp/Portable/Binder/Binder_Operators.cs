@@ -1265,10 +1265,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasApplicableBooleanOperator(NamedTypeSymbol containingType, string name, TypeSymbol argumentType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out MethodSymbol @operator)
         {
+            var operators = ArrayBuilder<MethodSymbol>.GetInstance();
             for (var type = containingType; (object)type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
-                var operators = type.GetOperators(name);
-                for (var i = 0; i < operators.Length; i++)
+                operators.Clear();
+                type.AddOperators(name, operators);
+
+                for (var i = 0; i < operators.Count; i++)
                 {
                     var op = operators[i];
                     if (op.ParameterCount == 1 && op.DeclaredAccessibility == Accessibility.Public)
@@ -1277,12 +1280,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (conversion.IsImplicit)
                         {
                             @operator = op;
+                            operators.Free();
                             return true;
                         }
                     }
                 }
             }
 
+            operators.Free();
             @operator = null;
             return false;
         }
@@ -3439,6 +3444,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (conversionKind)
             {
+                case ConversionKind.ImplicitSpan:
+                case ConversionKind.ExplicitSpan:
                 case ConversionKind.NoConversion:
                     // Oddly enough, "x is T" can be true even if there is no conversion from x to T!
                     //
@@ -4375,13 +4382,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var currentScope = _localScopeDepth;
 
             // val-escape must agree on both branches.
-            uint whenTrueEscape = GetValEscape(trueExpr, currentScope);
-            uint whenFalseEscape = GetValEscape(falseExpr, currentScope);
+            SafeContext whenTrueEscape = GetValEscape(trueExpr, currentScope);
+            SafeContext whenFalseEscape = GetValEscape(falseExpr, currentScope);
 
             if (whenTrueEscape != whenFalseEscape)
             {
                 // ask the one with narrower escape, for the wider - hopefully the errors will make the violation easier to fix.
-                if (whenTrueEscape < whenFalseEscape)
+                if (!whenFalseEscape.IsConvertibleTo(whenTrueEscape))
                     CheckValEscape(falseExpr.Syntax, falseExpr, currentScope, whenTrueEscape, checkingReceiver: false, diagnostics: diagnostics);
                 else
                     CheckValEscape(trueExpr.Syntax, trueExpr, currentScope, whenFalseEscape, checkingReceiver: false, diagnostics: diagnostics);

@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Highlighting;
 [Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class HighlightingService(
+internal sealed class HighlightingService(
     [ImportMany] IEnumerable<Lazy<IHighlighter, LanguageMetadata>> highlighters) : IHighlightingService
 {
-    private readonly List<Lazy<IHighlighter, LanguageMetadata>> _highlighters = highlighters.ToList();
+    private readonly List<Lazy<IHighlighter, LanguageMetadata>> _highlighters = [.. highlighters];
     private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new(() => []);
 
     public void AddHighlights(
