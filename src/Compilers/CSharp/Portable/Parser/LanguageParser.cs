@@ -12180,7 +12180,7 @@ done:
 
         /// <summary>
         /// Scans implicitly typed  lambdas (like <c>(a, b) =></c>) as well as basic explicitly typed lambdas (like
-        /// <c>(A a, B b) =></c>.  More complex scanning of parenthesized lambdas happens in <see
+        /// <c>(A a, B b) =></c>).  More complex scanning of parenthesized lambdas happens in <see
         /// cref="ScanExplicitlyTypedLambda"/>.
         /// </summary>
         private bool ScanImplicitlyTypedLambdaOrSimpleExplicitlyTypedParenthesizedLambda(Precedence precedence)
