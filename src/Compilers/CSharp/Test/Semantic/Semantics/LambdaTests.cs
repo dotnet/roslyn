@@ -8706,6 +8706,7 @@ class Program
 
             var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
             Assert.Equal(ScopedKind.None, symbol.Parameters[0].ScopedKind);
+            Assert.Equal("scoped", symbol.Parameters[0].Type.Name);
         }
 
         [Fact]
@@ -8732,6 +8733,7 @@ class Program
 
             var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
             Assert.Equal(ScopedKind.None, symbol.Parameters[0].ScopedKind);
+            Assert.Equal("scoped", symbol.Parameters[0].Type.Name);
         }
 
         [Fact]
