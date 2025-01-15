@@ -200,29 +200,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            bool usesKeyValuePairs = CollectionUsesKeyValuePairs(Compilation, collectionTypeKind, elementType, out var keyType, out var valueType);
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
             foreach (var element in elements)
             {
-                Conversion elementConversion = convertElement(element, elementType, ref useSiteInfo);
-                if (!elementConversion.Exists)
+                switch (element)
                 {
-                    builder.Free();
-                    return Conversion.NoConversion;
+                    case BoundCollectionExpressionSpreadElement spreadElement:
+                        {
+                            var elementConversion = GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo);
+                            if (elementConversion.Exists)
+                            {
+                                builder.Add(elementConversion);
+                                continue;
+                            }
+                        }
+                        break;
+                    case BoundKeyValuePairElement keyValuePairElement:
+                        {
+                            if (usesKeyValuePairs)
+                            {
+                                var keyConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Key, keyType.Type, ref useSiteInfo);
+                                var valueConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Value, valueType.Type, ref useSiteInfo);
+                                if (keyConversion.Exists && valueConversion.Exists)
+                                {
+                                    builder.Add(keyConversion);
+                                    builder.Add(valueConversion);
+                                    continue;
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        {
+                            var elementConversion = ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo);
+                            if (elementConversion.Exists)
+                            {
+                                builder.Add(elementConversion);
+                                continue;
+                            }
+                        }
+                        break;
                 }
-
-                builder.Add(elementConversion);
+                builder.Free();
+                return Conversion.NoConversion;
             }
 
             return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, constructor, isExpanded, builder.ToImmutableAndFree());
-
-            Conversion convertElement(BoundNode element, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                return element switch
-                {
-                    BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
-                    _ => ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo),
-                };
-            }
         }
 
         internal Conversion GetCollectionExpressionSpreadElementConversion(
@@ -235,6 +259,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return Conversion.NoConversion;
             }
+            // This should be conversion from type rather than conversion from expression.
+            // The difference is in handling of dynamic, and fixing this would be a breaking
+            // change for that case. For instance, the following would become an error:
+            // dynamic[] x = [1, 2, 3];
+            // int[] y = [.. x];
             return ClassifyImplicitConversionFromExpression(
                 new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),
                 targetType,

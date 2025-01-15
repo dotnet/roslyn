@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return VisitCollectionBuilderCollectionExpression(node);
                     case CollectionExpressionTypeKind.ArrayInterface:
                         return VisitListInterfaceCollectionExpression(node);
+                    case CollectionExpressionTypeKind.DictionaryInterface:
+                        return VisitDictionaryInterfaceCollectionExpression(node);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
                 }
@@ -448,6 +450,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return _factory.Convert(collectionType, arrayOrList);
+        }
+
+        private BoundExpression VisitDictionaryInterfaceCollectionExpression(BoundCollectionExpression node)
+        {
+            Debug.Assert(!_inExpressionLambda);
+            Debug.Assert(_factory.ModuleBuilderOpt is { });
+            Debug.Assert(_diagnostics.DiagnosticBag is { });
+            Debug.Assert(node.Type is NamedTypeSymbol);
+            Debug.Assert(node.CollectionCreation is null);
+            Debug.Assert(node.Placeholder is null);
+
+            var collectionType = (NamedTypeSymbol)node.Type;
+            var typeArguments = collectionType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+            var elements = node.Elements;
+            // PROTOTYPE: Create a custom interface implementation for IReadOnlyDictionary<K, V> to enforce immutability?
+            var collection = CreateAndPopulateDictionary(node, typeArguments, elements);
+            return _factory.Convert(collectionType, collection);
         }
 
         private BoundExpression VisitCollectionBuilderCollectionExpression(BoundCollectionExpression node)
@@ -1154,6 +1173,110 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects.ToImmutableAndFree(),
                 listTemp,
                 collectionType);
+        }
+
+        /// <summary>
+        /// Create and populate a dictionary from a collection expression.
+        /// The collection may or may not have a known length.
+        /// </summary>
+        private BoundExpression CreateAndPopulateDictionary(BoundCollectionExpression node, ImmutableArray<TypeWithAnnotations> typeArguments, ImmutableArray<BoundNode> elements)
+        {
+            Debug.Assert(!_inExpressionLambda);
+
+            var collectionType = _factory.WellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV).Construct(typeArguments);
+
+            var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
+
+            // Dictionary<K, V> dictionary = new();
+            var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor)).AsMember(collectionType);
+            BoundObjectCreationExpression rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
+
+            // Create a temp for the dictionary.
+            BoundAssignmentOperator assignmentToTemp;
+            BoundLocal dictionaryTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
+            localsBuilder.Add(dictionaryTemp);
+            sideEffects.Add(assignmentToTemp);
+
+            var setItemMethod = _factory.WellKnownMethod(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item).AsMember(collectionType);
+            for (int i = 0; i < elements.Length; i++)
+            {
+                var element = elements[i];
+                switch (element)
+                {
+                    case BoundKeyValuePairElement keyValuePairElement:
+                        {
+                            // dictionary[key] = value;
+                            var rewrittenKey = VisitExpression(keyValuePairElement.Key);
+                            var rewrittenValue = VisitExpression(keyValuePairElement.Value);
+                            sideEffects.Add(_factory.Call(dictionaryTemp, setItemMethod, rewrittenKey, rewrittenValue));
+                        }
+                        break;
+                    case BoundCollectionExpressionSpreadElement spreadElement:
+                        var rewrittenExpression = VisitExpression(spreadElement.Expression);
+                        var rewrittenElement = MakeCollectionExpressionSpreadElement(
+                            spreadElement,
+                            rewrittenExpression,
+                            iteratorBody =>
+                            {
+                                // dictionary[item.Key] = item.Value;
+                                var expression = ((BoundExpressionStatement)iteratorBody).Expression;
+                                var builder = ArrayBuilder<BoundExpression>.GetInstance();
+                                var (rewrittenKey, rewrittenValue) = RewriteKeyValuePair(expression, setItemMethod, builder, localsBuilder);
+                                builder.Add(_factory.Call(dictionaryTemp, setItemMethod, rewrittenKey, rewrittenValue));
+                                var statements = builder.SelectAsArray(expr => (BoundStatement)new BoundExpressionStatement(expr.Syntax, expr));
+                                builder.Free();
+                                Debug.Assert(statements.Length > 0);
+                                return statements.Length == 1 ?
+                                    statements[0] :
+                                    new BoundBlock(iteratorBody.Syntax, locals: ImmutableArray<LocalSymbol>.Empty, statements);
+                            });
+                        sideEffects.Add(rewrittenElement);
+                        break;
+                    default:
+                        {
+                            // dictionary[element.Key] = element.Value;
+                            var (rewrittenKey, rewrittenValue) = RewriteKeyValuePair((BoundExpression)element, setItemMethod, sideEffects, localsBuilder);
+                            sideEffects.Add(_factory.Call(dictionaryTemp, setItemMethod, rewrittenKey, rewrittenValue));
+                        }
+                        break;
+                }
+            }
+
+            var locals = localsBuilder.SelectAsArray(l => l.LocalSymbol);
+            localsBuilder.Free();
+
+            return new BoundSequence(
+                node.Syntax,
+                locals,
+                sideEffects.ToImmutableAndFree(),
+                dictionaryTemp,
+                collectionType);
+        }
+
+        private (BoundExpression, BoundExpression) RewriteKeyValuePair(
+            BoundExpression expression,
+            MethodSymbol addMethod,
+            ArrayBuilder<BoundExpression> sideEffects,
+            ArrayBuilder<BoundLocal> localsBuilder)
+        {
+            Debug.Assert(expression.Type is { });
+
+            var sourceType = (NamedTypeSymbol)expression.Type;
+            if (!ConversionsBase.IsKeyValuePairType(_compilation, sourceType, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out var sourceKeyType, out var sourceValueType))
+            {
+                throw ExceptionUtilities.UnexpectedValue(expression.Type);
+            }
+
+            BoundAssignmentOperator assignmentToTemp;
+            BoundLocal expressionTemp = _factory.StoreToTemp(VisitExpression(expression), out assignmentToTemp);
+            localsBuilder.Add(expressionTemp);
+            sideEffects.Add(assignmentToTemp);
+            var getKeyMethod = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key)).AsMember(sourceType);
+            var getValueMethod = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value)).AsMember(sourceType);
+            Debug.Assert(ConversionsBase.HasIdentityConversion(getKeyMethod.ReturnType, addMethod.Parameters[0].Type));
+            Debug.Assert(ConversionsBase.HasIdentityConversion(getValueMethod.ReturnType, addMethod.Parameters[1].Type));
+            return (_factory.Call(expressionTemp, getKeyMethod), _factory.Call(expressionTemp, getValueMethod));
         }
 
         private BoundExpression RewriteCollectionExpressionElementExpression(BoundNode element)

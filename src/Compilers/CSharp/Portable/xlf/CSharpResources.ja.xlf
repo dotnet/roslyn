@@ -477,6 +477,11 @@
         <target state="translated">このバージョンの '{0}' は、コレクション式では使用できません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionKeyValuePairNotSupported">
+        <source>Collection expression type '{0}' does not support key-value pair elements.</source>
+        <target state="new">Collection expression type '{0}' does not support key-value pair elements.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
         <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
         <target state="translated">コレクション式の型 '{0}' には、1 つの引数で呼び出すことができるインスタンスメソッドまたは拡張メソッド 'Add' が必要です。</target>

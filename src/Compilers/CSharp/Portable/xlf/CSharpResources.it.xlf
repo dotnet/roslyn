@@ -477,6 +477,11 @@
         <target state="translated">Questa versione di '{0}' non può essere utilizzata con espressioni di raccolta.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionKeyValuePairNotSupported">
+        <source>Collection expression type '{0}' does not support key-value pair elements.</source>
+        <target state="new">Collection expression type '{0}' does not support key-value pair elements.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionExpressionMissingAdd">
         <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
         <target state="translated">Il tipo di espressione della raccolta "{0}" deve avere un'istanza o un metodo di estensione "Add" da poter chiamare con un argomento singolo.</target>

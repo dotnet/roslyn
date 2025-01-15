@@ -2467,6 +2467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_UnassignedInternalRefField
                 or ErrorCode.WRN_AccessorDoesNotUseBackingField
                 or ErrorCode.ERR_IteratorRefLikeElementType
+                or ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported
                 or ErrorCode.ERR_WithElementMustBeFirst
                     => false,
             };

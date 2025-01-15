@@ -6868,6 +6868,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CollectionExpressionEscape" xml:space="preserve">
     <value>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</value>
   </data>
+  <data name="ERR_CollectionExpressionKeyValuePairNotSupported" xml:space="preserve">
+    <value>Collection expression type '{0}' does not support key-value pair elements.</value>
+  </data>
   <data name="INF_TooManyBoundLambdas" xml:space="preserve">
     <value>Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
   </data>
