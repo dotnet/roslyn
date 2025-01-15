@@ -124,17 +124,17 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
     /// then the declaration in the same file, then non auto-generated file,
     /// then all the potential location. Return null if no declaration.
     /// </summary>
-    public async Task<SyntaxNode?> FindMostRelevantNameSpaceOrTypeDeclarationAsync(
+    public SyntaxNode? FindMostRelevantNameSpaceOrTypeDeclaration(
         Solution solution,
         INamespaceOrTypeSymbol namespaceOrType,
         Location? location,
         CancellationToken cancellationToken)
     {
-        var (declaration, _) = await FindMostRelevantDeclarationAsync(solution, namespaceOrType, location, cancellationToken).ConfigureAwait(false);
+        var (declaration, _) = FindMostRelevantDeclaration(solution, namespaceOrType, location, cancellationToken);
         return declaration;
     }
 
-    private async Task<(SyntaxNode? declaration, IList<bool>? availableIndices)> FindMostRelevantDeclarationAsync(
+    private (SyntaxNode? declaration, IList<bool>? availableIndices) FindMostRelevantDeclaration(
         Solution solution,
         INamespaceOrTypeSymbol namespaceOrType,
         Location? location,
@@ -145,24 +145,21 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
 
         var symbol = namespaceOrType;
 
-        var declarations = _symbolDeclarationService.GetDeclarations(symbol);
+        var declarationReferences = _symbolDeclarationService.GetDeclarations(symbol);
+        var declarations = declarationReferences.SelectAsArray(r => r.GetSyntax(cancellationToken));
 
-        // If we have multiple declarations, and one is a child of another, then we want to prefer the innermost one.
-        using var _ = ArrayBuilder<SyntaxReference>.GetInstance(out var filteredDeclarations);
-        foreach (var currentDeclaration in declarations)
-        {
-            if (declarations.Any(d =>
-                    d != currentDeclaration &&
-                    d.SyntaxTree == currentDeclaration.SyntaxTree &&
-                    currentDeclaration.Span.Contains(d.Span)))
+        // Sort the declarations so that we prefer non-compilation-unit results over compilation-unit results. If we're
+        // adding to a type, we'd prefer to actually add to a real type-decl vs the compilation-unit if this is a top
+        // level type.
+        declarations = declarations.Sort(
+            static (n1, n2) => (n1 is ICompilationUnitSyntax, n2 is ICompilationUnitSyntax) switch
             {
-                continue;
-            }
+                (true, true) => 0,
+                (true, false) => 1,
+                (false, true) => -1,
+                (false, false) => 0,
+            });
 
-            filteredDeclarations.Add(currentDeclaration);
-        }
-
-        declarations = filteredDeclarations.ToImmutable();
         var fallbackDeclaration = (SyntaxNode?)null;
         if (location != null && location.IsInSource)
         {
@@ -196,13 +193,13 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             // container isn't really used by the user to place code, but is instead just
             // used to separate out the nested type.  It would be nice to detect this and do the
             // right thing.
-            declaration = await SelectFirstOrDefaultAsync(declarations, token.GetRequiredParent().AncestorsAndSelf().Contains, cancellationToken).ConfigureAwait(false);
+            declaration = declarations.FirstOrDefault(token.GetRequiredParent().AncestorsAndSelf().Contains);
             fallbackDeclaration = declaration;
             if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
                 return (declaration, availableIndices);
 
             // Then, prefer a declaration from the same file.
-            declaration = await SelectFirstOrDefaultAsync(declarations.Where(r => r.SyntaxTree == location.SourceTree), node => true, cancellationToken).ConfigureAwait(false);
+            declaration = declarations.Where(r => r.SyntaxTree == location.SourceTree).FirstOrDefault(node => true);
             fallbackDeclaration ??= declaration;
             if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
                 return (declaration, availableIndices);
@@ -211,29 +208,14 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
         // If there is a declaration in a non auto-generated file, prefer it.
         foreach (var decl in declarations)
         {
-            declaration = await decl.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-            if (CanAddTo(declaration, solution, cancellationToken, out availableIndices, checkGeneratedCode: true))
-                return (declaration, availableIndices);
+            if (CanAddTo(decl, solution, cancellationToken, out availableIndices, checkGeneratedCode: true))
+                return (decl, availableIndices);
         }
 
         // Generate into any declaration we can find.
         availableIndices = null;
-        declaration = fallbackDeclaration ?? await SelectFirstOrDefaultAsync(declarations, node => true, cancellationToken).ConfigureAwait(false);
+        declaration = fallbackDeclaration ?? declarations.FirstOrDefault();
 
         return (declaration, availableIndices);
-    }
-
-    private static async Task<SyntaxNode?> SelectFirstOrDefaultAsync(IEnumerable<SyntaxReference> references, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
-    {
-        foreach (var r in references)
-        {
-            var node = await r.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-            if (predicate(node))
-            {
-                return node;
-            }
-        }
-
-        return null;
     }
 }

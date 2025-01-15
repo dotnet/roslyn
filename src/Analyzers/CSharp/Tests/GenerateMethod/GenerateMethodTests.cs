@@ -11132,6 +11132,8 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
             }
             """,
             """
+            using System;
+
             Program.Test();
             
             internal partial class Program
