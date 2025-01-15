@@ -10,6 +10,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     {
         private static Func<AssemblyName, Assembly?>? s_assemblyResolver;
 
-        private static readonly HashSet<AssemblyName> s_assembliesRequested = [];
+        private static readonly HashSet<AssemblyName> s_assembliesRequested = new(new AssemblyNameEqualityComparer());
 
         private static readonly object s_resolverLock = new();
 
@@ -53,6 +54,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             }
 
             return resolver?.Invoke(assemblyName);
+        }
+
+        private class AssemblyNameEqualityComparer : IEqualityComparer<AssemblyName>
+        {
+            public bool Equals(AssemblyName? x, AssemblyName? y) => x?.FullName.Equals(y?.FullName) == true;
+
+            public int GetHashCode(AssemblyName obj) => Hash.GetFNVHashCode(obj.FullName);
         }
     }
 }
