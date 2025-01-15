@@ -8680,7 +8680,7 @@ class Program
         }
 
         [Fact]
-        public void TestScopedImplicitParameter_CSharp13()
+        public void TestScopedImplicitParameter_CSharp13_1()
         {
             var source = $$"""
                 using System;
@@ -8709,7 +8709,33 @@ class Program
         }
 
         [Fact]
-        public void TestScopedImplicitParameter()
+        public void TestScopedImplicitParameter_CSharp13_2()
+        {
+            var source = $$"""
+                using System;
+
+                class @scoped { }
+
+                class C
+                {
+                    void M()
+                    {
+                        Action<scoped> f = (scoped a) => { };
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
+            Assert.Equal(ScopedKind.None, symbol.Parameters[0].ScopedKind);
+        }
+
+        [Fact]
+        public void TestScopedImplicitParameter1()
         {
             var source = $$"""
                 class scoped { }
@@ -8728,6 +8754,33 @@ class Program
                 // (1,7): error CS9062: Types and aliases cannot be named 'scoped'.
                 // class scoped { }
                 Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 7));
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
+            Assert.Equal(ScopedKind.ScopedValue, symbol.Parameters[0].ScopedKind);
+            Assert.Equal("S", symbol.Parameters[0].Type.Name);
+        }
+
+        [Fact]
+        public void TestScopedImplicitParameter2()
+        {
+            var source = $$"""
+                class @scoped { }
+                ref struct S { }
+                delegate void D(S s);
+
+                class C
+                {
+                    void M()
+                    {
+                        D f = (scoped a) => { };
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
