@@ -214,6 +214,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public abstract PrivateImplementationDetails? GetFrozenPrivateImplementationDetails();
 
+        internal abstract PrivateImplementationDetails GetPrivateImplClass(SyntaxNode? syntaxNode, DiagnosticBag diagnostics);
+
         /// <summary>
         /// Additional top-level types injected by the Expression Evaluators.
         /// </summary>
@@ -1024,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
 
             // map a field to the block (that makes it addressable via a token)
-            return privateImpl.CreateDataField(data, alignment);
+            return privateImpl.GetOrAddDataField(data, alignment);
         }
 
         Cci.IFieldReference ITokenDeferral.GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
@@ -1042,6 +1044,14 @@ namespace Microsoft.CodeAnalysis.Emit
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
             var emitContext = new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true);
             return privateImpl.CreateArrayCachingField(constants, arrayType, emitContext);
+        }
+
+        /// <summary>
+        /// <see cref="PrivateImplementationDetails.TryGetOrCreateFieldForStringValue"/>
+        /// </summary>
+        public Cci.IFieldReference TryGetOrCreateFieldForStringValue(string text, TSyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            return PrivateImplementationDetails.TryGetOrCreateFieldForStringValue(text, this, syntaxNode, diagnostics);
         }
 
         public abstract Cci.IMethodReference GetInitArrayHelper();
@@ -1072,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
 #nullable enable
 
-        internal PrivateImplementationDetails GetPrivateImplClass(TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        internal PrivateImplementationDetails GetPrivateImplClass(TSyntaxNode? syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             var result = _lazyPrivateImplementationDetails;
 
@@ -1097,6 +1107,11 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return result;
+        }
+
+        internal override PrivateImplementationDetails GetPrivateImplClass(SyntaxNode? syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            return GetPrivateImplClass((TSyntaxNode?)syntaxNodeOpt, diagnostics);
         }
 
         public PrivateImplementationDetails? FreezePrivateImplementationDetails()

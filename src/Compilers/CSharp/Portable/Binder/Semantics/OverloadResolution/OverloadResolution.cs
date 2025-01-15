@@ -2980,19 +2980,6 @@ outerDefault:
             switch ((conv1.Kind, conv2.Kind))
             {
                 case (ConversionKind.ImplicitSpan, ConversionKind.ImplicitSpan):
-                    // If the expression is of an array type, prefer ReadOnlySpan over Span (to avoid ArrayTypeMismatchExceptions).
-                    if (node.Type is ArrayTypeSymbol)
-                    {
-                        if (t1.IsReadOnlySpan() && t2.IsSpan())
-                        {
-                            return BetterResult.Left;
-                        }
-
-                        if (t1.IsSpan() && t2.IsReadOnlySpan())
-                        {
-                            return BetterResult.Right;
-                        }
-                    }
                     break;
                 case (_, ConversionKind.ImplicitSpan):
                     return BetterResult.Right;
@@ -3454,6 +3441,27 @@ outerDefault:
                 return BetterResult.Neither;
             }
 
+            // SPEC: T₁ is System.ReadOnlySpan<E₁>, T₂ is System.Span<E₂>, and an identity conversion from E₁ to E₂ exists
+            if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan))
+            {
+                if (isBetterSpanConversionTarget(type1, type2))
+                {
+                    return BetterResult.Left;
+                }
+                else if (isBetterSpanConversionTarget(type2, type1))
+                {
+                    return BetterResult.Right;
+                }
+                // The next case (a type is a better target if an implicit conversion from it to the other type exists)
+                // does not apply to span conversions except the covariant ReadOnlySpan->ReadOnlySpan conversion.
+                else if ((type1.IsSpan() || type1.IsReadOnlySpan()) &&
+                    (type2.IsSpan() || type2.IsReadOnlySpan()) &&
+                    !(type1.IsReadOnlySpan() && type2.IsReadOnlySpan()))
+                {
+                    return BetterResult.Neither;
+                }
+            }
+
             // Given two different types T1 and T2, T1 is a better conversion target than T2 if no implicit conversion from T2 to T1 exists,
             // and at least one of the following holds:
             bool type1ToType2 = Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteInfo).IsImplicit;
@@ -3592,6 +3600,22 @@ outerDefault:
             }
 
             return BetterResult.Neither;
+
+            static bool isBetterSpanConversionTarget(TypeSymbol type1, TypeSymbol type2)
+            {
+                // SPEC: T₁ is System.ReadOnlySpan<E₁>, T₂ is System.Span<E₂>, and an identity conversion from E₁ to E₂ exists
+                if (type1.IsReadOnlySpan() && type2.IsSpan())
+                {
+                    var type1Element = ((NamedTypeSymbol)type1).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                    var type2Element = ((NamedTypeSymbol)type2).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                    if (Conversions.HasIdentityConversion(type1Element, type2Element))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private bool IsMethodGroupConversionIncompatibleWithDelegate(BoundMethodGroup node, NamedTypeSymbol delegateType, Conversion conv)

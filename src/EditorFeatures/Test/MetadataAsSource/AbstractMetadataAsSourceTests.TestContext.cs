@@ -43,17 +43,19 @@ public abstract partial class AbstractMetadataAsSourceTests
             string? languageVersion = null,
             string? metadataLanguageVersion = null,
             string? metadataCommonReferences = null,
-            bool fileScopedNamespaces = false)
+            bool fileScopedNamespaces = false,
+            string? commonReferencesValue = null)
         {
             projectLanguage ??= LanguageNames.CSharp;
             metadataSources ??= [];
             metadataSources = !metadataSources.Any()
-                ? new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource }
+                ? [DefaultMetadataSource]
                 : metadataSources;
 
             var workspace = CreateWorkspace(
                 projectLanguage, metadataSources, includeXmlDocComments,
-                sourceWithSymbolReference, languageVersion, metadataLanguageVersion, metadataCommonReferences);
+                sourceWithSymbolReference, languageVersion,
+                metadataLanguageVersion, metadataCommonReferences, commonReferencesValue);
 
             if (fileScopedNamespaces)
             {
@@ -248,17 +250,19 @@ public abstract partial class AbstractMetadataAsSourceTests
             string? sourceWithSymbolReference,
             string? languageVersion,
             string? metadataLanguageVersion,
-            string? metadataCommonReferences)
+            string? metadataCommonReferences,
+            string? commonReferencesValue)
         {
             var languageVersionAttribute = languageVersion is null ? "" : $@" LanguageVersion=""{languageVersion}""";
 
-            var xmlString = string.Concat(@"
-<Workspace>
-    <Project Language=""", projectLanguage, @""" CommonReferences=""true"" ReferencesOnDisk=""true""", languageVersionAttribute);
+            commonReferencesValue ??= """CommonReferences="true" """;
 
-            xmlString += ">";
+            var xmlString = $$"""
+                <Workspace>
+                    <Project Language="{{projectLanguage}}" {{commonReferencesValue}}ReferencesOnDisk="true" {{languageVersionAttribute}}>
+                """;
 
-            metadataSources ??= new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource };
+            metadataSources ??= [DefaultMetadataSource];
 
             foreach (var source in metadataSources)
             {
@@ -282,9 +286,11 @@ public abstract partial class AbstractMetadataAsSourceTests
                     sourceWithSymbolReference));
             }
 
-            xmlString = string.Concat(xmlString, @"
-    </Project>
-</Workspace>");
+            xmlString += """
+
+                    </Project>
+                </Workspace>
+                """;
 
             // We construct our own composition here because we only want the decompilation metadata as source provider
             // to be available.
