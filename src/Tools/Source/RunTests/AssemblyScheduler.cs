@@ -42,9 +42,8 @@ namespace RunTests
         ///   2.  Downloading assets to the helix machine.
         ///   3.  Setting up the test host for each assembly.
         ///   
-        /// we need to actually build partitions that run in under 5 minutes, hence our limit here of 2m30s.
         /// </summary>
-        private static readonly TimeSpan s_maxExecutionTime = TimeSpan.FromSeconds(150);
+        private static readonly TimeSpan s_maxExecutionTime = TimeSpan.FromSeconds(60 * 10);
 
         /// <summary>
         /// If we were unable to find the test execution history, we fall back to partitioning by just method count.
