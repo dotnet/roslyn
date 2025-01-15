@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
         private readonly string _workspaceKind;
-        
+
         internal TestWorkspace(
             TestComposition? composition = null,
             string? workspaceKind = WorkspaceKind.Host,
