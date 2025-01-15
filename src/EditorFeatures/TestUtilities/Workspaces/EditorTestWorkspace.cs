@@ -8,6 +8,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -31,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities;
 
 public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>, ILspWorkspace
 {
+    private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
+
     private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = [];
     private readonly bool _supportsLspMutation;
 
@@ -522,5 +526,20 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
 
             return textBuffer;
         });
+    }
+
+    protected override (MetadataReference reference, ImmutableArray<byte> peImage) CreateMetadataReferenceFromSource(XElement projectElement, XElement referencedSource)
+    {
+        var (reference, image) = base.CreateMetadataReferenceFromSource(projectElement, referencedSource);
+
+        var referencesOnDisk = projectElement.Attribute(ReferencesOnDiskAttributeName) is { } onDiskAttribute
+            && ((bool?)onDiskAttribute).GetValueOrDefault();
+
+        if (referencesOnDisk)
+        {
+            AssemblyResolver.TestAccessor.AddInMemoryImage(reference, "unknown", image);
+        }
+
+        return (reference, image);
     }
 }
