@@ -62,12 +62,13 @@ internal abstract class AbstractJsonDetectionAnalyzer(EmbeddedLanguageInfo info)
 
         while (stack.TryPop(out var child))
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!context.ShouldAnalyzeSpan(child.FullSpan))
                 continue;
 
             if (child.AsNode(out var childNode))
             {
-                Analyze(context, detector, childNode, cancellationToken);
                 foreach (var nodeOrToken in childNode.ChildNodesAndTokens())
                     stack.Push(nodeOrToken);
             }
