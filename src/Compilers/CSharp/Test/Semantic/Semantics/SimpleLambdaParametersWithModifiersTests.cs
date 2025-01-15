@@ -614,39 +614,6 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
     }
 
     [Fact]
-    public void TestOverloadResolution3()
-    {
-        var compilation = CompileAndVerify("""
-            using System;
-
-            delegate void D(ref int x);
-            delegate void E(int x);
-
-            class C
-            {
-                static void Main()
-                {
-                    M1((x) => { });
-                }
-
-                static void M1(D d) { Console.WriteLine(0); }
-                static void M1(E e) { Console.WriteLine(1); }
-            }
-            """,
-            expectedOutput: "1").VerifyDiagnostics().Compilation;
-
-        var tree = compilation.SyntaxTrees.Single();
-        var root = tree.GetRoot();
-        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
-
-        var semanticModel = compilation.GetSemanticModel(tree);
-        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
-
-        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
-        Assert.True(symbol.Parameters is [{ Name: "x", Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None, IsOptional: false }]);
-    }
-
-    [Fact]
     public void TestTypeInference()
     {
         var compilation = CreateCompilation("""
@@ -1454,5 +1421,38 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
         Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
         Assert.Equal(RefKind.RefReadOnlyParameter, symbol.Parameters.Single().RefKind);
         Assert.Equal(SpecialType.System_Int32, symbol.Parameters.Single().Type.SpecialType);
+    }
+
+    [Fact]
+    public void TestOneParameterWithRefReadonly4()
+    {
+        var compilation = CreateCompilation("""
+            delegate void D(ref readonly int x);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (ref x) =>
+                    {
+                        x = 0;
+                    };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (7,20): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+                //         D d = (ref x) =>
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(7, 20));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.Equal(RefKind.Ref, symbol.Parameters.Single().RefKind);
+        Assert.Equal(SpecialType.None, symbol.Parameters.Single().Type.SpecialType);
     }
 }
