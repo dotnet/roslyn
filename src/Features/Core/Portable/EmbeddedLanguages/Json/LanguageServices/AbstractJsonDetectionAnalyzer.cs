@@ -64,13 +64,13 @@ internal abstract class AbstractJsonDetectionAnalyzer(EmbeddedLanguageInfo info)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!context.ShouldAnalyzeSpan(child.FullSpan))
-                continue;
-
             if (child.AsNode(out var childNode))
             {
                 foreach (var nodeOrToken in childNode.ChildNodesAndTokens())
-                    stack.Push(nodeOrToken);
+                {
+                    if (context.ShouldAnalyzeSpan(nodeOrToken.FullSpan))
+                        stack.Push(nodeOrToken);
+                }
             }
             else
             {
