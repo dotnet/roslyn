@@ -13,7 +13,7 @@ As part of this work, a breaking change was accepted where `scoped` will always 
 in a lambda parameter, even where it might have been accepted as a type name in the past.  For example:
 
 ```c#
-// Legal if a type named 'scoped' was in scope (for example, from an external library)
+ref struct @scoped { }
 var v = (scoped scoped s) => { ... };
 ```
 
