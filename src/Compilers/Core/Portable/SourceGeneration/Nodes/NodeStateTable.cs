@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis
                 _states = ArrayBuilder<TableEntry>.GetInstance(tableCapacity ?? previous.GetTotalEntryItemCount());
                 _previous = previous;
                 _name = name;
-                _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
+                _equalityComparer = equalityComparer ?? WrappedUserComparer<T>.Default;
                 if (stepTrackingEnabled)
                 {
                     _steps = ArrayBuilder<IncrementalGeneratorRunStep>.GetInstance();
