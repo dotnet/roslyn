@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         private class AssemblyNameEqualityComparer : IEqualityComparer<AssemblyName>
         {
-            public bool Equals(AssemblyName? x, AssemblyName? y) => x?.FullName.Equals(y?.FullName) == true;
+            public bool Equals(AssemblyName? x, AssemblyName? y) => x!.FullName.Equals(y!.FullName);
 
             public int GetHashCode(AssemblyName obj) => Hash.GetFNVHashCode(obj.FullName);
         }
