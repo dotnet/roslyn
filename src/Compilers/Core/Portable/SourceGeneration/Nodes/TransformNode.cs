@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly string? s_tableType = typeof(TOutput).FullName;
 
         private readonly Func<TInput, CancellationToken, ImmutableArray<TOutput>> _func;
-        private readonly IEqualityComparer<TOutput> _comparer;
+        private readonly IEqualityComparer<TOutput>? _comparer;
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
         private readonly string? _name;
         private readonly bool _wrapUserFunc;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
             _sourceNode = sourceNode;
             _func = userFunc;
             _wrapUserFunc = wrapUserFunc;
-            _comparer = comparer ?? EqualityComparer<TOutput>.Default;
+            _comparer = comparer;
             _name = name;
         }
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
                         throw new UserFunctionException(e);
                     }
 
-                    if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntries(newOutputs, _comparer, stopwatch.Elapsed, inputs, entry.State))
+                    if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntries(newOutputs, stopwatch.Elapsed, inputs, entry.State))
                     {
                         tableBuilder.AddEntries(newOutputs, EntryState.Added, stopwatch.Elapsed, inputs, entry.State);
                     }

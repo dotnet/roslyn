@@ -82,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var previousTable = builder.ToImmutableAndFree();
 
             builder = previousTable.ToBuilder(stepName: null, false);
-            builder.TryModifyEntries(ImmutableArray.Create(10, 11), EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified);
+            builder.TryModifyEntries(ImmutableArray.Create(10, 11), TimeSpan.Zero, default, EntryState.Modified);
             builder.TryUseCachedEntries(TimeSpan.Zero, default, out var cachedEntries); // ((2, EntryState.Cached), (3, EntryState.Cached))
-            builder.TryModifyEntries(ImmutableArray.Create(20, 21, 22), EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified);
+            builder.TryModifyEntries(ImmutableArray.Create(20, 21, 22), TimeSpan.Zero, default, EntryState.Modified);
             bool didRemoveEntries = builder.TryRemoveEntries(TimeSpan.Zero, default, out var removedEntries); //((6, EntryState.Removed))
             var newTable = builder.ToImmutableAndFree();
 
@@ -185,9 +185,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             AssertTableEntries(previousTable, expected);
 
             builder = previousTable.ToBuilder(stepName: null, false);
-            Assert.True(builder.TryModifyEntries(ImmutableArray.Create(3, 2), EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));
-            Assert.True(builder.TryModifyEntries(ImmutableArray<int>.Empty, EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));
-            Assert.True(builder.TryModifyEntries(ImmutableArray.Create(3, 5), EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));
+            Assert.True(builder.TryModifyEntries(ImmutableArray.Create(3, 2), TimeSpan.Zero, default, EntryState.Modified));
+            Assert.True(builder.TryModifyEntries(ImmutableArray<int>.Empty, TimeSpan.Zero, default, EntryState.Modified));
+            Assert.True(builder.TryModifyEntries(ImmutableArray.Create(3, 5), TimeSpan.Zero, default, EntryState.Modified));
 
             var newTable = builder.ToImmutableAndFree();
 
@@ -209,10 +209,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             AssertTableEntries(previousTable, expected);
 
             builder = previousTable.ToBuilder(stepName: null, false);
-            Assert.True(builder.TryModifyEntry(1, EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));
-            Assert.True(builder.TryModifyEntry(2, EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));
-            Assert.True(builder.TryModifyEntry(5, EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));
-            Assert.True(builder.TryModifyEntry(4, EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));
+            Assert.True(builder.TryModifyEntry(1, TimeSpan.Zero, default, EntryState.Modified));
+            Assert.True(builder.TryModifyEntry(2, TimeSpan.Zero, default, EntryState.Modified));
+            Assert.True(builder.TryModifyEntry(5, TimeSpan.Zero, default, EntryState.Modified));
+            Assert.True(builder.TryModifyEntry(4, TimeSpan.Zero, default, EntryState.Modified));
 
             var newTable = builder.ToImmutableAndFree();
 
@@ -232,10 +232,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var expected = ImmutableArray.Create((1, EntryState.Added, 0), (2, EntryState.Added, 0), (3, EntryState.Added, 0));
             AssertTableEntries(previousTable, expected);
 
-            builder = previousTable.ToBuilder(stepName: null, false);
-            Assert.True(builder.TryModifyEntry(1, EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));           // ((1, EntryState.Cached))
-            Assert.True(builder.TryModifyEntry(4, EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));           // ((4, EntryState.Modified))
-            Assert.True(builder.TryModifyEntry(5, new LambdaComparer<int>((i, j) => true), TimeSpan.Zero, default, EntryState.Modified)); // ((3, EntryState.Cached))
+            builder = previousTable.ToBuilder(stepName: null, false, new LambdaComparer<int>((i, j) => i == 3 || i == j));
+            Assert.True(builder.TryModifyEntry(1, TimeSpan.Zero, default, EntryState.Modified)); // ((1, EntryState.Cached))
+            Assert.True(builder.TryModifyEntry(4, TimeSpan.Zero, default, EntryState.Modified)); // ((4, EntryState.Modified))
+            Assert.True(builder.TryModifyEntry(5, TimeSpan.Zero, default, EntryState.Modified)); // ((3, EntryState.Cached))
             var newTable = builder.ToImmutableAndFree();
 
             expected = ImmutableArray.Create((1, EntryState.Cached, 0), (4, EntryState.Modified, 0), (3, EntryState.Cached, 0));
