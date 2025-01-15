@@ -2,7 +2,7 @@
 
 This document lists known breaking changes in Roslyn after .NET 9 general release (.NET SDK version 9.0.100) through .NET 10 general release (.NET SDK version 10.0.100).
 
-## 'scoped' in a lambda parameter list is now always a modifier.
+## `scoped` in a lambda parameter list is now always a modifier.
 
 ***Introduced in Visual Studio 2022 version 17.13***
 
@@ -17,8 +17,8 @@ in a lambda parameter, even where it might have been accepted as a type name in 
 var v = (scoped scoped s) => { ... };
 ```
 
-In C# 14 this will be an error as both 'scoped' tokens are treated as modifiers.  The workaround is to
-use '@' in the type name position like so:
+In C# 14 this will be an error as both `scoped` tokens are treated as modifiers.  The workaround is to
+use `@` in the type name position like so:
 
 ```c#
 // Legal if a type named 'scoped' was in scope (for example, from an external library)
