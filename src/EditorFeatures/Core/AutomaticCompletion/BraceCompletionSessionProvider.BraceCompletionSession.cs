@@ -41,14 +41,14 @@ internal partial class BraceCompletionSessionProvider
         char closingBrace,
         ITextUndoHistory undoHistory,
         IBraceCompletionService service,
-        bool responsiveCompletion) : IBraceCompletionSession
+        CancellationToken cancellationToken) : IBraceCompletionSession
     {
         private readonly BraceCompletionSessionProvider _provider = provider;
 
         private readonly IEditorOperations _editorOperations = provider._editorOperationsFactoryService.GetEditorOperations(textView);
         private readonly IBraceCompletionService _service = service;
         private readonly ITextUndoHistory _undoHistory = undoHistory;
-        private readonly bool _responsiveCompletion = responsiveCompletion;
+        private readonly CancellationToken _cancellationToken = cancellationToken;
 
         private IThreadingContext ThreadingContext => _provider._threadingContext;
         private EditorOptionsService EditorOptionsService => _provider._editorOptionsService;
@@ -68,16 +68,9 @@ internal partial class BraceCompletionSessionProvider
         {
             ThreadingContext.ThrowIfNotOnUIThread();
 
-            // Brace completion is cancellable if the user has the 'responsive completion' option enabled. 200 ms was
-            // chosen as the default timeout with the editor as a good balance of having enough time for computation,
-            // while canceling early enough to not be too disruptive.
-            var cancellationTokenSource = new CancellationTokenSource();
-            if (_responsiveCompletion)
-                cancellationTokenSource.CancelAfter(200);
-
             try
             {
-                var success = ThreadingContext.JoinableTaskFactory.Run(() => TryStartAsync(cancellationTokenSource.Token));
+                var success = ThreadingContext.JoinableTaskFactory.Run(() => TryStartAsync(_cancellationToken));
                 if (!success)
                     EndSession();
             }
