@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             return resolver?.Invoke(assemblyName);
         }
 
-        private class AssemblyNameEqualityComparer : IEqualityComparer<AssemblyName>
+        private sealed class AssemblyNameEqualityComparer : IEqualityComparer<AssemblyName>
         {
             public bool Equals(AssemblyName? x, AssemblyName? y) => x!.FullName.Equals(y!.FullName);
 
