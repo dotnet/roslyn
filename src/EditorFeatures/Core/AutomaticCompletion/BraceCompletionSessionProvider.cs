@@ -66,7 +66,7 @@ internal sealed partial class BraceCompletionSessionProvider(
                     session = new BraceCompletionSession(
                         this, textView, openingPoint.Snapshot.TextBuffer,
                         openingPoint, openingBrace, closingBrace,
-                        undoHistory, editorSession, cancellationToken);
+                        undoHistory, editorSession, responsiveCompletion);
                     return true;
                 }
             }
@@ -74,18 +74,18 @@ internal sealed partial class BraceCompletionSessionProvider(
 
         session = null;
         return false;
+    }
 
-        static CancellationToken GetCancellationToken(bool responsiveCompletion)
-        {
-            if (!responsiveCompletion)
-                return CancellationToken.None;
+    private static CancellationToken GetCancellationToken(bool responsiveCompletion)
+    {
+        if (!responsiveCompletion)
+            return CancellationToken.None;
 
-            // Brace completion is cancellable if the user has the 'responsive completion' option enabled. 200 ms was
-            // chosen as the default timeout with the editor as a good balance of having enough time for computation,
-            // while canceling early enough to not be too disruptive.
-            var cancellationTokenSource = new CancellationTokenSource();
-            cancellationTokenSource.CancelAfter(200);
-            return cancellationTokenSource.Token;
-        }
+        // Brace completion is cancellable if the user has the 'responsive completion' option enabled. 200 ms was
+        // chosen as the default timeout with the editor as a good balance of having enough time for computation,
+        // while canceling early enough to not be too disruptive.
+        var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.CancelAfter(200);
+        return cancellationTokenSource.Token;
     }
 }
