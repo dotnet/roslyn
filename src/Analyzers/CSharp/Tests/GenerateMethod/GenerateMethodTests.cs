@@ -11119,4 +11119,28 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70803")]
+    public async Task GenerateIntoTopLevelProgramWithPartialType()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            Program.[|Test|]();
+
+            internal partial class Program
+            {
+            }
+            """,
+            """
+            Program.Test();
+            
+            internal partial class Program
+            {
+                public static void Test()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
 }

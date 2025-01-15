@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -146,6 +147,22 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
 
         var declarations = _symbolDeclarationService.GetDeclarations(symbol);
 
+        // If we have multiple declarations, and one is a child of another, then we want to prefer the innermost one.
+        using var _ = ArrayBuilder<SyntaxReference>.GetInstance(out var filteredDeclarations);
+        foreach (var currentDeclaration in declarations)
+        {
+            if (declarations.Any(d =>
+                    d != currentDeclaration &&
+                    d.SyntaxTree == currentDeclaration.SyntaxTree &&
+                    currentDeclaration.Span.Contains(d.Span)))
+            {
+                continue;
+            }
+
+            filteredDeclarations.Add(currentDeclaration);
+        }
+
+        declarations = filteredDeclarations.ToImmutable();
         var fallbackDeclaration = (SyntaxNode?)null;
         if (location != null && location.IsInSource)
         {
@@ -182,17 +199,13 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             declaration = await SelectFirstOrDefaultAsync(declarations, token.GetRequiredParent().AncestorsAndSelf().Contains, cancellationToken).ConfigureAwait(false);
             fallbackDeclaration = declaration;
             if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
-            {
                 return (declaration, availableIndices);
-            }
 
             // Then, prefer a declaration from the same file.
             declaration = await SelectFirstOrDefaultAsync(declarations.Where(r => r.SyntaxTree == location.SourceTree), node => true, cancellationToken).ConfigureAwait(false);
             fallbackDeclaration ??= declaration;
             if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
-            {
                 return (declaration, availableIndices);
-            }
         }
 
         // If there is a declaration in a non auto-generated file, prefer it.
@@ -200,9 +213,7 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
         {
             declaration = await decl.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
             if (CanAddTo(declaration, solution, cancellationToken, out availableIndices, checkGeneratedCode: true))
-            {
                 return (declaration, availableIndices);
-            }
         }
 
         // Generate into any declaration we can find.

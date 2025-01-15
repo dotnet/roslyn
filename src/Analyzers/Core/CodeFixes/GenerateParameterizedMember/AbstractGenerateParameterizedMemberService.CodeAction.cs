@@ -94,8 +94,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface)),
                     _state.TypeToGenerateIn,
                     method,
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(false);
 
                 return result;
             }
