@@ -41,7 +41,7 @@ internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, I
         Logger.Log(FunctionId.LSP_Initialize, KeyValueLogMessage.Create(m =>
         {
             m["serverKind"] = context.ServerKind.ToTelemetryString();
-            m["capabilities"] = JsonSerializer.Serialize(serverCapabilities, ProtocolConversions.LspJsonSerializerOptions);
+            //m["capabilities"] = JsonSerializer.Serialize(serverCapabilities, ProtocolConversions.LspJsonSerializerOptions);
         }));
 
         return Task.FromResult(new InitializeResult
