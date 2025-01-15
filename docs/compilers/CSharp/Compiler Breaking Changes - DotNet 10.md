@@ -13,16 +13,18 @@ As part of this work, a breaking change was accepted where `scoped` will always 
 in a lambda parameter, even where it might have been accepted as a type name in the past.  For example:
 
 ```c#
-ref struct @scoped { }
 var v = (scoped scoped s) => { ... };
+
+ref struct @scoped { }
 ```
 
 In C# 14 this will be an error as both `scoped` tokens are treated as modifiers.  The workaround is to
 use `@` in the type name position like so:
 
 ```c#
-// Legal if a type named 'scoped' was in scope (for example, from an external library)
 var v = (scoped @scoped s) => { ... };
+
+ref struct @scoped { }
 ```
 
 ## `Span<T>` and `ReadOnlySpan<T>` overloads are applicable in more scenarios in C# 14 and newer
