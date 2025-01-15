@@ -235,6 +235,65 @@ public sealed class SimpleLambdaParametersWithModifiersTests : SemanticModelTest
     }
 
     [Fact]
+    public void TestTwoParametersWithScopedAndRef1()
+    {
+        var compilation = CreateCompilationWithSpan("""
+            using System;
+            delegate void D(scoped ReadOnlySpan<int> a, ref ReadOnlySpan<int> b);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (scoped a, ref b) => { };
+                }
+            }
+            """).VerifyDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.Equal(ScopedKind.ScopedValue, symbol.Parameters.First().ScopedKind);
+        Assert.Equal(compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName).GetPublicSymbol(), symbol.Parameters.First().Type.OriginalDefinition);
+    }
+
+    [Fact]
+    public void TestTwoParametersWithScopedAndRef2()
+    {
+        var compilation = CreateCompilationWithSpan("""
+            using System;
+            delegate void D(scoped ReadOnlySpan<int> a, ref ReadOnlySpan<int> b);
+
+            class C
+            {
+                void M()
+                {
+                    D d = (a, ref b) => { };
+                }
+            }
+            """).VerifyDiagnostics(
+                // (8,15): error CS8986: The 'scoped' modifier of parameter 'a' doesn't match target 'D'.
+                //         D d = (a, ref b) => { };
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(a, ref b) => { }").WithArguments("a", "D").WithLocation(8, 15));
+
+        var tree = compilation.SyntaxTrees.Single();
+        var root = tree.GetRoot();
+        var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol!;
+
+        Assert.Equal(MethodKind.LambdaMethod, symbol.MethodKind);
+        Assert.Equal(ScopedKind.None, symbol.Parameters.First().ScopedKind);
+        Assert.Equal(compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName).GetPublicSymbol(), symbol.Parameters.First().Type.OriginalDefinition);
+    }
+
+    [Fact]
     public void TestOneParameterWithScopedAndOptionalValue()
     {
         var compilation = CreateCompilationWithSpan("""
