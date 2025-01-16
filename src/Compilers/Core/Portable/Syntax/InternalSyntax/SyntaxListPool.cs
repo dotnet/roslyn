@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal class SyntaxListPool
+    internal sealed class SyntaxListPool
     {
         private static readonly ObjectPool<SyntaxListPool> s_listPool = new ObjectPool<SyntaxListPool>(() => new SyntaxListPool());
 
