@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         private sealed class AssemblyNameEqualityComparer : IEqualityComparer<AssemblyName>
         {
+            // Note that we explicitly consider the FullName here so that two assemblies with
+            // the same name but different versions are considered to be different
             public bool Equals(AssemblyName? x, AssemblyName? y) => x!.FullName.Equals(y!.FullName);
 
             public int GetHashCode(AssemblyName obj) => Hash.GetFNVHashCode(obj.FullName);
