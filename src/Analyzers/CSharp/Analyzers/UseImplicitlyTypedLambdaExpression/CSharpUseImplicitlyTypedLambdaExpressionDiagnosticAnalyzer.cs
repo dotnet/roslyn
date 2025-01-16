@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseImplicitlyTypedLambdaExpression;
@@ -103,7 +104,9 @@ internal sealed class CSharpUseImplicitlyTypedLambdaExpressionDiagnosticAnalyzer
     {
         var implicitLambda = explicitLambda.ReplaceNodes(
             explicitLambda.ParameterList.Parameters,
-            (parameter, _) => RemoveParamsModifier(parameter.WithType(null)));
+            (parameter, _) => RemoveParamsModifier(
+                parameter.WithType(null)
+                         .WithIdentifier(parameter.Identifier.WithPrependedLeadingTrivia(parameter.Type!.GetLeadingTrivia()))));
 
         // If the lambda only has one parameter, then convert it to the non-parenthesized form.
         if (implicitLambda.ParameterList.Parameters is [{ AttributeLists.Count: 0, Modifiers.Count: 0 } parameter])
