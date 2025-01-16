@@ -473,4 +473,43 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
             LanguageVersion = CSharp14,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestAttribute()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class XAttribute : Attribute
+                {
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        Action<int> d = [|(|][X] int i) => { };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class XAttribute : Attribute
+                {
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        Action<int> d = [|(|][X] i) => { };
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
 }
