@@ -1404,7 +1404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..17)" Text="(?(?i))" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowNullReference: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1480,7 +1480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..17)" Text="(?(?I))" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowNullReference: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1521,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..17)" Text="(?(?M))" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowNullReference: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1562,7 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..17)" Text="(?(?s))" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowNullReference: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1603,7 +1603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..17)" Text="(?(?S))" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowNullReference: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1644,7 +1644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..17)" Text="(?(?x))" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowNullReference: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1685,7 +1685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..17)" Text="(?(?X))" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowNullReference: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1726,7 +1726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..17)" Text="(?(?n))" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowNullReference: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1767,7 +1767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..17)" Text="(?(?m))" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowNullReference: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -2495,7 +2495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..17)" Text="(?(?N))" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowNullReference: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -2865,7 +2865,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="dog" Span="[24..41)" Text="(?&lt;dog-()*!@&gt;dog)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowIndexOutOfRange: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -2926,7 +2926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="dog" Span="[24..42)" Text="(?&lt;dog-catdog&gt;dog)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowIndexOutOfRange: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -2987,7 +2987,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="dog" Span="[24..41)" Text="(?&lt;dog-1uosn&gt;dog)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowIndexOutOfRange: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -3048,7 +3048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="dog" Span="[24..38)" Text="(?&lt;dog-16&gt;dog)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowIndexOutOfRange: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -3088,7 +3088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..22)" Text="cat(?&lt;-&gt;dog)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowIndexOutOfRange: true);
+                """, RegexOptions.None);
         }
 
         [Fact]

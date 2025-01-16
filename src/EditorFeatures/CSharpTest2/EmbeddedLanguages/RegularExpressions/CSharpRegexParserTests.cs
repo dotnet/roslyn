@@ -42,13 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 
         private void Test(string stringText, string expected, RegexOptions options,
             bool runSubTreeTests = true,
-            bool allowIndexOutOfRange = false,
-            bool allowNullReference = false,
             bool allowOutOfMemory = false,
             bool allowDiagnosticsMismatch = false)
         {
             var (tree, sourceText) = TryParseTree(stringText, options, conversionFailureOk: false,
-                allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
+                allowOutOfMemory, allowDiagnosticsMismatch);
 
             // Tests are allowed to not run the subtree tests.  This is because some
             // subtrees can cause the native regex parser to exhibit very bad behavior
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             if (runSubTreeTests)
             {
                 TryParseSubTrees(stringText, options,
-                    allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
+                    allowOutOfMemory, allowDiagnosticsMismatch);
             }
 
             var actual = TreeToText(sourceText, tree)
@@ -66,8 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 
         private void TryParseSubTrees(
             string stringText, RegexOptions options,
-            bool allowIndexOutOfRange,
-            bool allowNullReference,
             bool allowOutOfMemory,
             bool allowDiagnosticsMismatch)
         {
@@ -77,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             {
                 current = current[..^2] + "\"";
                 TryParseTree(current, options, conversionFailureOk: true,
-                    allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
+                    allowOutOfMemory, allowDiagnosticsMismatch);
             }
 
             // Trim the input from the left and make sure tree invariants hold
@@ -94,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 }
 
                 TryParseTree(current, options, conversionFailureOk: true,
-                    allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
+                    allowOutOfMemory, allowDiagnosticsMismatch);
             }
 
             for (var start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
@@ -103,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     stringText[..start] +
                     stringText[(start + 1)..],
                     options, conversionFailureOk: true,
-                    allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
+                    allowOutOfMemory, allowDiagnosticsMismatch);
             }
         }
 
@@ -125,8 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         private (RegexTree, SourceText) TryParseTree(
             string stringText, RegexOptions options,
             bool conversionFailureOk,
-            bool allowIndexOutOfRange,
-            bool allowNullReference,
             bool allowOutOfMemory,
             bool allowDiagnosticsMismatch = false)
         {
@@ -145,17 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             try
             {
                 regex = new Regex(token.ValueText, options);
-            }
-            catch (IndexOutOfRangeException) when (allowIndexOutOfRange)
-            {
-                // bug with .NET regex parser.  Can happen with patterns like: (?<-0
-                Assert.NotEmpty(tree.Diagnostics);
-                return treeAndText;
-            }
-            catch (NullReferenceException) when (allowNullReference)
-            {
-                // bug with .NET regex parser.  can happen with patterns like: (?(?S))
-                return treeAndText;
             }
             catch (OutOfMemoryException) when (allowOutOfMemory)
             {
