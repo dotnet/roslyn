@@ -109,17 +109,15 @@ internal sealed class CSharpUseImplicitlyTypedLambdaExpressionDiagnosticAnalyzer
                          .WithIdentifier(parameter.Identifier.WithPrependedLeadingTrivia(parameter.Type!.GetLeadingTrivia()))));
 
         // If the lambda only has one parameter, then convert it to the non-parenthesized form.
-        if (implicitLambda.ParameterList.Parameters is [{ AttributeLists.Count: 0, Modifiers.Count: 0 } parameter])
-        {
-            return SimpleLambdaExpression(
-                explicitLambda.AttributeLists,
-                explicitLambda.Modifiers,
-                parameter.WithTriviaFrom(explicitLambda.ParameterList),
-                explicitLambda.Block,
-                explicitLambda.ExpressionBody);
-        }
+        if (implicitLambda.ParameterList.Parameters is not ([{ AttributeLists.Count: 0, Modifiers.Count: 0 } parameter]))
+            return implicitLambda;
 
-        return implicitLambda;
+        return SimpleLambdaExpression(
+            explicitLambda.AttributeLists,
+            explicitLambda.Modifiers,
+            parameter.WithTriviaFrom(explicitLambda.ParameterList),
+            explicitLambda.Block,
+            explicitLambda.ExpressionBody);
     }
 
     private static ParameterSyntax RemoveParamsModifier(ParameterSyntax parameter)
