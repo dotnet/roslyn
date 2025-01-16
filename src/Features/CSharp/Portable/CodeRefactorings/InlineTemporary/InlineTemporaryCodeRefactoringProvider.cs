@@ -260,7 +260,7 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider()
     private static async Task<ImmutableArray<IdentifierNameSyntax>> FindReferenceAnnotatedNodesAsync(Document document, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        return root.GetAnnotatedNodesAndTokens(ReferenceAnnotation).Select(n => (IdentifierNameSyntax)n.AsNode()).ToImmutableArray();
+        return [.. root.GetAnnotatedNodesAndTokens(ReferenceAnnotation).Select(n => (IdentifierNameSyntax)n.AsNode())];
     }
 
     private static SyntaxNode GetScope(VariableDeclaratorSyntax variableDeclarator)

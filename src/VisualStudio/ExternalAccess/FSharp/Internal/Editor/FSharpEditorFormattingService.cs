@@ -79,25 +79,25 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, TextSpan? textSpan, CancellationToken cancellationToken)
         {
             var changes = await GetFormattingChangesAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            return changes?.ToImmutableArray() ?? ImmutableArray<TextChange>.Empty;
+            return changes?.ToImmutableArray() ?? [];
         }
 
         async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesAsync(Document document, ITextBuffer textBuffer, char typedChar, int position, CancellationToken cancellationToken)
         {
             var changes = await GetFormattingChangesAsync(document, typedChar, position, cancellationToken).ConfigureAwait(false);
-            return changes?.ToImmutableArray() ?? ImmutableArray<TextChange>.Empty;
+            return changes?.ToImmutableArray() ?? [];
         }
 
         async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var changes = await GetFormattingChangesOnPasteAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            return changes?.ToImmutableArray() ?? ImmutableArray<TextChange>.Empty;
+            return changes?.ToImmutableArray() ?? [];
         }
 
         async Task<ImmutableArray<TextChange>> IFormattingInteractionService.GetFormattingChangesOnReturnAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var changes = await GetFormattingChangesOnReturnAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return changes?.ToImmutableArray() ?? ImmutableArray<TextChange>.Empty;
+            return changes?.ToImmutableArray() ?? [];
         }
     }
 }

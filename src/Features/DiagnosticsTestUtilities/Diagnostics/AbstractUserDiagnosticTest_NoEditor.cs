@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var context = new CodeFixContext(
                     document,
                     diagnostic.Location.SourceSpan,
-                    ImmutableArray.Create(diagnostic),
+                    [diagnostic],
                     (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
                     CancellationToken.None);
 

@@ -133,7 +133,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             filePath: sourceFileD.Path));
 
         var captureMatchingDocuments = captureAllDocuments
-            ? ImmutableArray<DocumentId>.Empty
+            ? []
             : (from project in solution.Projects from documentId in project.DocumentIds select documentId).ToImmutableArray();
 
         var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, captureMatchingDocuments, captureAllDocuments, reportDiagnostics: true, CancellationToken.None);
@@ -417,9 +417,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         }
 
         // make sure renames are not supported:
-        _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+        _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
-        var openDocumentIds = open ? ImmutableArray.Create(designTimeOnlyDocumentId) : ImmutableArray<DocumentId>.Empty;
+        var openDocumentIds = open ? ImmutableArray.Create(designTimeOnlyDocumentId) : [];
         var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, captureMatchingDocuments: openDocumentIds, captureAllMatchingDocuments: false, reportDiagnostics: true, CancellationToken.None);
         var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
@@ -450,7 +450,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.NotEmpty(activeStatementMap.DocumentPathMap);
 
         // Active statements in design-time documents should be left unchanged.
-        var asSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(designTimeOnlyDocumentId), CancellationToken.None);
+        var asSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [designTimeOnlyDocumentId], CancellationToken.None);
         Assert.Empty(asSpans.Single());
 
         // no Rude Edits reported:
@@ -1900,7 +1900,7 @@ class C { int Y => 2; }
 
         // TODO: https://github.com/dotnet/roslyn/issues/1204
         // Should return span in document B since the document content matches the PDB.
-        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentA1.Id, documentB2.Id), CancellationToken.None);
+        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [documentA1.Id, documentB2.Id], CancellationToken.None);
         AssertEx.Equal(
         [
             "<empty>",
@@ -1950,7 +1950,7 @@ class C { int Y => 2; }
         EmitAndLoadLibraryToDebuggee(source1);
 
         // attached to processes that allow updating custom attributes:
-        _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline", "ChangeCustomAttributes");
+        _debuggerService.GetCapabilitiesImpl = () => ["Baseline", "ChangeCustomAttributes"];
 
         // F5
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -1975,7 +1975,7 @@ class C { int Y => 2; }
             ExitBreakState(debuggingSession);
         }
 
-        _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+        _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
         if (breakState)
         {
@@ -2000,7 +2000,7 @@ class C { int Y => 2; }
            diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         // detach from processes that do not allow updating custom attributes:
-        _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline", "ChangeCustomAttributes");
+        _debuggerService.GetCapabilitiesImpl = () => ["Baseline", "ChangeCustomAttributes"];
 
         if (breakState)
         {
@@ -2063,7 +2063,7 @@ class G
         LoadLibraryToDebuggee(moduleId);
 
         // attached to processes that doesn't allow creating new types
-        _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+        _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 
@@ -2098,7 +2098,7 @@ class G
         EmitAndLoadLibraryToDebuggee(source1);
 
         // attached to processes that doesn't allow creating new types
-        _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+        _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
         // F5
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -2532,7 +2532,7 @@ class G
             Assert.Same(readers[1], baselineReaders[1]);
 
             // verify that baseline is added:
-            Assert.Same(newBaseline.EmitBaseline, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(document2.Project.Id));
+            Assert.Same(newBaseline.EmitBaseline, debuggingSession.GetTestAccessor().GetProjectBaselines(document2.Project.Id).Single().EmitBaseline);
 
             // solution update status after committing an update:
             (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -2660,7 +2660,7 @@ class G
             Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
             // verify that baseline is added:
-            Assert.Same(newBaseline.EmitBaseline, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(document2.Project.Id));
+            Assert.Same(newBaseline.EmitBaseline, debuggingSession.GetTestAccessor().GetProjectBaselines(document2.Project.Id).Single().EmitBaseline);
 
             // solution update status after committing an update:
             ExitBreakState(debuggingSession);
@@ -3130,7 +3130,7 @@ class C { int Y => 1; }
         EmitAndLoadLibraryToDebuggee(source1);
 
         // attached to processes that doesn't allow creating new types
-        _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+        _debuggerService.GetCapabilitiesImpl = () => ["Baseline"];
 
         // F5
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -3240,8 +3240,8 @@ class C { int Y => 1; }
         Assert.Empty(debuggingSession.EditSession.NonRemappableRegions);
 
         // verify that baseline is added for both modules:
-        Assert.Same(newBaselineA1, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(projectA.Id));
-        Assert.Same(newBaselineB1, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(projectB.Id));
+        Assert.Same(newBaselineA1, debuggingSession.GetTestAccessor().GetProjectBaselines(projectA.Id).Single().EmitBaseline);
+        Assert.Same(newBaselineB1, debuggingSession.GetTestAccessor().GetProjectBaselines(projectB.Id).Single().EmitBaseline);
 
         // solution update status after committing an update:(updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Empty(emitDiagnostics);
@@ -3293,8 +3293,8 @@ class C { int Y => 1; }
         AssertEx.Equal(readers, baselineReaders);
 
         // verify that baseline is updated for both modules:
-        Assert.Same(newBaselineA2, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(projectA.Id));
-        Assert.Same(newBaselineB2, debuggingSession.GetTestAccessor().GetProjectEmitBaseline(projectB.Id));
+        Assert.Same(newBaselineA2, debuggingSession.GetTestAccessor().GetProjectBaselines(projectA.Id).Single().EmitBaseline);
+        Assert.Same(newBaselineB2, debuggingSession.GetTestAccessor().GetProjectBaselines(projectB.Id).Single().EmitBaseline);
 
         // solution update status after committing an update:
         (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -3407,7 +3407,7 @@ class C { int Y => 1; }
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 
         // default if not called in a break state
-        Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document1.Id), CancellationToken.None)).IsDefault);
+        Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [document1.Id], CancellationToken.None)).IsDefault);
 
         var moduleId = Guid.NewGuid();
         var activeInstruction1 = new ManagedInstructionId(new ManagedMethodId(moduleId, token: 0x06000001, version: 1), ilOffset: 1);
@@ -3430,7 +3430,7 @@ class C { int Y => 1; }
         var activeStatementSpan11 = new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame);
         var activeStatementSpan12 = new ActiveStatementSpan(new ActiveStatementId(1), activeLineSpan12, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame);
 
-        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document1.Id), CancellationToken.None);
+        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [document1.Id], CancellationToken.None);
         AssertEx.Equal(
         [
             activeStatementSpan11,
@@ -3503,7 +3503,7 @@ class C { int Y => 1; }
 
         EnterBreakState(debuggingSession, activeStatements);
 
-        var baseSpans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
+        var baseSpans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [documentId], CancellationToken.None)).Single();
         AssertEx.Equal(
         [
             new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame),
@@ -3554,13 +3554,13 @@ class C { int Y => 1; }
         var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(document, s_noActiveSpans, CancellationToken.None);
         Assert.Empty(currentSpans);
 
-        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document.Id), CancellationToken.None);
+        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [document.Id], CancellationToken.None);
         Assert.Empty(baseSpans.Single());
 
         // update solution:
         solution = solution.WithDocumentText(document.Id, CreateText("dummy2"));
 
-        baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document.Id), CancellationToken.None);
+        baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [document.Id], CancellationToken.None);
         Assert.Empty(baseSpans.Single());
     }
 
@@ -3739,14 +3739,14 @@ class C { int Y => 1; }
         Assert.True(activeStatement1.IsLeaf);
 
         // Active statement reported as unchanged as the containing document is out-of-sync:
-        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document.Id), CancellationToken.None);
+        var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [document.Id], CancellationToken.None);
         AssertEx.Equal([$"(9,18)-(9,22)"], baseSpans.Single().Select(s => s.LineSpan.ToString()));
 
         // Document got synchronized:
         debuggingSession.LastCommittedSolution.Test_SetDocumentState(document.Id, CommittedSolution.DocumentState.MatchesBuildOutput);
 
         // New location of the active statement reported:
-        baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document.Id), CancellationToken.None);
+        baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [document.Id], CancellationToken.None);
         AssertEx.Equal([$"(10,12)-(10,16)"], baseSpans.Single().Select(s => s.LineSpan.ToString()));
     }
 
@@ -4028,7 +4028,7 @@ class C
                 ActiveStatementFlags.Stale | ActiveStatementFlags.NonLeafFrame,        // F - not up-to-date anymore and since F v1 is followed by F v3 (hot-reload) it is now stale
             ]));
 
-        var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
+        var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [documentId], CancellationToken.None)).Single();
         AssertEx.Equal(
         [
             new ActiveStatementSpan(new ActiveStatementId(0), new LinePositionSpan(new(4, 41), new(4, 42)), ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame),
@@ -4131,7 +4131,7 @@ class C
         var expectedSpanG1 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));
         var expectedSpanF1 = new LinePositionSpan(new LinePosition(8, 14), new LinePosition(8, 18));
 
-        var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
+        var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [documentId], CancellationToken.None)).Single();
         AssertEx.Equal(
         [
             new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, documentId),
@@ -4144,7 +4144,7 @@ class C
         var expectedSpanG2 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));
         var expectedSpanF2 = new LinePositionSpan(new LinePosition(9, 14), new LinePosition(9, 18));
 
-        spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
+        spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [documentId], CancellationToken.None)).Single();
         AssertEx.Equal(
         [
             new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, documentId),
@@ -4241,7 +4241,7 @@ class C
         // check that the active statement is mapped correctly to snapshot v2:
         var expectedSpanG1 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));
 
-        var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
+        var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [documentId], CancellationToken.None)).Single();
         AssertEx.Equal(
         [
             new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame)
@@ -4367,7 +4367,7 @@ class C
                 solution,
                 _debuggerService,
                 NullPdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureMatchingDocuments: [],
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: true,
                 CancellationToken.None);
@@ -4413,6 +4413,114 @@ class C
         // The following methods can be called at any point in time, so we must handle race with dispose gracefully.
         Assert.Empty(await debuggingSession.GetDocumentDiagnosticsAsync(document, s_noActiveSpans, CancellationToken.None));
         Assert.Empty(await debuggingSession.GetAdjustedActiveStatementSpansAsync(document, s_noActiveSpans, CancellationToken.None));
-        Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray<DocumentId>.Empty, CancellationToken.None)).IsDefault);
+        Assert.True((await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [], CancellationToken.None)).IsDefault);
+    }
+
+    [Fact]
+    public async Task MultipleSharedLibraryBaselines()
+    {
+        var libSource1 = """
+            public class C
+            {
+                public int F() => 1;
+            }
+            """;
+
+        var libSource2 = """
+            public class C
+            {
+                public int F() => 2;
+            }
+            """;
+
+        var libSource3 = """
+            public class C
+            {
+                public int F() => 3;
+            }
+            """;
+
+        using var workspace = CreateWorkspace(out var solution, out var service);
+
+        (solution, var document) = AddDefaultTestProject(solution, libSource1);
+        var documentId = document.Id;
+        var oldProject = document.Project;
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // Build and load two versions of the libary.
+        // This happens when projects A and B both reference Lib project and copy the assembly to their respective output directories and
+        // 1) A is built and launched
+        // 2) an update is made to the library
+        // 3) B is built and launched
+        // 
+        // At this point we have two baselines for the Lib project (two mvids).
+        // 
+        // The update to the library source also produces delta to be applied to V1 of the library.
+
+        var libMvid1 = EmitAndLoadLibraryToDebuggee(libSource1);
+
+        // lib source is updated:
+        solution = solution.WithDocumentText(documentId, CreateText(libSource2));
+
+        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(emitDiagnostics);
+        Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
+
+        var update = updates.Updates.Single();
+        GetModuleIds(update.MetadataDelta, out var updateModuleId, out var baseId, out var genId, out var gen);
+        Assert.Equal(libMvid1, updateModuleId);
+        Assert.Equal(1, gen);
+        Assert.Equal(default, baseId);
+        Assert.NotEqual(default, genId);
+
+        CommitSolutionUpdate(debuggingSession);
+
+        // B is launched:
+        var libMvid2 = EmitAndLoadLibraryToDebuggee(libSource2);
+
+        // lib source is updated:
+        solution = solution.WithDocumentText(documentId, CreateText(libSource3));
+
+        (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(emitDiagnostics);
+        Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
+
+        Assert.Equal(2, updates.Updates.Length);
+        var libUpdate1 = updates.Updates.Single(u => u.Module == libMvid1);
+        var libUpdate2 = updates.Updates.Single(u => u.Module == libMvid2);
+
+        // update of the original library should chain to its previous delta:
+        GetModuleIds(libUpdate1.MetadataDelta, out var updateModuleId1, out var baseId1, out var genId1, out var gen1);
+        Assert.Equal(libMvid1, updateModuleId1);
+        Assert.Equal(genId, baseId1);
+        Assert.Equal(2, gen1);
+        Assert.NotEqual(default, genId1);
+
+        // update of the rebuilt library should be the first in the new chain:
+        GetModuleIds(libUpdate2.MetadataDelta, out var updateModuleId2, out var baseId2, out var genId2, out var gen2);
+        Assert.Equal(libMvid2, updateModuleId2);
+        Assert.Equal(default, baseId2);
+        Assert.Equal(1, gen2);
+        Assert.NotEqual(default, genId2);
+
+        CommitSolutionUpdate(debuggingSession);
+        EndDebuggingSession(debuggingSession);
+
+        static void GetModuleIds(
+            ImmutableArray<byte> metadataDelta,
+            out Guid mvid,
+            out Guid baseId,
+            out Guid generationId,
+            out int generation)
+        {
+            using var readerProvider = MetadataReaderProvider.FromMetadataImage(metadataDelta);
+            var reader = readerProvider.GetMetadataReader();
+            var moduleDef = reader.GetModuleDefinition();
+            baseId = reader.GetGuid(moduleDef.BaseGenerationId);
+            generationId = reader.GetGuid(moduleDef.GenerationId);
+            mvid = reader.GetGuid(moduleDef.Mvid);
+            generation = moduleDef.Generation;
+        }
     }
 }

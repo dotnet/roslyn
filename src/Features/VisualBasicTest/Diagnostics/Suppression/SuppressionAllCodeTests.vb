@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
                                  Return True
                              End If
 
-                             Return Not TypeOf n Is StatementSyntax
+                             Return TypeOf n IsNot StatementSyntax
                          End Function,
                 verifier:=Function(t) t.IndexOf("SuppressMessage", StringComparison.Ordinal) >= 0)
         End Function

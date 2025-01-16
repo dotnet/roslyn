@@ -233,16 +233,11 @@ internal struct RegexLexer
     public RegexToken? TryScanEscapeCategory()
     {
         var start = Position;
-        while (Position < Text.Length &&
-               IsEscapeCategoryChar(this.CurrentChar))
-        {
+        while (Position < Text.Length && IsEscapeCategoryChar(this.CurrentChar))
             Position++;
-        }
 
         if (Position == start)
-        {
             return null;
-        }
 
         var token = CreateToken(RegexKind.EscapeCategoryToken, [], GetSubPatternToCurrentPos(start));
         var category = token.VirtualChars.CreateString();
@@ -257,10 +252,11 @@ internal struct RegexLexer
         return token;
     }
 
-    private static bool IsEscapeCategoryChar(VirtualChar ch)
-        => ch.Value is '-' or
+    public static bool IsEscapeCategoryChar(VirtualChar ch)
+        => ch.Value is '-' or '_' or
            (>= 'a' and <= 'z') or
-           (>= 'A' and <= 'Z');
+           (>= 'A' and <= 'Z') or
+           (>= '0' and <= '9');
 
     public RegexToken? TryScanNumber()
     {

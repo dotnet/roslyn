@@ -14467,7 +14467,19 @@ class C
                 """;
             var generator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", "/out:embed.exe", "/features:InterceptorsNamespaces=Generated"], generators: [generator], analyzers: null);
+            // Future note: it would be good to have end-to-end tests using InterceptableLocation APIs.
+            // Once support for path-based attributes is fully dropped, consider porting these 'Interceptors_' tests accordingly.
+            VerifyOutput(
+                dir,
+                src,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                additionalFlags: ["/langversion:preview",
+                    "/out:embed.exe",
+                    "/features:InterceptorsNamespaces=Generated",
+                    "/warn:9"],
+                expectedWarningCount: 1,
+                generators: [generator],
+                analyzers: null);
             ValidateWrittenSources([]);
 
             // Clean up temp files
@@ -14526,7 +14538,17 @@ class C
             var generator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
             var objDir = dir.CreateDirectory("obj");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", $"/out:{objDir.Path}/embed.exe", "/features:InterceptorsNamespaces=Generated"], generators: [generator], analyzers: null);
+            VerifyOutput(
+                dir,
+                src,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                additionalFlags: ["/langversion:preview",
+                    $"/out:{objDir.Path}/embed.exe",
+                    "/features:InterceptorsNamespaces=Generated",
+                    "/warn:9"],
+                expectedWarningCount: 1,
+                generators: [generator],
+                analyzers: null);
             ValidateWrittenSources([]);
 
             // Clean up temp files
@@ -14597,8 +14619,10 @@ class C
                     "/langversion:preview",
                     "/out:embed.exe",
                     "/features:InterceptorsNamespaces=Generated",
+                    "/warn:9",
                     .. string.IsNullOrEmpty(pathMapArgument) ? default(Span<string>) : [pathMapArgument]
                     ],
+                expectedWarningCount: 1,
                 generators: [generator],
                 analyzers: null);
 

@@ -805,6 +805,9 @@ internal static class ISyntaxFactsExtensions
     public static bool IsConditionalAccessExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node?.RawKind == syntaxFacts.SyntaxKinds.ConditionalAccessExpression;
 
+    public static bool IsFieldExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        => node?.RawKind == syntaxFacts.SyntaxKinds.FieldExpression;
+
     public static bool IsImplicitArrayCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         => node?.RawKind == syntaxFacts.SyntaxKinds.ImplicitArrayCreationExpression;
 

@@ -253,6 +253,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Fade_out_unused_imports As String =
             BasicVSResources.Fade_out_unused_imports
 
+        Public ReadOnly Property Option_Fade_out_unused_members As String =
+            ServicesVSResources.Fade_out_unused_members
+
         Public ReadOnly Property Option_Performance As String =
             ServicesVSResources.Performance
 
@@ -319,8 +322,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As ColorSchemeName =
             ColorSchemeName.VisualStudio2017
 
-        Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental As String =
-            ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
+        Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer As String =
+            ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer
 
         Public ReadOnly Property Option_Enable_file_logging_for_diagnostics As String =
             ServicesVSResources.Enable_file_logging_for_diagnostics

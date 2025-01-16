@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -36,11 +37,13 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
     private Task TestAllMissingOnExpressionAsync(string expression, ParseOptions? parseOptions = null, bool enabled = true)
         => TestMissingAsync(FromExpression(expression), parseOptions, enabled);
 
-    private Task TestMissingAsync(string initialMarkup, ParseOptions? parseOptions = null, bool enabled = true)
+    private Task TestMissingAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, ParseOptions? parseOptions = null, bool enabled = true)
         => TestMissingAsync(initialMarkup, new TestParameters(
             parseOptions: parseOptions ?? CSharp9, options: enabled ? null : s_disabled));
 
-    private Task TestAllAsync(string initialMarkup, string expectedMarkup)
+    private Task TestAllAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup)
         => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup,
             parseOptions: CSharp9, options: null);
 
@@ -715,6 +718,38 @@ public class C
                     if ([|DataUtils.ReadLine(bytes, ref index) != "YAFC" || DataUtils.ReadLine(bytes, ref index) != "ProjectPage"|])
                     {
                         throw new InvalidDataException();
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76730")]
+    public async Task TestLogicalAndPatternNot()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                static void Main()
+                {
+                    var v = "";
+                    if ([|!(v is not null)|])
+                    {
+                        Console.WriteLine("");
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                static void Main()
+                {
+                    var v = "";
+                    if (v is null)
+                    {
+                        Console.WriteLine("");
                     }
                 }
             }

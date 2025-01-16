@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.AddMissingImports), [Shared]>
-Friend Class VisualBasicAddMissingImportsRefactoringProvider
+Friend NotInheritable Class VisualBasicAddMissingImportsRefactoringProvider
     Inherits AbstractAddMissingImportsRefactoringProvider
 
     Protected Overrides ReadOnly Property CodeActionTitle As String = VBFeaturesResources.Add_missing_Imports

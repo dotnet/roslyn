@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
@@ -179,6 +180,8 @@ internal interface ISyntaxFacts
     bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes);
 
     bool IsPreprocessorDirective(SyntaxTrivia trivia);
+    SyntaxNode? GetMatchingDirective(SyntaxNode directive, CancellationToken cancellationToken);
+    ImmutableArray<SyntaxNode> GetMatchingConditionalDirectives(SyntaxNode directive, CancellationToken cancellationToken);
 
     bool IsDocumentationComment(SyntaxNode node);
 
@@ -333,7 +336,6 @@ internal interface ISyntaxFacts
     bool IsExecutableStatement([NotNullWhen(true)] SyntaxNode? node);
     bool IsGlobalStatement([NotNullWhen(true)] SyntaxNode? node);
     SyntaxNode GetStatementOfGlobalStatement(SyntaxNode node);
-    bool AreStatementsInSameContainer(SyntaxNode firstStatement, SyntaxNode secondStatement);
 
     bool IsDeconstructionAssignment([NotNullWhen(true)] SyntaxNode? node);
     bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node);

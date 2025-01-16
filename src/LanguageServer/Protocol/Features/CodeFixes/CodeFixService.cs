@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             [ImportMany] IEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> configurationProviders)
         {
             _diagnosticService = diagnosticAnalyzerService;
-            _errorLoggers = loggers.ToImmutableArray();
+            _errorLoggers = [.. loggers];
 
-            _fixers = fixers.ToImmutableArray();
+            _fixers = [.. fixers];
             _fixersPerLanguageMap = _fixers.ToPerLanguageMapWithMultipleLanguages();
 
             _configurationProvidersMap = GetConfigurationProvidersPerLanguageMap(configurationProviders);

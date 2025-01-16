@@ -16,7 +16,6 @@ internal static class SpanExtensions
     /// Convert the editor Span instance to the corresponding TextSpan instance
     /// </summary>
     /// <param name="span"></param>
-    /// <returns></returns>
     public static TextSpan ToTextSpan(this Span span)
         => new(span.Start, span.Length);
 

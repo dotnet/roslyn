@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
                 };
 
             public override ImmutableArray<string> GetItemValues(string name)
-                => ImmutableArray<string>.Empty;
+                => [];
         }
     }
 

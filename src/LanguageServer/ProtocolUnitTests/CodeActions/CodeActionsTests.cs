@@ -306,7 +306,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
     {
         var result = await testLspServer.ExecuteRequestAsync<CodeActionParams, CodeAction[]>(
             LSP.Methods.TextDocumentCodeActionName, codeActionParams, CancellationToken.None);
-        return result.Cast<VSInternalCodeAction>().ToArray();
+        return [.. result.Cast<VSInternalCodeAction>()];
     }
 
     private static async Task<VSInternalCodeAction> RunGetCodeActionResolveAsync(

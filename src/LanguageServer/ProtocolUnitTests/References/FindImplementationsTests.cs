@@ -94,7 +94,7 @@ class A : IA
                 Uri = ProtocolConversions.CreateAbsoluteUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
                 Range = new LSP.Range { Start = position, End = position }
             });
-            AssertLocationsEqual(ImmutableArray.Create(TestSpanMapper.MappedFileLocation), results);
+            AssertLocationsEqual([TestSpanMapper.MappedFileLocation], results);
         }
 
         [Theory, CombinatorialData]

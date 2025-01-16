@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Reflection.Metadata
+Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -61,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Protected Overrides Sub EnsureAllMembersLoaded()
-            If m_lazyTypes Is Nothing OrElse m_lazyMembers Is Nothing Then
+            If Volatile.Read(m_lazyTypes) Is Nothing OrElse Volatile.Read(m_lazyMembers) Is Nothing Then
                 Dim groups As IEnumerable(Of IGrouping(Of String, TypeDefinitionHandle))
 
                 Try

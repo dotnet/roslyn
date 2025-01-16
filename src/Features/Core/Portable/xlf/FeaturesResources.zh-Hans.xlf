@@ -335,6 +335,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">无法应用更改 - 意外错误:“{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="new">Cannot determine valid range of statements to extract</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Cannot_include_class_0_in_character_range">
         <source>Cannot include class \{0} in character range</source>
         <target state="translated">不能在字符范围内包含类 \{0}</target>
@@ -840,6 +845,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">生成比较运算符</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_constructor_from_members">
+        <source>Generate constructor from members...</source>
+        <target state="new">Generate constructor from members...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">为 "{0}" 生成</target>
@@ -1175,6 +1185,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">将内容移动到命名空间...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_declaration_near_reference_may_change_semantics">
+        <source>Move declaration near reference (may change semantics)</source>
+        <target state="new">Move declaration near reference (may change semantics)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_file_to_0">
         <source>Move file to '{0}'</source>
         <target state="translated">将文件移至“{0}”</target>
@@ -1243,6 +1258,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
         <target state="translated">没有执行提取的有效选择。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_valid_statement_range_to_extract">
+        <source>No valid statement range to extract</source>
+        <target state="new">No valid statement range to extract</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
@@ -4743,11 +4763,6 @@ This version used in: {2}</source>
       <trans-unit id="Remove_separators">
         <source>Remove separators</source>
         <target state="translated">删除分隔符</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor">
-        <source>Generate constructor...</source>
-        <target state="translated">生成构造函数...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pick_members_to_be_used_as_constructor_parameters">

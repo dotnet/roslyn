@@ -24,11 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             // depend on it, just disable it
             if (roles.IsDefault)
             {
-                roles = ImmutableArray.Create(PredefinedTextViewRoles.Analyzable,
+                roles =
+                [
+                    PredefinedTextViewRoles.Analyzable,
                     PredefinedTextViewRoles.Document,
                     PredefinedTextViewRoles.Editable,
                     PredefinedTextViewRoles.Interactive,
-                    PredefinedTextViewRoles.Zoomable);
+                    PredefinedTextViewRoles.Zoomable,
+                ];
             }
 
             var roleSet = textEditorFactory.CreateTextViewRoleSet(roles);

@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml.Linq;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
@@ -26,14 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     public partial class CSharpRegexParserTests
     {
         private readonly IVirtualCharService _service = CSharpVirtualCharService.Instance;
-        private const string _statmentPrefix = "var v = ";
+        private const string _statementPrefix = "var v = ";
 
         private static SyntaxToken GetStringToken(string text)
         {
-            var statement = _statmentPrefix + text;
+            var statement = _statementPrefix + text;
             var parsedStatement = SyntaxFactory.ParseStatement(statement);
             var token = parsedStatement.DescendantTokens().ToArray()[3];
-            Assert.True(token.Kind() == SyntaxKind.StringLiteralToken);
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
 
             return token;
         }
@@ -216,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         private static XElement CreateDiagnosticsElement(SourceText text, RegexTree tree)
-            => new XElement("Diagnostics",
+            => new("Diagnostics",
                 tree.Diagnostics.Select(d =>
                     new XElement("Diagnostic",
                         new XAttribute("Message", d.Message),
@@ -276,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         private static XElement TriviaToElement(RegexTrivia trivia)
-            => new XElement(
+            => new(
                 trivia.Kind.ToString(),
                 trivia.VirtualChars.CreateString());
 
@@ -385,6 +387,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 var (token, _, chars) = JustParseTree($@"@""{text}""", RegexOptions.None, conversionFailureOk: false);
                 Assert.False(token.IsMissing);
                 Assert.False(chars.IsDefaultOrEmpty);
+            }
+        }
+
+        [Fact]
+        public void TestRegexCharClassCharacters()
+        {
+            foreach (var (charClass, _) in RegexCharClass.EscapeCategories)
+            {
+                foreach (var ch in charClass)
+                    Assert.True(RegexLexer.IsEscapeCategoryChar(VirtualChar.Create(new Rune(ch), new TextSpan(0, 1))));
             }
         }
     }

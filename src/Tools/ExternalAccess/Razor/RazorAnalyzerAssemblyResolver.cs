@@ -3,49 +3,56 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     [Export(typeof(IAnalyzerAssemblyResolver)), Shared]
-    internal class RazorAnalyzerAssemblyResolver : IAnalyzerAssemblyResolver
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class RazorAnalyzerAssemblyResolver() : IAnalyzerAssemblyResolver
     {
         private static Func<AssemblyName, Assembly?>? s_assemblyResolver;
 
+        private static readonly HashSet<AssemblyName> s_assembliesRequested = [];
+
+        private static readonly object s_resolverLock = new();
+
         /// <summary>
-        /// We use this as a heuristic to catch a case where we set the resolver too 
-        /// late and the resolver has already been asked to resolve a razor assembly.
-        /// 
-        /// Note this isn't perfectly accurate but is only used to trigger an assert
-        /// in debug builds. 
+        /// Attempts to set the assembly resolver. Will only succeed if the <paramref name="canaryAssembly"/> has not already been requested to load and the resolver has not been set previously.
         /// </summary>
-        private static bool s_razorRequested = false;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RazorAnalyzerAssemblyResolver()
+        /// <param name="resolver">The resolver function to set.</param>
+        /// <param name="canaryAssembly">The name of an assembly that is checked to see if it has been requested to load. Setting the resolver will fail if this has already been requested.</param>
+        /// <returns><c>true</c> when the resolver was successfully set.</returns>
+        internal static bool TrySetAssemblyResolver(Func<AssemblyName, Assembly?> resolver, AssemblyName canaryAssembly)
         {
-        }
-
-        internal static Func<AssemblyName, Assembly?>? AssemblyResolver
-        {
-            get => s_assemblyResolver;
-            set
+            lock (s_resolverLock)
             {
-                Debug.Assert(s_assemblyResolver == null, "Assembly resolver should not be set multiple times.");
-                Debug.Assert(!s_razorRequested, "A razor assembly has already been requested before setting the resolver.");
-                s_assemblyResolver = value;
+                if (s_assemblyResolver is null && !s_assembliesRequested.Contains(canaryAssembly))
+                {
+                    s_assemblyResolver = resolver;
+                    return true;
+                }
+                return false;
             }
         }
 
         public Assembly? ResolveAssembly(AssemblyName assemblyName)
         {
-            s_razorRequested |= assemblyName.FullName.Contains("Razor");
-            return s_assemblyResolver?.Invoke(assemblyName);
+            Func<AssemblyName, Assembly?>? resolver = null;
+            lock (s_resolverLock)
+            {
+                s_assembliesRequested.Add(assemblyName);
+                resolver = s_assemblyResolver;
+            }
+
+            return resolver?.Invoke(assemblyName);
         }
     }
 }
