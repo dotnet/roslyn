@@ -152,6 +152,26 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
     }
 
     [Fact]
+    public async Task TestWithDefaultVAlue()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        Action<int> a = (int x = 1) => { };
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestCastToStronglyTypedDelegate()
     {
         await new VerifyCS.Test
@@ -175,6 +195,37 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                     void M()
                     {
                         Delegate a = (Action<int>)(x => { });
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestCreationOfStronglyTypedDelegate()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        Delegate a = new Action<int>([|(|]int x) => { });
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        Delegate a = new Action<int>(x => { });
                     }
                 }
                 """,
@@ -290,7 +341,7 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                     }
                 }
                 """,
-            LanguageVersion = LanguageVersion.CSharp13,
+            LanguageVersion = CSharp14,
         }.RunAsync();
     }
 }
