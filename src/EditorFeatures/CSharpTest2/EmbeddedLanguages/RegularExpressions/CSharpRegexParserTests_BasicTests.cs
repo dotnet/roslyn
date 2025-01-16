@@ -1882,7 +1882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..22)" Text="a{2147483647}" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false, allowOutOfMemory: true);
+                """, RegexOptions.None, runSubTreeTests: false);
         }
 
         [Fact]
@@ -1940,7 +1940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..23)" Text="a{2147483647,}" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false, allowOutOfMemory: true);
+                """, RegexOptions.None, runSubTreeTests: false);
         }
 
         [Fact]

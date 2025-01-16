@@ -40,33 +40,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             return token;
         }
 
-        private void Test(string stringText, string expected, RegexOptions options,
-            bool runSubTreeTests = true,
-            bool allowOutOfMemory = false)
+        private void Test(
+            string stringText, string expected, RegexOptions options, bool runSubTreeTests = true)
         {
-            var (tree, sourceText) = TryParseTree(stringText, options, conversionFailureOk: false,
-                allowOutOfMemory);
+            var (tree, sourceText) = TryParseTree(stringText, options, conversionFailureOk: false);
 
             // Tests are allowed to not run the subtree tests.  This is because some
             // subtrees can cause the native regex parser to exhibit very bad behavior
             // (like not ever actually finishing compiling).
             if (runSubTreeTests)
-                TryParseSubTrees(stringText, options, allowOutOfMemory);
+                TryParseSubTrees(stringText, options);
 
             var actual = TreeToText(sourceText, tree)
                 .Replace("&quot;", "\"");
             AssertEx.Equal(expected, actual);
         }
 
-        private void TryParseSubTrees(
-            string stringText, RegexOptions options, bool allowOutOfMemory)
+        private void TryParseSubTrees(string stringText, RegexOptions options)
         {
             // Trim the input from the right and make sure tree invariants hold
             var current = stringText;
             while (current is not "@\"\"" and not "\"\"")
             {
                 current = current[..^2] + "\"";
-                TryParseTree(current, options, conversionFailureOk: true, allowOutOfMemory);
+                TryParseTree(current, options, conversionFailureOk: true);
             }
 
             // Trim the input from the left and make sure tree invariants hold
@@ -82,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     current = "\"" + current[2..];
                 }
 
-                TryParseTree(current, options, conversionFailureOk: true, allowOutOfMemory);
+                TryParseTree(current, options, conversionFailureOk: true);
             }
 
             for (var start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
@@ -90,8 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 TryParseTree(
                     stringText[..start] +
                     stringText[(start + 1)..],
-                    options, conversionFailureOk: true,
-                    allowOutOfMemory);
+                    options,
+                    conversionFailureOk: true);
             }
         }
 
@@ -111,9 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         private (RegexTree, SourceText) TryParseTree(
-            string stringText, RegexOptions options,
-            bool conversionFailureOk,
-            bool allowOutOfMemory)
+            string stringText, RegexOptions options, bool conversionFailureOk)
         {
             var (token, tree, allChars) = JustParseTree(stringText, options, conversionFailureOk);
             if (tree == null)
@@ -130,11 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             try
             {
                 regex = new Regex(token.ValueText, options);
-            }
-            catch (OutOfMemoryException) when (allowOutOfMemory)
-            {
-                // bug with .NET regex parser.  can happen with patterns like: a{2147483647,}
-                return treeAndText;
             }
             catch (ArgumentException ex)
             {
