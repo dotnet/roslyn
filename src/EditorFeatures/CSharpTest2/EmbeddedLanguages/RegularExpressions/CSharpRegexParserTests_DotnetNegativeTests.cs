@@ -5884,7 +5884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="2" Span="[15..27)" Text="(\c\[*)(dog)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false);
+                """, RegexOptions.None);
         }
 
         [Fact]

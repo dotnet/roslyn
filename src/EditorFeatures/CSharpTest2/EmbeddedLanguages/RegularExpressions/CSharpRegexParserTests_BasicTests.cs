@@ -1882,7 +1882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..22)" Text="a{2147483647}" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1912,7 +1912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..22)" Text="a{2147483648}" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1940,7 +1940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..23)" Text="a{2147483647,}" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1971,7 +1971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..23)" Text="a{2147483648,}" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -2000,7 +2000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..24)" Text="a{0,2147483647}" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -2032,7 +2032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..24)" Text="a{0,2147483648}" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -8212,7 +8212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..15)" Text="(?&lt;-0)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, runSubTreeTests: false);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8245,7 +8245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..15)" Text="(?&lt;-0&gt;" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, runSubTreeTests: false);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8275,7 +8275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..16)" Text="(?&lt;-0&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, runSubTreeTests: false);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8315,7 +8315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..17)" Text="(?&lt;-0 &gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, runSubTreeTests: false);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8361,7 +8361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..18)" Text="(?&lt;- 0 &gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, runSubTreeTests: false);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8401,7 +8401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..17)" Text="(?&lt;- 0&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, runSubTreeTests: false);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8468,7 +8468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..14)" Text="(?&lt;a-" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, runSubTreeTests: false);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8504,7 +8504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..15)" Text="(?&lt;a-0" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, runSubTreeTests: false);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8539,7 +8539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..16)" Text="(?&lt;a-0)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, runSubTreeTests: false);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8574,7 +8574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..16)" Text="(?&lt;a-0&gt;" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, runSubTreeTests: false);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8606,7 +8606,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..17)" Text="(?&lt;a-0&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, runSubTreeTests: false);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8696,7 +8696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..19)" Text="(?&lt;a- 0 &gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, runSubTreeTests: false);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8738,7 +8738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..18)" Text="(?&lt;a- 0&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, runSubTreeTests: false);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8770,7 +8770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..18)" Text="(?&lt;a-00&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, runSubTreeTests: false);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]

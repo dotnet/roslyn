@@ -41,15 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         private void Test(
-            string stringText, string expected, RegexOptions options, bool runSubTreeTests = true)
+            string stringText, string expected, RegexOptions options)
         {
             var (tree, sourceText) = TryParseTree(stringText, options, conversionFailureOk: false);
 
-            // Tests are allowed to not run the subtree tests.  This is because some
-            // subtrees can cause the native regex parser to exhibit very bad behavior
-            // (like not ever actually finishing compiling).
-            if (runSubTreeTests)
-                TryParseSubTrees(stringText, options);
+            TryParseSubTrees(stringText, options);
 
             var actual = TreeToText(sourceText, tree)
                 .Replace("&quot;", "\"");
