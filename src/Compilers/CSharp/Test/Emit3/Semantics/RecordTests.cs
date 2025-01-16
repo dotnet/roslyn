@@ -1223,87 +1223,33 @@ record C1(object O1)
                 );
         }
 
-        [Fact]
+        [Theory, CombinatorialData]
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/66312")]
-        public void RestrictedTypesAndPointerTypes()
+        public void RestrictedTypesAndPointerTypes(bool withEquals)
         {
-            var src = @"
-class C<T> { }
-static class C2 { }
-ref struct RefLike{}
+            var src = $$"""
 
-unsafe record C(
-    int* P1, // 1
-    int*[] P2,
-    C<int*[]> P3,
-    delegate*<int, int> P4, // 2
-    void P5, // 3
-    C2 P6, // 4, 5
-    System.ArgIterator P7, // 6
-    System.TypedReference P8, // 7
-    RefLike P9, // 8
-    delegate*<void>[] P10);
+                class C<T> { }
+                static class C2 { }
+                ref struct RefLike{}
 
-";
-
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Mscorlib461);
-            DiagnosticDescription[] expected = [
-                // 0.cs(7,5): error CS8908: The type 'int*' may not be used for a field of a record.
-                //     int* P1, // 1
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(7, 5),
-                // 0.cs(10,5): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
-                //     delegate*<int, int> P4, // 2
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<int, int>").WithArguments("delegate*<int, int>").WithLocation(10, 5),
-                // 0.cs(11,5): error CS1536: Invalid parameter type 'void'
-                //     void P5, // 3
-                Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(11, 5),
-                // 0.cs(12,5): error CS0721: 'C2': static types cannot be used as parameters
-                //     C2 P6, // 4, 5
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
-                // 0.cs(12,5): error CS0722: 'C2': static types cannot be used as return types
-                //     C2 P6, // 4, 5
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
-                // 0.cs(13,5): error CS0610: Field or property cannot be of type 'ArgIterator'
-                //     System.ArgIterator P7, // 6
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(13, 5),
-                // 0.cs(14,5): error CS0610: Field or property cannot be of type 'TypedReference'
-                //     System.TypedReference P8, // 7
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 5),
-                // 0.cs(15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
-                //     RefLike P9, // 8
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)];
-
-            comp.VerifyDiagnostics(expected);
-            comp.VerifyEmitDiagnostics(expected);
-        }
-
-        [Fact]
-        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/66312")]
-        public void RestrictedTypesAndPointerTypes_WithEquals()
-        {
-            var src = @"
-class C<T> { }
-static class C2 { }
-ref struct RefLike{}
-
-unsafe record C(
-    int* P1, // 1
-    int*[] P2,
-    C<int*[]> P3,
-    delegate*<int, int> P4, // 2
-    void P5, // 3
-    C2 P6, // 4, 5
-    System.ArgIterator P7, // 6
-    System.TypedReference P8, // 7
-    RefLike P9, // 8
-    delegate*<void>[] P10)
-{
-    public virtual bool Equals(C c) => true;
-    public override int GetHashCode() => 0;
-}
-";
+                unsafe record C(
+                    int* P1, // 1
+                    int*[] P2,
+                    C<int*[]> P3,
+                    delegate*<int, int> P4, // 2
+                    void P5, // 3
+                    C2 P6, // 4, 5
+                    System.ArgIterator P7, // 6
+                    System.TypedReference P8, // 7
+                    RefLike P9, // 8
+                    delegate*<void>[] P10)
+                {
+                    {{(withEquals ? "public virtual bool Equals(C c) => true;" : "")}}
+                    {{(withEquals ? "public override int GetHashCode() => 0;" : "")}}
+                }
+                """;
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Mscorlib461);
             DiagnosticDescription[] expected = [
@@ -1401,6 +1347,7 @@ public ref struct RefLike{}
 public unsafe record C
 {
     public int* f1 { get; set; } // 1
+    public int* f1_a { get => field; set; } // 1
     public int*[] f2 { get; set; }
     public C<int*[]> f3 { get; set; }
     public delegate*<int, int> f4 { get; set; } // 2
@@ -1418,24 +1365,27 @@ public unsafe record C
                 // 0.cs(8,12): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     public int* f1 { get; set; } // 1
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(8, 12),
-                // 0.cs(11,12): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                // 0.cs(9,12): error CS8908: The type 'int*' may not be used for a field of a record.
+                //     public int* f1_a { get => field; set; } // 1
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(9, 12),
+                // 0.cs(12,12): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
                 //     public delegate*<int, int> f4 { get; set; } // 2
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<int, int>").WithArguments("delegate*<int, int>").WithLocation(11, 12),
-                // 0.cs(12,17): error CS0547: 'C.f5': property or indexer cannot have void type
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<int, int>").WithArguments("delegate*<int, int>").WithLocation(12, 12),
+                // 0.cs(13,17): error CS0547: 'C.f5': property or indexer cannot have void type
                 //     public void f5 { get; set; } // 3
-                Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "f5").WithArguments("C.f5").WithLocation(12, 17),
-                // 0.cs(13,12): error CS0722: 'C2': static types cannot be used as return types
+                Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "f5").WithArguments("C.f5").WithLocation(13, 17),
+                // 0.cs(14,12): error CS0722: 'C2': static types cannot be used as return types
                 //     public C2 f6 { get; set; } // 4, 5
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(13, 12),
-                // 0.cs(14,12): error CS0610: Field or property cannot be of type 'ArgIterator'
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(14, 12),
+                // 0.cs(15,12): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //     public System.ArgIterator f7 { get; set; } // 6
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 12),
-                // 0.cs(15,12): error CS0610: Field or property cannot be of type 'TypedReference'
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(15, 12),
+                // 0.cs(16,12): error CS0610: Field or property cannot be of type 'TypedReference'
                 //     public System.TypedReference f8 { get; set; } // 7
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(15, 12),
-                // 0.cs(16,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(16, 12),
+                // 0.cs(17,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
                 //     public RefLike f9 { get; set; } // 8
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12)];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(17, 12)];
 
             comp.VerifyDiagnostics(expected);
             comp.VerifyEmitDiagnostics(expected);

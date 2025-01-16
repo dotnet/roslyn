@@ -196,7 +196,7 @@ public class EmbeddedAttribute : Attribute {}
 
 ## `record` and `record struct` types cannot define pointer type members, even when providing their own Equals implementations
 
-PROTOTYPE: Figure what version this is going into
+***Introduced in Visual Studio 2022 version 17.14***
 
 ***Introduced in Visual Studio 2022 version 17.14***
 
@@ -206,7 +206,7 @@ However, this was not enforced correctly when the `record class` or `record stru
 The compiler now correctly forbids this.
 
 ```cs
-unsafe record struct R1(
+unsafe record struct R(
     int* P // Previously fine, now CS8908
 )
 {
