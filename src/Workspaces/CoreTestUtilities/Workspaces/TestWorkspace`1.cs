@@ -14,17 +14,13 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
@@ -34,7 +30,7 @@ using RuntimeMetadataReferenceResolver = SCRIPTING::Microsoft.CodeAnalysis.Scrip
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Workspace, ILspWorkspace
+    public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Workspace
         where TDocument : TestHostDocument
         where TProject : TestHostProject<TDocument>
         where TSolution : TestHostSolution<TDocument>
@@ -334,18 +330,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public TServiceInterface GetService<TServiceInterface>()
             => ExportProvider.GetExportedValue<TServiceInterface>();
 
-        public TServiceInterface GetService<TServiceInterface>(string contentType)
-        {
-            var values = ExportProvider.GetExports<TServiceInterface, ContentTypeMetadata>();
-            return values.Single(value => value.Metadata.ContentTypes.Contains(contentType)).Value;
-        }
-
-        public TServiceInterface GetService<TServiceInterface>(string contentType, string name)
-        {
-            var values = ExportProvider.GetExports<TServiceInterface, OrderableContentTypeMetadata>();
-            return values.Single(value => value.Metadata.Name == name && value.Metadata.ContentTypes.Contains(contentType)).Value;
-        }
-
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
             switch (feature)
@@ -593,13 +577,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             => true;
 
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
-        {
-            // VisualStudioWorkspace asserts the main thread for this call, so do the same thing here to catch tests
-            // that fail to account for this possibility.
-            var threadingContext = ExportProvider.GetExportedValue<IThreadingContext>();
-            Contract.ThrowIfFalse(threadingContext.HasMainThread && threadingContext.JoinableTaskContext.IsOnMainThread);
-            return true;
-        }
+            => true;
 
         internal void InitializeDocuments(
             string language,
