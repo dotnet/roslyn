@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -113,6 +114,13 @@ internal sealed class CSharpUseImplicitlyTypedLambdaExpressionDiagnosticAnalyzer
 
         return explicitLambda.ReplaceNodes(
             explicitLambda.ParameterList.Parameters,
-            (parameter, _) => parameter.WithType(null));
+            (parameter, _) => RemoveParamsModifier(parameter.WithType(null)));
+    }
+
+    private static ParameterSyntax RemoveParamsModifier(ParameterSyntax parameter)
+    {
+        // Implicitly typed lambdas aren't ever allowed to have the 'params' modifier.
+        var paramsModifierIndex = parameter.Modifiers.IndexOf(SyntaxKind.ParamsKeyword);
+        return paramsModifierIndex >= 0 ? parameter.WithModifiers(parameter.Modifiers.RemoveAt(paramsModifierIndex)) : parameter;
     }
 }

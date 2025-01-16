@@ -364,4 +364,76 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
             LanguageVersion = CSharp14,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestNested()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        Action<int> a = [|(|]int x) =>
+                        {
+                            Action<int> b = [|(|]int y) => { };
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        Action<int> a = x =>
+                        {
+                            Action<int> b = y => { };
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestParams()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                delegate void D(params int[] x);
+
+                class C
+                {
+                    void M()
+                    {
+                        D d = [|(|]params int[] x) => { };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                delegate void D(params int[] x);
+
+                class C
+                {
+                    void M()
+                    {
+                        D d = x => { };
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
 }
