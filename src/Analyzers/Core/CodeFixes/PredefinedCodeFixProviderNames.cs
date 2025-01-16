@@ -154,6 +154,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseExpressionBody = nameof(UseExpressionBody);
     public const string UseExpressionBodyForLambda = nameof(UseExpressionBodyForLambda);
     public const string UseImplicitObjectCreation = nameof(UseImplicitObjectCreation);
+    public const string UseImplicitlyTypedLambdaExpression = nameof(UseImplicitlyTypedLambdaExpression);
     public const string UseImplicitType = nameof(UseImplicitType);
     public const string UseIndexOperator = nameof(UseIndexOperator);
     public const string UseInferredMemberName = nameof(UseInferredMemberName);
