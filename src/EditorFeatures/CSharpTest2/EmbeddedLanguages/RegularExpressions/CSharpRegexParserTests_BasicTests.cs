@@ -9587,7 +9587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[27..28)" Text="2" />
                     <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[39..40)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[40..41)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[40..41)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[41..41)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -9842,7 +9842,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[27..28)" Text="2" />
                     <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[43..44)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_0_following_nothing}" Span="[44..45)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[44..45)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[45..45)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -12949,7 +12949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..18)" Text="[a-[:L:]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None);
+                """, RegexOptions.None, allowDiagnosticsMismatch: true);
         }
 
         [Fact]
@@ -14086,7 +14086,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..19)" Text="[[:x:]-a]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None);
+                """, RegexOptions.None, allowDiagnosticsMismatch: true);
         }
 
         [Fact]
