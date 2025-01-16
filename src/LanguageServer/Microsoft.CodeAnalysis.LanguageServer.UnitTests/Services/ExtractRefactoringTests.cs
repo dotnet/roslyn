@@ -10,7 +10,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Services;
 
-public class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerHostTests(testOutputHelper)
+public class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
 {
     [Theory]
     [CombinatorialData]
@@ -80,20 +80,20 @@ public class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : Abstr
     }
 
     private static async Task TestCodeActionAsync(
-        TestLspServer testLspServer,
+        TestLspClient testLspClient,
         LSP.Location caretLocation,
         string codeActionTitle,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected)
     {
-        var codeActionResults = await testLspServer.RunGetCodeActionsAsync(CreateCodeActionParams(caretLocation));
+        var codeActionResults = await testLspClient.RunGetCodeActionsAsync(CreateCodeActionParams(caretLocation));
 
         var unresolvedCodeAction = Assert.Single(codeActionResults, codeAction => codeAction.Title == codeActionTitle);
 
-        var resolvedCodeAction = await testLspServer.RunGetCodeActionResolveAsync(unresolvedCodeAction);
+        var resolvedCodeAction = await testLspClient.RunGetCodeActionResolveAsync(unresolvedCodeAction);
 
-        testLspServer.ApplyWorkspaceEdit(resolvedCodeAction.Edit);
+        testLspClient.ApplyWorkspaceEdit(resolvedCodeAction.Edit);
 
-        var updatedCode = testLspServer.GetDocumentText(caretLocation.Uri);
+        var updatedCode = testLspClient.GetDocumentText(caretLocation.Uri);
 
         AssertEx.Equal(expected, updatedCode);
     }
