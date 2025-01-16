@@ -10617,7 +10617,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Reference_to_undefined_group}" Span="[12..13)" Text="1" />
+                    <Diagnostic Message="{FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0}" Span="[12..13)" Text="1" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..15)" Text="(?(1))" />
