@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 
             var actual = TreeToText(sourceText, tree)
                 .Replace("&quot;", "\"");
-            AssertEx.EqualOrDiff(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         private void TryParseSubTrees(

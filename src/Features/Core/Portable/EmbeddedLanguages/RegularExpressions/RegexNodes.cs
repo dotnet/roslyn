@@ -239,35 +239,6 @@ internal sealed class RegexCharacterClassSubtractionNode : RegexPrimaryExpressio
 }
 
 /// <summary>
-/// Represents a ```[:...:]``` node in a character class.  Note: the .NET regex parser
-/// simply treats this as the character ```[``` and ignores the rest of the ```:...:]```.
-/// They latter part has no impact on the actual match engine that is produced.
-/// </summary>
-internal sealed class RegexPosixPropertyNode : RegexPrimaryExpressionNode
-{
-    public RegexPosixPropertyNode(RegexToken textToken)
-        : base(RegexKind.PosixProperty)
-    {
-        Debug.Assert(textToken.Kind == RegexKind.TextToken);
-        TextToken = textToken;
-    }
-
-    public RegexToken TextToken { get; }
-
-    internal override int ChildCount => 1;
-
-    internal override RegexNodeOrToken ChildAt(int index)
-        => index switch
-        {
-            0 => TextToken,
-            _ => throw new InvalidOperationException(),
-        };
-
-    public override void Accept(IRegexNodeVisitor visitor)
-        => visitor.Visit(this);
-}
-
-/// <summary>
 /// Root of all expression nodes.
 /// </summary>
 internal abstract class RegexExpressionNode : RegexNode

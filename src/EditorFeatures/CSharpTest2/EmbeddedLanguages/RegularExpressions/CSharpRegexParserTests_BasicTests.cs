@@ -14067,18 +14067,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                       <CharacterClass>
                         <OpenBracketToken>[</OpenBracketToken>
                         <Sequence>
-                          <CharacterClassRange>
-                            <PosixProperty>
-                              <TextToken>[:x:]</TextToken>
-                            </PosixProperty>
-                            <MinusToken>-</MinusToken>
-                            <Text>
-                              <TextToken>a</TextToken>
-                            </Text>
-                          </CharacterClassRange>
+                          <Text>
+                            <TextToken>[:x:</TextToken>
+                          </Text>
                         </Sequence>
                         <CloseBracketToken>]</CloseBracketToken>
                       </CharacterClass>
+                      <Text>
+                        <TextToken>-a]</TextToken>
+                      </Text>
                     </Sequence>
                     <EndOfFile />
                   </CompilationUnit>
@@ -14086,7 +14083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..19)" Text="[[:x:]-a]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -19320,13 +19317,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                       <CharacterClass>
                         <OpenBracketToken>[</OpenBracketToken>
                         <Sequence>
-                          <CategoryEscape>
-                            <BackslashToken>\</BackslashToken>
-                            <TextToken>p</TextToken>
-                            <OpenBraceToken>{</OpenBraceToken>
-                            <EscapeCategoryToken>_xmlW</EscapeCategoryToken>
-                            <CloseBraceToken>}</CloseBraceToken>
-                          </CategoryEscape>
+                          <Text>
+                            <TextToken>-[:L:</TextToken>
+                          </Text>
                         </Sequence>
                         <CloseBracketToken>]</CloseBracketToken>
                       </CharacterClass>
@@ -19334,7 +19327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Captures>
-                    <Capture Name="0" Span="[10..21)" Text="[\p{_xmlW}]" />
+                    <Capture Name="0" Span="[10..17)" Text="[-[:L:]" />
                   </Captures>
                 </Tree>
                 """, RegexOptions.None);
