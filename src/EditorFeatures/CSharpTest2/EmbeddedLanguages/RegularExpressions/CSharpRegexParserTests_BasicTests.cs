@@ -8458,7 +8458,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[14..14)" Text="" />
+                    <Diagnostic Message="{FeaturesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}" Span="[14..14)" Text="" />
+                    <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[9..12)" Text="(?&lt;" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[14..14)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -10286,7 +10287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0}" Span="[12..13)" Text="0" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0, 0)}" Span="[12..13)" Text="0" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[13..13)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -10586,7 +10587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0}" Span="[12..13)" Text="0" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0, 0)}" Span="[12..13)" Text="0" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..15)" Text="(?(0 )" />
@@ -10617,7 +10618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0}" Span="[12..13)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[12..13)" Text="1" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..15)" Text="(?(1))" />
