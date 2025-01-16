@@ -52,6 +52,7 @@ internal class Descriptors
         { BrokeredServiceDescriptors.DebuggerSymbolLocatorService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.DebuggerSourceLinkService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
         { BrokeredServiceDescriptors.ProjectSystemQueryExecutionService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { BrokeredServiceDescriptors.CssVisualDiagnosticsService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
     }.ToImmutableDictionary();
 
     public static ServiceJsonRpcDescriptor CreateDescriptor(ServiceMoniker serviceMoniker) => new(

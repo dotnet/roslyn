@@ -181,7 +181,6 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
         /// </param>
         /// <param name="ordinalInInvocation">ordinal of the arguments of function: (a,b) or (a,b,c) in the example above</param>
         /// <param name="ordinalInLambda">ordinal of the lambda parameters, e.g. a, b or c.</param>
-        /// <returns></returns>
         private ImmutableArray<ITypeSymbol> GetTypeSymbols(
             ImmutableArray<ISymbol> candidateSymbols,
             string argumentName,

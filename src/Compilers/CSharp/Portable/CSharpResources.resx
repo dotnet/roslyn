@@ -5309,7 +5309,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Syntax tree should be created from a submission.</value>
   </data>
   <data name="ERR_TooManyUserStrings" xml:space="preserve">
-    <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</value>
+    <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</value>
   </data>
   <data name="ERR_PatternNullableType" xml:space="preserve">
     <value>It is not legal to use nullable type '{0}?' in a pattern; use the underlying type '{0}' instead.</value>
@@ -7470,6 +7470,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ImplicitlyTypedDefaultParameter" xml:space="preserve">
     <value>Implicitly typed lambda parameter '{0}' cannot have a default value.</value>
   </data>
+  <data name="ERR_ImplicitlyTypedParamsParameter" xml:space="preserve">
+    <value>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</value>
+  </data>
   <data name="WRN_OptionalParamValueMismatch" xml:space="preserve">
     <value>Parameter {0} has default value '{1:10}' in lambda but '{2:10}' in the target delegate type.</value>
   </data>
@@ -8028,6 +8031,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_IteratorRefLikeElementType" xml:space="preserve">
     <value>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</value>
+  </data>
+  <data name="IDS_FeatureSimpleLambdaParameterModifiers" xml:space="preserve">
+    <value>simple lambda parameter modifiers</value>
   </data>
   <data name="WRN_UnscopedRefAttributeOldRules" xml:space="preserve">
     <value>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</value>

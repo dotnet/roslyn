@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// Create a <see cref="ProjectMap"/> populated with the given <see cref="Solution"/>.
         /// </summary>
         /// <param name="solution">The <see cref="Solution"/> to populate the new <see cref="ProjectMap"/> with.</param>
-        /// <returns></returns>
         public static ProjectMap Create(Solution solution)
         {
             var projectMap = new ProjectMap();

@@ -1309,27 +1309,27 @@ class C
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (10,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f1      = (int x, y) => 1;          // err: mixed parameters
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
-                // (11,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f2      = (x, int y) => 1;          // err: mixed parameters
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-                // (12,48): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f3      = (int x, int y, z) => 1;   // err: mixed parameters
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "z"),
-                // (13,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f4      = (int x, y, int z) => 1;   // err: mixed parameters
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
-                // (14,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
+                // (11,44): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int,int> f1     = (int x, y) => 1;          // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y").WithLocation(11, 44),
+                // (12,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int,int> f2     = (x, int y) => 1;          // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(12, 37),
+                // (13,51): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int,int,int> f3 = (int x, int y, z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "z").WithLocation(13, 51),
                 // (14,44): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-                // (15,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                //         Func<int,int> f6      = (x, y, int z) => 1;       // err: mixed parameters
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"));
+                //         Func<int,int,int,int> f4 = (int x, y, int z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y").WithLocation(14, 44),
+                // (15,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int,int,int> f5 = (x, int y, int z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(15, 37),
+                // (16,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int,int,int> f6 = (x, y, int z) => 1;       // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(16, 37),
+                // (16,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int,int,int> f6 = (x, y, int z) => 1;       // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y").WithLocation(16, 40));
         }
 
         [WorkItem(535915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535915")]

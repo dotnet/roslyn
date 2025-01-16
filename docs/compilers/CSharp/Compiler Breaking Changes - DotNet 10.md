@@ -2,6 +2,31 @@
 
 This document lists known breaking changes in Roslyn after .NET 9 general release (.NET SDK version 9.0.100) through .NET 10 general release (.NET SDK version 10.0.100).
 
+## `scoped` in a lambda parameter list is now always a modifier.
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+C# 14 introduces the ability to write a lambda with parameter modifiers, without having to specify a parameter type:
+https://github.com/dotnet/csharplang/blob/main/proposals/simple-lambda-parameters-with-modifiers.md
+
+As part of this work, a breaking change was accepted where `scoped` will always be treated as a modifier
+in a lambda parameter, even where it might have been accepted as a type name in the past.  For example:
+
+```c#
+var v = (scoped scoped s) => { ... };
+
+ref struct @scoped { }
+```
+
+In C# 14 this will be an error as both `scoped` tokens are treated as modifiers.  The workaround is to
+use `@` in the type name position like so:
+
+```c#
+var v = (scoped @scoped s) => { ... };
+
+ref struct @scoped { }
+```
+
 ## `Span<T>` and `ReadOnlySpan<T>` overloads are applicable in more scenarios in C# 14 and newer
 
 ***Introduced in Visual Studio 2022 version 17.13***
@@ -170,40 +195,6 @@ struct S
     [UnscopedRef] public ref int Ref() => throw null!;
     public static void M([UnscopedRef] ref int x) { }
 }
-```
-
-## Variance of `scoped` and `[UnscopedRef]` is more strict
-
-***Introduced in Visual Studio 2022 version 17.13***
-
-Scope can be changed when overriding a method, implementing an interface, or converting a lambda/method to a delegate under
-[some conditions](https://github.com/dotnet/csharplang/blob/05064c2a9567b7a58a07e526dff403ece1866541/proposals/csharp-11.0/low-level-struct-improvements.md#scoped-mismatch)
-(roughly, `scoped` can be added and `[UnscopedRef]` can be removed).
-Previously, the compiler did not report an error/warning for such mismatch under some circumstances, but it is now always reported.
-Note that the error is downgraded to a warning in `unsafe` contexts and also (in scenarios where it would be a breaking change) with LangVersion 12 or lower.
-
-```cs
-D1 d1 = (ref int i) => { }; // previously no mismatch error reported, now:
-                            // error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D1'.
-
-D2 d2 = (ref int i) => ref i; // an error was and continues to be reported:
-                              // error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D2'.
-
-delegate void D1(scoped ref int x);
-delegate ref int D2(scoped ref int x);
-```
-
-```cs
-using System.Diagnostics.CodeAnalysis;
-
-D1 d1 = ([UnscopedRef] ref int i) => { }; // previously no mismatch error reported, now:
-                                          // error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D1'.
-
-D2 d2 = ([UnscopedRef] ref int i) => ref i; // an error was and continues to be reported:
-                                            // error CS8986: The 'scoped' modifier of parameter 'i' doesn't match target 'D2'.
-
-delegate void D1(ref int x);
-delegate ref int D2(ref int x);
 ```
 
 ## `Microsoft.CodeAnalysis.EmbeddedAttribute` is validated on declaration

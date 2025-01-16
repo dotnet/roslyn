@@ -1142,7 +1142,6 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
     /// statement of this lambda.
     /// </summary>
     /// <param name="token">The token to get the complexification target for.</param>
-    /// <returns></returns>
     public override SyntaxNode? GetExpansionTargetForLocation(SyntaxToken token)
         => GetExpansionTarget(token);
 

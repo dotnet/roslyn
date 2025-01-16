@@ -2477,6 +2477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_IteratorRefLikeElementType
                 or ErrorCode.WRN_UnscopedRefAttributeOldRules
                 or ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature
+                or ErrorCode.ERR_ImplicitlyTypedParamsParameter
                 or ErrorCode.ERR_VariableDeclarationNamedField
                     => false,
             };

@@ -10,8 +10,6 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface;
 
@@ -33,14 +31,12 @@ internal sealed class TestExtractInterfaceOptionsService() : IExtractInterfaceOp
     public bool SameFile { get; set; }
 
     public ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
-        ISyntaxFactsService syntaxFactsService,
-        INotificationService notificationService,
+        Document document,
         List<ISymbol> extractableMembers,
         string defaultInterfaceName,
         List<string> conflictingTypeNames,
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
-        string languageName,
         CancellationToken cancellationToken)
     {
         this.AllExtractableMembers = extractableMembers;

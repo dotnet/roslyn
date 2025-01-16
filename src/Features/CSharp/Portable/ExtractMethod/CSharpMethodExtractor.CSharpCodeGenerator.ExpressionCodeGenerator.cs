@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -91,31 +90,16 @@ internal sealed partial class CSharpExtractMethodService
                     Contract.ThrowIfFalse(this.SelectionResult.IsExtractMethodOnExpression);
 
                     // special case for array initializer
-                    var returnType = AnalyzerResult.ReturnType;
-                    var containingScope = this.SelectionResult.GetContainingScope();
+                    var returnType = AnalyzerResult.CoreReturnType;
+                    var containingScope = (ExpressionSyntax)this.SelectionResult.GetContainingScope();
 
-                    ExpressionSyntax expression;
-                    if (returnType.TypeKind == TypeKind.Array && containingScope is InitializerExpressionSyntax)
-                    {
-                        var typeSyntax = returnType.GenerateTypeSyntax();
+                    var expression = returnType.TypeKind == TypeKind.Array && containingScope is InitializerExpressionSyntax initializerExpression
+                        ? SyntaxFactory.ArrayCreationExpression((ArrayTypeSyntax)returnType.GenerateTypeSyntax(), initializerExpression)
+                        : containingScope;
 
-                        expression = SyntaxFactory.ArrayCreationExpression(typeSyntax as ArrayTypeSyntax, containingScope as InitializerExpressionSyntax);
-                    }
-                    else
-                    {
-                        expression = containingScope as ExpressionSyntax;
-                    }
-
-                    if (AnalyzerResult.HasReturnType)
-                    {
-                        return [SyntaxFactory.ReturnStatement(
-                            WrapInCheckedExpressionIfNeeded(expression))];
-                    }
-                    else
-                    {
-                        return [SyntaxFactory.ExpressionStatement(
-                            WrapInCheckedExpressionIfNeeded(expression))];
-                    }
+                    return AnalyzerResult.CoreReturnType.SpecialType != SpecialType.System_Void
+                        ? [SyntaxFactory.ReturnStatement(WrapInCheckedExpressionIfNeeded(expression))]
+                        : [SyntaxFactory.ExpressionStatement(WrapInCheckedExpressionIfNeeded(expression))];
                 }
 
                 private ExpressionSyntax WrapInCheckedExpressionIfNeeded(ExpressionSyntax expression)

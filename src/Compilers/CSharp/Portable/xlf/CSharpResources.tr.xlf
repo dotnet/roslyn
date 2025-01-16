@@ -977,6 +977,11 @@
         <target state="translated">Türü örtük olarak belirlenmiş lambda '{0}' parametresi varsayılan bir değere sahip olamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
+        <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">'in' değiştiricisine sahip bağımsız değişkenler dinamik olarak dağıtılan ifadelerde kullanılamaz.</target>
@@ -2580,6 +2585,11 @@
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">kayıtta mühürlü ToString</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
+        <source>simple lambda parameter modifiers</source>
+        <target state="new">simple lambda parameter modifiers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
@@ -12710,8 +12720,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
-        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</source>
-        <target state="translated">Program tarafından kullanılan kullanıcı dizelerinin toplam uzunluğu, izin verilen sınırı aşıyor. Dize sabit değerlerinin kullanımını azaltmayı deneyin.</target>
+        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
+        <target state="needs-review-translation">Program tarafından kullanılan kullanıcı dizelerinin toplam uzunluğu, izin verilen sınırı aşıyor. Dize sabit değerlerinin kullanımını azaltmayı deneyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">

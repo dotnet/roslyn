@@ -977,6 +977,11 @@
         <target state="translated">암시적 형식 람다 매개 변수 '{0}'은(는) 기본값을 가질 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
+        <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">동적으로 디스패치된 식에서 'in' 한정자가 있는 인수를 사용할 수 없습니다.</target>
@@ -2580,6 +2585,11 @@
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">레코드의 봉인된 ToString</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
+        <source>simple lambda parameter modifiers</source>
+        <target state="new">simple lambda parameter modifiers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
@@ -12710,8 +12720,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
-        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</source>
-        <target state="translated">프로그램에서 사용하는 사용자 문자열의 결합된 길이가 허용 한도를 초과합니다. 문자열 리터럴의 사용을 줄여 보세요.</target>
+        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
+        <target state="needs-review-translation">프로그램에서 사용하는 사용자 문자열의 결합된 길이가 허용 한도를 초과합니다. 문자열 리터럴의 사용을 줄여 보세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">

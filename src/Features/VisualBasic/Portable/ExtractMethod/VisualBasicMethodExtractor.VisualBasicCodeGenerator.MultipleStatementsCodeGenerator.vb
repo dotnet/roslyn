@@ -43,8 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Contract.ThrowIfFalse(lastStatementIndex >= 0)
 
                         Dim nodes = statements.
-                                    Skip(firstStatementIndex).
-                                    Take(lastStatementIndex - firstStatementIndex + 1)
+                            Skip(firstStatementIndex).
+                            Take(lastStatementIndex - firstStatementIndex + 1)
 
                         Return nodes.ToImmutableArray()
                     End Function
@@ -58,7 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     End Function
 
                     Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)
-                        Return Task.FromResult(GetStatementContainingInvocationToExtractedMethodWorker().WithAdditionalAnnotations(CallSiteAnnotation))
+                        Return Task.FromResult(Of StatementSyntax)(
+                            GetStatementContainingInvocationToExtractedMethodWorker().WithAdditionalAnnotations(CallSiteAnnotation))
                     End Function
                 End Class
             End Class

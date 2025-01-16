@@ -30,7 +30,7 @@ namespace Microsoft.Cci
             Debug.Assert(_methods is null);
 
             _methods = SpecializedCollections.SingletonReadOnlyList(
-                new RootModuleStaticConstructor(containingTypeDefinition: this, il));
+                new StaticConstructor(containingTypeDefinition: this, maxStack: 0, il));
         }
 
         public IEnumerable<IMethodDefinition> GetMethods(EmitContext context)

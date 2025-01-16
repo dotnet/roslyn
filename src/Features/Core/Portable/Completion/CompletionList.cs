@@ -99,7 +99,6 @@ public sealed class CompletionList
     /// <param name="items">The completion items to present to the user.</param>
     /// <param name="rules">The rules used to control behavior of the completion list shown to the user during typing.</param>
     /// <param name="suggestionModeItem">An optional <see cref="CompletionItem"/> that appears selected in the list presented to the user during suggestion mode.</param>
-    /// <returns></returns>
     public static CompletionList Create(
         TextSpan defaultSpan,
         ImmutableArray<CompletionItem> items,
