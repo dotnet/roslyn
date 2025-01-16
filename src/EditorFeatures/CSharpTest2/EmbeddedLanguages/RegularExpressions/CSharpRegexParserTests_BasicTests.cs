@@ -12949,7 +12949,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..18)" Text="[a-[:L:]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -13870,7 +13870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..16)" Text="[a-\-]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15633,7 +15633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..16)" Text="[a-\-]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15674,7 +15674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..17)" Text="[a-\-b]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15719,7 +15719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..19)" Text="[a-\-\-b]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15760,7 +15760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..17)" Text="[b-\-a]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15805,7 +15805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..19)" Text="[b-\-\-a]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15847,7 +15847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..18)" Text="[a-\-\D]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15893,7 +15893,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..20)" Text="[a-\-\-\D]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15935,7 +15935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..19)" Text="[a -\-\b]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15979,7 +15979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..18)" Text="[ab-\-a]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
