@@ -22,11 +22,6 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
     protected TempRoot TempRoot => new();
     protected TempDirectory ExtensionLogsDirectory => TempRoot.CreateDirectory();
 
-    public Task InitializeAsync()
-    {
-        return Task.CompletedTask;
-    }
-
     public void Dispose()
     {
         TempRoot.Dispose();
@@ -45,11 +40,14 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         // Write project file
         var projectDirectory = TempRoot.CreateDirectory();
         var projectPath = Path.Combine(projectDirectory.Path, "Project.csproj");
+
+        // To ensure our TargetFramework is buildable in each test environment we are
+        // setting it to match the $(NetVSCode) version.
         await File.WriteAllTextAsync(projectPath, $"""
             <Project Sdk="Microsoft.NET.Sdk">
               <PropertyGroup>
                 <OutputType>Library</OutputType>
-                <TargetFramework>net{Environment.Version.Major}.0</TargetFramework>
+                <TargetFramework>net8.0</TargetFramework>
               </PropertyGroup>
             </Project>
             """);
