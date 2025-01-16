@@ -115,6 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferIndexOperator, ServicesVSResources.Prefer_index_operator, options, updater);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferRangeOperator, ServicesVSResources.Prefer_range_operator, options, updater);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, CSharpVSResources.Prefer_implicit_object_creation_when_type_is_apparent, options, updater);
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferImplicitlyTypedLambdaExpression, CSharpVSResources.Prefer_implicitly_typed_lambda_expression, options, updater);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferTupleSwap, ServicesVSResources.Prefer_tuple_swap, options, updater);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferUnboundGenericTypeInNameOf, ServicesVSResources.Prefer_unbound_generic_type_in_nameof, options, updater);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferUtf8StringLiterals, ServicesVSResources.Prefer_Utf8_string_literals, options, updater);

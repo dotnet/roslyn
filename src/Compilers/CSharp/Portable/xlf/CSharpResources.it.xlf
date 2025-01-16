@@ -977,6 +977,11 @@
         <target state="translated">Il parametro lambda tipizzato in modo implicito '{0}' non può avere un valore predefinito.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
+        <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Non è possibile usare argomenti con il modificatore 'in' nelle espressioni inviate in modo dinamico.</target>
@@ -2347,6 +2352,11 @@
         <target state="translated">Impossibile utilizzare l'oggetto 'this' prima dell'assegnazione di tutti i relativi campi. Provare a eseguire l'aggiornamento alla versione del linguaggio '{0}' per impostare come predefiniti automaticamente i campi non assegnati.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VariableDeclarationNamedField">
+        <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
+        <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">È previsto un tipo restituito simile a un'attività generica, ma il tipo '{0}' trovato nell'attributo 'AsyncMethodBuilder' non è idoneo. Deve essere un tipo generico non associato di grado uno e il tipo che lo contiene (se presente) deve essere non generico.</target>
@@ -2577,6 +2587,11 @@
         <target state="translated">ToString sealed nel record</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
+        <source>simple lambda parameter modifiers</source>
+        <target state="new">simple lambda parameter modifiers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
         <source>string escape character</source>
         <target state="translated">carattere di escape stringa</target>
@@ -2655,11 +2670,6 @@
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">indicatore di misura</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
-        <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
-        <target state="translated">L'identificatore è una parola chiave contestuale, con un significato specifico, in una versione successiva del linguaggio.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
@@ -12710,8 +12720,8 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
-        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</source>
-        <target state="translated">La lunghezza combinata delle stringhe utente usate dal programma supera il limite consentito. Provare a ridurre l'uso di valori letterali stringa.</target>
+        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
+        <target state="needs-review-translation">La lunghezza combinata delle stringhe utente usate dal programma supera il limite consentito. Provare a ridurre l'uso di valori letterali stringa.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">

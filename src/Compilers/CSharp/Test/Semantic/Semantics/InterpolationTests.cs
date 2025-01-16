@@ -19043,5 +19043,184 @@ literal:literal
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Test2").WithArguments("Test2", "type").WithLocation(3, 14)
                 );
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76444")]
+        public void UnconvertedNestedTargetTypedScenario_01()
+        {
+            var source = """
+                int a = 1;
+
+                var b = true ? $"{a.}"='a'
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (3,21): error CS1001: Identifier expected
+                // var b = true ? $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 21),
+                // (3,27): error CS1003: Syntax error, ':' expected
+                // var b = true ? $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(3, 27),
+                // (3,27): error CS1733: Expected expression
+                // var b = true ? $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(3, 27),
+                // (3,27): error CS1002: ; expected
+                // var b = true ? $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 27)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var incompleteDeclaration = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+
+            VerifyOperationTree(comp, model.GetOperation(incompleteDeclaration), """
+                IVariableDeclaratorOperation (Symbol: ? b) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'b = true ? $"{a.}"='a'')
+                  Initializer:
+                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= true ? $"{a.}"='a'')
+                      IConditionalOperation (OperationKind.Conditional, Type: ?, IsInvalid) (Syntax: 'true ? $"{a.}"='a'')
+                          Condition:
+                          ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                          WhenTrue:
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: '$"{a.}"='a'')
+                              Left:
+                              IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{a.}"')
+                                  Parts(1):
+                                      IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{a.}')
+                                      Expression:
+                                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'a.')
+                                          Children(1):
+                                              ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
+                                      Alignment:
+                                          null
+                                      FormatString:
+                                          null
+                              Right:
+                              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: ''a'')
+                                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  Operand:
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a, IsInvalid) (Syntax: ''a'')
+                          WhenFalse:
+                          IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                              Children(0)
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76444")]
+        public void UnconvertedNestedTargetTypedScenario_02()
+        {
+            var source = """
+                int a = 1;
+
+                $"{a.}"='a'
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (3,6): error CS1001: Identifier expected
+                // $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 6),
+                // (3,12): error CS1002: ; expected
+                // $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 12)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var incompleteAssignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            VerifyOperationTree(comp, model.GetOperation(incompleteAssignment), """
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: '$"{a.}"='a'')
+                  Left:
+                      IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{a.}"')
+                      Parts(1):
+                          IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{a.}')
+                              Expression:
+                              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'a.')
+                                  Children(1):
+                                      ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
+                              Alignment:
+                              null
+                              FormatString:
+                              null
+                  Right:
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: ''a'')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                          ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a, IsInvalid) (Syntax: ''a'')
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76444")]
+        public void UnconvertedNestedTargetTypedScenario_03()
+        {
+            var source = """
+                int a = 1;
+
+                _ = new C()
+                {
+                    $"{a.}"='a'
+                }
+
+                a switch { 1 => null } = 1;
+
+                class C
+                {
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (5,5): error CS0747: Invalid initializer member declarator
+                //     $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"$""{a.}""='a'").WithLocation(5, 5),
+                // (5,10): error CS1001: Identifier expected
+                //     $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(5, 10),
+                // (6,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 2),
+                // (8,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // a switch { 1 => null } = 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "a switch { 1 => null }").WithLocation(8, 1),
+                // (8,3): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered.
+                // a switch { 1 => null } = 1;
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("0").WithLocation(8, 3)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var incompleteAssignment = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+
+            VerifyOperationTree(comp, model.GetOperation(incompleteAssignment), """
+                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C() ... }')
+                    Arguments(0)
+                    Initializer:
+                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ ... }')
+                        Initializers(1):
+                            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '$"{a.}"='a'')
+                            Children(1):
+                                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: '$"{a.}"='a'')
+                                    Left:
+                                    IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{a.}"')
+                                        Parts(1):
+                                            IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{a.}')
+                                            Expression:
+                                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'a.')
+                                                Children(1):
+                                                    ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
+                                            Alignment:
+                                                null
+                                            FormatString:
+                                                null
+                                    Right:
+                                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: ''a'')
+                                        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        Operand:
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a, IsInvalid) (Syntax: ''a'')
+                """);
+        }
     }
 }

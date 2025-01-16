@@ -5,21 +5,17 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface;
 
 internal interface IExtractInterfaceOptionsService : IWorkspaceService
 {
     ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
-        ISyntaxFactsService syntaxFactsService,
-        INotificationService notificationService,
+        Document document,
         List<ISymbol> extractableMembers,
         string defaultInterfaceName,
         List<string> conflictingTypeNames,
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
-        string languageName,
         CancellationToken cancellationToken);
 }

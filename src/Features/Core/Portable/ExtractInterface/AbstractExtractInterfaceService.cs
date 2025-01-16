@@ -264,20 +264,16 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         var conflictingTypeNames = type.ContainingNamespace.GetAllTypes(cancellationToken).Select(t => t.Name);
         var candidateInterfaceName = type.TypeKind == TypeKind.Interface ? type.Name : "I" + type.Name;
         var defaultInterfaceName = NameGenerator.GenerateUniqueName(candidateInterfaceName, name => !conflictingTypeNames.Contains(name));
-        var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var notificationService = document.Project.Solution.Services.GetRequiredService<INotificationService>();
         var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, type, extractableMembers, cancellationToken);
 
         var service = document.Project.Solution.Services.GetRequiredService<IExtractInterfaceOptionsService>();
         return service.GetExtractInterfaceOptions(
-            syntaxFactsService,
-            notificationService,
+            document,
             [.. extractableMembers],
             defaultInterfaceName,
             [.. conflictingTypeNames],
             containingNamespace,
             generatedNameTypeParameterSuffix,
-            document.Project.Language,
             cancellationToken);
     }
 

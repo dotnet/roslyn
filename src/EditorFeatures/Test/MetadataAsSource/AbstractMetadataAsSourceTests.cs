@@ -45,9 +45,23 @@ public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
     }
 
     internal static async Task GenerateAndVerifySourceAsync(
-        string metadataSource, string symbolName, string projectLanguage, string expected, bool signaturesOnly = true, bool includeXmlDocComments = false, string languageVersion = null, string metadataLanguageVersion = null, string metadataCommonReferences = null)
+        string metadataSource,
+        string symbolName,
+        string projectLanguage,
+        string expected,
+        bool signaturesOnly = true,
+        bool includeXmlDocComments = false,
+        string languageVersion = null,
+        string metadataLanguageVersion = null,
+        string metadataCommonReferences = null,
+        string commonReferencesValue = null)
     {
-        using var context = TestContext.Create(projectLanguage, [metadataSource], includeXmlDocComments, languageVersion: languageVersion, metadataLanguageVersion: metadataLanguageVersion, metadataCommonReferences: metadataCommonReferences);
+        using var context = TestContext.Create(
+            projectLanguage, [metadataSource], includeXmlDocComments,
+            languageVersion: languageVersion,
+            metadataLanguageVersion: metadataLanguageVersion,
+            metadataCommonReferences: metadataCommonReferences,
+            commonReferencesValue: commonReferencesValue);
         await context.GenerateAndVerifySourceAsync(symbolName, expected, signaturesOnly: signaturesOnly);
     }
 
