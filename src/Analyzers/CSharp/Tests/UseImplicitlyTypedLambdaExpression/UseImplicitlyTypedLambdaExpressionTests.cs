@@ -152,6 +152,26 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
     }
 
     [Fact]
+    public async Task TestExplicitReturnType()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        Action<int> a = void (int x) => { };
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestWithDefaultVAlue()
     {
         await new VerifyCS.Test

@@ -92,14 +92,8 @@ internal sealed class CSharpUseImplicitlyTypedLambdaExpressionDiagnosticAnalyzer
             return false;
         }
 
-        if (!explicitLambdaMethod.ReturnType.Equals(implicitLambdaMethod.ReturnType))
+        if (!SignatureComparer.Instance.HaveSameSignature(explicitLambdaMethod, implicitLambdaMethod, caseSensitive: true))
             return false;
-
-        if (!explicitLambdaMethod.Parameters.SequenceEqual(implicitLambdaMethod.Parameters,
-                static (p1, p2) => p1.Type.Equals(p2.Type)))
-        {
-            return false;
-        }
 
         return true;
     }
