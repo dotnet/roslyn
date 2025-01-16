@@ -101,20 +101,22 @@ internal sealed class CSharpUseImplicitlyTypedLambdaExpressionDiagnosticAnalyzer
 
     public static LambdaExpressionSyntax ConvertToImplicitlyTypedLambda(ParenthesizedLambdaExpressionSyntax explicitLambda)
     {
+        var implicitLambda = explicitLambda.ReplaceNodes(
+            explicitLambda.ParameterList.Parameters,
+            (parameter, _) => RemoveParamsModifier(parameter.WithType(null)));
+
         // If the lambda only has one parameter, then convert it to the non-parenthesized form.
-        if (explicitLambda.ParameterList.Parameters is [{ AttributeLists.Count: 0, Modifiers.Count: 0 } parameter])
+        if (implicitLambda.ParameterList.Parameters is [{ AttributeLists.Count: 0, Modifiers.Count: 0 } parameter])
         {
             return SimpleLambdaExpression(
                 explicitLambda.AttributeLists,
                 explicitLambda.Modifiers,
-                parameter.WithType(null).WithTriviaFrom(explicitLambda.ParameterList),
+                parameter.WithTriviaFrom(explicitLambda.ParameterList),
                 explicitLambda.Block,
                 explicitLambda.ExpressionBody);
         }
 
-        return explicitLambda.ReplaceNodes(
-            explicitLambda.ParameterList.Parameters,
-            (parameter, _) => RemoveParamsModifier(parameter.WithType(null)));
+        return implicitLambda;
     }
 
     private static ParameterSyntax RemoveParamsModifier(ParameterSyntax parameter)
