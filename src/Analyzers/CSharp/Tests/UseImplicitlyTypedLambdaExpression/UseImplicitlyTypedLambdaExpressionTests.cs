@@ -132,7 +132,7 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 {
                     void M()
                     {
-                        Func<int> a = [|(|]int x) => { };
+                        Action<int> a = [|(|]int x) => { };
                     }
                 }
                 """,
@@ -143,11 +143,154 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 {
                     void M()
                     {
-                        Func<int> a = x => { };
+                        Action<int> a = x => { };
                     }
                 }
                 """,
             LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestCastToStronglyTypedDelegate()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        Delegate a = (Action<int>)([|(|]int x) => { });
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        Delegate a = (Action<int>)(x => { });
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestArgument()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(Action<int> action)
+                    {
+                        M([|(|]int x) => { });
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M(Action<int> action)
+                    {
+                        M(x => { });
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestOverloadResolution()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(Action<int> action)
+                    {
+                        M((int x) => { });
+                    }
+
+                    void M(Action<string> action)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestModifier_CSharp13()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                delegate void D(ref int i);
+
+                class C
+                {
+                    void M()
+                    {
+                        D d = (ref int i) => { };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestModifier_CSharp14()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                delegate void D(ref int i);
+
+                class C
+                {
+                    void M()
+                    {
+                        D d = [|(|]ref int i) => { };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                delegate void D(ref int i);
+
+                class C
+                {
+                    void M()
+                    {
+                        D d = [|(|]ref i) => { };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
         }.RunAsync();
     }
 }
