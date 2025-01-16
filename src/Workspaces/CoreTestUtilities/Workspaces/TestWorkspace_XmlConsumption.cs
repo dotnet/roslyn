@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             foreach (var metadataReferenceFromSource in element.Elements(MetadataReferenceFromSourceElementName))
             {
-                references.Add(CreateMetadataReferenceFromSource(element, metadataReferenceFromSource));
+                references.Add(CreateMetadataReferenceFromSource(element, metadataReferenceFromSource).reference);
             }
 
             return references;
