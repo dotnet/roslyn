@@ -1779,8 +1779,12 @@ If the "H" format specifier is used without other custom format specifiers, it's
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</comment>
   </data>
   <data name="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group number_0" xml:space="preserve">
-    <value>Conditional alternation is missing a closing parenthesis after the group number '{0}'</value>
+    <value>Conditional alternation is missing a closing parenthesis after the group number {0}</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</comment>
+  </data>
+  <data name="Conditional_alternation_refers_to_an_undefined_group_number_0" xml:space="preserve">
+    <value>Conditional alternation refers to an undefined group number {0}</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1)\1))</comment>
   </data>
   <data name="Malformed_character_escape" xml:space="preserve">
     <value>Malformed \p{X} character escape</value>
@@ -1805,10 +1809,6 @@ If the "H" format specifier is used without other custom format specifiers, it's
   <data name="Quantifier_0_following_nothing" xml:space="preserve">
     <value>Quantifier '{0}' following nothing</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</comment>
-  </data>
-  <data name="Reference_to_undefined_group" xml:space="preserve">
-    <value>reference to undefined group</value>
-    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</comment>
   </data>
   <data name="Reference_to_undefined_group_name_0" xml:space="preserve">
     <value>Reference to undefined group name '{0}'</value>

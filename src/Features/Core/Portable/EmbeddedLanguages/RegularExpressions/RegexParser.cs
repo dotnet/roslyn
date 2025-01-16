@@ -806,7 +806,7 @@ internal partial struct RegexParser
                 if (!HasCapture((int)capture.Value))
                 {
                     capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        FeaturesResources.Reference_to_undefined_group,
+                        FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0,
                         capture.GetSpan()));
                 }
             }

@@ -174,7 +174,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     // good enough job here for other languages.
                     if (Thread.CurrentThread.CurrentCulture.Name == "en-US")
                     {
-                        Assert.True(tree.Diagnostics.Any(d => ex.Message.Contains(d.Message)));
+                        var result = tree.Diagnostics.Any(d => ex.Message.Contains(d.Message));
+                        Assert.True(result);
                     }
                 }
 
