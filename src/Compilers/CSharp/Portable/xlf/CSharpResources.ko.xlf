@@ -2352,6 +2352,11 @@
         <target state="translated">모든 필드가 할당되기 전에는 'this' 개체를 사용할 수 없습니다. 할당되지 않은 필드의 기본값을 자동으로 설정하려면 언어 버전 '{0}'(으)로 업데이트하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VariableDeclarationNamedField">
+        <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
+        <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">일반 작업과 같은 반환 유형이 예상되었지만 'AsyncMethodBuilder' 특성에 있는 '{0}' 유형이 적합하지 않습니다. 이는 인자 수가 1인 바인딩되지 않은 제네릭 유형이어야 하고, 포함하는 유형(있는 경우)은 제네릭이 아니어야 합니다.</target>
@@ -2665,11 +2670,6 @@
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">포인터</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
-        <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
-        <target state="translated">식별자는 이후 언어 버전에서 특정 의미를 가진 컨텍스트 키워드입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
