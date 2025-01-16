@@ -151,7 +151,7 @@ internal static partial class CSharpCodeStyleOptions
 
     public static readonly Option2<CodeStyleOption2<bool>> PreferImplicitlyTypedLambdaExpression = CreateOption(
         CodeStyleOptionGroups.ExpressionLevelPreferences,
-        "csharp_prefer_implicitly_typed_lambda_expression",
+        "csharp_style_prefer_implicitly_typed_lambda_expression",
         CSharpSimplifierOptions.Default.PreferImplicitlyTypedLambdaExpression);
 
     private static readonly ImmutableArray<SyntaxKind> s_preferredModifierOrderDefault =
