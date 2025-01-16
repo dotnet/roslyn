@@ -2148,7 +2148,7 @@ public class Methods
     internal void Internal() {}
 }";
 
-            Func<bool, Action<ModuleSymbol>> validator = isFromSource => (ModuleSymbol m) =>
+            Func<bool, Action<ModuleSymbol>> validator = isFromSource => m =>
             {
                 CheckInternalMembers(m.GlobalNamespace.GetTypeMembers("Fields").Single(), isFromSource);
                 CheckInternalMembers(m.GlobalNamespace.GetTypeMembers("Methods").Single(), isFromSource);
@@ -3153,7 +3153,7 @@ public class Child : Parent, IParent
             CompileAndVerify(source,
                 parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
                 expectedOutput: "Hello \uD801\uD802",
-                symbolValidator: static (ModuleSymbol module) =>
+                symbolValidator: static module =>
                 {
                     // No <S> types expected.
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
@@ -3186,7 +3186,7 @@ public class Child : Parent, IParent
                 parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
                 verify: Verification.Fails,
                 expectedOutput: "Hello",
-                symbolValidator: static (ModuleSymbol module) =>
+                symbolValidator: static module =>
                 {
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
                         <Module>
@@ -3285,7 +3285,7 @@ public class Child : Parent, IParent
             CompileAndVerify(source,
                 emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true),
                 parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", feature),
-                symbolValidator: static (ModuleSymbol module) =>
+                symbolValidator: static module =>
                 {
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
                         <Module>
@@ -3313,7 +3313,7 @@ public class Child : Parent, IParent
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 verify: Verification.Fails,
                 expectedOutput: "abcccddd",
-                symbolValidator: static (ModuleSymbol module) =>
+                symbolValidator: static module =>
                 {
                     var privateImplDetails = module.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
 
@@ -3355,7 +3355,7 @@ public class Child : Parent, IParent
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 verify: Verification.Fails,
                 expectedOutput: "aabbbbbb",
-                symbolValidator: static (ModuleSymbol module) =>
+                symbolValidator: static module =>
                 {
                     var privateImplDetails = module.GlobalNamespace.GetTypeMember("<PrivateImplementationDetails>");
 
@@ -3401,7 +3401,7 @@ public class Child : Parent, IParent
                     options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All)),
                 verify: Verification.Fails,
                 expectedOutput: "abc123",
-                symbolValidator: static (ModuleSymbol module) =>
+                symbolValidator: static module =>
                 {
                     // Data fields
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
@@ -3438,7 +3438,7 @@ public class Child : Parent, IParent
                     options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All)),
                 verify: Verification.Fails,
                 expectedOutput: "abcabc",
-                symbolValidator: static (ModuleSymbol module) =>
+                symbolValidator: static module =>
                 {
                     // Data fields
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""
@@ -3485,7 +3485,7 @@ public class Child : Parent, IParent
 
             CompileAndVerify(CreateEmptyCompilation(source, parseOptions: parseOptions),
                 verify: Verification.Skipped,
-                symbolValidator: static (ModuleSymbol module) =>
+                symbolValidator: static module =>
                 {
                     // PrivateImplementationDetails should be in the list.
                     AssertEx.AssertEqualToleratingWhitespaceDifferences("""

@@ -1080,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.Text
             // The following loop goes through every character in the text. It is highly
             // performance critical, and thus inlines knowledge about common line breaks
             // and non-line breaks.
-            EnumerateChars((int position, char[] buffer, int length) =>
+            EnumerateChars((position, buffer, length) =>
             {
                 var index = 0;
                 if (lastWasCR)

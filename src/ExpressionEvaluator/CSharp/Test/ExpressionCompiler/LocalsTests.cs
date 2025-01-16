@@ -3825,7 +3825,7 @@ class Program
                 var badConst = new MockSymUnmanagedConstant(
                     "a",
                     1,
-                    (int bufferLength, out int count, byte[] name) =>
+                    (bufferLength, out count, name) =>
                     {
                         count = 0;
                         return Roslyn.Test.Utilities.HResult.E_NOTIMPL;

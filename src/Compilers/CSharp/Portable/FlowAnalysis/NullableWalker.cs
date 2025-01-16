@@ -3808,7 +3808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We're in the context of a conversion, so the analysis of element conversions and the final visit result
                 // will be completed later (when that conversion is processed).
                 TargetTypedAnalysisCompletion[node] =
-                    (TypeWithAnnotations resultTypeWithAnnotations) => convertCollection(node, resultTypeWithAnnotations, elementConversionCompletions);
+                    resultTypeWithAnnotations => convertCollection(node, resultTypeWithAnnotations, elementConversionCompletions);
             }
             else
             {
@@ -3980,7 +3980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(resultState == NullableFlowState.NotNull);
 
                 TargetTypedAnalysisCompletion[node] =
-                    (TypeWithAnnotations resultTypeWithAnnotations) =>
+                    resultTypeWithAnnotations =>
                     {
                         Debug.Assert(TypeSymbol.Equals(resultTypeWithAnnotations.Type, node.Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
@@ -4084,7 +4084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<BoundExpression> arguments,
                 ImmutableArray<VisitResult> argumentResults)
             {
-                return (TypeSymbol type, MethodSymbol? constructor) =>
+                return (type, constructor) =>
                 {
                     var (slot, resultState, completion) = inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped: false);
                     Debug.Assert(completion is null);
@@ -4234,7 +4234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArgumentsCompletionDelegate? argumentsCompletion,
                 Action<int, Symbol>? initializationCompletion)
             {
-                return (int containingSlot, TypeSymbol containingType) =>
+                return (containingSlot, containingType) =>
                 {
                     Symbol? symbol = getTargetMember(containingType, (BoundObjectInitializerMember)node.Left);
 
@@ -4300,7 +4300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Action<int, Symbol>? completeNestedInitializerAnalysisAsContinuation(BoundObjectInitializerExpressionBase initializer, Action<int, TypeSymbol>? nestedCompletion)
             {
-                return (int containingSlot, Symbol symbol) =>
+                return (containingSlot, symbol) =>
                 {
                     int slot = getOrCreateSlot(containingSlot, symbol);
                     completeNestedInitializerAnalysis(symbol, initializer, slot, nestedCompletion: null, delayCompletionForType: false);
@@ -4343,7 +4343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Action<int, Symbol>? visitMemberAssignmentAsContinuation(BoundAssignmentOperator node, Func<TypeWithAnnotations, TypeWithState> conversionCompletion)
             {
-                return (int containingSlot, Symbol symbol) =>
+                return (containingSlot, symbol) =>
                 {
                     var result = visitMemberAssignment(node, containingSlot, symbol, delayCompletionForType: false, conversionCompletion);
                     Debug.Assert(result is null);
@@ -4424,7 +4424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<VisitResult> argumentResults,
                 ArgumentsCompletionDelegate visitArgumentsCompletion)
             {
-                return (int containingSlot, TypeSymbol containingType) =>
+                return (containingSlot, containingType) =>
                 {
                     MethodSymbol addMethod = addMethodAsMemberOfContainingType(node, containingType, ref argumentResults);
 
@@ -6121,7 +6121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool alternativeEndReachable)
             {
                 TargetTypedAnalysisCompletion[node] =
-                    (TypeWithAnnotations resultTypeWithAnnotations) =>
+                    resultTypeWithAnnotations =>
                     {
                         return convertArms(
                                    node, originalConsequence, originalAlternative, consequenceState, alternativeState, consequenceRValue, alternativeRValue,
@@ -7041,7 +7041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool expanded,
                 bool invokedAsExtensionMethod)
             {
-                return (ImmutableArray<VisitResult> results, ImmutableArray<ParameterSymbol> parametersOpt, MethodSymbol? method) =>
+                return (results, parametersOpt, method) =>
                        {
                            var result = visitArguments(
                                            node, arguments, argumentsNoConversions, conversions, results, refKindsOpt,
@@ -8430,7 +8430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Func<TypeWithAnnotations, TypeWithState> visitConversionAsContinuation(BoundExpression expr, bool useLegacyWarnings, bool trackMembers, AssignmentKind assignmentKind, BoundExpression operand, Conversion conversion, TypeWithState operandType)
             {
-                return (TypeWithAnnotations targetTypeOpt) =>
+                return targetTypeOpt =>
                 {
                     var result = visitConversion(expr, targetTypeOpt, useLegacyWarnings, trackMembers, assignmentKind, operand, conversion, operandType, delayCompletionForTargetType: false);
                     Debug.Assert(result.completion is null);
@@ -9707,7 +9707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             void setAnalyzedNullabilityAsContinuation(BoundDelegateCreationExpression node, Action<NamedTypeSymbol>? analysisCompletion)
             {
                 TargetTypedAnalysisCompletion[node] =
-                    (TypeWithAnnotations resultTypeWithAnnotations) =>
+                    resultTypeWithAnnotations =>
                     {
                         Debug.Assert(TypeSymbol.Equals(resultTypeWithAnnotations.Type, node.Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                         var delegateType = (NamedTypeSymbol)resultTypeWithAnnotations.Type;
@@ -9749,7 +9749,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Action<NamedTypeSymbol>? analyzeMethodGroupConversionAsContinuation(BoundDelegateCreationExpression node, BoundMethodGroup group)
             {
-                return (NamedTypeSymbol delegateType) =>
+                return delegateType =>
                 {
                     analyzeMethodGroupConversion(node, delegateType, group, isTargetTyped: false);
                 };
@@ -9781,7 +9781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Action<NamedTypeSymbol> analyzeLambdaConversionAsContinuation(BoundLambda lambda)
             {
-                return (NamedTypeSymbol delegateType) => analyzeLambdaConversion(delegateType, lambda, isTargetTyped: false);
+                return delegateType => analyzeLambdaConversion(delegateType, lambda, isTargetTyped: false);
             }
 
             Action<NamedTypeSymbol>? visitDelegateArgument(NamedTypeSymbol delegateType, BoundExpression arg, bool isTargetTyped)
@@ -9820,7 +9820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Action<NamedTypeSymbol> analyzeDelegateConversionAsContinuation(BoundExpression arg)
             {
-                return (NamedTypeSymbol delegateType) => analyzeDelegateConversion(delegateType, arg, isTargetTyped: false);
+                return delegateType => analyzeDelegateConversion(delegateType, arg, isTargetTyped: false);
             }
         }
 

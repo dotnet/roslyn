@@ -86,7 +86,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -2678,7 +2678,7 @@ class C
     }
 }
 ";
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3120,7 +3120,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3168,7 +3168,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3232,7 +3232,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3270,7 +3270,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3320,7 +3320,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3358,7 +3358,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3433,7 +3433,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3469,7 +3469,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3534,7 +3534,7 @@ class C
 Deconstructing (1, hello)
 1 hello 2";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3680,7 +3680,7 @@ class @var
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3725,7 +3725,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3782,7 +3782,7 @@ class D
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3832,7 +3832,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3878,7 +3878,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3922,7 +3922,7 @@ class @var
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -3968,7 +3968,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -4017,7 +4017,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -4123,7 +4123,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -4208,7 +4208,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -4319,7 +4319,7 @@ static class Extension
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -4428,7 +4428,7 @@ class C
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -4582,7 +4582,7 @@ class C
 }
 " + commonSource;
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -5011,7 +5011,7 @@ using @alias = System.Int32;
 System.Console.Write($""{x} {y}"");
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -5163,7 +5163,7 @@ System.Console.Write($""{x} {y}"");
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -5300,7 +5300,7 @@ foreach ((string x1, var (x2, x3)) in new[] { (""hello"", (42, ""world"")) })
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -5336,7 +5336,7 @@ for ((string x1, var (x2, x3)) = (""hello"", (42, ""world"")); ; )
 }
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -6429,7 +6429,7 @@ class C
     }
 }
 ";
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -6850,7 +6850,7 @@ using @alias = System.Int32;
 (string _, alias _) = (""hello"", 42);
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;
@@ -6922,7 +6922,7 @@ _ = M();
 System.Console.Write($""{x3}"");
 ";
 
-            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
                 var compilation = sourceModule.DeclaringCompilation;

@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier,
                 suppressUseSiteDiagnostics: false,
                 lastIndex: syntax.Parameters.Count - 1,
-                parameterCreationFunc: (Binder context, Symbol owner, TypeWithAnnotations parameterType,
-                                        ParameterSyntax syntax, RefKind refKind, int ordinal,
-                                        SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
-                                        ScopedKind scope,
-                                        BindingDiagnosticBag declarationDiagnostics) =>
+                parameterCreationFunc: (context, owner, parameterType,
+syntax, refKind, ordinal,
+paramsKeyword, thisKeyword, addRefReadOnlyModifier,
+scope,
+declarationDiagnostics) =>
                 {
                     return SourceParameterSymbol.Create(
                         context,
@@ -78,11 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier: true,
                 suppressUseSiteDiagnostics,
                 parametersList.Count - 2,
-                parameterCreationFunc: (Binder binder, FunctionPointerMethodSymbol owner, TypeWithAnnotations parameterType,
-                                        FunctionPointerParameterSyntax syntax, RefKind refKind, int ordinal,
-                                        SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
-                                        ScopedKind scope,
-                                        BindingDiagnosticBag diagnostics) =>
+                parameterCreationFunc: (binder, owner, parameterType,
+syntax, refKind, ordinal,
+paramsKeyword, thisKeyword, addRefReadOnlyModifier,
+scope,
+diagnostics) =>
                 {
                     // Non-function pointer locations have other locations to encode in/ref readonly/outness. For function pointers,
                     // these modreqs are the only locations where this can be encoded. If that changes, we should update this.

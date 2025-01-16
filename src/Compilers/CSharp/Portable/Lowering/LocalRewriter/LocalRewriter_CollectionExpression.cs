@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localsBuilder,
                 numberIncludingLastSpread,
                 sideEffects,
-                addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression arrayTemp, BoundExpression rewrittenValue, bool isLastElement) =>
+                addElement: (expressions, arrayTemp, rewrittenValue, isLastElement) =>
                 {
                     Debug.Assert(arrayTemp.Type is ArrayTypeSymbol);
                     Debug.Assert(indexTemp.Type is { SpecialType: SpecialType.System_Int32 });
@@ -812,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 indexTemp.Type));
                     }
                 },
-                tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression arrayTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
+                tryOptimizeSpreadElement: (sideEffects, arrayTemp, spreadElement, rewrittenSpreadOperand) =>
                 {
                     if (PrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
                         return false;
@@ -1120,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     localsBuilder,
                     numberIncludingLastSpread,
                     sideEffects,
-                    addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression spanTemp, BoundExpression rewrittenValue, bool isLastElement) =>
+                    addElement: (expressions, spanTemp, rewrittenValue, isLastElement) =>
                     {
                         Debug.Assert(spanTemp.Type is NamedTypeSymbol);
                         Debug.Assert(indexTemp.Type is { SpecialType: SpecialType.System_Int32 });
@@ -1148,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     indexTemp.Type));
                         }
                     },
-                    tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression spanTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
+                    tryOptimizeSpreadElement: (sideEffects, spanTemp, spreadElement, rewrittenSpreadOperand) =>
                     {
                         if (PrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
                             return false;
@@ -1167,13 +1167,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     localsBuilder,
                     numberIncludingLastSpread,
                     sideEffects,
-                    addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression listTemp, BoundExpression rewrittenValue, bool isLastElement) =>
+                    addElement: (expressions, listTemp, rewrittenValue, isLastElement) =>
                     {
                         // list.Add(element);
                         expressions.Add(
                             _factory.Call(listTemp, addMethod, rewrittenValue));
                     },
-                    tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression listTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
+                    tryOptimizeSpreadElement: (sideEffects, listTemp, spreadElement, rewrittenSpreadOperand) =>
                     {
                         Debug.Assert(rewrittenSpreadOperand.Type is not null);
 

@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             if ((operations & ModifyOperation.Add) == ModifyOperation.Add)
             {
-                yield return (IEnumerable enumerable) =>
+                yield return enumerable =>
                 {
                     IList casted = ((IList)enumerable);
                     if (!casted.IsFixedSize && !casted.IsReadOnly)
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
             if ((operations & ModifyOperation.Insert) == ModifyOperation.Insert)
             {
-                yield return (IEnumerable enumerable) =>
+                yield return enumerable =>
                 {
                     IList casted = ((IList)enumerable);
                     if (!casted.IsFixedSize && !casted.IsReadOnly)
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
             if ((operations & ModifyOperation.Remove) == ModifyOperation.Remove)
             {
-                yield return (IEnumerable enumerable) =>
+                yield return enumerable =>
                 {
                     IList casted = ((IList)enumerable);
                     if (casted.Count > 0 && !casted.IsFixedSize && !casted.IsReadOnly)
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                     }
                     return false;
                 };
-                yield return (IEnumerable enumerable) =>
+                yield return enumerable =>
                 {
                     IList casted = ((IList)enumerable);
                     if (casted.Count > 0 && !casted.IsFixedSize && !casted.IsReadOnly)
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
             if ((operations & ModifyOperation.Overwrite) == ModifyOperation.Overwrite)
             {
-                yield return (IEnumerable enumerable) =>
+                yield return enumerable =>
                 {
                     IList casted = ((IList)enumerable);
                     if (casted.Count > 0 && !casted.IsReadOnly)
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
             if ((operations & ModifyOperation.Clear) == ModifyOperation.Clear)
             {
-                yield return (IEnumerable enumerable) =>
+                yield return enumerable =>
                 {
                     IList casted = ((IList)enumerable);
                     if (casted.Count > 0 && !casted.IsFixedSize && !casted.IsReadOnly)

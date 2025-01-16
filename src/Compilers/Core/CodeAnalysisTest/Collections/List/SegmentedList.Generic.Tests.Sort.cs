@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             SegmentedList<T> list = GenericListFactory(count);
             IComparer<T> iComparer = GetIComparer();
-            Comparison<T> comparer = ((T first, T second) => { return iComparer.Compare(first, second); });
+            Comparison<T> comparer = ((first, second) => { return iComparer.Compare(first, second); });
             list.Sort(comparer);
             Assert.All(Enumerable.Range(0, count - 2), i =>
             {
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             SegmentedList<T> list = GenericListFactory(count);
             list.Add(list[0]);
             IComparer<T> iComparer = GetIComparer();
-            Comparison<T> comparer = ((T first, T second) => { return iComparer.Compare(first, second); });
+            Comparison<T> comparer = ((first, second) => { return iComparer.Compare(first, second); });
             list.Sort(comparer);
             Assert.All(Enumerable.Range(0, count - 2), i =>
             {

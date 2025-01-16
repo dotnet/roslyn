@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             if (!AddRemoveClear_ThrowsNotSupported && (operations & ModifyOperation.Insert) == ModifyOperation.Insert)
             {
-                yield return (IEnumerable<T> enumerable) =>
+                yield return enumerable =>
                 {
                     IList<T> casted = ((IList<T>)enumerable);
                     if (casted.Count > 0)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
             if (!AddRemoveClear_ThrowsNotSupported && (operations & ModifyOperation.Overwrite) == ModifyOperation.Overwrite)
             {
-                yield return (IEnumerable<T> enumerable) =>
+                yield return enumerable =>
                 {
                     IList<T> casted = ((IList<T>)enumerable);
                     if (casted.Count > 0)
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
             if (!AddRemoveClear_ThrowsNotSupported && (operations & ModifyOperation.Remove) == ModifyOperation.Remove)
             {
-                yield return (IEnumerable<T> enumerable) =>
+                yield return enumerable =>
                 {
                     IList<T> casted = ((IList<T>)enumerable);
                     if (casted.Count > 0)

@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             public void Exists_VerifyExceptions(T[] items)
             {
                 SegmentedList<T> list = new SegmentedList<T>();
-                Predicate<T> predicate = (T item) => { return true; };
+                Predicate<T> predicate = item => { return true; };
 
                 for (int i = 0; i < items.Length; ++i)
                     list.Add(items[i]);
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 T? expectedItem = default(T);
                 SegmentedList<T?> list = new SegmentedList<T?>();
-                Predicate<T?> expectedItemDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+                Predicate<T?> expectedItemDelegate = item => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
                 bool typeNullable = default(T) == null;
 
                 for (int i = 0; i < items.Length; ++i)
@@ -380,16 +380,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 }
 
                 //[] Verify Exists returns true if the match returns true on every item
-                Assert.True((0 < items.Length) == list.Exists((T? item) => { return true; }),
+                Assert.True((0 < items.Length) == list.Exists(item => { return true; }),
                         "Err_548ahid Verify Exists returns 0 if the match returns true on every item FAILED\n");
 
                 //[] Verify Exists returns false if the match returns false on every item
-                Assert.True(!list.Exists((T? item) => { return false; }),
+                Assert.True(!list.Exists(item => { return false; }),
                         "Err_30848ahidi Verify Exists returns -1 if the match returns false on every item FAILED\n");
 
                 //[] Verify with default(T)
                 list.Add(default(T));
-                Assert.True(list.Exists((T? item) => { return item == null ? default(T) == null : item.Equals(default(T)); }),
+                Assert.True(list.Exists(item => { return item == null ? default(T) == null : item.Equals(default(T)); }),
                         "Err_541848ajodi Verify with default(T) FAILED\n");
                 list.RemoveAt(list.Count - 1);
             }
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 T? expectedItem = default(T);
                 SegmentedList<T> list = new SegmentedList<T>();
-                Predicate<T> expectedItemDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+                Predicate<T> expectedItemDelegate = item => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
                 if (0 < items.Length)
                 {
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                             "Err_4588ajdia Verify second item is duplicated FAILED\n");
 
                     //[] Verify with match that matches more then one item
-                    Assert.True(list.Exists((T item) => { return item != null && (item.Equals(items[0]) || item.Equals(items[1])); }),
+                    Assert.True(list.Exists(item => { return item != null && (item.Equals(items[0]) || item.Equals(items[1])); }),
                             "Err_4489ajodoi Verify with match that matches more then one item FAILED\n");
                 }
             }

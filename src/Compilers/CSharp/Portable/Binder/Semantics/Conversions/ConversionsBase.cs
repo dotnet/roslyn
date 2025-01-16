@@ -1958,7 +1958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     destination,
                     ref useSiteInfo,
                     ConversionKind.ImplicitTupleLiteral,
-                    (ConversionsBase conversions, BoundExpression s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast) =>
+                    (conversions, s, d, isChecked, ref u, forCast) =>
                         conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d.Type, ref u, isMethodGroupConversion: false),
                     isChecked: false,
                     forCast: false);
@@ -1975,7 +1975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     destination,
                     ref useSiteInfo,
                     ConversionKind.ImplicitTuple,
-                    (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, bool _, ref CompoundUseSiteInfo<AssemblySymbol> u, bool _) =>
+                    (conversions, s, d, _, ref u, _) =>
                     {
                         if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                         {
@@ -2293,7 +2293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteInfo,
                 ConversionKind.ImplicitTupleLiteral,
-                (ConversionsBase conversions, BoundExpression s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast)
+                (conversions, s, d, isChecked, ref u, forCast)
                     => conversions.ClassifyImplicitConversionFromExpression(s, d.Type, ref u),
                 isChecked: false,
                 forCast: false);
@@ -2311,7 +2311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteInfo,
                 ConversionKind.ExplicitTupleLiteral,
-                (ConversionsBase conversions, BoundExpression s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast) =>
+                (conversions, s, d, isChecked, ref u, forCast) =>
                     conversions.ClassifyConversionFromExpression(s, d.Type, isChecked: isChecked, ref u, forCast: forCast),
                 isChecked: isChecked,
                 forCast: forCast);
@@ -2364,7 +2364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteInfo,
                 ConversionKind.ImplicitTuple,
-                (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, bool _, ref CompoundUseSiteInfo<AssemblySymbol> u, bool _) =>
+                (conversions, s, d, _, ref u, _) =>
                 {
                     if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                     {
@@ -2383,7 +2383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteInfo,
                 ConversionKind.ExplicitTuple,
-                (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast) =>
+                (conversions, s, d, isChecked, ref u, forCast) =>
                 {
                     if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                     {

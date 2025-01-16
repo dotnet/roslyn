@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:     o Xi has a non-empty set of bounds, and
             // SPEC:     o Xi does not depend on any Xj
             // SPEC:   then each such Xi is fixed.
-            return FixParameters((ref MethodTypeInferrer inferrer, int index) => !inferrer.DependsOnAny(index), ref useSiteInfo);
+            return FixParameters((ref inferrer, index) => !inferrer.DependsOnAny(index), ref useSiteInfo);
         }
 
         private InferenceResult FixDependentParameters(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -935,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: * All unfixed type parameters Xi are fixed for which all of the following hold:
             // SPEC:   * There is at least one type parameter Xj that depends on Xi.
             // SPEC:   * Xi has a non-empty set of bounds.
-            return FixParameters((ref MethodTypeInferrer inferrer, int index) => inferrer.AnyDependsOn(index), ref useSiteInfo);
+            return FixParameters((ref inferrer, index) => inferrer.AnyDependsOn(index), ref useSiteInfo);
         }
 
         private delegate bool FixParametersPredicate(ref MethodTypeInferrer inferrer, int index);

@@ -14593,7 +14593,7 @@ struct S4(S3 x)
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-            System.Threading.Tasks.Parallel.For(0, 100, (int i) => comp.VerifyDiagnostics());
+            System.Threading.Tasks.Parallel.For(0, 100, i => comp.VerifyDiagnostics());
         }
 
         [Fact]

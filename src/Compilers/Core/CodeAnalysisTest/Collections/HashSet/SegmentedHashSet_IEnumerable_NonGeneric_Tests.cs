@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             if ((operations & ModifyOperation.Clear) == ModifyOperation.Clear)
             {
-                yield return (IEnumerable enumerable) =>
+                yield return enumerable =>
                 {
                     SegmentedHashSet<string> casted = ((SegmentedHashSet<string>)enumerable);
                     if (casted.Count > 0)

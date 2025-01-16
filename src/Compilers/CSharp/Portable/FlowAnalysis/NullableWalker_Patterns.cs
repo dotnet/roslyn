@@ -1035,7 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<BoundExpression> expressions)
             {
                 TargetTypedAnalysisCompletion[node] =
-                    (TypeWithAnnotations inferredTypeWithAnnotations) =>
+                    inferredTypeWithAnnotations =>
                     {
                         return convertArms(node, labelStateMap, conversions, resultTypes, expressions, inferredTypeWithAnnotations, isTargetTyped: false);
                     };

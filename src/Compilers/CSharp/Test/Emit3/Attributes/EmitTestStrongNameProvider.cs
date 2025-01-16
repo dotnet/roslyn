@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ex = new Exception("Crazy exception you could never have predicted!");
             var provider = new TestDesktopStrongNameProvider()
             {
-                ReadKeysFromContainerFunc = (string _, out ImmutableArray<byte> publicKey) => throw ex
+                ReadKeysFromContainerFunc = (_, out publicKey) => throw ex
             };
 
             var src = @"class C {}";

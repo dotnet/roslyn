@@ -337,7 +337,7 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
 
             await TaskScheduler.Default;
 
-            var onAfterProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnAfterProjectAnalyzed : (Action<Project>)((Project _) => { });
+            var onAfterProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnAfterProjectAnalyzed : (Action<Project>)(_ => { });
             await _codeAnalysisService.RunAnalysisAsync(solution, project?.Id, onAfterProjectAnalyzed, CancellationToken.None).ConfigureAwait(false);
 
             foreach (var otherProject in otherProjectsForMultiTfmProject)

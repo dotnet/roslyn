@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(LambdaUtilities.IsQueryPairLambda(node));
 
-            LambdaBodyFactory bodyFactory = (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag d) =>
+            LambdaBodyFactory bodyFactory = (lambdaSymbol, lambdaBodyBinder, d) =>
             {
                 var x1Expression = new BoundParameter(node, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
                 var x2Expression = new BoundParameter(node, lambdaSymbol.Parameters[1]) { WasCompilerGenerated = true };
@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // are accessed as TRID.Item1 (or members of that), and y is accessed
             // as TRID.Item2, where TRID is the compiler-generated identifier used
             // to represent the transparent identifier in the result.
-            LambdaBodyFactory bodyFactory = (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag d) =>
+            LambdaBodyFactory bodyFactory = (lambdaSymbol, lambdaBodyBinder, d) =>
             {
                 var xExpression = new BoundParameter(let, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
 
@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private UnboundLambda MakeQueryUnboundLambda(RangeVariableMap qvm, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax expression, bool withDependencies)
         {
-            return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, parameters, (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics) =>
+            return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, parameters, (lambdaSymbol, lambdaBodyBinder, diagnostics) =>
             {
                 lambdaBodyBinder = lambdaBodyBinder.GetRequiredBinder(expression);
                 Debug.Assert(lambdaSymbol != null);
@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private UnboundLambda MakeQueryUnboundLambdaWithCast(RangeVariableMap qvm, RangeVariableSymbol parameter, ExpressionSyntax expression, TypeSyntax castTypeSyntax, TypeWithAnnotations castType, bool withDependencies)
         {
-            return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, ImmutableArray.Create(parameter), (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics) =>
+            return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, ImmutableArray.Create(parameter), (lambdaSymbol, lambdaBodyBinder, diagnostics) =>
             {
                 lambdaBodyBinder = lambdaBodyBinder.GetRequiredBinder(expression);
                 BoundExpression boundExpression = lambdaBodyBinder.BindValue(expression, diagnostics, BindValueKind.RValue);

@@ -21,10 +21,10 @@ internal static class Program
 
         var options = new OptionSet()
         {
-            { "source=", "Path to binaries", (string s) => source = s },
-            { "destination=", "Output path", (string s) => destination = s },
+            { "source=", "Path to binaries", s => source = s },
+            { "destination=", "Output path", s => destination = s },
             { "unix", "If true, prepares tests for unix environment instead of Windows", o => isUnix = o is object },
-            { "dotnetPath=", "Path to the dotnet CLI", (string s) => dotnetPath = s },
+            { "dotnetPath=", "Path to the dotnet CLI", s => dotnetPath = s },
         };
         options.Parse(args);
 

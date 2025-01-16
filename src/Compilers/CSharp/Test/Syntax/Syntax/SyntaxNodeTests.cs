@@ -1823,7 +1823,7 @@ namespace Microsoft.CSharp.Test
             var nodeOrToken = (SyntaxNodeOrToken)syntaxTree.GetRoot();
             Assert.Equal(0, syntaxTree.GetDiagnostics().Count());
             Action<SyntaxNodeOrToken> walk = null;
-            walk = (SyntaxNodeOrToken nOrT) =>
+            walk = nOrT =>
             {
                 Assert.Equal(0, syntaxTree.GetDiagnostics(nOrT).Count());
                 foreach (var child in nOrT.ChildNodesAndTokens())

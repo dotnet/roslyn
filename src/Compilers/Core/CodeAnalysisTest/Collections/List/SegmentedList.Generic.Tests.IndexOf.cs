@@ -39,17 +39,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             switch (methodType)
             {
                 case (IndexOfMethod.IndexOf_T):
-                    return ((SegmentedList<T> list, T value) => { return list.IndexOf(value); });
+                    return ((list, value) => { return list.IndexOf(value); });
                 case (IndexOfMethod.IndexOf_T_int):
-                    return ((SegmentedList<T> list, T value) => { return list.IndexOf(value, 0); });
+                    return ((list, value) => { return list.IndexOf(value, 0); });
                 case (IndexOfMethod.IndexOf_T_int_int):
-                    return ((SegmentedList<T> list, T value) => { return list.IndexOf(value, 0, list.Count); });
+                    return ((list, value) => { return list.IndexOf(value, 0, list.Count); });
                 case (IndexOfMethod.LastIndexOf_T):
-                    return ((SegmentedList<T> list, T value) => { return list.LastIndexOf(value); });
+                    return ((list, value) => { return list.LastIndexOf(value); });
                 case (IndexOfMethod.LastIndexOf_T_int):
-                    return ((SegmentedList<T> list, T value) => { return list.LastIndexOf(value, list.Count - 1); });
+                    return ((list, value) => { return list.LastIndexOf(value, list.Count - 1); });
                 case (IndexOfMethod.LastIndexOf_T_int_int):
-                    return ((SegmentedList<T> list, T value) => { return list.LastIndexOf(value, list.Count - 1, list.Count); });
+                    return ((list, value) => { return list.LastIndexOf(value, list.Count - 1, list.Count); });
                 default:
                     throw new Exception("Invalid IndexOfMethod");
             }

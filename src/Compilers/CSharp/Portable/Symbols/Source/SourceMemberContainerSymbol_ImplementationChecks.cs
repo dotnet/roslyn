@@ -1214,14 +1214,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static readonly ReportMismatchInReturnType<Location> ReportBadReturn =
-            (BindingDiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool topLevel, Location location)
+            (diagnostics, overriddenMethod, overridingMethod, topLevel, location)
             => diagnostics.Add(topLevel ?
                 ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride :
                 ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride,
                 location);
 
         private static readonly ReportMismatchInParameterType<Location> ReportBadParameter =
-            (BindingDiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol overridingParameter, bool topLevel, Location location)
+            (diagnostics, overriddenMethod, overridingMethod, overridingParameter, topLevel, location)
             => diagnostics.Add(
                 topLevel ? ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride : ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
                 location,

@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             if (!AddRemoveClear_ThrowsNotSupported && (operations & ModifyOperation.Add) == ModifyOperation.Add)
             {
-                yield return (IEnumerable<T> enumerable) =>
+                yield return enumerable =>
                 {
                     var casted = (ICollection<T>)enumerable;
                     casted.Add(CreateT(2344));
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
             if (!AddRemoveClear_ThrowsNotSupported && (operations & ModifyOperation.Remove) == ModifyOperation.Remove)
             {
-                yield return (IEnumerable<T> enumerable) =>
+                yield return enumerable =>
                 {
                     var casted = (ICollection<T>)enumerable;
                     if (casted.Count() > 0)
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
             if (!AddRemoveClear_ThrowsNotSupported && (operations & ModifyOperation.Clear) == ModifyOperation.Clear)
             {
-                yield return (IEnumerable<T> enumerable) =>
+                yield return enumerable =>
                 {
                     var casted = (ICollection<T>)enumerable;
                     if (casted.Count() > 0)

@@ -2122,8 +2122,8 @@ public class C { }
 
             Assert.Equal(3, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
-                                                              {
+            CompileAndVerify(appCompilation, symbolValidator: m =>
+            {
                                                                   var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
                                                                   Assert.Equal(1, list.Length);
@@ -2154,7 +2154,7 @@ public class C { }
 
             Assert.Equal(3, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(appCompilation, symbolValidator: m =>
             {
                 var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
@@ -2184,7 +2184,7 @@ public class C { }
 
             Assert.Equal(3, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(appCompilation, symbolValidator: m =>
             {
                 var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
@@ -2216,7 +2216,7 @@ public class C { }
 
             Assert.Equal(3, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(appCompilation, symbolValidator: m =>
             {
                 var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
@@ -2241,7 +2241,7 @@ public class C { }
 
             Assert.Equal(2, appCompilation.Assembly.Modules.Length);
 
-            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(appCompilation, symbolValidator: m =>
             {
                 var attrs = m.ContainingAssembly.GetAttributes();
                 var attrlist = attrs.Where(a => a.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttribute));

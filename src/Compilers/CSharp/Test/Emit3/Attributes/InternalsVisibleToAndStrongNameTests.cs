@@ -110,7 +110,7 @@ public class Test
             other.VerifyDiagnostics();
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
 
-            CompileAndVerify(other, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(other, symbolValidator: m =>
             {
                 bool haveAttribute = false;
 
@@ -256,7 +256,7 @@ public class Test
             other.VerifyDiagnostics();
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
 
-            CompileAndVerify(other, symbolValidator: (ModuleSymbol m) =>
+            CompileAndVerify(other, symbolValidator: m =>
             {
                 bool haveAttribute = false;
 

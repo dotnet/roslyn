@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
     /// </summary>
     public abstract partial class SegmentedList_Generic_Tests<T> : IList_Generic_Tests<T>
     {
-        private readonly Predicate<T?> _equalsDefaultDelegate = (T? item) => { return default(T) == null ? item == null : default(T)!.Equals(item); };
-        private readonly Predicate<T?> _alwaysTrueDelegate = (T? item) => true;
-        private readonly Predicate<T?> _alwaysFalseDelegate = (T? item) => false;
+        private readonly Predicate<T?> _equalsDefaultDelegate = item => { return default(T) == null ? item == null : default(T)!.Equals(item); };
+        private readonly Predicate<T?> _alwaysTrueDelegate = item => true;
+        private readonly Predicate<T?> _alwaysFalseDelegate = item => false;
 
         [Theory]
         [MemberData(nameof(ValidCollectionSizes))]
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             SegmentedList<T?> beforeList = list.ToSegmentedList();
             T? expectedItem = default(T);
             T? foundItem;
-            Predicate<T?> EqualsDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+            Predicate<T?> EqualsDelegate = item => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
             //[] Verify Find returns the correct index
             for (int i = 0; i < count; ++i)
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             //[] Verify with default(T)
             list.Add(default(T));
-            foundItem = list.Find((T? item) => { return item == null ? default(T) == null : item.Equals(default(T)); });
+            foundItem = list.Find(item => { return item == null ? default(T) == null : item.Equals(default(T)); });
             Assert.Equal(default(T), foundItem); //"Err_541848ajodi Verify with default(T) FAILED\n"
             list.RemoveAt(list.Count - 1);
         }
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             SegmentedList<T> list = GenericListFactory(count);
             SegmentedList<T> beforeList = list.ToSegmentedList();
             T? foundItem;
-            Predicate<T?> EqualsDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+            Predicate<T?> EqualsDelegate = item => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
             if (0 < count)
             {
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             SegmentedList<T?> beforeList = list.ToSegmentedList();
             T? expectedItem = default(T);
             T? foundItem;
-            Predicate<T?> EqualsDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+            Predicate<T?> EqualsDelegate = item => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
             for (int i = 0; i < count; ++i)
                 list.Add(beforeList[i]);
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             //[] Verify with default(T)
             list.Add(default(T));
-            foundItem = list.FindLast((T? item) => { return item == null ? default(T) == null : item.Equals(default(T)); });
+            foundItem = list.FindLast(item => { return item == null ? default(T) == null : item.Equals(default(T)); });
             Assert.Equal(default(T), foundItem); //"Err_541848ajodi Verify with default(T) FAILED\n"
             list.RemoveAt(list.Count - 1);
         }
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             SegmentedList<T> list = GenericListFactory(count);
             SegmentedList<T> beforeList = list.ToSegmentedList();
             T? foundItem;
-            Predicate<T?> EqualsDelegate = (T? item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+            Predicate<T?> EqualsDelegate = item => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
             if (0 < count)
             {
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 Assert.Equal(beforeList[1], foundItem); //"Err_4588ajdia Verify second item is duplicated FAILED\n"
 
                 //[] Verify with match that matches more then one item
-                foundItem = list.FindLast((T item) => { return item != null && (item.Equals(beforeList[0]) || item.Equals(beforeList[1])); });
+                foundItem = list.FindLast(item => { return item != null && (item.Equals(beforeList[0]) || item.Equals(beforeList[1])); });
                 Assert.Equal(beforeList[1], foundItem); //"Err_4489ajodoi Verify with match that matches more then one item FAILED\n"
             }
         }
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             SegmentedList<T> list = GenericListFactory(count);
             SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
-            Predicate<T> EqualsDefaultDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+            Predicate<T> EqualsDefaultDelegate = item => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
             for (int i = 0; i < count; ++i)
                 list.Add(beforeList[i]);
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             SegmentedList<T> beforeList = list.ToSegmentedList();
             T? expectedItem = default(T);
             int index;
-            Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+            Predicate<T> EqualsDelegate = item => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
             if (0 < count)
             {
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             SegmentedList<T> list = GenericListFactory(count);
             SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
-            Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+            Predicate<T> EqualsDelegate = item => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
             //[] Verify FinIndex returns the correct index
             for (int i = 0; i < count; ++i)
@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             SegmentedList<T> list = GenericListFactory(count);
             SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
-            Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+            Predicate<T> EqualsDelegate = item => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
             if (0 < count)
             {
@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             SegmentedList<T> list = GenericListFactory(count);
             SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
-            Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+            Predicate<T> EqualsDelegate = item => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
             for (int i = 0; i < count; ++i)
                 list.Add(beforeList[i]);
@@ -931,7 +931,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             SegmentedList<T> list = GenericListFactory(count);
             SegmentedList<T> beforeList = list.ToSegmentedList();
             int index;
-            Predicate<T> EqualsDelegate = (T item) => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
+            Predicate<T> EqualsDelegate = item => { return expectedItem == null ? item == null : expectedItem.Equals(item); };
 
             if (0 < count)
             {

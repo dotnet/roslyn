@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 var result = new ControlFlowRegion(Kind, FirstBlock.Ordinal, LastBlock.Ordinal, subRegions,
                                                    Locals,
-                                                   LocalFunctions?.SelectAsArray(((IMethodSymbol, ILocalFunctionOperation) tuple) => tuple.Item1) ?? default,
+                                                   LocalFunctions?.SelectAsArray(tuple => tuple.Item1) ?? default,
                                                    CaptureIds?.ToImmutable() ?? default,
                                                    ExceptionType,
                                                    enclosing);

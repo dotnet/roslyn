@@ -1897,7 +1897,7 @@ class UsePia
 }
 ";
 
-            Action<ModuleSymbol> metadataValidator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> metadataValidator = module =>
             {
                 ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
 
@@ -1984,7 +1984,7 @@ class UsePia
 }
 ";
 
-            Action<ModuleSymbol> metadataValidator = (ModuleSymbol module) =>
+            Action<ModuleSymbol> metadataValidator = module =>
             {
                 ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
 

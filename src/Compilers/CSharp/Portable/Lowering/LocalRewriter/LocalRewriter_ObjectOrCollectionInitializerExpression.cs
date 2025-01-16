@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (LocalRewriter rewriter, ArrayBuilder<BoundExpression> sideeffects, ArrayBuilder<LocalSymbol>? temps) elementArg = (rewriter: this, sideeffects, temps);
                     replacement = RewriteParamsArray(
                                       arg,
-                                      static (BoundExpression element, ref (LocalRewriter rewriter, ArrayBuilder<BoundExpression> sideeffects, ArrayBuilder<LocalSymbol>? temps) elementArg) =>
+                                      static (element, ref elementArg) =>
                                           elementArg.rewriter.EvaluateSideEffects(element, RefKind.None, elementArg.sideeffects, ref elementArg.temps),
                                       ref elementArg);
                     temps = elementArg.temps;
