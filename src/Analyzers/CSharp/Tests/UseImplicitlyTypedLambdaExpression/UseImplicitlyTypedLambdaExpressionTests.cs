@@ -32,7 +32,7 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
                 {
                     void M()
                     {
-                        object a = (int x) { };
+                        object a = (int x) => { };
                     }
                 }
                 """,
@@ -52,7 +52,7 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
             {
                 void M()
                 {
-                    object a = (Delegate)(int x) { };
+                    object a = (Delegate)((int x) => { });
                 }
             }
             """,
@@ -72,10 +72,81 @@ public sealed class UseImplicitlyTypedLambdaExpressionTests
             {
                 void M()
                 {
-                    object a = (object)(int x) { };
+                    object a = (object)((int x) => { });
                 }
             }
             """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAssignedToDelegate()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        Delegate a = (int x) => { };
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAssignedToVar()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        var a = (int x) => { };
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestAssignedToStronglyTypedDelegate()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        Func<int> a = [|(|]int x) => { };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        Func<int> a = x => { };
+                    }
+                }
+                """,
             LanguageVersion = CSharp14,
         }.RunAsync();
     }
