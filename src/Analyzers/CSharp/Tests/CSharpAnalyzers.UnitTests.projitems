@@ -158,6 +158,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedValueExpressionStatementTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedValuesTestsBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\UseCollectionInitializerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseImplicitlyTypedLambdaExpression\UseImplicitlyTypedLambdaExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseExplicitTypeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseExplicitTypeTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseImplicitTypeTests.cs" />
@@ -201,5 +202,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer\" />
+    <Folder Include="$(MSBuildThisFileDirectory)UseImplicitlyTypedLambdaExpression\" />
   </ItemGroup>
 </Project>

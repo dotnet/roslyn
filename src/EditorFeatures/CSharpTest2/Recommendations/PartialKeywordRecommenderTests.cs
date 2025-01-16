@@ -486,5 +486,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     async $$
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61439")]
+        public async Task TestAfterMemberButNonClassModifier()
+        {
+            await VerifyKeywordAsync("""
+                partial class C {
+                    virtual $$
+                """);
+        }
     }
 }

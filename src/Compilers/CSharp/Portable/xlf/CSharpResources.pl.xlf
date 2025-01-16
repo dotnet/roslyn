@@ -977,6 +977,11 @@
         <target state="translated">Niejawnie typizowany parametr wyrażenia lambda „{0}” nie może mieć wartości domyślnej.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
+        <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Nie można używać argumentów z modyfikatorem „in” w wyrażeniach przydzielanych dynamicznie.</target>
@@ -2575,6 +2580,11 @@
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">zapieczętowany obiekt ToString w rekordzie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
+        <source>simple lambda parameter modifiers</source>
+        <target state="new">simple lambda parameter modifiers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
@@ -12710,8 +12720,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
-        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</source>
-        <target state="translated">Całkowita długość ciągów użytkownika używanych przez program przekracza dozwolony limit. Spróbuj ograniczyć użycie literałów ciągów.</target>
+        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
+        <target state="needs-review-translation">Całkowita długość ciągów użytkownika używanych przez program przekracza dozwolony limit. Spróbuj ograniczyć użycie literałów ciągów.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">

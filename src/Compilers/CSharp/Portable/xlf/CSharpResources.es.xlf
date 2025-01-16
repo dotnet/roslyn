@@ -977,6 +977,11 @@
         <target state="translated">El parámetro lambda con tipo implícito “{0}” no puede tener un valor predeterminado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
+        <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">No se pueden usar argumentos con el modificador "in" en expresiones distribuidas dinámicamente.</target>
@@ -2575,6 +2580,11 @@
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">ToString sellado en el registro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
+        <source>simple lambda parameter modifiers</source>
+        <target state="new">simple lambda parameter modifiers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
@@ -12710,8 +12720,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
-        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</source>
-        <target state="translated">La longitud combinada de las cadenas de usuario que el programa utiliza supera el límite permitido. Intente disminuir el uso de literales de cadena.</target>
+        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
+        <target state="needs-review-translation">La longitud combinada de las cadenas de usuario que el programa utiliza supera el límite permitido. Intente disminuir el uso de literales de cadena.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
