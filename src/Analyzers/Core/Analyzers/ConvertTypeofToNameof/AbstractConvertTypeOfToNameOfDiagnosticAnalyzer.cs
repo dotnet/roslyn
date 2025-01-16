@@ -69,9 +69,11 @@ internal abstract class AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(Localiza
         if (typeofOperation.TypeOperand is not INamedTypeSymbol namedType)
             return false;
 
+        // Non-generic types are always convertible.  typeof(X).Name can always be converted to nameof(X)
         if (namedType.TypeArguments.Length == 0)
             return true;
 
+        // Generic types are convertible if the lang supports it.  e.g. typeof(X<Y>).Name can be converted to nameof(X<>).
         return SupportsUnboundGenerics(operation.Syntax.SyntaxTree.Options);
     }
 }
