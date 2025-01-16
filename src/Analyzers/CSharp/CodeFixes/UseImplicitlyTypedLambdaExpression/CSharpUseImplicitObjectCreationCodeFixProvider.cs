@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -21,18 +20,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseImplicitlyTypedLambdaExpression;
 
-using static SyntaxFactory;
+using static CSharpUseImplicitlyTypedLambdaExpressionDiagnosticAnalyzer;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseImplicitObjectCreation), Shared]
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseImplicitlyTypedLambdaExpression), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpUseImplicitlyTypedLambdaExpressionCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseImplicitlyTypedLambdaExpressionDiagnosticId];
-
-    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-        => !diagnostic.IsSuppressed;
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -47,34 +43,21 @@ internal sealed class CSharpUseImplicitlyTypedLambdaExpressionCodeFixProvider() 
         // process from inside->out so that outer rewrites see the effects of inner changes.
         var nodes = diagnostics
             .OrderBy(d => d.Location.SourceSpan.End)
-            .SelectAsArray(d => (ObjectCreationExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
+            .SelectAsArray(d => (ParenthesizedLambdaExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
 
         var options = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(
             CSharpSimplification.Instance, cancellationToken).ConfigureAwait(false);
 
         // Bulk apply these, except at the expression level.  One fix at the expression level may prevent another fix
-        // from being valid.  For example: `new List<C> { new C() }`.  If we apply the fix to the outer `List<C>`, we
-        // should not apply it to the inner `new C()` as the inner creation will no longer be apparent once the outer
-        // type goes away.
-        //await editor.ApplyExpressionLevelSemanticEditsAsync(
-        //    document,
-        //    nodes,
-        //    (semanticModel, node) => Analyze(semanticModel, options, node, cancellationToken),
-        //    (semanticModel, root, node) => FixOne(root, node),
-        //    cancellationToken).ConfigureAwait(false);
+        // from being valid.
+        await editor.ApplyExpressionLevelSemanticEditsAsync(
+            document,
+            nodes,
+            (semanticModel, node) => Analyze(semanticModel, node, cancellationToken),
+            (semanticModel, root, node) => FixOne(root, node),
+            cancellationToken).ConfigureAwait(false);
     }
 
-    private static SyntaxNode FixOne(SyntaxNode root, ObjectCreationExpressionSyntax objectCreation)
-    {
-        var implicitObject = ImplicitObjectCreationExpression(
-            WithoutTrailingWhitespace(objectCreation.NewKeyword),
-            objectCreation.ArgumentList ?? ArgumentList(),
-            objectCreation.Initializer);
-        return root.ReplaceNode(objectCreation, implicitObject);
-    }
-
-    private static SyntaxToken WithoutTrailingWhitespace(SyntaxToken newKeyword)
-        => newKeyword.TrailingTrivia.All(t => t.IsWhitespace())
-            ? newKeyword.WithoutTrailingTrivia()
-            : newKeyword;
+    private static SyntaxNode FixOne(SyntaxNode root, ParenthesizedLambdaExpressionSyntax explicitLambda)
+        => root.ReplaceNode(explicitLambda, ConvertToImplicitlyTypedLambda(explicitLambda));
 }
