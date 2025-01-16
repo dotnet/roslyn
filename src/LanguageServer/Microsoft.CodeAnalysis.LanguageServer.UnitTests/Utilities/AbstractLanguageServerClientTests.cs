@@ -16,11 +16,8 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelper testOutputHelper) : IAsyncLifetime
+public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelper testOutputHelper) : IDisposable
 {
-    private readonly SemaphoreSlim _gate = new(initialCount: 1);
-    private readonly List<TestLspClient> _lspClients = [];
-
     protected TestOutputLogger TestOutputLogger => new(testOutputHelper);
     protected TempRoot TempRoot => new();
     protected TempDirectory ExtensionLogsDirectory => TempRoot.CreateDirectory();
@@ -30,22 +27,9 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         return Task.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public void Dispose()
     {
         TempRoot.Dispose();
-
-        List<TestLspClient> clientsToDispose;
-
-        // Copy the list out while we're in the lock, otherwise as we dispose these events will get fired, which
-        // may try to mutate the list while we're enumerating.
-        using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
-        {
-            clientsToDispose = [.. _lspClients];
-            _lspClients.Clear();
-        }
-
-        foreach (var client in clientsToDispose)
-            await client.DisposeAsync().ConfigureAwait(false);
     }
 
     private protected async Task<TestLspClient> CreateCSharpLanguageServerAsync(
@@ -81,21 +65,15 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         Dictionary<Uri, SourceText> files = new() { [codeUri] = text };
         var annotatedLocations = GetAnnotatedLocations(codeUri, text, spans);
 
-        TestLspClient? lspClient;
-        using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
-        {
-            // Create server and open the project
-            lspClient = await TestLspClient.CreateAsync(
-                new ClientCapabilities(),
-                ExtensionLogsDirectory.Path,
-                includeDevKitComponents,
-                debugLsp,
-                TestOutputLogger,
-                documents: files,
-                locations: annotatedLocations);
-            lspClient.Disconnected += LSP_Disconnected;
-            _lspClients.Add(lspClient);
-        }
+        // Create server and open the project
+        var lspClient = await TestLspClient.CreateAsync(
+            new ClientCapabilities(),
+            ExtensionLogsDirectory.Path,
+            includeDevKitComponents,
+            debugLsp,
+            TestOutputLogger,
+            documents: files,
+            locations: annotatedLocations);
 
         // Perform restore and mock up project restore client handler
         ProcessUtilities.Run("dotnet", $"restore --project {projectPath}");
@@ -113,32 +91,6 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         await projectInitialized.Task;
 
         return lspClient;
-    }
-
-    private void LSP_Disconnected(object? sender, EventArgs e)
-    {
-        Contract.ThrowIfNull(sender, $"{nameof(TestLspClient)}.{nameof(TestLspClient.Disconnected)} was raised with a null sender.");
-
-        Task.Run(async () =>
-        {
-            TestLspClient? clientToDispose = null;
-
-            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
-            {
-                // Remove it from our map; it's possible it might have already been removed if we had more than one way we observed a disconnect.
-                clientToDispose = _lspClients.FirstOrDefault(c => c == sender);
-                if (clientToDispose is not null)
-                {
-                    _lspClients.Remove(clientToDispose);
-                }
-            }
-
-            // Dispose outside of the lock (even though we don't expect much to happen at this point)
-            if (clientToDispose is not null)
-            {
-                await clientToDispose.DisposeAsync().ConfigureAwait(false);
-            }
-        });
     }
 
     private protected static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(Uri codeUri, SourceText text, ImmutableDictionary<string, ImmutableArray<TextSpan>> spanMap)

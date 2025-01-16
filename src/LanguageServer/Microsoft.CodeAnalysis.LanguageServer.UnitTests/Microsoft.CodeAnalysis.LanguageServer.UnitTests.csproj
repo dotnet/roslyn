@@ -31,9 +31,13 @@
     Copy files contained in the project to a RoslynLSP subdirectory to emulate deployment of the language server.
   -->
   <Target Name="_CopyLanguageServerFiles" AfterTargets="ResolveProjectReferences">
-    <MSBuild Projects="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" Targets="GetOutputPath">
-      <Output TaskParameter="TargetOutputs" PropertyName="_LanguageServerOutputPath" />
+    <MSBuild Projects="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" Targets="GetTargetPath">
+      <Output TaskParameter="TargetOutputs" ItemName="_LanguageServerFilePath" />
     </MSBuild>
+
+    <PropertyGroup>
+      <_LanguageServerOutputPath>$([System.IO.Path]::GetDirectoryName(%(_LanguageServerFilePath.Identity)))</_LanguageServerOutputPath>
+    </PropertyGroup>
 
     <ItemGroup Condition="'$(_LanguageServerOutputPath)' != ''">
       <_LanguageServerFile Include="$(_LanguageServerOutputPath)\**\*.*" />

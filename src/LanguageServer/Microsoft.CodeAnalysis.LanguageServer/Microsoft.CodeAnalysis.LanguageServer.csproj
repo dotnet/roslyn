@@ -121,16 +121,6 @@
     <EmbeddedResource Update="LanguageServerResources.resx" GenerateSource="true" />
   </ItemGroup>
 
-  <!--
-    Used by LanguageServer.UnitTests project to be able to copy all the output to its own directory.
-    Only needs to run as part of a real build, so skip it in design time builds to prevent issues.
-  -->
-  <Target Name="GetOutputPath" DependsOnTargets="Build" Returns="$(_LanguageServerOutputPath)" Condition="'$(DesignTimeBuild)' != 'true'">
-    <PropertyGroup>
-      <_LanguageServerOutputPath>$(OutputPath)</_LanguageServerOutputPath>
-    </PropertyGroup>
-  </Target>
-
   <Target Name="WriteRoslynVersion" AfterTargets="Build">
     <WriteLinesToFile File="@(RoslynVersionFile)" Lines="$(MicrosoftCodeAnalysisVersion)" Overwrite="true" />
   </Target>

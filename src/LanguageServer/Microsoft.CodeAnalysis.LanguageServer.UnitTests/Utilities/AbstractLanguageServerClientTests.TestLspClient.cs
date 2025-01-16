@@ -85,11 +85,10 @@ public partial class AbstractLanguageServerClientTests
                     FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet.exe" : "dotnet",
                 };
 
-                // We need to roll forward to the latest runtime, since the tests may be using a runtime newer than we ourselves built with.
-                // We set the environment variable since --roll-forward LatestMajor doesn't roll forward to prerelease runtimes otherwise.
+                // The LSP's runtime configuration sets rollforward to Major which allows it to run on a newer runtime
+                // when the expected runtime is not present. Additionally, we need to be able to use prerelease runtimes
+                // since unit tests may be running against preview builds of the .NET SDK.
                 processStartInfo.Environment["DOTNET_ROLL_FORWARD_TO_PRERELEASE"] = "1";
-                processStartInfo.ArgumentList.Add("--roll-forward");
-                processStartInfo.ArgumentList.Add("LatestMajor");
 
                 processStartInfo.ArgumentList.Add(TestPaths.GetLanguageServerPath());
 
@@ -133,7 +132,6 @@ public partial class AbstractLanguageServerClientTests
             _process = process;
 
             _process.EnableRaisingEvents = true;
-            _process.Exited += Process_Exited;
             _process.OutputDataReceived += Process_OutputDataReceived;
             _process.ErrorDataReceived += Process_ErrorDataReceived;
 
@@ -187,13 +185,6 @@ public partial class AbstractLanguageServerClientTests
         {
             _logger.LogCritical("[LSP STDERR] {Data}", e.Data);
         }
-
-        private void Process_Exited(object? sender, EventArgs e)
-        {
-            Disconnected?.Invoke(this, EventArgs.Empty);
-        }
-
-        public event EventHandler? Disconnected;
 
         public async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(string methodName, TRequestType request, CancellationToken cancellationToken) where TRequestType : class
         {
@@ -267,9 +258,9 @@ public partial class AbstractLanguageServerClientTests
 
                     await _clientRpc.InvokeAsync(Methods.ShutdownName);
                     await _clientRpc.NotifyAsync(Methods.ExitName);
-                }
 
-                await _clientRpc.Completion;
+                    await _clientRpc.Completion;
+                }
 
                 _clientRpc.Dispose();
                 _process.Dispose();
