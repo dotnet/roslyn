@@ -42,20 +42,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 
         private void Test(string stringText, string expected, RegexOptions options,
             bool runSubTreeTests = true,
-            bool allowOutOfMemory = false,
-            bool allowDiagnosticsMismatch = false)
+            bool allowOutOfMemory = false)
         {
             var (tree, sourceText) = TryParseTree(stringText, options, conversionFailureOk: false,
-                allowOutOfMemory, allowDiagnosticsMismatch);
+                allowOutOfMemory);
 
             // Tests are allowed to not run the subtree tests.  This is because some
             // subtrees can cause the native regex parser to exhibit very bad behavior
             // (like not ever actually finishing compiling).
             if (runSubTreeTests)
-            {
-                TryParseSubTrees(stringText, options,
-                    allowOutOfMemory, allowDiagnosticsMismatch);
-            }
+                TryParseSubTrees(stringText, options, allowOutOfMemory);
 
             var actual = TreeToText(sourceText, tree)
                 .Replace("&quot;", "\"");
@@ -63,17 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         private void TryParseSubTrees(
-            string stringText, RegexOptions options,
-            bool allowOutOfMemory,
-            bool allowDiagnosticsMismatch)
+            string stringText, RegexOptions options, bool allowOutOfMemory)
         {
             // Trim the input from the right and make sure tree invariants hold
             var current = stringText;
             while (current is not "@\"\"" and not "\"\"")
             {
                 current = current[..^2] + "\"";
-                TryParseTree(current, options, conversionFailureOk: true,
-                    allowOutOfMemory, allowDiagnosticsMismatch);
+                TryParseTree(current, options, conversionFailureOk: true, allowOutOfMemory);
             }
 
             // Trim the input from the left and make sure tree invariants hold
@@ -89,8 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     current = "\"" + current[2..];
                 }
 
-                TryParseTree(current, options, conversionFailureOk: true,
-                    allowOutOfMemory, allowDiagnosticsMismatch);
+                TryParseTree(current, options, conversionFailureOk: true, allowOutOfMemory);
             }
 
             for (var start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
@@ -99,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     stringText[..start] +
                     stringText[(start + 1)..],
                     options, conversionFailureOk: true,
-                    allowOutOfMemory, allowDiagnosticsMismatch);
+                    allowOutOfMemory);
             }
         }
 
@@ -121,8 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         private (RegexTree, SourceText) TryParseTree(
             string stringText, RegexOptions options,
             bool conversionFailureOk,
-            bool allowOutOfMemory,
-            bool allowDiagnosticsMismatch = false)
+            bool allowOutOfMemory)
         {
             var (token, tree, allChars) = JustParseTree(stringText, options, conversionFailureOk);
             if (tree == null)
@@ -147,25 +138,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
             catch (ArgumentException ex)
             {
-                if (!allowDiagnosticsMismatch)
-                {
-                    Assert.NotEmpty(tree.Diagnostics);
+                Assert.NotEmpty(tree.Diagnostics);
 
-                    // Ensure the diagnostic we emit is the same as the .NET one. Note: we can only
-                    // do this in en-US as that's the only culture where we control the text exactly
-                    // and can ensure it exactly matches Regex.  We depend on localization to do a
-                    // good enough job here for other languages.
-                    if (Thread.CurrentThread.CurrentCulture.Name == "en-US")
-                    {
-                        var result = tree.Diagnostics.Any(d => ex.Message.Contains(d.Message));
-                        Assert.True(result);
-                    }
+                // Ensure the diagnostic we emit is the same as the .NET one. Note: we can only
+                // do this in en-US as that's the only culture where we control the text exactly
+                // and can ensure it exactly matches Regex.  We depend on localization to do a
+                // good enough job here for other languages.
+                if (Thread.CurrentThread.CurrentCulture.Name == "en-US")
+                {
+                    var result = tree.Diagnostics.Any(d => ex.Message.Contains(d.Message));
+                    Assert.True(result);
                 }
 
                 return treeAndText;
             }
 
-            if (!tree.Diagnostics.IsEmpty && !allowDiagnosticsMismatch)
+            if (!tree.Diagnostics.IsEmpty)
             {
                 var expectedDiagnostics = CreateDiagnosticsElement(sourceText, tree);
                 Assert.False(true, "Expected diagnostics: \r\n" + expectedDiagnostics.ToString().Replace(@"""", @""""""));
