@@ -2477,6 +2477,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_IteratorRefLikeElementType
                 or ErrorCode.WRN_UnscopedRefAttributeOldRules
                 or ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature
+                or ErrorCode.ERR_ImplicitlyTypedParamsParameter
+                or ErrorCode.ERR_VariableDeclarationNamedField
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

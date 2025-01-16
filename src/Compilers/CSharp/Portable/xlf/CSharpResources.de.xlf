@@ -977,6 +977,11 @@
         <target state="translated">Der implizit eingegebene Parameter „{0}“ der Lambdafunktion darf keinen Standardwert aufweisen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
+        <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Argumente mit dem Modifizierer "in" können nicht in dynamisch gebundenen Ausdrücken verwendet werden.</target>
@@ -2347,6 +2352,11 @@
         <target state="translated">Das „this“-Objekt kann nicht verwendet werden, bevor alle zugehörigen Felder zugewiesen wurden. Aktualisieren Sie ggf. auf die Sprachversion „{0}“, um die nicht zugewiesenen Felder automatisch als Standard zu verwenden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VariableDeclarationNamedField">
+        <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
+        <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Ein generischer aufgabenähnlicher Rückgabetyp wurde erwartet, aber der Typ „{0}“, der im Attribut „AsyncMethodBuilder“ gefunden wurde, war nicht geeignet. Es muss sich um einen ungebundenen generischen Typ von Stelligkeit Eins handelt, und der enthaltende Typ (falls vorhanden) muss nicht generisch sein.</target>
@@ -2577,6 +2587,11 @@
         <target state="translated">versiegelte "ToString" im Datensatz</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
+        <source>simple lambda parameter modifiers</source>
+        <target state="new">simple lambda parameter modifiers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
         <source>string escape character</source>
         <target state="translated">Zeichenfolge – Escapezeichen</target>
@@ -2655,11 +2670,6 @@
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">Zeiger</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
-        <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
-        <target state="translated">Der Bezeichner ist ein kontextbezogenes Schlüsselwort mit einer bestimmten Bedeutung in einer späteren Sprachversion.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
@@ -12710,8 +12720,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
-        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</source>
-        <target state="translated">Die kombinierte Länge der vom Programm verwendeten Benutzerzeichenfolgen überschreitet den zulässigen Grenzwert. Versuchen Sie, die Verwendung von Zeichenfolgenliteralen zu verringern.</target>
+        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
+        <target state="needs-review-translation">Die kombinierte Länge der vom Programm verwendeten Benutzerzeichenfolgen überschreitet den zulässigen Grenzwert. Versuchen Sie, die Verwendung von Zeichenfolgenliteralen zu verringern.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">

@@ -10878,5 +10878,278 @@ public struct Vec4
                 """;
             CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
         }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/76100")]
+        public void SelfAssignment_ScopeVariance_UnscopedRef_Disallowed_ImplicitInterface(
+            [CombinatorialValues("ref", "out")] string modifier)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                interface I
+                {
+                    void M({{modifier}} R r);
+                }
+
+                class C : I
+                {
+                    public void M([UnscopedRef] {{modifier}} R r) { }
+                }
+
+                ref struct R;
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (10,17): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public void M([UnscopedRef] ref R r) { }
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "M").WithArguments("r").WithLocation(10, 17));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/76100")]
+        public void SelfAssignment_ScopeVariance_UnscopedRef_Disallowed_ExplicitInterface(
+            [CombinatorialValues("ref", "out")] string modifier)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                interface I
+                {
+                    void M({{modifier}} R r);
+                }
+
+                class C : I
+                {
+                    void I.M([UnscopedRef] {{modifier}} R r) { }
+                }
+
+                ref struct R;
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (10,12): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     void I.M([UnscopedRef] ref R r) { }
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "M").WithArguments("r").WithLocation(10, 12));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/76100")]
+        public void SelfAssignment_ScopeVariance_UnscopedRef_Disallowed_Override(
+            [CombinatorialValues("ref", "out")] string modifier)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                abstract class B
+                {
+                    public abstract void M({{modifier}} R r);
+                }
+
+                class C : B
+                {
+                    public override void M([UnscopedRef] {{modifier}} R r) { }
+                }
+
+                ref struct R;
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (10,26): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     public override void M([UnscopedRef] ref R r) { }
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "M").WithArguments("r").WithLocation(10, 26));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/76100")]
+        public void SelfAssignment_ScopeVariance_UnscopedRef_Disallowed_DelegateConversion(
+            [CombinatorialValues("ref", "out")] string modifier)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                D d = C.M;
+
+                delegate void D({{modifier}} R r);
+
+                static class C
+                {
+                    public static void M([UnscopedRef] {{modifier}} R r) { }
+                }
+
+                ref struct R;
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (3,7): error CS8986: The 'scoped' modifier of parameter 'r' doesn't match target 'D'.
+                // D d = C.M;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "C.M").WithArguments("r", "D").WithLocation(3, 7));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76100")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef]", "")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef]", "[System.Diagnostics.CodeAnalysis.UnscopedRef]")]
+        [InlineData("", "")]
+        public void SelfAssignment_ScopeVariance_UnscopedRef_Allowed_ImplicitInterface(string attr1, string attr2)
+        {
+            var source = $$"""
+                interface I
+                {
+                    void M({{attr1}} ref R r);
+                }
+
+                class C : I
+                {
+                    public void M({{attr2}} ref R r) { }
+                }
+
+                ref struct R;
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/76100")]
+        public void SelfAssignment_ScopeVariance_ScopedRef_Allowed_ImplicitInterface(
+            [CombinatorialValues("scoped", "")] string scoped1,
+            [CombinatorialValues("scoped", "")] string scoped2,
+            [CombinatorialValues("ref", "out")] string modifier)
+        {
+            var source = $$"""
+                interface I
+                {
+                    void M({{scoped1}} {{modifier}} R r);
+                }
+
+                class C : I
+                {
+                    public void M({{scoped2}} {{modifier}} R r) { }
+                }
+
+                ref struct R;
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76100")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef]", "")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef]", "[System.Diagnostics.CodeAnalysis.UnscopedRef]")]
+        [InlineData("", "")]
+        public void SelfAssignment_ScopeVariance_UnscopedRef_Allowed_ExplicitInterface(string attr1, string attr2)
+        {
+            var source = $$"""
+                interface I
+                {
+                    void M({{attr1}} ref R r);
+                }
+
+                class C : I
+                {
+                    void I.M({{attr2}} ref R r) { }
+                }
+
+                ref struct R;
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/76100")]
+        public void SelfAssignment_ScopeVariance_ScopedRef_Allowed_ExplicitInterface(
+            [CombinatorialValues("scoped", "")] string scoped1,
+            [CombinatorialValues("scoped", "")] string scoped2,
+            [CombinatorialValues("ref", "out")] string modifier)
+        {
+            var source = $$"""
+                interface I
+                {
+                    void M({{scoped1}} {{modifier}} R r);
+                }
+
+                class C : I
+                {
+                    void I.M({{scoped2}} {{modifier}} R r) { }
+                }
+
+                ref struct R;
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76100")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef]", "")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef]", "[System.Diagnostics.CodeAnalysis.UnscopedRef]")]
+        [InlineData("", "")]
+        public void SelfAssignment_ScopeVariance_UnscopedRef_Allowed_Override(string attr1, string attr2)
+        {
+            var source = $$"""
+                abstract class B
+                {
+                    public abstract void M({{attr1}} ref R r);
+                }
+
+                class C : B
+                {
+                    public override void M({{attr2}} ref R r) { }
+                }
+
+                ref struct R;
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/76100")]
+        public void SelfAssignment_ScopeVariance_ScopedRef_Allowed_Override(
+            [CombinatorialValues("scoped", "")] string scoped1,
+            [CombinatorialValues("scoped", "")] string scoped2,
+            [CombinatorialValues("ref", "out")] string modifier)
+        {
+            var source = $$"""
+                abstract class B
+                {
+                    public abstract void M({{scoped1}} {{modifier}} R r);
+                }
+
+                class C : B
+                {
+                    public override void M({{scoped2}} {{modifier}} R r) { }
+                }
+
+                ref struct R;
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76100")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef]", "")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef]", "[System.Diagnostics.CodeAnalysis.UnscopedRef]")]
+        [InlineData("", "")]
+        public void SelfAssignment_ScopeVariance_UnscopedRef_Allowed_DelegateConversion(string attr1, string attr2)
+        {
+            var source = $$"""
+                D d = C.M;
+
+                delegate void D({{attr1}} ref R r);
+
+                static class C
+                {
+                    public static void M({{attr2}} ref R r) { }
+                }
+
+                ref struct R;
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/76100")]
+        public void SelfAssignment_ScopeVariance_ScopedRef_Allowed_DelegateConversion(
+            [CombinatorialValues("scoped", "")] string scoped1,
+            [CombinatorialValues("scoped", "")] string scoped2,
+            [CombinatorialValues("ref", "out")] string modifier)
+        {
+            var source = $$"""
+                D d = C.M;
+
+                delegate void D({{scoped1}} {{modifier}} R r);
+
+                static class C
+                {
+                    public static void M({{scoped2}} {{modifier}} R r) { }
+                }
+
+                ref struct R;
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
     }
 }

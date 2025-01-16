@@ -35,8 +35,17 @@ internal sealed partial class CSharpExtractMethodService
                     : info.ConvertedType;
             }
 
-            protected override bool ContainsReturnStatementInSelectedCode(ImmutableArray<SyntaxNode> exitPoints)
-                => exitPoints.Any(n => n is ReturnStatementSyntax);
+            protected override ExtractMethodFlowControlInformation GetStatementFlowControlInformation(
+                ControlFlowAnalysis controlFlowAnalysis)
+            {
+                return ExtractMethodFlowControlInformation.Create(
+                    this.SemanticModel.Compilation,
+                    supportsComplexFlowControl: true,
+                    breakStatementCount: controlFlowAnalysis.ExitPoints.Count(n => n is BreakStatementSyntax),
+                    continueStatementCount: controlFlowAnalysis.ExitPoints.Count(n => n is ContinueStatementSyntax),
+                    returnStatementCount: controlFlowAnalysis.ExitPoints.Count(n => n is ReturnStatementSyntax),
+                    endPointIsReachable: controlFlowAnalysis.EndPointIsReachable);
+            }
 
             protected override bool ReadOnlyFieldAllowed()
             {

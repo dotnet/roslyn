@@ -69,7 +69,6 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     /// <summary>
     /// A method body edit anywhere in a type will force us to reanalyze the whole type.
     /// </summary>
-    /// <returns></returns>
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 

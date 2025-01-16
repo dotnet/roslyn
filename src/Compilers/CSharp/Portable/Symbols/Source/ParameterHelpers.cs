@@ -556,6 +556,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (parsingLambdaParams)
                         {
                             MessageID.IDS_FeatureLambdaParamsArray.CheckFeatureAvailability(diagnostics, modifier);
+
+                            if (parameter is ParameterSyntax { Type: null, Identifier.Text: var parameterIdentifier })
+                            {
+                                diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedParamsParameter, modifier, parameterIdentifier);
+                            }
                         }
                         break;
 
@@ -643,6 +648,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <param name="typeWithAnnotations">Will be <see langword="default"/> if this is called for a lambda parameter
+        /// with an explicit type provided.</param>
         public static void ReportParameterErrors(
             Symbol? owner,
             BaseParameterSyntax syntax,
@@ -673,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS1670: params is not valid in this context
                 diagnostics.Add(ErrorCode.ERR_IllegalParams, paramsKeyword.GetLocation());
             }
-            else if (typeWithAnnotations.IsStatic)
+            else if (!typeWithAnnotations.IsDefault && typeWithAnnotations.IsStatic)
             {
                 Debug.Assert(containingSymbol is null || (containingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null }));
                 // error CS0721: '{0}': static types cannot be used as parameters
@@ -689,6 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_DefaultValueBeforeRequiredValue, loc);
             }
             else if (refKind != RefKind.None &&
+                !typeWithAnnotations.IsDefault &&
                 typeWithAnnotations.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 // CS1601: Cannot make reference to variable of type 'System.TypedReference'
