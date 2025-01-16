@@ -716,6 +716,7 @@ internal partial struct RegexParser
     private RegexGroupingNode ParseGroupQuestion(
         RegexToken openParenToken, RegexToken questionToken, bool inConditionalExpression)
     {
+        // Corresponds to check at: https://github.com/dotnet/runtime/blob/7790117932dc14aaeb2fc82aff6c0dc6c74ce434/src/libraries/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L1003
         if (!inConditionalExpression)
         {
             var optionsToken = _lexer.TryScanOptions();
@@ -1068,18 +1069,18 @@ internal partial struct RegexParser
             // Invalid group name: Group names must begin with a word character
             ConsumeCurrentToken(allowTrivia: false);
 
-            if (firstCapture.IsMissing)
-            {
-                openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                    FeaturesResources.Unrecognized_grouping_construct,
-                    GetTokenSpanIncludingEOF(_currentToken)));
-            }
-            else
-            {
+            //if (firstCapture.IsMissing)
+            //{
+            //    openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
+            //        FeaturesResources.Unrecognized_grouping_construct,
+            //        GetTokenSpanIncludingEOF(_currentToken)));
+            //}
+            //else
+            //{
                 openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     FeaturesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character,
                     GetTokenSpanIncludingEOF(_currentToken)));
-            }
+            //}
 
             // If we weren't at the end of the text, go back to before whatever character
             // we just consumed.
