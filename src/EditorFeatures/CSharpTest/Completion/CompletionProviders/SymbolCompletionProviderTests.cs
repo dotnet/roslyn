@@ -1,10 +1,11 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12787,6 +12788,64 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             markup, "Bar",
             expectedDescriptionOrNull: $"{targetType} C.Bar({expectedParameterList}) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})",
             matchingFilters: [FilterSet.MethodFilter, FilterSet.TargetTypedFilter]);
+    }
+
+    [InlineData("IFoo", new string[] { "Foo", "FooDerived", "FooGeneric" })]
+    [InlineData("IFoo[]", new string[] { "IFoo", "IFooGeneric", "Foo", "FooAbstract", "FooDerived", "FooGeneric" })]
+    [InlineData("IFooGeneric<int>", new string[] { "FooGeneric" })]
+    [InlineData("IFooGeneric<int>[]", new string[] { "IFooGeneric", "FooGeneric" })]
+    [InlineData("IOther", new string[] { })]
+    [InlineData("Foo", new string[] { "Foo" })]
+    [InlineData("FooAbstract", new string[] { "FooDerived" })]
+    [InlineData("FooDerived", new string[] { "FooDerived" })]
+    [InlineData("FooGeneric<int>", new string[] { "FooGeneric", })]
+    [InlineData("object", new string[] { "C", "Foo", "FooDerived", "FooGeneric" })]
+    [Theory, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
+    public async Task TestTargetTypeCompletionInCreationContext(string targetType, string[] expectedItems)
+    {
+        ShowTargetTypedCompletionFilter = true;
+
+        var markup =
+            $$"""
+            public interface IFoo { }
+            public interface IFooGeneric<T> : IFoo { }
+            public interface IOther { }
+            public class Foo : IFoo { }
+            public abstract class FooAbstract : IFoo { }
+            public class FooDerived : FooAbstract { }
+            public class FooGeneric<T> : IFooGeneric<T> { }
+            
+            public class C
+            {
+                void M1({{targetType}} arg) { }
+
+                void M2()
+                    => M1(new $$);
+            }
+            """;
+
+        (string Name, bool IsClass, string? DisplaySuffix)[] types = {
+            ("IFoo", false, null),
+            ("IFooGeneric", false, "<>"),
+            ("IOther", false, null),
+            ("Foo", true, null),
+            ("FooAbstract", true, null),
+            ("FooDerived", true, null),
+            ("FooGeneric", true, "<>"),
+            ("C", true, null)
+        };
+
+        foreach (var item in types.Where(t => t.IsClass && expectedItems.Contains(t.Name)))
+            await VerifyItemExistsAsync(markup, item.Name, matchingFilters: [FilterSet.ClassFilter, FilterSet.TargetTypedFilter], displayTextSuffix: item.DisplaySuffix);
+
+        foreach (var item in types.Where(t => t.IsClass && !expectedItems.Contains(t.Name)))
+            await VerifyItemExistsAsync(markup, item.Name, matchingFilters: [FilterSet.ClassFilter], displayTextSuffix: item.DisplaySuffix);
+
+        foreach (var item in types.Where(t => !t.IsClass && expectedItems.Contains(t.Name)))
+            await VerifyItemExistsAsync(markup, item.Name, matchingFilters: [FilterSet.InterfaceFilter, FilterSet.TargetTypedFilter], displayTextSuffix: item.DisplaySuffix);
+
+        foreach (var item in types.Where(t => !t.IsClass && !expectedItems.Contains(t.Name)))
+            await VerifyItemExistsAsync(markup, item.Name, matchingFilters: [FilterSet.InterfaceFilter], displayTextSuffix: item.DisplaySuffix);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

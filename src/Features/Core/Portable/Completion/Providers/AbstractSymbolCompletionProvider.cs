@@ -47,15 +47,13 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
     /// because we ignore nullability.</param>
     private static bool ShouldIncludeInTargetTypedCompletionList(
         ISymbol symbol,
-        ImmutableArray<ITypeSymbol> inferredTypes,
-        SemanticModel semanticModel,
-        int position,
+        TSyntaxContext syntaxContext,
         Dictionary<ITypeSymbol, bool> typeConvertibilityCache)
     {
-        // When searching for identifiers of type C, exclude the symbol for the `C` type itself.
+        // When searching for identifiers of type C, exclude the symbol for the `C` type itself except in an object creation context.
         if (symbol.Kind == SymbolKind.NamedType)
         {
-            return false;
+            return ShouldIncludeInTargetTypedCompletionListInNamedType(symbol, syntaxContext, typeConvertibilityCache);
         }
 
         // Avoid offering members of object since they too commonly show up and are infrequently desired.
@@ -69,7 +67,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         {
             var local = (ILocalSymbol)symbol;
             var declarationSyntax = symbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).SingleOrDefault();
-            if (declarationSyntax != null && position < declarationSyntax.FullSpan.End)
+            if (declarationSyntax != null && syntaxContext.Position < declarationSyntax.FullSpan.End)
             {
                 return false;
             }
@@ -86,8 +84,61 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
             return isConvertible;
         }
 
-        typeConvertibilityCache[type] = CompletionUtilities.IsTypeImplicitlyConvertible(semanticModel.Compilation, type, inferredTypes);
+        typeConvertibilityCache[type] = CompletionUtilities.IsTypeImplicitlyConvertible(syntaxContext.SemanticModel.Compilation, type, syntaxContext.InferredTypes);
         return typeConvertibilityCache[type];
+    }
+
+    private static bool ShouldIncludeInTargetTypedCompletionListInNamedType(ISymbol symbol, TSyntaxContext syntaxContext, Dictionary<ITypeSymbol, bool> typeConvertibilityCache)
+    {
+        // Only create target typed completion entries in the object creation context
+        if (!syntaxContext.IsObjectCreationTypeContext)
+            return false;
+
+        if (symbol.GetSymbolType() is not ITypeSymbol type)
+            return false;
+
+        if (typeConvertibilityCache.TryGetValue(type, out var isConvertible))
+            return isConvertible;
+
+        for (var i = 0; i < syntaxContext.InferredTypes.Length; i++)
+        {
+            var inferredType = syntaxContext.InferredTypes[i];
+            if (inferredType.IsArrayType())
+            {
+                while (inferredType is IArrayTypeSymbol arrayType)
+                    inferredType = arrayType.ElementType;
+            }
+            else
+            {
+                // Abstract types should not be offered in target typed completion except in array contexts
+                if (type.IsAbstract)
+                    continue;
+            }
+
+            if (inferredType.IsInterfaceType())
+            {
+                if (type == inferredType.OriginalDefinition || type.AllInterfaces.Any(static (typeInterface, inferredType) => typeInterface.OriginalDefinition == inferredType.OriginalDefinition, inferredType))
+                {
+                    isConvertible = true;
+                    break;
+                }
+            }
+            else
+            {
+                var typeToCheck = type;
+                while (typeToCheck != null && typeToCheck.OriginalDefinition != inferredType.OriginalDefinition)
+                    typeToCheck = typeToCheck.BaseType;
+
+                if (typeToCheck != null)
+                {
+                    isConvertible = true;
+                    break;
+                }
+            }
+        }
+
+        typeConvertibilityCache[type] = isConvertible;
+        return isConvertible;
     }
 
     /// <summary>
@@ -187,7 +238,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         {
             var symbol = symbolList[index];
             var syntaxContext = contextLookup(symbol);
-            if (ShouldIncludeInTargetTypedCompletionList(symbol.Symbol, syntaxContext.InferredTypes, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
+            if (ShouldIncludeInTargetTypedCompletionList(symbol.Symbol, syntaxContext, typeConvertibilityCache))
                 break;
         }
 
