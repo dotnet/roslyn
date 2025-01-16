@@ -278,8 +278,6 @@ class MyClass
 
 ***Introduced in Visual Studio 2022 version 17.14***
 
-***Introduced in Visual Studio 2022 version 17.14***
-
 The specification for `record class` and `record struct` types indicated that any pointer types are disallowed as instance fields.
 However, this was not enforced correctly when the `record class` or `record struct` type defined its own `Equals` implementation.
 
