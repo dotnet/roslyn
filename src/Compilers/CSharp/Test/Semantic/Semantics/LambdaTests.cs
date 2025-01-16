@@ -507,7 +507,8 @@ End Module
             var vbProject = VisualBasic.VisualBasicCompilation.Create(
                 "VBProject",
                 references: new[] { MscorlibRef },
-                syntaxTrees: new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(vbSource) });
+                syntaxTrees: new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(vbSource) },
+                options: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var csSource = @"
 class Program
@@ -557,7 +558,8 @@ End Module
             var vbProject = VisualBasic.VisualBasicCompilation.Create(
                 "VBProject",
                 references: new[] { MscorlibRef },
-                syntaxTrees: new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(vbSource) });
+                syntaxTrees: new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(vbSource) },
+                options: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var csSource = @"
 class Program

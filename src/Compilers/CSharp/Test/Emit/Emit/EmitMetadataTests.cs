@@ -3507,5 +3507,93 @@ public class Child : Parent, IParent
                     // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                     Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe()
+        {
+            CompileAndVerify("""
+                System.Console.WriteLine("a");
+                """,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true),
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+                    Assert.NotNull(module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>$"));
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe_NoMain()
+        {
+            var emitResult = CreateCompilation("""
+                class Program;
+                """,
+                options: TestOptions.ReleaseExe)
+                .Emit(new MemoryStream(), options: EmitOptions.Default.WithEmitMetadataOnly(true));
+            Assert.False(emitResult.Success);
+            emitResult.Diagnostics.Verify(
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe_PrivateMain_ExcludePrivateMembers()
+        {
+            CompileAndVerify("""
+                static class Program
+                {
+                    private static void Main() { }
+                }
+                """,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: EmitOptions.Default
+                    .WithEmitMetadataOnly(true)
+                    .WithIncludePrivateMembers(false),
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+                    Assert.NotNull(module.GlobalNamespace.GetMember<MethodSymbol>("Program.Main"));
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void ExcludePrivateMembers_PrivateMain()
+        {
+            using var peStream = new MemoryStream();
+            using var metadataStream = new MemoryStream();
+            var comp = CreateCompilation("""
+                static class Program
+                {
+                    private static void Main() { }
+                }
+                """,
+                options: TestOptions.ReleaseExe);
+            var emitResult = comp.Emit(
+                peStream: peStream,
+                metadataPEStream: metadataStream,
+                options: EmitOptions.Default.WithIncludePrivateMembers(false));
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify();
+
+            verify(peStream);
+            verify(metadataStream);
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+
+            static void verify(Stream stream)
+            {
+                stream.Position = 0;
+                Assert.NotEqual(0, new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+
+                stream.Position = 0;
+                var reference = AssemblyMetadata.CreateFromStream(stream).GetReference();
+                var comp = CreateCompilation("", references: [reference],
+                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+                Assert.NotNull(comp.GetMember<MethodSymbol>("Program.Main"));
+            }
+        }
     }
 }

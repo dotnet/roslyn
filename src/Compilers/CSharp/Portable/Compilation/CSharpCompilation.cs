@@ -3503,6 +3503,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(this, moduleBeingBuilt, cancellationToken);
+
+                if (moduleBeingBuilt.OutputKind.IsApplication())
+                {
+                    var entryPoint = GetEntryPointAndDiagnostics(cancellationToken);
+                    diagnostics.AddRange(entryPoint.Diagnostics.Diagnostics);
+                    if (entryPoint.MethodSymbol != null)
+                    {
+                        moduleBeingBuilt.SetPEEntryPoint(entryPoint.MethodSymbol, diagnostics);
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
             }
             else
             {

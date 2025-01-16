@@ -7,11 +7,13 @@ Imports System.IO
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
+Imports System.Reflection.PortableExecutable
+Imports Basic.Reference.Assemblies
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Roslyn.Test.Utilities
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
@@ -972,6 +974,105 @@ End Class
         Private Sub VerifyEmitWithNoResources(comp As VisualBasicCompilation, platform As Platform)
             Dim options = TestOptions.ReleaseExe.WithPlatform(platform)
             CompileAndVerify(comp.WithOptions(options))
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
+        Public Sub EmitMetadataOnly_Exe()
+            CompileAndVerify(
+                <compilation>
+                    <file>
+Module Program
+    Sub Main()
+        System.Console.WriteLine("a")
+    End Sub
+End Module
+                    </file>
+                </compilation>,
+                options:=TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True),
+                symbolValidator:=Sub(m)
+                                     Assert.NotEqual(0, m.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress)
+                                     Assert.NotNull(m.GlobalNamespace.GetMember(Of MethodSymbol)("Program.Main"))
+                                 End Sub
+            ).VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
+        Public Sub EmitMetadataOnly_Exe_NoMain()
+            Dim emitResult = CreateCompilation(
+                <compilation>
+                    <file>
+Module Program
+End Module
+                    </file>
+                </compilation>,
+                options:=TestOptions.ReleaseExe,
+                assemblyName:="MyLib"
+            ).Emit(New MemoryStream(), options:=EmitOptions.Default.WithEmitMetadataOnly(True))
+            Assert.False(emitResult.Success)
+            emitResult.Diagnostics.AssertTheseDiagnostics(<errors>
+BC30420: 'Sub Main' was not found in 'MyLib'.
+                                                          </errors>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
+        Public Sub EmitMetadataOnly_Exe_PrivateMain_ExcludePrivateMembers()
+            CompileAndVerify(
+                <compilation>
+                    <file>
+Module Program
+    Friend Sub Main()
+    End Sub
+End Module
+                    </file>
+                </compilation>,
+                options:=TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False),
+                symbolValidator:=Sub(m)
+                                     Assert.NotEqual(0, m.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress)
+                                     Assert.NotNull(m.GlobalNamespace.GetMember(Of MethodSymbol)("Program.Main"))
+                                 End Sub
+            ).VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
+        Public Sub ExcludePrivateMembers_PrivateMain()
+            Using peStream As New MemoryStream()
+                Using metadataStream As New MemoryStream()
+                    Dim comp = CreateCompilation(
+                        <compilation>
+                            <file>
+Module Program
+    Friend Sub Main()
+    End Sub
+End Module
+                            </file>
+                        </compilation>,
+                        options:=TestOptions.ReleaseExe
+                    )
+                    Dim emitResult = comp.Emit(
+                        peStream:=peStream,
+                        metadataPEStream:=metadataStream,
+                        options:=EmitOptions.Default.WithIncludePrivateMembers(False))
+                    Assert.True(emitResult.Success)
+                    emitResult.Diagnostics.Verify()
+
+                    Verify(peStream)
+                    Verify(metadataStream)
+
+                    CompileAndVerify(comp).VerifyDiagnostics()
+                End Using
+            End Using
+        End Sub
+
+        Private Shared Sub Verify(stream As Stream)
+            stream.Position = 0
+            Assert.NotEqual(0, New PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress)
+
+            stream.Position = 0
+            Dim reference = AssemblyMetadata.CreateFromStream(stream).GetReference()
+            Dim comp = CreateCompilation("", references:={reference}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Assert.NotNull(comp.GetMember(Of MethodSymbol)("Program.Main") IsNot Nothing)
         End Sub
     End Class
 End Namespace
