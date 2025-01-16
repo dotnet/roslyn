@@ -1152,7 +1152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Test if this frame has captured variables and requires the introduction of a closure class.
             if (_frames.TryGetValue(node, out var frame))
             {
-                return IntroduceFrame(node, frame, (prologue, newLocals) =>
+                return IntroduceFrame(node, frame, (ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals) =>
                     RewriteBlock(node, prologue, newLocals));
             }
             else
@@ -1216,7 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Test if this frame has captured variables and requires the introduction of a closure class.
             if (_frames.TryGetValue(node, out var frame))
             {
-                return IntroduceFrame(node, frame, (prologue, newLocals) =>
+                return IntroduceFrame(node, frame, (ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals) =>
                 {
                     return RewriteCatch(node, prologue, newLocals);
                 });
@@ -1290,7 +1290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Test if this frame has captured variables and requires the introduction of a closure class.
             if (_frames.TryGetValue(node, out var frame))
             {
-                return IntroduceFrame(node, frame, (prologue, newLocals) =>
+                return IntroduceFrame(node, frame, (ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals) =>
                 {
                     return RewriteSequence(node, prologue, newLocals);
                 });
@@ -1307,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // That can occur for a BoundStatementList if it is the body of a method with captured parameters.
             if (_frames.TryGetValue(node, out var frame))
             {
-                return IntroduceFrame(node, frame, (prologue, newLocals) =>
+                return IntroduceFrame(node, frame, (ArrayBuilder<BoundExpression> prologue, ArrayBuilder<LocalSymbol> newLocals) =>
                 {
                     var newStatements = ArrayBuilder<BoundStatement>.GetInstance();
                     InsertAndFreePrologue(newStatements, prologue);

@@ -18,7 +18,7 @@ namespace Roslyn.Test.Utilities
         private readonly Dictionary<string, TestableFile>? _map;
 
         public OpenFileFunc OpenFileFunc { get; private set; } = delegate { throw new InvalidOperationException(); };
-        public OpenFileExFunc OpenFileExFunc { get; private set; } = (_, _, _, _, _, _, out _) => throw new InvalidOperationException();
+        public OpenFileExFunc OpenFileExFunc { get; private set; } = (string _, FileMode _, FileAccess _, FileShare _, int _, FileOptions _, out string _) => throw new InvalidOperationException();
         public Func<string, bool> FileExistsFunc { get; private set; } = delegate { throw new InvalidOperationException(); };
 
         public Dictionary<string, TestableFile> Map => _map ?? throw new InvalidOperationException();
@@ -74,13 +74,13 @@ namespace Roslyn.Test.Utilities
         public static TestableFileSystem CreateForMap(Dictionary<string, TestableFile> map)
             => new TestableFileSystem(map)
             {
-                OpenFileExFunc = (filePath, mode, access, share, bufferSize, options, out normalizedFilePath) =>
+                OpenFileExFunc = (string filePath, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options, out string normalizedFilePath) =>
                 {
                     normalizedFilePath = filePath;
                     return map[filePath].GetStream(access);
                 },
 
-                OpenFileFunc = (filePath, mode, access, share) => map[filePath].GetStream(access),
+                OpenFileFunc = (string filePath, FileMode mode, FileAccess access, FileShare share) => map[filePath].GetStream(access),
                 FileExistsFunc = filePath => map.ContainsKey(filePath),
             };
     }

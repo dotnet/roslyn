@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _lazyParameterType.Initialize(static accessor =>
-                {
+                return _lazyParameterType.Initialize(static (SourceEventAccessorSymbol accessor) =>
+                                                     {
                                                          SourceEventSymbol @event = accessor.AssociatedEvent;
 
                                                          if (accessor.MethodKind == MethodKind.EventAdd)

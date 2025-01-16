@@ -518,7 +518,7 @@ class C
                 Assert.True(result2.Success);
                 var assembly = System.Reflection.Assembly.ReflectionOnlyLoad(output2.ToArray());
 
-                assembly.ModuleResolve += (sender, e) =>
+                assembly.ModuleResolve += (object sender, ResolveEventArgs e) =>
                 {
                     if (e.Name.Equals(c_mod1.SourceModule.Name))
                     {
@@ -566,7 +566,7 @@ class C
                 Assert.True(result3.Success);
                 var assembly = Assembly.ReflectionOnlyLoad(output3.ToArray());
 
-                assembly.ModuleResolve += (sender, e) =>
+                assembly.ModuleResolve += (object sender, ResolveEventArgs e) =>
                 {
                     if (e.Name.Equals(c_mod2.SourceModule.Name))
                     {
@@ -628,7 +628,7 @@ class C
                 Assert.True(result4.Success);
                 var assembly = System.Reflection.Assembly.ReflectionOnlyLoad(output4.ToArray());
 
-                assembly.ModuleResolve += (sender, e) =>
+                assembly.ModuleResolve += (object sender, ResolveEventArgs e) =>
                 {
                     if (e.Name.Equals(c_mod3.SourceModule.Name))
                     {
@@ -667,7 +667,7 @@ class C
                 Assert.True(result5.Success);
                 var assembly = Assembly.ReflectionOnlyLoad(output5.ToArray());
 
-                assembly.ModuleResolve += (sender, e) =>
+                assembly.ModuleResolve += (object sender, ResolveEventArgs e) =>
                 {
                     if (e.Name.Equals(c_mod1.SourceModule.Name))
                     {

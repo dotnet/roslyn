@@ -1342,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (LocalRewriter rewriter, bool forceLambdaSpilling, ArrayBuilder<BoundAssignmentOperator> storesToTemps) arg = (rewriter: this, forceLambdaSpilling, storesToTemps);
                         arguments[p] = RewriteParamsArray(
                                            argument,
-                                           static (element, ref arg) =>
+                                           static (BoundExpression element, ref (LocalRewriter rewriter, bool forceLambdaSpilling, ArrayBuilder<BoundAssignmentOperator> storesToTemps) arg) =>
                                                arg.rewriter.StoreArgumentToTempIfNecessary(arg.forceLambdaSpilling, arg.storesToTemps, element, RefKind.None, RefKind.None),
                                            ref arg);
 
@@ -1512,7 +1512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (ArrayBuilder<BoundAssignmentOperator> tempStores, int tempsRemainedInUse, int firstUnclaimedStore) arg = (tempStores, tempsRemainedInUse, firstUnclaimedStore);
                     arguments[a] = RewriteParamsArray(
                                        argument,
-                                       static (element, ref arg) =>
+                                       static (BoundExpression element, ref (ArrayBuilder<BoundAssignmentOperator> tempStores, int tempsRemainedInUse, int firstUnclaimedStore) arg) =>
                                            mergeArgumentAndSideEffect(element, arg.tempStores, ref arg.tempsRemainedInUse, ref arg.firstUnclaimedStore),
                                        ref arg);
                     tempsRemainedInUse = arg.tempsRemainedInUse;

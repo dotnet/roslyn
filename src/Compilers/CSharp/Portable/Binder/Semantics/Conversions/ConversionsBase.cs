@@ -1504,19 +1504,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return LambdaConversionResult.BadParameterCount;
                 }
 
-                // SPEC: If F has an explicitly typed parameter list, each parameter in D has the same type 
-                // SPEC: and modifiers as the corresponding parameter in F.
-                // SPEC: If F has an implicitly typed parameter list, D has no ref or out parameters.
+                // SPEC: If F has an implicitly or explicitly typed parameter list, each parameter in D has the same
+                // SPEC: type and modifiers as the corresponding parameter in F.
+
+                for (int p = 0; p < delegateParameters.Length; ++p)
+                {
+                    if (!OverloadResolution.AreRefsCompatibleForMethodConversion(
+                            candidateMethodParameterRefKind: anonymousFunction.RefKind(p),
+                            delegateParameterRefKind: delegateParameters[p].RefKind,
+                            compilation))
+                    {
+                        return LambdaConversionResult.MismatchedParameterRefKind;
+                    }
+                }
 
                 if (anonymousFunction.HasExplicitlyTypedParameterList)
                 {
                     for (int p = 0; p < delegateParameters.Length; ++p)
                     {
-                        if (!OverloadResolution.AreRefsCompatibleForMethodConversion(
-                                candidateMethodParameterRefKind: anonymousFunction.RefKind(p),
-                                delegateParameterRefKind: delegateParameters[p].RefKind,
-                                compilation) ||
-                            !delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), TypeCompareKind.AllIgnoreOptions))
+                        if (!delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), TypeCompareKind.AllIgnoreOptions))
                         {
                             return LambdaConversionResult.MismatchedParameterType;
                         }
@@ -1524,14 +1530,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    for (int p = 0; p < delegateParameters.Length; ++p)
-                    {
-                        if (delegateParameters[p].RefKind != RefKind.None)
-                        {
-                            return LambdaConversionResult.RefInImplicitlyTypedLambda;
-                        }
-                    }
-
                     // In C# it is not possible to make a delegate type
                     // such that one of its parameter types is a static type. But static types are 
                     // in metadata just sealed abstract types; there is nothing stopping someone in
@@ -1958,7 +1956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     destination,
                     ref useSiteInfo,
                     ConversionKind.ImplicitTupleLiteral,
-                    (conversions, s, d, isChecked, ref u, forCast) =>
+                    (ConversionsBase conversions, BoundExpression s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast) =>
                         conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d.Type, ref u, isMethodGroupConversion: false),
                     isChecked: false,
                     forCast: false);
@@ -1975,7 +1973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     destination,
                     ref useSiteInfo,
                     ConversionKind.ImplicitTuple,
-                    (conversions, s, d, _, ref u, _) =>
+                    (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, bool _, ref CompoundUseSiteInfo<AssemblySymbol> u, bool _) =>
                     {
                         if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                         {
@@ -2293,7 +2291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteInfo,
                 ConversionKind.ImplicitTupleLiteral,
-                (conversions, s, d, isChecked, ref u, forCast)
+                (ConversionsBase conversions, BoundExpression s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast)
                     => conversions.ClassifyImplicitConversionFromExpression(s, d.Type, ref u),
                 isChecked: false,
                 forCast: false);
@@ -2311,7 +2309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteInfo,
                 ConversionKind.ExplicitTupleLiteral,
-                (conversions, s, d, isChecked, ref u, forCast) =>
+                (ConversionsBase conversions, BoundExpression s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast) =>
                     conversions.ClassifyConversionFromExpression(s, d.Type, isChecked: isChecked, ref u, forCast: forCast),
                 isChecked: isChecked,
                 forCast: forCast);
@@ -2364,7 +2362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteInfo,
                 ConversionKind.ImplicitTuple,
-                (conversions, s, d, _, ref u, _) =>
+                (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, bool _, ref CompoundUseSiteInfo<AssemblySymbol> u, bool _) =>
                 {
                     if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                     {
@@ -2383,7 +2381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteInfo,
                 ConversionKind.ExplicitTuple,
-                (conversions, s, d, isChecked, ref u, forCast) =>
+                (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast) =>
                 {
                     if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                     {

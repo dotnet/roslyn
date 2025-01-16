@@ -483,7 +483,7 @@ class C
 }
 ");
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 Symbol assembly = m.ContainingSymbol;
                 var attrs = assembly.GetAttributes();
@@ -1597,7 +1597,7 @@ class C
     public static void Main() {}
 }
 ");
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var type = (NamedTypeSymbol)m.GlobalNamespace.GetMember("A");
                 var prop = type.GetMember("Prop");
@@ -1702,7 +1702,7 @@ public class A
 
             var compilation = CreateCompilation(source, references, options: opt);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var type = (NamedTypeSymbol)m.GlobalNamespace.GetMember("A");
                 var attrs = type.GetAttributes();
@@ -3092,7 +3092,7 @@ namespace AttributeTest
 
             var compilation = CreateCompilation(source, references, options: TestOptions.ReleaseDll);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var attrs = m.GetAttributes();
                 // Assert.Equal(1, attrs.Count);
@@ -3167,7 +3167,7 @@ namespace AttributeTest
 
             var compilation = CreateCompilation(source, references, options: opt);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("Goo");
@@ -3209,7 +3209,7 @@ namespace AttributeTest
 
             var compilation = CreateCompilation(source, references, options: opt);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("IGoo");
@@ -3443,7 +3443,7 @@ namespace AttributeTest
 
             var compilation = CreateCompilation(source, references, options: opt);
 
-            Action<ModuleSymbol> sourceAttributeValidator = m =>
+            Action<ModuleSymbol> sourceAttributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("IGoo");
@@ -3456,7 +3456,7 @@ namespace AttributeTest
                 Assert.False(attrs.First().AttributeConstructor.Parameters.Last().IsParamsCollection);
             };
 
-            Action<ModuleSymbol> mdAttributeValidator = m =>
+            Action<ModuleSymbol> mdAttributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("IGoo");
@@ -3520,7 +3520,7 @@ namespace AttributeTest
     }
 }
 ";
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("Program");
@@ -3582,7 +3582,7 @@ namespace AttributeTest
 
             var compilation = CreateCompilation(source, references, options: opt);
 
-            Action<ModuleSymbol> sourceAttributeValidator = m =>
+            Action<ModuleSymbol> sourceAttributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("IGoo");
@@ -3595,7 +3595,7 @@ namespace AttributeTest
                 Assert.False(attrs.First().AttributeConstructor.Parameters.Last().IsParamsCollection);
             };
 
-            Action<ModuleSymbol> mdAttributeValidator = m =>
+            Action<ModuleSymbol> mdAttributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("IGoo");
@@ -3630,7 +3630,7 @@ namespace AttributeTest
 ";
             var compilation = CreateCompilation(source);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("MyAttribute");
@@ -3676,7 +3676,7 @@ namespace AttributeTest
 
             var compilation = CreateCompilation(source, references, options: opt);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("A");
@@ -3783,7 +3783,7 @@ namespace AttributeTest
 
             var compilation = CreateCompilation(source, references, options: opt);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("Goo");
@@ -3857,7 +3857,7 @@ namespace AttributeTest
 ";
             var compilation = CreateCompilation(source);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("GClass");
@@ -3897,7 +3897,7 @@ namespace AttributeTest
 ";
             var compilation = CreateCompilation(source);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("Program");
@@ -3943,7 +3943,7 @@ namespace AttributeTest
 ";
             var compilation = CreateCompilation(source);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("TestClass");
@@ -3994,7 +3994,7 @@ namespace AttributeTest
 ";
             var compilation = CreateCompilation(source);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("TestClass");
@@ -4072,7 +4072,7 @@ namespace AttributeTest
 }
 ");
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("A");
@@ -4131,7 +4131,7 @@ namespace AttributeTest
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("A");
@@ -4174,7 +4174,7 @@ namespace AttributeTest
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("A");
@@ -4218,7 +4218,7 @@ namespace AttributeTest
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("A");
@@ -4263,7 +4263,7 @@ namespace AttributeTest
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("A");
@@ -4307,7 +4307,7 @@ namespace AttributeTest
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("A");
@@ -4509,7 +4509,7 @@ class B
 }";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 NamedTypeSymbol bClass = m.GlobalNamespace.GetTypeMember("B");
                 NamedTypeSymbol cClass = bClass.GetTypeMember("C");
@@ -4565,7 +4565,7 @@ public class Program
 }";
             var compilation = CreateCompilation(source);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 NamedTypeSymbol bClass = m.GlobalNamespace.GetTypeMember("B");
                 NamedTypeSymbol cClass = bClass.GetTypeMember("C");
@@ -4606,7 +4606,7 @@ class Program
 }";
             var compilation = CreateCompilation(source);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 NamedTypeSymbol bClass = m.GlobalNamespace.GetTypeMember("B");
                 NamedTypeSymbol attributeType = m.GlobalNamespace.GetTypeMember("A");
@@ -4955,7 +4955,7 @@ public class A : Attribute
 
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 NamedTypeSymbol attributeType = m.GlobalNamespace.GetTypeMember("A");
 
@@ -5061,7 +5061,7 @@ partial class Program
 
             var compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var programClass = m.GlobalNamespace.GetTypeMember("Program");
                 var gooMethod = (MethodSymbol)programClass.GetMember("Goo");
@@ -5130,7 +5130,7 @@ class C
 
             var compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var aClass = m.GlobalNamespace.GetTypeMember("A");
                 var bClass = m.GlobalNamespace.GetTypeMember("B");
@@ -5166,7 +5166,7 @@ class C
 
             var compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var aClass = m.GlobalNamespace.GetTypeMember("A");
                 var bClass = m.GlobalNamespace.GetTypeMember("B");
@@ -5203,7 +5203,7 @@ public class GClass<T> where T : Attribute
 
             var compilation = CreateCompilation(source);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 NamedTypeSymbol attributeType = m.GlobalNamespace.GetTypeMember("TAttribute");
 
@@ -5241,7 +5241,7 @@ class C
 
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 NamedTypeSymbol attributeType = m.GlobalNamespace.GetTypeMember("A");
                 NamedTypeSymbol cClass = m.GlobalNamespace.GetTypeMember("C");
@@ -5299,7 +5299,7 @@ class C
 
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 NamedTypeSymbol attributeTypeA = m.GlobalNamespace.GetTypeMember("A");
                 NamedTypeSymbol attributeTypeB = m.GlobalNamespace.GetTypeMember("B");
@@ -5360,7 +5360,7 @@ public class Test
 
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 NamedTypeSymbol attributeType = m.GlobalNamespace.GetTypeMember("MyClassAttribute");
                 NamedTypeSymbol testClass = m.GlobalNamespace.GetTypeMember("Test");
@@ -5472,7 +5472,7 @@ public class C6 {}
 
             var compilation = CreateCompilation(source);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 NamedTypeSymbol classW = m.GlobalNamespace.GetTypeMember("W");
                 NamedTypeSymbol classY = m.GlobalNamespace.GetTypeMember("Y");
@@ -5616,7 +5616,7 @@ public class C
                 attributes[0].VerifyValue(0, TypedConstantKind.Primitive, value);
             };
 
-            Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
+            Func<bool, Action<ModuleSymbol>> validator = isFromSource => (ModuleSymbol module) =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var x1 = type.GetMember<FieldSymbol>("x1");

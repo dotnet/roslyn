@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 public struct EventDescriptor
 {
 }";
-            Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => module =>
+            Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => (ModuleSymbol module) =>
             {
                 var assembly = module.ContainingAssembly;
                 var type = (Cci.ITypeDefinition)module.GlobalNamespace.GetMember("EventDescriptor").GetCciAdapter();

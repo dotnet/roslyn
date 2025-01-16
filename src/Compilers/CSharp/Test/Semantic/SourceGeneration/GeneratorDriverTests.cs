@@ -4199,7 +4199,7 @@ class C { }
             {
                 var interceptorInfos = context.SyntaxProvider.CreateSyntaxProvider(
                     predicate: IsInterceptableCall,
-                    transform: (context, token) =>
+                    transform: (GeneratorSyntaxContext context, CancellationToken token) =>
                     {
                         var model = context.SemanticModel;
                         var locationSpecifier = model.GetInterceptableLocation((InvocationExpressionSyntax)context.Node, token);

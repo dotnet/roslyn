@@ -127,7 +127,7 @@ class C
 }
 ");
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var assembly = m.ContainingSymbol;
 
@@ -242,7 +242,7 @@ class C
 }
 ");
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var assembly = m.ContainingSymbol;
 
@@ -372,7 +372,7 @@ class C
             #endregion
 
             #region Verifier
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var assembly = m.ContainingSymbol;
 
@@ -1362,7 +1362,7 @@ partial class C
     partial void Goo4([Optional][DefaultParameterValue(0)] int x) { }
 }
 ";
-            Action<SourceOrdinaryMethodSymbol> partialValidator = sourceMethod =>
+            Action<SourceOrdinaryMethodSymbol> partialValidator = (SourceOrdinaryMethodSymbol sourceMethod) =>
             {
                 Assert.True(sourceMethod.IsPartial, "Not a partial method?");
 
@@ -1375,7 +1375,7 @@ partial class C
                 Assert.True(param.HasOptionalAttribute, "No OptionalAttribute?");
             };
 
-            Action<ModuleSymbol> sourceValidator = m =>
+            Action<ModuleSymbol> sourceValidator = (ModuleSymbol m) =>
             {
                 var typeC = m.GlobalNamespace.GetTypeMember("C");
 
@@ -2468,7 +2468,7 @@ class C
 }
 ");
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 // get expected attr symbol
                 var type1 = m.GlobalNamespace.GetTypeMember("DllImportTest");
@@ -3668,7 +3668,7 @@ public class MainClass
         return 0;
     }
 }";
-            Action<ModuleSymbol> sourceValidator = m =>
+            Action<ModuleSymbol> sourceValidator = (ModuleSymbol m) =>
             {
                 MethodImplAttributes expectedMethodImplAttributes = MethodImplAttributes.Managed | MethodImplAttributes.Runtime | MethodImplAttributes.InternalCall;
                 var typeA = m.GlobalNamespace.GetTypeMember("A");
@@ -3683,7 +3683,7 @@ public class MainClass
                 Assert.True(methodGoo.IsExternal);
             };
 
-            Action<ModuleSymbol> metadataValidator = m =>
+            Action<ModuleSymbol> metadataValidator = (ModuleSymbol m) =>
             {
                 var typeA = m.GlobalNamespace.GetTypeMember("A");
                 Assert.True(typeA.IsComImport);
@@ -3744,7 +3744,7 @@ public class MainClass
         return 0;
     }
 }";
-            Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => m =>
+            Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => (ModuleSymbol m) =>
             {
                 NamespaceSymbol interopNS = Get_System_Runtime_InteropServices_NamespaceSymbol(m);
                 var guidType = interopNS.GetTypeMember("GuidAttribute");
@@ -3875,7 +3875,7 @@ public class MainClass
         return 0;
     }
 }";
-            Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => m =>
+            Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => (ModuleSymbol m) =>
             {
                 NamespaceSymbol interopNS = Get_System_Runtime_InteropServices_NamespaceSymbol(m);
                 var guidType = interopNS.GetTypeMember("GuidAttribute");
@@ -5142,7 +5142,7 @@ namespace System
             var syntaxTree = Parse(source, filename: "test.cs", options: parseOptions);
             var compilation = CreateCompilation(syntaxTree, options: TestOptions.ReleaseDll);
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("System");
                 var attrType = ns.GetTypeMember("AttributeUsageAttribute");
@@ -5628,7 +5628,7 @@ class A
     public static void Main() {}
 }
 ";
-            Action<ModuleSymbol> sourceValidator = module =>
+            Action<ModuleSymbol> sourceValidator = (ModuleSymbol module) =>
             {
                 NamespaceSymbol windowsRuntimeNS = Get_System_Runtime_InteropServices_WindowsRuntime_NamespaceSymbol(module);
                 NamedTypeSymbol windowsRuntimeImportAttrType = windowsRuntimeNS.GetTypeMember("WindowsRuntimeImportAttribute");
@@ -5638,7 +5638,7 @@ class A
                 Assert.True(typeA.IsWindowsRuntimeImport, "Metadata flag not set for IsWindowsRuntimeImport");
             };
 
-            Action<ModuleSymbol> metadataValidator = module =>
+            Action<ModuleSymbol> metadataValidator = (ModuleSymbol module) =>
             {
                 NamedTypeSymbol typeA = module.GlobalNamespace.GetTypeMember("A");
                 Assert.Equal(0, typeA.GetAttributes().Length);
@@ -5691,7 +5691,7 @@ class A
   }
 }
 ";
-            Action<ModuleSymbol> sourceValidator = module =>
+            Action<ModuleSymbol> sourceValidator = (ModuleSymbol module) =>
             {
                 NamespaceSymbol securityNS = Get_System_Security_NamespaceSymbol(module);
                 NamedTypeSymbol dynamicSecurityMethodAttrType = securityNS.GetTypeMembers("DynamicSecurityMethodAttribute").Single(type => type.DeclaringSyntaxReferences.Any());
@@ -5702,7 +5702,7 @@ class A
                 Assert.True(method.RequiresSecurityObject, "Metadata flag RequiresSecurityObject is not set");
             };
 
-            Action<ModuleSymbol> metadataValidator = module =>
+            Action<ModuleSymbol> metadataValidator = (ModuleSymbol module) =>
             {
                 NamedTypeSymbol typeA = module.GlobalNamespace.GetTypeMember("A");
                 MethodSymbol method = typeA.GetMember<MethodSymbol>("SecurityMethod");
@@ -13173,7 +13173,7 @@ class MyAttribute : System.Attribute
 { }
 ");
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var program = m.GlobalNamespace.GetTypeMember("Program");
 
@@ -13294,7 +13294,7 @@ class MyAttribute : System.Attribute
 { }
 ");
 
-            Action<ModuleSymbol> attributeValidator = m =>
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var program1 = m.GlobalNamespace.GetTypeMember("Program1");
                 var program2 = m.GlobalNamespace.GetTypeMember("Program2");

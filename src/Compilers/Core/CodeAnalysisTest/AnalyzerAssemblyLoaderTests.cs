@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
         public void LoadWithDependency(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var analyzerDependencyFile = testFixture.AnalyzerDependency;
                 var analyzerMainFile = testFixture.AnalyzerWithDependency;
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [CombinatorialData]
         public void AddDependencyLocationThrowsOnNull(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 Assert.Throws<ArgumentNullException>("fullPath", () => loader.AddDependencyLocation(null!));
                 Assert.Throws<ArgumentException>("fullPath", () => loader.AddDependencyLocation("a"));
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [CombinatorialData]
         public void ThrowsForMissingFile(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".dll");
                 Assert.ThrowsAny<Exception>(() => loader.LoadFromPath(path));
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [CombinatorialData]
         public void BasicLoad(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 loader.AddDependencyLocation(testFixture.Alpha);
                 Assembly alpha = loader.LoadFromPath(testFixture.Alpha);
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [CombinatorialData]
         public void AssemblyLoading_Multiple(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -336,7 +336,7 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_OverwriteBeforeLoad(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
@@ -358,7 +358,7 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_AssemblyLocationNotAdded(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 loader.AddDependencyLocation(testFixture.Gamma);
                 loader.AddDependencyLocation(testFixture.Delta1);
@@ -370,7 +370,7 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_DependencyLocationNotAdded(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -529,7 +529,7 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_Simple(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 StringBuilder sb = new StringBuilder();
@@ -557,7 +557,7 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_DependencyInDifferentDirectory(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
@@ -594,7 +594,7 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_RazorCompiler1(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
@@ -628,7 +628,7 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_RazorCompiler2(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
@@ -667,7 +667,7 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_DependencyInDifferentDirectory2(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
@@ -722,7 +722,7 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_DependencyInDifferentDirectory3(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
@@ -755,7 +755,7 @@ Delta: Gamma: Beta: Test B
         [WorkItem(32226, "https://github.com/dotnet/roslyn/issues/32226")]
         public void AssemblyLoading_DependencyInDifferentDirectory4(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var analyzerDependencyFile = testFixture.AnalyzerDependency;
                 var analyzerMainFile = testFixture.AnalyzerWithDependency;
@@ -785,7 +785,7 @@ Delta: Gamma: Beta: Test B
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -842,7 +842,7 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_NoExactMatch(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -901,7 +901,7 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_MultipleEqualMatches(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -951,7 +951,7 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_MultipleVersionsOfSameAnalyzerItself(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -988,7 +988,7 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_ExactAndGreaterMatch(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -1040,7 +1040,7 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_WorseMatchInSameDirectory(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 StringBuilder sb = new StringBuilder();
@@ -1099,7 +1099,7 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_MultipleLoaders(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader1, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader1, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -1162,7 +1162,7 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_MissingVersion(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -1195,7 +1195,7 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_MultipleVersions_AnalyzerDependency(AnalyzerTestKind kind, bool normalOrder)
         {
-            Run(kind, state: normalOrder, static (loader, testFixture, state) =>
+            Run(kind, state: normalOrder, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
                 using var temp = new TempRoot();
                 var analyzerFilePaths = new List<string>();
@@ -1336,7 +1336,7 @@ Delta: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_UnifyToHighest(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var sb = new StringBuilder();
 
@@ -1371,7 +1371,7 @@ Delta.2: Epsilon: Test E
         [CombinatorialData]
         public void AssemblyLoading_CanLoadDifferentVersionsDirectly(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var sb = new StringBuilder();
 
@@ -1401,7 +1401,7 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_01(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -1428,7 +1428,7 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_02(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 StringBuilder sb = new StringBuilder();
 
@@ -1446,7 +1446,7 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_CompilerDependencyDuplicated(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var assembly = typeof(ImmutableArray<int>).Assembly;
 
@@ -1467,7 +1467,7 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_NativeDependency(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 const int INVALID_FILE_ATTRIBUTES = -1;
                 loader.AddDependencyLocation(testFixture.AnalyzerWithNativeDependency);
@@ -1484,7 +1484,7 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_DeleteAfterLoad1(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
@@ -1507,7 +1507,7 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_DeleteAfterLoad2(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 StringBuilder sb = new StringBuilder();
@@ -1538,7 +1538,7 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_DeleteAfterLoad3(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
@@ -1578,7 +1578,7 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_RepeatedLoads1(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var path = testFixture.Delta1;
                 loader.AddDependencyLocation(path);
@@ -1599,7 +1599,7 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_RepeatedLoads2(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
@@ -1634,7 +1634,7 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_Resources(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
@@ -1657,7 +1657,7 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoading_ResourcesInParent(AnalyzerTestKind kind)
         {
-            Run(kind, static (loader, testFixture) =>
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 using var temp = new TempRoot();
                 var tempDir = temp.CreateDirectory();
@@ -1683,7 +1683,7 @@ Delta.2: Test D2
         public void AssemblyLoadingInNonDefaultContext_AnalyzerReferencesSystemCollectionsImmutable(AnalyzerTestKind kind)
         {
             Run(kind,
-                static (compilerContext, testFixture) =>
+                static (AssemblyLoadContext compilerContext, AssemblyLoadTestFixture testFixture) =>
                 {
                     // Load the compiler assembly and a modified version of S.C.I into the compiler load context. We
                     // expect the analyzer will use the bogus S.C.I in the compiler context instead of the one 
@@ -1691,7 +1691,7 @@ Delta.2: Test D2
                     _ = compilerContext.LoadFromAssemblyPath(testFixture.UserSystemCollectionsImmutable);
                     _ = compilerContext.LoadFromAssemblyPath(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location);
                 },
-                static (loader, testFixture) =>
+                static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
                 {
                     StringBuilder sb = new StringBuilder();
 
@@ -1712,7 +1712,7 @@ Delta.2: Test D2
         public void ExternalResolver_CanIntercept_ReturningNull(AnalyzerTestKind kind)
         {
             var resolver = new TestAnalyzerAssemblyResolver(n => null);
-            Run(kind, (loader, testFixture) =>
+            Run(kind, (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 loader.AddDependencyLocation(testFixture.Delta1);
                 Assembly delta = loader.LoadFromPath(testFixture.Delta1);
@@ -1728,7 +1728,7 @@ Delta.2: Test D2
         public void ExternalResolver_CanIntercept_ReturningAssembly(AnalyzerTestKind kind)
         {
             var resolver = new TestAnalyzerAssemblyResolver(n => GetType().Assembly);
-            Run(kind, (loader, testFixture) =>
+            Run(kind, (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 // net core assembly loader checks that the resolved assembly name is the same as the requested one
                 // so we use the assembly the tests are contained in as its already be loaded
@@ -1747,7 +1747,7 @@ Delta.2: Test D2
         {
             var thisAssemblyName = GetType().Assembly.GetName();
             var resolver = new TestAnalyzerAssemblyResolver(n => n == thisAssemblyName ? GetType().Assembly : null);
-            Run(kind, (loader, testFixture) =>
+            Run(kind, (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var thisAssembly = typeof(AnalyzerAssemblyLoaderTests).Assembly;
 
@@ -1773,7 +1773,7 @@ Delta.2: Test D2
         {
             var resolver1 = new TestAnalyzerAssemblyResolver(n => null);
             var resolver2 = new TestAnalyzerAssemblyResolver(n => null);
-            Run(kind, (loader, testFixture) =>
+            Run(kind, (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 loader.AddDependencyLocation(testFixture.Delta1);
                 Assembly delta = loader.LoadFromPath(testFixture.Delta1);
@@ -1791,7 +1791,7 @@ Delta.2: Test D2
         {
             var resolver1 = new TestAnalyzerAssemblyResolver(n => GetType().Assembly);
             var resolver2 = new TestAnalyzerAssemblyResolver(n => null);
-            Run(kind, (loader, testFixture) =>
+            Run(kind, (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
             {
                 var thisAssembly = typeof(AnalyzerAssemblyLoaderTests).Assembly;
                 loader.AddDependencyLocation(thisAssembly.Location);

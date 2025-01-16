@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             => GetAddSuccessorsFunction(successors, i => i);
 
         private static TopologicalSortAddSuccessors<T> GetAddSuccessorsFunction<T>(T[][] successors, Func<T, int> toInt)
-            => (ref builder, value) => builder.AddRange(successors[toInt(value)].ToImmutableArray());
+            => (ref TemporaryArray<T> builder, T value) => builder.AddRange(successors[toInt(value)].ToImmutableArray());
 
         [Fact]
         public void Test01()

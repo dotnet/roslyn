@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier,
                 suppressUseSiteDiagnostics: false,
                 lastIndex: syntax.Parameters.Count - 1,
-                parameterCreationFunc: (context, owner, parameterType,
-syntax, refKind, ordinal,
-paramsKeyword, thisKeyword, addRefReadOnlyModifier,
-scope,
-declarationDiagnostics) =>
+                parameterCreationFunc: (Binder context, Symbol owner, TypeWithAnnotations parameterType,
+                                        ParameterSyntax syntax, RefKind refKind, int ordinal,
+                                        SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
+                                        ScopedKind scope,
+                                        BindingDiagnosticBag declarationDiagnostics) =>
                 {
                     return SourceParameterSymbol.Create(
                         context,
@@ -78,11 +78,11 @@ declarationDiagnostics) =>
                 addRefReadOnlyModifier: true,
                 suppressUseSiteDiagnostics,
                 parametersList.Count - 2,
-                parameterCreationFunc: (binder, owner, parameterType,
-syntax, refKind, ordinal,
-paramsKeyword, thisKeyword, addRefReadOnlyModifier,
-scope,
-diagnostics) =>
+                parameterCreationFunc: (Binder binder, FunctionPointerMethodSymbol owner, TypeWithAnnotations parameterType,
+                                        FunctionPointerParameterSyntax syntax, RefKind refKind, int ordinal,
+                                        SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
+                                        ScopedKind scope,
+                                        BindingDiagnosticBag diagnostics) =>
                 {
                     // Non-function pointer locations have other locations to encode in/ref readonly/outness. For function pointers,
                     // these modreqs are the only locations where this can be encoded. If that changes, we should update this.
@@ -556,6 +556,11 @@ diagnostics) =>
                         if (parsingLambdaParams)
                         {
                             MessageID.IDS_FeatureLambdaParamsArray.CheckFeatureAvailability(diagnostics, modifier);
+
+                            if (parameter is ParameterSyntax { Type: null, Identifier.Text: var parameterIdentifier })
+                            {
+                                diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedParamsParameter, modifier, parameterIdentifier);
+                            }
                         }
                         break;
 
@@ -643,6 +648,8 @@ diagnostics) =>
             }
         }
 
+        /// <param name="typeWithAnnotations">Will be <see langword="default"/> if this is called for a lambda parameter
+        /// with an explicit type provided.</param>
         public static void ReportParameterErrors(
             Symbol? owner,
             BaseParameterSyntax syntax,
@@ -673,7 +680,7 @@ diagnostics) =>
                 // error CS1670: params is not valid in this context
                 diagnostics.Add(ErrorCode.ERR_IllegalParams, paramsKeyword.GetLocation());
             }
-            else if (typeWithAnnotations.IsStatic)
+            else if (!typeWithAnnotations.IsDefault && typeWithAnnotations.IsStatic)
             {
                 Debug.Assert(containingSymbol is null || (containingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null }));
                 // error CS0721: '{0}': static types cannot be used as parameters
@@ -689,6 +696,7 @@ diagnostics) =>
                 diagnostics.Add(ErrorCode.ERR_DefaultValueBeforeRequiredValue, loc);
             }
             else if (refKind != RefKind.None &&
+                !typeWithAnnotations.IsDefault &&
                 typeWithAnnotations.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 // CS1601: Cannot make reference to variable of type 'System.TypedReference'

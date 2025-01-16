@@ -6544,13 +6544,13 @@ oneMoreTime:
             EvalStackFrame frame = PushStackFrame();
             var elements = VisitArray(
                 operation.Elements,
-                unwrapper: static element =>
+                unwrapper: static (IOperation element) =>
                 {
                     return element is ISpreadOperation spread ?
                         spread.Operand :
                         element;
                 },
-                wrapper: (operation, index, elements) =>
+                wrapper: (IOperation operation, int index, ImmutableArray<IOperation> elements) =>
                 {
                     return elements[index] is ISpreadOperation spread ?
                         new SpreadOperation(

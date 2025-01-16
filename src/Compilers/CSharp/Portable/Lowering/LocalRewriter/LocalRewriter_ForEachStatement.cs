@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return RewriteForEachStatementAsFor(node,
                                                 getPreamble: null,
-                                                getItem: static (rewriter, syntax, enumeratorInfo, boundArrayVar, boundPositionVar, arg) =>
+                                                getItem: static (LocalRewriter rewriter, SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfo, BoundLocal boundArrayVar, BoundLocal boundPositionVar, (MethodSymbol indexerGet, MethodSymbol lengthGet) arg) =>
                                                 {
                                                     return BoundCall.Synthesized(
                                                                syntax: syntax,
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                arg.indexerGet,
                                                                boundPositionVar);
                                                 },
-                                                getLength: static (rewriter, syntax, boundArrayVar, arg) =>
+                                                getLength: static (LocalRewriter rewriter, SyntaxNode syntax, BoundLocal boundArrayVar, (MethodSymbol indexerGet, MethodSymbol lengthGet) arg) =>
                                                 {
                                                     return BoundCall.Synthesized(
                                                                syntax: syntax,
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static GetForEachStatementAsForPreamble GetInlineArrayForEachStatementPreambleDelegate()
         {
-            return static (rewriter, syntax, enumeratorInfo, ref rewrittenExpression, out preambleLocal, out collectionTempRefKind) =>
+            return static (LocalRewriter rewriter, SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfo, ref BoundExpression rewrittenExpression, out LocalSymbol? preambleLocal, out RefKind collectionTempRefKind) =>
             {
                 Debug.Assert(rewrittenExpression.Type is not null);
 
@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static GetForEachStatementAsForItem<object?> GetInlineArrayForEachStatementGetItemDelegate()
         {
-            return static (rewriter, syntax, enumeratorInfo, boundArrayVar, boundPositionVar, _) =>
+            return static (LocalRewriter rewriter, SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfo, BoundLocal boundArrayVar, BoundLocal boundPositionVar, object? _) =>
             {
                 MethodSymbol elementRef;
                 Debug.Assert(rewriter._factory.ModuleBuilderOpt is { });
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static GetForEachStatementAsForLength<object?> GetInlineArrayForEachStatementGetLengthDelegate()
         {
-            return static (rewriter, syntax, boundArrayVar, _) =>
+            return static (LocalRewriter rewriter, SyntaxNode syntax, BoundLocal boundArrayVar, object? _) =>
             {
                 _ = boundArrayVar.Type.HasInlineArrayAttribute(out int length);
                 Debug.Assert(length > 0);

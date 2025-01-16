@@ -11250,7 +11250,7 @@ class Program
         }
 
         [Fact]
-        public void ParameterScope_08()
+        public void ParameterScope_08_CSharp13()
         {
             var source =
 @"ref struct R { }
@@ -11263,74 +11263,79 @@ class Program
         var f3 = (scoped scoped ref R r) => { };
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics(
-                // (6,19): error CS0103: The name 'scoped' does not exist in the current context
+                // (6,18): error CS8917: The delegate type could not be inferred.
                 //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "scoped").WithArguments("scoped").WithLocation(6, 19),
-                // (6,26): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(scoped scoped R r) => { }").WithLocation(6, 18),
+                // (6,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "scoped").WithLocation(6, 26),
-                // (6,26): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 26),
+                // (6,35): error CS1003: Syntax error, ',' expected
                 //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "scoped").WithLocation(6, 26),
-                // (6,35): warning CS0168: The variable 'r' is declared but never used
+                Diagnostic(ErrorCode.ERR_SyntaxError, "r").WithArguments(",").WithLocation(6, 35),
+                // (6,35): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
                 //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "r").WithArguments("r").WithLocation(6, 35),
-                // (6,36): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "r").WithLocation(6, 35),
+                // (7,23): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         var f2 = (ref scoped scoped R r) => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(7, 23),
+                // (7,37): error CS1003: Syntax error, ',' expected
+                //         var f2 = (ref scoped scoped R r) => { };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(7, 37),
+                // (8,19): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         var f3 = (scoped scoped ref R r) => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(8, 19),
+                // (8,33): error CS1003: Syntax error, ',' expected
+                //         var f3 = (scoped scoped ref R r) => { };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(8, 33));
+        }
+
+        [Fact]
+        public void ParameterScope_08_CSharp14()
+        {
+            var source =
+                """
+                ref struct R { }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var f1 = (scoped scoped R r) => { };
+                        var f2 = (ref scoped scoped R r) => { };
+                        var f3 = (scoped scoped ref R r) => { };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (6,18): error CS8917: The delegate type could not be inferred.
                 //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(6, 36),
-                // (6,41): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(scoped scoped R r) => { }").WithLocation(6, 18),
+                // (6,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //         var f1 = (scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 41),
-                // (7,19): error CS1525: Invalid expression term 'ref'
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 26),
+                // (6,35): error CS1003: Syntax error, ',' expected
+                //         var f1 = (scoped scoped R r) => { };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "r").WithArguments(",").WithLocation(6, 35),
+                // (6,35): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         var f1 = (scoped scoped R r) => { };
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "r").WithLocation(6, 35),
+                // (7,23): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(7, 19),
-                // (7,19): error CS1073: Unexpected token 'ref'
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(7, 23),
+                // (7,37): error CS1003: Syntax error, ',' expected
                 //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(7, 19),
-                // (7,30): error CS1026: ) expected
-                //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "scoped").WithLocation(7, 30),
-                // (7,30): error CS1002: ; expected
-                //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "scoped").WithLocation(7, 30),
-                // (7,39): error CS0128: A local variable or function named 'r' is already defined in this scope
-                //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "r").WithArguments("r").WithLocation(7, 39),
-                // (7,39): warning CS0168: The variable 'r' is declared but never used
-                //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "r").WithArguments("r").WithLocation(7, 39),
-                // (7,40): error CS1003: Syntax error, ',' expected
-                //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(7, 40),
-                // (7,45): error CS1002: ; expected
-                //         var f2 = (ref scoped scoped R r) => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(7, 45),
-                // (8,19): error CS0103: The name 'scoped' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(7, 37),
+                // (8,26): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "scoped").WithArguments("scoped").WithLocation(8, 19),
-                // (8,26): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(8, 26),
+                // (8,33): error CS1001: Identifier expected
                 //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "scoped").WithLocation(8, 26),
-                // (8,26): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(8, 33),
+                // (8,33): error CS1003: Syntax error, ',' expected
                 //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "scoped").WithLocation(8, 26),
-                // (8,39): error CS0128: A local variable or function named 'r' is already defined in this scope
-                //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "r").WithArguments("r").WithLocation(8, 39),
-                // (8,39): error CS8174: A declaration of a by-reference variable must have an initializer
-                //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "r").WithLocation(8, 39),
-                // (8,39): warning CS0168: The variable 'r' is declared but never used
-                //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "r").WithArguments("r").WithLocation(8, 39),
-                // (8,40): error CS1003: Syntax error, ',' expected
-                //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(8, 40),
-                // (8,45): error CS1002: ; expected
-                //         var f3 = (scoped scoped ref R r) => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(8, 45));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(8, 33));
         }
 
         [Fact]
@@ -22154,31 +22159,18 @@ ref struct R
 ";
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,13): error CS1525: Invalid expression term 'void'
+                // (6,9): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         _ = void (ref scoped R parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(6, 13),
-                // (6,23): error CS0103: The name 'scoped' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(6, 9),
+                // (6,23): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
                 //         _ = void (ref scoped R parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "scoped").WithArguments("scoped").WithLocation(6, 23),
-                // (6,30): error CS1003: Syntax error, ',' expected
-                //         _ = void (ref scoped R parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "R").WithArguments(",").WithLocation(6, 30),
-                // (6,30): error CS0119: 'R' is a type, which is not valid in the given context
-                //         _ = void (ref scoped R parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "R").WithArguments("R", "type").WithLocation(6, 30),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(6, 23),
                 // (6,32): error CS1003: Syntax error, ',' expected
                 //         _ = void (ref scoped R parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "parameter").WithArguments(",").WithLocation(6, 32),
-                // (6,32): error CS0103: The name 'parameter' does not exist in the current context
+                // (6,32): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
                 //         _ = void (ref scoped R parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(6, 32),
-                // (6,43): error CS1002: ; expected
-                //         _ = void (ref scoped R parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(6, 43),
-                // (6,43): error CS1513: } expected
-                //         _ = void (ref scoped R parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 43)
-                );
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "parameter").WithLocation(6, 32));
         }
 
         [Theory, WorkItem(62931, "https://github.com/dotnet/roslyn/issues/62931")]

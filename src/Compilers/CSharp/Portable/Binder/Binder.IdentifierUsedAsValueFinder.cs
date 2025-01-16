@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expression,
                     new QueryUnboundLambdaState(
                         enclosingBinder, qvm, ImmutableArray.Create(parameter),
-                        (lambdaSymbol, lambdaBodyBinder, diagnostics) => throw ExceptionUtilities.Unreachable()),
+                        (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics) => throw ExceptionUtilities.Unreachable()),
                     withDependencies: false);
 
                 var lambdaBodyBinder = CreateLambdaBodyBinder(enclosingBinder, unboundLambda);
