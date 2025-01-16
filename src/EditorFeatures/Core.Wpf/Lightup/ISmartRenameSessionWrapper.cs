@@ -63,10 +63,10 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
                                                                                                                                defaultValue: SpecializedTasks.Null<object>());
 
             s_renameContextImmutableListBuilderAddAccessor = LightupHelpers.CreateActionAccessor<object, object>(typeof(ImmutableArray<>.Builder).MakeGenericType(s_wrappedRenameContextType),
-                                                                                                                 nameof(ImmutableArray<object>.Builder.Add),
+                                                                                                                 nameof(ImmutableArray<>.Builder.Add),
                                                                                                                  s_wrappedRenameContextType);
             s_renameContextImmutableListBuilderToArrayAccessor = LightupHelpers.CreateFunctionAccessor<object, object>(typeof(ImmutableArray<>.Builder).MakeGenericType(s_wrappedRenameContextType),
-                                                                                                                       nameof(ImmutableArray<object>.Builder.ToImmutable),
+                                                                                                                       nameof(ImmutableArray<>.Builder.ToImmutable),
                                                                                                                        typeof(ImmutableArray<>).MakeGenericType(s_wrappedRenameContextType));
 
             var immutableArrayOfRenameContextType = typeof(ImmutableArray<>).MakeGenericType(s_wrappedRenameContextType);

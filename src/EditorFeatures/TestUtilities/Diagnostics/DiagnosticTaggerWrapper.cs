@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 if (_taggerProvider == null)
                 {
-                    WpfTestRunner.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<TProvider, TTag>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
+                    WpfTestRunner.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<,>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
 
                     if (typeof(TProvider) == typeof(InlineDiagnosticsTaggerProvider))
                     {
