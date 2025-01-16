@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         private static string Not(string regex)
             => $"(?({regex})[0-[0]]|.*)";
 
-        //[Fact]
+        [Fact]
         public void TestDeepRecursion()
         {
             var (token, tree, chars) =
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             Assert.Null(tree);
         }
 
-        // [Fact]
+        [Fact]
         public void TestNoStackOverflow()
         {
             for (var i = 1; i < 1200; i++)
