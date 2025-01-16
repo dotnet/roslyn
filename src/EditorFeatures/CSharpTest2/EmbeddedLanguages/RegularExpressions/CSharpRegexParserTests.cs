@@ -59,11 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
             }
 
-            const string DoubleQuoteEscaping = "\"\"";
             var actual = TreeToText(sourceText, tree)
-                .Replace("\"", DoubleQuoteEscaping)
-                .Replace("&quot;", DoubleQuoteEscaping);
-            AssertEx.Equal(expected.Replace("\"", DoubleQuoteEscaping), actual);
+                .Replace("&quot;", "\"");
+            AssertEx.Equal(expected, actual);
         }
 
         private void TryParseSubTrees(

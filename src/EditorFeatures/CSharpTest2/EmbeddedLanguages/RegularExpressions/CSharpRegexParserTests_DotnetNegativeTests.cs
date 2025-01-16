@@ -1378,18 +1378,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                       <ConditionalExpressionGrouping>
                         <OpenParenToken>(</OpenParenToken>
                         <QuestionToken>?</QuestionToken>
-                        <SimpleOptionsGrouping>
+                        <SimpleGrouping>
                           <OpenParenToken>(</OpenParenToken>
-                          <QuestionToken>?</QuestionToken>
-                          <OptionsToken>i</OptionsToken>
+                          <Sequence>
+                            <Text>
+                              <TextToken>?</TextToken>
+                            </Text>
+                            <Text>
+                              <TextToken>i</TextToken>
+                            </Text>
+                          </Sequence>
                           <CloseParenToken>)</CloseParenToken>
-                        </SimpleOptionsGrouping>
+                        </SimpleGrouping>
                         <Sequence />
                         <CloseParenToken>)</CloseParenToken>
                       </ConditionalExpressionGrouping>
                     </Sequence>
                     <EndOfFile />
                   </CompilationUnit>
+                  <Diagnostics>
+                    <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
+                    <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                  </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..17)" Text="(?(?i))" />
                   </Captures>
@@ -1444,18 +1454,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                       <ConditionalExpressionGrouping>
                         <OpenParenToken>(</OpenParenToken>
                         <QuestionToken>?</QuestionToken>
-                        <SimpleOptionsGrouping>
+                        <SimpleGrouping>
                           <OpenParenToken>(</OpenParenToken>
-                          <QuestionToken>?</QuestionToken>
-                          <OptionsToken>I</OptionsToken>
+                          <Sequence>
+                            <Text>
+                              <TextToken>?</TextToken>
+                            </Text>
+                            <Text>
+                              <TextToken>I</TextToken>
+                            </Text>
+                          </Sequence>
                           <CloseParenToken>)</CloseParenToken>
-                        </SimpleOptionsGrouping>
+                        </SimpleGrouping>
                         <Sequence />
                         <CloseParenToken>)</CloseParenToken>
                       </ConditionalExpressionGrouping>
                     </Sequence>
                     <EndOfFile />
                   </CompilationUnit>
+                  <Diagnostics>
+                    <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
+                    <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                  </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..17)" Text="(?(?I))" />
                   </Captures>
@@ -1475,18 +1495,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                       <ConditionalExpressionGrouping>
                         <OpenParenToken>(</OpenParenToken>
                         <QuestionToken>?</QuestionToken>
-                        <SimpleOptionsGrouping>
+                        <SimpleGrouping>
                           <OpenParenToken>(</OpenParenToken>
-                          <QuestionToken>?</QuestionToken>
-                          <OptionsToken>M</OptionsToken>
+                          <Sequence>
+                            <Text>
+                              <TextToken>?</TextToken>
+                            </Text>
+                            <Text>
+                              <TextToken>M</TextToken>
+                            </Text>
+                          </Sequence>
                           <CloseParenToken>)</CloseParenToken>
-                        </SimpleOptionsGrouping>
+                        </SimpleGrouping>
                         <Sequence />
                         <CloseParenToken>)</CloseParenToken>
                       </ConditionalExpressionGrouping>
                     </Sequence>
                     <EndOfFile />
                   </CompilationUnit>
+                  <Diagnostics>
+                    <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
+                    <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                  </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..17)" Text="(?(?M))" />
                   </Captures>
@@ -1506,18 +1536,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                       <ConditionalExpressionGrouping>
                         <OpenParenToken>(</OpenParenToken>
                         <QuestionToken>?</QuestionToken>
-                        <SimpleOptionsGrouping>
+                        <SimpleGrouping>
                           <OpenParenToken>(</OpenParenToken>
-                          <QuestionToken>?</QuestionToken>
-                          <OptionsToken>s</OptionsToken>
+                          <Sequence>
+                            <Text>
+                              <TextToken>?</TextToken>
+                            </Text>
+                            <Text>
+                              <TextToken>s</TextToken>
+                            </Text>
+                          </Sequence>
                           <CloseParenToken>)</CloseParenToken>
-                        </SimpleOptionsGrouping>
+                        </SimpleGrouping>
                         <Sequence />
                         <CloseParenToken>)</CloseParenToken>
                       </ConditionalExpressionGrouping>
                     </Sequence>
                     <EndOfFile />
                   </CompilationUnit>
+                  <Diagnostics>
+                    <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
+                    <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                  </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..17)" Text="(?(?s))" />
                   </Captures>
@@ -1537,18 +1577,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                       <ConditionalExpressionGrouping>
                         <OpenParenToken>(</OpenParenToken>
                         <QuestionToken>?</QuestionToken>
-                        <SimpleOptionsGrouping>
+                        <SimpleGrouping>
                           <OpenParenToken>(</OpenParenToken>
-                          <QuestionToken>?</QuestionToken>
-                          <OptionsToken>S</OptionsToken>
+                          <Sequence>
+                            <Text>
+                              <TextToken>?</TextToken>
+                            </Text>
+                            <Text>
+                              <TextToken>S</TextToken>
+                            </Text>
+                          </Sequence>
                           <CloseParenToken>)</CloseParenToken>
-                        </SimpleOptionsGrouping>
+                        </SimpleGrouping>
                         <Sequence />
                         <CloseParenToken>)</CloseParenToken>
                       </ConditionalExpressionGrouping>
                     </Sequence>
                     <EndOfFile />
                   </CompilationUnit>
+                  <Diagnostics>
+                    <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
+                    <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                  </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..17)" Text="(?(?S))" />
                   </Captures>
@@ -1568,18 +1618,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                       <ConditionalExpressionGrouping>
                         <OpenParenToken>(</OpenParenToken>
                         <QuestionToken>?</QuestionToken>
-                        <SimpleOptionsGrouping>
+                        <SimpleGrouping>
                           <OpenParenToken>(</OpenParenToken>
-                          <QuestionToken>?</QuestionToken>
-                          <OptionsToken>x</OptionsToken>
+                          <Sequence>
+                            <Text>
+                              <TextToken>?</TextToken>
+                            </Text>
+                            <Text>
+                              <TextToken>x</TextToken>
+                            </Text>
+                          </Sequence>
                           <CloseParenToken>)</CloseParenToken>
-                        </SimpleOptionsGrouping>
+                        </SimpleGrouping>
                         <Sequence />
                         <CloseParenToken>)</CloseParenToken>
                       </ConditionalExpressionGrouping>
                     </Sequence>
                     <EndOfFile />
                   </CompilationUnit>
+                  <Diagnostics>
+                    <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
+                    <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                  </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..17)" Text="(?(?x))" />
                   </Captures>
@@ -1599,18 +1659,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                       <ConditionalExpressionGrouping>
                         <OpenParenToken>(</OpenParenToken>
                         <QuestionToken>?</QuestionToken>
-                        <SimpleOptionsGrouping>
+                        <SimpleGrouping>
                           <OpenParenToken>(</OpenParenToken>
-                          <QuestionToken>?</QuestionToken>
-                          <OptionsToken>X</OptionsToken>
+                          <Sequence>
+                            <Text>
+                              <TextToken>?</TextToken>
+                            </Text>
+                            <Text>
+                              <TextToken>X</TextToken>
+                            </Text>
+                          </Sequence>
                           <CloseParenToken>)</CloseParenToken>
-                        </SimpleOptionsGrouping>
+                        </SimpleGrouping>
                         <Sequence />
                         <CloseParenToken>)</CloseParenToken>
                       </ConditionalExpressionGrouping>
                     </Sequence>
                     <EndOfFile />
                   </CompilationUnit>
+                  <Diagnostics>
+                    <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
+                    <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                  </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..17)" Text="(?(?X))" />
                   </Captures>
@@ -1630,18 +1700,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                       <ConditionalExpressionGrouping>
                         <OpenParenToken>(</OpenParenToken>
                         <QuestionToken>?</QuestionToken>
-                        <SimpleOptionsGrouping>
+                        <SimpleGrouping>
                           <OpenParenToken>(</OpenParenToken>
-                          <QuestionToken>?</QuestionToken>
-                          <OptionsToken>n</OptionsToken>
+                          <Sequence>
+                            <Text>
+                              <TextToken>?</TextToken>
+                            </Text>
+                            <Text>
+                              <TextToken>n</TextToken>
+                            </Text>
+                          </Sequence>
                           <CloseParenToken>)</CloseParenToken>
-                        </SimpleOptionsGrouping>
+                        </SimpleGrouping>
                         <Sequence />
                         <CloseParenToken>)</CloseParenToken>
                       </ConditionalExpressionGrouping>
                     </Sequence>
                     <EndOfFile />
                   </CompilationUnit>
+                  <Diagnostics>
+                    <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
+                    <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                  </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..17)" Text="(?(?n))" />
                   </Captures>
@@ -1661,18 +1741,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                       <ConditionalExpressionGrouping>
                         <OpenParenToken>(</OpenParenToken>
                         <QuestionToken>?</QuestionToken>
-                        <SimpleOptionsGrouping>
+                        <SimpleGrouping>
                           <OpenParenToken>(</OpenParenToken>
-                          <QuestionToken>?</QuestionToken>
-                          <OptionsToken>m</OptionsToken>
+                          <Sequence>
+                            <Text>
+                              <TextToken>?</TextToken>
+                            </Text>
+                            <Text>
+                              <TextToken>m</TextToken>
+                            </Text>
+                          </Sequence>
                           <CloseParenToken>)</CloseParenToken>
-                        </SimpleOptionsGrouping>
+                        </SimpleGrouping>
                         <Sequence />
                         <CloseParenToken>)</CloseParenToken>
                       </ConditionalExpressionGrouping>
                     </Sequence>
                     <EndOfFile />
                   </CompilationUnit>
+                  <Diagnostics>
+                    <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
+                    <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                  </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..17)" Text="(?(?m))" />
                   </Captures>
@@ -2379,18 +2469,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                       <ConditionalExpressionGrouping>
                         <OpenParenToken>(</OpenParenToken>
                         <QuestionToken>?</QuestionToken>
-                        <SimpleOptionsGrouping>
+                        <SimpleGrouping>
                           <OpenParenToken>(</OpenParenToken>
-                          <QuestionToken>?</QuestionToken>
-                          <OptionsToken>N</OptionsToken>
+                          <Sequence>
+                            <Text>
+                              <TextToken>?</TextToken>
+                            </Text>
+                            <Text>
+                              <TextToken>N</TextToken>
+                            </Text>
+                          </Sequence>
                           <CloseParenToken>)</CloseParenToken>
-                        </SimpleOptionsGrouping>
+                        </SimpleGrouping>
                         <Sequence />
                         <CloseParenToken>)</CloseParenToken>
                       </ConditionalExpressionGrouping>
                     </Sequence>
                     <EndOfFile />
                   </CompilationUnit>
+                  <Diagnostics>
+                    <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
+                    <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                  </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..17)" Text="(?(?N))" />
                   </Captures>

@@ -1093,14 +1093,14 @@ internal abstract class RegexConditionalGroupingNode : RegexQuestionGroupingNode
 {
     protected RegexConditionalGroupingNode(
         RegexKind kind, RegexToken openParenToken, RegexToken questionToken,
-        RegexExpressionNode result, RegexToken closeParenToken)
+        RegexAlternationNode result, RegexToken closeParenToken)
         : base(kind, openParenToken, questionToken, closeParenToken)
     {
         Debug.Assert(result != null);
         Result = result;
     }
 
-    public RegexExpressionNode Result { get; }
+    public RegexAlternationNode Result { get; }
 }
 
 /// <summary>
@@ -1111,7 +1111,7 @@ internal sealed class RegexConditionalCaptureGroupingNode : RegexConditionalGrou
     public RegexConditionalCaptureGroupingNode(
         RegexToken openParenToken, RegexToken questionToken,
         RegexToken innerOpenParenToken, RegexToken captureToken, RegexToken innerCloseParenToken,
-        RegexExpressionNode result, RegexToken closeParenToken)
+        RegexAlternationNode result, RegexToken closeParenToken)
         : base(RegexKind.ConditionalCaptureGrouping, openParenToken, questionToken, result, closeParenToken)
     {
         Debug.Assert(innerOpenParenToken.Kind == RegexKind.OpenParenToken);
@@ -1150,9 +1150,11 @@ internal sealed class RegexConditionalCaptureGroupingNode : RegexConditionalGrou
 internal sealed class RegexConditionalExpressionGroupingNode : RegexConditionalGroupingNode
 {
     public RegexConditionalExpressionGroupingNode(
-        RegexToken openParenToken, RegexToken questionToken,
+        RegexToken openParenToken,
+        RegexToken questionToken,
         RegexGroupingNode grouping,
-        RegexExpressionNode result, RegexToken closeParenToken)
+        RegexAlternationNode result,
+        RegexToken closeParenToken)
         : base(RegexKind.ConditionalExpressionGrouping, openParenToken, questionToken, result, closeParenToken)
     {
         Debug.Assert(grouping != null);

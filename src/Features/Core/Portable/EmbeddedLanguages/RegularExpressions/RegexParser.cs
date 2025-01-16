@@ -577,7 +577,7 @@ internal partial struct RegexParser
             RegexKind.DollarToken => ParseEndAnchor(),
             RegexKind.BackslashToken => ParseEscape(_currentToken, allowTriviaAfterEnd: true),
             RegexKind.OpenBracketToken => ParseCharacterClass(),
-            RegexKind.OpenParenToken => ParseGrouping(),
+            RegexKind.OpenParenToken => ParseGrouping(inConditionalExpression: false),
             RegexKind.CloseParenToken => ParseUnexpectedCloseParenToken(),
             RegexKind.OpenBraceToken => ParsePossibleUnexpectedNumericQuantifier(lastExpression),
             RegexKind.AsteriskToken or RegexKind.PlusToken or RegexKind.QuestionToken => ParseUnexpectedQuantifier(lastExpression),
@@ -645,7 +645,7 @@ internal partial struct RegexParser
         return new RegexWildcardNode(ConsumeCurrentToken(allowTrivia: true));
     }
 
-    private RegexGroupingNode ParseGrouping()
+    private RegexGroupingNode ParseGrouping(bool inConditionalExpression)
     {
         var start = _lexer.Position;
 
@@ -656,7 +656,7 @@ internal partial struct RegexParser
         switch (_currentToken.Kind)
         {
             case RegexKind.QuestionToken:
-                return ParseGroupQuestion(openParenToken, _currentToken);
+                return ParseGroupQuestion(openParenToken, _currentToken, inConditionalExpression);
 
             default:
                 // Wasn't (? just parse this as a normal group.
@@ -713,12 +713,14 @@ internal partial struct RegexParser
             : new TextSpan(token.VirtualChars[0].Span.Start, 0);
     }
 
-    private RegexGroupingNode ParseGroupQuestion(RegexToken openParenToken, RegexToken questionToken)
+    private RegexGroupingNode ParseGroupQuestion(
+        RegexToken openParenToken, RegexToken questionToken, bool inConditionalExpression)
     {
-        var optionsToken = _lexer.TryScanOptions();
-        if (optionsToken != null)
+        if (!inConditionalExpression)
         {
-            return ParseOptionsGroupingNode(openParenToken, questionToken, optionsToken.Value);
+            var optionsToken = _lexer.TryScanOptions();
+            if (optionsToken != null)
+                return ParseOptionsGroupingNode(openParenToken, questionToken, optionsToken.Value);
         }
 
         var afterQuestionPos = _lexer.Position;
@@ -916,7 +918,7 @@ internal partial struct RegexParser
 
         // Parse out the grouping that starts with the second open paren in (?(
         // this will get us to (?(...)
-        var grouping = ParseGrouping();
+        var grouping = ParseGrouping(inConditionalExpression: true);
 
         // Now parse out the embedded expression that follows that.  this will get us to
         // (?(...)...
@@ -928,7 +930,7 @@ internal partial struct RegexParser
             grouping, result, ParseGroupingCloseParen());
     }
 
-    private RegexExpressionNode ParseConditionalGroupingResult()
+    private RegexAlternationNode ParseConditionalGroupingResult()
     {
         var currentOptions = _options;
         var result = this.ParseAlternatingSequences(consumeCloseParen: false, isConditional: true);
