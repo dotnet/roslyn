@@ -1535,36 +1535,6 @@ internal partial struct RegexParser
                 ConsumeCurrentToken(allowTrivia: false));
         }
 
-        //// From the .NET regex code:
-        //// This is code for Posix style properties - [:Ll:] or [:IsTibetan:].
-        //// It currently doesn't do anything other than skip the whole thing!
-        //if (!afterRangeMinus && _currentToken.Kind == RegexKind.OpenBracketToken && _lexer.IsAt(":"))
-        //{
-        //    var beforeBracketPos = _lexer.Position - 1;
-        //    // trivia is not allowed anywhere in a character class
-        //    ConsumeCurrentToken(allowTrivia: false);
-
-        //    var captureName = _lexer.TryScanCaptureName();
-        //    if (captureName.HasValue && _lexer.IsAt(":]"))
-        //    {
-        //        _lexer.Position += 2;
-        //        var textChars = _lexer.GetSubPattern(beforeBracketPos, _lexer.Position);
-        //        var token = CreateToken(RegexKind.TextToken, [], textChars);
-
-        //        // trivia is not allowed anywhere in a character class
-        //        ConsumeCurrentToken(allowTrivia: false);
-        //        return new RegexPosixPropertyNode(token);
-        //    }
-        //    else
-        //    {
-        //        // Reset to back where we were.
-        //        // trivia is not allowed anywhere in a character class
-        //        _lexer.Position = beforeBracketPos;
-        //        ConsumeCurrentToken(allowTrivia: false);
-        //        Debug.Assert(_currentToken.Kind == RegexKind.OpenBracketToken);
-        //    }
-        //}
-
         // trivia is not allowed anywhere in a character class
         return new RegexTextNode(
             ConsumeCurrentToken(allowTrivia: false).With(kind: RegexKind.TextToken));
