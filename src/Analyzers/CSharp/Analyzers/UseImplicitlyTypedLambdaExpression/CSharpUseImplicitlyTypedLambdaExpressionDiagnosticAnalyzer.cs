@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseImplicitlyTypedLambdaExpression;
 
@@ -77,14 +79,27 @@ internal sealed class CSharpUseImplicitlyTypedLambdaExpressionDiagnosticAnalyzer
         if (!languageVersion.IsCSharp14OrAbove() && explicitLambda.ParameterList.Parameters.Any(p => p.Modifiers.Count > 0))
             return false;
 
-        var operation = semanticModel.GetOperation(explicitLambda, cancellationToken);
-
         var implicitLambda = ConvertToImplicitlyTypedLambda(explicitLambda);
 
         var analyzer = new SpeculationAnalyzer(
             explicitLambda, implicitLambda, semanticModel, cancellationToken);
         if (analyzer.ReplacementChangesSemantics())
             return false;
+
+        if (semanticModel.GetSymbolInfo(explicitLambda, cancellationToken).Symbol is not IMethodSymbol explicitLambdaMethod ||
+            analyzer.SpeculativeSemanticModel.GetSymbolInfo(analyzer.ReplacedExpression, cancellationToken).Symbol is not IMethodSymbol implicitLambdaMethod)
+        {
+            return false;
+        }
+
+        if (!explicitLambdaMethod.ReturnType.Equals(implicitLambdaMethod.ReturnType))
+            return false;
+
+        if (!explicitLambdaMethod.Parameters.SequenceEqual(implicitLambdaMethod.Parameters,
+                static (p1, p2) => p1.Type.Equals(p2.Type)))
+        {
+            return false;
+        }
 
         return true;
     }
