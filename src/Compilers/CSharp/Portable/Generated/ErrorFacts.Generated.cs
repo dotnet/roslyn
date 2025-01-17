@@ -390,6 +390,7 @@
                 case ErrorCode.HDN_UnusedExternAlias:
                 case ErrorCode.HDN_DuplicateWithGlobalUsing:
                 case ErrorCode.HDN_RedundantPattern:
+                case ErrorCode.HDN_RedundantPatternStackGuard:
                     return true;
                 default:
                     return false;

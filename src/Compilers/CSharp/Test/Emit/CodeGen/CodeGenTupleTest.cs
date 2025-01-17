@@ -25448,7 +25448,7 @@ class P
                 );
         }
 
-        [Fact]
+        [Fact, CompilerTrait(CompilerFeature.Patterns)]
         [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
         public void NullableTupleInIsOperator()
         {

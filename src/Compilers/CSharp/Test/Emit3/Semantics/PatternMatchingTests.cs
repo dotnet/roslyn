@@ -6929,7 +6929,7 @@ public class C
         public void CasePatternMatchingDoesNotCopyEscapeScopes_04()
         {
             CreateCompilationWithMscorlibAndSpan(parseOptions: TestOptions.RegularWithPatternCombinators, text: @"
-#pragma warning disable CS9271 // hidden CS9271: The pattern is redundant.
+#pragma warning disable CS9274 // hidden CS9274: The pattern is redundant.
 using System;
 public ref struct R
 {
