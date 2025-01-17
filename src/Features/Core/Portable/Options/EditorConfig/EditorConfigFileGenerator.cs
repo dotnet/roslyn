@@ -40,12 +40,17 @@ internal static partial class EditorConfigFileGenerator
 
         foreach ((var feature, var options) in groupedOptions)
         {
-            AppendOptionsToEditorConfig(configOptions, feature, options, language, editorconfig);
-        }
-
-        if (configOptions.TryGetOption(new OptionKey2(NamingStyleOptions.NamingPreferences, language), out NamingStylePreferences namingStylePreferences))
-        {
-            namingStylePreferences.AppendToEditorConfig(language, editorconfig);
+            if (options is [var preferencesOption] && preferencesOption == NamingStyleOptions.NamingPreferences)
+            {
+                if (configOptions.TryGetOption(new OptionKey2(preferencesOption, language), out NamingStylePreferences namingStylePreferences))
+                {
+                    namingStylePreferences.AppendToEditorConfig(language, editorconfig);
+                }
+            }
+            else
+            {
+                AppendOptionsToEditorConfig(configOptions, feature, options, language, editorconfig);
+            }
         }
 
         return editorconfig.ToString();

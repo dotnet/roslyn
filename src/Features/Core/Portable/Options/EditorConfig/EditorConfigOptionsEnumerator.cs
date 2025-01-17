@@ -54,7 +54,9 @@ internal sealed class EditorConfigOptionsEnumerator(
         yield return (WorkspacesResources.dot_NET_Coding_Conventions,
         [
             .. GenerationOptions.EditorConfigOptions,
-            .. CodeStyleOptions2.EditorConfigOptions
+            .. CodeStyleOptions2.EditorConfigOptions,
         ]);
+
+        yield return (CompilerExtensionsResources.Naming_styles, NamingStyleOptions.EditorConfigOptions);
     }
 }
