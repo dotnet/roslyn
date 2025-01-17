@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -26,6 +27,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         End Sub
 
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+
+        Protected Overrides Function ConditionalExpression(
+                originalIfStatement As IConditionalOperation,
+                syntaxNode As ExpressionSyntax,
+                trueExpression As ExpressionSyntax,
+                falseExpression As ExpressionSyntax) As TernaryConditionalExpressionSyntax
+            Return DirectCast(VisualBasicSyntaxGeneratorInternal.Instance.ConditionalExpression(
+                syntaxNode,
+                trueExpression,
+                falseExpression), TernaryConditionalExpressionSyntax)
+        End Function
 
         Protected Overrides Function ConvertToExpression(throwOperation As IThrowOperation) As ExpressionSyntax
             ' VB does not have throw expressions

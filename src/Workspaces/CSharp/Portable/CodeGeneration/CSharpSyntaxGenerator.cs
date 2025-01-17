@@ -3263,9 +3263,6 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     public override SyntaxNode LogicalNotExpression(SyntaxNode expression)
         => SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, (ExpressionSyntax)Parenthesize(expression));
 
-    public override SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse)
-        => SyntaxFactory.ConditionalExpression((ExpressionSyntax)Parenthesize(condition), (ExpressionSyntax)Parenthesize(whenTrue), (ExpressionSyntax)Parenthesize(whenFalse));
-
     public override SyntaxNode CoalesceExpression(SyntaxNode left, SyntaxNode right)
         => CreateBinaryExpression(SyntaxKind.CoalesceExpression, left, right);
 

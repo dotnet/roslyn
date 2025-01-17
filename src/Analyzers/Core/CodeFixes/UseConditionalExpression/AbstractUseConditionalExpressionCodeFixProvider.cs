@@ -37,6 +37,9 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
     protected abstract TExpressionSyntax ConvertToExpression(IThrowOperation throwOperation);
     protected abstract TStatementSyntax WrapWithBlockIfAppropriate(TIfStatementSyntax ifStatement, TStatementSyntax statement);
 
+    protected abstract TConditionalExpressionSyntax ConditionalExpression(
+        IConditionalOperation originalIfStatement, TExpressionSyntax syntaxNode, TExpressionSyntax trueExpression, TExpressionSyntax falseExpression);
+
     protected abstract Task FixOneAsync(
         Document document, Diagnostic diagnostic,
         SyntaxEditor editor, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken);
@@ -96,7 +99,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         {
             return negate
                 ? (TExpressionSyntax)generator.Negate(generatorInternal, condition, semanticModel, cancellationToken).WithoutTrivia()
-                : (TExpressionSyntax)condition.WithoutTrivia();
+                : condition.WithoutTrivia();
         }
 
         var trueExpression = MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, trueStatement, trueValue));
@@ -104,7 +107,8 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         trueExpression = WrapReturnExpressionIfNecessary(trueExpression, trueStatement);
         falseExpression = WrapReturnExpressionIfNecessary(falseExpression, falseStatement);
 
-        var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
+        var conditionalExpression = ConditionalExpression(
+            ifOperation,
             condition.WithoutTrivia(),
             trueExpression,
             falseExpression);
@@ -122,8 +126,8 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         return MakeRef(generatorInternal, isRef, conditionalExpression);
     }
 
-    protected virtual SyntaxNode WrapIfStatementIfNecessary(IConditionalOperation operation)
-        => operation.Condition.Syntax;
+    protected virtual TExpressionSyntax WrapIfStatementIfNecessary(IConditionalOperation operation)
+        => (TExpressionSyntax)operation.Condition.Syntax;
 
     protected virtual TExpressionSyntax WrapReturnExpressionIfNecessary(TExpressionSyntax returnExpression, IOperation returnOperation)
         => returnExpression;

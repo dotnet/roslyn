@@ -566,5 +566,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Overrides Function ConvertExpression(type As SyntaxNode, expression As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.CTypeExpression(DirectCast(expression, ExpressionSyntax), DirectCast(type, TypeSyntax)).WithAdditionalAnnotations(Simplifier.Annotation)
         End Function
+
+        Public Overrides Function ConditionalExpression(condition As SyntaxNode, whenTrue As SyntaxNode, whenFalse As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.TernaryConditionalExpression(
+                DirectCast(condition, ExpressionSyntax),
+                DirectCast(whenTrue, ExpressionSyntax),
+                DirectCast(whenFalse, ExpressionSyntax))
+        End Function
     End Class
 End Namespace

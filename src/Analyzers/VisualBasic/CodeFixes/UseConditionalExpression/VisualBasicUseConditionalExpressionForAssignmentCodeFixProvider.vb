@@ -11,14 +11,14 @@ Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
-
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseConditionalExpressionForAssignment), [Shared]>
-    Friend Class VisualBasicUseConditionalExpressionForAssignmentCodeFixProvider
+    Friend NotInheritable Class VisualBasicUseConditionalExpressionForAssignmentCodeFixProvider
         Inherits AbstractUseConditionalExpressionForAssignmentCodeFixProvider(Of
             StatementSyntax, MultiLineIfBlockSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ExpressionSyntax, TernaryConditionalExpressionSyntax)
 
@@ -26,6 +26,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
+
+        Protected Overrides Function ConditionalExpression(
+                originalIfStatement As IConditionalOperation,
+                syntaxNode As ExpressionSyntax,
+                trueExpression As ExpressionSyntax,
+                falseExpression As ExpressionSyntax) As TernaryConditionalExpressionSyntax
+            Return DirectCast(VisualBasicSyntaxGeneratorInternal.Instance.ConditionalExpression(
+                syntaxNode,
+                trueExpression,
+                falseExpression), TernaryConditionalExpressionSyntax)
+        End Function
 
         Protected Overrides Function ConvertToExpression(throwOperation As IThrowOperation) As ExpressionSyntax
             ' VB does not have throw expressions
