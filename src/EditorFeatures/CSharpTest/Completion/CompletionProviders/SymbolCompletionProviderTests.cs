@@ -12790,16 +12790,16 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             matchingFilters: [FilterSet.MethodFilter, FilterSet.TargetTypedFilter]);
     }
 
-    [InlineData("IFoo", new string[] { "Foo", "FooDerived", "FooGeneric" })]
-    [InlineData("IFoo[]", new string[] { "IFoo", "IFooGeneric", "Foo", "FooAbstract", "FooDerived", "FooGeneric" })]
-    [InlineData("IFooGeneric<int>", new string[] { "FooGeneric" })]
-    [InlineData("IFooGeneric<int>[]", new string[] { "IFooGeneric", "FooGeneric" })]
+    [InlineData("IGoo", new string[] { "Goo", "GooDerived", "GooGeneric" })]
+    [InlineData("IGoo[]", new string[] { "IGoo", "IGooGeneric", "Goo", "GooAbstract", "GooDerived", "GooGeneric" })]
+    [InlineData("IGooGeneric<int>", new string[] { "GooGeneric" })]
+    [InlineData("IGooGeneric<int>[]", new string[] { "IGooGeneric", "GooGeneric" })]
     [InlineData("IOther", new string[] { })]
-    [InlineData("Foo", new string[] { "Foo" })]
-    [InlineData("FooAbstract", new string[] { "FooDerived" })]
-    [InlineData("FooDerived", new string[] { "FooDerived" })]
-    [InlineData("FooGeneric<int>", new string[] { "FooGeneric" })]
-    [InlineData("object", new string[] { "C", "Foo", "FooDerived", "FooGeneric" })]
+    [InlineData("Goo", new string[] { "Goo" })]
+    [InlineData("GooAbstract", new string[] { "GooDerived" })]
+    [InlineData("GooDerived", new string[] { "GooDerived" })]
+    [InlineData("GooGeneric<int>", new string[] { "GooGeneric" })]
+    [InlineData("object", new string[] { "C", "Goo", "GooDerived", "GooGeneric" })]
     [Theory, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
     public async Task TestTargetTypeCompletionInCreationContext(string targetType, string[] expectedItems)
     {
@@ -12807,13 +12807,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
         var markup =
             $$"""
-            interface IFoo { }
-            interface IFooGeneric<T> : IFoo { }
+            interface IGoo { }
+            interface IGooGeneric<T> : IGoo { }
             interface IOther { }
-            class Foo : IFoo { }
-            abstract class FooAbstract : IFoo { }
-            class FooDerived : FooAbstract { }
-            class FooGeneric<T> : IFooGeneric<T> { }
+            class Goo : IGoo { }
+            abstract class GooAbstract : IGoo { }
+            class GooDerived : GooAbstract { }
+            class GooGeneric<T> : IGooGeneric<T> { }
             
             class C
             {
@@ -12825,13 +12825,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             """;
 
         (string Name, bool IsClass, string? DisplaySuffix)[] types = [
-            ("IFoo", false, null),
-            ("IFooGeneric", false, "<>"),
+            ("IGoo", false, null),
+            ("IGooGeneric", false, "<>"),
             ("IOther", false, null),
-            ("Foo", true, null),
-            ("FooAbstract", true, null),
-            ("FooDerived", true, null),
-            ("FooGeneric", true, "<>"),
+            ("Goo", true, null),
+            ("GooAbstract", true, null),
+            ("GooDerived", true, null),
+            ("GooGeneric", true, "<>"),
             ("C", true, null)
         ];
 

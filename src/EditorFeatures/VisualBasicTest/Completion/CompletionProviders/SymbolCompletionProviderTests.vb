@@ -8305,44 +8305,44 @@ End Class"
                 matchingFilters:=New List(Of CompletionFilter) From {FilterSet.MethodFilter})
         End Function
 
-        <InlineData("IFoo", New String() {"Foo", "FooDerived", "FooGeneric"})>
-        <InlineData("IFoo()", New String() {"IFoo", "IFooGeneric", "Foo", "FooAbstract", "FooDerived", "FooGeneric"})>
-        <InlineData("IFooGeneric(Of Integer)", New String() {"FooGeneric"})>
-        <InlineData("IFooGeneric(Of Integer)()", New String() {"IFooGeneric", "FooGeneric"})>
+        <InlineData("IGoo", New String() {"Goo", "GooDerived", "GooGeneric"})>
+        <InlineData("IGoo()", New String() {"IGoo", "IGooGeneric", "Goo", "GooAbstract", "GooDerived", "GooGeneric"})>
+        <InlineData("IGooGeneric(Of Integer)", New String() {"GooGeneric"})>
+        <InlineData("IGooGeneric(Of Integer)()", New String() {"IGooGeneric", "GooGeneric"})>
         <InlineData("IOther", New String() {})>
-        <InlineData("Foo", New String() {"Foo"})>
-        <InlineData("FooAbstract", New String() {"FooDerived"})>
-        <InlineData("FooDerived", New String() {"FooDerived"})>
-        <InlineData("FooGeneric(Of Integer)", New String() {"FooGeneric"})>
-        <InlineData("object", New String() {"C", "Foo", "FooDerived", "FooGeneric"})>
+        <InlineData("Goo", New String() {"Goo"})>
+        <InlineData("GooAbstract", New String() {"GooDerived"})>
+        <InlineData("GooDerived", New String() {"GooDerived"})>
+        <InlineData("GooGeneric(Of Integer)", New String() {"GooGeneric"})>
+        <InlineData("object", New String() {"C", "Goo", "GooDerived", "GooGeneric"})>
         <Theory, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilter_InCreationContext(targetType As String, expectedItems As String()) As Task
             ShowTargetTypedCompletionFilter = True
             Dim markup =
-$"Interface IFoo
+$"Interface IGoo
 End Interface
 
-Interface IFooGeneric(Of T)
-    Inherits IFoo
+Interface IGooGeneric(Of T)
+    Inherits IGoo
 End Interface
 
 Interface IOther
 End Interface
 
-Class Foo
-    Implements IFoo
+Class Goo
+    Implements IGoo
 End Class
 
-MustInherit Class FooAbstract
-    Implements IFoo
+MustInherit Class GooAbstract
+    Implements IGoo
 End Class
 
-Class FooDerived
-    Inherits FooAbstract
+Class GooDerived
+    Inherits GooAbstract
 End Class
 
-Class FooGeneric(Of T)
-    Implements IFooGeneric(Of T)
+Class GooGeneric(Of T)
+    Implements IGooGeneric(Of T)
 End Class
 
 Class C
@@ -8354,13 +8354,13 @@ Class C
     End Sub
 End Class"
             Dim types As New List(Of (Name As String, IsClass As Boolean, DisplaySuffix As String)) From {
-                ("IFoo", False, Nothing),
-                ("IFooGeneric", False, "(Of …)"),
+                ("IGoo", False, Nothing),
+                ("IGooGeneric", False, "(Of …)"),
                 ("IOther", False, Nothing),
-                ("Foo", True, Nothing),
-                ("FooAbstract", True, Nothing),
-                ("FooDerived", True, Nothing),
-                ("FooGeneric", True, "(Of …)"),
+                ("Goo", True, Nothing),
+                ("GooAbstract", True, Nothing),
+                ("GooDerived", True, Nothing),
+                ("GooGeneric", True, "(Of …)"),
                 ("C", True, Nothing)
             }
 
