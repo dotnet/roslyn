@@ -1156,7 +1156,7 @@ start:
 
                 _expectingOperandOfDisjunction = saveExpectingOperandOfDisjunction;
 
-                if (_evalSequence.Count - 1 >= startOfNestedPatterns || node.Variable is not null)
+                if (_evalSequence.Count > startOfNestedPatterns || node.Variable is not null)
                 {
                     _evalSequence[startOfLeft] = _evalSequence[startOfLeft].MakeCompilerGenerated();
                 }
@@ -1238,7 +1238,7 @@ start:
                 _makeEvaluationSequenceOperand = saveMakeEvaluationSequenceOperand;
                 _expectingOperandOfDisjunction = saveExpectingOperandOfDisjunction;
 
-                if (_evalSequence.Count - 1 >= startOfNestedPatterns)
+                if (_evalSequence.Count > startOfNestedPatterns)
                 {
                     _evalSequence[startOfLeft] = _evalSequence[startOfLeft].MakeCompilerGenerated();
                 }
@@ -1345,7 +1345,7 @@ start:
                 _makeEvaluationSequenceOperand = saveMakeEvaluationSequenceOperand;
                 _expectingOperandOfDisjunction = saveExpectingOperandOfDisjunction;
 
-                if (_evalSequence.Count - 1 >= startOfNestedPatterns)
+                if (_evalSequence.Count > startOfNestedPatterns)
                 {
                     _evalSequence[startOfLeft] = _evalSequence[startOfLeft].MakeCompilerGenerated();
                 }

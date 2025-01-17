@@ -2928,7 +2928,6 @@ class X
     } 
 }
 ";
-        // TODO2 why the difference between bad and < bad?
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         compilation.VerifyEmitDiagnostics(
             // 0.cs(7,25): error CS0029: Cannot implicitly convert type 'int[]' to 'int'
