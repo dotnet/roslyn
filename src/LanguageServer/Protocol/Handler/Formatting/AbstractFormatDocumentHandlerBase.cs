@@ -32,16 +32,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (context.Document is not { } document)
                 return null;
 
-            IList<TextChange>? textChanges = null;
-            if (range is null && globalOptions.GetOption(LspOptionsStorage.LspFormattingSortImports, document.Project.Language))
-            {
-                var organizeImports = document.GetRequiredLanguageService<IOrganizeImportsService>();
-                var organizeImportsOptions = await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var organizedDocument = await organizeImports.OrganizeImportsAsync(document, organizeImportsOptions, cancellationToken).ConfigureAwait(false);
-                textChanges = (await organizedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false)).ToList();
-                document = organizedDocument;
-            }
-
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -50,29 +40,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // We should use the options passed in by LSP instead of the document's options.
             var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(options, document, cancellationToken).ConfigureAwait(false);
-
             var services = document.Project.Solution.Services;
-            var formattingTextChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), services, formattingOptions, cancellationToken);
-            if (textChanges is { Count: > 0 })
+            var formattingChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), services, formattingOptions, cancellationToken);
+
+            // We only organize the imports when formatting the entire document. This means we can stop
+            // if we are provided a range or sorting imports is disabled/
+            if (range is not null || !globalOptions.GetOption(LspOptionsStorage.LspFormattingSortImports, document.Project.Language))
             {
-                if (formattingTextChanges.Count > 0)
-                {
-                    // Translate the formatting changes as a follow-up operation to the organization operation
-                    var formattedDocument = document.WithText(text.WithChanges(formattingTextChanges));
-                    textChanges = (await formattedDocument.GetTextChangesAsync(context.Document, cancellationToken).ConfigureAwait(false)).ToList();
-                }
-                else
-                {
-                    // The only changes come from organizing imports
-                }
-            }
-            else
-            {
-                textChanges = formattingTextChanges;
+                return [.. formattingChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text))];
             }
 
-            var originalText = await context.Document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            return [.. textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, originalText))];
+            var formattedDocument = document.WithText(text.WithChanges(formattingChanges));
+
+            var organizeImports = formattedDocument.GetRequiredLanguageService<IOrganizeImportsService>();
+            var organizeImportsOptions = await formattedDocument.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var organizedDocument = await organizeImports.OrganizeImportsAsync(formattedDocument, organizeImportsOptions, cancellationToken).ConfigureAwait(false);
+
+            var textChanges = await organizedDocument.GetTextChangesAsync(context.Document).ConfigureAwait(false);
+            return [.. textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text))];
         }
 
         public abstract LSP.TextDocumentIdentifier GetTextDocumentIdentifier(RequestType request);
