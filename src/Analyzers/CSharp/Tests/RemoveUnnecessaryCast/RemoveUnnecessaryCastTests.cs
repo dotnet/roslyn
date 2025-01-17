@@ -14128,7 +14128,7 @@ public sealed class RemoveUnnecessaryCastTests
             TestCode = """
                 public class IssueClass
                 {
-                    int ID;
+                    double ID;
 
                     public object ConvertFieldValueForStorage(object value)
                     {
@@ -14139,7 +14139,7 @@ public sealed class RemoveUnnecessaryCastTests
             FixedCode = """
                 public class IssueClass
                 {
-                    int ID;
+                    double ID;
                 
                     public object ConvertFieldValueForStorage(object value)
                     {
@@ -14160,7 +14160,7 @@ public sealed class RemoveUnnecessaryCastTests
             TestCode = """
                 public class IssueClass
                 {
-                    int ID;
+                    double ID;
 
                     public void ConvertFieldValueForStorage(object value)
                     {
@@ -14171,7 +14171,7 @@ public sealed class RemoveUnnecessaryCastTests
             FixedCode = """
                 public class IssueClass
                 {
-                    int ID;
+                    double ID;
                 
                     public void ConvertFieldValueForStorage(object value)
                     {
@@ -14179,17 +14179,8 @@ public sealed class RemoveUnnecessaryCastTests
                     }
                 }
                 """,
-            FixedState =
-            {
-                ExpectedDiagnostics =
-                {
-                    // /0/Test0.cs(7,48): hidden IDE0004: Cast is redundant.
-                    VerifyCS.Diagnostic().WithSpan(7, 48, 7, 57).WithSpan(7, 48, 7, 65),
-                }
-            },
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
-            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
         }.RunAsync();
     }
 }
