@@ -9,19 +9,14 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Microsoft.CodeAnalysis.UseConditionalExpression;
 
 internal abstract class AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer<
-    TIfStatementSyntax>
-    : AbstractUseConditionalExpressionDiagnosticAnalyzer<TIfStatementSyntax>
+    TIfStatementSyntax>(LocalizableResourceString message)
+    : AbstractUseConditionalExpressionDiagnosticAnalyzer<TIfStatementSyntax>(
+        IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId,
+        EnforceOnBuildValues.UseConditionalExpressionForAssignment,
+        message,
+        CodeStyleOptions2.PreferConditionalExpressionOverAssignment)
     where TIfStatementSyntax : SyntaxNode
 {
-    protected AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer(
-        LocalizableResourceString message)
-        : base(IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId,
-               EnforceOnBuildValues.UseConditionalExpressionForAssignment,
-               message,
-               CodeStyleOptions2.PreferConditionalExpressionOverAssignment)
-    {
-    }
-
     protected sealed override CodeStyleOption2<bool> GetStylePreference(OperationAnalysisContext context)
         => context.GetAnalyzerOptions().PreferConditionalExpressionOverAssignment;
 
