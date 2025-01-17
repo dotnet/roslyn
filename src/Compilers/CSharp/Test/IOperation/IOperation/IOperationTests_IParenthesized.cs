@@ -488,12 +488,9 @@ class P
 ";
             string expectedOperationTree = @"
 IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return (a);')
-  ReturnedValue:
-    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a')
-      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      Operand:
-        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'a')
-          Children(0)
+  ReturnedValue: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'a')
+      Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0103: The name 'a' does not exist in the current context

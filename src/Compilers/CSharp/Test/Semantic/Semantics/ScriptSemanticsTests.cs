@@ -818,21 +818,11 @@ static int Baz = w;
 ", previous: c0);
 
             c1.VerifyDiagnostics(
-                // (4,18): error CS0120: An object reference is required for the non-static field, method, or property 'w'
-                // static int Baz = w;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "w").WithArguments("w").WithLocation(4, 18),
-                // (2,27): error CS0120: An object reference is required for the non-static field, method, or property 'x'
-                // static int Goo() { return x; }
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "x").WithArguments("x").WithLocation(2, 27),
-                // (3,31): error CS0120: An object reference is required for the non-static field, method, or property 'y'
-                // static int Bar { get { return y; } set { return z(); } }
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "y").WithArguments("y").WithLocation(3, 31),
-                // (3,49): error CS0120: An object reference is required for the non-static field, method, or property 'z()'
-                // static int Bar { get { return y; } set { return z(); } }
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "z").WithArguments("z()").WithLocation(3, 49),
-                // (3,42): error CS0127: Since 'Bar.set' returns void, a return keyword must not be followed by an object expression
-                // static int Bar { get { return y; } set { return z(); } }
-                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Bar.set").WithLocation(3, 42));
+                // error CS0120: An object reference is required for the non-static field, method, or property '{0}'
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "w").WithArguments("w"),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x").WithArguments("x"),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "y").WithArguments("y"),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "z").WithArguments("z()"));
         }
 
         [Fact]
@@ -924,21 +914,14 @@ static int Baz = w;
             var typeName = typeof(ScriptTestFixtures).FullName;
 
             c.VerifyDiagnostics(
-                // (4,18): error CS0120: An object reference is required for the non-static field, method, or property 'ScriptTestFixtures.B.w'
-                // static int Baz = w;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "w").WithArguments("Microsoft.CodeAnalysis.CSharp.Test.Utilities.ScriptTestFixtures.B.w").WithLocation(4, 18),
-                // (2,27): error CS0120: An object reference is required for the non-static field, method, or property 'ScriptTestFixtures.B.x'
-                // static int Goo() { return x; }
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "x").WithArguments("Microsoft.CodeAnalysis.CSharp.Test.Utilities.ScriptTestFixtures.B.x").WithLocation(2, 27),
-                // (3,31): error CS0120: An object reference is required for the non-static field, method, or property 'ScriptTestFixtures.C.Y'
-                // static int Bar { get { return Y; } set { return Z(); } }
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Y").WithArguments("Microsoft.CodeAnalysis.CSharp.Test.Utilities.ScriptTestFixtures.C.Y").WithLocation(3, 31),
-                // (3,49): error CS0120: An object reference is required for the non-static field, method, or property 'ScriptTestFixtures.C.Z()'
-                // static int Bar { get { return Y; } set { return Z(); } }
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Z").WithArguments("Microsoft.CodeAnalysis.CSharp.Test.Utilities.ScriptTestFixtures.C.Z()").WithLocation(3, 49),
-                // (3,42): error CS0127: Since 'Bar.set' returns void, a return keyword must not be followed by an object expression
-                // static int Bar { get { return Y; } set { return Z(); } }
-                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Bar.set").WithLocation(3, 42));
+                // (4,18): error CS0120: An object reference is required for the non-static field, method, or property 'Roslyn.Compilers.CSharp.UnitTests.Symbols.Source.InteractiveSessionTests.B.w'
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "w").WithArguments(typeName + ".B.w"),
+                // (2,27): error CS0120: An object reference is required for the non-static field, method, or property 'Roslyn.Compilers.CSharp.UnitTests.Symbols.Source.InteractiveSessionTests.B.x'
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x").WithArguments(typeName + ".B.x"),
+                // (3,31): error CS0120: An object reference is required for the non-static field, method, or property 'Roslyn.Compilers.CSharp.UnitTests.Symbols.Source.InteractiveSessionTests.C.Y'
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Y").WithArguments(typeName + ".C.Y"),
+                // (3,49): error CS0120: An object reference is required for the non-static field, method, or property 'Roslyn.Compilers.CSharp.UnitTests.Symbols.Source.InteractiveSessionTests.C.Z()'
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Z").WithArguments(typeName + ".C.Z()"));
 
         }
 

@@ -2291,10 +2291,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,9): error CS8150: By-value returns may only be used in methods that return by value
                 //         return new();
-                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9),
-                // (6,16): error CS8151: The return expression must be of type 'int' because this method returns by reference
-                //         return new();
-                Diagnostic(ErrorCode.ERR_RefReturnMustHaveIdentityConversion, "new()").WithArguments("int").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9)
                 );
         }
 

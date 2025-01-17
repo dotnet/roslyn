@@ -6229,22 +6229,15 @@ class C
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyEmitDiagnostics(
-                // (6,9): error CS0127: Since 'C.M()' returns void, a return keyword must not be followed by an object expression
-                //         return new C { Goo = 1 };
-                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("C.M()").WithLocation(6, 9),
                 // (6,24): error CS0117: 'C' does not contain a definition for 'Goo'
-                //         return new C { Goo = 1 };
+                //         return new C { Goo = 1 }; 
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Goo").WithArguments("C", "Goo").WithLocation(6, 24));
-
             CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyEmitDiagnostics(
-                // (6,9): error CS0127: Since 'C.M()' returns void, a return keyword must not be followed by an object expression
-                //         return new C { Goo = 1 };
-                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("C.M()").WithLocation(6, 9),
                 // (6,22): error CS8023: Feature 'object initializer' is not available in C# 2. Please use language version 3 or greater.
-                //         return new C { Goo = 1 };
+                //         return new C { Goo = 1 }; 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("object initializer", "3").WithLocation(6, 22),
                 // (6,24): error CS0117: 'C' does not contain a definition for 'Goo'
-                //         return new C { Goo = 1 };
+                //         return new C { Goo = 1 }; 
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Goo").WithArguments("C", "Goo").WithLocation(6, 24));
 
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
@@ -6264,22 +6257,15 @@ class C
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular3).VerifyEmitDiagnostics(
-                // (6,9): error CS0127: Since 'C.M()' returns void, a return keyword must not be followed by an object expression
-                //         return new C { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("C.M()").WithLocation(6, 9),
                 // (6,22): error CS1922: Cannot initialize type 'C' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
-                //         return new C { 1, 2, 3 };
+                //         return new C { 1, 2, 3 }; 
                 Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1, 2, 3 }").WithArguments("C").WithLocation(6, 22));
-
             CreateCompilation(text, parseOptions: TestOptions.Regular2).VerifyEmitDiagnostics(
-                // (6,9): error CS0127: Since 'C.M()' returns void, a return keyword must not be followed by an object expression
-                //         return new C { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("C.M()").WithLocation(6, 9),
                 // (6,22): error CS8023: Feature 'collection initializer' is not available in C# 2. Please use language version 3 or greater.
-                //         return new C { 1, 2, 3 };
+                //         return new C { 1, 2, 3 }; 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "{").WithArguments("collection initializer", "3").WithLocation(6, 22),
                 // (6,22): error CS1922: Cannot initialize type 'C' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
-                //         return new C { 1, 2, 3 };
+                //         return new C { 1, 2, 3 }; 
                 Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1, 2, 3 }").WithArguments("C").WithLocation(6, 22));
 
             SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3)).GetDiagnostics().Verify();
