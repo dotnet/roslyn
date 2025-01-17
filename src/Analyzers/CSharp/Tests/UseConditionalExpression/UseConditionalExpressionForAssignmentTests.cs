@@ -2186,4 +2186,40 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
             }
             """, LanguageVersion.CSharp9);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60859")]
+    public async Task UnnecessaryWithinConditionalBranch2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            public class IssueClass
+            {
+                double ID;
+
+                public void ConvertFieldValueForStorage(object value)
+                {
+                    object o;
+                    [|if|] (value is IssueClass issue)
+                    {
+                        o = (decimal)issue.ID;
+                    }
+                    else
+                    {
+                        o = -1m;
+                    }
+                }
+            }
+            """,
+            """
+            public class IssueClass
+            {
+                double ID;
+            
+                public void ConvertFieldValueForStorage(object value)
+                {
+                    object o = value is IssueClass issue ? (decimal)issue.ID : -1m;
+                }
+            }
+            """, LanguageVersion.CSharp13);
+    }
 }
