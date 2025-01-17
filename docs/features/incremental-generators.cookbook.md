@@ -133,7 +133,7 @@ project, it will not include that type in lookup results. To ensure that `Micros
 `AddEmbeddedAttributeDefinition` helper method in your `RegisterPostInitializationOutput` callback.
 
 Another option is to provide an assembly in your nuget package that defines your marker attributes, but this can be more difficult to author. We recommend the
-`EmbeddedAttribute` approach, unless you need to support versions of Roslyn lower than 4.13 (PROTOTYPE, determine when this PR is ready to merge).
+`EmbeddedAttribute` approach, unless you need to support versions of Roslyn lower than 4.14.
 
 ## Designs
 

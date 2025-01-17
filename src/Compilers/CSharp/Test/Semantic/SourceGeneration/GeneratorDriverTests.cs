@@ -2465,7 +2465,10 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create([generator1, generator2], parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
 
-            foreach (var runResult in driver.GetRunResult().Results)
+            var results = driver.GetRunResult().Results;
+            Assert.Equal(2, results.Length);
+
+            foreach (var runResult in results)
             {
                 Assert.Single(runResult.GeneratedSources);
 
