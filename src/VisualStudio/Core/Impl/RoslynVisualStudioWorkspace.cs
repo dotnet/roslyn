@@ -122,13 +122,12 @@ namespace Microsoft.VisualStudio.LanguageServices
             // object browser item.  Now ObjectBrowser goes through the streaming-FindRefs system.
         }
 
-        internal override object? GetBrowseObject(SymbolListItem symbolListItem)
+        internal override async Task<object?> GetBrowseObjectAsync(
+            SymbolListItem symbolListItem, CancellationToken cancellationToken)
         {
-            var compilation = symbolListItem.GetCompilation(this);
+            var compilation = await symbolListItem.GetCompilationAsync(this, cancellationToken).ConfigureAwait(true);
             if (compilation == null)
-            {
                 return null;
-            }
 
             var symbol = symbolListItem.ResolveSymbol(compilation);
             var sourceLocation = symbol.Locations.Where(l => l.IsInSource).FirstOrDefault();
@@ -167,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             var fileCodeModel = ComAggregate.GetManagedObject<FileCodeModel>(vsFileCodeModel);
             if (fileCodeModel != null)
             {
-                var syntaxNode = tree.GetRoot().FindNode(sourceLocation.SourceSpan);
+                var syntaxNode = tree.GetRoot(cancellationToken).FindNode(sourceLocation.SourceSpan);
                 while (syntaxNode != null)
                 {
                     if (!codeModelService.TryGetNodeKey(syntaxNode).IsEmpty)

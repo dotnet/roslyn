@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -22,7 +23,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed partial class UseConditionalExpressionForAssignmentTests
 {
     private static async Task TestMissingAsync(
-        string testCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
         LanguageVersion languageVersion = LanguageVersion.CSharp8,
         OptionsCollection? options = null)
     {
@@ -37,8 +38,8 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
     }
 
     private static async Task TestInRegularAndScript1Async(
-        string testCode,
-        string fixedCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
         LanguageVersion languageVersion = LanguageVersion.CSharp8,
         OptionsCollection? options = null,
         string? equivalenceKey = null)
@@ -2143,5 +2144,46 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 OutputKind = OutputKind.ConsoleApplication,
             }
         }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58897")]
+    public async Task TestCommentsOnElse()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                void M(bool containsHighBits)
+                {
+                    int write;
+
+                    [|if|] (containsHighBits)
+                    {
+                        write = 0;
+                    }
+                    // Comment on else
+                    else
+                    {
+                        write = 1;
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void M(bool containsHighBits)
+                {
+                    int write = containsHighBits
+                        ? 0
+                        // Comment on else
+                        : 1;
+                }
+            }
+            """, LanguageVersion.CSharp9);
     }
 }

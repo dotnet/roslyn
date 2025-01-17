@@ -60,6 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ReportedVarianceDiagnostics = &H2    ' Set if variance diagnostics have been reported.
             ReportedBaseClassConstraintsDiagnostics = &H4    ' Set if base class constraints diagnostics have been reported.
             ReportedInterfacesConstraintsDiagnostics = &H8    ' Set if constraints diagnostics for base/implemented interfaces have been reported.
+            ReportedCodeAnalysisEmbeddedAttributeDiagnostics = &H10 ' Set if the symbol has been checked for Microsoft.CodeAnalysis.EmbeddedAttribute definition diagnostics.
         End Enum
 
         ' Containing symbol
@@ -4034,7 +4035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             If EmitExtensionAttribute Then

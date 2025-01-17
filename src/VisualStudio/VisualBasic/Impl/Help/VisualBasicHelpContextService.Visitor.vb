@@ -431,7 +431,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 End Select
 
                 If _isNotMetadata Then
-                    If Not TypeOf node.Parent Is InheritsOrImplementsStatementSyntax Then
+                    If TypeOf node.Parent IsNot InheritsOrImplementsStatementSyntax Then
                         If TypeOf node.Parent Is DeclarationStatementSyntax OrElse TypeOf node.Parent Is FieldDeclarationSyntax Then
                             Return
                         End If

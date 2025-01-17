@@ -47,7 +47,7 @@ public class IDEDiagnosticIDConfigurationTests
 
                     if (!IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnosticId, languageName, out var options))
                     {
-                        options = ImmutableHashSet<IOption2>.Empty;
+                        options = [];
                     }
 
                     if (uniqueDiagnosticIds.Add(diagnosticId))
@@ -63,7 +63,7 @@ public class IDEDiagnosticIDConfigurationTests
         }
 
         diagnosticIdAndOptions.Sort();
-        return diagnosticIdAndOptions.ToImmutableArray();
+        return [.. diagnosticIdAndOptions];
     }
 
     private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
@@ -94,7 +94,7 @@ public class IDEDiagnosticIDConfigurationTests
 
     private static Dictionary<string, string> GetExpectedMap(string expected, out string[] expectedLines)
     {
-        expectedLines = expected.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+        expectedLines = expected.Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries);
         Assert.True(expectedLines.Length % 2 == 0);
         var expectedMap = new Dictionary<string, string>();
         for (var i = 0; i < expectedLines.Length; i += 2)
@@ -493,6 +493,9 @@ Actual: {editorConfigString}
             
             # IDE0340
             dotnet_diagnostic.IDE0340.severity = %value%
+            
+            # IDE0350
+            dotnet_diagnostic.IDE0350.severity = %value%
 
             # IDE1005
             dotnet_diagnostic.IDE1005.severity = %value%
@@ -912,6 +915,7 @@ dotnet_diagnostic.JSON002.severity = %value%
             ("IDE0320", "csharp_prefer_static_anonymous_function", "true"),
             ("IDE0330", "csharp_prefer_system_threading_lock", "true"),
             ("IDE0340", "csharp_style_prefer_unbound_generic_type_in_nameof", "true"),
+            ("IDE0350", "csharp_style_prefer_implicitly_typed_lambda_expression", "true"),
             ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
             ("IDE1006", null, null),
             ("IDE1007", null, null),

@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var parameterType in member.GetParameterTypes())
             {
-                if (parameterType.Type.ContainsPointer())
+                if (parameterType.Type.ContainsPointerOrFunctionPointer())
                 {
                     return true;
                 }

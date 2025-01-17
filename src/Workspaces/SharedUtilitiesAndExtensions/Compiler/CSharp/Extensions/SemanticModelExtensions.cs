@@ -487,6 +487,12 @@ internal static partial class SemanticModelExtensions
             ?? throw new InvalidOperationException();
     }
 
+    public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, BaseMethodDeclarationSyntax syntax, CancellationToken cancellationToken)
+    {
+        return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+            ?? throw new InvalidOperationException();
+    }
+
     public static ISymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, VariableDeclaratorSyntax syntax, CancellationToken cancellationToken)
     {
         return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)

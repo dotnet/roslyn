@@ -57,7 +57,7 @@ void F   () {}
         var documentInfo = DocumentInfo.Create(
             DocumentId.CreateNewId(project.Id),
             name: "file.razor.g.cs",
-            folders: Array.Empty<string>(),
+            folders: [],
             sourceCodeKind: SourceCodeKind.Regular,
             loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), "file.razor.g.cs")),
             filePath: "file.razor.g.cs")

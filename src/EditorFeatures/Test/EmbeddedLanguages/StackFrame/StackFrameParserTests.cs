@@ -516,7 +516,7 @@ public partial class StackFrameParserTests
             fileInformation: FileInformation(
                 Path(@"C:\repos\languages\Program.cs"),
                 ColonToken,
-                line: CreateToken(StackFrameKind.NumberToken, "16", leadingTrivia: ImmutableArray.Create(CreateTrivia(StackFrameKind.LineTrivia, $"{line} "))),
+                line: CreateToken(StackFrameKind.NumberToken, "16", leadingTrivia: [CreateTrivia(StackFrameKind.LineTrivia, $"{line} ")]),
                 inTrivia: CreateTrivia(StackFrameKind.InTrivia, $" {@in} "))
                 );
 }

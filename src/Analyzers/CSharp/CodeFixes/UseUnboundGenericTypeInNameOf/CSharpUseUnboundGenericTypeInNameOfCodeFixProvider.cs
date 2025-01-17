@@ -53,14 +53,24 @@ internal sealed partial class CSharpUseUnboundGenericTypeInNameOfCodeFixProvider
         if (!nameofInvocation.IsNameOfInvocation())
             return;
 
-        foreach (var typeArgumentList in nameofInvocation.DescendantNodes().OfType<TypeArgumentListSyntax>().OrderByDescending(t => t.SpanStart))
-        {
-            if (typeArgumentList.Arguments.Any(a => a.Kind() != SyntaxKind.OmittedTypeArgument))
+        editor.ReplaceNode(nameofInvocation, ConvertToUnboundGenericNameof(nameofInvocation));
+    }
+
+    public static TSyntax ConvertToUnboundGenericNameof<TSyntax>(TSyntax syntax)
+        where TSyntax : SyntaxNode
+    {
+        return syntax.ReplaceNodes(
+            syntax.DescendantNodes().OfType<TypeArgumentListSyntax>(),
+            (original, current) =>
             {
-                var list = NodeOrTokenList(typeArgumentList.Arguments.GetWithSeparators().Select(
-                    t => t.IsToken ? t.AsToken().WithoutTrivia() : s_omittedArgument));
-                editor.ReplaceNode(typeArgumentList, typeArgumentList.WithArguments(SeparatedList<TypeSyntax>(list)));
-            }
-        }
+                if (current.Arguments.Any(a => a.Kind() != SyntaxKind.OmittedTypeArgument))
+                {
+                    var list = NodeOrTokenList(current.Arguments.GetWithSeparators().Select(
+                        t => t.IsToken ? t.AsToken().WithoutTrivia() : s_omittedArgument));
+                    return current.WithArguments(SeparatedList<TypeSyntax>(list));
+                }
+
+                return current;
+            });
     }
 }

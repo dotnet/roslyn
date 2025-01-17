@@ -872,6 +872,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // is this a local?
             if ((object)localSymbol != null)
             {
+                ReportFieldContextualKeywordConflictIfAny(localSymbol, designation, designation.Identifier, diagnostics);
+
                 if (designation.Parent is DeclarationExpressionSyntax declExpr && declExpr.Designation == designation)
                 {
                     TypeSyntax typeSyntax = declExpr.Type;

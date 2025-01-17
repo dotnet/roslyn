@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.ConvertTypeOfToNameOf;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -13,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf;
 /// Finds code like typeof(someType).Name and determines whether it can be changed to nameof(someType), if yes then it offers a diagnostic
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpConvertTypeOfToNameOfDiagnosticAnalyzer : AbstractConvertTypeOfToNameOfDiagnosticAnalyzer
+internal sealed class CSharpConvertTypeOfToNameOfDiagnosticAnalyzer()
+    : AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(s_title)
 {
     private static readonly string s_title = CSharpAnalyzersResources.typeof_can_be_converted_to_nameof;
 
-    public CSharpConvertTypeOfToNameOfDiagnosticAnalyzer() : base(s_title)
-    {
-    }
+    protected override bool SupportsUnboundGenerics(ParseOptions options)
+        => options.LanguageVersion().IsCSharp14OrAbove();
 
     protected override bool IsValidTypeofAction(OperationAnalysisContext context)
     {

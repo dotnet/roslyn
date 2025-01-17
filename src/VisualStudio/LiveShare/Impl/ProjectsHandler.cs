@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 var lspProject = new CustomProtocol.Project
                 {
                     Name = project.Name,
-                    SourceFiles = project.Documents.Select(d => requestContext.ProtocolConverter.ToProtocolUri(new Uri(d.FilePath))).ToArray(),
+                    SourceFiles = [.. project.Documents.Select(d => requestContext.ProtocolConverter.ToProtocolUri(new Uri(d.FilePath)))],
                     Language = project.Language
                 };
 

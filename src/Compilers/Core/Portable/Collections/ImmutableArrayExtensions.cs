@@ -302,6 +302,28 @@ namespace Microsoft.CodeAnalysis
         /// <typeparam name="TItem">Type of the source array items</typeparam>
         /// <typeparam name="TResult">Type of the transformed array items</typeparam>
         /// <param name="array">The array to transform</param>
+        /// <param name="selector">A transform function to apply to each element.</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, OneOrMany<TResult>> selector)
+        {
+            if (array.Length == 0)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in array)
+            {
+                selector(item).AddRangeTo(builder);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Maps and flattens a subset of immutable array to another immutable array.
+        /// </summary>
+        /// <typeparam name="TItem">Type of the source array items</typeparam>
+        /// <typeparam name="TResult">Type of the transformed array items</typeparam>
+        /// <param name="array">The array to transform</param>
         /// <param name="predicate">The condition to use for filtering the array content.</param>
         /// <param name="selector">A transform function to apply to each element that is not filtered out by <paramref name="predicate"/>.</param>
         /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
@@ -339,6 +361,55 @@ namespace Microsoft.CodeAnalysis
             {
                 if (predicate(item))
                     builder.AddRange(selector(item));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Maps and flattens a subset of immutable array to another immutable array.
+        /// </summary>
+        /// <typeparam name="TItem">Type of the source array items</typeparam>
+        /// <typeparam name="TResult">Type of the transformed array items</typeparam>
+        /// <param name="array">The array to transform</param>
+        /// <param name="predicate">The condition to use for filtering the array content.</param>
+        /// <param name="selector">A transform function to apply to each element that is not filtered out by <paramref name="predicate"/>.</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, OneOrMany<TResult>> selector)
+        {
+            if (array.Length == 0)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in array)
+            {
+                if (predicate(item))
+                    selector(item).AddRangeTo(builder);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Maps and flattens a subset of immutable array to another immutable array.
+        /// </summary>
+        /// <typeparam name="TItem">Type of the source array items</typeparam>
+        /// <typeparam name="TArg">Type of the argument to pass to the predicate and selector</typeparam>
+        /// <typeparam name="TResult">Type of the transformed array items</typeparam>
+        /// <param name="array">The array to transform</param>
+        /// <param name="predicate">The condition to use for filtering the array content.</param>
+        /// <param name="selector">A transform function to apply to each element that is not filtered out by <paramref name="predicate"/>.</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this ImmutableArray<TItem> array, Func<TItem, TArg, bool> predicate, Func<TItem, TArg, OneOrMany<TResult>> selector, TArg arg)
+        {
+            if (array.Length == 0)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in array)
+            {
+                if (predicate(item, arg))
+                    selector(item, arg).AddRangeTo(builder);
             }
 
             return builder.ToImmutableAndFree();
@@ -636,7 +707,7 @@ namespace Microsoft.CodeAnalysis
             return default;
         }
 
-        public static TValue? Single<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
+        public static TValue Single<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
         {
             var hasValue = false;
             TValue? value = default;
@@ -659,7 +730,7 @@ namespace Microsoft.CodeAnalysis
                 throw ExceptionUtilities.Unreachable();
             }
 
-            return value;
+            return value!;
         }
 
         /// <summary>

@@ -485,5 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _underlyingType.HasInlineArrayAttribute(out length);
         }
+
+        internal sealed override bool HasCompilerLoweringPreserveAttribute => _underlyingType.HasCompilerLoweringPreserveAttribute;
     }
 }

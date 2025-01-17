@@ -39,10 +39,10 @@ internal class EditorTextDifferencingService(ITextDifferencingSelectorService di
 
         var diffResult = diffService.DiffSourceTexts(oldText, newText, differenceOptions);
 
-        return diffResult.Differences.Select(d =>
+        return [.. diffResult.Differences.Select(d =>
             new TextChange(
                 diffResult.LeftDecomposition.GetSpanInOriginal(d.Left).ToTextSpan(),
-                newText.GetSubText(diffResult.RightDecomposition.GetSpanInOriginal(d.Right).ToTextSpan()).ToString())).ToImmutableArray();
+                newText.GetSubText(diffResult.RightDecomposition.GetSpanInOriginal(d.Right).ToTextSpan()).ToString()))];
     }
 
     private static StringDifferenceOptions GetDifferenceOptions(TextDifferenceTypes differenceTypes)

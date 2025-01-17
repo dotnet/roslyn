@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
-        public async Task TestAfterGlobalStatement_Interactive()
+        public async Task TestAfterGlobalStatement()
         {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
+            await VerifyKeywordAsync(
                 """
                 System.Console.WriteLine();
                 $$
@@ -484,6 +484,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyKeywordAsync("""
                 partial class C {
                     async $$
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61439")]
+        public async Task TestAfterMemberButNonClassModifier()
+        {
+            await VerifyKeywordAsync("""
+                partial class C {
+                    virtual $$
                 """);
         }
     }

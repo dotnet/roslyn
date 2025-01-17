@@ -5181,6 +5181,22 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Text_Encoding__get_UTF8
+                (byte)(MemberFlags.PropertyGet | MemberFlags.Static),                                                       // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Text_Encoding - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Text_Encoding - WellKnownType.ExtSentinel), // Return Type
+
+                // System_Text_Encoding__GetString
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Text_Encoding - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Return Type
+                    (byte)SignatureTypeCode.Pointer, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Byte,     // Argument: byte*
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,                                     // Argument: int
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -5805,6 +5821,8 @@ namespace Microsoft.CodeAnalysis
                 "GreaterThanOrEqual",                       // System_Linq_Expressions_Expression__GreaterThanOrEqual_MethodInfo,
                 "Default",                                  // System_Linq_Expressions_Expression__Default
                 "Power",                                    // System_Linq_Expressions_Expression__Power_MethodInfo,
+                "get_UTF8",                                 // System_Text_Encoding__get_UTF8
+                "GetString",                                // System_Text_Encoding__GetString
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

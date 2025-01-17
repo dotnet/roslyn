@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!expr.HasAnyErrors && !IsInsideNameof)
             {
                 TypeSymbol exprType = expr.Type;
-                if ((object)exprType != null && exprType.ContainsPointer())
+                if ((object)exprType != null && exprType.ContainsPointerOrFunctionPointer())
                 {
                     ReportUnsafeIfNotAllowed(node, diagnostics);
                     //CONSIDER: Return a bad expression so that HasErrors is true?
@@ -1486,6 +1486,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lookupResult.Free();
                 return result;
             }
+        }
+
+        /// <summary>
+        /// Report diagnostic for variable declared with name 'field' within an accessor.
+        /// </summary>
+        /// <param name="symbol">
+        /// Optional symbol for the variable. The symbol should be locally declared.
+        /// That is, it should be a symbol that would hide a backing field in earlier
+        /// language versions. If a symbol is not provided, the caller is responsible
+        /// for ensuring the identifier refers to a locally declared variable.
+        /// </param>
+        internal void ReportFieldContextualKeywordConflictIfAny(Symbol? symbol, SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(symbol is null or LocalSymbol or LocalFunctionSymbol or RangeVariableSymbol or TypeParameterSymbol);
+
+            string name = identifier.Text;
+            if (name == "field" &&
+                ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } })
+            {
+                var requiredVersion = MessageID.IDS_FeatureFieldKeyword.RequiredVersion();
+                if (Compilation.LanguageVersion >= requiredVersion)
+                {
+                    diagnostics.Add(ErrorCode.ERR_VariableDeclarationNamedField, syntax, requiredVersion.ToDisplayString());
+                }
+            }
+        }
+
+        internal void ReportFieldContextualKeywordConflictIfAny(ParameterSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            ReportFieldContextualKeywordConflictIfAny(symbol: null, syntax, syntax.Identifier, diagnostics);
         }
 
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
@@ -3154,6 +3184,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
             if ((object)localSymbol != null)
             {
+                ReportFieldContextualKeywordConflictIfAny(localSymbol, designation, designation.Identifier, diagnostics);
+
                 if (typeSyntax is ScopedTypeSyntax scopedType)
                 {
                     // Check for support for 'scoped'.
@@ -3666,7 +3698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             void reportUnsafeIfNeeded(MemberResolutionResult<TMember> methodResult, BindingDiagnosticBag diagnostics, BoundExpression argument, TypeWithAnnotations parameterTypeWithAnnotations)
             {
                 // NOTE: for some reason, dev10 doesn't report this for indexer accesses.
-                if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && parameterTypeWithAnnotations.Type.ContainsPointer())
+                if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && parameterTypeWithAnnotations.Type.ContainsPointerOrFunctionPointer())
                 {
                     // CONSIDER: dev10 uses the call syntax, but this seems clearer.
                     ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics);

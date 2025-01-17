@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
         /// <summary>
         /// Checks if the new replacement text is valid for this rename operation.
         /// </summary>
-        /// <returns></returns>
         bool IsReplacementTextValid(string replacementText);
     }
 }

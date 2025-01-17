@@ -2487,7 +2487,7 @@ class C1
                 result.Add((fileName, text));
             }
 
-            return new FileSet(result.ToArray());
+            return new FileSet([.. result]);
         }
 
         private static string VisitProjectReferences(string projectFileText, Action<XElement> visitProjectReference)

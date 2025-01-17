@@ -89,7 +89,7 @@ internal abstract class EvaluationData
     /// The <paramref name="name"/> is not listed in <see cref="IWorkspaceProjectContextFactory.EvaluationItemNames"/>
     /// </exception>
     public virtual ImmutableArray<string> GetItemValues(string name)
-        => ImmutableArray<string>.Empty;
+        => [];
 
     public string GetRequiredPropertyValue(string name)
     {

@@ -122,18 +122,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private byte[]? GetUtf8ByteRepresentation(BoundUtf8String node)
         {
-            var utf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-
-            try
+            if (node.Value.TryGetUtf8ByteRepresentation(out byte[]? result, out string? error))
             {
-                return utf8.GetBytes(node.Value);
+                return result;
             }
-            catch (Exception ex)
+            else
             {
                 _diagnostics.Add(
                     ErrorCode.ERR_CannotBeConvertedToUtf8,
                     node.Syntax.Location,
-                    ex.Message);
+                    error);
 
                 return null;
             }

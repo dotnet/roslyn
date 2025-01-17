@@ -106,7 +106,7 @@ internal struct FixedSizeArrayBuilder<T>(int capacity)
     {
         Contract.ThrowIfTrue(_index != _values.Length);
         var result = _values;
-        _values = Array.Empty<T>();
+        _values = [];
         _index = 0;
         return result;
     }

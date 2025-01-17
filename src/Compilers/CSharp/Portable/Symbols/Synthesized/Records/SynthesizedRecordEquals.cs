@@ -136,12 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         fields.Add(f);
 
                         var parameterType = f.Type;
-                        if (parameterType.IsPointerOrFunctionPointer())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, f.GetFirstLocationOrNone(), parameterType);
-                            foundBadField = true;
-                        }
-                        else if (parameterType.IsRestrictedType())
+                        if (parameterType.IsPointerOrFunctionPointer() || parameterType.IsRestrictedType())
                         {
                             // We'll have reported a diagnostic elsewhere (SourceMemberFieldSymbol.TypeChecks)
                             foundBadField = true;

@@ -45,7 +45,8 @@ internal static class EditorConfigParser
         where TEditorConfigFile : EditorConfigFile<TEditorConfigOption>
         where TEditorConfigOption : EditorConfigOption
     {
-        var activeSectionProperties = ImmutableDictionary.CreateBuilder<string, (string value, TextLine? line)>(AnalyzerConfigOptions.KeyComparer);
+        var activeSectionValues = ImmutableDictionary.CreateBuilder<string, string>(AnalyzerConfigOptions.KeyComparer);
+        var activeSectionLines = ImmutableDictionary.CreateBuilder<string, TextLine>(AnalyzerConfigOptions.KeyComparer);
         var activeSectionName = "";
         var activeSectionStart = 0;
         var activeSectionEnd = 0;
@@ -75,7 +76,8 @@ internal static class EditorConfigParser
                 activeSectionStart = textLine.Start;
                 activeSectionName = sectionName;
                 activeSectionEnd = textLine.End;
-                activeSectionProperties.Clear();
+                activeSectionValues.Clear();
+                activeSectionLines.Clear();
                 continue;
             }
 
@@ -96,15 +98,9 @@ internal static class EditorConfigParser
                     value = CaseInsensitiveComparison.ToLower(value);
                 }
 
-                if (value is null)
-                {
-                    activeSectionProperties[key] = (string.Empty, null);
-                }
-                else
-                {
-                    activeSectionProperties[key] = (value, textLine);
-                    activeSectionEnd = textLine.End;
-                }
+                activeSectionValues[key] = value;
+                activeSectionLines[key] = textLine;
+                activeSectionEnd = textLine.End;
 
                 continue;
             }
@@ -121,7 +117,7 @@ internal static class EditorConfigParser
             var fullText = activeLine.ToString();
             var sectionSpan = new TextSpan(activeSectionStart, activeSectionEnd);
             var previousSection = new Section(pathToFile, isGlobal, sectionSpan, activeSectionName, fullText);
-            accumulator.ProcessSection(previousSection, activeSectionProperties);
+            accumulator.ProcessSection(previousSection, activeSectionValues, activeSectionLines);
         }
 
         static bool IsComment(string line)

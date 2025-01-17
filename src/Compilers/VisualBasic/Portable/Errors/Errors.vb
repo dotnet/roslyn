@@ -1786,7 +1786,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_CannotApplyOverloadResolutionPriorityToOverride = 37333
         ERR_CannotApplyOverloadResolutionPriorityToMember = 37334
 
-        ERR_NextAvailable = 37335
+        ERR_EmbeddedAttributeMustFollowPattern = 37335
+
+        ERR_NextAvailable = 37336
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

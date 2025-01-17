@@ -44,11 +44,11 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         //
         await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (7, "s"),
                 (3, "public string S { get; set; } = \"\";"),
-            });
+            ]);
     }
 
     [Theory, CombinatorialData]
@@ -79,11 +79,11 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         //
         await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (7, "s"),
                 (3, "public string S { get; set; } = \"\";"),
-            });
+            ]);
     }
 
     [Theory, CombinatorialData]
@@ -114,13 +114,13 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         //
         await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (7, "s"),
                 (3, """
                 _s = ""
                 """)
-            });
+            ]);
     }
 
     [Theory, CombinatorialData]
@@ -151,13 +151,13 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         //
         await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (7, "s"),
                 (3, """
                 _s = ""
                 """)
-            });
+            ]);
     }
 
     [Theory, CombinatorialData]
@@ -253,8 +253,8 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         var items = await ValidateChildrenAsync(
             workspace,
             initialItems.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (7, """
                 "test"
                 """),           // M(|"test"|)
@@ -263,7 +263,7 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
                 """),           // |M("test")|
                 (5, "arg"),     // M(|arg|)
                 (5, "M(arg)"),  // |M(arg)|
-            });
+            ]);
     }
 
     [Theory, CombinatorialData]
@@ -396,11 +396,11 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         var items = await ValidateChildrenAsync(
             workspace,
             initialItems.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (17, "str"), // |> c.SetS([|str|]); [Code.cs:17]
                 (17, "c.SetS(str)"), // |> [|c.SetS(str)|]; [Code.cs:17]
-            });
+            ]);
 
         // |> [|c.SetS(s)|]; [Code.cs:17]
         await ValidateChildrenEmptyAsync(workspace, items[1]);
@@ -409,13 +409,13 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         items = await ValidateChildrenAsync(
             workspace,
             items[0],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (22, "c" ), // |> CallS([|c|], CalculateDefault(c)) [Code.cs:22]
                 (22, "c" ), // |> CallS(c, CalculateDefault([|c|])) [Code.cs:22]
                 (22, "CalculateDefault(c)" ), // |> CallS(c, [|CalculateDefault(c)|]) [Code.cs:22]
                 (22, "CallS(c, CalculateDefault(c))" ) // |> [|CallS(c, CalculateDefault(c))|] [Code.cs:22]
-            });
+            ]);
 
         // |> CallS([|c|], CalculateDefault(c)) [Code.cs:22]
         await ValidateChildrenEmptyAsync(workspace, items[0]);
@@ -428,8 +428,8 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         var children = await ValidateChildrenAsync(
             workspace,
             items[2],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (37, """
                 ""
                 """), // |>  return "" [Code.cs:37]
@@ -439,7 +439,7 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
                 (29, """
                 "null"
                 """), // |> return "null" [Code.cs:29]
-            });
+            ]);
 
         foreach (var child in children)
         {
@@ -537,11 +537,11 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         var items = await ValidateChildrenAsync(
             workspace,
             initialItems.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (23, "s"), // |> c.SetS([|s|]); [Code.cs:23]
                 (23, "c.SetS(s)"), // |> c.SetS(s); [Code.cs:23]
-            });
+            ]);
 
         // |> c.SetS(s); [Code.cs:23]
         await ValidateChildrenEmptyAsync(workspace, items[1]);
@@ -550,23 +550,23 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         items = await ValidateChildrenAsync(
             workspace,
             items[0],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (28, "c" ), // |> CallS([|c|], CalculateDefault(c) + _adornment) [Code.cs:28]
                 (28, "_adornment" ), // |> CallS(c, CalculateDefault(c) + [|_adornment|]) [Code.cs:28]
                 (28, "c" ), // |> CallS(c, CalculateDefault([|c|]) + _adornment) [Code.cs:28]
                 (28, "CalculateDefault(c)" ), // |> CallS(c, [|CalculateDefault|](c) + _adornment) [Code.cs:28]
                 (28, "CallS(c, CalculateDefault(c) + _adornment)" ), // |> [|CallS(c, CalculateDefault(c) + _adornment)|] [Code.cs:28]
-            });
+            ]);
 
         // |> CallS([|c|], CalculateDefault(c) + _adornment) [Code.cs:28]
         var children = await ValidateChildrenAsync(
             workspace,
             items[0],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (53, "other.CallS(c)"), // |> other.CallS([|c|]); [Code.cs:53]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, children);
 
@@ -574,10 +574,10 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         children = await ValidateChildrenAsync(
             workspace,
             items[2],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (53, "other.CallS(c)"), // |> other.CallS([|c|]); [Code.cs:53]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, children);
 
@@ -585,28 +585,28 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         children = await ValidateChildrenAsync(
             workspace,
             items[1],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (18, "adornment"), // |> _adornment = [|adornment|] [Code.cs:18]
-            });
+            ]);
 
         children = await ValidateChildrenAsync(
             workspace,
             children.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (51, """
                 "some value"
                 """) // |> var other = new Other([|"some value"|]); [Code.cs:51]
-            });
+            ]);
         await ValidateChildrenEmptyAsync(workspace, children);
 
         // |> CallS(c, [|CalculateDefault(c)|] + _adornment) [Code.cs:28]
         children = await ValidateChildrenAsync(
             workspace,
             items[3],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (43, """
                 ""
                 """), // |>  return "" [Code.cs:37]
@@ -616,7 +616,7 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
                 (35, """
                 "null"
                 """), // |> return "null" [Code.cs:29]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, children);
 
@@ -668,24 +668,24 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         var children = await ValidateChildrenAsync(
             workspace,
             initialItems.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (17, "x"), // |> x = await AddAsync([|x|], x) [Code.cs:17]
                 (17, "x"), // |> x = await AddAsync(x, [|x|]) [Code.cs:17]
                 (17, "AddAsync(x, x)") // |> x = await [|AddAsync(x, x)|] [Code.cs:17]
-            });
+            ]);
 
         // |> x = await [|AddAsync(x, x)|] [Code.cs:17]
         children = await ValidateChildrenAsync(
             workspace,
             children[2],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (13, "x"), // |> Task.FromResult(Add([|x|], y)) [Code.cs:13]
                 (13, "y"), // |> Task.FromResult(Add(x, [|y|])) [Code.cs:13]
                 (13, "Add(x,y)"),  // |> Task.FromResult([|Add(x, y)|]) [Code.cs:13]
                 (13, "Task.FromResult(Add(x,y))"), // |> [|Task.FromResult|](Add(x, y)) [Code.cs:13]
-            });
+            ]);
 
         // |> [|Task.FromResult|](Add(x, y)) [Code.cs:13]
         await ValidateChildrenEmptyAsync(workspace, children[3]);
@@ -694,10 +694,10 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         children = await ValidateChildrenAsync(
             workspace,
             children[2],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (10, "x") // |> return x [Code.cs:10]
-            });
+            ]);
     }
 
     [Theory, CombinatorialData]
@@ -751,12 +751,12 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         var children = await ValidateChildrenAsync(
             workspace,
             initialItems.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (24, "2"), // |> i = [|2|] [Code.cs:24]
                 (18, "i"), // |> if (TryConvertInt(o, out [|i|])) [Code.cs:18]
                 (15, "0"), // |> int i = 0 [Code.cs:15]
-            });
+            ]);
 
         // |> i = [|2|] [Code.cs:24]
         await ValidateChildrenEmptyAsync(workspace, children[0]);
@@ -765,10 +765,10 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
         children = await ValidateChildrenAsync(
             workspace,
             children[1],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (5, "i") // |> if (int.TryParse(o.ToString(), out [|i|])) [Code.cs:5]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, children.Single());
     }
@@ -805,34 +805,34 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
 
         var items = await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (7, "x") // |> var y = [|x|] + 1; [Code.cs:7]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (5, "GetM()") // |> int x = [|GetM()|] [Code.cs:5]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (13, "x") // |> return [|x|]; [Code.cs:13]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (12, "0") // |> var x = [|0|]; [Code.cs:12]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items.Single());
     }
@@ -869,34 +869,34 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
 
         var items = await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (6, "x") // |> Console.Write([|x|]); [Code.cs:7]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (5, "GetM()") // |> int x = [|GetM()|] [Code.cs:5]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (13, "x") // |> return [|x|]; [Code.cs:13]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (12, "0") // |> var x = [|0|]; [Code.cs:12]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items.Single());
     }
@@ -937,37 +937,37 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
 
         var items = await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (6, "x") // |> Console.Write([|x|]); [Code.cs:7]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (8, "1"),      // |> x += 1; [Codec.s:8]
                 (5, "GetM()"), // |> int x = [|GetM()|] [Code.cs:5]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items[0]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items[1],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (16, "x") // |> return [|x|]; [Code.cs:13]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (15, "0") // |> var x = [|0|]; [Code.cs:12]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items.Single());
     }
@@ -1008,37 +1008,37 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
 
         var items = await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (6, "x") // |> Console.Write([|x|]); [Code.cs:7]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (8, "1"),      // |> x += 1; [Codec.s:8]
                 (5, "GetM()"), // |> int x = [|GetM()|] [Code.cs:5]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items[0]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items[1],
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (16, "x") // |> return [|x|]; [Code.cs:13]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (15, "0") // |> var x = [|0|]; [Code.cs:12]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items.Single());
     }
@@ -1072,16 +1072,16 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
 
         var items = await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (3, "string key") // |>public int this[[|string key|]] => 0; [Code.cs:4]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (10, "localTest"), // return [|localTest|]["test"]; [Code.cs:10] (This is included because it is part of a return statement, and follows same logic as other references for if it is tracked)
                 (10, """
                 "test"
@@ -1092,7 +1092,7 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
                 (7, """
                 "test"
                 """),   // var assignedVariable = this[[|"test"|]]; [Code.cs:7]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items[0]);
         await ValidateChildrenEmptyAsync(workspace, items[1]);
@@ -1130,18 +1130,18 @@ public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
 
         var items = await ValidateItemsAsync(
             workspace,
-            itemInfo: new[]
-            {
+            itemInfo:
+            [
                 (9, "value") // _i = [|value|]; [Code.cs:9]
-            });
+            ]);
 
         items = await ValidateChildrenAsync(
             workspace,
             items.Single(),
-            childInfo: new[]
-            {
+            childInfo:
+            [
                 (15, "5") // localTest.I = [|5|]; [Code.cs:15]
-            });
+            ]);
 
         await ValidateChildrenEmptyAsync(workspace, items.Single());
     }

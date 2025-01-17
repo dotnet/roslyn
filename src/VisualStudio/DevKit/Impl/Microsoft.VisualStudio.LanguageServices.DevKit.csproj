@@ -22,15 +22,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Composition" />
-    <PackageReference Include="Microsoft.ServiceHub.Framework" />
-
     <!-- 
     Additional runtime dependencies that we must include in the NuGet package as they are not a part of the main language server package.
     Do not remove GeneratePathProperty="True" as it is required below to add the package to the package we generate.

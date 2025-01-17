@@ -65,14 +65,14 @@ internal sealed class TextDocumentStates<TState>
     }
 
     public TextDocumentStates(IEnumerable<TState> states)
-        : this(states.Select(s => s.Id).ToImmutableList(),
+        : this([.. states.Select(s => s.Id)],
                states.ToImmutableSortedDictionary(state => state.Id, state => state, DocumentIdComparer.Instance),
                filePathToDocumentIds: null)
     {
     }
 
     public TextDocumentStates(IEnumerable<DocumentInfo> infos, Func<DocumentInfo, TState> stateConstructor)
-        : this(infos.Select(info => info.Id).ToImmutableList(),
+        : this([.. infos.Select(info => info.Id)],
                infos.ToImmutableSortedDictionary(info => info.Id, stateConstructor, DocumentIdComparer.Instance),
                filePathToDocumentIds: null)
     {
@@ -117,7 +117,6 @@ internal sealed class TextDocumentStates<TState>
     /// <summary>
     /// Get states ordered in compilation order.
     /// </summary>
-    /// <returns></returns>
     public ImmutableArray<TState> GetStatesInCompilationOrder()
     {
         if (_statesInCompilationOrder.IsDefault)

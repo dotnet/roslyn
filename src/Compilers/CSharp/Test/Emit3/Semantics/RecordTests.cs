@@ -1223,37 +1223,42 @@ record C1(object O1)
                 );
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [Theory, CombinatorialData]
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
-        public void RestrictedTypesAndPointerTypes()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66312")]
+        public void RestrictedTypesAndPointerTypes(bool withEquals)
         {
-            var src = @"
-class C<T> { }
-static class C2 { }
-ref struct RefLike{}
+            var src = $$"""
 
-unsafe record C(
-    int* P1, // 1
-    int*[] P2,
-    C<int*[]> P3,
-    delegate*<int, int> P4, // 2
-    void P5, // 3
-    C2 P6, // 4, 5
-    System.ArgIterator P7, // 6
-    System.TypedReference P8, // 7
-    RefLike P9, // 8
-    delegate*<void>[] P10);
+                class C<T> { }
+                static class C2 { }
+                ref struct RefLike{}
 
-";
+                unsafe record C(
+                    int* P1, // 1
+                    int*[] P2,
+                    C<int*[]> P3,
+                    delegate*<int, int> P4, // 2
+                    void P5, // 3
+                    C2 P6, // 4, 5
+                    System.ArgIterator P7, // 6
+                    System.TypedReference P8, // 7
+                    RefLike P9, // 8
+                    delegate*<void>[] P10)
+                {
+                    {{(withEquals ? "public virtual bool Equals(C c) => true;" : "")}}
+                    {{(withEquals ? "public override int GetHashCode() => 0;" : "")}}
+                }
+                """;
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(7,10): error CS8908: The type 'int*' may not be used for a field of a record.
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Mscorlib461);
+            DiagnosticDescription[] expected = [
+                // 0.cs(7,5): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     int* P1, // 1
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P1").WithArguments("int*").WithLocation(7, 10),
-                // 0.cs(10,25): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(7, 5),
+                // 0.cs(10,5): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
                 //     delegate*<int, int> P4, // 2
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P4").WithArguments("delegate*<int, int>").WithLocation(10, 25),
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<int, int>").WithArguments("delegate*<int, int>").WithLocation(10, 5),
                 // 0.cs(11,5): error CS1536: Invalid parameter type 'void'
                 //     void P5, // 3
                 Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(11, 5),
@@ -1271,12 +1276,15 @@ unsafe record C(
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 5),
                 // 0.cs(15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
                 //     RefLike P9, // 8
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)
-                );
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)];
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [Fact]
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66312")]
         public void RestrictedTypesAndPointerTypes_NominalMembers()
         {
             var src = @"
@@ -1299,14 +1307,14 @@ public unsafe record C
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(8,17): error CS8908: The type 'int*' may not be used for a field of a record.
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Mscorlib461);
+            DiagnosticDescription[] expected = [
+                // 0.cs(8,12): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     public int* f1; // 1
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f1").WithArguments("int*").WithLocation(8, 17),
-                // 0.cs(11,32): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(8, 12),
+                // 0.cs(11,12): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
                 //     public delegate*<int, int> f4; // 3
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f4").WithArguments("delegate*<int, int>").WithLocation(11, 32),
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<int, int>").WithArguments("delegate*<int, int>").WithLocation(11, 12),
                 // 0.cs(12,12): error CS0670: Field cannot have void type
                 //     public void f5; // 4
                 Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(12, 12),
@@ -1321,12 +1329,14 @@ public unsafe record C
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(15, 12),
                 // 0.cs(16,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
                 //     public RefLike f9; // 8
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12)
-                );
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12)];
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [Fact]
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66312")]
         public void RestrictedTypesAndPointerTypes_NominalMembers_AutoProperties()
         {
             var src = @"
@@ -1337,6 +1347,7 @@ public ref struct RefLike{}
 public unsafe record C
 {
     public int* f1 { get; set; } // 1
+    public int* f1_a { get => field; set; } // 1
     public int*[] f2 { get; set; }
     public C<int*[]> f3 { get; set; }
     public delegate*<int, int> f4 { get; set; } // 2
@@ -1349,34 +1360,40 @@ public unsafe record C
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyEmitDiagnostics(
-                // 0.cs(8,17): error CS8908: The type 'int*' may not be used for a field of a record.
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Mscorlib461);
+            DiagnosticDescription[] expected = [
+                // 0.cs(8,12): error CS8908: The type 'int*' may not be used for a field of a record.
                 //     public int* f1 { get; set; } // 1
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f1").WithArguments("int*").WithLocation(8, 17),
-                // 0.cs(11,32): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(8, 12),
+                // 0.cs(9,12): error CS8908: The type 'int*' may not be used for a field of a record.
+                //     public int* f1_a { get => field; set; } // 1
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "int*").WithArguments("int*").WithLocation(9, 12),
+                // 0.cs(12,12): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
                 //     public delegate*<int, int> f4 { get; set; } // 2
-                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f4").WithArguments("delegate*<int, int>").WithLocation(11, 32),
-                // 0.cs(12,17): error CS0547: 'C.f5': property or indexer cannot have void type
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "delegate*<int, int>").WithArguments("delegate*<int, int>").WithLocation(12, 12),
+                // 0.cs(13,17): error CS0547: 'C.f5': property or indexer cannot have void type
                 //     public void f5 { get; set; } // 3
-                Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "f5").WithArguments("C.f5").WithLocation(12, 17),
-                // 0.cs(13,12): error CS0722: 'C2': static types cannot be used as return types
+                Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "f5").WithArguments("C.f5").WithLocation(13, 17),
+                // 0.cs(14,12): error CS0722: 'C2': static types cannot be used as return types
                 //     public C2 f6 { get; set; } // 4, 5
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(13, 12),
-                // 0.cs(14,12): error CS0610: Field or property cannot be of type 'ArgIterator'
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(14, 12),
+                // 0.cs(15,12): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //     public System.ArgIterator f7 { get; set; } // 6
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 12),
-                // 0.cs(15,12): error CS0610: Field or property cannot be of type 'TypedReference'
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(15, 12),
+                // 0.cs(16,12): error CS0610: Field or property cannot be of type 'TypedReference'
                 //     public System.TypedReference f8 { get; set; } // 7
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(15, 12),
-                // 0.cs(16,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(16, 12),
+                // 0.cs(17,12): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
                 //     public RefLike f9 { get; set; } // 8
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(16, 12)
-                );
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(17, 12)];
+
+            comp.VerifyDiagnostics(expected);
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66312")]
         public void RestrictedTypesAndPointerTypes_PointerTypeAllowedForParameterAndProperty()
         {
             var src = @"
@@ -1423,8 +1440,61 @@ unsafe record C(int* P1, int*[] P2, C<int*[]> P3)
             CompileAndVerify(comp, expectedOutput: "P1 P2 P3 RAN", verify: Verification.Skipped /* pointers */);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        [Fact]
         [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66312")]
+        public void RestrictedTypesAndPointerTypes_PointerTypeAllowedForNestedTypes()
+        {
+            var src = @"
+class C<T> { }
+
+unsafe record C(int*[] P1)
+{
+    public unsafe static void Main()
+    {
+        var x = new C((int*[])null);
+        var x2 = x.P1;
+        System.Console.Write(""RAN"");
+    }
+}
+";
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugExe);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN", verify: Verification.Skipped /* pointers */);
+
+            verifier.VerifyIL("C.Equals(C)", """
+                {
+                  // Code size       55 (0x37)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  beq.s      IL_0035
+                  IL_0004:  ldarg.1
+                  IL_0005:  brfalse.s  IL_0032
+                  IL_0007:  ldarg.0
+                  IL_0008:  callvirt   "System.Type C.EqualityContract.get"
+                  IL_000d:  ldarg.1
+                  IL_000e:  callvirt   "System.Type C.EqualityContract.get"
+                  IL_0013:  call       "bool System.Type.op_Equality(System.Type, System.Type)"
+                  IL_0018:  brfalse.s  IL_0032
+                  IL_001a:  call       "System.Collections.Generic.EqualityComparer<int*[]> System.Collections.Generic.EqualityComparer<int*[]>.Default.get"
+                  IL_001f:  ldarg.0
+                  IL_0020:  ldfld      "int*[] C.<P1>k__BackingField"
+                  IL_0025:  ldarg.1
+                  IL_0026:  ldfld      "int*[] C.<P1>k__BackingField"
+                  IL_002b:  callvirt   "bool System.Collections.Generic.EqualityComparer<int*[]>.Equals(int*[], int*[])"
+                  IL_0030:  br.s       IL_0033
+                  IL_0032:  ldc.i4.0
+                  IL_0033:  br.s       IL_0036
+                  IL_0035:  ldc.i4.1
+                  IL_0036:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        [WorkItem(48115, "https://github.com/dotnet/roslyn/issues/48115")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66312")]
         public void RestrictedTypesAndPointerTypes_StaticFields()
         {
             var src = @"
@@ -1445,7 +1515,7 @@ public unsafe record C
 }
 ";
 
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Mscorlib461);
             comp.VerifyEmitDiagnostics(
                 // (12,22): error CS0723: Cannot declare a variable of static type 'C2'
                 //     public static C2 f6; // 1

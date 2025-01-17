@@ -24,7 +24,7 @@ internal static class SymbolInfoExtensions
     public static ImmutableArray<ISymbol> GetBestOrAllSymbols(this SymbolInfo info)
     {
         if (info.Symbol != null)
-            return ImmutableArray.Create(info.Symbol);
+            return [info.Symbol];
 
         if (info.CandidateSymbols.Contains(null!))
         {

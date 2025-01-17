@@ -49,6 +49,43 @@ public class InterceptorsTests : CSharpTestBase
 
     private static string GetAttributeArgs(InterceptableLocation location) => $@"{location.Version}, ""{location.Data}""";
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76641")]
+    public void UnsupportedWarningWave()
+    {
+        var source = ("""
+            C.M();
+
+            class C
+            {
+                public static void M() => throw null!;
+            }
+            """, "Program.cs");
+        var interceptors = $$"""
+            using System.Runtime.CompilerServices;
+            using System;
+            class D
+            {
+                [InterceptsLocation("Program.cs", 1, 3)]
+                public static void M() => Console.Write(1);
+            }
+            """;
+
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularWithInterceptors, options: TestOptions.DebugExe.WithWarningLevel(8));
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularWithInterceptors, options: TestOptions.DebugExe.WithWarningLevel(9));
+        comp.VerifyEmitDiagnostics(
+            // (5,6): warning CS9270: 'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)
+            //     [InterceptsLocation("Program.cs", 1, 3)]
+            Diagnostic(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, @"InterceptsLocation(""Program.cs"", 1, 3)").WithLocation(5, 6));
+
+        comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (5,6): warning CS9270: 'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)
+            //     [InterceptsLocation("Program.cs", 1, 3)]
+            Diagnostic(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, @"InterceptsLocation(""Program.cs"", 1, 3)").WithLocation(5, 6));
+    }
+
     [Fact]
     public void FeatureFlag()
     {
@@ -5214,6 +5251,46 @@ public static class S1Ext
             //     [InterceptsLocation("Program.cs", 5, 14)] // 1
             Diagnostic(ErrorCode.ERR_InterceptorNameNotInvoked, @"InterceptsLocation(""Program.cs"", 5, 14)").WithArguments("myDeconstructable").WithLocation(14, 6)
             );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76126")]
+    public void DisplayPathMapping_01()
+    {
+        var pathPrefix = PlatformInformation.IsWindows ? """C:\My\Machine\Specific\Path\""" : "/My/Machine/Specific/Path/";
+        var path = pathPrefix + "Program.cs";
+        var resolver = new SourceFileResolver([], null, [new KeyValuePair<string, string>(pathPrefix, "/_/")]);
+        var options = TestOptions.DebugExe.WithSourceReferenceResolver(resolver);
+
+        var source = ("""
+            C c = new C();
+            c.M();
+            """, path);
+        var comp = CreateCompilation(source, options: options);
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var node = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+        var location = model.GetInterceptableLocation(node)!;
+        Assert.Equal("/_/Program.cs(2,3)", location.GetDisplayLocation());
+
+        var interceptors = $$"""
+            using System.Runtime.CompilerServices;
+            using System;
+
+            class C
+            {
+                public void M() => throw null!;
+
+                [InterceptsLocation({{GetAttributeArgs(location)}})]
+                public void Interceptor() => Console.Write(1);
+            }
+            """;
+
+        var verifier = CompileAndVerify(
+            [source, interceptors, s_attributesSource],
+            parseOptions: RegularWithInterceptors,
+            options: options,
+            expectedOutput: "1");
+        verifier.VerifyDiagnostics();
     }
 
     [Fact]
