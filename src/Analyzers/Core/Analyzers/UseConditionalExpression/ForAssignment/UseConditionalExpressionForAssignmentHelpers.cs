@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression;
 
@@ -75,8 +78,24 @@ internal static class UseConditionalExpressionForAssignmentHelpers
             return false;
 
         isRef = trueAssignment?.IsRef == true;
-        return UseConditionalExpressionHelpers.CanConvert(
-            syntaxFacts, ifOperation, trueStatement, falseStatement);
+        if (!UseConditionalExpressionHelpers.CanConvert(
+                syntaxFacts, ifOperation, trueStatement, falseStatement))
+        {
+            return false;
+        }
+
+        // Can't convert `if (x != null) x.y = ...` into `x.y = x != null ? ... : ...` as the initial `x.y` reference
+        // will happen first and can throw.
+        foreach (var nullCheckedExpression in GetNullCheckedExpressions(ifOperation.Condition))
+        {
+            if (ContainsReference(nullCheckedExpression, trueAssignment?.Target.Syntax) ||
+                ContainsReference(nullCheckedExpression, falseAssignment?.Target.Syntax))
+            {
+                return false;
+            }
+        }
+
+        return true;
 
         static bool AreEqualOrHaveImplicitConversion(ITypeSymbol? firstType, ITypeSymbol? secondType, Compilation compilation)
         {
@@ -132,6 +151,14 @@ internal static class UseConditionalExpressionForAssignmentHelpers
 
             return false;
         }
+
+        static IEnumerable<SyntaxNode> GetNullCheckedExpressions(IOperation operation)
+        {
+            yield break;
+        }
+
+        bool ContainsReference(SyntaxNode nullCheckedExpression, SyntaxNode? within)
+            => within?.DescendantNodes().Any(n => syntaxFacts.AreEquivalent(n, nullCheckedExpression)) is true;
     }
 
     private static bool TryGetAssignmentOrThrow(

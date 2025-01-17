@@ -2144,4 +2144,215 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
             }
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck1()
+    {
+        await TestMissingAsync("""
+            using System;
+
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test != null && test.Field == null)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck2()
+    {
+        await TestMissingAsync("""
+            using System;
+
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is not null && test.Field is null)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck3()
+    {
+        await TestMissingAsync("""
+            using System;
+
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is { })
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck4()
+    {
+        await TestMissingAsync("""
+            using System;
+
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is { } x)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck5()
+    {
+        await TestMissingAsync("""
+            using System;
+
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is Test)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck6()
+    {
+        await TestMissingAsync("""
+            using System;
+
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is Test t)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck7()
+    {
+        await TestInRegularAndScript1Async("""
+            using System;
+
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    [|if|] (test.Field == null)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """, """
+            using System;
+
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    test.Field = test.Field == null ? string.Empty : throw new InvalidOperationException();
+                }
+
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
 }
