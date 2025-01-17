@@ -24,18 +24,20 @@ internal static class CSharpUseConditionalExpressionHelpers
         return SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
     }
 
-    public static ConditionalExpressionSyntax UpdateConditionalExpression(
+    public static (ConditionalExpressionSyntax conditional, bool makeMultiLine) UpdateConditionalExpression(
         IConditionalOperation originalIfStatement,
-        ConditionalExpressionSyntax conditionalExpression)
+        ConditionalExpressionSyntax conditional)
     {
         var ifStatement = (IfStatementSyntax)originalIfStatement.Syntax;
 
-        if (ifStatement.Else?.ElseKeyword.LeadingTrivia.Any(t => t.IsSingleOrMultiLineComment()) is true)
-        {
-            conditionalExpression = conditionalExpression.WithColonToken(
-                ColonToken.WithPrependedLeadingTrivia(ifStatement.Else.ElseKeyword.LeadingTrivia));
-        }
+        // Move any comments on the `else` keyword to then be on the `:` keyword.  In that case, we definitely want to
+        // make this multiline.
+        if (ifStatement.Else is null || !ifStatement.Else.ElseKeyword.LeadingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+            return (conditional, makeMultiLine: false);
 
-        return conditionalExpression;
+        var finalConditional = conditional
+            .WithColonToken(ColonToken.WithPrependedLeadingTrivia(ifStatement.Else.ElseKeyword.LeadingTrivia))
+            .WithWhenTrue(conditional.WhenTrue.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));
+        return (finalConditional, makeMultiLine: true);
     }
 }

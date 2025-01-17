@@ -63,6 +63,6 @@ internal sealed partial class CSharpUseConditionalExpressionForReturnCodeFixProv
     protected override ISyntaxFormatting SyntaxFormatting
         => CSharpSyntaxFormatting.Instance;
 
-    protected override ConditionalExpressionSyntax UpdateConditionalExpression(IConditionalOperation originalIfStatement, ConditionalExpressionSyntax conditionalExpression)
-        => CSharpUseConditionalExpressionHelpers.UpdateConditionalExpression(originalIfStatement, conditionalExpression);
+    protected override (ConditionalExpressionSyntax conditional, bool makeMultiLine) UpdateConditionalExpression(IConditionalOperation originalIfStatement, ConditionalExpressionSyntax conditional)
+        => CSharpUseConditionalExpressionHelpers.UpdateConditionalExpression(originalIfStatement, conditional);
 }
