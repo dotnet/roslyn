@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -88,8 +87,11 @@ internal static class UseConditionalExpressionForAssignmentHelpers
         // will happen first and can throw.
         foreach (var nullCheckedExpression in GetNullCheckedExpressions(ifOperation.Condition))
         {
-            if (ContainsReference(nullCheckedExpression, trueAssignment?.Target.Syntax) ||
-                ContainsReference(nullCheckedExpression, falseAssignment?.Target.Syntax))
+            if (nullCheckedExpression is { Type.IsValueType: true })
+                continue;
+
+            if (ContainsReference(nullCheckedExpression.Syntax, trueAssignment?.Target.Syntax) ||
+                ContainsReference(nullCheckedExpression.Syntax, falseAssignment?.Target.Syntax))
             {
                 return false;
             }
@@ -152,35 +154,31 @@ internal static class UseConditionalExpressionForAssignmentHelpers
             return false;
         }
 
-        static IEnumerable<SyntaxNode> GetNullCheckedExpressions(IOperation operation)
+        static IEnumerable<IOperation> GetNullCheckedExpressions(IOperation operation)
         {
             foreach (var current in operation.DescendantsAndSelf())
             {
                 // x != null  is a null check of x
                 if (current is IBinaryOperation { OperatorKind: BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals } binaryOperation)
                 {
-                    if (binaryOperation.LeftOperand.ConstantValue is { HasValue: true, Value: null } &&
-                        !IsValueType(binaryOperation.RightOperand.Type))
+                    if (binaryOperation.LeftOperand.ConstantValue is { HasValue: true, Value: null })
                     {
-                        yield return binaryOperation.RightOperand.Syntax;
+                        yield return binaryOperation.RightOperand;
                     }
-                    else if (binaryOperation.RightOperand.ConstantValue is { HasValue: true, Value: null } &&
-                             !IsValueType(binaryOperation.LeftOperand.Type))
+                    else if (binaryOperation.RightOperand.ConstantValue is { HasValue: true, Value: null })
                     {
-                        yield return binaryOperation.LeftOperand.Syntax;
+                        yield return binaryOperation.LeftOperand;
                     }
                 }
-                else if (current is IIsPatternOperation isPatternOperation &&
-                         !IsValueType(isPatternOperation.Value.Type))
+                else if (current is IIsPatternOperation isPatternOperation)
                 {
                     // x is Y y    is a null check of x
-                    yield return isPatternOperation.Value.Syntax;
+                    yield return isPatternOperation.Value;
                 }
-                else if (current is IIsTypeOperation isTypeOperation &&
-                         !IsValueType(isTypeOperation.ValueOperand.Type))
+                else if (current is IIsTypeOperation isTypeOperation)
                 {
                     // x is Y    is a null check of x
-                    yield return isTypeOperation.ValueOperand.Syntax;
+                    yield return isTypeOperation.ValueOperand;
                 }
             }
 
@@ -189,9 +187,6 @@ internal static class UseConditionalExpressionForAssignmentHelpers
 
         bool ContainsReference(SyntaxNode nullCheckedExpression, SyntaxNode? within)
             => within?.DescendantNodes().Any(n => syntaxFacts.AreEquivalent(n, nullCheckedExpression)) is true;
-
-        static bool IsValueType(ITypeSymbol? type)
-            => type?.IsValueType is true;
     }
 
     private static bool TryGetAssignmentOrThrow(
