@@ -70,8 +70,6 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.LanguageServices.LiveShare.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.LanguageServer.Protocol.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CommonLanguageServerProtocol.Framework.dll" />
-    <!-- ServiceHub assets are added by msbuild target -->
-    <!--#SERVICEHUB_ASSETS#-->
   </Assets>
   <Prerequisites>
     <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />
