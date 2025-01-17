@@ -14119,4 +14119,77 @@ public sealed class RemoveUnnecessaryCastTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60859")]
+    public async Task UnnecessaryWithinConditionalBranch1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class IssueClass
+                {
+                    int ID;
+
+                    public object ConvertFieldValueForStorage(object value)
+                    {
+                        return value is IssueClass issue ? (decimal)issue.ID : [|(object)|]-1m;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class IssueClass
+                {
+                    int ID;
+                
+                    public object ConvertFieldValueForStorage(object value)
+                    {
+                        return value is IssueClass issue ? (decimal)issue.ID : -1m;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60859")]
+    public async Task UnnecessaryWithinConditionalBranch2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class IssueClass
+                {
+                    int ID;
+
+                    public void ConvertFieldValueForStorage(object value)
+                    {
+                        object o = value is IssueClass issue ? (decimal)issue.ID : [|(object)|]-1m;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class IssueClass
+                {
+                    int ID;
+                
+                    public void ConvertFieldValueForStorage(object value)
+                    {
+                        object o = value is IssueClass issue ? (decimal)issue.ID : -1m;
+                    }
+                }
+                """,
+            FixedState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(7,48): hidden IDE0004: Cast is redundant.
+                    VerifyCS.Diagnostic().WithSpan(7, 48, 7, 57).WithSpan(7, 48, 7, 65),
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+        }.RunAsync();
+    }
 }
