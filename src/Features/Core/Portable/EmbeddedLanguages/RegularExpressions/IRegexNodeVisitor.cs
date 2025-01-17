@@ -15,7 +15,6 @@ internal interface IRegexNodeVisitor
     void Visit(RegexNegatedCharacterClassNode node);
     void Visit(RegexCharacterClassRangeNode node);
     void Visit(RegexCharacterClassSubtractionNode node);
-    void Visit(RegexPosixPropertyNode node);
     void Visit(RegexWildcardNode node);
     void Visit(RegexZeroOrMoreQuantifierNode node);
     void Visit(RegexOneOrMoreQuantifierNode node);
