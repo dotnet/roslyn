@@ -784,8 +784,11 @@ public sealed class C
 
             var tree1 = comp1.SyntaxTrees.Single();
             var model1 = comp1.GetSemanticModel(tree1);
-            var conditionalExpression1 = tree1.GetRoot().DescendantNodesAndSelf().OfType<ConditionalExpressionSyntax>().Single();
-            var typeInfo1 = model1.GetTypeInfo(conditionalExpression1);
+            var returnStatement1 = tree1.GetRoot().DescendantNodesAndSelf().OfType<ReturnStatementSyntax>().Single();
+
+            // This first test validates that if the original code had a return+conditional written as above, that the
+            // compiler properly determines both its type (decimal) and the type it is converted to (object).
+            var typeInfo1 = model1.GetTypeInfo(returnStatement1.Expression);
             Assert.Equal(SpecialType.System_Decimal, typeInfo1.Type.SpecialType);
             Assert.Equal(SpecialType.System_Object, typeInfo1.ConvertedType.SpecialType);
 
@@ -805,10 +808,14 @@ public sealed class C
             var tree2 = comp2.SyntaxTrees.Single();
             var model2 = comp2.GetSemanticModel(tree2);
             var returnStatement2 = tree2.GetRoot().DescendantNodesAndSelf().OfType<ReturnStatementSyntax>().Single();
-            var newReturnStatement2 = (ReturnStatementSyntax)SyntaxFactory.ParseStatement("return value is IssueClass issue ? (decimal)issue.ID : -1m;");
+            var newReturnStatement2 = (ReturnStatementSyntax)SyntaxFactory.ParseStatement(returnStatement1.ToFullString());
             Assert.True(model2.TryGetSpeculativeSemanticModel(
                 returnStatement2.Position, newReturnStatement2, out var speculativeModel2));
 
+            // However, when we try to bind the same return-statement from the first example, in a speculative model
+            // produced from the second, we do *not* get the same results.  Here, the 'converted type' is seen as
+            // decimal.  So the compiler isn't properly figuring out the conversion that needs to happen between the
+            // conditional expression here and the 'object' return type of the method.
             var typeInfo2 = speculativeModel2.GetTypeInfo(newReturnStatement2.Expression);
             Assert.Equal(SpecialType.System_Decimal, typeInfo2.Type.SpecialType);
             Assert.Equal(SpecialType.System_Object, typeInfo2.ConvertedType.SpecialType);
