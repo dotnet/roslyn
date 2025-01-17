@@ -218,3 +218,58 @@ namespace Microsoft.CodeAnalysis;
 // Previously, sometimes allowed. Now, CS9271
 public class EmbeddedAttribute : Attribute {}
 ```
+
+## Expression `field` in a property accessor refers to synthesized backing field
+
+***Introduced in Visual Studio 2022 version 17.12***
+
+The expression `field`, when used within a property accessor, refers to a synthesized backing field for the property.
+
+The warning CS9258 is reported when the identifier would have bound to a different symbol with language version 13 or earlier.
+
+To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+Alternatively, rename the existing member and the reference to that member to avoid a conflict with `field`.
+
+```csharp
+class MyClass
+{
+    private int field = 0;
+
+    public object Property
+    {
+        get
+        {
+            // warning CS9258: The 'field' keyword binds to a synthesized backing field for the property.
+            // To avoid generating a synthesized backing field, and to refer to the existing member,
+            // use 'this.field' or '@field' instead.
+            return field;
+        }
+    }
+}
+```
+
+## Variable named `field` disallowed in a property accessor
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+The expression `field`, when used within a property accessor, refers to a synthesized backing field for the property.
+
+The error CS9272 is reported when a local, or a parameter of a nested function, with the name `field` is declared in a property accessor.
+
+To avoid the error, rename the variable, or use `@field` in the declaration.
+
+```csharp
+class MyClass
+{
+    public object Property
+    {
+        get
+        {
+            // error CS9272: 'field' is a keyword within a property accessor.
+            // Rename the variable or use the identifier '@field' instead.
+            int field = 0;
+            return @field;
+        }
+    }
+}
+```
