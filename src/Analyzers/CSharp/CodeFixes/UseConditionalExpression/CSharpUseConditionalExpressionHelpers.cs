@@ -8,9 +8,12 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
+
+using static CSharpSyntaxTokens;
 
 internal static class CSharpUseConditionalExpressionHelpers
 {
@@ -21,22 +24,18 @@ internal static class CSharpUseConditionalExpressionHelpers
         return SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
     }
 
-    public static ConditionalExpressionSyntax ConditionalExpression(
+    public static ConditionalExpressionSyntax UpdateConditionalExpression(
         IConditionalOperation originalIfStatement,
-        ExpressionSyntax syntaxNode,
-        ExpressionSyntax trueExpression,
-        ExpressionSyntax falseExpression)
+        ConditionalExpressionSyntax conditionalExpression)
     {
         var ifStatement = (IfStatementSyntax)originalIfStatement.Syntax;
 
-        var conditionalExpressionSyntax = (Condit CSharpSyntaxGeneratorInternal.Instance.ConditionalExpression(
-            syntaxNode,
-            trueExpression,
-            falseExpression);
-
         if (ifStatement.Else?.ElseKeyword.LeadingTrivia.Any(t => t.IsSingleOrMultiLineComment()) is true)
         {
-            conditionalExpressionSyntax = conditionalExpressionSyntax.
+            conditionalExpression = conditionalExpression.WithColonToken(
+                ColonToken.WithPrependedLeadingTrivia(ifStatement.Else.ElseKeyword.LeadingTrivia));
         }
+
+        return conditionalExpression;
     }
 }

@@ -28,17 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
 
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
-        Protected Overrides Function ConditionalExpression(
-                originalIfStatement As IConditionalOperation,
-                syntaxNode As ExpressionSyntax,
-                trueExpression As ExpressionSyntax,
-                falseExpression As ExpressionSyntax) As TernaryConditionalExpressionSyntax
-            Return DirectCast(VisualBasicSyntaxGeneratorInternal.Instance.ConditionalExpression(
-                syntaxNode,
-                trueExpression,
-                falseExpression), TernaryConditionalExpressionSyntax)
-        End Function
-
         Protected Overrides Function ConvertToExpression(throwOperation As IThrowOperation) As ExpressionSyntax
             ' VB does not have throw expressions
             Throw ExceptionUtilities.Unreachable

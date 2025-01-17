@@ -60,6 +60,6 @@ internal sealed class CSharpUseConditionalExpressionForAssignmentCodeFixProvider
     protected override ISyntaxFormatting SyntaxFormatting
         => CSharpSyntaxFormatting.Instance;
 
-    protected override ConditionalExpressionSyntax ConditionalExpression(IConditionalOperation originalIfStatement, ExpressionSyntax syntaxNode, ExpressionSyntax trueExpression, ExpressionSyntax falseExpression)
-    => CSharpUseConditionalExpressionHelpers.ConditionalExpression(originalIfStatement, syntaxNode, trueExpression, falseExpression);
+    protected override ConditionalExpressionSyntax UpdateConditionalExpression(IConditionalOperation originalIfStatement, ConditionalExpressionSyntax conditionalExpression)
+        => CSharpUseConditionalExpressionHelpers.UpdateConditionalExpression(originalIfStatement, conditionalExpression);
 }

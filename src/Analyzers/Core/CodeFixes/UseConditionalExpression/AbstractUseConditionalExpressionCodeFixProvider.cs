@@ -37,9 +37,6 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
     protected abstract TExpressionSyntax ConvertToExpression(IThrowOperation throwOperation);
     protected abstract TStatementSyntax WrapWithBlockIfAppropriate(TIfStatementSyntax ifStatement, TStatementSyntax statement);
 
-    protected abstract TConditionalExpressionSyntax ConditionalExpression(
-        IConditionalOperation originalIfStatement, TExpressionSyntax syntaxNode, TExpressionSyntax trueExpression, TExpressionSyntax falseExpression);
-
     protected abstract Task FixOneAsync(
         Document document, Diagnostic diagnostic,
         SyntaxEditor editor, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken);
@@ -107,11 +104,11 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         trueExpression = WrapReturnExpressionIfNecessary(trueExpression, trueStatement);
         falseExpression = WrapReturnExpressionIfNecessary(falseExpression, falseStatement);
 
-        var conditionalExpression = ConditionalExpression(
-            ifOperation,
+        var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
             condition.WithoutTrivia(),
             trueExpression,
             falseExpression);
+        conditionalExpression = UpdateConditionalExpression(ifOperation, conditionalExpression);
 
         conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
         var makeMultiLine = await MakeMultiLineAsync(
@@ -124,6 +121,12 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         }
 
         return MakeRef(generatorInternal, isRef, conditionalExpression);
+    }
+
+    protected virtual TConditionalExpressionSyntax UpdateConditionalExpression(
+        IConditionalOperation originalIfStatement, TConditionalExpressionSyntax conditionalExpression)
+    {
+        return conditionalExpression;
     }
 
     protected virtual TExpressionSyntax WrapIfStatementIfNecessary(IConditionalOperation operation)

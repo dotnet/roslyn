@@ -10,7 +10,6 @@ Microsoft.CodeAnalysis.CompilationOutputInfo.GeneratedFilesOutputDirectory.get -
 Microsoft.CodeAnalysis.CompilationOutputInfo.WithGeneratedFilesOutputDirectory(string path) -> Microsoft.CodeAnalysis.CompilationOutputInfo
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.BitwiseOrExpression(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.CastExpression(Microsoft.CodeAnalysis.SyntaxNode type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConditionalExpression(Microsoft.CodeAnalysis.SyntaxNode condition, Microsoft.CodeAnalysis.SyntaxNode whenTrue, Microsoft.CodeAnalysis.SyntaxNode whenFalse) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.ConvertExpression(Microsoft.CodeAnalysis.SyntaxNode type, Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultExpression(Microsoft.CodeAnalysis.ITypeSymbol type) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultExpression(Microsoft.CodeAnalysis.SyntaxNode type) -> Microsoft.CodeAnalysis.SyntaxNode

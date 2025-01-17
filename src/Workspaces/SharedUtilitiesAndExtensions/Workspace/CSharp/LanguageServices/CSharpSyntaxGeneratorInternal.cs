@@ -337,7 +337,4 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
 
     public override SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression)
         => SyntaxFactory.CastExpression((TypeSyntax)type, (ExpressionSyntax)Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
-
-    public override SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse)
-        => SyntaxFactory.ConditionalExpression((ExpressionSyntax)Parenthesize(condition), (ExpressionSyntax)Parenthesize(whenTrue), (ExpressionSyntax)Parenthesize(whenFalse));
 }

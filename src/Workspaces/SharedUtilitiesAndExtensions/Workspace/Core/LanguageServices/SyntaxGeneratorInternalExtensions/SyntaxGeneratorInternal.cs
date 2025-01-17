@@ -155,6 +155,4 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
     public abstract SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression);
     public SyntaxNode ConvertExpression(ITypeSymbol type, SyntaxNode expression)
         => ConvertExpression(TypeExpression(type), expression);
-
-    public abstract SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse);
 }

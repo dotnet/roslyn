@@ -2130,8 +2130,7 @@ public abstract class SyntaxGenerator : ILanguageService
     /// <summary>
     /// Creates an expression that denotes a conditional evaluation operation.
     /// </summary>
-    public SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse)
-        => this.SyntaxGeneratorInternal.ConditionalExpression(condition, whenTrue, whenFalse);
+    public abstract SyntaxNode ConditionalExpression(SyntaxNode condition, SyntaxNode whenTrue, SyntaxNode whenFalse);
 
     /// <summary>
     /// Creates an expression that denotes a conditional access operation. Use <see

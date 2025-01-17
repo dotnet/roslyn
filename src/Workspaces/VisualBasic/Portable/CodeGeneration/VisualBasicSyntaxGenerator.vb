@@ -132,6 +132,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.AndExpression(Parenthesize(left), Parenthesize(right))
         End Function
 
+        Public Overrides Function ConditionalExpression(condition As SyntaxNode, whenTrue As SyntaxNode, whenFalse As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.TernaryConditionalExpression(
+                DirectCast(condition, ExpressionSyntax),
+                DirectCast(whenTrue, ExpressionSyntax),
+                DirectCast(whenFalse, ExpressionSyntax))
+        End Function
+
         Public Overrides Function TypedConstantExpression(value As TypedConstant) As SyntaxNode
             Return ExpressionGenerator.GenerateExpression(Me, value)
         End Function
