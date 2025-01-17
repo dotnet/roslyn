@@ -84,23 +84,8 @@ internal sealed class SolutionAnalyzerConfigOptionsUpdater(IGlobalOptionService 
                             }
                         }
 
-                        // update changed values:
-                        var configName = key.Option.Definition.ConfigName;
-                        if (value is NamingStylePreferences preferences)
-                        {
-                            NamingStylePreferencesEditorConfigSerializer.WriteNamingStylePreferencesToEditorConfig(
-                                preferences.SymbolSpecifications,
-                                preferences.NamingStyles,
-                                preferences.Rules.NamingRules,
-                                language,
-                                entryWriter: (name, value) => lazyBuilder[name] = value,
-                                triviaWriter: null,
-                                setPrioritiesToPreserveOrder: true);
-                        }
-                        else
-                        {
-                            lazyBuilder[configName] = key.Option.Definition.Serializer.Serialize(value);
-                        }
+                        // update changed value:
+                        EditorConfigValueSerializer.Serialize(lazyBuilder, key.Option, language, value);
                     }
 
                     if (lazyBuilder != null)

@@ -33,11 +33,7 @@ internal sealed class ClientFallbackAnalyzerConfigOptionsProvider(EditorConfigOp
             foreach (var option in options)
             {
                 var value = globalOptions.GetOption<object>(new OptionKey2(option, option.IsPerLanguage ? language : null));
-
-                var configName = option.Definition.ConfigName;
-                var configValue = option.Definition.Serializer.Serialize(value);
-
-                builder.Add(configName, configValue);
+                EditorConfigValueSerializer.Serialize(builder, option, language, value);
             }
         }
 
