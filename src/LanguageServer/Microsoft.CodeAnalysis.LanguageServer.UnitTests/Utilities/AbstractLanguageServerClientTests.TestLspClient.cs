@@ -249,31 +249,20 @@ public partial class AbstractLanguageServerClientTests
             if (Interlocked.CompareExchange(ref _disposed, value: 1, comparand: 0) != 0)
                 return;
 
-            // We will call Shutdown in a try/catch; if the process has gone bad it's possible the connection is no longer functioning.
-            try
+            if (!_process.HasExited)
             {
-                if (!_process.HasExited)
-                {
-                    _logger.LogTrace("Sending a Shutdown request to the LSP.");
+                _logger.LogTrace("Sending a Shutdown request to the LSP.");
 
-                    await _clientRpc.InvokeAsync(Methods.ShutdownName);
-                    await _clientRpc.NotifyAsync(Methods.ExitName);
+                await _clientRpc.InvokeAsync(Methods.ShutdownName);
+                await _clientRpc.NotifyAsync(Methods.ExitName);
 
-                    await _clientRpc.Completion;
-                }
-
-                _clientRpc.Dispose();
-                _process.Dispose();
-
-                _logger.LogTrace("Process shut down.");
+                await _clientRpc.Completion;
             }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Exception while shutting down the LSP process.");
 
-                // Process may have gone bad, so not much else we can do.
-                _process.Kill();
-            }
+            _clientRpc.Dispose();
+            _process.Dispose();
+
+            _logger.LogTrace("Process shut down.");
         }
     }
 }
