@@ -154,6 +154,21 @@ internal static class UseConditionalExpressionForAssignmentHelpers
 
         static IEnumerable<SyntaxNode> GetNullCheckedExpressions(IOperation operation)
         {
+            foreach (var current in operation.DescendantsAndSelf())
+            {
+                if (current is IBinaryOperation { OperatorKind: BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals } binaryOperation)
+                {
+                    if (binaryOperation.LeftOperand.ConstantValue is { HasValue: true, Value: null })
+                    {
+                        yield return binaryOperation.RightOperand.Syntax;
+                    }
+                    else if (binaryOperation.RightOperand.ConstantValue is { HasValue: true, Value: null })
+                    {
+                        yield return binaryOperation.LeftOperand.Syntax;
+                    }
+                }
+            }
+
             yield break;
         }
 
