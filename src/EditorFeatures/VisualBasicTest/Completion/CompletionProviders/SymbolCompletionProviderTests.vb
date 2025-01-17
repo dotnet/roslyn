@@ -8305,6 +8305,82 @@ End Class"
                 matchingFilters:=New List(Of CompletionFilter) From {FilterSet.MethodFilter})
         End Function
 
+        <InlineData("IFoo", New String() {"Foo", "FooDerived", "FooGeneric"})>
+        <InlineData("IFoo()", New String() {"IFoo", "IFooGeneric", "Foo", "FooAbstract", "FooDerived", "FooGeneric"})>
+        <InlineData("IFooGeneric(Of Integer)", New String() {"FooGeneric"})>
+        <InlineData("IFooGeneric(Of Integer)()", New String() {"IFooGeneric", "FooGeneric"})>
+        <InlineData("IOther", New String() {})>
+        <InlineData("Foo", New String() {"Foo"})>
+        <InlineData("FooAbstract", New String() {"FooDerived"})>
+        <InlineData("FooDerived", New String() {"FooDerived"})>
+        <InlineData("FooGeneric(Of Integer)", New String() {"FooGeneric"})>
+        <InlineData("object", New String() {"C", "Foo", "FooDerived", "FooGeneric"})>
+        <Theory, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
+        Public Async Function TestTargetTypeFilter_InCreationContext(targetType As String, expectedItems As String()) As Task
+            ShowTargetTypedCompletionFilter = True
+            Dim markup =
+$"Interface IFoo
+End Interface
+
+Interface IFooGeneric(Of T)
+    Inherits IFoo
+End Interface
+
+Interface IOther
+End Interface
+
+Class Foo
+    Implements IFoo
+End Class
+
+MustInherit Class FooAbstract
+    Implements IFoo
+End Class
+
+Class FooDerived
+    Inherits FooAbstract
+End Class
+
+Class FooGeneric(Of T)
+    Implements IFooGeneric(Of T)
+End Class
+
+Class C
+    Sub M1(arg As {targetType})
+    End Sub
+
+    Sub M2()
+        M1(New $$)
+    End Sub
+End Class"
+            Dim types As New List(Of (Name As String, IsClass As Boolean, DisplaySuffix As String)) From {
+                ("IFoo", False, Nothing),
+                ("IFooGeneric", False, "(Of …)"),
+                ("IOther", False, Nothing),
+                ("Foo", True, Nothing),
+                ("FooAbstract", True, Nothing),
+                ("FooDerived", True, Nothing),
+                ("FooGeneric", True, "(Of …)"),
+                ("C", True, Nothing)
+            }
+
+            For Each item In types.Where(Function(t) t.IsClass AndAlso expectedItems.Contains(t.Name))
+                Await VerifyItemExistsAsync(markup, item.Name, matchingFilters:=New List(Of CompletionFilter) From {FilterSet.ClassFilter, FilterSet.TargetTypedFilter}, displayTextSuffix:=item.DisplaySuffix)
+            Next
+
+            For Each item In types.Where(Function(t) t.IsClass AndAlso Not expectedItems.Contains(t.Name))
+                Await VerifyItemExistsAsync(markup, item.Name, matchingFilters:=New List(Of CompletionFilter) From {FilterSet.ClassFilter}, displayTextSuffix:=item.DisplaySuffix)
+            Next
+
+            For Each item In types.Where(Function(t) Not t.IsClass AndAlso expectedItems.Contains(t.Name))
+                Await VerifyItemExistsAsync(markup, item.Name, matchingFilters:=New List(Of CompletionFilter) From {FilterSet.InterfaceFilter, FilterSet.TargetTypedFilter}, displayTextSuffix:=item.DisplaySuffix)
+            Next
+
+            For Each item In types.Where(Function(t) Not t.IsClass AndAlso Not expectedItems.Contains(t.Name))
+                Await VerifyItemExistsAsync(markup, item.Name, matchingFilters:=New List(Of CompletionFilter) From {FilterSet.InterfaceFilter}, displayTextSuffix:=item.DisplaySuffix)
+            Next
+        End Function
+
         <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
         Public Async Function TestEnumBaseList1(underlyingType As String) As Task
             Dim markup = "Enum MyEnum As $$"

@@ -53,7 +53,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         // When searching for identifiers of type C, exclude the symbol for the `C` type itself except in an object creation context.
         if (symbol.Kind == SymbolKind.NamedType)
         {
-            return ShouldIncludeInTargetTypedCompletionListInNamedType(symbol, syntaxContext, typeConvertibilityCache);
+            return ShouldIncludeInTargetTypedCompletionListForNamedType((INamedTypeSymbol)symbol, syntaxContext, typeConvertibilityCache);
         }
 
         // Avoid offering members of object since they too commonly show up and are infrequently desired.
@@ -88,57 +88,56 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         return typeConvertibilityCache[type];
     }
 
-    private static bool ShouldIncludeInTargetTypedCompletionListInNamedType(ISymbol symbol, TSyntaxContext syntaxContext, Dictionary<ITypeSymbol, bool> typeConvertibilityCache)
+    private static bool ShouldIncludeInTargetTypedCompletionListForNamedType(INamedTypeSymbol symbol, TSyntaxContext syntaxContext, Dictionary<ITypeSymbol, bool> typeConvertibilityCache)
     {
         // Only create target typed completion entries in the object creation context
         if (!syntaxContext.IsObjectCreationTypeContext)
             return false;
 
-        if (symbol.GetSymbolType() is not ITypeSymbol type)
-            return false;
-
-        if (typeConvertibilityCache.TryGetValue(type, out var isConvertible))
-            return isConvertible;
-
-        for (var i = 0; i < syntaxContext.InferredTypes.Length; i++)
+        if (!typeConvertibilityCache.TryGetValue(symbol, out var isConvertible))
         {
-            var inferredType = syntaxContext.InferredTypes[i];
-            if (inferredType.IsArrayType())
-            {
-                while (inferredType is IArrayTypeSymbol arrayType)
-                    inferredType = arrayType.ElementType;
-            }
-            else
-            {
-                // Abstract types should not be offered in target typed completion except in array contexts
-                if (type.IsAbstract)
-                    continue;
-            }
+            isConvertible = IsConvertible(symbol, syntaxContext);
 
-            if (inferredType.IsInterfaceType())
-            {
-                if (type == inferredType.OriginalDefinition || type.AllInterfaces.Any(static (typeInterface, inferredType) => typeInterface.OriginalDefinition == inferredType.OriginalDefinition, inferredType))
-                {
-                    isConvertible = true;
-                    break;
-                }
-            }
-            else
-            {
-                var typeToCheck = type;
-                while (typeToCheck != null && typeToCheck.OriginalDefinition != inferredType.OriginalDefinition)
-                    typeToCheck = typeToCheck.BaseType;
-
-                if (typeToCheck != null)
-                {
-                    isConvertible = true;
-                    break;
-                }
-            }
+            typeConvertibilityCache[symbol] = isConvertible;
         }
 
-        typeConvertibilityCache[type] = isConvertible;
         return isConvertible;
+
+        static bool IsConvertible(INamedTypeSymbol symbol, TSyntaxContext syntaxContext)
+        {
+            for (var i = 0; i < syntaxContext.InferredTypes.Length; i++)
+            {
+                var inferredType = syntaxContext.InferredTypes[i];
+                if (inferredType.IsArrayType())
+                {
+                    while (inferredType is IArrayTypeSymbol arrayType)
+                        inferredType = arrayType.ElementType;
+                }
+                else
+                {
+                    // Abstract types should not be offered in target typed completion except in array contexts
+                    if (symbol.IsAbstract)
+                        continue;
+                }
+
+                if (inferredType.IsInterfaceType())
+                {
+                    if (Equals(symbol, inferredType.OriginalDefinition) || symbol.AllInterfaces.Any(static (typeInterface, inferredType) => Equals(typeInterface.OriginalDefinition, inferredType.OriginalDefinition), inferredType))
+                        return true;
+                }
+                else
+                {
+                    var typeToCheck = symbol;
+                    while (typeToCheck != null && !Equals(typeToCheck.OriginalDefinition, inferredType.OriginalDefinition))
+                        typeToCheck = typeToCheck.BaseType;
+
+                    if (typeToCheck != null)
+                        return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     /// <summary>

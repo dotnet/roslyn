@@ -12798,7 +12798,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData("Foo", new string[] { "Foo" })]
     [InlineData("FooAbstract", new string[] { "FooDerived" })]
     [InlineData("FooDerived", new string[] { "FooDerived" })]
-    [InlineData("FooGeneric<int>", new string[] { "FooGeneric", })]
+    [InlineData("FooGeneric<int>", new string[] { "FooGeneric" })]
     [InlineData("object", new string[] { "C", "Foo", "FooDerived", "FooGeneric" })]
     [Theory, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
     public async Task TestTargetTypeCompletionInCreationContext(string targetType, string[] expectedItems)
@@ -12807,15 +12807,15 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
         var markup =
             $$"""
-            public interface IFoo { }
-            public interface IFooGeneric<T> : IFoo { }
-            public interface IOther { }
-            public class Foo : IFoo { }
-            public abstract class FooAbstract : IFoo { }
-            public class FooDerived : FooAbstract { }
-            public class FooGeneric<T> : IFooGeneric<T> { }
+            interface IFoo { }
+            interface IFooGeneric<T> : IFoo { }
+            interface IOther { }
+            class Foo : IFoo { }
+            abstract class FooAbstract : IFoo { }
+            class FooDerived : FooAbstract { }
+            class FooGeneric<T> : IFooGeneric<T> { }
             
-            public class C
+            class C
             {
                 void M1({{targetType}} arg) { }
 
@@ -12824,7 +12824,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             }
             """;
 
-        (string Name, bool IsClass, string? DisplaySuffix)[] types = {
+        (string Name, bool IsClass, string? DisplaySuffix)[] types = [
             ("IFoo", false, null),
             ("IFooGeneric", false, "<>"),
             ("IOther", false, null),
@@ -12833,7 +12833,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             ("FooDerived", true, null),
             ("FooGeneric", true, "<>"),
             ("C", true, null)
-        };
+        ];
 
         foreach (var item in types.Where(t => t.IsClass && expectedItems.Contains(t.Name)))
             await VerifyItemExistsAsync(markup, item.Name, matchingFilters: [FilterSet.ClassFilter, FilterSet.TargetTypedFilter], displayTextSuffix: item.DisplaySuffix);
