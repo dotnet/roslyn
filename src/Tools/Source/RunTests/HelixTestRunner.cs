@@ -99,7 +99,7 @@ internal sealed class HelixTestRunner
         {
             // If we're not using authenticated access we need to specify a creator.
             var queuedBy = GetEnv("BUILD_QUEUEDBY", "roslyn");
-            arguments += $" -p:Creator={queuedBy}";
+            arguments += $" -p:Creator=\"{queuedBy}\"";
         }
 
         CopyPayloadFilesToLogs(logsDir, payloadsDir);
