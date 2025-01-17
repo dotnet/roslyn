@@ -5,40 +5,30 @@
 using System;
 using System.Composition;
 using System.Threading;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Host;
 
-internal interface IGlobalServiceBroker
-{
-    IServiceBroker Instance { get; }
-}
-
 /// <summary>
-/// Hacky way to expose a <see cref="IServiceBroker"/> to workspace services that expect there to be a global
-/// singleton (like in visual studio).  Effectively the first service that gets called into will record its
-/// broker here for these services to use.
+/// Exposes a <see cref="IServiceBroker"/> to services that expect there to be a global singleton.
+/// The first remote service that gets called into will record its broker here.
 /// </summary>
-// Note: this Export is only so MEF picks up the exported member internally.
-[Export(typeof(IGlobalServiceBroker)), Shared]
-internal class GlobalServiceBroker : IGlobalServiceBroker
+[Export(typeof(IServiceBrokerProvider)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class RemoteServiceBrokerProvider() : IServiceBrokerProvider
 {
     private static IServiceBroker? s_instance;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public GlobalServiceBroker()
-    {
-    }
 
     public static void RegisterServiceBroker(IServiceBroker serviceBroker)
     {
         Interlocked.CompareExchange(ref s_instance, serviceBroker, null);
     }
 
-    public IServiceBroker Instance
+    public IServiceBroker ServiceBroker
     {
         get
         {
