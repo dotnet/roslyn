@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrganizeImports;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (range is null && globalOptions.GetOption(LspOptionsStorage.LspFormattingSortImports, document.Project.Language))
             {
                 var organizeImports = document.GetRequiredLanguageService<IOrganizeImportsService>();
-                var organizeImportsOptions = await document.GetOrganizeImportsOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(false);
+                var organizeImportsOptions = await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var organizedDocument = await organizeImports.OrganizeImportsAsync(document, organizeImportsOptions, cancellationToken).ConfigureAwait(false);
                 textChanges = (await organizedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false)).ToList();
                 document = organizedDocument;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(options, document, cancellationToken).ConfigureAwait(false);
 
             var services = document.Project.Solution.Services;
-            var formattingTextChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), services, formattingOptions, rules: null, cancellationToken);
+            var formattingTextChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), services, formattingOptions, cancellationToken);
             if (textChanges is { Count: > 0 })
             {
                 if (formattingTextChanges.Count > 0)

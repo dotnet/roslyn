@@ -79,7 +79,7 @@ void M()
 
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
-            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
+            var documentText = await testLspServer.GetDocumentTextAsync(documentURI);
 
             var results = await RunFormatDocumentAsync(testLspServer, documentURI);
             var actualText = ApplyTextEdits(results, documentText);
@@ -118,7 +118,7 @@ void M()
 
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
-            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
+            var documentText = await testLspServer.GetDocumentTextAsync(documentURI);
 
             var results = await RunFormatDocumentAsync(testLspServer, documentURI);
             var actualText = ApplyTextEdits(results, documentText);
@@ -157,7 +157,7 @@ void M()
 
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
-            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
+            var documentText = await testLspServer.GetDocumentTextAsync(documentURI);
 
             var results = await RunFormatDocumentAsync(testLspServer, documentURI);
             var actualText = ApplyTextEdits(results, documentText);
@@ -196,7 +196,7 @@ void M()
 
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
-            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
+            var documentText = await testLspServer.GetDocumentTextAsync(documentURI);
 
             var results = await RunFormatDocumentAsync(testLspServer, documentURI);
             var actualText = ApplyTextEdits(results, documentText);
@@ -227,7 +227,7 @@ void M()
 
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
-            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
+            var documentText = await testLspServer.GetDocumentTextAsync(documentURI);
 
             var results = await RunFormatDocumentAsync(testLspServer, documentURI);
             var actualText = ApplyTextEdits(results, documentText);
