@@ -156,16 +156,31 @@ internal static class UseConditionalExpressionForAssignmentHelpers
         {
             foreach (var current in operation.DescendantsAndSelf())
             {
+                // x != null  is a null check of x
                 if (current is IBinaryOperation { OperatorKind: BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals } binaryOperation)
                 {
-                    if (binaryOperation.LeftOperand.ConstantValue is { HasValue: true, Value: null })
+                    if (binaryOperation.LeftOperand.ConstantValue is { HasValue: true, Value: null } &&
+                        !IsValueType(binaryOperation.RightOperand.Type))
                     {
                         yield return binaryOperation.RightOperand.Syntax;
                     }
-                    else if (binaryOperation.RightOperand.ConstantValue is { HasValue: true, Value: null })
+                    else if (binaryOperation.RightOperand.ConstantValue is { HasValue: true, Value: null } &&
+                             !IsValueType(binaryOperation.LeftOperand.Type))
                     {
                         yield return binaryOperation.LeftOperand.Syntax;
                     }
+                }
+                else if (current is IIsPatternOperation isPatternOperation &&
+                         !IsValueType(isPatternOperation.Value.Type))
+                {
+                    // x is Y y    is a null check of x
+                    yield return isPatternOperation.Value.Syntax;
+                }
+                else if (current is IIsTypeOperation isTypeOperation &&
+                         !IsValueType(isTypeOperation.ValueOperand.Type))
+                {
+                    // x is Y    is a null check of x
+                    yield return isTypeOperation.ValueOperand.Syntax;
                 }
             }
 
@@ -174,6 +189,9 @@ internal static class UseConditionalExpressionForAssignmentHelpers
 
         bool ContainsReference(SyntaxNode nullCheckedExpression, SyntaxNode? within)
             => within?.DescendantNodes().Any(n => syntaxFacts.AreEquivalent(n, nullCheckedExpression)) is true;
+
+        static bool IsValueType(ITypeSymbol? type)
+            => type?.IsValueType is true;
     }
 
     private static bool TryGetAssignmentOrThrow(

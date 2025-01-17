@@ -2198,7 +2198,7 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                     public string Field;
                 }
             }
-            """);
+            """, LanguageVersion.CSharp9);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
@@ -2313,8 +2313,28 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75200")]
     public async Task TestNullCheck7()
+    {
+        await TestMissingAsync("""
+            using System;
+
+            public class Program
+            {
+                public void N(object[] parent, int i, object value)
+                {
+                    if (parent is { })
+                    {
+                        parent[i] = value;
+                    }
+                    else throw new Exception();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck_Positive1()
     {
         await TestInRegularAndScript1Async("""
             using System;
