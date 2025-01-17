@@ -260,7 +260,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
             var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(propertyDeclaration, updatedProperty);
 
             var updatedFieldDocument = fieldDocument.WithSyntaxRoot(newFieldTreeRoot);
-            var updatedPropertyDocument = fieldDocument.WithSyntaxRoot(newPropertyTreeRoot);
+            var updatedPropertyDocument = propertyDocument.WithSyntaxRoot(newPropertyTreeRoot);
 
             newFieldTreeRoot = await FormatAsync(updatedFieldDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
             newPropertyTreeRoot = await FormatAsync(updatedPropertyDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
