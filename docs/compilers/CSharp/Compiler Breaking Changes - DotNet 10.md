@@ -273,3 +273,21 @@ class MyClass
     }
 }
 ```
+
+## `record` and `record struct` types cannot define pointer type members, even when providing their own Equals implementations
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+The specification for `record class` and `record struct` types indicated that any pointer types are disallowed as instance fields.
+However, this was not enforced correctly when the `record class` or `record struct` type defined its own `Equals` implementation.
+
+The compiler now correctly forbids this.
+
+```cs
+unsafe record struct R(
+    int* P // Previously fine, now CS8908
+)
+{
+    public bool Equals(R other) => true;
+}
+```
