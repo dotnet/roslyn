@@ -2174,6 +2174,34 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck1_B()
+    {
+        await TestMissingAsync("""
+            using System;
+
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (null != test && test.Field == null)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
     public async Task TestNullCheck2()
     {
         await TestMissingAsync("""
