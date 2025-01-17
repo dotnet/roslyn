@@ -299,7 +299,7 @@ internal struct RegexLexer
         if (error)
         {
             token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue,
+                FeaturesResources.Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue,
                 token.GetSpan()));
         }
 
@@ -391,7 +391,7 @@ internal struct RegexLexer
         if (length != count)
         {
             result = result.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                FeaturesResources.Insufficient_hexadecimal_digits,
+                FeaturesResources.Insufficient_or_invalid_hexadecimal_digits,
                 GetTextSpan(beforeSlash, Position)));
         }
 

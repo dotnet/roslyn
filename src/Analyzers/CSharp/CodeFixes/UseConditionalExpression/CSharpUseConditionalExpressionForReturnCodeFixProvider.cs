@@ -41,7 +41,7 @@ internal sealed partial class CSharpUseConditionalExpressionForReturnCodeFixProv
         return statement;
     }
 
-    protected override SyntaxNode WrapIfStatementIfNecessary(IConditionalOperation operation)
+    protected override ExpressionSyntax WrapIfStatementIfNecessary(IConditionalOperation operation)
     {
         if (operation.Syntax is IfStatementSyntax { Condition: CheckedExpressionSyntax exp })
             return exp;
@@ -62,4 +62,7 @@ internal sealed partial class CSharpUseConditionalExpressionForReturnCodeFixProv
 
     protected override ISyntaxFormatting SyntaxFormatting
         => CSharpSyntaxFormatting.Instance;
+
+    protected override (ConditionalExpressionSyntax conditional, bool makeMultiLine) UpdateConditionalExpression(IConditionalOperation originalIfStatement, ConditionalExpressionSyntax conditional)
+        => CSharpUseConditionalExpressionHelpers.UpdateConditionalExpression(originalIfStatement, conditional);
 }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -22,7 +23,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed partial class UseConditionalExpressionForAssignmentTests
 {
     private static async Task TestMissingAsync(
-        string testCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
         LanguageVersion languageVersion = LanguageVersion.CSharp8,
         OptionsCollection? options = null)
     {
@@ -37,8 +38,8 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
     }
 
     private static async Task TestInRegularAndScript1Async(
-        string testCode,
-        string fixedCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
         LanguageVersion languageVersion = LanguageVersion.CSharp8,
         OptionsCollection? options = null,
         string? equivalenceKey = null)
@@ -2145,262 +2146,44 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
-    public async Task TestNullCheck1()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58897")]
+    public async Task TestCommentsOnElse()
     {
-        await TestMissingAsync("""
+        await TestInRegularAndScript1Async(
+            """
             using System;
 
-            public class Program
+            class C
             {
-                public static void TestMethod(Test test)
+                void M(bool containsHighBits)
                 {
-                    if (test != null && test.Field == null)
+                    int write;
+
+                    [|if|] (containsHighBits)
                     {
-                        test.Field = string.Empty;
+                        write = 0;
                     }
+                    // Comment on else
                     else
                     {
-                        throw new InvalidOperationException();
+                        write = 1;
                     }
-                }
-
-                public class Test
-                {
-                    public string Field;
                 }
             }
-            """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
-    public async Task TestNullCheck1_B()
-    {
-        await TestMissingAsync("""
+            """,
+            """
             using System;
 
-            public class Program
+            class C
             {
-                public static void TestMethod(Test test)
+                void M(bool containsHighBits)
                 {
-                    if (null != test && test.Field == null)
-                    {
-                        test.Field = string.Empty;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException();
-                    }
-                }
-
-                public class Test
-                {
-                    public string Field;
-                }
-            }
-            """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
-    public async Task TestNullCheck2()
-    {
-        await TestMissingAsync("""
-            using System;
-
-            public class Program
-            {
-                public static void TestMethod(Test test)
-                {
-                    if (test is not null && test.Field is null)
-                    {
-                        test.Field = string.Empty;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException();
-                    }
-                }
-
-                public class Test
-                {
-                    public string Field;
+                    int write = containsHighBits
+                        ? 0
+                        // Comment on else
+                        : 1;
                 }
             }
             """, LanguageVersion.CSharp9);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
-    public async Task TestNullCheck3()
-    {
-        await TestMissingAsync("""
-            using System;
-
-            public class Program
-            {
-                public static void TestMethod(Test test)
-                {
-                    if (test is { })
-                    {
-                        test.Field = string.Empty;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException();
-                    }
-                }
-
-                public class Test
-                {
-                    public string Field;
-                }
-            }
-            """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
-    public async Task TestNullCheck4()
-    {
-        await TestMissingAsync("""
-            using System;
-
-            public class Program
-            {
-                public static void TestMethod(Test test)
-                {
-                    if (test is { } x)
-                    {
-                        test.Field = string.Empty;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException();
-                    }
-                }
-
-                public class Test
-                {
-                    public string Field;
-                }
-            }
-            """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
-    public async Task TestNullCheck5()
-    {
-        await TestMissingAsync("""
-            using System;
-
-            public class Program
-            {
-                public static void TestMethod(Test test)
-                {
-                    if (test is Test)
-                    {
-                        test.Field = string.Empty;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException();
-                    }
-                }
-
-                public class Test
-                {
-                    public string Field;
-                }
-            }
-            """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
-    public async Task TestNullCheck6()
-    {
-        await TestMissingAsync("""
-            using System;
-
-            public class Program
-            {
-                public static void TestMethod(Test test)
-                {
-                    if (test is Test t)
-                    {
-                        test.Field = string.Empty;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException();
-                    }
-                }
-
-                public class Test
-                {
-                    public string Field;
-                }
-            }
-            """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75200")]
-    public async Task TestNullCheck7()
-    {
-        await TestMissingAsync("""
-            using System;
-
-            public class Program
-            {
-                public void N(object[] parent, int i, object value)
-                {
-                    if (parent is { })
-                    {
-                        parent[i] = value;
-                    }
-                    else throw new Exception();
-                }
-            }
-            """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
-    public async Task TestNullCheck_Positive1()
-    {
-        await TestInRegularAndScript1Async("""
-            using System;
-
-            public class Program
-            {
-                public static void TestMethod(Test test)
-                {
-                    [|if|] (test.Field == null)
-                    {
-                        test.Field = string.Empty;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException();
-                    }
-                }
-
-                public class Test
-                {
-                    public string Field;
-                }
-            }
-            """, """
-            using System;
-
-            public class Program
-            {
-                public static void TestMethod(Test test)
-                {
-                    test.Field = test.Field == null ? string.Empty : throw new InvalidOperationException();
-                }
-
-                public class Test
-                {
-                    public string Field;
-                }
-            }
-            """);
     }
 }
