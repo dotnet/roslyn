@@ -162,7 +162,7 @@ internal sealed class RpcServer
             if (e is TargetInvocationException)
                 e = e.InnerException ?? e;
 
-            response = new Response { Id = request.Id, Exception = $"An exception of type {e.GetType()} was thrown: {e.Message}" };
+            response = new Response { Id = request.Id, Exception = $"An exception of type {e.GetType()} was thrown: {e.Message}{Environment.NewLine}{e.StackTrace}{Environment.NewLine}----" };
         }
 
         var responseJson = JsonConvert.SerializeObject(response, JsonSettings.SingleLineSerializerSettings);
