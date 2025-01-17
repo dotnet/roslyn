@@ -344,3 +344,5 @@ extends:
         enableSigningValidation: false
         enableSourceLinkValidation: false
         SDLValidationParameters: false
+        # General testing channel id
+        PromoteToChannelIds: '1647'
