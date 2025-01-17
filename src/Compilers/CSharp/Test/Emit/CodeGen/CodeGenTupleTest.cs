@@ -25466,6 +25466,9 @@ class P
                 // (6,29): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         var x1 = (1, 1) is (int, int a)?;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "int").WithArguments("type pattern", "9.0").WithLocation(6, 29),
+                // (6,29): hidden CS9274: The pattern is redundant.
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(6, 29),
                 // (6,41): error CS1525: Invalid expression term ';'
                 //         var x1 = (1, 1) is (int, int a)?;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
