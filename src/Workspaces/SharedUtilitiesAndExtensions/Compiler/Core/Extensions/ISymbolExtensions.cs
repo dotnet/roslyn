@@ -194,17 +194,16 @@ internal static partial class ISymbolExtensions
                 return true;
             }
 
-            if (symbol.Kind == SymbolKind.Method)
-            {
-                var methodSymbol = (IMethodSymbol)symbol;
-                if (methodSymbol.MethodKind is MethodKind.Ordinary or
-                    MethodKind.PropertyGet or
-                    MethodKind.PropertySet or
-                    MethodKind.UserDefinedOperator or
-                    MethodKind.Conversion)
+            if (symbol is IMethodSymbol
                 {
-                    return true;
-                }
+                    MethodKind: MethodKind.Ordinary or
+                        MethodKind.PropertyGet or
+                        MethodKind.PropertySet or
+                        MethodKind.UserDefinedOperator or
+                        MethodKind.Conversion
+                })
+            {
+                return true;
             }
         }
 

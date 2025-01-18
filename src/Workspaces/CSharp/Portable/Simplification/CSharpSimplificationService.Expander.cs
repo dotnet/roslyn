@@ -740,24 +740,22 @@ internal partial class CSharpSimplificationService
 
         private static ExpressionSyntax TryAddTypeArgumentToIdentifierName(ExpressionSyntax newNode, ISymbol symbol)
         {
-            if (newNode.Kind() == SyntaxKind.IdentifierName && symbol.Kind == SymbolKind.Method)
+            if (newNode.Kind() == SyntaxKind.IdentifierName &&
+                symbol is IMethodSymbol { TypeArguments.Length: > 0 } method)
             {
-                if (((IMethodSymbol)symbol).TypeArguments.Length != 0)
+                var typeArguments = method.TypeArguments;
+                if (!typeArguments.Any(static t => t.ContainsAnonymousType()))
                 {
-                    var typeArguments = ((IMethodSymbol)symbol).TypeArguments;
-                    if (!typeArguments.Any(static t => t.ContainsAnonymousType()))
-                    {
-                        var genericName = GenericName(
-                                        ((IdentifierNameSyntax)newNode).Identifier,
-                                        TypeArgumentList(
-                                            [.. typeArguments.Select(p => ParseTypeName(p.ToDisplayString(s_typeNameFormatWithGenerics)))]))
-                                        .WithLeadingTrivia(newNode.GetLeadingTrivia())
-                                        .WithTrailingTrivia(newNode.GetTrailingTrivia())
-                                        .WithAdditionalAnnotations(Simplifier.Annotation);
+                    var genericName = GenericName(
+                                    ((IdentifierNameSyntax)newNode).Identifier,
+                                    TypeArgumentList(
+                                        [.. typeArguments.Select(p => ParseTypeName(p.ToDisplayString(s_typeNameFormatWithGenerics)))]))
+                                    .WithLeadingTrivia(newNode.GetLeadingTrivia())
+                                    .WithTrailingTrivia(newNode.GetTrailingTrivia())
+                                    .WithAdditionalAnnotations(Simplifier.Annotation);
 
-                        genericName = newNode.CopyAnnotationsTo(genericName);
-                        return genericName;
-                    }
+                    genericName = newNode.CopyAnnotationsTo(genericName);
+                    return genericName;
                 }
             }
 
