@@ -3059,7 +3059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasErrors)
             {
-                return new BoundReturnStatement(syntax, refKind, BindToTypeForErrorRecovery(arg), @checked: CheckOverflowAtRuntime, hasErrors: true);
+                diagnostics = BindingDiagnosticBag.Discarded;
             }
 
             // The return type could be null; we might be attempting to infer the return type either
