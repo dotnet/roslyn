@@ -558,8 +558,7 @@ internal partial class CSharpSimplificationService
             if (IsTypeArgumentDefinedRecursive(symbol, typeArgumentSymbols, enterContainingSymbol: true))
             {
                 if (symbol.ContainingSymbol.Equals(symbol.OriginalDefinition.ContainingSymbol) &&
-                    symbol.Kind == SymbolKind.Method &&
-                    ((IMethodSymbol)symbol).IsStatic)
+                    symbol is IMethodSymbol { IsStatic: true })
                 {
                     if (IsTypeArgumentDefinedRecursive(symbol, typeArgumentSymbols, enterContainingSymbol: false))
                     {
