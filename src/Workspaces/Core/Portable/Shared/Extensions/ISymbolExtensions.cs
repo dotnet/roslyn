@@ -656,7 +656,7 @@ internal static partial class ISymbolExtensions
         return symbols.WhereAsArray((s, arg) =>
             // Check if symbol is namespace (which is always visible) first to avoid realizing all locations
             // of each namespace symbol, which might end up allocating in LOH
-            (s.IsNamespace() || s.Locations.Any(static loc => loc.IsInSource) || !s.HasUnsupportedMetadata) &&
+            (s is INamespaceSymbol || s.Locations.Any(static loc => loc.IsInSource) || !s.HasUnsupportedMetadata) &&
             !s.IsDestructor() &&
             s.IsEditorBrowsable(
                 arg.hideAdvancedMembers,

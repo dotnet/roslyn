@@ -347,7 +347,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             //
             // ...unless, again, it's also declared elsewhere.
             //
-            return recommendationSymbol.IsNamespace() &&
+            return recommendationSymbol is INamespaceSymbol &&
                    recommendationSymbol.Locations.Any(
                        static (candidateLocation, declarationSyntax) => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
                                               declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)), declarationSyntax);

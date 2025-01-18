@@ -51,9 +51,9 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         Dictionary<ITypeSymbol, bool> typeConvertibilityCache)
     {
         // When searching for identifiers of type C, exclude the symbol for the `C` type itself except in an object creation context.
-        if (symbol.Kind == SymbolKind.NamedType)
+        if (symbol is INamedTypeSymbol namedType)
         {
-            return ShouldIncludeInTargetTypedCompletionListForNamedType((INamedTypeSymbol)symbol, syntaxContext, typeConvertibilityCache);
+            return ShouldIncludeInTargetTypedCompletionListForNamedType(namedType, syntaxContext, typeConvertibilityCache);
         }
 
         // Avoid offering members of object since they too commonly show up and are infrequently desired.
@@ -63,9 +63,8 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         }
 
         // Don't offer locals on the right-hand-side of their declaration: `int x = x`
-        if (symbol.Kind == SymbolKind.Local)
+        if (symbol is ILocalSymbol local)
         {
-            var local = (ILocalSymbol)symbol;
             var declarationSyntax = symbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).SingleOrDefault();
             if (declarationSyntax != null && syntaxContext.Position < declarationSyntax.FullSpan.End)
             {
