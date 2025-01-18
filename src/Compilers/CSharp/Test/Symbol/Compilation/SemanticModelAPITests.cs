@@ -3102,7 +3102,7 @@ class A
             Assert.Null(symbolInfo.Symbol);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76799")]
         public void TestGetSemanticModelReturnsInPresenceOfPatternConflicts()
         {
             var code = """
