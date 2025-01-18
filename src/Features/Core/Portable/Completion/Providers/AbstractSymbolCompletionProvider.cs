@@ -53,7 +53,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         // When searching for identifiers of type C, exclude the symbol for the `C` type itself except in an object creation context.
         if (symbol is INamedTypeSymbol namedType)
         {
-            return ShouldIncludeInTargetTypedCompletionListForNamedType(namedTypesymbol, syntaxContext, typeConvertibilityCache);
+            return ShouldIncludeInTargetTypedCompletionListForNamedType(namedType, syntaxContext, typeConvertibilityCache);
         }
 
         // Avoid offering members of object since they too commonly show up and are infrequently desired.
