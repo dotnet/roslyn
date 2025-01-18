@@ -287,8 +287,6 @@ internal sealed class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltI
     private static HashSet<ISymbol> GetExistingSymbols(
         SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
     {
-        // Ignore an anonymous type property.  It's ok if they have a name that 
-        // matches the name of the local we're introducing.
         return semanticModel.GetAllDeclaredSymbols(container, cancellationToken);
     }
 }
