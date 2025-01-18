@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,6 +19,7 @@ internal static class UseConditionalExpressionForAssignmentHelpers
     public static bool TryMatchPattern(
         ISyntaxFacts syntaxFacts,
         IConditionalOperation ifOperation,
+        CancellationToken cancellationToken,
         out bool isRef,
         [NotNullWhen(true)] out IOperation trueStatement,
         [NotNullWhen(true)] out IOperation? falseStatement,
@@ -78,7 +80,7 @@ internal static class UseConditionalExpressionForAssignmentHelpers
 
         isRef = trueAssignment?.IsRef == true;
         if (!UseConditionalExpressionHelpers.CanConvert(
-                syntaxFacts, ifOperation, trueStatement, falseStatement))
+                syntaxFacts, ifOperation, trueStatement, falseStatement, cancellationToken))
         {
             return false;
         }

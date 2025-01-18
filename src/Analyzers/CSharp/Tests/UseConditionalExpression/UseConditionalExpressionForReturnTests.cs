@@ -2374,4 +2374,28 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72464")]
+    public async Task TestMissingWithVariableCollisions()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            public class IssueClass
+            {
+                public object Convert(Type type, string body)
+                {
+                    [||]if (type == typeof(bool))
+                    {
+                        return bool.TryParse(body, out bool value) ? 0 : 1;
+                    }
+                    else
+                    {
+                        return int.TryParse(body, out int value) ? 2 : 3;
+                    }
+                }
+            }
+            """);
+    }
 }

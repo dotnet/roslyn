@@ -2462,4 +2462,29 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72464")]
+    public async Task TestMissingWithVariableCollisions()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            public class IssueClass
+            {
+                public void Convert(Type type, string body)
+                {
+                    object o;
+                    if (type == typeof(bool))
+                    {
+                         o = bool.TryParse(body, out bool value) ? 0 : 1;
+                    }
+                    else
+                    {
+                        o = int.TryParse(body, out int value) ? 2 : 3;
+                    }
+                }
+            }
+            """);
+    }
 }
