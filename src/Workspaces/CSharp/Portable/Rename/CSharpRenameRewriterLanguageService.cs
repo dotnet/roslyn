@@ -30,13 +30,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Rename;
 
 [ExportLanguageService(typeof(IRenameRewriterLanguageService), LanguageNames.CSharp), Shared]
-internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLanguageService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewriterLanguageService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpRenameConflictLanguageService()
-    {
-    }
     #region "Annotation"
 
     public override SyntaxNode AnnotateAndRename(RenameRewriterParameters parameters)
@@ -1072,11 +1069,11 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
                         }
                     }
                     else if (symbol is IPropertySymbol
-                        {
-                            Name: "Current",
-                            Parameters.Length: 0,
-                            IsWriteOnly: false,
-                        })
+                    {
+                        Name: "Current",
+                        Parameters.Length: 0,
+                        IsWriteOnly: false,
+                    })
                     {
                         return [originalDeclarationLocation];
                     }
