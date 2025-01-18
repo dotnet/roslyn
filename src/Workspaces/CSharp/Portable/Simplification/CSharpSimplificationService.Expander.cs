@@ -643,11 +643,10 @@ internal partial class CSharpSimplificationService
             }
 
             // if it's a namespace or type name, fully qualify it.
-            if (symbol.Kind is SymbolKind.NamedType or
-                SymbolKind.Namespace)
+            if (symbol is INamespaceOrTypeSymbol namespaceOrType)
             {
                 var replacement = FullyQualifyIdentifierName(
-                    (INamespaceOrTypeSymbol)symbol,
+                    namespaceOrType,
                     newNode,
                     originalSimpleName,
                     replaceNode: false,
