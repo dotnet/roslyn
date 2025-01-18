@@ -902,7 +902,7 @@ internal static class CastSimplifier
             return false;
         }
 
-        // Returns true if we have `x ? (T)y : z` and (T) can be removed because the 'y' type is hte same as the 'z' type, and
+        // Returns true if we have `x ? (T)y : z` and (T) can be removed because the 'y' type is the same as the 'z' type, and
         // both are converted to 'T' outside of the conditional.
         bool IsConditionalCastSafeToRemoveDueToConversionToOtherBranch()
         {
