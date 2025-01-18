@@ -906,7 +906,7 @@ internal static class CastSimplifier
         // both are converted to 'T' outside of the conditional.
         bool IsConditionalCastSafeToRemoveDueToConversionToOtherBranch()
         {
-            // Always keep a cast of 'default'.  This can end up taking on incorrect values if it uses the type of hte other branch
+            // Always keep a cast of 'default'.  This can end up taking on incorrect values if it uses the type of the other branch
             // (for example, between `(int?)default` vs `(int)default`.
             if (castExpression.Expression.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression))
                 return false;
