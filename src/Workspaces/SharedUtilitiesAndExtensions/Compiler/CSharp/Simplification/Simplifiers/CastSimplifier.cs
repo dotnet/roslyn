@@ -902,12 +902,12 @@ internal static class CastSimplifier
             return false;
         }
 
-        // Returns true if we have `x ? (T)y : z` and (T) can be removed because the 'y' type is hte same as the 'z' type, and
+        // Returns true if we have `x ? (T)y : z` and (T) can be removed because the 'y' type is the same as the 'z' type, and
         // both are converted to 'T' outside of the conditional.
         bool IsConditionalCastSafeToRemoveDueToConversionToOtherBranch()
         {
-            // Always keep a cast of 'default'.  This can end up taking on incorrect values if it uses the type of hte other branch
-            // (for example, between `(int?)default` vs `(int)default`.
+            // Always keep a cast of 'default'.  This can end up taking on incorrect values if it uses the type of the other branch
+            // (for example, between `(int?)default` vs `(int)default`).
             if (castExpression.Expression.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression))
                 return false;
 
