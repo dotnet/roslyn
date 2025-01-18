@@ -145,10 +145,10 @@ public class A { }";
                 "code_lens.dotnet_enable_references_code_lens",
                 "code_lens.dotnet_enable_tests_code_lens",
                 "auto_insert.dotnet_enable_auto_insert",
-                "formatting.dotnet_formatting_sort_imports",
                 "projects.dotnet_binary_log_path",
                 "projects.dotnet_enable_automatic_restore",
-                "navigation.dotnet_navigate_to_source_link_and_embedded_sources"
+                "navigation.dotnet_navigate_to_source_link_and_embedded_sources",
+                "formatting.dotnet_organize_imports_on_format",
             };
 
             AssertEx.EqualOrDiff(
