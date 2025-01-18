@@ -138,7 +138,7 @@ internal sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
         // in scope.
         var reservedNames = semanticModel
             .LookupSymbols(isExpression.SpanStart)
-            .Concat(semanticModel.GetExistingSymbols(container, cancellationToken))
+            .Concat(semanticModel.GetAllDeclaredSymbols(container, cancellationToken))
             .Select(s => s.Name)
             .ToSet();
 

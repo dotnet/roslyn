@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -20,10 +21,12 @@ internal abstract class AbstractUseConditionalExpressionForAssignmentDiagnosticA
     protected sealed override CodeStyleOption2<bool> GetStylePreference(OperationAnalysisContext context)
         => context.GetAnalyzerOptions().PreferConditionalExpressionOverAssignment;
 
-    protected override (bool matched, bool canSimplify) TryMatchPattern(IConditionalOperation ifOperation, ISymbol containingSymbol)
+    protected override (bool matched, bool canSimplify) TryMatchPattern(
+        IConditionalOperation ifOperation, ISymbol containingSymbol, CancellationToken cancellationToken)
     {
         if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
-                GetSyntaxFacts(), ifOperation, out var isRef, out var trueStatement, out var falseStatement, out var trueAssignment, out var falseAssignment))
+                GetSyntaxFacts(), ifOperation, cancellationToken,
+                out var isRef, out var trueStatement, out var falseStatement, out var trueAssignment, out var falseAssignment))
         {
             return default;
         }
