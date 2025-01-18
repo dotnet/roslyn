@@ -643,10 +643,10 @@ internal partial class CSharpSimplificationService
             }
 
             // if it's a namespace or type name, fully qualify it.
-            if (symbol is INamespaceOrTypeSymbol namespaceOrType)
+            if (symbol.Kind is SymbolKind.Namespace or SymbolKind.NamedType)
             {
                 var replacement = FullyQualifyIdentifierName(
-                    namespaceOrType,
+                    (INamespaceOrTypeSymbol)symbol,
                     newNode,
                     originalSimpleName,
                     replaceNode: false,
@@ -660,9 +660,7 @@ internal partial class CSharpSimplificationService
             }
 
             // if it's a member access, we're fully qualifying the left side and make it a member access.
-            if (symbol.Kind is SymbolKind.Method or
-                SymbolKind.Field or
-                SymbolKind.Property)
+            if (symbol.Kind is SymbolKind.Method or SymbolKind.Field or SymbolKind.Property)
             {
                 if (symbol.IsStatic ||
                     originalSimpleName.IsParentKind(SyntaxKind.NameMemberCref) ||
