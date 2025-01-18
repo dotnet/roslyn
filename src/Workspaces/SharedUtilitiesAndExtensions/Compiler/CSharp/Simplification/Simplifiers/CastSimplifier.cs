@@ -925,48 +925,11 @@ internal static class CastSimplifier
             // Now check that with the (T) cast removed, that the outer `x ? y : z` is still immediately converted to a
             // 'T'. If so, we can remove this inner (T) cast.
 
-            // Due to https://github.com/dotnet/roslyn/issues/76799, we can't use a speculative model here when inside a
-            // return statement. So go and fork the actual model so we can get accurate information.  When the above bug
-            // is fixed we should be able to swap this code out:
-#if false
             var rewrittenConditionalConvertedType = rewrittenSemanticModel.GetTypeInfo(rewrittenConditionalExpression, cancellationToken).ConvertedType;
             if (rewrittenConditionalConvertedType is null)
                 return false;
 
             return rewrittenConditionalConvertedType.Equals(conversionOperation.Type);
-#else
-            if (!castNode.Ancestors().Any(n => n is ReturnStatementSyntax))
-            {
-                var rewrittenConditionalConvertedType = rewrittenSemanticModel.GetTypeInfo(rewrittenConditionalExpression, cancellationToken).ConvertedType;
-                if (rewrittenConditionalConvertedType is null)
-                    return false;
-
-                return rewrittenConditionalConvertedType.Equals(conversionOperation.Type);
-            }
-
-            if (originalSemanticModel.IsSpeculativeSemanticModel)
-                return false;
-
-            var annotation = new SyntaxAnnotation();
-            var originalTree = originalConditionalExpression.SyntaxTree;
-            var forkedRoot = originalTree.GetRoot(cancellationToken).ReplaceNode(
-                originalConditionalExpression,
-                rewrittenConditionalExpression.WithAdditionalAnnotations(annotation));
-
-            var finalTree = originalTree.WithRootAndOptions(
-                forkedRoot, originalTree.Options);
-
-            var finalSemanticModel = originalSemanticModel.Compilation
-                .ReplaceSyntaxTree(originalTree, finalTree)
-                .GetSemanticModel(finalTree);
-
-            var finalConditionalExpression = finalTree.GetRoot(cancellationToken).GetAnnotatedNodes(annotation).Single();
-            var finalConditionalConvertedType = finalSemanticModel.GetTypeInfo(finalConditionalExpression, cancellationToken).ConvertedType;
-            if (finalConditionalConvertedType is null)
-                return false;
-
-            return finalConditionalConvertedType.Equals(conversionOperation.Type);
-#endif
         }
     }
 

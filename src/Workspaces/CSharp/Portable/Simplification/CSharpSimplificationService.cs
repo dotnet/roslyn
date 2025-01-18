@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
@@ -180,9 +179,7 @@ internal sealed partial class CSharpSimplificationService()
         => NodesAndTokensToReduceComputer.Compute(root, isNodeOrTokenOutsideSimplifySpans);
 
     protected override bool NodeRequiresNonSpeculativeSemanticModel(SyntaxNode node)
-        // Workaround: https://github.com/dotnet/roslyn/issues/76799.
-        // Can't speculate properly on casts within return statements.
-        => node is ReturnStatementSyntax { Expression: { } expression } && expression.DescendantNodes().Any(n => n is CastExpressionSyntax);
+        => false;
 
     private const string s_CS8019_UnusedUsingDirective = "CS8019";
 
