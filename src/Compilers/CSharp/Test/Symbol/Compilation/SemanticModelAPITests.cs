@@ -3102,6 +3102,37 @@ class A
             Assert.Null(symbolInfo.Symbol);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76799")]
+        public void TestGetSemanticModelReturnsInPresenceOfPatternConflicts()
+        {
+            var code = """
+                public class IssueClass
+                {
+                    public int ID;
+
+                    public object ConvertFieldValueForStorage(object value)
+                    {
+                        return value is IssueClass issue ? (decimal)issue.ID : (object)-1m;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(code);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var returnStatementCode = "return value is IssueClass issue ? (decimal)issue.ID : -1m;";
+            var returnStatement = (ReturnStatementSyntax)SyntaxFactory.ParseStatement(returnStatementCode);
+
+            var methodDeclLocation = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First().Body!.SpanStart;
+
+            Assert.True(model.TryGetSpeculativeSemanticModel(methodDeclLocation, returnStatement, out var speculativeModel));
+
+            var typeInfo = speculativeModel.GetTypeInfo(returnStatement.Expression!);
+            Assert.Equal(SpecialType.System_Decimal, typeInfo.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
+        }
+
         [WorkItem(731108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/731108")]
         [Fact]
         public void Repro731108()
