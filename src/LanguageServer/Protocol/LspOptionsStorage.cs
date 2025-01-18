@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static readonly PerLanguageOption2<bool> LspEnableAutoInsert = new("dotnet_enable_auto_insert", defaultValue: true, group: s_autoInsertOptionGroup);
 
         /// <summary>
-        /// <see langword="true"/> to sort imports as part of LSP's Format Document handler; otherwise, <see langword="false"/>.
+        /// <see langword="true"/> to organize imports as part of LSP's Format Document handler; otherwise, <see langword="false"/>.
         /// </summary>
-        public static readonly PerLanguageOption2<bool> LspFormattingSortImports = new("dotnet_formatting_sort_imports", defaultValue: false, group: s_formattingOptionGroup);
+        public static readonly PerLanguageOption2<bool> LspOrganizeImportsOnFormat = new("dotnet_organize_imports_on_format", defaultValue: false, group: s_formattingOptionGroup);
     }
 }

@@ -73,7 +73,7 @@ void M()
             {
                 OptionUpdater = globalOptions =>
                 {
-                    globalOptions.SetGlobalOption(LspOptionsStorage.LspFormattingSortImports, LanguageNames.CSharp, true);
+                    globalOptions.SetGlobalOption(LspOptionsStorage.LspOrganizeImportsOnFormat, LanguageNames.CSharp, true);
                 },
             };
 
@@ -112,7 +112,7 @@ void M()
             {
                 OptionUpdater = globalOptions =>
                 {
-                    globalOptions.SetGlobalOption(LspOptionsStorage.LspFormattingSortImports, LanguageNames.CSharp, true);
+                    globalOptions.SetGlobalOption(LspOptionsStorage.LspOrganizeImportsOnFormat, LanguageNames.CSharp, true);
                 },
             };
 
@@ -151,7 +151,7 @@ void M()
             {
                 OptionUpdater = globalOptions =>
                 {
-                    globalOptions.SetGlobalOption(LspOptionsStorage.LspFormattingSortImports, LanguageNames.CSharp, true);
+                    globalOptions.SetGlobalOption(LspOptionsStorage.LspOrganizeImportsOnFormat, LanguageNames.CSharp, true);
                 },
             };
 
@@ -190,7 +190,7 @@ void M()
             {
                 OptionUpdater = globalOptions =>
                 {
-                    globalOptions.SetGlobalOption(LspOptionsStorage.LspFormattingSortImports, LanguageNames.CSharp, true);
+                    globalOptions.SetGlobalOption(LspOptionsStorage.LspOrganizeImportsOnFormat, LanguageNames.CSharp, true);
                 },
             };
 
