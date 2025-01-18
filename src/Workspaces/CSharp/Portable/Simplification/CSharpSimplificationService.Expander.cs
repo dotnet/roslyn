@@ -459,10 +459,8 @@ internal partial class CSharpSimplificationService
                 {
                     var aliasTarget = aliasInfo.Target;
 
-                    if (aliasTarget.IsNamespace() && ((INamespaceSymbol)aliasTarget).IsGlobalNamespace)
-                    {
+                    if (aliasTarget is INamespaceSymbol { IsGlobalNamespace: true })
                         return rewrittenSimpleName;
-                    }
 
                     // if the enclosing expression is a typeof expression that already contains open type we cannot
                     // we need to insert an open type as well.
@@ -830,7 +828,7 @@ internal partial class CSharpSimplificationService
 
         private static void TypeArgumentsInAllContainingSymbol(ISymbol symbol, IList<ISymbol> typeArgumentSymbols, bool enterContainingSymbol, bool isRecursive)
         {
-            if (symbol == null || symbol.IsNamespace())
+            if (symbol == null || symbol is INamespaceSymbol)
             {
                 // This is the terminating condition
                 return;

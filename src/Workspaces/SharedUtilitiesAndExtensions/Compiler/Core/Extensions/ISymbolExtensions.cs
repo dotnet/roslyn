@@ -531,9 +531,6 @@ internal static partial class ISymbolExtensions
     public static bool IsStaticType([NotNullWhen(true)] this ISymbol? symbol)
         => symbol is INamedTypeSymbol { IsStatic: true };
 
-    public static bool IsNamespace([NotNullWhen(true)] this ISymbol? symbol)
-        => symbol?.Kind == SymbolKind.Namespace;
-
     public static bool IsOrContainsAccessibleAttribute(
         [NotNullWhen(true)] this ISymbol? symbol, ISymbol withinType, IAssemblySymbol withinAssembly, CancellationToken cancellationToken)
     {
