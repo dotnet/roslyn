@@ -529,7 +529,7 @@ internal static partial class ISymbolExtensions
     }
 
     public static bool IsStaticType([NotNullWhen(true)] this ISymbol? symbol)
-        => symbol != null && symbol.Kind == SymbolKind.NamedType && symbol.IsStatic;
+        => symbol is INamedTypeSymbol { IsStatic: true };
 
     public static bool IsNamespace([NotNullWhen(true)] this ISymbol? symbol)
         => symbol?.Kind == SymbolKind.Namespace;
