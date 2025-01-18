@@ -3057,9 +3057,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors |= arg.HasErrors || ((object)arg.Type != null && arg.Type.IsErrorType());
             }
 
+            BindingDiagnosticBag remainingDiagnostics = diagnostics;
+            bool ownsRemainingDiagnostics = false;
             if (hasErrors)
             {
-                return new BoundReturnStatement(syntax, refKind, BindToTypeForErrorRecovery(arg), @checked: CheckOverflowAtRuntime, hasErrors: true);
+                if (diagnostics.AccumulatesDependencies)
+                {
+                    remainingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: false, withDependencies: true);
+                    ownsRemainingDiagnostics = true;
+                }
+                else
+                {
+                    remainingDiagnostics = BindingDiagnosticBag.Discarded;
+                }
             }
 
             // The return type could be null; we might be attempting to infer the return type either
@@ -3077,11 +3087,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Error case: void-returning or async task-returning method or lambda with "return x;"
                             if (retType.IsVoidType())
                             {
-                                Error(diagnostics, ErrorCode.ERR_RetNoObjectRequiredLambda, syntax.ReturnKeyword);
+                                Error(remainingDiagnostics, ErrorCode.ERR_RetNoObjectRequiredLambda, syntax.ReturnKeyword);
                             }
                             else
                             {
-                                Error(diagnostics, ErrorCode.ERR_TaskRetNoObjectRequiredLambda, syntax.ReturnKeyword, retType);
+                                Error(remainingDiagnostics, ErrorCode.ERR_TaskRetNoObjectRequiredLambda, syntax.ReturnKeyword, retType);
                             }
 
                             hasErrors = true;
@@ -3097,15 +3107,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Error case: void-returning or async task-returning method or lambda with "return x;"
                             if (retType.IsVoidType())
                             {
-                                Error(diagnostics, ErrorCode.ERR_RetNoObjectRequired, syntax.ReturnKeyword, container);
+                                Error(remainingDiagnostics, ErrorCode.ERR_RetNoObjectRequired, syntax.ReturnKeyword, container);
                             }
                             else
                             {
-                                Error(diagnostics, ErrorCode.ERR_TaskRetNoObjectRequired, syntax.ReturnKeyword, container, retType);
+                                Error(remainingDiagnostics, ErrorCode.ERR_TaskRetNoObjectRequired, syntax.ReturnKeyword, container, retType);
                             }
 
                             hasErrors = true;
                         }
+
+                        arg = BindToTypeForErrorRecovery(arg);
                     }
                 }
                 else
@@ -3117,12 +3129,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ? retType.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single()
                             : retType;
 
-                        Error(diagnostics, ErrorCode.ERR_RetObjectRequired, syntax.ReturnKeyword, requiredType);
+                        Error(remainingDiagnostics, ErrorCode.ERR_RetObjectRequired, syntax.ReturnKeyword, requiredType);
                         hasErrors = true;
                     }
                     else
                     {
-                        arg = CreateReturnConversion(syntax, diagnostics, arg, sigRefKind, retType);
+                        arg = CreateReturnConversion(syntax, remainingDiagnostics, arg, sigRefKind, retType);
                     }
                 }
             }
@@ -3131,12 +3143,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Check that the returned expression is not void.
                 if ((object)arg?.Type != null && arg.Type.IsVoidType())
                 {
-                    Error(diagnostics, ErrorCode.ERR_CantReturnVoid, expressionSyntax);
+                    Error(remainingDiagnostics, ErrorCode.ERR_CantReturnVoid, expressionSyntax);
                     hasErrors = true;
                 }
             }
 
-            return new BoundReturnStatement(syntax, refKind, hasErrors ? BindToTypeForErrorRecovery(arg) : arg, hasErrors);
+            if (ownsRemainingDiagnostics)
+            {
+                Debug.Assert(hasErrors);
+                diagnostics.AddRange(remainingDiagnostics);
+                remainingDiagnostics.Free();
+            }
+
+            return new BoundReturnStatement(syntax, refKind, arg, hasErrors);
         }
 
         internal BoundExpression CreateReturnConversion(
