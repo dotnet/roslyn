@@ -1071,14 +1071,14 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
                             }
                         }
                     }
-                    else if (symbol.Kind == SymbolKind.Property && symbol.Name == "Current")
-                    {
-                        var property = (IPropertySymbol)symbol;
-
-                        if (!property.Parameters.Any() && !property.IsWriteOnly)
+                    else if (symbol is IPropertySymbol
                         {
-                            return [originalDeclarationLocation];
-                        }
+                            Name: "Current",
+                            Parameters.Length: 0,
+                            IsWriteOnly: false,
+                        })
+                    {
+                        return [originalDeclarationLocation];
                     }
                 }
             }
@@ -1123,10 +1123,8 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
         else
         {
             var name = SyntaxFactory.ParseName(replacementText);
-            if (name.Kind() == SyntaxKind.IdentifierName)
-            {
-                valueText = ((IdentifierNameSyntax)name).Identifier.ValueText;
-            }
+            if (name is IdentifierNameSyntax identifierName)
+                valueText = identifierName.Identifier.ValueText;
         }
 
         // this also covers the case of an escaped replacementText

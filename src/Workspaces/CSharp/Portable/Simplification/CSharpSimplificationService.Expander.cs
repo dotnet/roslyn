@@ -394,10 +394,10 @@ internal partial class CSharpSimplificationService
             var rewrittenname = (TypeSyntax)this.Visit(node.Name);
             var parameters = (CrefParameterListSyntax)this.Visit(node.Parameters);
 
-            if (rewrittenname.Kind() == SyntaxKind.QualifiedName)
+            if (rewrittenname is QualifiedNameSyntax qualifiedName)
             {
                 return node.CopyAnnotationsTo(QualifiedCref(
-                    ((QualifiedNameSyntax)rewrittenname).Left
+                    qualifiedName.Left
                         .WithAdditionalAnnotations(Simplifier.Annotation),
                     NameMemberCref(((QualifiedNameSyntax)rewrittenname).Right, parameters)
                     .WithLeadingTrivia(SyntaxTriviaList.Empty))
