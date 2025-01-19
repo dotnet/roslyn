@@ -185,7 +185,7 @@ internal class InheritanceMarginGlyph : Button
             // 2. [margin] -> method Bar -> Header
             //                           -> Target1
             //                           -> Target2
-            //             -> method Foo -> Header
+            //             -> method Goo -> Header
             //                           -> Target3
             //                           -> Target4
             // If the first level of the context menu contains a TargetMenuItemViewModel, it means here it is case 1,

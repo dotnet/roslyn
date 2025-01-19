@@ -158,11 +158,11 @@ internal abstract class AbstractMergeNestedIfStatementsCodeRefactoringProvider
         //        if (b)
         //            Console.WriteLine();
         //        else
-        //            Foo();
+        //            Goo();
         //    }
         //    else
         //    {
-        //        Foo();
+        //        Goo();
         //    }
         if (!System.Linq.ImmutableArrayExtensions.SequenceEqual(
                 ifGenerator.GetElseIfAndElseClauses(outerIfOrElseIf),

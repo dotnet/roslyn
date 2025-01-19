@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
 
             Dim startToken = listSyntax.GetFirstToken()
 
-            ' If we have something Like  Foo(...)  Or  this.Foo(...)  allow anywhere in the Foo(...)
+            ' If we have something Like  Goo(...)  Or  this.Goo(...)  allow anywhere in the Goo(...)
             If TypeOf declaration Is InvocationExpressionSyntax Then
                 Dim expr = DirectCast(declaration, InvocationExpressionSyntax).Expression
                 Dim name =
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
 
                 startToken = If(name Is Nothing, listSyntax.GetFirstToken(), name.GetFirstToken())
             ElseIf TypeOf declaration Is ObjectCreationExpressionSyntax Then
-                ' allow anywhere in `New Foo(...)`
+                ' allow anywhere in `New Goo(...)`
                 startToken = declaration.GetFirstToken()
             End If
 

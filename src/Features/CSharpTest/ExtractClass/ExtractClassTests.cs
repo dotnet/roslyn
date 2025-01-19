@@ -2818,7 +2818,7 @@ public class ExtractClassTests
         var input = """
             class C
             {
-                pub[||] {|CS1519:int|} Foo = 0;
+                pub[||] {|CS1519:int|} Goo = 0;
             }
             """;
         await new Test
@@ -2833,7 +2833,7 @@ public class ExtractClassTests
         var input = """
             class C
             {
-                pub[||] {|CS1519:int|} Foo()
+                pub[||] {|CS1519:int|} Goo()
                 {
                     return 5;
                 }

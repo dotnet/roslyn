@@ -1837,7 +1837,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
         Test("""
             public class Bar
             {
-                public int Foo
+                public int Goo
                 {
                     get { }
                     $$
@@ -1846,7 +1846,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             """, """
             public class Bar
             {
-                public int Foo
+                public int Goo
                 {
                     $$get$$ { }$$
                 }
@@ -1929,7 +1929,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             using System;
             public class Bar
             {
-                public event EventHandler Foo
+                public event EventHandler Goo
                 {
                     add { }
                     $$
@@ -1939,7 +1939,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             using System;
             public class Bar
             {
-                public event EventHandler Foo
+                public event EventHandler Goo
                 {
                     $$add$$ {$$ }$$
                 }
@@ -1958,7 +1958,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                     var f = n$$ew F$$oo($$)$$
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -1970,13 +1970,13 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
                 public void M()
                 {
-                    var f = new Foo()
+                    var f = new Goo()
                     {
                         $$
                     };
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -1988,11 +1988,11 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
                 public void M()
                 {
-                    var f = new Foo();
+                    var f = new Goo();
                     $$
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -2014,7 +2014,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                     var f = n$$ew F$$oo$$
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -2026,13 +2026,13 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
                 public void M()
                 {
-                    var f = new Foo()
+                    var f = new Goo()
                     {
                         $$
                     };
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -2044,11 +2044,11 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
                 public void M()
                 {
-                    var f = new Foo();
+                    var f = new Goo();
                     $$
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -2070,7 +2070,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                     var f = n$$ew F$$oo$$;
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -2082,13 +2082,13 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
                 public void M()
                 {
-                    var f = new Foo()
+                    var f = new Goo()
                     {
                         $$
                     };
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -2100,11 +2100,11 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
                 public void M()
                 {
-                    var f = new Foo();
+                    var f = new Goo();
                     $$
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -2126,11 +2126,11 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                     N(ne$$w Fo$$o$$);
                 }
 
-                private void N(Foo f)
+                private void N(Goo f)
                 {
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -2142,17 +2142,17 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
                 public void M()
                 {
-                    N(new Foo()
+                    N(new Goo()
                     {
                         $$
                     });
                 }
 
-                private void N(Foo f)
+                private void N(Goo f)
                 {
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -2164,15 +2164,15 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
                 public void M()
                 {
-                    N(new Foo());
+                    N(new Goo());
                     $$
                 }
 
-                private void N(Foo f)
+                private void N(Goo f)
                 {
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -2194,7 +2194,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                     using(var a = n$$ew F$$oo($$)$$)
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -2206,13 +2206,13 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
                 public void M()
                 {
-                    using(var a = new Foo()
+                    using(var a = new Goo()
                     {
                         $$
                     })
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -2224,11 +2224,11 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
                 public void M()
                 {
-                    using(var a = new Foo())
+                    using(var a = new Goo())
                         $$
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -2248,11 +2248,11 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
             {
                 public void M()
                 {
-                    var a = new Foo() { HH = 1, PP = 2 };
+                    var a = new Goo() { HH = 1, PP = 2 };
                     $$
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }
@@ -2266,7 +2266,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
                     var a = n$$ew Fo$$o($$) {$$ HH = 1$$, PP = 2 $$};
                 }
             }
-            public class Foo
+            public class Goo
             {
                 public int HH { get; set; }
                 public int PP { get; set; }

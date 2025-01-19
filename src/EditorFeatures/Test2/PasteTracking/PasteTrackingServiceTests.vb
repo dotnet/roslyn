@@ -110,7 +110,7 @@ $$
 
                 testState.SendPaste(class1Document, PastedCode)
 
-                testState.InsertText(class1Document, "Foo")
+                testState.InsertText(class1Document, "Goo")
 
                 testState.AssertMissingPastedTextSpan(class1Document.GetTextBuffer())
             End Using
@@ -193,7 +193,7 @@ $$
                 Dim class1LinkedDocument = testState.OpenDocument(Project2Name, Class1Name)
 
                 testState.SendPaste(class1Document, PastedCode)
-                testState.InsertText(class1LinkedDocument, "Foo")
+                testState.InsertText(class1LinkedDocument, "Goo")
 
                 testState.AssertMissingPastedTextSpan(class1Document.GetTextBuffer())
                 testState.AssertMissingPastedTextSpan(class1LinkedDocument.GetTextBuffer())

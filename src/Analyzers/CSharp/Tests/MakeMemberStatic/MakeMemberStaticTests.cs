@@ -24,13 +24,13 @@ public class MakeMemberStaticTests
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-            public static class Foo
+            public static class Goo
             {
                 int {|CS0708:i|};
             }
             """,
             """
-            public static class Foo
+            public static class Goo
             {
                 static int i;
             }
@@ -42,14 +42,14 @@ public class MakeMemberStaticTests
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-            public static class Foo
+            public static class Goo
             {
                 // comment
                 readonly int {|CS0708:i|};
             }
             """,
             """
-            public static class Foo
+            public static class Goo
             {
                 // comment
                 static readonly int i;
@@ -62,13 +62,13 @@ public class MakeMemberStaticTests
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-            public static class Foo
+            public static class Goo
             {
                 void {|CS0708:M|}() { }
             }
             """,
             """
-            public static class Foo
+            public static class Goo
             {
                 static void M() { }
             }
@@ -80,13 +80,13 @@ public class MakeMemberStaticTests
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-            public static class Foo
+            public static class Goo
             {
                 object {|CS0708:P|} { get; set; }
             }
             """,
             """
-            public static class Foo
+            public static class Goo
             {
                 static object P { get; set; }
             }
@@ -98,13 +98,13 @@ public class MakeMemberStaticTests
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
-            public static class Foo
+            public static class Goo
             {
                 event System.Action {|CS0708:E|};
             }
             """,
             """
-            public static class Foo
+            public static class Goo
             {
                 static event System.Action E;
             }
@@ -118,7 +118,7 @@ public class MakeMemberStaticTests
             """
             namespace NS
             {
-                public static class Foo
+                public static class Goo
                 {
                     int {|CS0708:i|};
                     void {|CS0708:M|}() { }
@@ -130,7 +130,7 @@ public class MakeMemberStaticTests
             """
             namespace NS
             {
-                public static class Foo
+                public static class Goo
                 {
                     static int i;
                     static void M() { }

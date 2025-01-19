@@ -34,13 +34,13 @@ public class OpenDocumentTests
         var sourceTextContainer = buffer.AsTextContainer();
 
         // We're going to add two projects that both consume the same file
-        const string FilePath = "Z:\\Foo.cs";
+        const string FilePath = "Z:\\Goo.cs";
         var documentIds = new List<DocumentId>();
         for (var i = 0; i < 2; i++)
         {
             var projectId = workspace.AddProject($"Project{i}", LanguageNames.CSharp).Id;
             var documentId = DocumentId.CreateNewId(projectId);
-            workspace.AddDocument(DocumentInfo.Create(documentId, "Foo.cs", filePath: FilePath));
+            workspace.AddDocument(DocumentInfo.Create(documentId, "Goo.cs", filePath: FilePath));
             workspace.OnDocumentOpened(documentId, sourceTextContainer);
 
             documentIds.Add(documentId);

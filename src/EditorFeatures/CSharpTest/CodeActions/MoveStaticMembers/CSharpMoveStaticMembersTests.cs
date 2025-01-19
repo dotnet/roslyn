@@ -1588,7 +1588,7 @@ namespace TestNs2
     {
         class Class1Helpers
         {
-            public static int Foo()
+            public static int Goo()
             {
                 return 1;
             }
@@ -1596,13 +1596,13 @@ namespace TestNs2
         
         public static int TestMethod2()
         {
-            return Class1.Foo() + Class1Helpers.Foo();
+            return Class1.Goo() + Class1Helpers.Goo();
         }
     }
 }";
         var selectedDestinationName = "Class1Helpers";
         var newFileName = "Class1Helpers.cs";
-        var selectedMembers = ImmutableArray.Create("Foo");
+        var selectedMembers = ImmutableArray.Create("Goo");
         var expectedResult1 = @"
 namespace TestNs1
 {
@@ -1619,7 +1619,7 @@ namespace TestNs2
     {
         class Class1Helpers
         {
-            public static int Foo()
+            public static int Goo()
             {
                 return 1;
             }
@@ -1627,7 +1627,7 @@ namespace TestNs2
         
         public static int TestMethod2()
         {
-            return TestNs1.Class1Helpers.Foo() + Class1Helpers.Foo();
+            return TestNs1.Class1Helpers.Goo() + Class1Helpers.Goo();
         }
     }
 }";
@@ -1635,7 +1635,7 @@ namespace TestNs2
 {
     internal static class Class1Helpers
     {
-        public static int Foo()
+        public static int Goo()
         {
             return 0;
         }
@@ -2913,12 +2913,12 @@ namespace TestNs1
 {
     public class Class1
     {
-        [|public static int Goo = 10, Foo = 9;|]
+        [|public static int Goo = 10, Goo = 9;|]
     }
 }";
         var selectedDestinationName = "Class1Helpers";
         var newFileName = "Class1Helpers.cs";
-        var selectedMembers = ImmutableArray.Create("Goo", "Foo");
+        var selectedMembers = ImmutableArray.Create("Goo", "Goo");
         var expectedResult1 = @"
 namespace TestNs1
 {
@@ -2931,7 +2931,7 @@ namespace TestNs1
     internal static class Class1Helpers
     {
         public static int Goo = 10;
-        public static int Foo = 9;
+        public static int Goo = 9;
     }
 }";
 
@@ -2946,7 +2946,7 @@ namespace TestNs1
 {
     public class Class1
     {
-        [|public static int Goo = 10, Foo = 9;
+        [|public static int Goo = 10, Goo = 9;
 
         public static int DoSomething()
         {
@@ -2956,7 +2956,7 @@ namespace TestNs1
 }";
         var selectedDestinationName = "Class1Helpers";
         var newFileName = "Class1Helpers.cs";
-        var selectedMembers = ImmutableArray.Create("Goo", "Foo", "DoSomething");
+        var selectedMembers = ImmutableArray.Create("Goo", "Goo", "DoSomething");
         var expectedResult1 = @"
 namespace TestNs1
 {
@@ -2969,7 +2969,7 @@ namespace TestNs1
     internal static class Class1Helpers
     {
         public static int Goo = 10;
-        public static int Foo = 9;
+        public static int Goo = 9;
 
         public static int DoSomething()
         {
@@ -2994,12 +2994,12 @@ namespace TestNs1
         {
             return [|5;
         }        
-        public static int Goo = 10, Foo = 9;|]
+        public static int Goo = 10, Goo = 9;|]
     }
 }";
         var selectedDestinationName = "Class1Helpers";
         var newFileName = "Class1Helpers.cs";
-        var selectedMembers = ImmutableArray.Create("Goo", "Foo");
+        var selectedMembers = ImmutableArray.Create("Goo", "Goo");
         var expectedResult1 = @"
 namespace TestNs1
 {
@@ -3017,7 +3017,7 @@ namespace TestNs1
     internal static class Class1Helpers
     {
         public static int Goo = 10;
-        public static int Foo = 9;
+        public static int Goo = 9;
     }
 }";
 
@@ -3032,7 +3032,7 @@ namespace TestNs1
 {
     public class Class1
     {
-        public static int Go[|o = 10, Foo = 9;
+        public static int Go[|o = 10, Goo = 9;
 
         public static int DoSometh|]ing()
         {
@@ -3042,7 +3042,7 @@ namespace TestNs1
 }";
         var selectedDestinationName = "Class1Helpers";
         var newFileName = "Class1Helpers.cs";
-        var selectedMembers = ImmutableArray.Create("Goo", "Foo", "DoSomething");
+        var selectedMembers = ImmutableArray.Create("Goo", "Goo", "DoSomething");
         var expectedResult1 = @"
 namespace TestNs1
 {
@@ -3055,7 +3055,7 @@ namespace TestNs1
     internal static class Class1Helpers
     {
         public static int Goo = 10;
-        public static int Foo = 9;
+        public static int Goo = 9;
 
         public static int DoSomething()
         {
@@ -3085,7 +3085,7 @@ namespace TestNs1
 }";
         var selectedDestinationName = "Class1Helpers";
         var newFileName = "Class1Helpers.cs";
-        var selectedMembers = ImmutableArray.Create("Foo");
+        var selectedMembers = ImmutableArray.Create("Goo");
         var expectedResult1 = @"
 namespace TestNs1
 {
@@ -3103,7 +3103,7 @@ namespace TestNs1
 {
     internal static class Class1Helpers
     {
-        public static int Foo = 9;
+        public static int Goo = 9;
     }
 }";
 
@@ -3119,7 +3119,7 @@ namespace TestNs1
 {
     public class Class1
     {
-        public static int G[||]oo = 10, Foo = 9;
+        public static int G[||]oo = 10, Goo = 9;
     }
 }";
         var selectedDestinationName = "Class1Helpers";
@@ -3130,7 +3130,7 @@ namespace TestNs1
 {
     public class Class1
     {
-        public static int Foo = 9;
+        public static int Goo = 9;
     }
 }";
         var expectedResult2 = @"namespace TestNs1

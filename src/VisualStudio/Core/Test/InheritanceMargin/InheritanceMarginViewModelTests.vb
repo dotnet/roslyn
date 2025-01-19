@@ -185,18 +185,18 @@ public class Bar : IBar
             Dim markup = "
 public abstract class AbsBar
 {
-    public abstract void Foo();
+    public abstract void Goo();
 }
 
 public class Bar : AbsBar
 {
-    public override void Foo();
+    public override void Goo();
 }"
 
             Dim tooltipTextForAbsBar = String.Format(ServicesVSResources._0_is_inherited, "class AbsBar")
-            Dim tooltipTextForAbstractFoo = String.Format(ServicesVSResources._0_is_inherited, "abstract void AbsBar.Foo()")
+            Dim tooltipTextForAbstractFoo = String.Format(ServicesVSResources._0_is_inherited, "abstract void AbsBar.Goo()")
             Dim tooltipTextForBar = String.Format(ServicesVSResources._0_is_inherited, "class Bar")
-            Dim tooltipTextForOverrideFoo = String.Format(ServicesVSResources._0_is_inherited, "override void Bar.Foo()")
+            Dim tooltipTextForOverrideFoo = String.Format(ServicesVSResources._0_is_inherited, "override void Bar.Goo()")
             Return VerifyAsync(markup, LanguageNames.CSharp, New Dictionary(Of Integer, GlyphViewModelData) From {
                 {2, New GlyphViewModelData(
                     KnownMonikers.Overridden,
@@ -211,7 +211,7 @@ public class Bar : AbsBar
                     tooltipTextForAbstractFoo,
                     1,
                     New MenuItemViewModelData(ServicesVSResources.Overriding_members, ServicesVSResources.Overriding_members, KnownMonikers.Overridden, GetType(HeaderMenuItemViewModel)),
-                    New MenuItemViewModelData("Bar.Foo", "Bar.Foo", KnownMonikers.MethodPublic, GetType(TargetMenuItemViewModel)))},
+                    New MenuItemViewModelData("Bar.Goo", "Bar.Goo", KnownMonikers.MethodPublic, GetType(TargetMenuItemViewModel)))},
                 {7, New GlyphViewModelData(
                     KnownMonikers.Overriding,
                     tooltipTextForBar,
@@ -225,7 +225,7 @@ public class Bar : AbsBar
                     tooltipTextForOverrideFoo,
                     1,
                     New MenuItemViewModelData(ServicesVSResources.Overridden_members, ServicesVSResources.Overridden_members, KnownMonikers.Overriding, GetType(HeaderMenuItemViewModel)),
-                    New MenuItemViewModelData("AbsBar.Foo", "AbsBar.Foo", KnownMonikers.MethodPublic, GetType(TargetMenuItemViewModel)))}})
+                    New MenuItemViewModelData("AbsBar.Goo", "AbsBar.Goo", KnownMonikers.MethodPublic, GetType(TargetMenuItemViewModel)))}})
         End Function
 
         <WpfFact>

@@ -46,7 +46,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
 
                 namespace ConsoleApp5
                 {
-                    class Foo 
+                    class Goo 
                     {
                         public string RuleName = "test";
                     }
@@ -55,9 +55,9 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                     {
                         static void Main(string[] args)
                         {
-                            var foo = new Foo();
+                            var goo = new Goo();
 
-                            var bar = new { [|RuleName|] = foo.RuleName };
+                            var bar = new { [|RuleName|] = goo.RuleName };
 
                             Console.WriteLine(bar.RuleName);
                         }
@@ -77,7 +77,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
 
                 namespace ConsoleApp5
                 {
-                    class Foo 
+                    class Goo 
                     {
                         public string RuleName = "test";
                     }
@@ -86,9 +86,9 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                     {
                         static void Main(string[] args)
                         {
-                            var foo = new Foo();
+                            var goo = new Goo();
 
-                            var bar = new { RuleName = foo.RuleName };
+                            var bar = new { RuleName = goo.RuleName };
 
                             Console.WriteLine(bar.RuleName);
                         }
@@ -119,7 +119,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
 
                 namespace ConsoleApp5
                 {
-                    class Foo 
+                    class Goo 
                     {
                         public string RuleName = "test";
                     }
@@ -128,9 +128,9 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                     {
                         static void Main(string[] args)
                         {
-                            var foo = new Foo();
+                            var goo = new Goo();
 
-                            var bar = new { [|RuleName|] = foo.RuleName };
+                            var bar = new { [|RuleName|] = goo.RuleName };
 
                             Console.WriteLine(bar.RuleName);
                         }
@@ -157,7 +157,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
 
                 namespace ConsoleApp5
                 {
-                    class Foo 
+                    class Goo 
                     {
                         public string RuleName = "test";
                     }
@@ -166,9 +166,9 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                     {
                         static void Main(string[] args)
                         {
-                            var foo = new Foo();
+                            var goo = new Goo();
 
-                            var bar = new { RuleName = foo.RuleName };
+                            var bar = new { RuleName = goo.RuleName };
 
                             Console.WriteLine(bar.RuleName);
                         }
@@ -205,7 +205,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
 
                 namespace ConsoleApp5
                 {
-                    class Foo 
+                    class Goo 
                     {
                         public string RuleName = "test";
                     }
@@ -214,9 +214,9 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                     {
                         static void Main(string[] args)
                         {
-                            var foo = new Foo();
+                            var goo = new Goo();
 
-                            var bar = new { [|RuleName|] = foo.RuleName };
+                            var bar = new { [|RuleName|] = goo.RuleName };
 
                             Console.WriteLine(bar.RuleName);
                         }
@@ -240,7 +240,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
 
                 namespace ConsoleApp5
                 {
-                    class Foo 
+                    class Goo 
                     {
                         public string RuleName = "test";
                     }
@@ -249,9 +249,9 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                     {
                         static void Main(string[] args)
                         {
-                            var foo = new Foo();
+                            var goo = new Goo();
 
-                            var bar = new { RuleName = foo.RuleName };
+                            var bar = new { RuleName = goo.RuleName };
 
                             Console.WriteLine(bar.RuleName);
                         }
@@ -285,7 +285,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
 
                 namespace ConsoleApp5
                 {
-                    class Foo 
+                    class Goo 
                     {
                         public string RuleName = "test";
                     }
@@ -294,9 +294,9 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                     {
                         static void Main(string[] args)
                         {
-                            var foo = new Foo();
+                            var goo = new Goo();
 
-                            var bar = new { [|RuleName|] = foo.RuleName };
+                            var bar = new { [|RuleName|] = goo.RuleName };
 
                             Console.WriteLine(bar.RuleName);
                         }
@@ -326,7 +326,7 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
 
                 namespace ConsoleApp5
                 {
-                    class Foo 
+                    class Goo 
                     {
                         public string RuleName = "test";
                     }
@@ -335,9 +335,9 @@ public abstract partial class MultipleCodeStyleOptionBasedSeverityConfigurationT
                     {
                         static void Main(string[] args)
                         {
-                            var foo = new Foo();
+                            var goo = new Goo();
 
-                            var bar = new { RuleName = foo.RuleName };
+                            var bar = new { RuleName = goo.RuleName };
 
                             Console.WriteLine(bar.RuleName);
                         }

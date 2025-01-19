@@ -123,7 +123,7 @@ End Class</a>
         Public Async Function TestModifierSoupField() As Task
             Dim text = <a>
 Public Class G
-    Private Shadows Shared Prot[||]ected foo as Boolean
+    Private Shadows Shared Prot[||]ected goo as Boolean
 End Class</a>
 
             Await TestAsync(text.Value, "vb.PrivateProtected")

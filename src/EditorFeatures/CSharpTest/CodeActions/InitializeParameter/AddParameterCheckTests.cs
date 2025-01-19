@@ -2101,7 +2101,7 @@ class Program
 
             class C
             {
-                public int Foo(int[] array[||]) =>
+                public int Goo(int[] array[||]) =>
                     array.Where(x => x > 3)
                         .OrderBy(x => x)
                         .Count();
@@ -2113,7 +2113,7 @@ class Program
 
             class C
             {
-                public int Foo(int[] array)
+                public int Goo(int[] array)
                 {
                     if (array is null)
                     {
@@ -2138,7 +2138,7 @@ class Program
 
             class C
             {
-                public int Foo(int[] array[||]) /* Bar */ => /* Bar */
+                public int Goo(int[] array[||]) /* Bar */ => /* Bar */
                     array.Where(x => x > 3)
                         .OrderBy(x => x)
                         .Count(); /* Bar */
@@ -2150,7 +2150,7 @@ class Program
 
             class C
             {
-                public int Foo(int[] array) /* Bar */
+                public int Goo(int[] array) /* Bar */
                 {
                     if (array is null)
                     {
@@ -2174,7 +2174,7 @@ class Program
 
             class C
             {
-                public void Foo(string bar[||]) =>
+                public void Goo(string bar[||]) =>
             #if DEBUG
                     Console.WriteLine("debug" + bar);
             #else
@@ -2194,7 +2194,7 @@ class Program
 
             class C
             {
-                public int Foo(int[] array[||]) =>
+                public int Goo(int[] array[||]) =>
             #if DEBUG
                     array.Where(x => x > 3)
                         .OrderBy(x => x)
@@ -2219,7 +2219,7 @@ class Program
 
             class C
             {
-                public void Foo(int[] array[||]) =>
+                public void Goo(int[] array[||]) =>
                     array.Where(x => x > 3)
                         .OrderBy(x => x)
                         .Count();
@@ -2231,7 +2231,7 @@ class Program
 
             class C
             {
-                public void Foo(int[] array)
+                public void Goo(int[] array)
                 {
                     if (array is null)
                     {

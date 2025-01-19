@@ -397,7 +397,7 @@ public class RoslynLSPSnippetConvertTests
     [Fact]
     public void TestExtendTextChangeInsertion()
     {
-        var testString = "foo bar quux baz";
+        var testString = "goo bar quux baz";
         using var workspace = CreateWorkspaceFromCode(testString);
         var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
         var lspSnippetString = RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(document, caretPosition: 12,
@@ -408,7 +408,7 @@ public class RoslynLSPSnippetConvertTests
     [Fact]
     public void TestExtendTextChangeReplacement()
     {
-        var testString = "foo bar quux baz";
+        var testString = "goo bar quux baz";
         using var workspace = CreateWorkspaceFromCode(testString);
         var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
         var lspSnippetString = RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(document, caretPosition: 12,

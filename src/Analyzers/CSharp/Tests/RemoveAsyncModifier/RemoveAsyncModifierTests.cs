@@ -38,7 +38,7 @@ public sealed class RemoveAsyncModifierTests
                     }
                 }
 
-                async Task {|CS1998:Foo|}()
+                async Task {|CS1998:Goo2|}()
                 {
                     Console.WriteLine(1);
                 }
@@ -92,7 +92,7 @@ public sealed class RemoveAsyncModifierTests
                     return Task.CompletedTask;
                 }
 
-                Task Foo()
+                Task Goo2()
                 {
                     Console.WriteLine(1);
                     return Task.CompletedTask;

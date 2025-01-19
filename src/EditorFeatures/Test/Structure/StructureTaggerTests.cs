@@ -110,7 +110,7 @@ namespace MyNamespace
     {
         var code =
 @"
-namespace Foo;
+namespace Goo;
 
 using System;
 using System.Linq;
@@ -154,7 +154,7 @@ public class Bar
     {
         var code =
 @"
-namespace Foo;
+namespace Goo;
 /// <summary>
 /// 
 /// </summary>
@@ -199,7 +199,7 @@ public class Bar
     {
         var code =
 @"
-namespace Foo
+namespace Goo
 {
     using System;
     using System.Linq;
@@ -224,7 +224,7 @@ namespace Foo
             {
                 Assert.Equal(9, GetCollapsedHintLineCount(namespaceTag));
                 Assert.Equal(showBlockStructureGuidesForDeclarationLevelConstructs ? PredefinedStructureTagTypes.Namespace : PredefinedStructureTagTypes.Nonstructural, namespaceTag.Type);
-                Assert.Equal("namespace Foo", GetHeaderText(namespaceTag));
+                Assert.Equal("namespace Goo", GetHeaderText(namespaceTag));
             },
             importsTag =>
             {
@@ -334,7 +334,7 @@ End Module";
 Module Program
     Sub Main(args As String())
         Dim str = """"
-        If str.Contains(""foo"") Then
+        If str.Contains(""goo"") Then
 
         End If
     End Sub
@@ -354,7 +354,7 @@ End Module";
         },
         IfTag =>
         {
-            Assert.Equal("If str.Contains(\"foo\") Then", GetHeaderText(IfTag));
+            Assert.Equal("If str.Contains(\"goo\") Then", GetHeaderText(IfTag));
             Assert.Equal(3, GetCollapsedHintLineCount(IfTag));
         });
     }

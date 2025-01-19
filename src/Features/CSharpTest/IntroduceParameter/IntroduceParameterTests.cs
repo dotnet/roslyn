@@ -2059,7 +2059,7 @@ public class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEditor
             using System;
             using System.Linq;
 
-            namespace Foo
+            namespace Goo
             {
                 public class Bar
                 {
@@ -2074,7 +2074,7 @@ public class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEditor
                     <Document>
             namespace Refactorings
             {
-                using Foo;
+                using Goo;
                 class Program
                 {
                     public Program(int x)
@@ -2097,7 +2097,7 @@ public class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEditor
             using System;
             using System.Linq;
 
-            namespace Foo
+            namespace Goo
             {
                 public class Bar
                 {
@@ -2111,7 +2111,7 @@ public class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEditor
                     <Document>
             namespace Refactorings
             {
-                using Foo;
+                using Goo;
                 class Program
                 {
                     public Program(int x)

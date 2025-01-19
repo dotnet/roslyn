@@ -132,7 +132,7 @@ End Module")
         Public Async Function DoNotChangeToAliasInNameOfIfItChangesNameOfName() As Task
             Await TestInRegularAndScript1Async(
 "Imports System
-Imports Foo = SimplifyInsideNameof.Program
+Imports Goo = SimplifyInsideNameof.Program
 
 namespace SimplifyInsideNameof
   class Program
@@ -142,7 +142,7 @@ namespace SimplifyInsideNameof
   end class
 end namespace",
 "Imports System
-Imports Foo = SimplifyInsideNameof.Program
+Imports Goo = SimplifyInsideNameof.Program
 
 namespace SimplifyInsideNameof
   class Program

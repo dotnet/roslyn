@@ -1114,14 +1114,14 @@ parseOptions: null);
 @"
 namespace A
 {
-    public class Foo
+    public class Goo
     {
         public void Bar()
         {
             var self = this.[|Self()|];
         }
 
-        public Foo Self
+        public Goo Self
         {
             get { return this; }
         }
@@ -1132,9 +1132,9 @@ namespace A.Extensions
 {
     public static class FooExtensions
     {
-        public static Foo Self(this Foo foo)
+        public static Goo Self(this Goo goo)
         {
-            return foo;
+            return goo;
         }
     }
 }",
@@ -1143,14 +1143,14 @@ using A.Extensions;
 
 namespace A
 {
-    public class Foo
+    public class Goo
     {
         public void Bar()
         {
             var self = this.Self();
         }
 
-        public Foo Self
+        public Goo Self
         {
             get { return this; }
         }
@@ -1161,9 +1161,9 @@ namespace A.Extensions
 {
     public static class FooExtensions
     {
-        public static Foo Self(this Foo foo)
+        public static Goo Self(this Goo goo)
         {
-            return foo;
+            return goo;
         }
     }
 }", testHost);
@@ -1180,11 +1180,11 @@ using System.Runtime.CompilerServices;
 
 namespace A
 {
-    public class Foo
+    public class Goo
     {
-        async void M(Foo foo)
+        async void M(Goo goo)
         {
-            [|await foo|];
+            [|await goo|];
         }
     }
 
@@ -1198,7 +1198,7 @@ namespace A.Extension
 {
     public static class FooExtensions
     {
-        public static FooAwaiter GetAwaiter(this Foo foo) => default;
+        public static FooAwaiter GetAwaiter(this Goo goo) => default;
     }
 
     public struct FooAwaiter : INotifyCompletion
@@ -1222,11 +1222,11 @@ using A.Extension;
 
 namespace A
 {
-    public class Foo
+    public class Goo
     {
-        async void M(Foo foo)
+        async void M(Goo goo)
         {
-            await foo;
+            await goo;
         }
     }
 
@@ -1240,7 +1240,7 @@ namespace A.Extension
 {
     public static class FooExtensions
     {
-        public static FooAwaiter GetAwaiter(this Foo foo) => default;
+        public static FooAwaiter GetAwaiter(this Goo goo) => default;
     }
 
     public struct FooAwaiter : INotifyCompletion
@@ -1270,17 +1270,17 @@ using System.Collections.Generic;
 
 namespace A
 {
-    public class Foo
+    public class Goo
     {
-        void M(Foo foo)
+        void M(Goo goo)
         {
-            _ = [|from x in foo|] select x;
+            _ = [|from x in goo|] select x;
         }
     }
 
     public static class BarExtensions
     {
-        public static IEnumerable<int> Select(this string foo, Func<int, int> f) => null;
+        public static IEnumerable<int> Select(this string goo, Func<int, int> f) => null;
     }
 }
 
@@ -1288,7 +1288,7 @@ namespace A.Extension
 {
     public static class FooExtensions
     {
-        public static IEnumerable<int> Select(this Foo foo, Func<int, int> f) => null;
+        public static IEnumerable<int> Select(this Goo goo, Func<int, int> f) => null;
     }
 }
 ",
@@ -1299,17 +1299,17 @@ using A.Extension;
 
 namespace A
 {
-    public class Foo
+    public class Goo
     {
-        void M(Foo foo)
+        void M(Goo goo)
         {
-            _ = from x in foo select x;
+            _ = from x in goo select x;
         }
     }
 
     public static class BarExtensions
     {
-        public static IEnumerable<int> Select(this string foo, Func<int, int> f) => null;
+        public static IEnumerable<int> Select(this string goo, Func<int, int> f) => null;
     }
 }
 
@@ -1317,7 +1317,7 @@ namespace A.Extension
 {
     public static class FooExtensions
     {
-        public static IEnumerable<int> Select(this Foo foo, Func<int, int> f) => null;
+        public static IEnumerable<int> Select(this Goo goo, Func<int, int> f) => null;
     }
 }
 ", testHost);
@@ -1333,17 +1333,17 @@ using System.Collections.Generic;
 
 namespace A
 {
-    public class Foo
+    public class Goo
     {
-        void M(Foo foo)
+        void M(Goo goo)
         {
-            var (x, y) = [|foo|];
+            var (x, y) = [|goo|];
         }
     }
 
     public static class BarExtensions
     {
-        public static void Deconstruct(this string foo, out int a, out int b) => throw null;
+        public static void Deconstruct(this string goo, out int a, out int b) => throw null;
     }
 }
 
@@ -1351,7 +1351,7 @@ namespace A.Extension
 {
     public static class FooExtensions
     {
-        public static void Deconstruct(this Foo foo, out int a, out int b) => throw null;
+        public static void Deconstruct(this Goo goo, out int a, out int b) => throw null;
     }
 }
 ",
@@ -1362,17 +1362,17 @@ using A.Extension;
 
 namespace A
 {
-    public class Foo
+    public class Goo
     {
-        void M(Foo foo)
+        void M(Goo goo)
         {
-            var (x, y) = foo;
+            var (x, y) = goo;
         }
     }
 
     public static class BarExtensions
     {
-        public static void Deconstruct(this string foo, out int a, out int b) => throw null;
+        public static void Deconstruct(this string goo, out int a, out int b) => throw null;
     }
 }
 
@@ -1380,7 +1380,7 @@ namespace A.Extension
 {
     public static class FooExtensions
     {
-        public static void Deconstruct(this Foo foo, out int a, out int b) => throw null;
+        public static void Deconstruct(this Goo goo, out int a, out int b) => throw null;
     }
 }
 ",

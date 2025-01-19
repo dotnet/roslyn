@@ -55,7 +55,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
         /// Before:
         /// void Caller(bool x)
         /// {
-        ///     Callee(Foo(), x ? Foo() : Bar())
+        ///     Callee(Goo(), x ? Goo() : Bar())
         /// }
         /// void Callee(int a, int b)
         /// {
@@ -64,8 +64,8 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
         /// After:
         /// void Caller(bool x)
         /// {
-        ///     int a = Foo();
-        ///     int b = x ? Foo() : Bar();
+        ///     int a = Goo();
+        ///     int b = x ? Goo() : Bar();
         ///     DoSomething(a, b);
         /// }
         /// void Callee(int a, int b)
@@ -103,7 +103,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
         /// Before:
         /// void Caller(bool x)
         /// {
-        ///     Callee(Foo(), Bar())
+        ///     Callee(Goo(), Bar())
         /// }
         /// void Callee(int a, int b)
         /// {
@@ -112,7 +112,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
         /// After:
         /// void Caller(bool x)
         /// {
-        ///     DoSomething(Foo(), Bar());
+        ///     DoSomething(Goo(), Bar());
         /// }
         /// void Callee(int a, int b)
         /// {
@@ -266,7 +266,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
             // Before:
             // void Caller(bool x)
             // {
-            //     Callee(Foo(), x ? Foo() : Bar())
+            //     Callee(Goo(), x ? Goo() : Bar())
             // }
             // void Callee(int a, int b)
             // {
@@ -275,8 +275,8 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
             // After:
             // void Caller(bool x)
             // {
-            //     int a = Foo();
-            //     int b = x ? Foo() : Bar();
+            //     int a = Goo();
+            //     int b = x ? Goo() : Bar();
             //     DoSomething(a, b);
             // }
             // void Callee(int a, int b)
@@ -294,7 +294,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
             // Then use the argument expression to directly replace it.
             // void Caller(bool x)
             // {
-            //     Callee(Foo(), Bar())
+            //     Callee(Goo(), Bar())
             // }
             // void Callee(int a, int b)
             // {
@@ -303,7 +303,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
             // After:
             // void Caller(bool x)
             // {
-            //     DoSomething(Foo(), Bar());
+            //     DoSomething(Goo(), Bar());
             // }
             // void Callee(int a, int b)
             // {
@@ -399,7 +399,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
     /// Before:
     /// void Caller(bool x)
     /// {
-    ///     Callee(Foo(), Bar())
+    ///     Callee(Goo(), Bar())
     /// }
     /// void Callee(int a, int b)
     /// {
@@ -408,7 +408,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
     /// After:
     /// void Caller(bool x)
     /// {
-    ///     DoSomething(Foo(), Bar());
+    ///     DoSomething(Goo(), Bar());
     /// }
     /// void Callee(int a, int b)
     /// {
@@ -419,7 +419,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
     /// Note: This might cause a semantic change. In the previous example, if it is
     /// void Caller(bool x)
     /// {
-    ///     Callee(Foo(), Bar())
+    ///     Callee(Goo(), Bar())
     /// }
     /// void Callee(int a, int b)
     /// {

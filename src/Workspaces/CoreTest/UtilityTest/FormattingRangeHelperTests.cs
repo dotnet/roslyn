@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33560")]
         public void TestAreTwoTokensOnSameLineTrue()
         {
-            var root = SyntaxFactory.ParseSyntaxTree("{Foo();}").GetRoot();
+            var root = SyntaxFactory.ParseSyntaxTree("{Goo();}").GetRoot();
             var token1 = root.GetFirstToken();
             var token2 = root.GetLastToken();
 

@@ -138,7 +138,7 @@ public sealed class F1HelpTests
 """
 public class C
 {
-    private new prot[||]ected static unsafe void foo()
+    private new prot[||]ected static unsafe void goo()
     {
     }
 }

@@ -30,7 +30,7 @@ internal sealed class WatchedDirectory
     public WatchedDirectory(string path, ImmutableArray<string> extensionFilters)
     {
         // We are doing string comparisons with this path, so ensure it has a trailing directory separator so we don't get confused with sibling
-        // paths that won't actually be covered. For example, if we're watching C:\Directory we wouldn't see changes to C:\DirectorySibling\Foo.txt.
+        // paths that won't actually be covered. For example, if we're watching C:\Directory we wouldn't see changes to C:\DirectorySibling\Goo.txt.
         if (!path.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()))
         {
             path += System.IO.Path.DirectorySeparatorChar;

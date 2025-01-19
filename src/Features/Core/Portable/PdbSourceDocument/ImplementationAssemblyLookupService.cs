@@ -174,7 +174,7 @@ internal sealed class ImplementationAssemblyLookupService : IImplementationAssem
             return false;
 
         // If it exists, the implementation dll will be in the shared sdk folder for this pack
-        // eg. C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.5\Foo.dll
+        // eg. C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.5\Goo.dll
         // But first we go up six levels to get to the common root. The pattern match above
         // ensures this will be valid.
         var basePath = Path.GetFullPath(Path.Combine(referencedDllPath, "..", "..", "..", "..", "..", ".."));

@@ -809,9 +809,9 @@ class C
 
 class D : C
 {
-    public override void [|Foo|](int i)
+    public override void [|Goo|](int i)
     {
-        base.Foo();
+        base.Goo();
     }
 }        </Document>
     </Project>

@@ -8324,12 +8324,12 @@ Diagnostic("IDE0059"));
                 {
                     // This is a comment before the variable assignment.
                     // It has two lines.
-                    [|int foo = 0;|] // Trailing comment.
+                    [|int goo = 0;|] // Trailing comment.
                     if (true)
                     {
-                        foo = 1;
+                        goo = 1;
                     }
-                    System.Console.WriteLine(foo);
+                    System.Console.WriteLine(goo);
                 }
             }
             """,
@@ -8340,12 +8340,12 @@ Diagnostic("IDE0059"));
                 {
                     // This is a comment before the variable assignment.
                     // It has two lines.
-                    int foo;
+                    int goo;
                     if (true)
                     {
-                        foo = 1;
+                        goo = 1;
                     }
-                    System.Console.WriteLine(foo);
+                    System.Console.WriteLine(goo);
                 }
             }
             """, options: PreferUnusedLocal);
@@ -8362,13 +8362,13 @@ Diagnostic("IDE0059"));
                 {
                     // This is a comment before the variable assignment.
                     // It has two lines.
-                    {|FixAllInDocument:int unused = 0, foo = 0, bar = 0;|} // Trailing comment.
+                    {|FixAllInDocument:int unused = 0, goo = 0, bar = 0;|} // Trailing comment.
                     if (true)
                     {
-                        foo = 1;
+                        goo = 1;
                         bar = 1;
                     }
-                    System.Console.WriteLine(foo);
+                    System.Console.WriteLine(goo);
                     System.Console.WriteLine(bar);
                 }
             }
@@ -8380,14 +8380,14 @@ Diagnostic("IDE0059"));
                 {
                     // This is a comment before the variable assignment.
                     // It has two lines.
-                    int foo;
+                    int goo;
                     int bar;
                     if (true)
                     {
-                        foo = 1;
+                        goo = 1;
                         bar = 1;
                     }
-                    System.Console.WriteLine(foo);
+                    System.Console.WriteLine(goo);
                     System.Console.WriteLine(bar);
                 }
             }
@@ -8403,12 +8403,12 @@ Diagnostic("IDE0059"));
             {
                 void M()
                 {
-                    {|FixAllInDocument:int unused = 0, /*Comment*/foo = 0, /*Another comment*/ bar = 0;|}
+                    {|FixAllInDocument:int unused = 0, /*Comment*/goo = 0, /*Another comment*/ bar = 0;|}
                     if (true)
                     {
-                        foo = 1;
+                        goo = 1;
                     }
-                    System.Console.WriteLine(foo);
+                    System.Console.WriteLine(goo);
                 }
             }
             """,
@@ -8417,12 +8417,12 @@ Diagnostic("IDE0059"));
             {
                 void M()
                 {
-                    int foo;
+                    int goo;
                     if (true)
                     {
-                        foo = 1;
+                        goo = 1;
                     }
-                    System.Console.WriteLine(foo);
+                    System.Console.WriteLine(goo);
                 }
             }
             """, options: PreferUnusedLocal);
@@ -9519,10 +9519,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 {
             		public static void Main(string[] args)
                     {
-                        {|FixAllInDocument:Foo(() => { Bar(); return true; })|};
+                        {|FixAllInDocument:Goo(() => { Bar(); return true; })|};
                     }
 
-                    public static bool Foo(Func<bool> func)
+                    public static bool Goo(Func<bool> func)
                     {
                         return func. Invoke();
                     }
@@ -9542,10 +9542,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 {
             		public static void Main(string[] args)
                     {
-                        _ = Foo(() => { _ = Bar(); return true; });
+                        _ = Goo(() => { _ = Bar(); return true; });
                     }
 
-                    public static bool Foo(Func<bool> func)
+                    public static bool Goo(Func<bool> func)
                     {
                         return func. Invoke();
                     }

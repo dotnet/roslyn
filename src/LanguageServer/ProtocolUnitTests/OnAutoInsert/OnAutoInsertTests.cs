@@ -121,7 +121,7 @@ End Class";
 @"class A
 {
     ///{|type:|}
-    string M(int foo, bool bar)
+    string M(int goo, bool bar)
     {
     }
 }";
@@ -131,10 +131,10 @@ End Class";
     /// <summary>
 /// $0
 /// </summary>
-/// <param name=""foo""></param>
+/// <param name=""goo""></param>
 /// <param name=""bar""></param>
 /// <returns></returns>
-    string M(int foo, bool bar)
+    string M(int goo, bool bar)
     {
     }
 }";
@@ -176,7 +176,7 @@ End Class";
 @"class A
 {
     /// <summary>
-    /// Foo
+    /// Goo
     /// </summary>
 {|type:|}
     void M()
@@ -187,7 +187,7 @@ End Class";
 @"class A
 {
     /// <summary>
-    /// Foo
+    /// Goo
     /// </summary>
     /// $0
     void M()
@@ -204,7 +204,7 @@ End Class";
 @"class A
 {
     /// <summary>
-    /// Foo
+    /// Goo
 {|type:|}
     /// </summary>
     void M()
@@ -215,7 +215,7 @@ End Class";
 @"class A
 {
     /// <summary>
-    /// Foo
+    /// Goo
     /// $0
     /// </summary>
     void M()
@@ -233,7 +233,7 @@ End Class";
 {
     ///
 {|type:|}
-    string M(int foo, bool bar)
+    string M(int goo, bool bar)
     {
     }
 }";
@@ -243,10 +243,10 @@ End Class";
     /// <summary>
     /// $0
     /// </summary>
-    /// <param name=""foo""></param>
+    /// <param name=""goo""></param>
     /// <param name=""bar""></param>
     /// <returns></returns>
-    string M(int foo, bool bar)
+    string M(int goo, bool bar)
     {
     }
 }";

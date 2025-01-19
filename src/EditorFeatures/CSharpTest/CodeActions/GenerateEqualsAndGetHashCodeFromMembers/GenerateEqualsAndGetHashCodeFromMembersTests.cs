@@ -1667,7 +1667,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             using System.Collections.Generic;
 
-            class Foo
+            class Goo
             {
                 [|Bar bar;|]
             }
@@ -1680,15 +1680,15 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             using System.Collections.Generic;
 
-            class Foo
+            class Goo
             {
                 Bar bar;
 
                 public override bool Equals(object obj)
                 {
-                    var foo = obj as Foo;
-                    return !ReferenceEquals(foo, null) &&
-                           EqualityComparer<Bar>.Default.Equals(bar, foo.bar);
+                    var goo = obj as Goo;
+                    return !ReferenceEquals(goo, null) &&
+                           EqualityComparer<Bar>.Default.Equals(bar, goo.bar);
                 }
 
                 public override int GetHashCode()
@@ -1719,7 +1719,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             using System.Collections.Generic;
 
-            class Foo
+            class Goo
             {
                 [|Bar bar;|]
             }
@@ -1733,15 +1733,15 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             using System.Collections.Generic;
 
-            class Foo
+            class Goo
             {
                 Bar bar;
 
                 public override bool Equals(object obj)
                 {
-                    var foo = obj as Foo;
-                    return !ReferenceEquals(foo, null) &&
-                           EqualityComparer<Bar>.Default.Equals(bar, foo.bar);
+                    var goo = obj as Goo;
+                    return !ReferenceEquals(goo, null) &&
+                           EqualityComparer<Bar>.Default.Equals(bar, goo.bar);
                 }
 
                 public override int GetHashCode()
@@ -1773,7 +1773,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             using System.Collections.Generic;
 
-            class Foo
+            class Goo
             {
                 [|Bar? bar;|]
             }
@@ -1786,15 +1786,15 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             using System.Collections.Generic;
 
-            class Foo
+            class Goo
             {
                 Bar? bar;
 
                 public override bool Equals(object obj)
                 {
-                    var foo = obj as Foo;
-                    return !ReferenceEquals(foo, null) &&
-                           EqualityComparer<Bar?>.Default.Equals(bar, foo.bar);
+                    var goo = obj as Goo;
+                    return !ReferenceEquals(goo, null) &&
+                           EqualityComparer<Bar?>.Default.Equals(bar, goo.bar);
                 }
 
                 public override int GetHashCode()
@@ -1825,7 +1825,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             using System.Collections.Generic;
 
-            class Foo<TBar> where TBar : struct
+            class Goo<TBar> where TBar : struct
             {
                 [|TBar bar;|]
             }
@@ -1834,15 +1834,15 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             using System.Collections.Generic;
 
-            class Foo<TBar> where TBar : struct
+            class Goo<TBar> where TBar : struct
             {
                 TBar bar;
 
                 public override bool Equals(object obj)
                 {
-                    var foo = obj as Foo<TBar>;
-                    return !ReferenceEquals(foo, null) &&
-                           EqualityComparer<TBar>.Default.Equals(bar, foo.bar);
+                    var goo = obj as Goo<TBar>;
+                    return !ReferenceEquals(goo, null) &&
+                           EqualityComparer<TBar>.Default.Equals(bar, goo.bar);
                 }
 
                 public override int GetHashCode()
@@ -1869,7 +1869,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             using System.Collections.Generic;
 
-            class Foo<TBar> where TBar : struct
+            class Goo<TBar> where TBar : struct
             {
                 [|TBar? bar;|]
             }
@@ -1878,15 +1878,15 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             using System.Collections.Generic;
 
-            class Foo<TBar> where TBar : struct
+            class Goo<TBar> where TBar : struct
             {
                 TBar? bar;
 
                 public override bool Equals(object obj)
                 {
-                    var foo = obj as Foo<TBar>;
-                    return !ReferenceEquals(foo, null) &&
-                           EqualityComparer<TBar?>.Default.Equals(bar, foo.bar);
+                    var goo = obj as Goo<TBar>;
+                    return !ReferenceEquals(goo, null) &&
+                           EqualityComparer<TBar?>.Default.Equals(bar, goo.bar);
                 }
 
                 public override int GetHashCode()
@@ -1913,7 +1913,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             using System.Collections.Generic;
 
-            class Foo
+            class Goo
             {
                 [|Bar bar;|]
             }
@@ -1926,15 +1926,15 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             using System.Collections.Generic;
 
-            class Foo
+            class Goo
             {
                 Bar bar;
 
                 public override bool Equals(object obj)
                 {
-                    var foo = obj as Foo;
-                    return !ReferenceEquals(foo, null) &&
-                           bar == foo.bar;
+                    var goo = obj as Goo;
+                    return !ReferenceEquals(goo, null) &&
+                           bar == goo.bar;
                 }
 
                 public override int GetHashCode()
@@ -1965,7 +1965,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             using System.Collections.Generic;
 
-            class Foo
+            class Goo
             {
                 [|ulong bar;|]
             }
@@ -1974,15 +1974,15 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             using System.Collections.Generic;
 
-            class Foo
+            class Goo
             {
                 ulong bar;
 
                 public override bool Equals(object obj)
                 {
-                    var foo = obj as Foo;
-                    return !ReferenceEquals(foo, null) &&
-                           bar == foo.bar;
+                    var goo = obj as Goo;
+                    return !ReferenceEquals(goo, null) &&
+                           bar == goo.bar;
                 }
 
                 public override int GetHashCode()
@@ -2496,7 +2496,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             using System;
             using System.Collections.Generic;
 
-            class Foo
+            class Goo
             {
                 [|public bool? BooleanValue { get; }
                 public decimal? DecimalValue { get; }
@@ -2513,7 +2513,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             using System;
             using System.Collections.Generic;
 
-            class Foo
+            class Goo
             {
                 public bool? BooleanValue { get; }
                 public decimal? DecimalValue { get; }
@@ -2522,12 +2522,12 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
 
                 public override bool Equals(object obj)
                 {
-                    var foo = obj as Foo;
-                    return !ReferenceEquals(foo, null) &&
-                           BooleanValue == foo.BooleanValue &&
-                           DecimalValue == foo.DecimalValue &&
-                           EnumValue == foo.EnumValue &&
-                           DateTimeValue == foo.DateTimeValue;
+                    var goo = obj as Goo;
+                    return !ReferenceEquals(goo, null) &&
+                           BooleanValue == goo.BooleanValue &&
+                           DecimalValue == goo.DecimalValue &&
+                           EnumValue == goo.EnumValue &&
+                           DateTimeValue == goo.DateTimeValue;
                 }
             }
 
@@ -2554,7 +2554,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             using System;
             using System.Collections.Generic;
 
-            class Foo
+            class Goo
             {
                 [|public Bar Value { get; }
                 public Bar? NullableValue { get; }|]
@@ -2580,17 +2580,17 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             using System;
             using System.Collections.Generic;
 
-            class Foo
+            class Goo
             {
                 public Bar Value { get; }
                 public Bar? NullableValue { get; }
 
                 public override bool Equals(object obj)
                 {
-                    var foo = obj as Foo;
-                    return !ReferenceEquals(foo, null) &&
-                           Value.Equals(foo.Value) &&
-                           EqualityComparer<Bar?>.Default.Equals(NullableValue, foo.NullableValue);
+                    var goo = obj as Goo;
+                    return !ReferenceEquals(goo, null) &&
+                           Value.Equals(goo.Value) &&
+                           EqualityComparer<Bar?>.Default.Equals(NullableValue, goo.NullableValue);
                 }
             }
 
@@ -2739,7 +2739,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             #nullable enable
 
-            struct Foo
+            struct Goo
             {
                 public int Bar { get; }
                 [||]
@@ -2751,16 +2751,16 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
 
             using System;
 
-            struct Foo : IEquatable<Foo>
+            struct Goo : IEquatable<Goo>
             {
                 public int Bar { get; }
 
                 public override bool Equals(object? obj)
                 {
-                    return obj is Foo foo && Equals(foo);
+                    return obj is Goo goo && Equals(goo);
                 }
 
-                public bool Equals(Foo other)
+                public bool Equals(Goo other)
                 {
                     return Bar == other.Bar;
                 }
@@ -2787,7 +2787,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             using System;
             using System.Diagnostics.CodeAnalysis;
 
-            struct Foo
+            struct Goo
             {
                 public bool Bar { get; }
                 [||]
@@ -2800,16 +2800,16 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             using System;
             using System.Diagnostics.CodeAnalysis;
 
-            struct Foo : IEquatable<Foo>
+            struct Goo : IEquatable<Goo>
             {
                 public bool Bar { get; }
 
                 public override bool Equals(object? obj)
                 {
-                    return obj is Foo foo && Equals(foo);
+                    return obj is Goo goo && Equals(goo);
                 }
 
-                public bool Equals(Foo other)
+                public bool Equals(Goo other)
                 {
                     return Bar == other.Bar;
                 }
@@ -3017,7 +3017,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             """
             #nullable enable
 
-            class Foo
+            class Goo
             {
                 public int Bar { get; }
                 [||]
@@ -3029,16 +3029,16 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
 
             using System;
 
-            class Foo : IEquatable<Foo?>
+            class Goo : IEquatable<Goo?>
             {
                 public int Bar { get; }
 
                 public override bool Equals(object? obj)
                 {
-                    return Equals(obj as Foo);
+                    return Equals(obj as Goo);
                 }
 
-                public bool Equals(Foo? other)
+                public bool Equals(Goo? other)
                 {
                     return !(other is null) &&
                            Bar == other.Bar;
@@ -3066,7 +3066,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             using System;
             using System.Diagnostics.CodeAnalysis;
 
-            class Foo
+            class Goo
             {
                 public bool Bar { get; }
                 [||]
@@ -3079,16 +3079,16 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             using System;
             using System.Diagnostics.CodeAnalysis;
 
-            class Foo : IEquatable<Foo?>
+            class Goo : IEquatable<Goo?>
             {
                 public bool Bar { get; }
 
                 public override bool Equals(object? obj)
                 {
-                    return Equals(obj as Foo);
+                    return Equals(obj as Goo);
                 }
 
-                public bool Equals(Foo? other)
+                public bool Equals(Goo? other)
                 {
                     return !(other is null) &&
                            Bar == other.Bar;

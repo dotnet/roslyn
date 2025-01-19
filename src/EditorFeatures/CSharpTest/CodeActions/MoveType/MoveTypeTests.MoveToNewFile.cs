@@ -1378,7 +1378,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
 
             [||]class Class1
             {
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1386,7 +1386,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
 
             class Class2
             {
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1399,7 +1399,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
 
             class Class2
             {
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1414,7 +1414,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
 
             class Class1
             {
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1436,7 +1436,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
 
             class Class1
             {
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1444,7 +1444,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
 
             [||]class Class2
             {
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1457,7 +1457,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
 
             class Class1
             {
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1472,7 +1472,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
 
             class Class2
             {
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1499,7 +1499,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 {
                 }
 
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1516,7 +1516,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             // Leading comment
             {
 
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1556,7 +1556,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 {
                 }
 
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1572,7 +1572,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             partial class Class1
             { // Leading comment
 
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1612,7 +1612,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 {
                 }
 
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1629,7 +1629,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             partial class Class1
             {
 
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1670,7 +1670,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 {
                 }
 
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }
@@ -1686,7 +1686,7 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             partial class Class1
             {
 
-                void Foo()
+                void Goo()
                 {
                     Console.WriteLine();
                 }

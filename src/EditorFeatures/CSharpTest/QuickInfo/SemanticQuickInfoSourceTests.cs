@@ -8352,7 +8352,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 /// A generic method <typeparamref name="T"/>.
                 /// </summary>
                 /// <typeparam name="T">A generic type.</typeparam>
-                void Foo<T>();
+                void Goo<T>();
             }
 
             public class Test : ITest
@@ -8364,7 +8364,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
 
         await TestWithOptionsAsync(TestOptions.Regular8,
             markup,
-            MainDescription($"void Test.Foo<T>()"),
+            MainDescription($"void Test.Goo<T>()"),
             Documentation("A generic method T."),
             item => Assert.Equal(
                 item.Sections.First(section => section.Kind == QuickInfoSectionKinds.DocumentationComments).TaggedParts.Select(p => p.Tag).ToArray(),

@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
         public async Task TestGetNestedSignatureHelpAsync(bool mutatingLspWorkspace)
         {
             var markup =
-@"class Foo {
-  public Foo(int showMe) {}
+@"class Goo {
+  public Goo(int showMe) {}
 
-  public static void Do(Foo foo) {
-    Do(new Foo({|caret:|}
+  public static void Do(Goo goo) {
+    Do(new Goo({|caret:|}
   }
 }";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
             {
                 ActiveParameter = 0,
                 ActiveSignature = 0,
-                Signatures = [CreateSignatureInformation("Foo(int showMe)", "", "showMe", "")]
+                Signatures = [CreateSignatureInformation("Goo(int showMe)", "", "showMe", "")]
             };
 
             var results = await RunGetSignatureHelpAsync(testLspServer, testLspServer.GetLocations("caret").Single());

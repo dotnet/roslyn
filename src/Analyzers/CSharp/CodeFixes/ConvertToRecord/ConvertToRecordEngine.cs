@@ -301,11 +301,11 @@ internal static class ConvertToRecordEngine
                     // if we have an inherited param, then we know we're inheriting from
                     // a record with a primary constructor.
                     // something like: public class C : B {...}
-                    // where B is: public record B(int Foo, bool Bar);
+                    // where B is: public record B(int Goo, bool Bar);
                     // We created a parameter list with all the properties that shadow the inherited ones.
                     // Now we need to associate the parameters declared in the class
                     // with the ones the base record uses.
-                    // Example: public record C(int Foo, int Bar, int OtherProp) : B(Foo, Bar) {...}
+                    // Example: public record C(int Goo, int Bar, int OtherProp) : B(Goo, Bar) {...}
                     var baseRecord = typeList.First();
                     var baseTrailingTrivia = baseRecord.Type.GetTrailingTrivia();
                     // get the positional parameters in the order they are declared from the base record
@@ -444,10 +444,10 @@ internal static class ConvertToRecordEngine
             // only/first definition. So we can just have an empty attribute list.
             // For example, if we want to move:
             // [SomeAttribute]
-            // public int Foo { get; private set; }
+            // public int Goo { get; private set; }
             // but then decide that we want to keep the definition, then the attribute can stay on the original
             // definition, and our primary constructor param can associate that attribute when we add:
-            // public int Foo { get; private set; } = Foo;
+            // public int Goo { get; private set; } = Goo;
             return [];
         }
 
@@ -551,7 +551,7 @@ internal static class ConvertToRecordEngine
                         }
                     });
 
-                    // replace: new C { Foo = 0; Bar = false; };
+                    // replace: new C { Goo = 0; Bar = false; };
                     // with: new C(0, false);
                     return ObjectCreationExpression(
                         updatedObjectCreation.NewKeyword,

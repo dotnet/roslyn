@@ -13064,7 +13064,7 @@ public sealed class RemoveUnnecessaryCastTests
 
                 public enum Test
                 {
-                    Foo = 1,
+                    Goo = 1,
                     Bar = 2,
                 }
             }

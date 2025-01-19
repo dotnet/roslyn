@@ -1252,10 +1252,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
             #nullable enable
             class Program
             {
-              static void F1((string Foo, string? Bar) t)
+              static void F1((string Goo, string? Bar) t)
               {
                 if (t.Bar == null) return;
-                t.Foo = [|null|];
+                t.Goo = [|null|];
               }
             }
             """,
@@ -1263,10 +1263,10 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
             #nullable enable
             class Program
             {
-              static void F1((string? Foo, string? Bar) t)
+              static void F1((string? Goo, string? Bar) t)
               {
                 if (t.Bar == null) return;
-                t.Foo = null;
+                t.Goo = null;
               }
             }
             """, parameters: s_nullableFeature);

@@ -16,7 +16,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeNamespace_InvalidFolderName1()
     {
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar";
+        var declaredNamespace = "Goo.Bar";
 
         // No change namespace action because the folder name is not valid identifier
         var (folder, filePath) = CreateDocumentFilePath(["3B", "C"], "File1.cs");
@@ -42,7 +42,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeNamespace_InvalidFolderName2()
     {
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar";
+        var declaredNamespace = "Goo.Bar";
 
         // No change namespace action because the folder name is not valid identifier
         var (folder, filePath) = CreateDocumentFilePath(["B.3C", "D"], "File1.cs");
@@ -68,7 +68,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeNamespace_SingleDocumentNoReference()
     {
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar";
+        var declaredNamespace = "Goo.Bar";
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var code =
@@ -102,7 +102,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeNamespace_SingleDocumentNoReference_FileScopedNamespace()
     {
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar";
+        var declaredNamespace = "Goo.Bar";
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var code =
@@ -133,7 +133,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeNamespace_SingleDocumentLocalReference()
     {
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar";
+        var declaredNamespace = "Goo.Bar";
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var code =
@@ -187,7 +187,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeNamespace_WithCrefReference()
     {
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -208,7 +208,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     public void M1() { }
                 }
             }</Document>
-            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Foo
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Goo
             {
                 using {{declaredNamespace}};
 
@@ -244,7 +244,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             """;
         var expectedSourceReference =
             """
-            namespace Foo
+            namespace Goo
             {
                 using A.B.C;
 
@@ -330,7 +330,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeNamespace_ReferencingTypesDeclaredInOtherDocument()
     {
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -349,7 +349,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 }
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}"> 
-            namespace Foo
+            namespace Goo
             {
                 class Class2{}
 
@@ -369,9 +369,9 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var expectedSourceOriginal =
             """
-            using Foo;
-            using Foo.Bar;
-            using Foo.Bar.Baz;
+            using Goo;
+            using Goo.Bar;
+            using Goo.Bar.Baz;
 
             namespace A.B.C
             {
@@ -390,7 +390,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeNamespace_ReferencingQualifiedTypesDeclaredInOtherDocument()
     {
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -403,13 +403,13 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 class Class1
                 {
-                    private Foo.Class2 c2;
-                    private Foo.Bar.Class3 c3;
-                    private Foo.Bar.Baz.Class4 c4;
+                    private Goo.Class2 c2;
+                    private Goo.Bar.Class3 c3;
+                    private Goo.Bar.Baz.Class4 c4;
                 }
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}"> 
-            namespace Foo
+            namespace Goo
             {
                 class Class2{}
 
@@ -429,9 +429,9 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var expectedSourceOriginal =
             """
-            using Foo;
-            using Foo.Bar;
-            using Foo.Bar.Baz;
+            using Goo;
+            using Goo.Bar;
+            using Goo.Bar.Baz;
 
             namespace A.B.C
             {
@@ -450,7 +450,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeNamespace_WithReferencesInOtherDocument()
     {
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -468,9 +468,9 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }</Document>
-            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">using Foo.Bar.Baz;
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">using Goo.Bar.Baz;
 
-            namespace Foo
+            namespace Goo
             {
                 class RefClass
                 {
@@ -503,7 +503,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             """
             using A.B.C;
 
-            namespace Foo
+            namespace Goo
             {
                 class RefClass
                 {
@@ -523,7 +523,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeNamespace_WithQualifiedReferencesInOtherDocument()
     {
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -538,7 +538,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void M1(Interface1 c1);
                 }
             }</Document>
-            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Foo
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Goo
             {
                 using {{declaredNamespace}};
 
@@ -563,7 +563,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             """;
         var expectedSourceReference =
             """
-            namespace Foo
+            namespace Goo
             {
                 using A.B.C;
 
@@ -580,7 +580,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeNamespace_ChangeUsingsInMultipleContainers()
     {
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -596,7 +596,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace NS1
             {
-                using Foo.Bar.Baz;
+                using Goo.Bar.Baz;
 
                 class Class2
                 {
@@ -605,7 +605,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
                 namespace NS2
                 {
-                    using Foo.Bar.Baz;
+                    using Goo.Bar.Baz;
 
                     class Class2
                     {
@@ -653,7 +653,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeNamespace_WithAliasReferencesInOtherDocument()
     {
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -672,9 +672,9 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 }
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">using System;
-            using Class1Alias = Foo.Bar.Baz.Class1;
+            using Class1Alias = Goo.Bar.Baz.Class1;
 
-            namespace Foo
+            namespace Goo
             {
                 class RefClass
                 {
@@ -709,7 +709,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             using A.B.C;
             using Class1Alias = A.B.C.Class1;
 
-            namespace Foo
+            namespace Goo
             {
                 class RefClass
                 {
@@ -729,7 +729,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeToGlobalNamespace_SingleDocumentNoRef()
     {
         var defaultNamespace = "";
-        var declaredNamespace = "Foo.Bar";
+        var declaredNamespace = "Goo.Bar";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var code =
@@ -771,7 +771,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeToGlobalNamespace_SingleDocumentLocalRef()
     {
         var defaultNamespace = "";
-        var declaredNamespace = "Foo.Bar";
+        var declaredNamespace = "Goo.Bar";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var code =
@@ -822,7 +822,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeToGlobalNamespace_WithReferencesInOtherDocument()
     {
         var defaultNamespace = "";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -840,9 +840,9 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }</Document>
-            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">using Foo.Bar.Baz;
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">using Goo.Bar.Baz;
 
-            namespace Foo
+            namespace Goo
             {
                 class RefClass
                 {
@@ -871,7 +871,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             """;
         var expectedSourceReference =
             """
-            namespace Foo
+            namespace Goo
             {
                 class RefClass
                 {
@@ -891,7 +891,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeToGlobalNamespace_WithQualifiedReferencesInOtherDocument()
     {
         var defaultNamespace = "";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -906,7 +906,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     void M1(Interface1 c1);
                 }
             }</Document>
-            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Foo
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Goo
             {
                 using {{declaredNamespace}};
 
@@ -929,7 +929,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             """;
         var expectedSourceReference =
             """
-            namespace Foo
+            namespace Goo
             {
                 class RefClass : Interface1
                 {
@@ -944,7 +944,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeToGlobalNamespace_WithReferenceAndConflictDeclarationInOtherDocument()
     {
         var defaultNamespace = "";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -958,13 +958,13 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }</Document>
-            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Foo
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Goo
             {
                 using {{declaredNamespace}};
 
                 class RefClass
                 {
-                    Foo.Bar.Baz.MyClass c;
+                    Goo.Bar.Baz.MyClass c;
                 }
 
                 class MyClass
@@ -984,7 +984,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             """;
         var expectedSourceReference =
             """
-            namespace Foo
+            namespace Goo
             {
                 class RefClass
                 {
@@ -1003,7 +1003,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeToGlobalNamespace_ReferencingTypesDeclaredInOtherDocument()
     {
         var defaultNamespace = "";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -1020,7 +1020,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     private Class4 c4;
                 }
             }</Document>
-            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Foo
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Goo
             {
                 class Class2{}
 
@@ -1040,9 +1040,9 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
         var expectedSourceOriginal =
             """
-            using Foo;
-            using Foo.Bar;
-            using Foo.Bar.Baz;
+            using Goo;
+            using Goo.Bar;
+            using Goo.Bar.Baz;
 
             class Class1
             {
@@ -1059,7 +1059,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeToGlobalNamespace_ChangeUsingsInMultipleContainers()
     {
         var defaultNamespace = "";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -1075,7 +1075,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace NS1
             {
-                using Foo.Bar.Baz;
+                using Goo.Bar.Baz;
 
                 class Class2
                 {
@@ -1084,7 +1084,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
                 namespace NS2
                 {
-                    using Foo.Bar.Baz;
+                    using Goo.Bar.Baz;
 
                     class Class2
                     {
@@ -1128,7 +1128,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeToGlobalNamespace_WithAliasReferencesInOtherDocument()
     {
         var defaultNamespace = "";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -1147,9 +1147,9 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 }
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">using System;
-            using Class1Alias = Foo.Bar.Baz.Class1;
+            using Class1Alias = Goo.Bar.Baz.Class1;
 
-            namespace Foo
+            namespace Goo
             {
                 class RefClass
                 {
@@ -1181,7 +1181,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             using System;
             using Class1Alias = Class1;
 
-            namespace Foo
+            namespace Goo
             {
                 class RefClass
                 {
@@ -1297,7 +1297,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             class Class2 
             { 
             }</Document>
-            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Foo
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Goo
             {
                 class RefClass
                 {
@@ -1330,7 +1330,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             """
             using A.B.C;
 
-            namespace Foo
+            namespace Goo
             {
                 class RefClass
                 {
@@ -1360,7 +1360,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 void M1(Interface1 c1);   
             }</Document>
-            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Foo
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Goo
             {
                 class RefClass : Interface1
                 {
@@ -1385,7 +1385,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             """
             using A.B.C;
 
-            namespace Foo
+            namespace Goo
             {
                 class RefClass : Interface1
                 {
@@ -1540,7 +1540,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">using Class1Alias = Class1;
 
-            namespace Foo
+            namespace Goo
             {
                 using System;
 
@@ -1576,7 +1576,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             using A.B.C;
             using Class1Alias = Class1;
 
-            namespace Foo
+            namespace Goo
             {
                 using System;
 
@@ -1747,7 +1747,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             class [||]Class1 
             {
             }</Document>
-            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Foo
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Goo
             {
                 /// &lt;summary&gt;
                 /// See &lt;see cref="Class1"/&gt;
@@ -1777,7 +1777,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             """
             using A.B.C;
 
-            namespace Foo
+            namespace Goo
             {
                 /// <summary>
                 /// See <see cref="Class1"/>
@@ -1794,7 +1794,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeToGlobalNamespace_WithReferencesInVBDocument()
     {
         var defaultNamespace = "";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var code =
@@ -1838,7 +1838,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeToGlobalNamespace_WithReferenceAndConflictDeclarationInVBDocument()
     {
         var defaultNamespace = "";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var code =
@@ -1853,9 +1853,9 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             }</Document>
                 </Project>    
             <Project Language="Visual Basic" AssemblyName="Assembly2" CommonReferences="true">
-                    <Document>Namespace Foo
+                    <Document>Namespace Goo
                 Public Class VBClass
-                    Public ReadOnly Property C1 As Foo.Bar.Baz.MyClass
+                    Public ReadOnly Property C1 As Goo.Bar.Baz.MyClass
                 End Class
 
                 Public Class MyClass
@@ -1874,7 +1874,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             """;
         var expectedSourceReference =
             """
-            Namespace Foo
+            Namespace Goo
                 Public Class VBClass
                     Public ReadOnly Property C1 As Global.MyClass
                 End Class
@@ -1890,7 +1890,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeToGlobalNamespace_WithCredReferences()
     {
         var defaultNamespace = "";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var (folder, filePath) = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -1908,7 +1908,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                 {
                 }
             }</Document>
-            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Foo
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Goo
             {
                 using {{declaredNamespace}};
 
@@ -1937,7 +1937,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             """;
         var expectedSourceReference =
             """
-            namespace Foo
+            namespace Goo
             {
                 /// <summary>
                 /// See <see cref="Class1"/>
@@ -1966,7 +1966,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 public static class Extensions
                 {
-                    public static bool Foo(this Class1 c1) => true;
+                    public static bool Goo(this Class1 c1) => true;
                 }
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace {{defaultNamespace}}
@@ -1975,7 +1975,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
                 public class Class1
                 {
-                    public bool Bar(Class1 c1) => c1.Foo();
+                    public bool Bar(Class1 c1) => c1.Goo();
                 }
             }</Document>
                 </Project>
@@ -1988,7 +1988,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 public static class Extensions
                 {
-                    public static bool Foo(this Class1 c1) => true;
+                    public static bool Goo(this Class1 c1) => true;
                 }
             }
             """;
@@ -2001,7 +2001,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 
                 public class Class1
                 {
-                    public bool Bar(Class1 c1) => c1.Foo();
+                    public bool Bar(Class1 c1) => c1.Goo();
                 }
             }
             """;
@@ -2023,7 +2023,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 public static class Extensions
                 {
-                    public static bool Foo(this Class1 c1) => true;
+                    public static bool Goo(this Class1 c1) => true;
                 }
             }</Document>
             <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">using System;
@@ -2032,7 +2032,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 public class Class1
                 {
-                    public bool Bar(Class1 c1) => Extensions.Foo(c1);
+                    public bool Bar(Class1 c1) => Extensions.Goo(c1);
                 }
             }</Document>
                 </Project>
@@ -2045,7 +2045,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 public static class Extensions
                 {
-                    public static bool Foo(this Class1 c1) => true;
+                    public static bool Goo(this Class1 c1) => true;
                 }
             }
             """;
@@ -2058,7 +2058,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 public class Class1
                 {
-                    public bool Bar(Class1 c1) => Extensions.Foo(c1);
+                    public bool Bar(Class1 c1) => Extensions.Goo(c1);
                 }
             }
             """;
@@ -2080,7 +2080,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 public static class Extensions
                 {
-                    public static bool Foo(this Class1 c1) => true;
+                    public static bool Goo(this Class1 c1) => true;
                 }
 
                 public class Class2
@@ -2092,7 +2092,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 public class Class1
                 {
-                    public bool Bar(Class1 c1, Class2 c2) => c2 == null ? c1.Foo() : true;
+                    public bool Bar(Class1 c1, Class2 c2) => c2 == null ? c1.Goo() : true;
                 }
             }</Document>
                 </Project>
@@ -2105,7 +2105,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 public static class Extensions
                 {
-                    public static bool Foo(this Class1 c1) => true;
+                    public static bool Goo(this Class1 c1) => true;
                 }
 
                 public class Class2
@@ -2121,7 +2121,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 public class Class1
                 {
-                    public bool Bar(Class1 c1, Class2 c2) => c2 == null ? c1.Foo() : true;
+                    public bool Bar(Class1 c1, Class2 c2) => c2 == null ? c1.Goo() : true;
                 }
             }
             """;
@@ -2145,7 +2145,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 public static class Extensions
                 {
-                    public static bool Foo(this String s) => true;
+                    public static bool Goo(this String s) => true;
                 }
             }</Document>
                 </Project>    
@@ -2153,8 +2153,8 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     <Document>Imports {{declaredNamespace}}
 
             Public Class VBClass
-                Public Function Foo(s As string) As Boolean
-                    Return s.Foo()
+                Public Function Goo(s As string) As Boolean
+                    Return s.Goo()
                 End Function
             End Class</Document>
                 </Project>
@@ -2169,7 +2169,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 public static class Extensions
                 {
-                    public static bool Foo(this string s) => true;
+                    public static bool Goo(this string s) => true;
                 }
             }
             """;
@@ -2178,8 +2178,8 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             Imports {defaultNamespace}
 
             Public Class VBClass
-                Public Function Foo(s As string) As Boolean
-                    Return s.Foo()
+                Public Function Goo(s As string) As Boolean
+                    Return s.Goo()
                 End Function
             End Class
             """;
@@ -2190,7 +2190,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeNamespace_WithMemberAccessReferencesInOtherDocument()
     {
         var defaultNamespace = "A";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var documentPath1 = CreateDocumentFilePath(["B", "C"], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -2207,7 +2207,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     C
                 }
             }</Document>
-            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Foo
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Goo
             {
                 class RefClass
                 {
@@ -2237,7 +2237,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             """
             using A.B.C;
 
-            namespace Foo
+            namespace Goo
             {
                 class RefClass
                 {
@@ -2255,7 +2255,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     public async Task ChangeToGlobalNamespace_WithMemberAccessReferencesInOtherDocument()
     {
         var defaultNamespace = "";
-        var declaredNamespace = "Foo.Bar.Baz";
+        var declaredNamespace = "Goo.Bar.Baz";
 
         var documentPath1 = CreateDocumentFilePath([], "File1.cs");
         var documentPath2 = CreateDocumentFilePath([], "File2.cs");
@@ -2272,7 +2272,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
                     C
                 }
             }</Document>
-            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Foo
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}">namespace Goo
             {
                 class RefClass
                 {
@@ -2298,7 +2298,7 @@ public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             """;
         var expectedSourceReference =
             """
-            namespace Foo
+            namespace Goo
             {
                 class RefClass
                 {

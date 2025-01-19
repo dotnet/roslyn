@@ -679,14 +679,14 @@ public class {|target2:Bar|} : IBar
         var markup = @"using System;
         interface {|target1:IBar|}
         {
-            void {|target4:Foo|}();
+            void {|target4:Goo|}();
             int {|target6:Poo|} { get; set; }
             event EventHandler {|target8:Eoo|};
             int {|target9:this|}[int i] { get; set; }
         }
         public class {|target2:Bar|} : IBar
         {
-            public void {|target3:Foo|}() { }
+            public void {|target3:Goo|}() { }
             public int {|target5:Poo|} { get; set; }
             public event EventHandler {|target7:Eoo|};
             public int {|target10:this|}[int i] { get => 1; set { } }
@@ -729,18 +729,18 @@ public class {|target2:Bar|} : IBar
 
         var itemForFooInInterface = new TestInheritanceMemberItem(
             lineNumber: 4,
-            memberName: "void IBar.Foo()",
+            memberName: "void IBar.Goo()",
             targets: [new TargetInfo(
-                    targetSymbolDisplayName: "Bar.Foo",
+                    targetSymbolDisplayName: "Bar.Goo",
                     locationTag: "target3",
                     relationship: InheritanceRelationship.ImplementingMember)]
             );
 
         var itemForFooInClass = new TestInheritanceMemberItem(
             lineNumber: 11,
-            memberName: "void Bar.Foo()",
+            memberName: "void Bar.Goo()",
             targets: [new TargetInfo(
-                    targetSymbolDisplayName: "IBar.Foo",
+                    targetSymbolDisplayName: "IBar.Goo",
                     locationTag: "target4",
                     relationship: InheritanceRelationship.ImplementedMember)]
             );
@@ -807,13 +807,13 @@ public class {|target2:Bar|} : IBar
         var markup = $@"using System;
         public abstract class {{|target2:Bar|}}
         {{
-            public {modifier} void {{|target4:Foo|}}();
+            public {modifier} void {{|target4:Goo|}}();
             public {modifier} int {{|target6:Poo|}} {{ get; set; }}
             public {modifier} event EventHandler {{|target8:Eoo|}};
         }}
         public class {{|target1:Bar2|}} : Bar
         {{
-            public override void {{|target3:Foo|}}() {{ }}
+            public override void {{|target3:Goo|}}() {{ }}
             public override int {{|target5:Poo|}} {{ get; set; }}
             public override event EventHandler {{|target7:Eoo|}};
         }}
@@ -853,17 +853,17 @@ public class {|target2:Bar|} : IBar
 
         var itemForFooInAbstractClass = new TestInheritanceMemberItem(
                 lineNumber: 4,
-                memberName: $"{modifier} void Bar.Foo()",
+                memberName: $"{modifier} void Bar.Goo()",
                 targets: [new TargetInfo(
-                        targetSymbolDisplayName: "Bar2.Foo",
+                        targetSymbolDisplayName: "Bar2.Goo",
                         locationTag: "target3",
                         relationship: InheritanceRelationship.OverridingMember)]);
 
         var itemForFooInClass = new TestInheritanceMemberItem(
             lineNumber: 10,
-            memberName: "override void Bar2.Foo()",
+            memberName: "override void Bar2.Goo()",
             targets: [new TargetInfo(
-                    targetSymbolDisplayName: $"Bar.Foo",
+                    targetSymbolDisplayName: $"Bar.Goo",
                     locationTag: "target4",
                     relationship: InheritanceRelationship.OverriddenMember)]);
 
@@ -903,29 +903,29 @@ public class {|target2:Bar|} : IBar
         var markup1 = @"using System;
         public interface {|target4:IBar|}
         {
-            void {|target6:Foo|}();
+            void {|target6:Goo|}();
         }
         public class {|target1:Bar1|} : IBar
         {
-            public virtual void {|target2:Foo|}() { }
+            public virtual void {|target2:Goo|}() { }
         }
         public class {|target5:Bar2|} : Bar1
         {
-            public override void {|target3:Foo|}() { }
+            public override void {|target3:Goo|}() { }
         }";
 
         var markup2 = @"using System;
         public interface {|target4:IBar|}
         {
-            void {|target6:Foo|}();
+            void {|target6:Goo|}();
         }
         public class {|target1:Bar1|} : IBar
         {
-            public virtual void {|target2:Foo|}() { }
+            public virtual void {|target2:Goo|}() { }
         }
         public class {|target5:Bar2|} : Bar1, IBar
         {
-            public override void {|target3:Foo|}() { }
+            public override void {|target3:Goo|}() { }
         }";
 
         var itemForIBar = new TestInheritanceMemberItem(
@@ -945,15 +945,15 @@ public class {|target2:Bar|} : IBar
 
         var itemForFooInIBar = new TestInheritanceMemberItem(
             lineNumber: 4,
-            memberName: "void IBar.Foo()",
+            memberName: "void IBar.Goo()",
             targets:
             [
                 new TargetInfo(
-                            targetSymbolDisplayName: "Bar1.Foo",
+                            targetSymbolDisplayName: "Bar1.Goo",
                             locationTag: "target2",
                             relationship: InheritanceRelationship.ImplementingMember),
                 new TargetInfo(
-                    targetSymbolDisplayName: "Bar2.Foo",
+                    targetSymbolDisplayName: "Bar2.Goo",
                     locationTag: "target3",
                     relationship: InheritanceRelationship.ImplementingMember),
             ]);
@@ -975,15 +975,15 @@ public class {|target2:Bar|} : IBar
 
         var itemForFooInBar1 = new TestInheritanceMemberItem(
             lineNumber: 8,
-            memberName: "virtual void Bar1.Foo()",
+            memberName: "virtual void Bar1.Goo()",
             targets:
             [
                 new TargetInfo(
-                            targetSymbolDisplayName: "IBar.Foo",
+                            targetSymbolDisplayName: "IBar.Goo",
                             locationTag: "target6",
                             relationship: InheritanceRelationship.ImplementedMember),
                 new TargetInfo(
-                    targetSymbolDisplayName: "Bar2.Foo",
+                    targetSymbolDisplayName: "Bar2.Goo",
                     locationTag: "target3",
                     relationship: InheritanceRelationship.OverridingMember),
             ]);
@@ -1005,15 +1005,15 @@ public class {|target2:Bar|} : IBar
 
         var itemForFooInBar2 = new TestInheritanceMemberItem(
             lineNumber: 12,
-            memberName: "override void Bar2.Foo()",
+            memberName: "override void Bar2.Goo()",
             targets:
             [
                 new TargetInfo(
-                            targetSymbolDisplayName: "IBar.Foo",
+                            targetSymbolDisplayName: "IBar.Goo",
                             locationTag: "target6",
                             relationship: InheritanceRelationship.ImplementedMember),
                 new TargetInfo(
-                    targetSymbolDisplayName: "Bar1.Foo",
+                    targetSymbolDisplayName: "Bar1.Goo",
                     locationTag: "target2",
                     relationship: InheritanceRelationship.OverriddenMember),
             ]);
@@ -1040,13 +1040,13 @@ public class {|target2:Bar|} : IBar
         var markup = $@"using System;
         public abstract class {{|target2:Bar|}}
         {{
-            public {modifier} void {{|target4:Foo|}}();
+            public {modifier} void {{|target4:Goo|}}();
             public {modifier} int {{|target6:Poo|}} {{ get; set; }}
             public {modifier} event EventHandler {{|target8:Eoo|}};
         }}
         public class {{|target1:Bar2|}} : Bar
         {{
-            public override void {{|target3:Foo|}}(int i) {{ }}
+            public override void {{|target3:Goo|}}(int i) {{ }}
             public override string {{|target5:Poo|}} {{ get; set; }}
             public override event Action {{|target7:Eoo|}};
         }}
@@ -1086,17 +1086,17 @@ public class {|target2:Bar|} : IBar
 
         var itemForFooInAbstractClass = new TestInheritanceMemberItem(
             lineNumber: 4,
-            memberName: $"{modifier} void Bar.Foo()",
+            memberName: $"{modifier} void Bar.Goo()",
             targets: [new TargetInfo(
-                targetSymbolDisplayName: "Bar2.Foo",
+                targetSymbolDisplayName: "Bar2.Goo",
                 locationTag: "target3",
                 relationship: InheritanceRelationship.OverridingMember)]);
 
         var itemForFooInClass = new TestInheritanceMemberItem(
             lineNumber: 10,
-            memberName: "override void Bar2.Foo(int)",
+            memberName: "override void Bar2.Goo(int)",
             targets: [new TargetInfo(
-                targetSymbolDisplayName: $"Bar.Foo",
+                targetSymbolDisplayName: $"Bar.Goo",
                 locationTag: "target4",
                 relationship: InheritanceRelationship.OverriddenMember)]);
 
@@ -1136,12 +1136,12 @@ public class {|target2:Bar|} : IBar
         var markup = @"
 public interface {|target2:IBar|}<T>
 {
-    void {|target4:Foo|}();
+    void {|target4:Goo|}();
 }
 
 public class {|target1:Bar2|} : IBar<int>, IBar<string>
 {
-    public void {|target3:Foo|}();
+    public void {|target3:Goo|}();
 }";
 
         var itemForIBar = new TestInheritanceMemberItem(
@@ -1154,9 +1154,9 @@ public class {|target1:Bar2|} : IBar<int>, IBar<string>
 
         var itemForFooInIBar = new TestInheritanceMemberItem(
             lineNumber: 4,
-            memberName: "void IBar<T>.Foo()",
+            memberName: "void IBar<T>.Goo()",
             targets: [new TargetInfo(
-                    targetSymbolDisplayName: "Bar2.Foo",
+                    targetSymbolDisplayName: "Bar2.Goo",
                     locationTag: "target3",
                     relationship: InheritanceRelationship.ImplementingMember)]);
 
@@ -1169,12 +1169,12 @@ public class {|target1:Bar2|} : IBar<int>, IBar<string>
                     locationTag: "target2",
                     relationship: InheritanceRelationship.ImplementedInterface)]);
 
-        // Only have one IBar<T>.Foo item
+        // Only have one IBar<T>.Goo item
         var itemForFooInBar2 = new TestInheritanceMemberItem(
             lineNumber: 9,
-            memberName: "void Bar2.Foo()",
+            memberName: "void Bar2.Goo()",
             targets: [new TargetInfo(
-                    targetSymbolDisplayName: "IBar<T>.Foo",
+                    targetSymbolDisplayName: "IBar<T>.Goo",
                     locationTag: "target4",
                     relationship: InheritanceRelationship.ImplementedMember)]);
 
@@ -1194,12 +1194,12 @@ public class {|target1:Bar2|} : IBar<int>, IBar<string>
         var markup = @"
 interface {|target2:IBar|}<T>
 {
-    void {|target3:Foo|}(T t);
+    void {|target3:Goo|}(T t);
 }
 
 abstract class {|target1:AbsBar|} : IBar<int>
 {
-    void IBar<int>.{|target4:Foo|}(int t)
+    void IBar<int>.{|target4:Goo|}(int t)
     {
         throw new System.NotImplementedException();
     }
@@ -1214,9 +1214,9 @@ abstract class {|target1:AbsBar|} : IBar<int>
 
         var itemForFooInIBar = new TestInheritanceMemberItem(
             lineNumber: 4,
-            memberName: "void IBar<T>.Foo(T)",
+            memberName: "void IBar<T>.Goo(T)",
             targets: [new TargetInfo(
-                    targetSymbolDisplayName: "AbsBar.IBar<int>.Foo",
+                    targetSymbolDisplayName: "AbsBar.IBar<int>.Goo",
                     locationTag: "target4",
                     relationship: InheritanceRelationship.ImplementingMember)]);
 
@@ -1230,9 +1230,9 @@ abstract class {|target1:AbsBar|} : IBar<int>
 
         var itemForFooInAbsBar = new TestInheritanceMemberItem(
             lineNumber: 9,
-            memberName: "void AbsBar.IBar<int>.Foo(int)",
+            memberName: "void AbsBar.IBar<int>.Goo(int)",
             targets: [new TargetInfo(
-                    targetSymbolDisplayName: "IBar<T>.Foo",
+                    targetSymbolDisplayName: "IBar<T>.Goo",
                     locationTag: "target3",
                     relationship: InheritanceRelationship.ImplementedMember)]);
 
@@ -1809,7 +1809,7 @@ using System.Collections;";
         var markup = @"
         Interface {|target2:IBar|}
             Property {|target4:Poo|} As Integer
-            Function {|target6:Foo|}() As Integer
+            Function {|target6:Goo|}() As Integer
         End Interface
 
         Class {|target1:Bar|}
@@ -1821,7 +1821,7 @@ using System.Collections;";
                 Set(value As Integer)
                 End Set
             End Property
-            Public Function {|target5:Foo|}() As Integer Implements IBar.Foo
+            Public Function {|target5:Goo|}() As Integer Implements IBar.Goo
                 Return 1
             End Function
         End Class";
@@ -1859,17 +1859,17 @@ using System.Collections;";
 
         var itemForFooInInterface = new TestInheritanceMemberItem(
             lineNumber: 4,
-            memberName: "Function IBar.Foo() As Integer",
+            memberName: "Function IBar.Goo() As Integer",
             targets: [new TargetInfo(
-                targetSymbolDisplayName: "Bar.Foo",
+                targetSymbolDisplayName: "Bar.Goo",
                 locationTag: "target5",
                 relationship: InheritanceRelationship.ImplementingMember)]);
 
         var itemForFooInClass = new TestInheritanceMemberItem(
             lineNumber: 16,
-            memberName: "Function Bar.Foo() As Integer",
+            memberName: "Function Bar.Goo() As Integer",
             targets: [new TargetInfo(
-                targetSymbolDisplayName: "IBar.Foo",
+                targetSymbolDisplayName: "IBar.Goo",
                 locationTag: "target6",
                 relationship: InheritanceRelationship.ImplementedMember)]);
 
@@ -1890,12 +1890,12 @@ using System.Collections;";
     {
         var markup = @"
         MustInherit Class {|target2:Bar1|}
-            Public MustOverride Sub {|target4:Foo|}()
+            Public MustOverride Sub {|target4:Goo|}()
         End Class
 
         Class {|target1:Bar|}
             Inherits Bar1
-            Public Overrides Sub {|target3:Foo|}()
+            Public Overrides Sub {|target3:Goo|}()
             End Sub
         End Class";
         var itemForBar1 = new TestInheritanceMemberItem(
@@ -1916,17 +1916,17 @@ using System.Collections;";
 
         var itemForFooInBar1 = new TestInheritanceMemberItem(
                 lineNumber: 3,
-                memberName: "MustOverride Sub Bar1.Foo()",
+                memberName: "MustOverride Sub Bar1.Goo()",
                 targets: [new TargetInfo(
-                        targetSymbolDisplayName: "Bar.Foo",
+                        targetSymbolDisplayName: "Bar.Goo",
                         locationTag: "target3",
                         relationship: InheritanceRelationship.OverridingMember)]);
 
         var itemForFooInBar = new TestInheritanceMemberItem(
                 lineNumber: 8,
-                memberName: "Overrides Sub Bar.Foo()",
+                memberName: "Overrides Sub Bar.Goo()",
                 targets: [new TargetInfo(
-                        targetSymbolDisplayName: "Bar1.Foo",
+                        targetSymbolDisplayName: "Bar1.Goo",
                         locationTag: "target4",
                         relationship: InheritanceRelationship.OverriddenMember)]);
 
@@ -1945,35 +1945,35 @@ using System.Collections;";
     {
         var markup1 = @"
         Interface {|target4:IBar|}
-            Sub {|target6:Foo|}()
+            Sub {|target6:Goo|}()
         End Interface
 
         Class {|target1:Bar1|}
             Implements IBar
-            Public Overridable Sub {|target2:Foo|}() Implements IBar.Foo
+            Public Overridable Sub {|target2:Goo|}() Implements IBar.Goo
             End Sub
         End Class
 
         Class {|target5:Bar2|}
             Inherits Bar1
-            Public Overrides Sub {|target3:Foo|}()
+            Public Overrides Sub {|target3:Goo|}()
             End Sub
         End Class";
 
         var markup2 = @"
         Interface {|target4:IBar|}
-            Sub {|target6:Foo|}()
+            Sub {|target6:Goo|}()
         End Interface
 
         Class {|target1:Bar1|}
             Implements IBar
-            Public Overridable Sub {|target2:Foo|}() Implements IBar.Foo
+            Public Overridable Sub {|target2:Goo|}() Implements IBar.Goo
             End Sub
         End Class
 
         Class {|target5:Bar2|}
             Inherits Bar1
-            Public Overrides Sub {|target3:Foo|}()
+            Public Overrides Sub {|target3:Goo|}()
             End Sub
         End Class";
         var itemForIBar = new TestInheritanceMemberItem(
@@ -1993,15 +1993,15 @@ using System.Collections;";
 
         var itemForFooInIBar = new TestInheritanceMemberItem(
             lineNumber: 3,
-            memberName: "Sub IBar.Foo()",
+            memberName: "Sub IBar.Goo()",
             targets:
             [
                 new TargetInfo(
-                            targetSymbolDisplayName: "Bar1.Foo",
+                            targetSymbolDisplayName: "Bar1.Goo",
                             locationTag: "target2",
                             relationship: InheritanceRelationship.ImplementingMember),
                 new TargetInfo(
-                    targetSymbolDisplayName: "Bar2.Foo",
+                    targetSymbolDisplayName: "Bar2.Goo",
                     locationTag: "target3",
                     relationship: InheritanceRelationship.ImplementingMember),
             ]);
@@ -2024,15 +2024,15 @@ using System.Collections;";
 
         var itemForFooInBar1 = new TestInheritanceMemberItem(
             lineNumber: 8,
-            memberName: "Overridable Sub Bar1.Foo()",
+            memberName: "Overridable Sub Bar1.Goo()",
             targets:
             [
                 new TargetInfo(
-                            targetSymbolDisplayName: "IBar.Foo",
+                            targetSymbolDisplayName: "IBar.Goo",
                             locationTag: "target6",
                             relationship: InheritanceRelationship.ImplementedMember),
                 new TargetInfo(
-                    targetSymbolDisplayName: "Bar2.Foo",
+                    targetSymbolDisplayName: "Bar2.Goo",
                     locationTag: "target3",
                     relationship: InheritanceRelationship.OverridingMember),
             ]);
@@ -2054,15 +2054,15 @@ using System.Collections;";
 
         var itemForFooInBar2 = new TestInheritanceMemberItem(
             lineNumber: 14,
-            memberName: "Overrides Sub Bar2.Foo()",
+            memberName: "Overrides Sub Bar2.Goo()",
             targets:
             [
                 new TargetInfo(
-                            targetSymbolDisplayName: "IBar.Foo",
+                            targetSymbolDisplayName: "IBar.Goo",
                             locationTag: "target6",
                             relationship: InheritanceRelationship.ImplementedMember),
                 new TargetInfo(
-                    targetSymbolDisplayName: "Bar1.Foo",
+                    targetSymbolDisplayName: "Bar1.Goo",
                     locationTag: "target2",
                     relationship: InheritanceRelationship.OverriddenMember),
             ]);
@@ -2084,18 +2084,18 @@ using System.Collections;";
     {
         var markup = @"
         Public Interface {|target5:IBar|}(Of T)
-            Sub {|target6:Foo|}()
+            Sub {|target6:Goo|}()
         End Interface
 
         Public Class {|target1:Bar|}
             Implements IBar(Of Integer)
             Implements IBar(Of String)
 
-            Public Sub {|target3:Foo|}() Implements IBar(Of Integer).Foo
+            Public Sub {|target3:Goo|}() Implements IBar(Of Integer).Goo
                 Throw New NotImplementedException()
             End Sub
 
-            Private Sub {|target4:IBar_Foo|}() Implements IBar(Of String).Foo
+            Private Sub {|target4:IBar_Foo|}() Implements IBar(Of String).Goo
                 Throw New NotImplementedException()
             End Sub
         End Class";
@@ -2110,11 +2110,11 @@ using System.Collections;";
 
         var itemForFooInIBar = new TestInheritanceMemberItem(
             lineNumber: 3,
-            memberName: "Sub IBar(Of T).Foo()",
+            memberName: "Sub IBar(Of T).Goo()",
             targets:
             [
                 new TargetInfo(
-                            targetSymbolDisplayName: "Bar.Foo",
+                            targetSymbolDisplayName: "Bar.Goo",
                             locationTag: "target3",
                             relationship: InheritanceRelationship.ImplementingMember),
                 new TargetInfo(
@@ -2133,9 +2133,9 @@ using System.Collections;";
 
         var itemForFooInBar = new TestInheritanceMemberItem(
             lineNumber: 10,
-            memberName: "Sub Bar.Foo()",
+            memberName: "Sub Bar.Goo()",
             targets: [new TargetInfo(
-                    targetSymbolDisplayName: "IBar(Of T).Foo",
+                    targetSymbolDisplayName: "IBar(Of T).Goo",
                     locationTag: "target6",
                     relationship: InheritanceRelationship.ImplementedMember)]);
 
@@ -2143,7 +2143,7 @@ using System.Collections;";
             lineNumber: 14,
             memberName: "Sub Bar.IBar_Foo()",
             targets: [new TargetInfo(
-                    targetSymbolDisplayName: "IBar(Of T).Foo",
+                    targetSymbolDisplayName: "IBar(Of T).Goo",
                     locationTag: "target6",
                     relationship: InheritanceRelationship.ImplementedMember)]);
 
@@ -2169,14 +2169,14 @@ using System.Collections;";
         {
             public class {|target2:Bar|} : IBar
             {
-                public void {|target4:Foo|}() { }
+                public void {|target4:Goo|}() { }
             }
         }";
 
         var markup2 = @"
         Namespace MyNamespace
             Public Interface {|target1:IBar|}
-                Sub {|target3:Foo|}()
+                Sub {|target3:Goo|}()
             End Interface
         End Namespace";
 
@@ -2190,9 +2190,9 @@ using System.Collections;";
 
         var itemForFooInMarkup1 = new TestInheritanceMemberItem(
             lineNumber: 7,
-            memberName: "void Bar.Foo()",
+            memberName: "void Bar.Goo()",
             targets: [new TargetInfo(
-                    targetSymbolDisplayName: "IBar.Foo",
+                    targetSymbolDisplayName: "IBar.Goo",
                     locationTag: "target3",
                     relationship: InheritanceRelationship.ImplementedMember)]);
 
@@ -2206,9 +2206,9 @@ using System.Collections;";
 
         var itemForFooInMarkup2 = new TestInheritanceMemberItem(
             lineNumber: 4,
-            memberName: "Sub IBar.Foo()",
+            memberName: "Sub IBar.Goo()",
             targets: [new TargetInfo(
-                    targetSymbolDisplayName: "Bar.Foo",
+                    targetSymbolDisplayName: "Bar.Goo",
                     locationTag: "target4",
                     relationship: InheritanceRelationship.ImplementingMember)]);
 
@@ -2229,7 +2229,7 @@ using System.Collections;";
             Public Class {|target2:Bar44|}
                 Implements IBar
 
-                Public Sub {|target4:Foo|}() Implements IBar.Foo
+                Public Sub {|target4:Goo|}() Implements IBar.Goo
                 End Sub
             End Class
         End Namespace";
@@ -2239,7 +2239,7 @@ using System.Collections;";
         {
             public interface {|target1:IBar|}
             {
-                void {|target3:Foo|}();
+                void {|target3:Goo|}();
             }
         }";
         var itemForProjectImports =
@@ -2263,9 +2263,9 @@ using System.Collections;";
 
         var itemForFooInMarkup1 = new TestInheritanceMemberItem(
             lineNumber: 7,
-            memberName: "Sub Bar44.Foo()",
+            memberName: "Sub Bar44.Goo()",
             targets: [new TargetInfo(
-                    targetSymbolDisplayName: "IBar.Foo",
+                    targetSymbolDisplayName: "IBar.Goo",
                     locationTag: "target3",
                     relationship: InheritanceRelationship.ImplementedMember)]);
 
@@ -2279,9 +2279,9 @@ using System.Collections;";
 
         var itemForFooInMarkup2 = new TestInheritanceMemberItem(
             lineNumber: 6,
-            memberName: "void IBar.Foo()",
+            memberName: "void IBar.Goo()",
             targets: [new TargetInfo(
-                    targetSymbolDisplayName: "Bar44.Foo",
+                    targetSymbolDisplayName: "Bar44.Goo",
                     locationTag: "target4",
                     relationship: InheritanceRelationship.ImplementingMember)]);
 

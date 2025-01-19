@@ -169,10 +169,10 @@ internal sealed class CSharpChangeNamespaceService :
         else if (nameRef.Parent is NameMemberCrefSyntax crefName && crefName.Parent is QualifiedCrefSyntax qualifiedCref)
         {
             // This is the case where the reference is the right most part of a qualified name in `cref`.
-            // for example, `<see cref="Foo.Baz.Bar"/>` and `<see cref="SomeAlias::Foo.Baz.Bar"/>`. 
+            // for example, `<see cref="Goo.Baz.Bar"/>` and `<see cref="SomeAlias::Goo.Baz.Bar"/>`. 
             // This is the form of `cref` we need to handle as a spacial case when changing namespace name or
             // changing namespace from non-global to global, other cases in these 2 scenarios can be handled in the 
-            // same way we handle non cref references, for example, `<see cref="SomeAlias::Foo"/>` and `<see cref="Foo"/>`.
+            // same way we handle non cref references, for example, `<see cref="SomeAlias::Goo"/>` and `<see cref="Goo"/>`.
 
             var container = qualifiedCref.Container;
             var aliasQualifier = GetAliasQualifier(container);

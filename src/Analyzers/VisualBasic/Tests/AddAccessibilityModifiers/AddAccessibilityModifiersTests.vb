@@ -223,7 +223,7 @@ namespace N
             Private [|f4|], f5 as integer, f6, f7 as boolean
             public {|BC30260:f4|} as integer
 
-            Private Const [|foo|] As long = 3
+            Private Const [|goo|] As long = 3
             private const [|bar|] = 4, barbar = 5
 
             public Const pfoo As long = 3
@@ -327,7 +327,7 @@ namespace N
             Dim f4, f5 as integer, f6, f7 as boolean
             public {|BC30260:f4|} as integer
 
-            Const foo As long = 3
+            Const goo As long = 3
             const bar = 4, barbar = 5
 
             public Const pfoo As long = 3

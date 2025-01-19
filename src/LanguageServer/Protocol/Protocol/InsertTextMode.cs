@@ -28,7 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// they match the indentation up to the cursor of the line for
         /// which the item is accepted.
         /// <para>
-        /// Consider a line like this: &lt;2tabs>&lt;cursor>&lt;3tabs>foo. Accepting a
+        /// Consider a line like this: &lt;2tabs>&lt;cursor>&lt;3tabs>goo. Accepting a
         /// multi line completion item is indented using 2 tabs and all
         /// following lines inserted will be indented using 2 tabs as well.
         /// </para>

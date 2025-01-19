@@ -692,15 +692,15 @@ CodeStyleOptions2.QualifyFieldAccess)
         Public Async Function DoNotReportToQualify_IfInBaseConstructor() As Task
             Await TestMissingAsyncWithOption("
 Public Class Base
-    Public ReadOnly Property Foo As String
-    Public Sub New(ByVal foo As String)
+    Public ReadOnly Property Goo As String
+    Public Sub New(ByVal goo As String)
     End Sub
 End Class
 
 Public Class Derived
     Inherits Base
     Public Sub New()
-        MyBase.New(NameOf([|Foo|]))
+        MyBase.New(NameOf([|Goo|]))
     End Sub
 End Class",
 CodeStyleOptions2.QualifyFieldAccess)
@@ -710,10 +710,10 @@ CodeStyleOptions2.QualifyFieldAccess)
         Public Async Function DoNotReportToQualify_InObjectInitializer1() As Task
             Await TestMissingAsyncWithOption("
 class C
-    Public Foo As Integer
+    Public Goo As Integer
 
     Sub Bar()
-        Dim c = New C() With { [|.Foo = 1|] }
+        Dim c = New C() With { [|.Goo = 1|] }
     End Sub
 End Class
 ",
@@ -724,10 +724,10 @@ CodeStyleOptions2.QualifyFieldAccess)
         Public Async Function DoNotReportToQualify_InObjectInitializer2() As Task
             Await TestMissingAsyncWithOption("
 class C
-    Public Property Foo As Integer
+    Public Property Goo As Integer
 
     Sub Bar()
-        Dim c = New C() With { [|.Foo|] = 1 }
+        Dim c = New C() With { [|.Goo|] = 1 }
     End Sub
 End Class
 ",

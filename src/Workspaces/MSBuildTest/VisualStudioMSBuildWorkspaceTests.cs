@@ -418,7 +418,7 @@ class C1
 
             // update solution
             var pid2 = ProjectId.CreateNewId();
-            var solution3 = solution2.AddProject(pid2, "foo", "foo", LanguageNames.CSharp);
+            var solution3 = solution2.AddProject(pid2, "goo", "goo", LanguageNames.CSharp);
             Assert.NotEqual(solution2.Version, solution3.Version); // solution changed, added project.
             Assert.True(solution3.Version.GetTestAccessor().IsNewerThan(solution2.Version));
         }
@@ -1549,8 +1549,8 @@ class C1
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         public async Task TestCompilationOptions_CSharp_MainFileName()
         {
-            CreateCSharpFilesWith("StartupObject", "Foo");
-            await AssertCSCompilationOptionsAsync("Foo", options => options.MainTypeName);
+            CreateCSharpFilesWith("StartupObject", "Goo");
+            await AssertCSCompilationOptionsAsync("Goo", options => options.MainTypeName);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -1733,8 +1733,8 @@ class C1
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         public async Task TestCompilationOptions_VisualBasic_RootNamespace()
         {
-            CreateVBFilesWith("RootNamespace", "Foo.Bar");
-            await AssertVBCompilationOptionsAsync("Foo.Bar", options => options.RootNamespace);
+            CreateVBFilesWith("RootNamespace", "Goo.Bar");
+            await AssertVBCompilationOptionsAsync("Goo.Bar", options => options.RootNamespace);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -1982,7 +1982,7 @@ class C1
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
                 .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithLink)
-                .WithFile(@"OtherStuff\Foo.cs", Resources.SourceFiles.CSharp.OtherStuff_Foo));
+                .WithFile(@"OtherStuff\Goo.cs", Resources.SourceFiles.CSharp.OtherStuff_Foo));
 
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
 
@@ -1990,7 +1990,7 @@ class C1
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
             var project = solution.GetProjectsByName("CSharpProject").FirstOrDefault();
             var documents = project.Documents.ToList();
-            var fooDoc = documents.Single(d => d.Name == "Foo.cs");
+            var fooDoc = documents.Single(d => d.Name == "Goo.cs");
             var folder = Assert.Single(fooDoc.Folders);
             Assert.Equal("Blah", folder);
 
@@ -2203,7 +2203,7 @@ class C1
             Assert.False(workspace.CanApplyChange(ApplyChangesKind.AddAdditionalDocument));
             Assert.Throws<NotSupportedException>(delegate
             {
-                workspace.TryApplyChanges(workspace.CurrentSolution.AddAdditionalDocument(DocumentId.CreateNewId(csProjectId), "foo.xaml", SourceText.From("<foo></foo>")));
+                workspace.TryApplyChanges(workspace.CurrentSolution.AddAdditionalDocument(DocumentId.CreateNewId(csProjectId), "goo.xaml", SourceText.From("<goo></goo>")));
             });
 
             var xaml = workspace.CurrentSolution.GetProject(csProjectId).AdditionalDocuments.FirstOrDefault(d => d.Name == "XamlFile.xaml");
@@ -3332,11 +3332,11 @@ class C { }";
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
                 .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithLink)
-                .WithFile(@"OtherStuff\Foo.cs", Resources.SourceFiles.CSharp.OtherStuff_Foo));
+                .WithFile(@"OtherStuff\Goo.cs", Resources.SourceFiles.CSharp.OtherStuff_Foo));
 
             using var workspace = CreateMSBuildWorkspace();
             var project = await workspace.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
-            var linkedDocument = project.Documents.Single(d => d.Name == "Foo.cs");
+            var linkedDocument = project.Documents.Single(d => d.Name == "Goo.cs");
             Assert.Equal(["Blah"], linkedDocument.Folders);
         }
 

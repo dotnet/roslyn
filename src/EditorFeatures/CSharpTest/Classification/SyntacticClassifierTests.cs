@@ -5295,19 +5295,19 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     {
         await TestInMethodAsync("""
 
-            object foo;
+            object goo;
 
-            if (foo is Action action)
+            if (goo is Action action)
             {
             }
             """,
             testHost,
             Keyword("object"),
-            Local("foo"),
+            Local("goo"),
             Punctuation.Semicolon,
             ControlKeyword("if"),
             Punctuation.OpenParen,
-            Identifier("foo"),
+            Identifier("goo"),
             Keyword("is"),
             Identifier("Action"),
             Local("action"),
@@ -5352,12 +5352,12 @@ testHost,
     {
         await TestInMethodAsync("""
 
-            int (foo, bar) = (1, 2);
+            int (goo, bar) = (1, 2);
             """,
             testHost,
             Keyword("int"),
             Punctuation.OpenParen,
-            Local("foo"),
+            Local("goo"),
             Punctuation.Comma,
             Local("bar"),
             Punctuation.CloseParen,

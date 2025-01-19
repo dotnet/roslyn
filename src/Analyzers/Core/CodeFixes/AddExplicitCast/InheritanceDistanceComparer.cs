@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast;
 /// class Derived1 : Base { }
 /// class Derived2 : Derived1 { }
 /// 
-/// void Foo(Derived1 d1) { }
-/// void Foo(Derived2 d2) { }
+/// void Goo(Derived1 d1) { }
+/// void Goo(Derived2 d2) { }
 /// 
 /// Base b = new Derived1();
-/// Foo([||]b);
+/// Goo([||]b);
 /// 
 /// operations:
 /// 1. Convert type to 'Derived1'

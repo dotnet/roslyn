@@ -492,7 +492,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
         await TestInRegularAndScript1Async(
             """
             using System;
-            using Foo = SimplifyInsideNameof.Program;
+            using Goo = SimplifyInsideNameof.Program;
 
             namespace SimplifyInsideNameof
             {
@@ -507,7 +507,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
             """,
             """
             using System;
-            using Foo = SimplifyInsideNameof.Program;
+            using Goo = SimplifyInsideNameof.Program;
 
             namespace SimplifyInsideNameof
             {
@@ -5380,11 +5380,11 @@ options: PreferIntrinsicTypeInMemberAccess);
         await TestDiagnosticInfoAsync(
             """
             /// <summary>
-            /// <see cref="Foo([|System.String|])"/>
+            /// <see cref="Goo([|System.String|])"/>
             /// </summary>
             class Base
             {
-                public void Foo(string s) { }
+                public void Goo(string s) { }
             }
             """, IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
     }

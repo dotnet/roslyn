@@ -1228,7 +1228,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                 {
                     [||]if (true)
                     {
-                        return Foo(
+                        return Goo(
                             1, 2, 3);
                     }
                     else
@@ -1244,7 +1244,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                 int M()
                 {
                     return true
-                        ? Foo(
+                        ? Goo(
                             1, 2, 3)
                         : 1;
                 }
@@ -1267,7 +1267,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                     }
                     else
                     {
-                        return Foo(
+                        return Goo(
                             1, 2, 3);
                     }
                 }
@@ -1280,7 +1280,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                 {
                     return true
                         ? 0
-                        : Foo(
+                        : Goo(
                             1, 2, 3);
                 }
             }
@@ -1298,12 +1298,12 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                 {
                     [||]if (true)
                     {
-                        return Foo(
+                        return Goo(
                             1, 2, 3);
                     }
                     else
                     {
-                        return Foo(
+                        return Goo(
                             4, 5, 6);
                     }
                 }
@@ -1315,9 +1315,9 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                 int M()
                 {
                     return true
-                        ? Foo(
+                        ? Goo(
                             1, 2, 3)
-                        : Foo(
+                        : Goo(
                             4, 5, 6);
                 }
             }

@@ -190,7 +190,7 @@ internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
             //      using System.Collections.Generic;
             //      using System.Text;
             //
-            //      namespace Foo
+            //      namespace Goo
             //      {
             //          using CollectionOfStringBuilders = List<StringBuilder>;
             //      }

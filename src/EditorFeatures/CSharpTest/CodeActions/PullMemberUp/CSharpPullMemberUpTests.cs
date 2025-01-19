@@ -1636,13 +1636,13 @@ namespace A_TestNs2
 
     public class Derived : Base
     {
-        public Foo Test[||]Method()
+        public Goo Test[||]Method()
         {
             return null;
         }
     }
 
-    public class Foo
+    public class Goo
     {
     }
 }
@@ -1662,7 +1662,7 @@ namespace TestNs1
     public class Base
     {
         public Uri Endpoint{ get; set; }
-        public Foo TestMethod()
+        public Goo TestMethod()
         {
             return null;
         }
@@ -1678,7 +1678,7 @@ namespace A_TestNs2
     {
     }
 
-    public class Foo
+    public class Goo
     {
     }
 }
@@ -1711,14 +1711,14 @@ namespace A_TestNs2
 
     public class Derived : Base
     {
-        public Foo Test[||]Method()
+        public Goo Test[||]Method()
         {
             var uri = new Uri(""http://localhost"");
             return null;
         }
     }
 
-    public class Foo
+    public class Goo
     {
     }
 }
@@ -1736,7 +1736,7 @@ namespace TestNs1
 {
     public class Base
     {
-        public Foo TestMethod()
+        public Goo TestMethod()
         {
             var uri = new Uri(""http://localhost"");
             return null;
@@ -1754,7 +1754,7 @@ namespace A_TestNs2
     {
     }
 
-    public class Foo
+    public class Goo
     {
     }
 }
@@ -1778,7 +1778,7 @@ namespace TestNs1
     {
     }
 
-    public class Foo
+    public class Goo
     {
     }
 }
@@ -1792,14 +1792,14 @@ namespace TestNs2
     {
         public int Test[||]Method()
         {
-            var foo = new Foo();
-            return foo.FooBar();
+            var goo = new Goo();
+            return goo.FooBar();
         }
     }
 
     public static class FooExtensions
     {
-        public static int FooBar(this Foo foo) 
+        public static int FooBar(this Goo goo) 
         {
             return 5;
         }
@@ -1820,12 +1820,12 @@ namespace TestNs1
     {
         public int TestMethod()
         {
-            var foo = new Foo();
-            return foo.FooBar();
+            var goo = new Goo();
+            return goo.FooBar();
         }
     }
 
-    public class Foo
+    public class Goo
     {
     }
 }
@@ -1841,7 +1841,7 @@ namespace TestNs2
 
     public static class FooExtensions
     {
-        public static int FooBar(this Foo foo) 
+        public static int FooBar(this Goo goo) 
         {
             return 5;
         }
@@ -1879,8 +1879,8 @@ namespace TestNs2
     {
         public int Test[||]Method()
         {
-            var foo = new Foo();
-            return foo.FooBar();
+            var goo = new Goo();
+            return goo.FooBar();
         }
     }
 }
@@ -1888,7 +1888,7 @@ namespace TestNs2
         <Document FilePath = ""File3.cs"">
 namespace TestNs3
 {
-    public class Foo
+    public class Goo
     {
     }
 }
@@ -1900,7 +1900,7 @@ namespace TestNs4
 {
     public static class FooExtensions
     {
-        public static int FooBar(this Foo foo) 
+        public static int FooBar(this Goo goo) 
         {
             return 5;
         }
@@ -1922,8 +1922,8 @@ namespace TestNs1
     {
         public int TestMethod()
         {
-            var foo = new Foo();
-            return foo.FooBar();
+            var goo = new Goo();
+            return goo.FooBar();
         }
     }
 }
@@ -1943,7 +1943,7 @@ namespace TestNs2
         <Document FilePath = ""File3.cs"">
 namespace TestNs3
 {
-    public class Foo
+    public class Goo
     {
     }
 }
@@ -1955,7 +1955,7 @@ namespace TestNs4
 {
     public static class FooExtensions
     {
-        public static int FooBar(this Foo foo) 
+        public static int FooBar(this Goo goo) 
         {
             return 5;
         }
@@ -2167,11 +2167,11 @@ namespace TestNs2
         {
             public int Test[||]Method()
             {
-                return Foo.Bar(Enumerable.Range(0, 5).Sum());
+                return Goo.Bar(Enumerable.Range(0, 5).Sum());
             }
         }
 
-        public class Foo
+        public class Goo
         {
             public static int Bar(int num)
             {
@@ -2195,7 +2195,7 @@ namespace TestNs1
             public Uri Endpoint { get; set; }
             public int TestMethod()
             {
-                return Foo.Bar(Enumerable.Range(0, 5).Sum());
+                return Goo.Bar(Enumerable.Range(0, 5).Sum());
             }
         }
     }
@@ -2211,7 +2211,7 @@ namespace TestNs2
         {
         }
 
-        public class Foo
+        public class Goo
         {
             public static int Bar(int num)
             {
@@ -2985,7 +2985,7 @@ namespace PushUpTest
 {
     public class Base
     {
-        public virtual void TestMethod() => System.Console.WriteLine(""foo bar bar foo"");
+        public virtual void TestMethod() => System.Console.WriteLine(""goo bar bar goo"");
     }
 
     public class TestClass : Base
@@ -3049,7 +3049,7 @@ namespace PushUpTest
         {
             add
             {
-                System.Console.WriteLine(""foo"");
+                System.Console.WriteLine(""goo"");
             }
             remove
             {
@@ -3546,7 +3546,7 @@ namespace Destination
 using Destination;
 public class TestClass : IInterface
 {
-    public int Foo
+    public int Goo
     {
         get;
         set;
@@ -3560,7 +3560,7 @@ namespace Destination
 {
     public interface IInterface
     {
-        int Foo { get; set; }
+        int Goo { get; set; }
     }
 }
         </Document>
@@ -3718,7 +3718,7 @@ namespace Destination
 using VBAssembly;
 public class TestClass : VBClass
 {
-    public int foo[||]bar
+    public int goo[||]bar
     {
         get;
         set;
@@ -3746,7 +3746,7 @@ public class TestClass : VBClass
 using VBAssembly;
 public class TestClass : VBInterface
         {
-            public int foo[||]bar
+            public int goo[||]bar
             {
                 get;
                 set;
@@ -4405,7 +4405,7 @@ namespace PushUpTest
     interface IInterface
     {
         string Bar(string x);
-        void Foo(int i);
+        void Goo(int i);
         void TestMethod();
     }
 
@@ -4416,7 +4416,7 @@ namespace PushUpTest
             System.Console.WriteLine(""Hello World"");
         }
 
-        public void Foo(int i)
+        public void Goo(int i)
         {
             // do awesome things
         }
@@ -4525,7 +4525,7 @@ namespace PushUpTest
         
         protected static event EventHandler event1, event2;
 
-        internal static int Foo
+        internal static int Goo
         {
             get; set;
         }
@@ -4543,7 +4543,7 @@ namespace PushUpTest
     {
         int this[int i] { get; }
 
-        int Foo { get; set; }
+        int Goo { get; set; }
 
         event EventHandler event1;
         event EventHandler event2;
@@ -4564,7 +4564,7 @@ namespace PushUpTest
         public event EventHandler event1;
         public event EventHandler event2;
 
-        public int Foo
+        public int Goo
         {
             get; set;
         }
@@ -5957,13 +5957,13 @@ public class BaseClass
 
 public class Bar : BaseClass
 {
-    [|public int Goo = 10, Foo = 9;|]
+    [|public int Goo = 10, Goo = 9;|]
 }";
         var expected = @"
 public class BaseClass
 {
     public int Goo = 10;
-    public int Foo = 9;
+    public int Goo = 9;
 }
 
 public class Bar : BaseClass
@@ -5982,7 +5982,7 @@ public class BaseClass
 
 public class Bar : BaseClass
 {
-    public int Go[||]o = 10, Foo = 9;
+    public int Go[||]o = 10, Goo = 9;
 }";
         var expected = @"
 public class BaseClass
@@ -5992,7 +5992,7 @@ public class BaseClass
 
 public class Bar : BaseClass
 {
-    public int Foo = 9;
+    public int Goo = 9;
 }";
         await TestWithPullMemberDialogAsync(text, expected);
     }
@@ -6007,12 +6007,12 @@ public class BaseClass
 
 public class Bar : BaseClass
 {
-    public int Goo = 10, [||]Foo = 9;
+    public int Goo = 10, [||]Goo = 9;
 }";
         var expected = @"
 public class BaseClass
 {
-    public int Foo = 9;
+    public int Goo = 9;
 }
 
 public class Bar : BaseClass
@@ -6032,7 +6032,7 @@ public class BaseClass
 
 public class Bar : BaseClass
 {
-    [|public int Goo = 10, Foo = 9;
+    [|public int Goo = 10, Goo = 9;
 
     public int DoSomething()
     {
@@ -6043,7 +6043,7 @@ public class Bar : BaseClass
 public class BaseClass
 {
     public int Goo = 10;
-    public int Foo = 9;
+    public int Goo = 9;
 
     public int DoSomething()
     {
@@ -6074,7 +6074,7 @@ public class Bar : BaseClass
     }
 
 
-    public int Goo = 10, Foo = 9;|]
+    public int Goo = 10, Goo = 9;|]
 }";
         var expected = @"
 public class BaseClass
@@ -6084,7 +6084,7 @@ public class BaseClass
     public int Goo = 10;
 
 
-    public int Foo = 9;
+    public int Goo = 9;
 }
 
 public class Bar : BaseClass
@@ -6113,7 +6113,7 @@ public class Bar : BaseClass
     }
 
 
-    public int Go|]o = 10, Foo = 9;
+    public int Go|]o = 10, Goo = 9;
 }";
         var expected = @"
 public class BaseClass
@@ -6129,7 +6129,7 @@ public class BaseClass
 
 public class Bar : BaseClass
 {
-    public int Foo = 9;
+    public int Goo = 9;
 }";
         await TestWithPullMemberDialogAsync(text, expected);
     }
@@ -6160,7 +6160,7 @@ public class BaseClass
     public int Goo = 10;
 
 
-    public int Foo = 9;
+    public int Goo = 9;
 }
 
 public class Bar : BaseClass

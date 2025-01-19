@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.AddMissingImports
         Public Async Function AddMissingImports_NoAction_PasteIsNotMissingImports() As Task
             Dim code = "
 Class [|C|]
-    Dim foo As D
+    Dim goo As D
 End Class
 
 Namespace A
@@ -68,7 +68,7 @@ End Namespace
         Public Async Function AddMissingImports_AddImport_PasteContainsSingleMissingImport() As Task
             Dim code = "
 Class C
-    Dim foo As [|D|]
+    Dim goo As [|D|]
 End Class
 
 Namespace A
@@ -81,7 +81,7 @@ End Namespace
 Imports A
 
 Class C
-    Dim foo As D
+    Dim goo As D
 End Class
 
 Namespace A
@@ -99,7 +99,7 @@ End Namespace
 Imports System
 
 Class C
-    [|Dim foo As D
+    [|Dim goo As D
     Dim bar As E|]
 End Class
 
@@ -120,7 +120,7 @@ Imports A
 Imports B
 
 Class C
-    Dim foo As D
+    Dim goo As D
     Dim bar As E
 End Class
 
@@ -144,7 +144,7 @@ End Namespace
 Imports System
 
 Class C
-    [|Dim foo As D
+    [|Dim goo As D
     Dim bar As E|]
 End Class
 
@@ -165,7 +165,7 @@ Imports B
 Imports System
 
 Class C
-    Dim foo As D
+    Dim goo As D
     Dim bar As E
 End Class
 
@@ -189,7 +189,7 @@ End Namespace
 Imports System
 
 Class C
-    [|Dim foo As D
+    [|Dim goo As D
     Dim bar As E|]
 End Class
 
@@ -212,7 +212,7 @@ Imports B
 Imports System
 
 Class C
-    Dim foo As D
+    Dim goo As D
     Dim bar As E
 End Class
 
@@ -234,7 +234,7 @@ End Namespace
         Public Async Function AddMissingImports_NoAction_NoPastedSpan() As Task
             Dim code = "
 Class C
-    Dim foo As D[||]
+    Dim goo As D[||]
 End Class
 
 Namespace A
@@ -250,7 +250,7 @@ End Namespace
         Public Async Function AddMissingImports_NoAction_PasteContainsAmibiguousMissingImport() As Task
             Dim code = "
 Class C
-    Dim foo As [|D|]
+    Dim goo As [|D|]
 End Class
 
 Namespace A
@@ -273,7 +273,7 @@ End Namespace
 Imports System
 
 Class C
-    [|Dim foo As D
+    [|Dim goo As D
     Dim bar As E|]
 End Class
 
@@ -296,7 +296,7 @@ Imports System
 Imports B
 
 Class C
-    Dim foo As D
+    Dim goo As D
     Dim bar As E
 End Class
 
@@ -321,7 +321,7 @@ End Namespace
         Public Async Function AddMissingImports_AddMultipleImports_NoPreviousImports() As Task
             Dim code = "
 Class C
-    [|Dim foo As D
+    [|Dim goo As D
     Dim bar As E|]
 End Class
 
@@ -341,7 +341,7 @@ Imports A
 Imports B
 
 Class C
-    Dim foo As D
+    Dim goo As D
     Dim bar As E
 End Class
 
@@ -364,8 +364,8 @@ End Namespace
             Dim code = "
 Imports System.Runtime.CompilerServices
 
-Class Foo
-    Sub M(f As Foo)
+Class Goo
+    Sub M(f As Goo)
         [|f.M1()|]
     End Sub
 End Class
@@ -373,7 +373,7 @@ End Class
 Namespace N
     Public Module M
         <Extension>
-        Public Sub M1(f As Foo)
+        Public Sub M1(f As Goo)
         End Sub
     End Module
 End Namespace
@@ -382,8 +382,8 @@ End Namespace
 Imports System.Runtime.CompilerServices
 Imports N
 
-Class Foo
-    Sub M(f As Foo)
+Class Goo
+    Sub M(f As Goo)
         f.M1()
     End Sub
 End Class
@@ -391,7 +391,7 @@ End Class
 Namespace N
     Public Module M
         <Extension>
-        Public Sub M1(f As Foo)
+        Public Sub M1(f As Goo)
         End Sub
     End Module
 End Namespace
@@ -405,8 +405,8 @@ End Namespace
             Dim code = "
 Imports System.Runtime.CompilerServices
 
-Class Foo
-    Sub M(f As Foo)
+Class Goo
+    Sub M(f As Goo)
         [|f.M1()|]
     End Sub
 End Class
@@ -420,7 +420,7 @@ End Module
 Namespace N
     Public Module M
         <Extension>
-        Public Sub M1(f As Foo)
+        Public Sub M1(f As Goo)
         End Sub
     End Module
 End Namespace
@@ -429,8 +429,8 @@ End Namespace
 Imports System.Runtime.CompilerServices
 Imports N
 
-Class Foo
-    Sub M(f As Foo)
+Class Goo
+    Sub M(f As Goo)
         f.M1()
     End Sub
 End Class
@@ -444,7 +444,7 @@ End Module
 Namespace N
     Public Module M
         <Extension>
-        Public Sub M1(f As Foo)
+        Public Sub M1(f As Goo)
         End Sub
     End Module
 End Namespace
@@ -459,8 +459,8 @@ End Namespace
             Dim code = "
 Imports System.Runtime.CompilerServices
 
-Public Class Foo
-    Async Sub M(f As Foo)
+Public Class Goo
+    Async Sub M(f As Goo)
         [|Await f|]
     End Sub
 End Class
@@ -468,7 +468,7 @@ End Class
 Namespace N
     Public Module FooExtensions
         <Extension>
-        Public Function GetAwaiter(f As Foo) As FooAwaiter
+        Public Function GetAwaiter(f As Goo) As FooAwaiter
             Return New FooAwaiter
         End Function
     End Module
@@ -489,8 +489,8 @@ End Namespace
 Imports System.Runtime.CompilerServices
 Imports N
 
-Public Class Foo
-    Async Sub M(f As Foo)
+Public Class Goo
+    Async Sub M(f As Goo)
         Await f
     End Sub
 End Class
@@ -498,7 +498,7 @@ End Class
 Namespace N
     Public Module FooExtensions
         <Extension>
-        Public Function GetAwaiter(f As Foo) As FooAwaiter
+        Public Function GetAwaiter(f As Goo) As FooAwaiter
             Return New FooAwaiter
         End Function
     End Module
@@ -525,8 +525,8 @@ End Namespace
             Dim code = "
 Imports System.Runtime.CompilerServices
 
-Public Class Foo
-    Async Sub M(f As Foo)
+Public Class Goo
+    Async Sub M(f As Goo)
         [|Await f|]
     End Sub
 End Class
@@ -541,7 +541,7 @@ End Module
 Namespace N
     Public Module FooExtensions
         <Extension>
-        Public Function GetAwaiter(f As Foo) As FooAwaiter
+        Public Function GetAwaiter(f As Goo) As FooAwaiter
             Return New FooAwaiter
         End Function
     End Module
@@ -562,8 +562,8 @@ End Namespace
 Imports System.Runtime.CompilerServices
 Imports N
 
-Public Class Foo
-    Async Sub M(f As Foo)
+Public Class Goo
+    Async Sub M(f As Goo)
         Await f
     End Sub
 End Class
@@ -578,7 +578,7 @@ End Module
 Namespace N
     Public Module FooExtensions
         <Extension>
-        Public Function GetAwaiter(f As Foo) As FooAwaiter
+        Public Function GetAwaiter(f As Goo) As FooAwaiter
             Return New FooAwaiter
         End Function
     End Module
@@ -605,8 +605,8 @@ End Namespace
 Imports System.Collections.Generic
 Imports System.Runtime.CompilerServices
 
-Public Class Foo
-    Sub M(f As Foo)
+Public Class Goo
+    Sub M(f As Goo)
         Dim u = [|From x In f|] Select x
     End Sub
 End Class
@@ -614,7 +614,7 @@ End Class
 Namespace N
     Public Module FooExtensions
         <Extension>
-        Public Function [Select](f As Foo, func As Func(Of Integer, Integer)) As IEnumerable(Of Integer)
+        Public Function [Select](f As Goo, func As Func(Of Integer, Integer)) As IEnumerable(Of Integer)
             Return Nothing
         End Function
     End Module
@@ -625,8 +625,8 @@ Imports System.Collections.Generic
 Imports System.Runtime.CompilerServices
 Imports N
 
-Public Class Foo
-    Sub M(f As Foo)
+Public Class Goo
+    Sub M(f As Goo)
         Dim u = From x In f Select x
     End Sub
 End Class
@@ -634,7 +634,7 @@ End Class
 Namespace N
     Public Module FooExtensions
         <Extension>
-        Public Function [Select](f As Foo, func As Func(Of Integer, Integer)) As IEnumerable(Of Integer)
+        Public Function [Select](f As Goo, func As Func(Of Integer, Integer)) As IEnumerable(Of Integer)
             Return Nothing
         End Function
     End Module
@@ -650,8 +650,8 @@ End Namespace
 Imports System.Collections.Generic
 Imports System.Runtime.CompilerServices
 
-Public Class Foo
-    Sub M(f As Foo)
+Public Class Goo
+    Sub M(f As Goo)
         Dim u = [|From x In f|] Select x
     End Sub
 End Class
@@ -666,7 +666,7 @@ End Module
 Namespace N
     Public Module FooExtensions
         <Extension>
-        Public Function [Select](f As Foo, func As Func(Of Integer, Integer)) As IEnumerable(Of Integer)
+        Public Function [Select](f As Goo, func As Func(Of Integer, Integer)) As IEnumerable(Of Integer)
             Return Nothing
         End Function
     End Module
@@ -677,8 +677,8 @@ Imports System.Collections.Generic
 Imports System.Runtime.CompilerServices
 Imports N
 
-Public Class Foo
-    Sub M(f As Foo)
+Public Class Goo
+    Sub M(f As Goo)
         Dim u = From x In f Select x
     End Sub
 End Class
@@ -693,7 +693,7 @@ End Module
 Namespace N
     Public Module FooExtensions
         <Extension>
-        Public Function [Select](f As Foo, func As Func(Of Integer, Integer)) As IEnumerable(Of Integer)
+        Public Function [Select](f As Goo, func As Func(Of Integer, Integer)) As IEnumerable(Of Integer)
             Return Nothing
         End Function
     End Module

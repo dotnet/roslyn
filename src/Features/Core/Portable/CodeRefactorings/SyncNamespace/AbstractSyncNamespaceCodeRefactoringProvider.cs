@@ -59,7 +59,7 @@ internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TNa
             // 
             // For example, if he default namespace is `A.B.C`, file path is 
             // "[project root dir]\D\E\F\Class1.cs" and declared namespace in the file is
-            // `Foo.Bar.Baz`, then this action will change the namespace declaration
+            // `Goo.Bar.Baz`, then this action will change the namespace declaration
             // to `A.B.C.D.E.F`. 
             // 
             // Note that it also handles the case where the target namespace or declared namespace 

@@ -31,7 +31,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             {
                 Assert.Null(DefaultNamespaceOfSingleProject(environment));
 
-                var rootNamespace = "Foo.Bar";
+                var rootNamespace = "Goo.Bar";
                 project.SetProperty(BuildPropertyNames.RootNamespace, rootNamespace);
                 Assert.Equal(rootNamespace, DefaultNamespaceOfSingleProject(environment));
             }

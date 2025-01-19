@@ -296,7 +296,7 @@ namespace [||]A.B.C
     [Fact]
     public async Task NoAction_FileNotRooted()
     {
-        var filePath = PathUtilities.CombineAbsoluteAndRelativePaths(PathUtilities.GetPathRoot(ProjectFilePath), "Foo.cs");
+        var filePath = PathUtilities.CombineAbsoluteAndRelativePaths(PathUtilities.GetPathRoot(ProjectFilePath), "Goo.cs");
 
         var code =
 $@"

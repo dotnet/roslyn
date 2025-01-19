@@ -83,7 +83,7 @@ internal abstract class AbstractTypeImportCompletionProvider<AliasDeclarationTyp
                 {
                     // If the target type is a type constructs from generics type, e.g.
                     // using AliasBar = Bar<int>
-                    // namespace Foo
+                    // namespace Goo
                     // {
                     //      public class Bar<T>
                     //      {
@@ -96,7 +96,7 @@ internal abstract class AbstractTypeImportCompletionProvider<AliasDeclarationTyp
                     //          $$
                     //      }
                     // }
-                    // In such case, user might want to type Bar<string> and still want 'using Foo'.
+                    // In such case, user might want to type Bar<string> and still want 'using Goo'.
                     // We shouldn't try to filter the CompletionItem for Bar<T> later.
                     // so just ignore the Bar<int> here.
                     var typeParameter = target.GetTypeParameters();

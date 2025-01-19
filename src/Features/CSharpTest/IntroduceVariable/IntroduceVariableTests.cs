@@ -6335,7 +6335,7 @@ class C
                 {
                     void M()
                     {
-                        var t = new { foo = [|1 + 1|] };
+                        var t = new { goo = [|1 + 1|] };
                     }
                 }
             }
@@ -6345,11 +6345,11 @@ class C
             {
                 class C
                 {
-                    private const int {|Rename:foo|} = 1 + 1;
+                    private const int {|Rename:goo|} = 1 + 1;
 
                     void M()
                     {
-                        var t = new { foo = foo };
+                        var t = new { goo = goo };
                     }
                 }
             }
@@ -7134,7 +7134,7 @@ class C
             {
                 void Test()
                 {
-                    A[] array = [|A|].Foo();
+                    A[] array = [|A|].Goo();
                     foreach (A a in array)
                     {
                     }
@@ -7382,16 +7382,16 @@ class C
             {
                 void M(int i)
                 {
-                    var x = Foo();
+                    var x = Goo();
                     Local();
 
                     static void Local()
                     {
-                        var y = [|Foo()|];
+                        var y = [|Goo()|];
                     }
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7404,17 +7404,17 @@ class C
             {
                 void M(int i)
                 {
-                    var x = Foo();
+                    var x = Goo();
                     Local();
 
                     static void Local()
                     {
-                        var {|Rename:v|} = Foo();
+                        var {|Rename:v|} = Goo();
                         var y = v;
                     }
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7542,15 +7542,15 @@ class C
                 void M(int i)
                 {
                     Local();
-                    var x = Foo();
+                    var x = Goo();
 
                     void Local()
                     {
-                        var y = [|Foo();|]
+                        var y = [|Goo();|]
                     }
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7562,7 +7562,7 @@ class C
             {
                 void M(int i)
                 {
-                    var {|Rename:v|} = Foo();
+                    var {|Rename:v|} = Goo();
                     Local();
                     var x = v;
 
@@ -7572,7 +7572,7 @@ class C
                     }
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7592,14 +7592,14 @@ class C
                 {
                     void Local()
                     {
-                        var y = [|Foo();|]
+                        var y = [|Goo();|]
                     }
 
                     Local();
-                    var x = Foo();
+                    var x = Goo();
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7611,7 +7611,7 @@ class C
             {
                 void M(int i)
                 {
-                    var {|Rename:v|} = Foo();
+                    var {|Rename:v|} = Goo();
                     void Local()
                     {
                         var y = v;
@@ -7621,7 +7621,7 @@ class C
                     var x = v;
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7643,14 +7643,14 @@ class C
                     void Local()
                     {
                         var z = 10;
-                        var y = [|Foo();|]
+                        var y = [|Goo();|]
                     }
 
                     Local();
-                    var x = Foo();
+                    var x = Goo();
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7663,7 +7663,7 @@ class C
                 void M(int i)
                 {
                     var s = 5;
-                    var {|Rename:v|} = Foo();
+                    var {|Rename:v|} = Goo();
                     void Local()
                     {
                         var z = 10;
@@ -7674,7 +7674,7 @@ class C
                     var x = v;
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7697,14 +7697,14 @@ class C
                     void Local()
                     {
                         var z = 10;
-                        var y = [|Foo();|]
+                        var y = [|Goo();|]
                     }
 
                     Local();
-                    var x = Foo();
+                    var x = Goo();
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7716,7 +7716,7 @@ class C
             {
                 void M(int i)
                 {
-                    var {|Rename:v|} = Foo();
+                    var {|Rename:v|} = Goo();
                     Local();
                     var s = 5;
                     void Local()
@@ -7729,7 +7729,7 @@ class C
                     var x = v;
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7754,15 +7754,15 @@ class C
                         void Local()
                         {
                             var z = 10;
-                            var y = [|Foo();|]
+                            var y = [|Goo();|]
                         }
 
                         Local();
-                        var x = Foo();
+                        var x = Goo();
                     }
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7776,7 +7776,7 @@ class C
                 {
                     void M(int i)
                     {
-                        var {|Rename:v|} = Foo();
+                        var {|Rename:v|} = Goo();
                         Local();
                         var s = 5;
                         void Local()
@@ -7790,7 +7790,7 @@ class C
                     }
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7814,20 +7814,20 @@ class C
 
                     void Local2()
                     {
-                        var w = Foo();
+                        var w = Goo();
                     }
 
                     void Local()
                     {
                         var z = 10;
-                        var y = [|Foo();|]
+                        var y = [|Goo();|]
                     }
 
                     Local();
-                    var x = Foo();
+                    var x = Goo();
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7839,7 +7839,7 @@ class C
             {
                 void M(int i)
                 {
-                    var {|Rename:v|} = Foo();
+                    var {|Rename:v|} = Goo();
                     Local();
                     Local2();
                     var s = 5;
@@ -7859,7 +7859,7 @@ class C
                     var x = v;
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7881,20 +7881,20 @@ class C
 
                     void Local2()
                     {
-                        var w = Foo();
+                        var w = Goo();
                     }
 
                     void Local()
                     {
                         var z = 10;
-                        var y = [|Foo();|]
+                        var y = [|Goo();|]
                     }
 
                     Local();
-                    var x = Foo();
+                    var x = Goo();
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7908,7 +7908,7 @@ class C
                 {
                     var s = 5;
 
-                    var {|Rename:v|} = Foo();
+                    var {|Rename:v|} = Goo();
                     void Local2()
                     {
                         var w = v;
@@ -7924,7 +7924,7 @@ class C
                     var x = v;
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7946,13 +7946,13 @@ class C
                     void Local()
                     {
                         var z = 10;
-                        var y = [|Foo();|]
+                        var y = [|Goo();|]
                     }
 
-                    var x = Foo();
+                    var x = Goo();
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7965,7 +7965,7 @@ class C
                 void M(int i)
                 {
                     var s = 5;
-                    var {|Rename:v|} = Foo();
+                    var {|Rename:v|} = Goo();
                     void Local()
                     {
                         var z = 10;
@@ -7975,7 +7975,7 @@ class C
                     var x = v;
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -7996,12 +7996,12 @@ class C
                     Local();
                     var s = 5;
                     object y;
-                    void Local() => y = Foo();
+                    void Local() => y = Goo();
 
-                    var x = [|Foo();|]
+                    var x = [|Goo();|]
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -8013,7 +8013,7 @@ class C
             {
                 void M(int i)
                 {
-                    var {|Rename:v|} = Foo();
+                    var {|Rename:v|} = Goo();
                     Local();
                     var s = 5;
                     object y;
@@ -8022,7 +8022,7 @@ class C
                     var x = v;
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -8042,13 +8042,13 @@ class C
                 {
                     var s = 5;
                     object y;
-                    void Local() => y = Foo();
+                    void Local() => y = Goo();
 
                     Local();
-                    var x = [|Foo();|]
+                    var x = [|Goo();|]
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -8062,14 +8062,14 @@ class C
                 {
                     var s = 5;
                     object y;
-                    var {|Rename:v|} = Foo();
+                    var {|Rename:v|} = Goo();
                     void Local() => y = v;
 
                     Local();
                     var x = v;
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -8095,13 +8095,13 @@ class C
                     Local();
                     void Local()
                     {
-                        var y = [|Foo();|]
+                        var y = [|Goo();|]
                     }
 
-                    var x = Foo();
+                    var x = Goo();
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -8128,7 +8128,7 @@ class C
 
                     this.Local();
 
-                    var {|Rename:v|} = Foo();
+                    var {|Rename:v|} = Goo();
                     Local();
                     void Local()
                     {
@@ -8138,7 +8138,7 @@ class C
                     var x = v;
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -8169,13 +8169,13 @@ class C
                     Local();
                     static void Local()
                     {
-                        var y = Foo();
+                        var y = Goo();
                     }
 
-                    var x = [|Foo()|];
+                    var x = [|Goo()|];
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -8190,14 +8190,14 @@ class C
                     Local();
                     static void Local()
                     {
-                        var y = Foo();
+                        var y = Goo();
                     }
 
-                    var {|Rename:v|} = Foo();
+                    var {|Rename:v|} = Goo();
                     var x = v;
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -8215,15 +8215,15 @@ class C
             {
                 void M(int i)
                 {
-                    var x = [|Foo()|];
+                    var x = [|Goo()|];
                     Local();
                     static void Local()
                     {
-                        var y = Foo();
+                        var y = Goo();
                     }
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -8235,16 +8235,16 @@ class C
             {
                 void M(int i)
                 {
-                    var {|Rename:v|} = Foo();
+                    var {|Rename:v|} = Goo();
                     var x = v;
                     Local();
                     static void Local()
                     {
-                        var y = Foo();
+                        var y = Goo();
                     }
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -8265,13 +8265,13 @@ class C
                     Local();
                     void Local()
                     {
-                        var y = Foo();
+                        var y = Goo();
                     }
 
-                    var x = [|Foo()|];
+                    var x = [|Goo()|];
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -8283,7 +8283,7 @@ class C
             {
                 void M(int i)
                 {
-                    var {|Rename:v|} = Foo();
+                    var {|Rename:v|} = Goo();
                     Local();
                     void Local()
                     {
@@ -8293,7 +8293,7 @@ class C
                     var x = v;
                 }
 
-                private static object Foo()
+                private static object Goo()
                 {
                     throw new NotImplementedException();
                 }
@@ -8345,10 +8345,10 @@ class C
             {
                 void M()
                 {
-                    Foo(1,[| Bar()|]);
+                    Goo(1,[| Bar()|]);
                 }
 
-                private void Foo(int v1, object v2)
+                private void Goo(int v1, object v2)
                 {
                 }
 
@@ -8363,10 +8363,10 @@ class C
                 void M()
                 {
                     object {|Rename:v2|} = Bar();
-                    Foo(1, v2);
+                    Goo(1, v2);
                 }
 
-                private void Foo(int v1, object v2)
+                private void Goo(int v1, object v2)
                 {
                 }
 
@@ -8835,7 +8835,7 @@ class C
 
             public class SomeClass
             {
-                public void Foo()
+                public void Goo()
                 {
                     var somePath = Path.Combine("one", "two");
                     Other([|"someParam"|]);
@@ -8851,7 +8851,7 @@ class C
 
             public class SomeClass
             {
-                public void Foo()
+                public void Goo()
                 {
                     var somePath = Path.Combine("one", "two");
                     const string {|Rename:Path1|} = "someParam";
@@ -8874,7 +8874,7 @@ class C
             {
                 void M()
                 {
-                    const int foo = [|10|];
+                    const int goo = [|10|];
                 }
             }
             """);
@@ -8887,7 +8887,7 @@ class C
             """
             class C
             {
-                const int foo = [|10|];
+                const int goo = [|10|];
             }
             """);
     }
@@ -8899,7 +8899,7 @@ class C
             """
             class C
             {
-                const int foo = ([|10|]);
+                const int goo = ([|10|]);
             }
             """);
     }
@@ -8913,7 +8913,7 @@ class C
             {
                 void M()
                 {
-                    const int foo = [|10|] + 10;
+                    const int goo = [|10|] + 10;
                 }
             }
             """,
@@ -8923,7 +8923,7 @@ class C
                 void M()
                 {
                     const int {|Rename:V|} = 10;
-                    const int foo = V + 10;
+                    const int goo = V + 10;
                 }
             }
             """,

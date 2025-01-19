@@ -1026,7 +1026,7 @@ public sealed class UseSimpleUsingStatementTests
                     [|using|] (var obj = Dummy())
                     {
             #pragma warning disable CS0618, CS0612
-            #if !FOO
+            #if !GOO
                         LegacyMethod();
             #endif
             #pragma warning restore CS0618, CS0612
@@ -1047,7 +1047,7 @@ public sealed class UseSimpleUsingStatementTests
                 {
                     using var obj = Dummy();
             #pragma warning disable CS0618, CS0612
-            #if !FOO
+            #if !GOO
                     LegacyMethod();
             #endif
             #pragma warning restore CS0618, CS0612
@@ -1074,7 +1074,7 @@ public sealed class UseSimpleUsingStatementTests
                     [|using|] (var obj = Dummy())
                     {
             #pragma warning disable CS0618, CS0612
-            #if !FOO
+            #if !GOO
                         LegacyMethod();
             #endif
             #pragma warning restore CS0618, CS0612
@@ -1096,7 +1096,7 @@ public sealed class UseSimpleUsingStatementTests
                 {
                     using var obj = Dummy();
             #pragma warning disable CS0618, CS0612
-            #if !FOO
+            #if !GOO
                     LegacyMethod();
             #endif
             #pragma warning restore CS0618, CS0612
@@ -1124,7 +1124,7 @@ public sealed class UseSimpleUsingStatementTests
                     [|using|] (var obj = Dummy())
                     {
             #pragma warning disable CS0618, CS0612
-            #if !FOO
+            #if !GOO
                         LegacyMethod();
                         // comment
             #endif
@@ -1146,7 +1146,7 @@ public sealed class UseSimpleUsingStatementTests
                 {
                     using var obj = Dummy();
             #pragma warning disable CS0618, CS0612
-            #if !FOO
+            #if !GOO
                     LegacyMethod();
                     // comment
             #endif
@@ -1174,7 +1174,7 @@ public sealed class UseSimpleUsingStatementTests
                     [|using|] (var obj = Dummy())
                     {
             #pragma warning disable CS0618, CS0612
-            #if !FOO
+            #if !GOO
                         // comment
                         LegacyMethod();
             #endif
@@ -1196,7 +1196,7 @@ public sealed class UseSimpleUsingStatementTests
                 {
                     using var obj = Dummy();
             #pragma warning disable CS0618, CS0612
-            #if !FOO
+            #if !GOO
                     // comment
                     LegacyMethod();
             #endif
@@ -1225,7 +1225,7 @@ public sealed class UseSimpleUsingStatementTests
                     {
                         // comment
             #pragma warning disable CS0618, CS0612
-            #if !FOO
+            #if !GOO
                         LegacyMethod();
             #endif
             #pragma warning restore CS0618, CS0612
@@ -1247,7 +1247,7 @@ public sealed class UseSimpleUsingStatementTests
                     using var obj = Dummy();
                     // comment
             #pragma warning disable CS0618, CS0612
-            #if !FOO
+            #if !GOO
                     LegacyMethod();
             #endif
             #pragma warning restore CS0618, CS0612
@@ -1275,7 +1275,7 @@ public sealed class UseSimpleUsingStatementTests
                     {
                         LegacyMethod();
             #pragma warning disable CS0618, CS0612
-            #if !FOO
+            #if !GOO
                         LegacyMethod();
             #endif
             #pragma warning restore CS0618, CS0612
@@ -1298,7 +1298,7 @@ public sealed class UseSimpleUsingStatementTests
                     using var obj = Dummy();
                     LegacyMethod();
             #pragma warning disable CS0618, CS0612
-            #if !FOO
+            #if !GOO
                     LegacyMethod();
             #endif
             #pragma warning restore CS0618, CS0612
@@ -1704,7 +1704,7 @@ public sealed class UseSimpleUsingStatementTests
             {
                 bool M()
                 {
-                    [|using|] (var foo = new MemoryStream())
+                    [|using|] (var goo = new MemoryStream())
                     {
                     }
 
@@ -1718,7 +1718,7 @@ public sealed class UseSimpleUsingStatementTests
             {
                 bool M()
                 {
-                    using var foo = new MemoryStream();
+                    using var goo = new MemoryStream();
 
                     return true;
                 }
@@ -1738,7 +1738,7 @@ public sealed class UseSimpleUsingStatementTests
                 {
                     bool M(int a, int b)
                     {
-                        using (var foo = new MemoryStream())
+                        using (var goo = new MemoryStream())
                         {
                         }
 
@@ -1759,7 +1759,7 @@ public sealed class UseSimpleUsingStatementTests
             {
                 void M()
                 {
-                    [|using|] (var foo = new MemoryStream())
+                    [|using|] (var goo = new MemoryStream())
                     {
                     }
 
@@ -1774,7 +1774,7 @@ public sealed class UseSimpleUsingStatementTests
             {
                 void M()
                 {
-                    using var foo = new MemoryStream();
+                    using var goo = new MemoryStream();
 
                     void Inner1() { }
                     void Inner2() { }
@@ -1795,7 +1795,7 @@ public sealed class UseSimpleUsingStatementTests
                 {
                     bool M(int a, int b)
                     {
-                        using (var foo = new MemoryStream())
+                        using (var goo = new MemoryStream())
                         {
                         }
 
@@ -1819,7 +1819,7 @@ public sealed class UseSimpleUsingStatementTests
             {
                 bool M(int a, int b)
                 {
-                    [|using|] (var foo = new MemoryStream())
+                    [|using|] (var goo = new MemoryStream())
                     {
                     }
 
@@ -1836,7 +1836,7 @@ public sealed class UseSimpleUsingStatementTests
             {
                 bool M(int a, int b)
                 {
-                    using var foo = new MemoryStream();
+                    using var goo = new MemoryStream();
 
                     void Inner1() { }
                     void Inner2() { }

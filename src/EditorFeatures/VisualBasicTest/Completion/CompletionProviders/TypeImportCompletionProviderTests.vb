@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Public Async Function AttributeTypeInAttributeNameContext() As Task
 
             Dim file1 = <Text>
-Namespace Foo
+Namespace Goo
     Public Class MyAttribute
         Inherits System.Attribute
     End Class
@@ -46,17 +46,17 @@ Public Class Bar
 End Class]]></Text>.Value
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
-            Await VerifyItemExistsAsync(markup, "My", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttribute", isComplexTextEdit:=True)
-            Await VerifyItemIsAbsentAsync(markup, "MyAttributeWithoutSuffix", inlineDescription:="Foo") ' We intentionally ignore attribute types without proper suffix for perf reason
-            Await VerifyItemIsAbsentAsync(markup, "MyAttribute", inlineDescription:="Foo")
-            Await VerifyItemIsAbsentAsync(markup, "MyVBClass", inlineDescription:="Foo")
+            Await VerifyItemExistsAsync(markup, "My", glyph:=Glyph.ClassPublic, inlineDescription:="Goo", expectedDescriptionOrNull:="Class Goo.MyAttribute", isComplexTextEdit:=True)
+            Await VerifyItemIsAbsentAsync(markup, "MyAttributeWithoutSuffix", inlineDescription:="Goo") ' We intentionally ignore attribute types without proper suffix for perf reason
+            Await VerifyItemIsAbsentAsync(markup, "MyAttribute", inlineDescription:="Goo")
+            Await VerifyItemIsAbsentAsync(markup, "MyVBClass", inlineDescription:="Goo")
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")>
         Public Async Function AttributeTypeInNonAttributeNameContext() As Task
 
             Dim file1 = <Text>
-Namespace Foo
+Namespace Goo
     Public Class MyAttribute
         Inherits System.Attribute
     End Class
@@ -76,10 +76,10 @@ Public Class Bar
 End Class]]></Text>.Value
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
-            Await VerifyItemExistsAsync(markup, "MyAttribute", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttribute", isComplexTextEdit:=True)
-            Await VerifyItemExistsAsync(markup, "MyAttributeWithoutSuffix", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyAttributeWithoutSuffix", isComplexTextEdit:=True)
-            Await VerifyItemExistsAsync(markup, "MyVBClass", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.MyVBClass", isComplexTextEdit:=True)
-            Await VerifyItemIsAbsentAsync(markup, "My", inlineDescription:="Foo")
+            Await VerifyItemExistsAsync(markup, "MyAttribute", glyph:=Glyph.ClassPublic, inlineDescription:="Goo", expectedDescriptionOrNull:="Class Goo.MyAttribute", isComplexTextEdit:=True)
+            Await VerifyItemExistsAsync(markup, "MyAttributeWithoutSuffix", glyph:=Glyph.ClassPublic, inlineDescription:="Goo", expectedDescriptionOrNull:="Class Goo.MyAttributeWithoutSuffix", isComplexTextEdit:=True)
+            Await VerifyItemExistsAsync(markup, "MyVBClass", glyph:=Glyph.ClassPublic, inlineDescription:="Goo", expectedDescriptionOrNull:="Class Goo.MyVBClass", isComplexTextEdit:=True)
+            Await VerifyItemIsAbsentAsync(markup, "My", inlineDescription:="Goo")
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")>
@@ -87,7 +87,7 @@ End Class]]></Text>.Value
 
             ' attribute suffix isn't capitalized
             Dim file1 = <Text>
-Namespace Foo
+Namespace Goo
     Public Class Myattribute
         Inherits System.Attribute
     End Class
@@ -102,8 +102,8 @@ Public Class Bar
 End Class]]></Text>.Value
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
-            Await VerifyItemExistsAsync(markup, "My", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.Myattribute")
-            Await VerifyItemIsAbsentAsync(markup, "Myattribute", inlineDescription:="Foo")
+            Await VerifyItemExistsAsync(markup, "My", glyph:=Glyph.ClassPublic, inlineDescription:="Goo", expectedDescriptionOrNull:="Class Goo.Myattribute")
+            Await VerifyItemIsAbsentAsync(markup, "Myattribute", inlineDescription:="Goo")
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")>
@@ -111,7 +111,7 @@ End Class]]></Text>.Value
 
             ' attribute suffix isn't capitalized
             Dim file1 = <Text>
-namespace Foo
+namespace Goo
 {
     public class Myattribute : System.Attribute { }
 }</Text>.Value
@@ -125,15 +125,15 @@ Public Class Bar
 End Class]]></Text>.Value
 
             Dim markup = CreateMarkupForProjectWithProjectReference(file2, file1, LanguageNames.VisualBasic, LanguageNames.CSharp)
-            Await VerifyItemExistsAsync(markup, "My", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", expectedDescriptionOrNull:="Class Foo.Myattribute", isComplexTextEdit:=True)
-            Await VerifyItemIsAbsentAsync(markup, "Myattribute", inlineDescription:="Foo")
+            Await VerifyItemExistsAsync(markup, "My", glyph:=Glyph.ClassPublic, inlineDescription:="Goo", expectedDescriptionOrNull:="Class Goo.Myattribute", isComplexTextEdit:=True)
+            Await VerifyItemIsAbsentAsync(markup, "Myattribute", inlineDescription:="Goo")
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35124")>
         Public Async Function GenericTypeShouldDisplayProperVBSyntax() As Task
 
             Dim file1 = <Text>
-Namespace Foo
+Namespace Goo
     Public Class MyGenericClass(Of T)
     End Class
 End Namespace</Text>.Value
@@ -146,7 +146,7 @@ Public Class Bar
 End Class]]></Text>.Value
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
-            Await VerifyItemExistsAsync(markup, "MyGenericClass", glyph:=Glyph.ClassPublic, inlineDescription:="Foo", displayTextSuffix:="(Of ...)", expectedDescriptionOrNull:="Class Foo.MyGenericClass(Of T)", isComplexTextEdit:=True)
+            Await VerifyItemExistsAsync(markup, "MyGenericClass", glyph:=Glyph.ClassPublic, inlineDescription:="Goo", displayTextSuffix:="(Of ...)", expectedDescriptionOrNull:="Class Goo.MyGenericClass(Of T)", isComplexTextEdit:=True)
         End Function
 
         <InlineData(SourceCodeKind.Regular)>
@@ -155,14 +155,14 @@ End Class]]></Text>.Value
         Public Async Function CommitTypeInImportAliasContextShouldUseFullyQualifiedName(kind As SourceCodeKind) As Task
 
             Dim file1 = <Text>
-Namespace Foo
+Namespace Goo
     Public Class Bar
     End Class
 End Namespace</Text>.Value
 
             Dim file2 = "Imports BarAlias = $$"
 
-            Dim expectedCodeAfterCommit = "Imports BarAlias = Foo.Bar$$"
+            Dim expectedCodeAfterCommit = "Imports BarAlias = Goo.Bar$$"
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
             Await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind:=kind)
@@ -174,14 +174,14 @@ End Namespace</Text>.Value
         Public Async Function CommitGenericTypeParameterInImportAliasContextShouldUseFullyQualifiedName(kind As SourceCodeKind) As Task
 
             Dim file1 = <Text>
-Namespace Foo
+Namespace Goo
     Public Class Bar
     End Class
 End Namespace</Text>.Value
 
             Dim file2 = "Imports BarAlias = System.Collections.Generic.List(Of $$)"
 
-            Dim expectedCodeAfterCommit = "Imports BarAlias = System.Collections.Generic.List(Of Foo.Bar$$)"
+            Dim expectedCodeAfterCommit = "Imports BarAlias = System.Collections.Generic.List(Of Goo.Bar$$)"
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
             Await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind:=kind)

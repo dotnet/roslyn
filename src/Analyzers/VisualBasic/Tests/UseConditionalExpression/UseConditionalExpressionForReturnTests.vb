@@ -315,7 +315,7 @@ end class")
 class C
     function M() as integer
         [||]if true
-            return Foo(
+            return Goo(
                 1, 2, 3)
         else
             return 1
@@ -326,7 +326,7 @@ end class",
 class C
     function M() as integer
         Return If(true,
-            Foo(
+            Goo(
                 1, 2, 3),
             1)
     end function
@@ -342,7 +342,7 @@ class C
         [||]if true
             return 0
         else
-            return Foo(
+            return Goo(
                 1, 2, 3)
         end if
     end function
@@ -352,7 +352,7 @@ class C
     function M() as integer
         Return If(true,
             0,
-            Foo(
+            Goo(
                 1, 2, 3))
     end function
 end class")
@@ -365,10 +365,10 @@ end class")
 class C
     function M() as integer
         [||]if true
-            return Foo(
+            return Goo(
                 1, 2, 3)
         else
-            return Foo(
+            return Goo(
                 4, 5, 6)
         end if
     end function
@@ -377,9 +377,9 @@ end class",
 class C
     function M() as integer
         Return If(true,
-            Foo(
+            Goo(
                 1, 2, 3),
-            Foo(
+            Goo(
                 4, 5, 6))
     end function
 end class")

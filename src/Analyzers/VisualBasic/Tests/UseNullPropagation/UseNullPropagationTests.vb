@@ -1032,7 +1032,7 @@ Imports System.Linq
 
 Public Class Class1
 
-    Public Sub Foo()
+    Public Sub Goo()
         Dim q = From item In Enumerable.Empty(Of (x As Integer?, y As Integer?)?)().AsQueryable()
                 Select [||]If(item Is Nothing, Nothing, item.Value.x)
     End Sub
@@ -1048,7 +1048,7 @@ Imports System.Linq
 
 Public Class Class1
 
-    Public Sub Foo()
+    Public Sub Goo()
         Dim q = From item In Enumerable.Empty(Of (x As Integer?, y As Integer?)?)().AsQueryable()
                 Where [||]If(item Is Nothing, Nothing, item.Value.x) > 0
                 Select item
@@ -1065,7 +1065,7 @@ Imports System.Linq
 
 Public Class Class1
 
-    Public Sub Foo()
+    Public Sub Goo()
         Dim q = From item In Enumerable.Empty(Of (x As Integer?, y As Integer?)?)().AsQueryable()
                 Let x = [||]If(item Is Nothing, Nothing, item.Value.x)
                 Select x

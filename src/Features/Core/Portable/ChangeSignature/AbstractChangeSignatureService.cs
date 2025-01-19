@@ -65,8 +65,8 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
     protected abstract SyntaxToken CommaTokenWithElasticSpace();
 
     /// <summary>
-    /// For some Foo(int x, params int[] p), this helps convert the "1, 2, 3" in Foo(0, 1, 2, 3)
-    /// to "new int[] { 1, 2, 3 }" in Foo(0, new int[] { 1, 2, 3 });
+    /// For some Goo(int x, params int[] p), this helps convert the "1, 2, 3" in Goo(0, 1, 2, 3)
+    /// to "new int[] { 1, 2, 3 }" in Goo(0, new int[] { 1, 2, 3 });
     /// </summary>
     protected abstract TArgumentSyntax CreateExplicitParamsArrayFromIndividualArguments<TArgumentSyntax>(SeparatedSyntaxList<TArgumentSyntax> newArguments, int startingIndex, IParameterSymbol parameterSymbol)
         where TArgumentSyntax : SyntaxNode;

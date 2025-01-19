@@ -477,7 +477,7 @@ class A
 using System;
 
 [Obsolete({|message:|}"test")]
-class Foo
+class Goo
 {
         
 
@@ -493,7 +493,7 @@ class Foo
 using System;
 
 [Obsolete(message: "test")]
-class Foo
+class Goo
 {
         
 

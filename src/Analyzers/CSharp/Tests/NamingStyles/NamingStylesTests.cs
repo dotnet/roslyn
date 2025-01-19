@@ -1508,7 +1508,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
     public async Task TestRecordParameter_NoDiagnosticWhenCorrect()
     {
         await TestMissingInRegularAndScriptAsync(
-@"record Foo(int [|MyInt|]);",
+@"record Goo(int [|MyInt|]);",
             new TestParameters(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
     }
 
@@ -1517,9 +1517,9 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
     {
         await TestMissingInRegularAndScriptAsync(
             """
-            record Foo(int MyInt)
+            record Goo(int MyInt)
             {
-                public Foo(string [|p_myString|]) : this(1)
+                public Goo(string [|p_myString|]) : this(1)
                 {
                 }
             }
@@ -1531,8 +1531,8 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
     public async Task TestRecordParameter_ParameterFormattedAsProperties()
     {
         await TestInRegularAndScriptAsync(
-@"public record Foo(int [|myInt|]);",
-@"public record Foo(int [|MyInt|]);",
+@"public record Goo(int [|myInt|]);",
+@"public record Goo(int [|MyInt|]);",
             options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
     }
 

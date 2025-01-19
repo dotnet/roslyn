@@ -63,7 +63,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
         var code = """
             class C
             {
-                public [|D|] Foo { get; }
+                public [|D|] Goo { get; }
             }
 
             namespace A
@@ -77,7 +77,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
 
             class C
             {
-                public D Foo { get; }
+                public D Goo { get; }
             }
 
             namespace A
@@ -97,7 +97,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
 
             class C
             {
-                [|public D Foo { get; }
+                [|public D Goo { get; }
                 public E Bar { get; }|]
             }
 
@@ -119,7 +119,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
 
             class C
             {
-                public D Foo { get; }
+                public D Goo { get; }
                 public E Bar { get; }
             }
 
@@ -145,7 +145,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
 
             class C
             {
-                [|public D Foo { get; }
+                [|public D Goo { get; }
                 public E Bar { get; }|]
             }
 
@@ -167,7 +167,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
 
             class C
             {
-                public D Foo { get; }
+                public D Goo { get; }
                 public E Bar { get; }
             }
 
@@ -193,7 +193,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
 
             class C
             {
-                [|public D Foo { get; }
+                [|public D Goo { get; }
                 public E Bar { get; }|]
             }
 
@@ -217,7 +217,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
 
             class C
             {
-                public D Foo { get; }
+                public D Goo { get; }
                 public E Bar { get; }
             }
 
@@ -241,7 +241,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
         var code = """
             class C
             {
-                [|public D Foo { get; }
+                [|public D Goo { get; }
                 public E Bar { get; }|]
             }
 
@@ -262,7 +262,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
 
             class C
             {
-                public D Foo { get; }
+                public D Goo { get; }
                 public E Bar { get; }
             }
 
@@ -287,7 +287,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
         var code = """
             class C
             {
-                public D[||] Foo { get; }
+                public D[||] Goo { get; }
             }
 
             namespace A
@@ -305,7 +305,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
         var code = """
             class [|C|]
             {
-                public D Foo { get; }
+                public D Goo { get; }
             }
 
             namespace A
@@ -323,7 +323,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
         var code = """
             class C
             {
-                public [|D|] Foo { get; }
+                public [|D|] Goo { get; }
             }
 
             namespace A
@@ -346,7 +346,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
         var code = """
             class C
             {
-                [|public D Foo { get; }
+                [|public D Goo { get; }
                 public E Bar { get; }|]
             }
 
@@ -367,7 +367,7 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
 
             class C
             {
-                public D Foo { get; }
+                public D Goo { get; }
                 public E Bar { get; }
             }
 

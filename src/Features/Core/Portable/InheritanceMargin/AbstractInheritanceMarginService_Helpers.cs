@@ -595,10 +595,10 @@ internal abstract partial class AbstractInheritanceMarginService
 
             // 2. Also add the direct implementing symbols for the overridden symbols.
             // For example:
-            // interface IBar { void Foo(); }
-            // class Bar : IBar { public override void Foo() { } }
-            // class Bar2 : Bar { public override void Foo() { } }
-            // For 'Bar2.Foo()',  we need to find 'IBar.Foo()'
+            // interface IBar { void Goo(); }
+            // class Bar : IBar { public override void Goo() { } }
+            // class Bar2 : Bar { public override void Goo() { } }
+            // For 'Bar2.Goo()',  we need to find 'IBar.Goo()'
             foreach (var symbol in overriddenSymbols)
             {
                 builder.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations());
@@ -630,10 +630,10 @@ internal abstract partial class AbstractInheritanceMarginService
             builder.AddRange(implementationSymbols);
 
             // 2. Continue searching the overriden symbols. For example:
-            // interface IBar { void Foo(); }
-            // class Bar : IBar { public virtual void Foo() { } }
-            // class Bar2 : IBar { public override void Foo() { } }
-            // For 'IBar.Foo()', we need to find 'Bar2.Foo()'
+            // interface IBar { void Goo(); }
+            // class Bar : IBar { public virtual void Goo() { } }
+            // class Bar2 : IBar { public override void Goo() { } }
+            // For 'IBar.Goo()', we need to find 'Bar2.Goo()'
             foreach (var implementationSymbol in implementationSymbols)
             {
                 builder.AddRange(await SymbolFinder.FindOverridesArrayAsync(implementationSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false));

@@ -274,15 +274,15 @@ public {typeKind} A
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
-            {|2:public class Foo|}
+            {|2:public class Goo|}
             {
-                public Foo() { }
+                public Goo() { }
             }
             public class B
             {
                 private void Test()
                 {
-                    var foo = new Foo();
+                    var goo = new Goo();
                 }
             }
             ]]>
@@ -300,16 +300,16 @@ public {typeKind} A
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
-            {|3:public class Foo|}
+            {|3:public class Goo|}
             {
-                public Foo() { }
+                public Goo() { }
             }
             public class B
             {
                 private void Test()
                 {
-                    var foo1 = new Foo();
-                    var foo2 = new Foo();
+                    var foo1 = new Goo();
+                    var foo2 = new Goo();
                 }
             }
             ]]>
@@ -327,14 +327,14 @@ public {typeKind} A
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
-            {|1:public class Foo|}
+            {|1:public class Goo|}
             {
             }
             public class B
             {
                 private void Test()
                 {
-                    var foo = new Foo();
+                    var goo = new Goo();
                 }
             }
             ]]>
@@ -352,15 +352,15 @@ public {typeKind} A
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
-            {|2:public class Foo|}
+            {|2:public class Goo|}
             {
             }
             public class B
             {
                 private void Test()
                 {
-                    var foo1 = new Foo();
-                    var foo2 = new Foo();
+                    var foo1 = new Goo();
+                    var foo2 = new Goo();
                 }
             }
             ]]>

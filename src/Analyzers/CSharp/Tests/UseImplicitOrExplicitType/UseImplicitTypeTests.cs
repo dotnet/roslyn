@@ -2644,12 +2644,12 @@ options: ImplicitTypeEverywhere());
             {
                 static void Main(string[] args)
                 {
-                    [|GetHandler|] handler = Foo;
+                    [|GetHandler|] handler = Goo;
                 }
 
                 private static GetHandler Handler;
 
-                private static object Foo() => new object();
+                private static object Goo() => new object();
 
                 delegate object GetHandler();
             }

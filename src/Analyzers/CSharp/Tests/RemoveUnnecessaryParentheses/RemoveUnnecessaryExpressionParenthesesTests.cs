@@ -2745,7 +2745,7 @@ offeredWhenRequireForClarityIsEnabled: true);
             """
             class Bar
             {
-                void Foo(bool cond, double a, double b)
+                void Goo(bool cond, double a, double b)
                 {
                     [||](cond ? ref a : ref b) = 6.67e-11;
                 }
@@ -2760,7 +2760,7 @@ offeredWhenRequireForClarityIsEnabled: true);
             """
             class Bar
             {
-                void Foo(bool cond, double a, double b)
+                void Goo(bool cond, double a, double b)
                 {
                     double c = $$(cond ? a : b);
                 }
@@ -2769,7 +2769,7 @@ offeredWhenRequireForClarityIsEnabled: true);
             """
             class Bar
             {
-                void Foo(bool cond, double a, double b)
+                void Goo(bool cond, double a, double b)
                 {
                     double c = cond ? a : b;
                 }
@@ -2788,7 +2788,7 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
                 void Test(bool a)
                 {
                     Func<int, string> lambda =
-                        number => number + $"{ ($$a ? "foo" : "bar") }";
+                        number => number + $"{ ($$a ? "goo" : "bar") }";
                 }
             }
             """, new TestParameters(options: RemoveAllUnnecessaryParentheses));

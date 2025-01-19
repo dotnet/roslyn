@@ -93,14 +93,14 @@ End Class")
         Public Async Function TestMultipleFields_VerticalSelectionUpToMethod() As Task
             Await TestInRegularAndScriptAsync(
 "Class Program
-    Public Sub Foo
+    Public Sub Goo
     End Sub[|
 
     Private i As Integer
     Private b As String|]
 End Class",
 "Class Program
-    Public Sub Foo
+    Public Sub Goo
     End Sub
 
     Private i As Integer

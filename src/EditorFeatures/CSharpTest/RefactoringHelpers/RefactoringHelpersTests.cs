@@ -721,7 +721,7 @@ public partial class RefactoringHelpersTests : RefactoringHelpersTestBase<CSharp
             using System;
             public class Class1
             {
-                {|result:void foo([[||]bar) {}|}
+                {|result:void goo([[||]bar) {}|}
             }
             """;
         await TestAsync<MethodDeclarationSyntax>(testText);
@@ -734,7 +734,7 @@ public partial class RefactoringHelpersTests : RefactoringHelpersTestBase<CSharp
             using System;
             public class Class1
             {
-                {|result:void foo([[||]Class1 arg1) {}|}
+                {|result:void goo([[||]Class1 arg1) {}|}
             }
             """;
         await TestAsync<MethodDeclarationSyntax>(testText);
@@ -748,7 +748,7 @@ public partial class RefactoringHelpersTests : RefactoringHelpersTestBase<CSharp
             public class TestAttribute : Attribute { }
             public class Class1
             {
-                static void foo({|result:[Test][||]
+                static void goo({|result:[Test][||]
             |}    {
 
                 }

@@ -80,7 +80,7 @@ public partial class AddExplicitCastTests
                     return ReturnBase();
                 }
 
-                Derived Foo()
+                Derived Goo()
                 {
                     <![CDATA[ Func<Base, Base> func = d => d; ]]>
                     Base b;
@@ -100,7 +100,7 @@ public partial class AddExplicitCastTests
                     t.d = b;
                     d = t.B;
 
-                    <![CDATA[ Func<Base, Derived> foo = d => d; ]]>
+                    <![CDATA[ Func<Base, Derived> goo = d => d; ]]>
 
                     <![CDATA[ Func<Derived, Base> foo2 = d => d; ]]>
                     d2 = foo2(d);
@@ -220,7 +220,7 @@ public partial class AddExplicitCastTests
                     return (Derived)ReturnBase();
                 }
 
-                Derived Foo()
+                Derived Goo()
                 {
                     <![CDATA[ Func<Base, Base> func = d => d; ]]>
                     Base b;
@@ -240,7 +240,7 @@ public partial class AddExplicitCastTests
                     t.d = b;
                     d = (Derived)t.B;
 
-                    <![CDATA[ Func<Base, Derived> foo = d => (Derived)d; ]]>
+                    <![CDATA[ Func<Base, Derived> goo = d => (Derived)d; ]]>
 
                     <![CDATA[ Func<Derived, Base> foo2 = d => d; ]]>
                     d2 = (Derived)foo2(d);
@@ -368,7 +368,7 @@ public partial class AddExplicitCastTests
                     return ReturnBase();
                 }
 
-                Derived Foo()
+                Derived Goo()
                 {
                     <![CDATA[ Func<Base, Base> func = d => d; ]]>
                     Base b;
@@ -388,7 +388,7 @@ public partial class AddExplicitCastTests
                     t.d = b;
                     d = t.B;
 
-                    <![CDATA[ Func<Base, Derived> foo = d => d; ]]>
+                    <![CDATA[ Func<Base, Derived> goo = d => d; ]]>
 
                     <![CDATA[ Func<Derived, Base> foo2 = d => d; ]]>
                     d2 = foo2(d);
@@ -508,7 +508,7 @@ public partial class AddExplicitCastTests
                     return (Derived)ReturnBase();
                 }
 
-                Derived Foo()
+                Derived Goo()
                 {
                     <![CDATA[ Func<Base, Base> func = d => d; ]]>
                     Base b;
@@ -528,7 +528,7 @@ public partial class AddExplicitCastTests
                     t.d = b;
                     d = (Derived)t.B;
 
-                    <![CDATA[ Func<Base, Derived> foo = d => (Derived)d; ]]>
+                    <![CDATA[ Func<Base, Derived> goo = d => (Derived)d; ]]>
 
                     <![CDATA[ Func<Derived, Base> foo2 = d => d; ]]>
                     d2 = (Derived)foo2(d);
@@ -656,7 +656,7 @@ public partial class AddExplicitCastTests
                     return ReturnBase();
                 }
 
-                Derived Foo()
+                Derived Goo()
                 {
                     <![CDATA[ Func<Base, Base> func = d => d; ]]>
                     Base b;
@@ -676,7 +676,7 @@ public partial class AddExplicitCastTests
                     t.d = b;
                     d = t.B;
 
-                    <![CDATA[ Func<Base, Derived> foo = d => d; ]]>
+                    <![CDATA[ Func<Base, Derived> goo = d => d; ]]>
 
                     <![CDATA[ Func<Derived, Base> foo2 = d => d; ]]>
                     d2 = foo2(d);
@@ -796,7 +796,7 @@ public partial class AddExplicitCastTests
                     return (Derived)ReturnBase();
                 }
 
-                Derived Foo()
+                Derived Goo()
                 {
                     <![CDATA[ Func<Base, Base> func = d => d; ]]>
                     Base b;
@@ -816,7 +816,7 @@ public partial class AddExplicitCastTests
                     t.d = b;
                     d = (Derived)t.B;
 
-                    <![CDATA[ Func<Base, Derived> foo = d => (Derived)d; ]]>
+                    <![CDATA[ Func<Base, Derived> goo = d => (Derived)d; ]]>
 
                     <![CDATA[ Func<Derived, Base> foo2 = d => d; ]]>
                     d2 = (Derived)foo2(d);
@@ -1603,15 +1603,15 @@ public partial class AddExplicitCastTests
                     Test(string s, Derived2 d, int i) { }
                 }
 
-                void Foo(Derived1 d, int a, int b, params int[] list) { }
-                void Foo(Derived2 d, params int[] list) { }
+                void Goo(Derived1 d, int a, int b, params int[] list) { }
+                void Goo(Derived2 d, params int[] list) { }
 
 
                 private void M2(Base b, Derived1 d1, Derived2 d2)
                 {
-                    Foo(b, 1, 2); // 2 operations, no fix in fix-all
+                    Goo(b, 1, 2); // 2 operations, no fix in fix-all
                     var intlist = new int[] { };
-                    Foo(b, 1, 2, list: intlist); // 2 operations
+                    Goo(b, 1, 2, list: intlist); // 2 operations
                 }
             }
                     </Document>
@@ -1733,15 +1733,15 @@ public partial class AddExplicitCastTests
                     Test(string s, Derived2 d, int i) { }
                 }
 
-                void Foo(Derived1 d, int a, int b, params int[] list) { }
-                void Foo(Derived2 d, params int[] list) { }
+                void Goo(Derived1 d, int a, int b, params int[] list) { }
+                void Goo(Derived2 d, params int[] list) { }
 
 
                 private void M2(Base b, Derived1 d1, Derived2 d2)
                 {
-                    Foo(b, 1, 2); // 2 operations, no fix in fix-all
+                    Goo(b, 1, 2); // 2 operations, no fix in fix-all
                     var intlist = new int[] { };
-                    Foo(b, 1, 2, list: intlist); // 2 operations
+                    Goo(b, 1, 2, list: intlist); // 2 operations
                 }
             }
                     </Document>
