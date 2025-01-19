@@ -7470,27 +7470,184 @@ struct S
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
-        public void RedundantPattern_ListPatterns_TwoAnds()
+        public void RedundantPattern_ListPattern_TwoAnds()
         {
             var source = """
 int[] o = null;
-_ = o is not [42 and not 43, 44 and not 45]; // 1, 2
-_ = o is not ([42 and not 43, _] and [_, 44 and not 45]); // 3, 4
+_ = o is [42 and not 43, 44 and not 45]; // 1, 2
+_ = o switch
+{
+    [42 and not 43, 44 and not 45] => 0, // 3, 4
+    _ => 0
+};
+
+switch (o)
+{
+    case [42 and not 43, 44 and not 45]: // 5, 6
+        break;
+    default:
+        break;
+}
 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (2,26): hidden CS9274: The pattern is redundant.
-                // _ = o is not [42 and not 43, 44 and not 45]; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 26),
-                // (2,41): hidden CS9274: The pattern is redundant.
-                // _ = o is not [42 and not 43, 44 and not 45]; // 1, 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(2, 41),
-                // (3,27): hidden CS9274: The pattern is redundant.
-                // _ = o is not ([42 and not 43, _] and [_, 44 and not 45]); // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(3, 27),
-                // (3,53): hidden CS9274: The pattern is redundant.
-                // _ = o is not ([42 and not 43, _] and [_, 44 and not 45]); // 3, 4
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(3, 53));
+                // (2,22): hidden CS9274: The pattern is redundant.
+                // _ = o is [42 and not 43, 44 and not 45]; // 1, 2
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 22),
+                // (2,37): hidden CS9274: The pattern is redundant.
+                // _ = o is [42 and not 43, 44 and not 45]; // 1, 2
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(2, 37),
+                // (5,17): hidden CS9274: The pattern is redundant.
+                //     [42 and not 43, 44 and not 45] => 0, // 3, 4
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 17),
+                // (5,32): hidden CS9274: The pattern is redundant.
+                //     [42 and not 43, 44 and not 45] => 0, // 3, 4
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(5, 32),
+                // (11,22): hidden CS9274: The pattern is redundant.
+                //     case [42 and not 43, 44 and not 45]: // 5, 6
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(11, 22),
+                // (11,37): hidden CS9274: The pattern is redundant.
+                //     case [42 and not 43, 44 and not 45]: // 5, 6
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(11, 37));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_ITuplePattern_TwoAnds()
+        {
+            var source = """
+System.Runtime.CompilerServices.ITuple t = null;
+_ = t is (42 and not 43, 44 and not 45); // 1, 2
+_ = t switch
+{
+    (42 and not 43, 44 and not 45) => 0, // 3, 4
+    _ => 0
+};
+
+switch (t)
+{
+    case (42 and not 43, 44 and not 45): // 5, 6
+        break;
+    default:
+        break;
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (2,22): hidden CS9274: The pattern is redundant.
+                // _ = t is (42 and not 43, 44 and not 45); // 1, 2
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(2, 22),
+                // (2,37): hidden CS9274: The pattern is redundant.
+                // _ = t is (42 and not 43, 44 and not 45); // 1, 2
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(2, 37),
+                // (5,17): hidden CS9274: The pattern is redundant.
+                //     (42 and not 43, 44 and not 45) => 0, // 3, 4
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(5, 17),
+                // (5,32): hidden CS9274: The pattern is redundant.
+                //     (42 and not 43, 44 and not 45) => 0, // 3, 4
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(5, 32),
+                // (11,22): hidden CS9274: The pattern is redundant.
+                //     case (42 and not 43, 44 and not 45): // 5, 6
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(11, 22),
+                // (11,37): hidden CS9274: The pattern is redundant.
+                //     case (42 and not 43, 44 and not 45): // 5, 6
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(11, 37));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_RecursivePattern_Positional_TwoAnds()
+        {
+            var source = """
+C c = null;
+
+_ = c is (42 and not 43, 44 and not 45); // 1, 2
+_ = c switch
+{
+    (42 and not 43, 44 and not 45) => 0, // 3, 4
+    _ => 0
+};
+
+switch (c)
+{
+    case (42 and not 43, 44 and not 45): // 5, 6
+        break;
+    default:
+        break;
+}
+
+class C
+{
+    public void Deconstruct(out int x, out int y) => throw null;
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,22): hidden CS9274: The pattern is redundant.
+                // _ = c is (42 and not 43, 44 and not 45); // 1, 2
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(3, 22),
+                // (3,37): hidden CS9274: The pattern is redundant.
+                // _ = c is (42 and not 43, 44 and not 45); // 1, 2
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(3, 37),
+                // (6,17): hidden CS9274: The pattern is redundant.
+                //     (42 and not 43, 44 and not 45) => 0, // 3, 4
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(6, 17),
+                // (6,32): hidden CS9274: The pattern is redundant.
+                //     (42 and not 43, 44 and not 45) => 0, // 3, 4
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(6, 32),
+                // (12,22): hidden CS9274: The pattern is redundant.
+                //     case (42 and not 43, 44 and not 45): // 5, 6
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(12, 22),
+                // (12,37): hidden CS9274: The pattern is redundant.
+                //     case (42 and not 43, 44 and not 45): // 5, 6
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(12, 37));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_RecursivePattern_Property_TwoAnds()
+        {
+            var source = """
+C c = null;
+
+_ = c is { Prop1: 42 and not 43, Prop2: 44 and not 45 }; // 1, 2
+_ = c switch
+{
+    { Prop1: 42 and not 43, Prop2: 44 and not 45 } => 0, // 3, 4
+    _ => 0
+};
+
+switch (c)
+{
+    case { Prop1: 42 and not 43, Prop2: 44 and not 45 }: // 5, 6
+        break;
+    default:
+        break;
+}
+
+class C
+{
+    public int Prop1 { get; set; }
+    public int Prop2 { get; set; }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,30): hidden CS9274: The pattern is redundant.
+                // _ = c is { Prop1: 42 and not 43, Prop2: 44 and not 45 }; // 1, 2
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(3, 30),
+                // (3,52): hidden CS9274: The pattern is redundant.
+                // _ = c is { Prop1: 42 and not 43, Prop2: 44 and not 45 }; // 1, 2
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(3, 52),
+                // (6,25): hidden CS9274: The pattern is redundant.
+                //     { Prop1: 42 and not 43, Prop2: 44 and not 45 } => 0, // 3, 4
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(6, 25),
+                // (6,47): hidden CS9274: The pattern is redundant.
+                //     { Prop1: 42 and not 43, Prop2: 44 and not 45 } => 0, // 3, 4
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(6, 47),
+                // (12,30): hidden CS9274: The pattern is redundant.
+                //     case { Prop1: 42 and not 43, Prop2: 44 and not 45 }: // 5, 6
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(12, 30),
+                // (12,52): hidden CS9274: The pattern is redundant.
+                //     case { Prop1: 42 and not 43, Prop2: 44 and not 45 }: // 5, 6
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "45").WithLocation(12, 52));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -8436,6 +8593,7 @@ _ = i is string or not (42 or 43) or 43 or 0; // warn
 _ = i is string or not (42 or 43) or 0; // warn
 _ = i is (string or not 42) or 0;
 _ = i is 42 or (42 or not 0);
+_ = i is (not 42) or 43;
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
@@ -8483,7 +8641,10 @@ _ = i is 42 or (42 or not 0);
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "0").WithLocation(14, 32),
                 // (15,17): hidden CS9274: The pattern is redundant.
                 // _ = i is 42 or (42 or not 0);
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "42").WithLocation(15, 17));
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "42").WithLocation(15, 17),
+                // (16,22): hidden CS9274: The pattern is redundant.
+                // _ = i is (not 42) or 43;
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "43").WithLocation(16, 22));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]

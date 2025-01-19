@@ -274,6 +274,9 @@ start:
             }
         }
 
+        // This type provides all the context needed to perform a reachability analysis
+        // on a binary OR pattern we're visiting inside a normalized pattern,
+        // and collect the redundant nodes that are identified.
         private struct ReachabilityAnalysisContext
         {
             public readonly ArrayBuilder<StateForCase> PreviousCases;
@@ -462,6 +465,7 @@ start:
                         // In `A and B`, we analyze `B` but any cases `case B1:`, ..., `case Bn:` found there
                         // will be wrapped as `A and <expansion>`.
                         // So we'll check reachability on `case A and B1:`, ..., `case A and Bn:`
+
                         // Given `newPattern`, produce `A and newPattern`
                         Func<BoundPattern, BoundPattern> newWrapIntoParentAndPattern = (BoundPattern newPattern) =>
                         {
@@ -592,7 +596,7 @@ start:
             private bool? _expectingOperandOfDisjunction;
 
             /// <summary>
-            /// We visiting a composite pattern such as `{ Prop: A or B }`
+            /// When visiting a composite pattern such as `{ Prop: A or B }`
             /// we'll want to push operand `{ Prop: A }`, operand `{ Prop: B }` and operation `or`
             /// in the eval sequence.
             /// This delegate is set before calling Visit on the nested pattern. The delegate returns
@@ -944,7 +948,7 @@ start:
             // Given a pattern that expects `pattern.InputType` as input type, produce
             // one that expects `inputType`.
             //
-            // For example, when splitting a pattern `{ Prop: A and B }` into `{ Prop: A } and/or { Prop: B }`
+            // For example, when splitting a pattern `{ Prop: A and B }` into `{ Prop: A } and { Prop: B }`
             // the original `B` pattern expects an input type that is the narrowed type from `A`
             // but the rewritten `B` pattern expects an input type that is the type of `Prop`.
             private static BoundPattern WithInputTypeCheckIfNeeded(BoundPattern pattern, TypeSymbol inputType)
@@ -1037,7 +1041,7 @@ start:
                 //   and the `and` and `or` patterns in the sub-patterns can then be lifted out further.
                 //   For example, if `not D1` resolves to `E1 or F1`, the `Type (not D1, _, ...)` component can be normalized to
                 //   `Type (E1, _, ...) or `Type (F1, _, ...)`.
-                //   If there's not Type, we substitute a null check
+                //   If there's no Type, we substitute a null check
 
                 var saveExpectingOperandOfDisjunction = _expectingOperandOfDisjunction;
                 int startOfLeft = _evalSequence.Count;
@@ -1088,7 +1092,7 @@ start:
 
                     int i = 0;
 
-                    // Given `newPattern`, produce `(..., _, newPattern, _, ...)`
+                    // Given `newPattern`, produce `DeclaredType (..., _, newPattern, _, ...)`
                     _makeEvaluationSequenceOperand = (BoundPattern newPattern) =>
                     {
                         // Note: lambda intentionally captures
@@ -1123,7 +1127,7 @@ start:
                     var saveMakeEvaluationSequenceOperand = _makeEvaluationSequenceOperand;
                     BoundPropertySubpattern? property = null;
 
-                    // Given `newPattern`, produce `{ Prop: newPattern }`
+                    // Given `newPattern`, produce `DeclaredType { Prop: newPattern }`
                     _makeEvaluationSequenceOperand = (BoundPattern newPattern) =>
                     {
                         // Note: lambda intentionally captures
