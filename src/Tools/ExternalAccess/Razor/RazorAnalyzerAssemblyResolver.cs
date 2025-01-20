@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     [Export(typeof(IAnalyzerAssemblyResolver)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class RazorAnalyzerAssemblyResolver() : IAnalyzerAssemblyResolver
+    internal sealed class RazorAnalyzerAssemblyResolver() : IAnalyzerAssemblyResolver
     {
         private const string RazorCompilerAssemblyName = "Microsoft.CodeAnalysis.Razor.Compiler";
         private const string RazorUtilsAssemblyName = "Microsoft.AspNetCore.Razor.Utilities.Shared";
@@ -25,11 +25,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         private static readonly object s_loaderLock = new();
 
-        public static Assembly? ResolveRazorAssembly(AssemblyName assemblyName, string directoryName)
+        public static Assembly? ResolveRazorAssembly(AssemblyName assemblyName, string rootDirectory)
         {
             if (assemblyName.Name is RazorCompilerAssemblyName or RazorUtilsAssemblyName or ObjectPoolAssemblyName)
             {
-                var assembly = Path.Combine(directoryName, $"{assemblyName.Name}.dll");
                 lock (s_loaderLock)
                 {
                     var compilerContext = AssemblyLoadContext.GetLoadContext(typeof(Compilation).Assembly)!;
@@ -37,6 +36,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     {
                         return loadedAssembly;
                     }
+
+                    var assembly = Path.Combine(rootDirectory, $"{assemblyName.Name}.dll");
                     return compilerContext.LoadFromAssemblyPath(assembly);
                 }
             }
