@@ -11123,7 +11123,7 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60136")]
     public async Task GenerateIntoTopLevelProgramWithPartialType()
     {
-        await TestInRegularAndScriptAsync(
+        await TestAsync(
             """
             Program.[|Test|]();
 
@@ -11143,6 +11143,6 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
                     throw new NotImplementedException();
                 }
             }
-            """);
+            """, parseOptions: CSharpParseOptions.Default);
     }
 }
