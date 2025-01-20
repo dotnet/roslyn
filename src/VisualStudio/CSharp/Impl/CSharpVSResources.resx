@@ -557,4 +557,7 @@
   <data name="CancelQueryCommandToolTip" xml:space="preserve">
     <value>Cancel (Escape)</value>
   </data>
+  <data name="Prefer_implicitly_typed_lambda_expression" xml:space="preserve">
+    <value>Prefer implicitly typed lambda expression</value>
+  </data>
 </root>

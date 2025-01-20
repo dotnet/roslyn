@@ -142,6 +142,11 @@
         <target state="translated">當類型為實際型態時，建議建立隱含物件</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_implicitly_typed_lambda_expression">
+        <source>Prefer implicitly typed lambda expression</source>
+        <target state="new">Prefer implicitly typed lambda expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
         <target state="translated">建議使用模式比對</target>

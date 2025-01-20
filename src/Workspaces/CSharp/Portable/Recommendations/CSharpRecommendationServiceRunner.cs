@@ -310,14 +310,10 @@ internal partial class CSharpRecommendationService
             var symbols = _context.SemanticModel.LookupNamespacesAndTypes(_context.LeftToken.SpanStart);
 
             if (_context.TargetToken.IsUsingKeywordInUsingDirective())
-            {
-                return symbols.WhereAsArray(s => s.IsNamespace());
-            }
+                return symbols.WhereAsArray(s => s is INamespaceSymbol);
 
             if (_context.TargetToken.IsStaticKeywordContextInUsingDirective())
-            {
                 return symbols.WhereAsArray(s => !s.IsDelegateType());
-            }
 
             return symbols;
         }
@@ -567,7 +563,7 @@ internal partial class CSharpRecommendationService
             {
                 return new RecommendedSymbols(usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword)
                     ? symbols.WhereAsArray(s => !s.IsDelegateType())
-                    : symbols.WhereAsArray(s => s.IsNamespace()));
+                    : symbols.WhereAsArray(s => s is INamespaceSymbol));
             }
 
             return new RecommendedSymbols(symbols);

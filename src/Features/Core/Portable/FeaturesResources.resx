@@ -1750,8 +1750,8 @@ If the "H" format specifier is used without other custom format specifiers, it's
     <value>Cannot include class \{0} in character range</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</comment>
   </data>
-  <data name="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue" xml:space="preserve">
-    <value>Capture group numbers must be less than or equal to Int32.MaxValue</value>
+  <data name="Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue" xml:space="preserve">
+    <value>Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</comment>
   </data>
   <data name="Capture_number_cannot_be_zero" xml:space="preserve">
@@ -1770,17 +1770,21 @@ If the "H" format specifier is used without other custom format specifiers, it's
     <value>Incomplete \p{X} character escape</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{ Cc }</comment>
   </data>
-  <data name="Insufficient_hexadecimal_digits" xml:space="preserve">
-    <value>Insufficient hexadecimal digits</value>
+  <data name="Insufficient_or_invalid_hexadecimal_digits" xml:space="preserve">
+    <value>Insufficient or invalid hexadecimal digits</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</comment>
   </data>
   <data name="Invalid_group_name_Group_names_must_begin_with_a_word_character" xml:space="preserve">
     <value>Invalid group name: Group names must begin with a word character</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</comment>
   </data>
-  <data name="Malformed" xml:space="preserve">
-    <value>malformed</value>
+  <data name="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group number_0" xml:space="preserve">
+    <value>Conditional alternation is missing a closing parenthesis after the group number {0}</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</comment>
+  </data>
+  <data name="Conditional_alternation_refers_to_an_undefined_group_number_0" xml:space="preserve">
+    <value>Conditional alternation refers to an undefined group number {0}</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1)\1))</comment>
   </data>
   <data name="Malformed_character_escape" xml:space="preserve">
     <value>Malformed \p{X} character escape</value>
@@ -1795,23 +1799,19 @@ If the "H" format specifier is used without other custom format specifiers, it's
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</comment>
   </data>
   <data name="Nested_quantifier_0" xml:space="preserve">
-    <value>Nested quantifier {0}</value>
+    <value>Nested quantifier '{0}'</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</comment>
   </data>
   <data name="Not_enough_close_parens" xml:space="preserve">
     <value>Not enough )'s</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</comment>
   </data>
-  <data name="Quantifier_x_y_following_nothing" xml:space="preserve">
-    <value>Quantifier {x,y} following nothing</value>
+  <data name="Quantifier_0_following_nothing" xml:space="preserve">
+    <value>Quantifier '{0}' following nothing</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</comment>
   </data>
-  <data name="Reference_to_undefined_group" xml:space="preserve">
-    <value>reference to undefined group</value>
-    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</comment>
-  </data>
   <data name="Reference_to_undefined_group_name_0" xml:space="preserve">
-    <value>Reference to undefined group name {0}</value>
+    <value>Reference to undefined group name '{0}'</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</comment>
   </data>
   <data name="Reference_to_undefined_group_number_0" xml:space="preserve">

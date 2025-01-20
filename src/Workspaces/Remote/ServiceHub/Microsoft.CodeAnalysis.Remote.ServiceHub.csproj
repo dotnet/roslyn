@@ -23,10 +23,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
     <PackageReference Include="Microsoft.VisualStudio.RpcContracts" />
-
-    <!-- TODO: remove https://github.com/dotnet/roslyn/issues/71374 -->
-    <PackageReference Include="Microsoft.ServiceHub.Framework" />
-    <PackageReference Include="Microsoft.ServiceHub.Client" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

@@ -350,11 +350,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Não é possível navegar para o símbolo sob o cursor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
-        <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
-        <target state="translated">Os números do grupo de captura devem ser menores ou iguais a Int32.MaxValue</target>
-        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
-      </trans-unit>
       <trans-unit id="Capture_number_cannot_be_zero">
         <source>Capture number cannot be zero</source>
         <target state="translated">O número da captura não pode ser zero</target>
@@ -509,6 +504,16 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <source>Comments not allowed</source>
         <target state="translated">Comentários não permitidos</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group number_0">
+        <source>Conditional alternation is missing a closing parenthesis after the group number {0}</source>
+        <target state="new">Conditional alternation is missing a closing parenthesis after the group number {0}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
+      </trans-unit>
+      <trans-unit id="Conditional_alternation_refers_to_an_undefined_group_number_0">
+        <source>Conditional alternation refers to an undefined group number {0}</source>
+        <target state="new">Conditional alternation refers to an undefined group number {0}</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1)\1))</note>
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
@@ -950,9 +955,9 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Variável temporária embutida</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insufficient_hexadecimal_digits">
-        <source>Insufficient hexadecimal digits</source>
-        <target state="translated">Dígitos hexadecimais insuficientes</target>
+      <trans-unit id="Insufficient_or_invalid_hexadecimal_digits">
+        <source>Insufficient or invalid hexadecimal digits</source>
+        <target state="new">Insufficient or invalid hexadecimal digits</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
       </trans-unit>
       <trans-unit id="Introduce_constant">
@@ -1049,11 +1054,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <source>Making a method asynchronous requires restarting the application because is not supported by the runtime.</source>
         <target state="translated">Tornar um método assíncrono requer reiniciar o aplicativo porque não há suporte para o tempo de execução.</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Malformed">
-        <source>malformed</source>
-        <target state="translated">malformado</target>
-        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
       </trans-unit>
       <trans-unit id="Malformed_character_escape">
         <source>Malformed \p{X} character escape</source>
@@ -1241,8 +1241,8 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
-        <source>Nested quantifier {0}</source>
-        <target state="translated">Quantificador aninhado {0}</target>
+        <source>Nested quantifier '{0}'</source>
+        <target state="needs-review-translation">Quantificador aninhado {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
@@ -1340,29 +1340,29 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Efetuar pull dos membros selecionados para {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Quantifier_x_y_following_nothing">
-        <source>Quantifier {x,y} following nothing</source>
-        <target state="translated">Nada precede o quantificador {x,y}</target>
+      <trans-unit id="Quantifier_0_following_nothing">
+        <source>Quantifier '{0}' following nothing</source>
+        <target state="new">Quantifier '{0}' following nothing</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
+      </trans-unit>
+      <trans-unit id="Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
+        <source>Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</source>
+        <target state="new">Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</target>
+        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</note>
       </trans-unit>
       <trans-unit id="Query">
         <source>Query</source>
         <target state="translated">Consulta</target>
         <note />
       </trans-unit>
-      <trans-unit id="Reference_to_undefined_group">
-        <source>reference to undefined group</source>
-        <target state="translated">referência a grupo indefinido</target>
-        <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</note>
-      </trans-unit>
       <trans-unit id="Reference_to_undefined_group_name_0">
-        <source>Reference to undefined group name {0}</source>
-        <target state="translated">Referência ao nome do grupo indefinido {0}</target>
+        <source>Reference to undefined group name '{0}'</source>
+        <target state="needs-review-translation">Referência ao nome do grupo indefinido {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</note>
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group_number_0">
         <source>Reference to undefined group number {0}</source>
-        <target state="translated">Referência ao grupo número {0} indefinido</target>
+        <target state="new">Reference to undefined group number {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;-1&gt;). Here, {0} will be the number of the undefined group ('1')</note>
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_long">
