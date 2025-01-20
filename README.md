@@ -8,8 +8,6 @@
 ![GitHub Actions status](https://github.com/aarnott/Library.Template/workflows/CI/badge.svg)
 [![codecov](https://codecov.io/gh/aarnott/library.template/branch/main/graph/badge.svg)](https://codecov.io/gh/aarnott/library.template)
 
-[<img src="https://api.gitsponsors.com/api/badge/img?id=192191543" height="20">](https://api.gitsponsors.com/api/badge/link?p=MCQ+F+FQ4qDG3aB7nxcFJ9OIaaCARvdUdn6994QBDixzmF6GkU1V7l/Zk+7MwNTbZGdGMw06hyJAs80v04cpo08nYPaOeWn9BMLwruCMqnmr8AoX5dTC4OcDg3r1juk0nocxT2n22yvq8MyXIS32EQ==)
-
 ## Features
 
 * Follow the best and simplest patterns of build, pack and test with dotnet CLI.
