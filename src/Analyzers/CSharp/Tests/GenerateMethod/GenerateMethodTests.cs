@@ -11120,7 +11120,7 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70803")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60136")]
     public async Task GenerateIntoTopLevelProgramWithPartialType()
     {
         await TestInRegularAndScriptAsync(
@@ -11138,7 +11138,7 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
             
             internal partial class Program
             {
-                public static void Test()
+                private static void Test()
                 {
                     throw new NotImplementedException();
                 }

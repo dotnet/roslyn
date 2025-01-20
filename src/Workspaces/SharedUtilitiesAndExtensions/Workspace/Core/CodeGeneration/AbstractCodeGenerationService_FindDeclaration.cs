@@ -167,8 +167,7 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
 
             // Prefer a declaration that the context node is contained within. 
             //
-            // Note: This behavior is slightly suboptimal in some cases.  For example, when the
-            // user has the pattern:
+            // Note: This behavior is slightly suboptimal in some cases.  For example, when the user has the pattern:
             //
             // C.cs
             //
@@ -187,13 +186,16 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             //       }
             //   }
             //
-            // If we're at the specified context location, but we're trying to find the most
-            // relevant part for C, then we want to pick the part in C.cs not the one in
-            // C.NestedType.cs that contains the context location.  This is because this
-            // container isn't really used by the user to place code, but is instead just
-            // used to separate out the nested type.  It would be nice to detect this and do the
-            // right thing.
-            declaration = declarations.FirstOrDefault(token.GetRequiredParent().AncestorsAndSelf().Contains);
+            // If we're at the specified context location, but we're trying to find the most relevant part for C, then
+            // we want to pick the part in C.cs not the one in C.NestedType.cs that contains the context location.  This
+            // is because this container isn't really used by the user to place code, but is instead just used to
+            // separate out the nested type.  It would be nice to detect this and do the right thing.
+            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var ancestors);
+            ancestors.AddRange(token.GetAncestors<SyntaxNode>());
+
+            // First, prefer a non-compilation unit ancestor.  We would prefer to generate into a real type, instead of
+            // the top level program.
+            declaration = declarations.FirstOrDefault(d => d is not ICompilationUnitSyntax && ancestors.Contains(d));
             fallbackDeclaration = declaration;
             if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
                 return (declaration, availableIndices);
@@ -201,6 +203,12 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             // Then, prefer a declaration from the same file.
             declaration = declarations.FirstOrDefault(r => r.SyntaxTree == location.SourceTree);
             fallbackDeclaration ??= declaration;
+            if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
+                return (declaration, availableIndices);
+
+            // Finally, fall back to any ancestor we are in (even a compilation unit).
+            declaration = declarations.FirstOrDefault(d => ancestors.Contains(d));
+            fallbackDeclaration = declaration;
             if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
                 return (declaration, availableIndices);
         }
