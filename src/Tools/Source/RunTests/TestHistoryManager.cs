@@ -24,7 +24,8 @@ internal class TestHistoryManager
     private const int MaxTestsReturnedPerRequest = 10_000;
 
     /// <summary>
-    /// Looks up the last passing test run for the current build and stage to estimate execution times for each test.
+    /// Looks up the last passing test run for the current build and stage to estimate execution times for each
+    /// tests. The dictionary is indexed by test full name.
     /// </summary>
     public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(Options options, CancellationToken cancellationToken)
     {
