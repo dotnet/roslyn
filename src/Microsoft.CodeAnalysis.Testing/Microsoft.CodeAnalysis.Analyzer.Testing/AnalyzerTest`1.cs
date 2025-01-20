@@ -1322,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.Testing
                                      select method).SingleOrDefault();
             var convertedSourceGenerators = createRangeMethod.MakeGenericMethod(isourceGeneratorType).Invoke(null, new object[] { convertedSourceGeneratorsArray });
 
-            var analyzerOptions = project.AnalyzerOptions;
+            var analyzerOptions = GetAnalyzerOptions(project);
             var additionalFiles = analyzerOptions.AdditionalFiles;
             var analyzerConfigOptionsProvider = analyzerOptions.AnalyzerConfigOptionsProvider();
             verifier.True(analyzerConfigOptionsProvider is not null, "Failed to locate AnalyzerConfigOptionsProvider for project");
