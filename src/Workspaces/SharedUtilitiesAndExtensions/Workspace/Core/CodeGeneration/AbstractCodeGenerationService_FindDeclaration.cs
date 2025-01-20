@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,8 +56,12 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
     public bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken)
         => CanAddTo(destination, solution, cancellationToken, out _);
 
-    private bool CanAddTo(SyntaxNode? destination, Solution solution, CancellationToken cancellationToken,
-        out IList<bool>? availableIndices, bool checkGeneratedCode = false)
+    private bool CanAddTo(
+        SyntaxNode? destination,
+        Solution solution,
+        CancellationToken cancellationToken,
+        out IList<bool>? availableIndices,
+        bool checkGeneratedCode = false)
     {
         availableIndices = null;
         if (destination == null)
@@ -140,9 +145,6 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
         Location? location,
         CancellationToken cancellationToken)
     {
-        var declaration = (SyntaxNode?)null;
-        IList<bool>? availableIndices = null;
-
         var symbol = namespaceOrType;
 
         var declarationReferences = _symbolDeclarationService.GetDeclarations(symbol);
@@ -150,21 +152,61 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
 
         // Sort the declarations so that we prefer non-compilation-unit results over compilation-unit results. If we're
         // adding to a type, we'd prefer to actually add to a real type-decl vs the compilation-unit if this is a top
-        // level type.
-        declarations = declarations.Sort(
-            static (n1, n2) => (n1 is ICompilationUnitSyntax, n2 is ICompilationUnitSyntax) switch
-            {
-                (true, true) => 0,
-                (true, false) => 1,
-                (false, true) => -1,
-                (false, false) => 0,
-            });
+        //// level type.
+        //declarations = declarations.Sort(
+        //    static (n1, n2) => (n1 is ICompilationUnitSyntax, n2 is ICompilationUnitSyntax) switch
+        //    {
+        //        (true, true) => 0,
+        //        (true, false) => 1,
+        //        (false, true) => -1,
+        //        (false, false) => 0,
+        //    });
+
+        using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var ancestors);
 
         var fallbackDeclaration = (SyntaxNode?)null;
         if (location != null && location.IsInSource)
         {
             var token = location.FindToken(cancellationToken);
+            ancestors.AddRange(token.GetAncestors<SyntaxNode>());
 
+            // First, ignore generated code checks.  We have a particular location we're trying to generate at.  So we
+            // should aim to satisfy that first.
+            if (TryAddTo(declarations, checkGeneratedCode: false, out var declaration, out var availableIndices))
+                return (declaration, availableIndices);
+
+            // If that produced nothing, try again, this time respecting rules around generating into generated code
+            // or not.
+            if (TryAddTo(declarations, checkGeneratedCode: true, out declaration, out availableIndices))
+                return (declaration, availableIndices);
+        }
+        else
+        {
+            // If there is a declaration in a non auto-generated file, prefer it.
+            if (TryAddTo(declarations, checkGeneratedCode: true, out var declaration, out var availableIndices))
+                return (declaration, availableIndices);
+        }
+
+        // Generate into any declaration we can find.
+        fallbackDeclaration ??= declarations.FirstOrDefault();
+        return (fallbackDeclaration, availableIndices: null);
+
+        bool TryAddTo(
+            IEnumerable<SyntaxNode> declarations,
+            bool checkGeneratedCode,
+            [NotNullWhen(true)] out SyntaxNode? declaration,
+            out IList<bool>? availableIndices)
+        {
+            return TryAddToWorker(declarations.Where(d => d is not ICompilationUnitSyntax), checkGeneratedCode, out declaration, out availableIndices)
+                || TryAddToWorker(declarations.Where(d => d is ICompilationUnitSyntax), checkGeneratedCode, out declaration, out availableIndices);
+        }
+
+        bool TryAddToWorker(
+            IEnumerable<SyntaxNode> declarations,
+            bool checkGeneratedCode,
+            [NotNullWhen(true)] out SyntaxNode? declaration,
+            out IList<bool>? availableIndices)
+        {
             // Prefer a declaration that the context node is contained within. 
             //
             // Note: This behavior is slightly suboptimal in some cases.  For example, when the user has the pattern:
@@ -190,40 +232,39 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             // we want to pick the part in C.cs not the one in C.NestedType.cs that contains the context location.  This
             // is because this container isn't really used by the user to place code, but is instead just used to
             // separate out the nested type.  It would be nice to detect this and do the right thing.
-            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var ancestors);
-            ancestors.AddRange(token.GetAncestors<SyntaxNode>());
 
-            // First, prefer a non-compilation unit ancestor.  We would prefer to generate into a real type, instead of
-            // the top level program.
-            declaration = declarations.FirstOrDefault(d => d is not ICompilationUnitSyntax && ancestors.Contains(d));
-            fallbackDeclaration = declaration;
-            if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
-                return (declaration, availableIndices);
+            foreach (var decl in declarations)
+            {
+                if (ancestors.Contains(decl))
+                {
+                    fallbackDeclaration ??= decl;
+                    if (CanAddTo(decl, solution, cancellationToken, out availableIndices, checkGeneratedCode))
+                    {
+                        declaration = decl;
+                        return true;
+                    }
+                }
+            }
 
-            // Then, prefer a declaration from the same file.
-            declaration = declarations.FirstOrDefault(r => r.SyntaxTree == location.SourceTree);
-            fallbackDeclaration ??= declaration;
-            if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
-                return (declaration, availableIndices);
+            // If we didn't find a declaration that the context node is contained within, then just pick the first
+            // declaration in the same file.
 
-            // Finally, fall back to any ancestor we are in (even a compilation unit).
-            declaration = declarations.FirstOrDefault(d => ancestors.Contains(d));
-            fallbackDeclaration = declaration;
-            if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
-                return (declaration, availableIndices);
+            foreach (var decl in declarations)
+            {
+                if (decl.SyntaxTree == location?.SourceTree)
+                {
+                    fallbackDeclaration ??= decl;
+                    if (CanAddTo(decl, solution, cancellationToken, out availableIndices, checkGeneratedCode))
+                    {
+                        declaration = decl;
+                        return true;
+                    }
+                }
+            }
+
+            declaration = null;
+            availableIndices = null;
+            return false;
         }
-
-        // If there is a declaration in a non auto-generated file, prefer it.
-        foreach (var decl in declarations)
-        {
-            if (CanAddTo(decl, solution, cancellationToken, out availableIndices, checkGeneratedCode: true))
-                return (decl, availableIndices);
-        }
-
-        // Generate into any declaration we can find.
-        availableIndices = null;
-        declaration = fallbackDeclaration ?? declarations.FirstOrDefault();
-
-        return (declaration, availableIndices);
     }
 }
