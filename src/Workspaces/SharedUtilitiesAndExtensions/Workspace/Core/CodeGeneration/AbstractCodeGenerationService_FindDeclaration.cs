@@ -172,23 +172,15 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
 
             // First, ignore generated code checks.  We have a particular location we're trying to generate at.  So we
             // should aim to satisfy that first.
-            if (TryAddTo(declarations, checkGeneratedCode: false, out var declaration, out var availableIndices))
-                return (declaration, availableIndices);
+            if (TryAddTo(declarations, checkGeneratedCode: false, out var declaration1, out var availableIndices1))
+                return (declaration1, availableIndices1);
+        }
 
-            // If that produced nothing, try again, this time respecting rules around generating into generated code
-            // or not.
-            if (TryAddTo(declarations, checkGeneratedCode: true, out declaration, out availableIndices))
-                return (declaration, availableIndices);
-        }
-        else
-        {
-            // If there is a declaration in a non auto-generated file, prefer it.
-            if (TryAddTo(declarations, checkGeneratedCode: true, out var declaration, out var availableIndices))
-                return (declaration, availableIndices);
-        }
+        // If there is a declaration in a non auto-generated file, prefer it.
+        if (TryAddTo(declarations, checkGeneratedCode: true, out var declaration2, out var availableIndices2))
+            return (declaration2, availableIndices2);
 
         // Generate into any declaration we can find.
-        fallbackDeclaration ??= declarations.FirstOrDefault();
         return (fallbackDeclaration, availableIndices: null);
 
         bool TryAddTo(
@@ -259,6 +251,16 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
                         declaration = decl;
                         return true;
                     }
+                }
+            }
+
+            foreach (var decl in declarations)
+            {
+                fallbackDeclaration ??= decl;
+                if (CanAddTo(decl, solution, cancellationToken, out availableIndices, checkGeneratedCode))
+                {
+                    declaration = decl;
+                    return true;
                 }
             }
 
