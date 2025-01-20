@@ -199,7 +199,7 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
                 return (declaration, availableIndices);
 
             // Then, prefer a declaration from the same file.
-            declaration = declarations.Where(r => r.SyntaxTree == location.SourceTree).FirstOrDefault(node => true);
+            declaration = declarations.FirstOrDefault(r => r.SyntaxTree == location.SourceTree);
             fallbackDeclaration ??= declaration;
             if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
                 return (declaration, availableIndices);
