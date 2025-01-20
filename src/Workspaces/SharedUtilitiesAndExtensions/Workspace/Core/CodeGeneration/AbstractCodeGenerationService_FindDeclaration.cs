@@ -169,7 +169,7 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
         }
 
         // Check all declarations, preferring declarations not in generated files.
-        if (TryAddToLoop(declarations, checkGeneratedCode: true, out var declaration2, out var availableIndices2, predicate: node => true))
+        if (TryAddToWorker(declarations, checkGeneratedCode: true, out var declaration2, out var availableIndices2, predicate: node => true))
             return (declaration2, availableIndices2);
 
         // Generate into any declaration we can find.
@@ -210,11 +210,11 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             // declaration in the same file.
 
             return
-                TryAddToLoop(declarations, checkGeneratedCode, out declaration, out availableIndices, d => ancestors.Contains(d)) ||
-                TryAddToLoop(declarations, checkGeneratedCode, out declaration, out availableIndices, d => d.SyntaxTree == location?.SourceTree);
+                TryAddToWorker(declarations, checkGeneratedCode, out declaration, out availableIndices, d => ancestors.Contains(d)) ||
+                TryAddToWorker(declarations, checkGeneratedCode, out declaration, out availableIndices, d => d.SyntaxTree == location?.SourceTree);
         }
 
-        bool TryAddToLoop(
+        bool TryAddToWorker(
             IEnumerable<SyntaxNode> declarations,
             bool checkGeneratedCode,
             [NotNullWhen(true)] out SyntaxNode? declaration,
