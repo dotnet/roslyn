@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
@@ -16,7 +17,7 @@ public sealed class SwitchExpressionStructureTests : AbstractCSharpSyntaxNodeStr
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new SwitchExpressionStructureProvider();
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69357")]
     public async Task TestSwitchExpression1()
     {
         var code = """
