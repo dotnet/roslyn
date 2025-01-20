@@ -58,7 +58,7 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
             EnvironmentVariables = new()
             {
                 // Reset dotnet root so that vs test console can find the right runtimes.
-                { DotnetCliHelper.DotnetRootEnvVar, string.Empty },
+                { DotnetCliHelper.DotnetRootEnvVar, Environment.GetEnvironmentVariable("DOTNET_ROOT_USER") },
             }
         });
 
