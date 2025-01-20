@@ -1189,7 +1189,7 @@ end class
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47198")>
-        Public Async Function TestIndexedAndAssignedField() As Task
+        Public Async Function TestIndexedAndAssignedField_StructType() As Task
             Await TestMissingAsync(
 "
 friend class GreenNode
@@ -1205,6 +1205,51 @@ end structure
 
 Friend Class SkippedTriviaBuilder
     Private [|_triviaListBuilder|] As SyntaxListBuilder(Of GreenNode)
+
+    Public Sub AddSkippedTrivia(ByVal trivia As GreenNode)
+        _triviaListBuilder(0) = trivia
+    End Sub
+End Class
+")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47198")>
+        Public Async Function TestIndexedAndAssignedField_ClassType() As Task
+            Await TestInRegularAndScript1Async(
+"
+friend class GreenNode
+end class
+
+friend class SyntaxListBuilder(of TNode as GreenNode)
+    Default Public ReadOnly Property Item(ByVal index as Integer) As GreenNode
+        Get
+            return nothing
+        End Get
+    End Property
+end class
+
+Friend Class SkippedTriviaBuilder
+    Private [|_triviaListBuilder|] As SyntaxListBuilder(Of GreenNode)
+
+    Public Sub AddSkippedTrivia(ByVal trivia As GreenNode)
+        _triviaListBuilder(0) = trivia
+    End Sub
+End Class
+",
+"
+friend class GreenNode
+end class
+
+friend class SyntaxListBuilder(of TNode as GreenNode)
+    Default Public ReadOnly Property Item(ByVal index as Integer) As GreenNode
+        Get
+            return nothing
+        End Get
+    End Property
+end class
+
+Friend Class SkippedTriviaBuilder
+    Private ReadOnly _triviaListBuilder As SyntaxListBuilder(Of GreenNode)
 
     Public Sub AddSkippedTrivia(ByVal trivia As GreenNode)
         _triviaListBuilder(0) = trivia

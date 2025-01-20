@@ -2325,7 +2325,7 @@ $@"class MyClass
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47198")]
-    public async Task TestIndexedAndAssignedField()
+    public async Task TestIndexedAndAssignedField_StructType()
     {
         await TestMissingAsync(
             """
@@ -2342,6 +2342,56 @@ $@"class MyClass
 
             class SkippedTriviaBuilder
                 private SyntaxListBuilder<GreenNode> [|_triviaListBuilder|];
+
+                public AddSkippedTrivia(GreenNode trivia)
+                {
+                    _triviaListBuilder[0] = trivia;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47198")]
+    public async Task TestIndexedAndAssignedField_ClassType()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class GreenNode { }
+
+            class SyntaxListBuilder<TNode>
+            {
+                public GreenNode this[int index]
+                {
+                    get => default;
+                    set { }
+                }
+            }
+
+            class SkippedTriviaBuilder
+            {
+                private SyntaxListBuilder<GreenNode> [|_triviaListBuilder|];
+
+                public AddSkippedTrivia(GreenNode trivia)
+                {
+                    _triviaListBuilder[0] = trivia;
+                }
+            }
+            """,
+            """
+            class GreenNode { }
+
+            class SyntaxListBuilder<TNode>
+            {
+                public GreenNode this[int index]
+                {
+                    get => default;
+                    set { }
+                }
+            }
+
+            class SkippedTriviaBuilder
+            {
+                private readonly SyntaxListBuilder<GreenNode> _triviaListBuilder;
 
                 public AddSkippedTrivia(GreenNode trivia)
                 {
