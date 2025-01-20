@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration;
 internal interface ICodeGenerationService : ILanguageService
 {
     CodeGenerationOptions DefaultOptions { get; }
-    CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options, CodeGenerationOptions? fallbackOptions);
+    CodeGenerationOptions GetCodeGenerationOptions(IOptionsReader options);
     CodeGenerationContextInfo GetInfo(CodeGenerationContext context, CodeGenerationOptions options, ParseOptions parseOptions);
 
     /// <summary>

@@ -561,7 +561,7 @@ End Class</a>.Value
             Dim position As Integer
             MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), code, position)
 
-            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
+            Await BaseVerifyWorkerAsync(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, deletedCharTrigger:=Nothing, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
         End Function
 
         <WpfFact>
@@ -582,7 +582,7 @@ End Class</a>.Value
 
             Await BaseVerifyWorkerAsync(
                 code, position, "[Class]", "Property CBase.Class As Integer",
-                SourceCodeKind.Regular, False, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
+                SourceCodeKind.Regular, False, deletedCharTrigger:=Nothing, False, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
         End Function
 
         <WpfFact>
@@ -1198,6 +1198,55 @@ Public Class Class2
     Public Overrides Sub M(<MyPublic> i As Integer)
         MyBase.M(i)$$
     End Sub
+End Class]]></a>
+
+            Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "M(i As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
+        End Function
+
+        <WpfFact>
+        Public Async Function CommitTriviaOnMissingTokenArePreserved() As Task
+            Dim markupBeforeCommit = <a><![CDATA[Imports System
+
+Public Class Class1
+    Private Class MyPrivate
+        Inherits Attribute
+    End Class
+    Public Class MyPublic
+        Inherits Attribute
+    End Class
+
+    Public Overridable Sub M(<MyPrivate, MyPublic> i As Integer)
+    End Sub
+End Class
+
+Public Class Class2
+    Inherits Class1
+
+    Public Overrides Sub $$
+        ' Comment on body
+End Class]]></a>
+
+            Dim expectedCode = <a><![CDATA[Imports System
+
+Public Class Class1
+    Private Class MyPrivate
+        Inherits Attribute
+    End Class
+    Public Class MyPublic
+        Inherits Attribute
+    End Class
+
+    Public Overridable Sub M(<MyPrivate, MyPublic> i As Integer)
+    End Sub
+End Class
+
+Public Class Class2
+    Inherits Class1
+
+    Public Overrides Sub M(<MyPublic> i As Integer)
+        MyBase.M(i)$$
+    End Sub
+    ' Comment on body
 End Class]]></a>
 
             Await VerifyCustomCommitProviderAsync(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "M(i As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))

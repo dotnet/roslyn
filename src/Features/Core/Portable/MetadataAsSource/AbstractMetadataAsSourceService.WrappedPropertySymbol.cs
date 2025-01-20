@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal partial class AbstractMetadataAsSourceService
+internal abstract partial class AbstractMetadataAsSourceService
 {
-    private class WrappedPropertySymbol(IPropertySymbol propertySymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(propertySymbol, canImplementImplicitly, docCommentFormattingService), IPropertySymbol
+    private sealed class WrappedPropertySymbol(IPropertySymbol propertySymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(propertySymbol, canImplementImplicitly, docCommentFormattingService), IPropertySymbol
     {
         private readonly IPropertySymbol _symbol = propertySymbol;
 

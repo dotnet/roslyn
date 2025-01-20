@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenWinMdEvents
@@ -535,7 +536,7 @@ End Namespace
             Dim comp1 = CreateEmptyCompilationWithReferences(source1, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             comp1.VerifyDiagnostics()
 
-            Dim serializationRef = TestMetadata.Net451.SystemRuntimeSerialization
+            Dim serializationRef = Net461.References.SystemRuntimeSerialization
             Dim comp2 = CreateEmptyCompilationWithReferences(source2, WinRtRefs.Concat({New VisualBasicCompilationReference(comp1), serializationRef, MsvbRef, SystemXmlRef}), options:=TestOptions.ReleaseExe)
             CompileAndVerify(comp2, expectedOutput:=<![CDATA[
 A

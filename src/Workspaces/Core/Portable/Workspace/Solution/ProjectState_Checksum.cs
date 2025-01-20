@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -15,29 +13,29 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class ProjectState
+internal sealed partial class ProjectState
 {
-    public bool TryGetStateChecksums(out ProjectStateChecksums stateChecksums)
-        => _lazyChecksums.TryGetValue(out stateChecksums);
+    public bool TryGetStateChecksums([NotNullWhen(true)] out ProjectStateChecksums? stateChecksums)
+        => LazyChecksums.TryGetValue(out stateChecksums);
 
     public Task<ProjectStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
-        => _lazyChecksums.GetValueAsync(cancellationToken);
+        => LazyChecksums.GetValueAsync(cancellationToken);
 
     public Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
     {
         return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
             static (lazyChecksums, cancellationToken) => new ValueTask<ProjectStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
             static (projectStateChecksums, _) => projectStateChecksums.Checksum,
-            _lazyChecksums,
+            LazyChecksums,
             cancellationToken).AsTask();
     }
 
     public Checksum GetParseOptionsChecksum()
-        => GetParseOptionsChecksum(LanguageServices.SolutionServices.GetService<ISerializerService>());
+        => GetParseOptionsChecksum(LanguageServices.SolutionServices.GetRequiredService<ISerializerService>());
 
     private Checksum GetParseOptionsChecksum(ISerializerService serializer)
         => this.SupportsCompilation
-            ? ChecksumCache.GetOrCreate(this.ParseOptions, static (options, serializer) => serializer.CreateParseOptionsChecksum(options), serializer)
+            ? ChecksumCache.GetOrCreate(this.ParseOptions!, static (options, serializer) => serializer.CreateParseOptionsChecksum(options), serializer)
             : Checksum.Null;
 
     private async Task<ProjectStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)
@@ -50,13 +48,13 @@ internal partial class ProjectState
                 var additionalDocumentChecksumsTask = AdditionalDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken);
                 var analyzerConfigDocumentChecksumsTask = AnalyzerConfigDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken);
 
-                var serializer = LanguageServices.SolutionServices.GetService<ISerializerService>();
+                var serializer = LanguageServices.SolutionServices.GetRequiredService<ISerializerService>();
 
                 var infoChecksum = this.ProjectInfo.Attributes.Checksum;
 
                 // these compiler objects doesn't have good place to cache checksum. but rarely ever get changed.
                 var compilationOptionsChecksum = SupportsCompilation
-                    ? ChecksumCache.GetOrCreate(CompilationOptions, static (options, tuple) => tuple.serializer.CreateChecksum(options, tuple.cancellationToken), (serializer, cancellationToken))
+                    ? ChecksumCache.GetOrCreate(CompilationOptions!, static (options, tuple) => tuple.serializer.CreateChecksum(options, tuple.cancellationToken), (serializer, cancellationToken))
                     : Checksum.Null;
                 cancellationToken.ThrowIfCancellationRequested();
                 var parseOptionsChecksum = GetParseOptionsChecksum(serializer);

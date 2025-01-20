@@ -10,31 +10,30 @@ using Microsoft.CodeAnalysis.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed class RemoteFullyQualifyService : BrokeredServiceBase, IRemoteFullyQualifyService
 {
-    internal sealed class RemoteFullyQualifyService : BrokeredServiceBase, IRemoteFullyQualifyService
+    internal sealed class Factory : FactoryBase<IRemoteFullyQualifyService>
     {
-        internal sealed class Factory : FactoryBase<IRemoteFullyQualifyService>
+        protected override IRemoteFullyQualifyService CreateService(in ServiceConstructionArguments arguments)
+            => new RemoteFullyQualifyService(arguments);
+    }
+
+    public RemoteFullyQualifyService(in ServiceConstructionArguments arguments)
+        : base(arguments)
+    {
+    }
+
+    public ValueTask<FullyQualifyFixData?> GetFixDataAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan span, CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(solutionChecksum, async solution =>
         {
-            protected override IRemoteFullyQualifyService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteFullyQualifyService(arguments);
-        }
+            var document = solution.GetRequiredDocument(documentId);
 
-        public RemoteFullyQualifyService(in ServiceConstructionArguments arguments)
-            : base(arguments)
-        {
-        }
+            var service = document.GetRequiredLanguageService<IFullyQualifyService>();
 
-        public ValueTask<FullyQualifyFixData?> GetFixDataAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan span, bool hideAdvancedMembers, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                var document = solution.GetRequiredDocument(documentId);
-
-                var service = document.GetRequiredLanguageService<IFullyQualifyService>();
-
-                return await service.GetFixDataAsync(document, span, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
+            return await service.GetFixDataAsync(document, span, cancellationToken).ConfigureAwait(false);
+        }, cancellationToken);
     }
 }

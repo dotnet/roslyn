@@ -40,7 +40,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
     private readonly IVsRunningDocumentTable4 _runningDocumentTable;
 
-    private ImmutableArray<IOpenTextBufferEventListener> _listeners = ImmutableArray<IOpenTextBufferEventListener>.Empty;
+    private ImmutableArray<IOpenTextBufferEventListener> _listeners = [];
 
     /// <summary>
     /// The map from monikers to open text buffers; because we can only fetch the text buffer on the UI thread, all updates to this must be done from the UI thread.
@@ -131,7 +131,15 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
     }
 
     public int OnAfterSave(uint docCookie)
-        => VSConstants.E_NOTIMPL;
+    {
+        if (_runningDocumentTable.IsDocumentInitialized(docCookie))
+        {
+            var moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
+            RaiseEventForEachListener(l => l.OnSaveDocument(moniker));
+        }
+
+        return VSConstants.S_OK;
+    }
 
     public int OnAfterAttributeChange(uint docCookie, uint grfAttribs)
         => VSConstants.E_NOTIMPL;

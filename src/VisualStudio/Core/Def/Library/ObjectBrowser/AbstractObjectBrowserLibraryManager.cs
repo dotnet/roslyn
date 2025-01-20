@@ -38,8 +38,6 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
 
     private uint _classVersion;
     private uint _membersVersion;
-    private uint _packageVersion;
-
     private ObjectListItem _activeListItem;
     private AbstractListItemFactory _listItemFactory;
     private readonly object _classMemberGate = new();
@@ -150,10 +148,7 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         }
     }
 
-    internal uint PackageVersion
-    {
-        get { return _packageVersion; }
-    }
+    internal uint PackageVersion { get; private set; }
 
     internal void UpdateClassAndMemberVersions()
     {
@@ -171,7 +166,7 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         => _membersVersion = unchecked(_membersVersion + 1);
 
     internal void UpdatePackageVersion()
-        => _packageVersion = unchecked(_packageVersion + 1);
+        => PackageVersion = unchecked(PackageVersion + 1);
 
     internal void SetActiveListItem(ObjectListItem listItem)
         => _activeListItem = listItem;
@@ -200,17 +195,14 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         return this.GetProject(projectId);
     }
 
-    internal Compilation GetCompilation(ProjectId projectId)
+    internal async Task<Compilation> GetCompilationAsync(
+        ProjectId projectId, CancellationToken cancellationToken)
     {
         var project = GetProject(projectId);
         if (project == null)
-        {
             return null;
-        }
 
-        return project
-            .GetCompilationAsync(CancellationToken.None)
-            .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
+        return await project.GetCompilationAsync(cancellationToken).ConfigureAwait(true);
     }
 
     public override uint GetLibraryFlags()
@@ -306,14 +298,16 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         return 0;
     }
 
-    protected override IVsSimpleObjectList2 GetList(uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch)
+    protected override async Task<IVsSimpleObjectList2> GetListAsync(
+        uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, CancellationToken cancellationToken)
     {
         var listKind = Helpers.ListTypeToObjectListKind(listType);
 
         if (Helpers.IsFindSymbol(flags))
         {
-            var projectAndAssemblySet = this.GetAssemblySet(this.Workspace.CurrentSolution, _languageName, CancellationToken.None);
-            return GetSearchList(listKind, flags, pobSrch, projectAndAssemblySet);
+            var projectAndAssemblySet = await this.GetAssemblySetAsync(
+                this.Workspace.CurrentSolution, _languageName, CancellationToken.None).ConfigureAwait(true);
+            return await GetSearchListAsync(listKind, flags, pobSrch, projectAndAssemblySet, cancellationToken).ConfigureAwait(true);
         }
 
         if (listKind == ObjectListKind.Hierarchy)
@@ -327,7 +321,7 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
     }
 
     protected override uint GetUpdateCounter()
-        => _packageVersion;
+        => PackageVersion;
 
     protected override int CreateNavInfo(SYMBOL_DESCRIPTION_NODE[] rgSymbolNodes, uint ulcNodes, out IVsNavInfo ppNavInfo)
     {
@@ -413,7 +407,8 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         return VSConstants.S_OK;
     }
 
-    internal IVsNavInfo GetNavInfo(SymbolListItem symbolListItem, bool useExpandedHierarchy)
+    internal async Task<IVsNavInfo> GetNavInfoAsync(
+        SymbolListItem symbolListItem, bool useExpandedHierarchy, CancellationToken cancellationToken)
     {
         var project = GetProject(symbolListItem);
         if (project == null)
@@ -421,7 +416,8 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
             return null;
         }
 
-        var compilation = symbolListItem.GetCompilation(this.Workspace);
+        var compilation = await symbolListItem.GetCompilationAsync(
+            this.Workspace, cancellationToken).ConfigureAwait(true);
         if (compilation == null)
         {
             return null;

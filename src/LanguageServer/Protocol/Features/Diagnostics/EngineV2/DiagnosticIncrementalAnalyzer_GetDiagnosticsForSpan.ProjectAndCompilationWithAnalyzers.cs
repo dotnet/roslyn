@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private sealed class ProjectAndCompilationWithAnalyzers
         {
             public Project Project { get; }
-            public CompilationWithAnalyzers? CompilationWithAnalyzers { get; }
+            public CompilationWithAnalyzersPair? CompilationWithAnalyzers { get; }
 
-            public ProjectAndCompilationWithAnalyzers(Project project, CompilationWithAnalyzers? compilationWithAnalyzers)
+            public ProjectAndCompilationWithAnalyzers(Project project, CompilationWithAnalyzersPair? compilationWithAnalyzers)
             {
                 Project = project;
                 CompilationWithAnalyzers = compilationWithAnalyzers;

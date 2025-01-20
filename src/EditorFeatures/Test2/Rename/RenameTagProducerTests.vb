@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     session.Cancel()
                     VerifyBufferContentsInWorkspace(actualWorkspace, actualWorkspace)
                 ElseIf sessionCommit Then
-                    Await session.CommitAsync(previewChanges:=False, CancellationToken.None)
+                    Await session.CommitAsync(previewChanges:=False)
                     VerifyBufferContentsInWorkspace(actualWorkspace, resolvedConflictWorkspace)
                 End If
             End If
@@ -352,12 +352,11 @@ public class Class1
     void Test(int i) {{ }}
     void M()
     {{
-{{|conflict:{{|conflict:/* {String.Format(WorkspacesResources.Unmerged_change_from_project_0, "CSharpAssembly1")}
-{WorkspacesResources.Before_colon}
+{{|conflict:{{|conflict:<<<<<<< {String.Format(WorkspacesResources.TODO_Unmerged_change_from_project_0, "CSharpAssembly1")}, {WorkspacesResources.Before_colon}
         Test(5);
-{WorkspacesResources.After_colon}
+=======
         Test((long)5);
-*|}}|}}/
+>>>>>>> {WorkspacesResources.After}|}}|}}
         Test((double)5);
     }}
 }}"

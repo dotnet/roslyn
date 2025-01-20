@@ -809,7 +809,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
                     End If
 
-                    result.Add((oldSymbol.ContainingSymbol, newSymbol.ContainingSymbol, EditKind.Update))
+                    ' Reordering of data members is only allowed if the layout of the type doesn't change.
+                    ' Reordering of other members is a no-op, although the new order won't be reflected in metadata (Reflection will report original order).
+                    result.Add((oldSymbol, newSymbol, EditKind.Reorder))
 
                 Case EditKind.Delete
                     result.Add((oldSymbol, Nothing, editKind))
@@ -913,7 +915,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.FieldDeclaration
                     ' Attribute or modifier update
-                    If editKind = EditKind.Update Then
+                    If editKind = EditKind.Update OrElse editKind = EditKind.Reorder Then
                         Dim field = CType(node, FieldDeclarationSyntax)
                         If field.Declarators.Count = 1 AndAlso field.Declarators(0).Names.Count = 1 Then
                             node = field.Declarators(0).Names(0)
@@ -1796,55 +1798,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             Private Sub ClassifyReorder(oldNode As SyntaxNode, newNode As SyntaxNode)
                 Select Case newNode.Kind
-                    Case SyntaxKind.OptionStatement,
-                         SyntaxKind.ImportsStatement,
-                         SyntaxKind.AttributesStatement,
-                         SyntaxKind.NamespaceBlock,
-                         SyntaxKind.ClassBlock,
-                         SyntaxKind.StructureBlock,
-                         SyntaxKind.InterfaceBlock,
-                         SyntaxKind.ModuleBlock,
-                         SyntaxKind.EnumBlock,
-                         SyntaxKind.DelegateFunctionStatement,
-                         SyntaxKind.DelegateSubStatement,
-                         SyntaxKind.SubBlock,
-                         SyntaxKind.FunctionBlock,
-                         SyntaxKind.DeclareSubStatement,
-                         SyntaxKind.DeclareFunctionStatement,
-                         SyntaxKind.ConstructorBlock,
-                         SyntaxKind.OperatorBlock,
-                         SyntaxKind.PropertyBlock,
-                         SyntaxKind.EventBlock,
-                         SyntaxKind.GetAccessorBlock,
-                         SyntaxKind.SetAccessorBlock,
-                         SyntaxKind.AddHandlerAccessorBlock,
-                         SyntaxKind.RemoveHandlerAccessorBlock,
-                         SyntaxKind.RaiseEventAccessorBlock,
-                         SyntaxKind.ClassConstraint,
-                         SyntaxKind.StructureConstraint,
-                         SyntaxKind.NewConstraint,
-                         SyntaxKind.TypeConstraint,
-                         SyntaxKind.AttributeList,
-                         SyntaxKind.Attribute,
-                         SyntaxKind.Parameter
-                        ' We'll ignore these edits. A general policy is to ignore edits that are only discoverable via reflection.
-                        Return
-
-                    Case SyntaxKind.SubStatement,
-                         SyntaxKind.FunctionStatement
-                        ' Interface methods. We could allow reordering of non-COM interface methods.
-                        Debug.Assert(oldNode.Parent.IsKind(SyntaxKind.InterfaceBlock) AndAlso newNode.Parent.IsKind(SyntaxKind.InterfaceBlock))
-                        ReportError(RudeEditKind.Move)
-                        Return
-
-                    Case SyntaxKind.PropertyStatement,
-                         SyntaxKind.FieldDeclaration,
-                         SyntaxKind.EventStatement
-                        ' Maybe we could allow changing order of field declarations unless the containing type layout is sequential,
-                        ' and it's not a COM interface.
-                        ReportError(RudeEditKind.Move)
-                        Return
-
                     Case SyntaxKind.EnumMemberDeclaration
                         ' To allow this change we would need to check that values of all fields of the enum 
                         ' are preserved, or make sure we can update all method bodies that accessed those that changed.
@@ -1860,9 +1813,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         ' Identifier can be moved within the same type declaration.
                         ' Determine validity of such change in semantic analysis.
                         Return
-
-                    Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(newNode.Kind)
                 End Select
             End Sub
 
@@ -2335,16 +2285,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                                                        forwardMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode),
                                                                        oldActiveStatement As SyntaxNode,
                                                                        oldBody As DeclarationBody,
+                                                                       oldModel As SemanticModel,
                                                                        newActiveStatement As SyntaxNode,
                                                                        newBody As DeclarationBody,
-                                                                       isNonLeaf As Boolean)
+                                                                       newModel As SemanticModel,
+                                                                       isNonLeaf As Boolean,
+                                                                       cancellationToken As CancellationToken)
 
             Dim onErrorOrResumeStatement = FindOnErrorOrResumeStatement(newBody)
             If onErrorOrResumeStatement IsNot Nothing Then
                 AddAroundActiveStatementRudeDiagnostic(diagnostics, oldActiveStatement, onErrorOrResumeStatement, newActiveStatement.Span)
             End If
 
-            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, forwardMap, oldActiveStatement, oldBody.EncompassingAncestor, newActiveStatement, newBody.EncompassingAncestor)
+            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, forwardMap, oldActiveStatement, oldBody.EncompassingAncestor, oldModel, newActiveStatement, newBody.EncompassingAncestor, newModel, cancellationToken)
         End Sub
 
         Private Shared Function FindOnErrorOrResumeStatement(newBody As DeclarationBody) As SyntaxNode
@@ -2370,8 +2323,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                                                             forwardMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode),
                                                                             oldActiveStatement As SyntaxNode,
                                                                             oldEncompassingAncestor As SyntaxNode,
+                                                                            oldModel As SemanticModel,
                                                                             newActiveStatement As SyntaxNode,
-                                                                            newEncompassingAncestor As SyntaxNode)
+                                                                            newEncompassingAncestor As SyntaxNode,
+                                                                            newModel As SemanticModel,
+                                                                            cancellationToken As CancellationToken)
 
             ' Rude Edits for Using/SyncLock/With/ForEach statements that are added/updated around an active statement.
             ' Although such changes are technically possible, they might lead to confusion since 
@@ -2382,22 +2338,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             ' 
             ' Unlike exception regions matching where we use LCS, we allow reordering of the statements.
 
-            ReportUnmatchedStatements(Of SyncLockBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.SyncLockBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
+            ReportUnmatchedStatements(Of SyncLockBlockSyntax)(diagnostics, forwardMap, oldActiveStatement, oldEncompassingAncestor, oldModel, newActiveStatement, newEncompassingAncestor, newModel,
+                nodeSelector:=Function(node) node.IsKind(SyntaxKind.SyncLockBlock),
+                getTypedNodes:=Function(n) OneOrMany.Create(Of SyntaxNode)(n.SyncLockStatement.Expression),
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.SyncLockStatement.Expression, n2.SyncLockStatement.Expression),
-                areSimilar:=Nothing)
+                areSimilar:=Nothing,
+                cancellationToken)
 
-            ReportUnmatchedStatements(Of WithBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.WithBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
+            ReportUnmatchedStatements(Of WithBlockSyntax)(diagnostics, forwardMap, oldActiveStatement, oldEncompassingAncestor, oldModel, newActiveStatement, newEncompassingAncestor, newModel,
+                nodeSelector:=Function(node) node.IsKind(SyntaxKind.WithBlock),
+                getTypedNodes:=Function(n) OneOrMany.Create(Of SyntaxNode)(n.WithStatement.Expression),
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.WithStatement.Expression, n2.WithStatement.Expression),
-                areSimilar:=Nothing)
+                areSimilar:=Nothing,
+                cancellationToken)
 
-            ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.UsingBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
+            ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, forwardMap, oldActiveStatement, oldEncompassingAncestor, oldModel, newActiveStatement, newEncompassingAncestor, newModel,
+                nodeSelector:=Function(node) node.IsKind(SyntaxKind.UsingBlock),
+                getTypedNodes:=Function(n) OneOrMany.Create(Of SyntaxNode)(n.UsingStatement.Expression),
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.UsingStatement.Expression, n2.UsingStatement.Expression),
-                areSimilar:=Nothing)
+                areSimilar:=Nothing,
+                cancellationToken)
 
-            ReportUnmatchedStatements(Of ForOrForEachBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.ForEachBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
+            ReportUnmatchedStatements(Of ForEachBlockSyntax)(diagnostics, forwardMap, oldActiveStatement, oldEncompassingAncestor, oldModel, newActiveStatement, newEncompassingAncestor, newModel,
+                nodeSelector:=Function(node) node.IsKind(SyntaxKind.ForEachBlock),
+                getTypedNodes:=Function(n) OneOrMany.Create(Of SyntaxNode)(n.ForEachStatement.Expression),
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.ForOrForEachStatement, n2.ForOrForEachStatement),
                 areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
-                                                                               DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
+                                                                               DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable),
+                cancellationToken)
         End Sub
 
 #End Region

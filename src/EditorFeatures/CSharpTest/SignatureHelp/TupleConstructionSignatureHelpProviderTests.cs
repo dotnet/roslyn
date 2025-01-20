@@ -296,6 +296,6 @@ public class TupleConstructionSignatureHelpProviderTests : AbstractCSharpSignatu
             </Workspace>
             """;
         var expectedDescription = new SignatureHelpTestItem($"(int, string)", currentParameterIndex: 0);
-        await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
+        await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
     }
 }

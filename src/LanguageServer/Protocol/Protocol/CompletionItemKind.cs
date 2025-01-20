@@ -6,8 +6,9 @@ namespace Roslyn.LanguageServer.Protocol
 {
     /// <summary>
     /// Enum values for completion item kinds.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionItemKind">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal enum CompletionItemKind
     {
@@ -148,26 +149,31 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Macro.
         /// </summary>
+        /// <remarks>Specific to VS</remarks>
         Macro = 118115 + 0,
 
         /// <summary>
         /// Namespace.
         /// </summary>
+        /// <remarks>Specific to VS</remarks>
         Namespace = 118115 + 1,
 
         /// <summary>
         /// Template.
         /// </summary>
+        /// <remarks>Specific to VS</remarks>
         Template = 118115 + 2,
 
         /// <summary>
         /// TypeDefinition.
         /// </summary>
+        /// <remarks>Specific to VS</remarks>
         TypeDefinition = 118115 + 3,
 
         /// <summary>
         /// Union.
         /// </summary>
+        /// <remarks>Specific to VS</remarks>
         Union = 118115 + 4,
 
         /// <summary>
@@ -178,31 +184,37 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// TagHelper.
         /// </summary>
+        /// <remarks>Specific to VS</remarks>
         TagHelper = 118115 + 6,
 
         /// <summary>
         /// ExtensionMethod.
         /// </summary>
+        /// <remarks>Specific to VS</remarks>
         ExtensionMethod = 118115 + 7,
 
         /// <summary>
         /// Element.
         /// </summary>
+        /// <remarks>Specific to VS</remarks>
         Element = 118115 + 8,
 
         /// <summary>
         /// LocalResource.
         /// </summary>
+        /// <remarks>Specific to VS</remarks>
         LocalResource = 118115 + 9,
 
         /// <summary>
         /// SystemResource.
         /// </summary>
+        /// <remarks>Specific to VS</remarks>
         SystemResource = 118115 + 10,
 
         /// <summary>
         /// CloseElement.
         /// </summary>
+        /// <remarks>Specific to VS</remarks>
         CloseElement = 118115 + 11,
     }
 }

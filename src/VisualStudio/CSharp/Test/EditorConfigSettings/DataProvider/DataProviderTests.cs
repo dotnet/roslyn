@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/62937")]
         public void TestGettingCodeStyleSettingProviderWorkspaceServiceAsync()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<CodeStyleSetting>();
@@ -117,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             // We need to substract for string options that are not yet supported.
             // https://github.com/dotnet/roslyn/issues/62937
             var optionsWithUI = CodeStyleOptions2.EditorConfigOptions
+                .Remove(CodeStyleOptions2.PreferSystemHashCode)
                 .Remove(CodeStyleOptions2.OperatorPlacementWhenWrapping)
                 .Remove(CodeStyleOptions2.FileHeaderTemplate)
                 .Remove(CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions)
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var optionsWithUI = CSharpCodeStyleOptions.EditorConfigOptions
                 .Remove(CSharpCodeStyleOptions.PreferredModifierOrder);
 
-            AssertEx.SetEqual(optionsWithUI, dataSnapShot.Select(setting => setting.Key.Option));
+            AssertEx.SetEqual(optionsWithUI.OrderBy(o => o.Name), dataSnapShot.Select(setting => setting.Key.Option).OrderBy(o => o.Name));
         }
 
         [Fact]

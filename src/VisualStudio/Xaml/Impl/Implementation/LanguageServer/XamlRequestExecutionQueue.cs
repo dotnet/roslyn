@@ -23,7 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             _projectService = projectService;
         }
 
-        [Obsolete]
         protected internal override void BeforeRequest<TRequest>(TRequest request)
         {
             if (request is ITextDocumentParams textDocumentParams &&

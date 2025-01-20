@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         internal void VerifyLineEdits(
-            EditScript<SyntaxNode> editScript,
+            EditScriptDescription editScript,
             SequencePointUpdates[] expectedLineEdits,
             SemanticEditDescription[]? expectedSemanticEdits,
             RudeEditDiagnosticDescription[]? expectedDiagnostics,
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         internal void VerifySemantics(
-            EditScript<SyntaxNode>[] editScripts,
+            EditScriptDescription[] editScripts,
             TargetFramework targetFramework,
             DocumentAnalysisResultsDescription[] expectedResults,
             EditAndContinueCapabilities? capabilities = null)
@@ -322,12 +322,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                         // Symbol key will happily resolve to a definition part that has no implementation, so we validate that
                         // differently
-                        // https://github.com/dotnet/roslyn/issues/73772: what about deletion of partial property?
-                        if (expectedOldSymbol is IMethodSymbol { IsPartialDefinition: true } &&
-                            symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol is IMethodSymbol resolvedMethod)
+                        if (expectedOldSymbol.IsPartialDefinition() &&
+                            symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol is ISymbol resolvedSymbol)
                         {
-                            Assert.Equal(expectedOldSymbol, resolvedMethod.PartialDefinitionPart);
-                            Assert.Equal(null, resolvedMethod.PartialImplementationPart);
+                            Assert.Equal(expectedOldSymbol, resolvedSymbol.PartialDefinitionPart());
+                            Assert.Equal(null, resolvedSymbol.PartialImplementationPart());
                         }
                         else
                         {
@@ -413,13 +412,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var actualOldNode = actualSyntaxMaps.MatchingNodes(newNode);
                 Assert.Equal(expectedOldNode, actualOldNode);
 
-                AssertEx.Equal(
-                    expectedRuntimeRudeEdit?.GetMessage(newRoot.SyntaxTree),
-                    actualSyntaxMaps.RuntimeRudeEdits?.Invoke(newNode)?.Message);
+                var expected = expectedRuntimeRudeEdit?.GetMessage(newRoot.SyntaxTree);
+                var actual = actualSyntaxMaps.RuntimeRudeEdits?.Invoke(newNode)?.Message;
+
+                if (expected != actual)
+                {
+                    Assert.Fail($"""
+                        Unexpected runtime rude edit.
+
+                        Expected message:
+                        '{expected}'
+                        Actual message:
+                        '{actual}'
+                        Node ({newNode.GetType().Name}):
+                        `{newNode}`
+                        """);
+                }
             }
         }
 
-        private void CreateProjects(EditScript<SyntaxNode>[] editScripts, AdhocWorkspace workspace, TargetFramework targetFramework, out Project oldProject, out Project newProject)
+        private void CreateProjects(EditScriptDescription[] editScripts, AdhocWorkspace workspace, TargetFramework targetFramework, out Project oldProject, out Project newProject)
         {
             var projectInfo = ProjectInfo.Create(
                 new ProjectInfo.ProjectAttributes(
@@ -428,7 +440,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     name: "project",
                     assemblyName: "project",
                     language: LanguageName,
-                    compilationOutputFilePaths: default,
+                    compilationOutputInfo: default,
                     filePath: Path.Combine(TempRoot.Root, "project" + ProjectFileExtension),
                     checksumAlgorithm: SourceHashAlgorithms.Default));
 
@@ -518,11 +530,5 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
             }
         }
-    }
-
-    internal static class EditScriptTestUtils
-    {
-        public static void VerifyEdits<TNode>(this EditScript<TNode> actual, params string[] expected)
-            => AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
     }
 }

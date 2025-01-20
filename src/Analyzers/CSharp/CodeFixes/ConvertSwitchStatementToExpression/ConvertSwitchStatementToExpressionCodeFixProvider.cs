@@ -27,14 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
 using Constants = ConvertSwitchStatementToExpressionConstants;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertSwitchStatementToExpression), Shared]
-internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ConvertSwitchStatementToExpressionCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId];
 
@@ -54,7 +50,7 @@ internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider 
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<TextSpan>.GetInstance(diagnostics.Length, out var spans);
         foreach (var diagnostic in diagnostics)

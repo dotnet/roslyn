@@ -208,6 +208,31 @@ End Class
             result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DebugEntryPointNotSourceMethodDefinition))
         End Sub
 
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75237")>
+        Public Sub NativeWriterLimit()
+            Dim locals = Enumerable.Range(0, 14_000).
+                Select(Function(i) $"
+Dim local{i} As Integer = {i}
+M2(local{i})
+").
+                Join(Environment.NewLine)
+            Dim source = $"
+Namespace N
+Class C
+    Shared Sub M1()
+        {locals}
+    End Sub
+    Shared Sub M2(x As Integer)
+    End Sub
+End Class
+End Namespace
+"
+            ' Cannot emit native PDB for method 'Public Shared Sub M1()' because its debug metadata size 69328 is over the limit 65504.
+            CreateCompilation(source, options:=TestOptions.DebugDll).VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_PDBWritingFailed).WithArguments(String.Format(CodeAnalysisResources.SymWriterMetadataOverLimit, "Public Shared Sub M1()", 69328, 65504)).WithLocation(1, 1))
+        End Sub
+
 #End Region
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
@@ -4540,7 +4565,7 @@ Class C
         c.Select(Function(i) i)
     End Function
 End Class"
-            Dim c = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            Dim c = CreateCompilationWithMscorlib461AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
 
             ' Note: since the method is first, it is recording the imports (rather than using an importsforward)
             c.VerifyPdb("C+VB$StateMachine_1_F.MoveNext",
@@ -4597,7 +4622,7 @@ Class C
             End Sub
     End Sub
 End Class"
-            Dim c = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            Dim c = CreateCompilationWithMscorlib461AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
             c.VerifyPdb("C+_Closure$__+VB$StateMachine___Lambda$__1-0.MoveNext",
 <symbols>
     <files>

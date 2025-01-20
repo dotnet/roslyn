@@ -84,14 +84,6 @@ class B
 
             var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First(), progress);
 
-            Assert.Null(results);
-
-            // BufferedProgress wraps individual elements in an array, so when they are nested them like this,
-            // with the test creating one, and the handler another, we have to unwrap.
-            // Additionally, the VS LSP protocol specifies T from IProgress<T> as an object and not as the actual VSInternalReferenceItem
-            // so we have to correctly convert the JObject into the expected type.
-            results = progress.GetValues().SelectMany(r => (List<object>)r).Select(r => JsonSerializer.Deserialize<LSP.VSInternalReferenceItem>((JsonElement)r, ProtocolConversions.LspJsonSerializerOptions)).ToArray();
-
             Assert.NotNull(results);
             Assert.NotEmpty(results);
 
@@ -211,7 +203,7 @@ class A
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
             var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
-            Assert.NotNull(results[0].Location.Uri);
+            Assert.NotNull(results[0].Location!.Uri);
             AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 1);
         }
 
@@ -278,6 +270,37 @@ class C
             Assert.Equal(9, textRuns.Count());
         }
 
+        [Theory, CombinatorialData]
+        public async Task TestFindAllReferencesAsync_PreprocessingSymbol(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                #define {|reference:PREPROCESSING_SYMBOL|}
+                #define MORE_PREPROCESSING_SYMBOL
+
+                #if {|reference:PREPROCESSING_SYMBOL|}
+                namespace SimpleNamespace;
+                #elif true && (!false || {|caret:|}{|reference:PREPROCESSING_SYMBOL|})
+                namespace AnotherNamespace;
+                #elif MORE_PREPROCESSING_SYMBOL
+                namespace MoreSimpleNamespace;
+                #else
+                namespace ComplexNamespace;
+                #endif
+
+                // PREPROCESSING_SYMBOL
+                class PREPROCESSING_SYMBOL
+                {
+                }
+                """;
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+
+            // Do not assert the glyph
+            AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
+        }
+
         private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)
             => new LSP.ReferenceParams()
             {
@@ -287,22 +310,48 @@ class C
                 PartialResultToken = progress
             };
 
-        internal static async Task<LSP.VSInternalReferenceItem[]> RunFindAllReferencesAsync(TestLspServer testLspServer, LSP.Location caret, IProgress<object> progress = null)
+        internal static async Task<LSP.VSInternalReferenceItem[]> RunFindAllReferencesAsync(TestLspServer testLspServer, LSP.Location caret, BufferedProgress<object>? progress = null)
         {
             var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret, progress), CancellationToken.None);
+
+            // If we're using progress, return the results from that instead.
+            if (progress != null)
+            {
+                Assert.Null(results);
+                results = [.. UnwrapProgress<LSP.VSInternalReferenceItem>(progress.Value)];
+            }
+
             // Results are returned in a non-deterministic order, so we order them by location
             var orderedResults = results?.OrderBy(r => r.Location, new OrderLocations()).ToArray();
             return orderedResults;
         }
 
-        internal static async Task<LSP.Location[]> RunFindAllReferencesNonVSAsync(TestLspServer testLspServer, LSP.Location caret, IProgress<object> progress = null)
+        internal static async Task<LSP.Location[]> RunFindAllReferencesNonVSAsync(TestLspServer testLspServer, LSP.Location caret, BufferedProgress<object>? progress = null)
         {
             var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.Location[]>(LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret, progress), CancellationToken.None);
+
+            // If we're using progress, return the results from that instead.
+            if (progress != null)
+            {
+                Assert.Null(results);
+                results = [.. UnwrapProgress<LSP.Location>(progress.Value)];
+            }
+
             // Results are returned in a non-deterministic order, so we order them by location
             var orderedResults = results.OrderBy(r => r, new OrderLocations()).ToArray();
             return orderedResults;
+        }
+
+        private static T[] UnwrapProgress<T>(BufferedProgress<object> progress)
+        {
+            // BufferedProgress wraps individual elements in an array, so when they are nested them like this,
+            // with the test creating one, and the handler another, we have to unwrap.
+            // Additionally, the VS LSP protocol specifies T from IProgress<T> as an object and not as the actual T type
+            // so we have to correctly convert the JObject into the expected type.
+            return [.. progress.GetValues()
+                .SelectMany(r => (List<object>)r).Select(r => JsonSerializer.Deserialize<T>((JsonElement)r, ProtocolConversions.LspJsonSerializerOptions))];
         }
 
         private static void AssertValidDefinitionProperties(LSP.VSInternalReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph)

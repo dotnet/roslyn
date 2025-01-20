@@ -321,61 +321,6 @@ internal static partial class ITextViewExtensions
     }
 
     /// <summary>
-    /// Returns the span of the lines in subjectBuffer that is currently visible in the provided
-    /// view.  "extraLines" can be provided to get a span that encompasses some number of lines
-    /// before and after the actual visible lines.
-    /// </summary>
-    public static SnapshotSpan? GetVisibleLinesSpan(this ITextView textView, ITextBuffer subjectBuffer, int extraLines = 0)
-    {
-        // No point in continuing if the text view has been closed.
-        if (textView.IsClosed)
-        {
-            return null;
-        }
-
-        // If we're being called while the textview is actually in the middle of a layout, then 
-        // we can't proceed.  Much of the text view state is unsafe to access (and will throw).
-        if (textView.InLayout)
-        {
-            return null;
-        }
-
-        // During text view initialization the TextViewLines may be null.  In that case we can't
-        // get an appropriate visisble span.
-        if (textView.TextViewLines == null)
-        {
-            return null;
-        }
-
-        // Determine the range of text that is visible in the view.  Then map this down to the
-        // bufffer passed in.  From that, determine the start/end line for the buffer that is in
-        // view.
-        var visibleSpan = textView.TextViewLines.FormattedSpan;
-        var visibleSpansInBuffer = textView.BufferGraph.MapDownToBuffer(visibleSpan, SpanTrackingMode.EdgeInclusive, subjectBuffer);
-        if (visibleSpansInBuffer.Count == 0)
-        {
-            return null;
-        }
-
-        var visibleStart = visibleSpansInBuffer.First().Start;
-        var visibleEnd = visibleSpansInBuffer.Last().End;
-
-        var snapshot = subjectBuffer.CurrentSnapshot;
-        var startLine = visibleStart.GetContainingLineNumber();
-        var endLine = visibleEnd.GetContainingLineNumber();
-
-        startLine = Math.Max(startLine - extraLines, 0);
-        endLine = Math.Min(endLine + extraLines, snapshot.LineCount - 1);
-
-        var start = snapshot.GetLineFromLineNumber(startLine).Start;
-        var end = snapshot.GetLineFromLineNumber(endLine).EndIncludingLineBreak;
-
-        var span = new SnapshotSpan(snapshot, Span.FromBounds(start, end));
-
-        return span;
-    }
-
-    /// <summary>
     /// Determines if the textbuffer passed in matches the buffer for the textview.
     /// </summary>
     public static bool IsNotSurfaceBufferOfTextView(this ITextView textView, ITextBuffer textBuffer)

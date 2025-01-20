@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.IsType<ArgumentNullException>(tie.InnerException);
         }
 
-#if NETCOREAPP
+#if NET
         [Fact]
         public void UsableWithCollectibleAssemblies()
         {

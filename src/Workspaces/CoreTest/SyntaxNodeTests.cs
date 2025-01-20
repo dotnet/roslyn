@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var root = tree.GetRoot();
 
             var node = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
-            var newRoot = await root.ReplaceNodesAsync(new[] { node }, (o, n, c) =>
+            var newRoot = await root.ReplaceNodesAsync([node], (o, n, c) =>
             {
                 var decl = (VariableDeclaratorSyntax)n;
                 return Task.FromResult<SyntaxNode>(decl.WithIdentifier(SyntaxFactory.Identifier("Y")));

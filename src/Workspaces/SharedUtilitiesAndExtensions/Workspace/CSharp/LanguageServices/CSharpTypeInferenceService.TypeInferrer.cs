@@ -274,46 +274,50 @@ internal partial class CSharpTypeInferenceService
                     return [];
             }
 
-            if (argument.Parent != null)
+            if (argument is { Parent.Parent: ConstructorInitializerSyntax initializer })
             {
-                if (argument.Parent.Parent is ConstructorInitializerSyntax initializer)
-                {
-                    var index = initializer.ArgumentList.Arguments.IndexOf(argument);
-                    return InferTypeInConstructorInitializer(initializer, index, argument);
-                }
+                var index = initializer.ArgumentList.Arguments.IndexOf(argument);
+                return InferTypeInConstructorInitializer(initializer, index, argument);
+            }
 
-                if (argument.Parent?.Parent is InvocationExpressionSyntax invocation)
-                {
-                    var index = invocation.ArgumentList.Arguments.IndexOf(argument);
-                    return InferTypeInInvocationExpression(invocation, index, argument);
-                }
+            if (argument is { Parent.Parent: InvocationExpressionSyntax invocation })
+            {
+                var index = invocation.ArgumentList.Arguments.IndexOf(argument);
+                return InferTypeInInvocationExpression(invocation, index, argument);
+            }
 
-                if (argument.Parent?.Parent is BaseObjectCreationExpressionSyntax creation)
-                {
-                    // new Outer(Goo());
-                    //
-                    // new Outer(a: Goo());
-                    //
-                    // etc.
-                    var index = creation.ArgumentList.Arguments.IndexOf(argument);
-                    return InferTypeInObjectCreationExpression(creation, index, argument);
-                }
+            if (argument is { Parent.Parent: BaseObjectCreationExpressionSyntax creation })
+            {
+                // new Outer(Goo());
+                //
+                // new Outer(a: Goo());
+                //
+                // etc.
+                var index = creation.ArgumentList.Arguments.IndexOf(argument);
+                return InferTypeInObjectCreationExpression(creation, index, argument);
+            }
 
-                if (argument.Parent?.Parent is ElementAccessExpressionSyntax elementAccess)
-                {
-                    // Outer[Goo()];
-                    //
-                    // Outer[a: Goo()];
-                    //
-                    // etc.
-                    var index = elementAccess.ArgumentList.Arguments.IndexOf(argument);
-                    return InferTypeInElementAccessExpression(elementAccess, index, argument);
-                }
+            if (argument is { Parent.Parent: PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType })
+            {
+                // class C() : Base(Goo());
+                var index = primaryConstructorBaseType.ArgumentList.Arguments.IndexOf(argument);
+                return InferTypeInPrimaryConstructorBaseType(primaryConstructorBaseType, index, argument);
+            }
 
-                if (argument?.Parent is TupleExpressionSyntax tupleExpression)
-                {
-                    return InferTypeInTupleExpression(tupleExpression, argument);
-                }
+            if (argument is { Parent.Parent: ElementAccessExpressionSyntax elementAccess })
+            {
+                // Outer[Goo()];
+                //
+                // Outer[a: Goo()];
+                //
+                // etc.
+                var index = elementAccess.ArgumentList.Arguments.IndexOf(argument);
+                return InferTypeInElementAccessExpression(elementAccess, index, argument);
+            }
+
+            if (argument is { Parent: TupleExpressionSyntax tupleExpression })
+            {
+                return InferTypeInTupleExpression(tupleExpression, argument);
             }
 
             if (argument.Parent.IsParentKind(SyntaxKind.ImplicitElementAccess) &&
@@ -444,6 +448,18 @@ internal partial class CSharpTypeInferenceService
                 // that type.
                 return CreateResult(type);
             }
+
+            var constructors = type.InstanceConstructors.Where(m => m.Parameters.Length > index);
+            return InferTypeInArgument(index, constructors, argumentOpt, parentInvocationExpressionToTypeInfer: null);
+        }
+
+        private IEnumerable<TypeInferenceInfo> InferTypeInPrimaryConstructorBaseType(
+            PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType, int index, ArgumentSyntax argumentOpt = null)
+        {
+            var info = SemanticModel.GetTypeInfo(primaryConstructorBaseType.Type, CancellationToken);
+
+            if (info.Type is not INamedTypeSymbol type)
+                return [];
 
             var constructors = type.InstanceConstructors.Where(m => m.Parameters.Length > index);
             return InferTypeInArgument(index, constructors, argumentOpt, parentInvocationExpressionToTypeInfer: null);

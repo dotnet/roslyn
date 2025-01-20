@@ -941,7 +941,7 @@ public class Program
 
         [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
         [Fact]
-        public void RefIteratorInAsync()
+        public void RefIteratorInAsync_01()
         {
             var text = @"
 using System;
@@ -987,18 +987,87 @@ class C1
 
 ";
 
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
-
-            comp.VerifyDiagnostics(
-                // (15,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct or a type parameter that allows ref struct.
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (15,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         foreach (var i in obj)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1.S1").WithLocation(15, 9)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(15, 9));
+
+            var expectedDiagnostics = new[]
+            {
+                // (15,9): error CS4007: Instance of type 'C1.S1' cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var i in obj)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"foreach (var i in obj)
+        {
+            await Task.Yield();
+            System.Console.WriteLine(i);
+        }").WithArguments("C1.S1").WithLocation(15, 9)
+            };
+
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlibAndSpan(text).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74793")]
+        public void RefIteratorInAsync_02()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        var obj = new C1();
+
+        foreach (var i in obj)
+        {
+            System.Console.Write(i);
+        }
+
+        await Task.Yield();
+
+        System.Console.Write(-1);
+    }
+}
+
+class C1
+{
+    public S1 GetEnumerator()
+    {
+        return new S1();
+    }
+
+    public ref struct S1
+    {
+        public int Current { get; private set; }
+
+        public bool MoveNext()
+        {
+            Current++;
+            return Current < 3;
+        }
+    }
+}
+
+";
+
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (10,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         foreach (var i in obj)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 9));
+
+            var expectedOutput = "12-1";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular13);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+
+            comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
         }
 
         [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
         [Fact]
-        public void RefIteratorInIterator()
+        public void RefIteratorInIterator_01()
         {
             var text = @"
 using System;
@@ -1034,6 +1103,7 @@ class Program
         // this is an error
         foreach (var i in new C1())
         {
+            yield return 0;
         }
 
         yield return 1;
@@ -1059,13 +1129,87 @@ class C1
 }
 ";
 
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
-
-            comp.VerifyDiagnostics(
-                // (33,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct or a type parameter that allows ref struct.
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (33,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         foreach (var i in new C1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1.S1").WithLocation(33, 9)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(33, 9));
+
+            var expectedDiagnostics = new[]
+            {
+                // (33,9): error CS4007: Instance of type 'C1.S1' cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var i in new C1())
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"foreach (var i in new C1())
+        {
+            yield return 0;
+        }").WithArguments("C1.S1").WithLocation(33, 9)
+            };
+
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlibAndSpan(text).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefIteratorInIterator_02()
+        {
+            var text = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach (var i in Test())
+        {
+            Console.Write(i);
+        }
+    }
+
+    static IEnumerable<int> Test()
+    {
+        foreach (var i in new C1())
+        {
+            Console.Write(i);
+        }
+
+        yield return -1;
+
+        Console.Write(-2);
+    }
+}
+
+class C1
+{
+    public S1 GetEnumerator()
+    {
+        return new S1();
+    }
+
+    public ref struct S1
+    {
+        public int Current { get; private set; }
+
+        public bool MoveNext()
+        {
+            Current++;
+            return Current < 3;
+        }
+    }
+}
+";
+
+            CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular12).VerifyDiagnostics(
+                // (17,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         foreach (var i in new C1())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(17, 9));
+
+            var expectedOutput = "12-1-2";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular13);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+
+            comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1681,13 +1825,13 @@ public class Program
                 """;
 
             CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (4,1): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,1): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // ReadOnlySpan<int> r = await M();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ReadOnlySpan<int>").WithArguments("ref and unsafe in async and iterator methods").WithLocation(4, 1));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ReadOnlySpan<int>").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(4, 1));
 
             var expectedOutput = "5";
 
-            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular13);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp = CreateCompilationWithSpan(source);

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
-internal class CSharpBlockStructureProvider : AbstractBlockStructureProvider
+internal sealed class CSharpBlockStructureProvider : AbstractBlockStructureProvider
 {
     private static ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> CreateDefaultNodeProviderMap()
     {

@@ -7,6 +7,7 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -40,36 +41,48 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
     {
         var serviceMap = new Dictionary<string, Lazy<ILspService, LspServiceMetadataView>>();
 
-        // Convert MEF exported service factories to the lazy LSP services that they create.
-        foreach (var lazyServiceFactory in mefLspServiceFactories)
-        {
-            var metadata = lazyServiceFactory.Metadata;
+        // Add services from factories exported for this server kind.
+        foreach (var lazyServiceFactory in mefLspServiceFactories.Where(f => f.Metadata.ServerKind == serverKind))
+            AddSpecificService(new(() => lazyServiceFactory.Value.CreateILspService(this, serverKind), lazyServiceFactory.Metadata));
 
-            // Make sure that we only include services exported for the specified server kind (or NotSpecified).
-            if (metadata.ServerKind == serverKind ||
-                metadata.ServerKind == WellKnownLspServerKinds.Any)
-            {
-                serviceMap.Add(
-                    metadata.TypeRef.TypeName,
-                    new(() => lazyServiceFactory.Value.CreateILspService(this, serverKind), metadata));
-            }
-        }
+        // Add services exported for this server kind.
+        foreach (var lazyService in mefLspServices.Where(s => s.Metadata.ServerKind == serverKind))
+            AddSpecificService(lazyService);
 
-        foreach (var lazyService in mefLspServices)
-        {
-            var metadata = lazyService.Metadata;
+        // Add services from factories exported for any (if there is not already an existing service for the specific server kind).
+        foreach (var lazyServiceFactory in mefLspServiceFactories.Where(f => f.Metadata.ServerKind == WellKnownLspServerKinds.Any))
+            TryAddAnyService(new(() => lazyServiceFactory.Value.CreateILspService(this, serverKind), lazyServiceFactory.Metadata));
 
-            // Make sure that we only include services exported for the specified server kind (or NotSpecified).
-            if (metadata.ServerKind == serverKind ||
-                metadata.ServerKind == WellKnownLspServerKinds.Any)
-            {
-                serviceMap.Add(metadata.TypeRef.TypeName, lazyService);
-            }
-        }
+        // Add services exported for any (if there is not already an existing service for the specific server kind).
+        foreach (var lazyService in mefLspServices.Where(s => s.Metadata.ServerKind == WellKnownLspServerKinds.Any))
+            TryAddAnyService(lazyService);
 
         _lazyMefLspServices = serviceMap.ToFrozenDictionary();
 
         _baseServices = baseServices;
+
+        void AddSpecificService(Lazy<ILspService, LspServiceMetadataView> serviceGetter)
+        {
+            var metadata = serviceGetter.Metadata;
+            Contract.ThrowIfFalse(metadata.ServerKind == serverKind);
+            serviceMap.Add(metadata.TypeRef.TypeName, serviceGetter);
+        }
+
+        void TryAddAnyService(Lazy<ILspService, LspServiceMetadataView> serviceGetter)
+        {
+            var metadata = serviceGetter.Metadata;
+            Contract.ThrowIfFalse(metadata.ServerKind == WellKnownLspServerKinds.Any);
+            if (!serviceMap.TryGetValue(metadata.TypeRef.TypeName, out var existing))
+            {
+                serviceMap.Add(metadata.TypeRef.TypeName, serviceGetter);
+            }
+            else
+            {
+                // Make sure we're not trying to add a duplicate Any service, but otherwise we should skip adding
+                // this service as we already have a more specific service available.
+                Contract.ThrowIfTrue(existing.Metadata.ServerKind == WellKnownLspServerKinds.Any);
+            }
+        }
     }
 
     public T GetRequiredService<T>() where T : notnull

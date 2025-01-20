@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var activeStatementCount = Math.Max(OldStatements.Length, (newActiveStatementMarkers.Length == 0) ? -1 : newActiveStatementMarkers.Max(m => m.Id));
 
-            var newMappedSpans = new ArrayBuilder<SourceFileSpan>();
-            var newMappedRegions = new ArrayBuilder<ImmutableArray<SourceFileSpan>>();
+            using var _1 = ArrayBuilder<SourceFileSpan>.GetInstance(out var newMappedSpans);
+            using var _2 = ArrayBuilder<ImmutableArray<SourceFileSpan>>.GetInstance(out var newMappedRegions);
             var newExceptionRegionMarkers = SourceMarkers.GetExceptionRegions(newMarkedSource);
 
             newMappedSpans.ZeroInit(activeStatementCount);
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var map = new Dictionary<string, List<ActiveStatement>>();
 
-            var activeStatements = new ArrayBuilder<UnmappedActiveStatement>();
+            using var _ = ArrayBuilder<UnmappedActiveStatement>.GetInstance(out var activeStatements);
 
             var sourceIndex = 0;
             foreach (var markedSource in markedSources)

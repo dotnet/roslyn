@@ -67,51 +67,51 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
     {
     }
 
-    public CSharpSyntaxFormattingOptions(IOptionsReader options, CSharpSyntaxFormattingOptions? fallbackOptions)
-        : base(options, fallbackOptions ??= Default, LanguageNames.CSharp)
+    public CSharpSyntaxFormattingOptions(IOptionsReader options)
+        : base(options, LanguageNames.CSharp)
     {
         Spacing =
-            (options.GetOption(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, fallbackOptions.Spacing.HasFlag(SpacePlacement.IgnoreAroundVariableDeclaration)) ? SpacePlacement.IgnoreAroundVariableDeclaration : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName, fallbackOptions.Spacing.HasFlag(SpacePlacement.AfterMethodDeclarationName)) ? SpacePlacement.AfterMethodDeclarationName : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceBetweenEmptyMethodDeclarationParentheses, fallbackOptions.Spacing.HasFlag(SpacePlacement.BetweenEmptyMethodDeclarationParentheses)) ? SpacePlacement.BetweenEmptyMethodDeclarationParentheses : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis, fallbackOptions.Spacing.HasFlag(SpacePlacement.WithinMethodDeclarationParenthesis)) ? SpacePlacement.WithinMethodDeclarationParenthesis : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceAfterMethodCallName, fallbackOptions.Spacing.HasFlag(SpacePlacement.AfterMethodCallName)) ? SpacePlacement.AfterMethodCallName : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses, fallbackOptions.Spacing.HasFlag(SpacePlacement.BetweenEmptyMethodCallParentheses)) ? SpacePlacement.BetweenEmptyMethodCallParentheses : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, fallbackOptions.Spacing.HasFlag(SpacePlacement.WithinMethodCallParentheses)) ? SpacePlacement.WithinMethodCallParentheses : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword, fallbackOptions.Spacing.HasFlag(SpacePlacement.AfterControlFlowStatementKeyword)) ? SpacePlacement.AfterControlFlowStatementKeyword : 0) |
-            options.GetOption(CSharpFormattingOptions2.SpaceBetweenParentheses, fallbackOptions.Spacing.ToSpacingWithinParentheses()).ToSpacePlacement() |
-            (options.GetOption(CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement, fallbackOptions.Spacing.HasFlag(SpacePlacement.BeforeSemicolonsInForStatement)) ? SpacePlacement.BeforeSemicolonsInForStatement : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement, fallbackOptions.Spacing.HasFlag(SpacePlacement.AfterSemicolonsInForStatement)) ? SpacePlacement.AfterSemicolonsInForStatement : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceAfterCast, fallbackOptions.Spacing.HasFlag(SpacePlacement.AfterCast)) ? SpacePlacement.AfterCast : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceBeforeOpenSquareBracket, fallbackOptions.Spacing.HasFlag(SpacePlacement.BeforeOpenSquareBracket)) ? SpacePlacement.BeforeOpenSquareBracket : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets, fallbackOptions.Spacing.HasFlag(SpacePlacement.BetweenEmptySquareBrackets)) ? SpacePlacement.BetweenEmptySquareBrackets : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceWithinSquareBrackets, fallbackOptions.Spacing.HasFlag(SpacePlacement.WithinSquareBrackets)) ? SpacePlacement.WithinSquareBrackets : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceAfterColonInBaseTypeDeclaration, fallbackOptions.Spacing.HasFlag(SpacePlacement.AfterColonInBaseTypeDeclaration)) ? SpacePlacement.AfterColonInBaseTypeDeclaration : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceBeforeColonInBaseTypeDeclaration, fallbackOptions.Spacing.HasFlag(SpacePlacement.BeforeColonInBaseTypeDeclaration)) ? SpacePlacement.BeforeColonInBaseTypeDeclaration : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceAfterComma, fallbackOptions.Spacing.HasFlag(SpacePlacement.AfterComma)) ? SpacePlacement.AfterComma : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceBeforeComma, fallbackOptions.Spacing.HasFlag(SpacePlacement.BeforeComma)) ? SpacePlacement.BeforeComma : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceAfterDot, fallbackOptions.Spacing.HasFlag(SpacePlacement.AfterDot)) ? SpacePlacement.AfterDot : 0) |
-            (options.GetOption(CSharpFormattingOptions2.SpaceBeforeDot, fallbackOptions.Spacing.HasFlag(SpacePlacement.BeforeDot)) ? SpacePlacement.BeforeDot : 0);
-        SpacingAroundBinaryOperator = options.GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, fallbackOptions.SpacingAroundBinaryOperator);
+            (options.GetOption(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration) ? SpacePlacement.IgnoreAroundVariableDeclaration : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName) ? SpacePlacement.AfterMethodDeclarationName : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceBetweenEmptyMethodDeclarationParentheses) ? SpacePlacement.BetweenEmptyMethodDeclarationParentheses : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceWithinMethodDeclarationParenthesis) ? SpacePlacement.WithinMethodDeclarationParenthesis : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceAfterMethodCallName) ? SpacePlacement.AfterMethodCallName : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceBetweenEmptyMethodCallParentheses) ? SpacePlacement.BetweenEmptyMethodCallParentheses : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceWithinMethodCallParentheses) ? SpacePlacement.WithinMethodCallParentheses : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceAfterControlFlowStatementKeyword) ? SpacePlacement.AfterControlFlowStatementKeyword : 0) |
+            options.GetOption(CSharpFormattingOptions2.SpaceBetweenParentheses).ToSpacePlacement() |
+            (options.GetOption(CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement) ? SpacePlacement.BeforeSemicolonsInForStatement : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceAfterSemicolonsInForStatement) ? SpacePlacement.AfterSemicolonsInForStatement : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceAfterCast) ? SpacePlacement.AfterCast : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceBeforeOpenSquareBracket) ? SpacePlacement.BeforeOpenSquareBracket : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceBetweenEmptySquareBrackets) ? SpacePlacement.BetweenEmptySquareBrackets : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceWithinSquareBrackets) ? SpacePlacement.WithinSquareBrackets : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceAfterColonInBaseTypeDeclaration) ? SpacePlacement.AfterColonInBaseTypeDeclaration : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceBeforeColonInBaseTypeDeclaration) ? SpacePlacement.BeforeColonInBaseTypeDeclaration : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceAfterComma) ? SpacePlacement.AfterComma : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceBeforeComma) ? SpacePlacement.BeforeComma : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceAfterDot) ? SpacePlacement.AfterDot : 0) |
+            (options.GetOption(CSharpFormattingOptions2.SpaceBeforeDot) ? SpacePlacement.BeforeDot : 0);
+        SpacingAroundBinaryOperator = options.GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator);
         NewLines =
-            (options.GetOption(CSharpFormattingOptions2.NewLineForMembersInObjectInit, fallbackOptions.NewLines.HasFlag(NewLinePlacement.BeforeMembersInObjectInitializers)) ? NewLinePlacement.BeforeMembersInObjectInitializers : 0) |
-            (options.GetOption(CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes, fallbackOptions.NewLines.HasFlag(NewLinePlacement.BeforeMembersInAnonymousTypes)) ? NewLinePlacement.BeforeMembersInAnonymousTypes : 0) |
-            (options.GetOption(CSharpFormattingOptions2.NewLineForElse, fallbackOptions.NewLines.HasFlag(NewLinePlacement.BeforeElse)) ? NewLinePlacement.BeforeElse : 0) |
-            (options.GetOption(CSharpFormattingOptions2.NewLineForCatch, fallbackOptions.NewLines.HasFlag(NewLinePlacement.BeforeCatch)) ? NewLinePlacement.BeforeCatch : 0) |
-            (options.GetOption(CSharpFormattingOptions2.NewLineForFinally, fallbackOptions.NewLines.HasFlag(NewLinePlacement.BeforeFinally)) ? NewLinePlacement.BeforeFinally : 0) |
-            options.GetOption(CSharpFormattingOptions2.NewLineBeforeOpenBrace, fallbackOptions.NewLines.ToNewLineBeforeOpenBracePlacement()).ToNewLinePlacement() |
-            (options.GetOption(CSharpFormattingOptions2.NewLineForClausesInQuery, fallbackOptions.NewLines.HasFlag(NewLinePlacement.BetweenQueryExpressionClauses)) ? NewLinePlacement.BetweenQueryExpressionClauses : 0);
-        LabelPositioning = options.GetOption(CSharpFormattingOptions2.LabelPositioning, fallbackOptions.LabelPositioning);
+            (options.GetOption(CSharpFormattingOptions2.NewLineForMembersInObjectInit) ? NewLinePlacement.BeforeMembersInObjectInitializers : 0) |
+            (options.GetOption(CSharpFormattingOptions2.NewLineForMembersInAnonymousTypes) ? NewLinePlacement.BeforeMembersInAnonymousTypes : 0) |
+            (options.GetOption(CSharpFormattingOptions2.NewLineForElse) ? NewLinePlacement.BeforeElse : 0) |
+            (options.GetOption(CSharpFormattingOptions2.NewLineForCatch) ? NewLinePlacement.BeforeCatch : 0) |
+            (options.GetOption(CSharpFormattingOptions2.NewLineForFinally) ? NewLinePlacement.BeforeFinally : 0) |
+            options.GetOption(CSharpFormattingOptions2.NewLineBeforeOpenBrace).ToNewLinePlacement() |
+            (options.GetOption(CSharpFormattingOptions2.NewLineForClausesInQuery) ? NewLinePlacement.BetweenQueryExpressionClauses : 0);
+        LabelPositioning = options.GetOption(CSharpFormattingOptions2.LabelPositioning);
         Indentation =
-            (options.GetOption(CSharpFormattingOptions2.IndentBraces, fallbackOptions.Indentation.HasFlag(IndentationPlacement.Braces)) ? IndentationPlacement.Braces : 0) |
-            (options.GetOption(CSharpFormattingOptions2.IndentBlock, fallbackOptions.Indentation.HasFlag(IndentationPlacement.BlockContents)) ? IndentationPlacement.BlockContents : 0) |
-            (options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSection, fallbackOptions.Indentation.HasFlag(IndentationPlacement.SwitchCaseContents)) ? IndentationPlacement.SwitchCaseContents : 0) |
-            (options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock, fallbackOptions.Indentation.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock)) ? IndentationPlacement.SwitchCaseContentsWhenBlock : 0) |
-            (options.GetOption(CSharpFormattingOptions2.IndentSwitchSection, fallbackOptions.Indentation.HasFlag(IndentationPlacement.SwitchSection)) ? IndentationPlacement.SwitchSection : 0);
-        WrappingKeepStatementsOnSingleLine = options.GetOption(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine, fallbackOptions.WrappingKeepStatementsOnSingleLine);
-        WrappingPreserveSingleLine = options.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine, fallbackOptions.WrappingPreserveSingleLine);
-        NamespaceDeclarations = options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations, fallbackOptions.NamespaceDeclarations);
-        PreferTopLevelStatements = options.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements, fallbackOptions.PreferTopLevelStatements);
-        CollectionExpressionWrappingLength = options.GetOption(CSharpFormattingOptions2.CollectionExpressionWrappingLength, fallbackOptions.CollectionExpressionWrappingLength);
+            (options.GetOption(CSharpFormattingOptions2.IndentBraces) ? IndentationPlacement.Braces : 0) |
+            (options.GetOption(CSharpFormattingOptions2.IndentBlock) ? IndentationPlacement.BlockContents : 0) |
+            (options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSection) ? IndentationPlacement.SwitchCaseContents : 0) |
+            (options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock) ? IndentationPlacement.SwitchCaseContentsWhenBlock : 0) |
+            (options.GetOption(CSharpFormattingOptions2.IndentSwitchSection) ? IndentationPlacement.SwitchSection : 0);
+        WrappingKeepStatementsOnSingleLine = options.GetOption(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine);
+        WrappingPreserveSingleLine = options.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine);
+        NamespaceDeclarations = options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
+        PreferTopLevelStatements = options.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
+        CollectionExpressionWrappingLength = options.GetOption(CSharpFormattingOptions2.CollectionExpressionWrappingLength);
     }
 }

@@ -94,7 +94,7 @@ internal abstract class AbstractAddDocCommentNodesCodeFixProvider
                 nodeBeforeNewParamNode ??= summaryNode;
 
                 newDocComment = newDocComment.InsertNodesAfter(nodeBeforeNewParamNode!,
-                    new[] { GetNewNode(parameterName, isFirstNodeInComment: false) });
+                    [GetNewNode(parameterName, isFirstNodeInComment: false)]);
 
                 continue;
             }
@@ -132,10 +132,9 @@ internal abstract class AbstractAddDocCommentNodesCodeFixProvider
         // If we don't find any, then fallback to the first element node at any depth with the requested name.
         if (!nodes.Any())
         {
-            nodes = docComment.DescendantNodes(descendIntoChildren: _ => true)
+            nodes = [.. docComment.DescendantNodes(descendIntoChildren: _ => true)
                               .OfType<TXmlElementSyntax>()
-                              .Where(w => GetXmlElementLocalName(w) == nodeName)
-                              .ToList();
+                              .Where(w => GetXmlElementLocalName(w) == nodeName)];
         }
 
         return nodes;

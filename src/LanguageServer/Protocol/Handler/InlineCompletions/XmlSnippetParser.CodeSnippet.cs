@@ -45,7 +45,7 @@ internal partial class XmlSnippetParser
             var snippetTypes = GetElementsWithoutNamespace(header, "SnippetTypes");
             if (snippetTypes != null)
             {
-                _snippetTypes = snippetTypes.Elements().Select(e => e.Value.Trim()).ToArray();
+                _snippetTypes = [.. snippetTypes.Elements().Select(e => e.Value.Trim())];
             }
         }
 

@@ -2360,7 +2360,7 @@ End Module")
             Dim code = "Dim a = New Object ( )"
             Dim expected = "        Dim a = New Object()"
 
-            Await AssertFormatAsync(CreateMethod(code), CreateMethod(expected), debugMode:=True)
+            Await AssertFormatAsync(CreateMethod(code), CreateMethod(expected))
         End Function
 
         <Fact>

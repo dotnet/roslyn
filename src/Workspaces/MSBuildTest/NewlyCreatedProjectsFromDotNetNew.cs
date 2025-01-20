@@ -65,12 +65,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [MemberData(nameof(GetCSharpProjectTemplateNames), DisableDiscoveryEnumeration = false)]
         public async Task ValidateCSharpTemplateProjects(string templateName)
         {
-            if (templateName == "mstest-playwright")
-            {
-                // https://github.com/dotnet/test-templates/issues/412
-                return;
-            }
-
             await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp);
         }
 
@@ -109,7 +103,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             var result = RunDotNet($"new list --type project --language {language}", output: null);
 
-            var lines = result.Output.Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var lines = result.Output.Split(["\r", "\n"], StringSplitOptions.RemoveEmptyEntries);
 
             TheoryData<string> templateNames = [];
             var foundDivider = false;
@@ -125,7 +119,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     continue;
                 }
 
-                var columns = line.Split(new[] { "  " }, StringSplitOptions.RemoveEmptyEntries)
+                var columns = line.Split(["  "], StringSplitOptions.RemoveEmptyEntries)
                     .Select(c => c.Trim())
                     .ToArray();
 

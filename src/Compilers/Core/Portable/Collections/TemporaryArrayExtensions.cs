@@ -121,6 +121,20 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return default;
         }
 
+        public static int IndexOf<T, TArg>(this in TemporaryArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            var index = 0;
+            foreach (var item in array)
+            {
+                if (predicate(item, arg))
+                    return index;
+
+                index++;
+            }
+
+            return -1;
+        }
+
         public static void AddIfNotNull<T>(this ref TemporaryArray<T> array, T? value)
             where T : struct
         {

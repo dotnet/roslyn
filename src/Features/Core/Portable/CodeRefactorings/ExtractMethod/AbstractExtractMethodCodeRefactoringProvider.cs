@@ -21,14 +21,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
     Name = PredefinedCodeRefactoringProviderNames.ExtractMethod), Shared]
-internal class ExtractMethodCodeRefactoringProvider : CodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class ExtractMethodCodeRefactoringProvider() : CodeRefactoringProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public ExtractMethodCodeRefactoringProvider()
-    {
-    }
-
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         // Don't bother if there isn't a selection
@@ -47,7 +43,7 @@ internal class ExtractMethodCodeRefactoringProvider : CodeRefactoringProvider
         if (cancellationToken.IsCancellationRequested)
             return;
 
-        var extractOptions = await document.GetExtractMethodGenerationOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var extractOptions = await document.GetExtractMethodGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var actions = await GetCodeActionsAsync(document, textSpan, extractOptions, cancellationToken).ConfigureAwait(false);
         context.RegisterRefactorings(actions);

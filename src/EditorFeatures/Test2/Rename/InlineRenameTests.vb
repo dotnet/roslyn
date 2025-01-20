@@ -2383,5 +2383,96 @@ class [|C|]
             End Using
         End Function
 
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameRecordParameter(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                public record MyRecord(string [|$$MyProperty|]);
+                                public class ReferenceClass
+                                {
+                                    public static void Test()
+                                    {
+                                        var record = new MyRecord("HelloWorld");
+                                        var c = record.[|MyProperty|];
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="MyNewProperty")
+            End Using
+        End Sub
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameRecordProperty(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                public record MyRecord(string [|MyProperty|]);
+                                public class ReferenceClass
+                                {
+                                    public static void Test()
+                                    {
+                                        var record = new MyRecord("HelloWorld");
+                                        var c = record.[|$$MyProperty|];
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="MyNewProperty")
+            End Using
+        End Sub
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameRecordParameterWithGenerics(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                <![CDATA[
+                                public record MyRecord<T>(T [|$$MyProperty|]);
+                                public class ReferenceClass
+                                {
+                                    public static void Test()
+                                    {
+                                        var record = new MyRecord<string>("HelloWorld");
+                                        var c = record.[|MyProperty|];
+                                    }
+                                }
+                            ']]>
+                            </Document>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="MyNewProperty")
+            End Using
+        End Sub
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameRecordPropertyWithGenerics(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                <![CDATA[
+                                public record MyRecord<T>(T [|MyProperty|]);
+                                public class ReferenceClass
+                                {
+                                    public static void Test()
+                                    {
+                                        var record = new MyRecord<string>("HelloWorld");
+                                        var c = record.[|$$MyProperty|];
+                                    }
+                                }
+                            ']]>
+                            </Document>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="MyNewProperty")
+            End Using
+        End Sub
     End Class
 End Namespace

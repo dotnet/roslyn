@@ -25,7 +25,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 347, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression" }, terms);
+        AssertEx.SetEqual(["expression"], terms);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 422, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression" }, terms);
+        AssertEx.SetEqual(["expression"], terms);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 592, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms"], terms);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 671, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "position", "terms" }, terms);
+        AssertEx.SetEqual(["expression", "position", "terms"], terms);
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 708, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression" }, terms);
+        AssertEx.SetEqual(["expression"], terms);
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 727, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression" }, terms);
+        AssertEx.SetEqual(["expression"], terms);
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 908, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "expression", "expressionType" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.Invalid", "expression", "expressionType"], terms);
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 966, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectExpressionTerms", "ExpressionType", "ExpressionType.Invalid" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectExpressionTerms", "ExpressionType", "ExpressionType.Invalid"], terms);
     }
 
     [Fact]
@@ -137,7 +137,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 1054, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.ValidTerm", "position", "expression", "terms", "expressionType", "CollectExpressionTerms" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.ValidTerm", "position", "expression", "terms", "expressionType", "CollectExpressionTerms"], terms);
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 1144, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 1282, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "terms", "expressionType", "expression", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["terms", "expressionType", "expression", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 1510, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType"], terms);
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 1589, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "position", "terms", "expressionType" }, terms);
+        AssertEx.SetEqual(["expression", "position", "terms", "expressionType"], terms);
     }
 
     [Fact]
@@ -207,7 +207,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 1626, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression" }, terms);
+        AssertEx.SetEqual(["expression"], terms);
     }
 
     [Fact]
@@ -221,7 +221,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 1645, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression" }, terms);
+        AssertEx.SetEqual(["expression"], terms);
     }
 
     [Fact]
@@ -235,7 +235,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 1683, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "expression.Kind" }, terms);
+        AssertEx.SetEqual(["expression", "expression.Kind"], terms);
     }
 
     [Fact]
@@ -249,7 +249,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 2105, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidExpression", "expression", "expression.Kind" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.ValidExpression", "expression", "expression.Kind"], terms);
     }
 
     [Fact]
@@ -263,7 +263,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 2175, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidExpression" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.ValidExpression"], terms);
     }
 
     [Fact]
@@ -277,7 +277,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 2313, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidTerm", "expression", "expression.Kind" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.ValidTerm", "expression", "expression.Kind"], terms);
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 2377, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -305,7 +305,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 2985, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidExpression", "expression", "expression.Kind" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.ValidExpression", "expression", "expression.Kind"], terms);
     }
 
     [Fact]
@@ -319,7 +319,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 3055, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidExpression" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.ValidExpression"], terms);
     }
 
     [Fact]
@@ -333,7 +333,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 3423, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "terms", "expressionType", "CollectExpressionTerms", "expression", "expression.Kind" }, terms);
+        AssertEx.SetEqual(["position", "terms", "expressionType", "CollectExpressionTerms", "expression", "expression.Kind"], terms);
     }
 
     [Fact]
@@ -347,7 +347,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 3552, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "position", "terms", "expressionType", "CollectExpressionTerms" }, terms);
+        AssertEx.SetEqual(["expression", "position", "terms", "expressionType", "CollectExpressionTerms"], terms);
     }
 
     [Fact]
@@ -361,7 +361,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 3704, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectMemberAccessExpressionTerms", "expression.Kind" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectMemberAccessExpressionTerms", "expression.Kind"], terms);
     }
 
     [Fact]
@@ -375,7 +375,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 3810, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectMemberAccessExpressionTerms" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectMemberAccessExpressionTerms"], terms);
     }
 
     [Fact]
@@ -389,7 +389,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 3900, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectObjectCreationExpressionTerms", "expression.Kind" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectObjectCreationExpressionTerms", "expression.Kind"], terms);
     }
 
     [Fact]
@@ -403,7 +403,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 4008, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectObjectCreationExpressionTerms" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectObjectCreationExpressionTerms"], terms);
     }
 
     [Fact]
@@ -417,7 +417,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 4097, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectArrayCreationExpressionTerms", "expression.Kind" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectArrayCreationExpressionTerms", "expression.Kind"], terms);
     }
 
     [Fact]
@@ -431,7 +431,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 4204, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectArrayCreationExpressionTerms" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectArrayCreationExpressionTerms"], terms);
     }
 
     [Fact]
@@ -445,7 +445,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 4290, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectInvocationExpressionTerms", "expression.Kind" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectInvocationExpressionTerms", "expression.Kind"], terms);
     }
 
     [Fact]
@@ -459,7 +459,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 4394, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectInvocationExpressionTerms" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectInvocationExpressionTerms"], terms);
     }
 
     [Fact]
@@ -473,7 +473,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 4583, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "PrefixUnaryExpressionSyntax", "expression.Kind" }, terms);
+        AssertEx.SetEqual(["expression", "PrefixUnaryExpressionSyntax", "expression.Kind"], terms);
     }
 
     [Fact]
@@ -487,7 +487,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 4643, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "PrefixUnaryExpressionSyntax" }, terms);
+        AssertEx.SetEqual(["expression", "PrefixUnaryExpressionSyntax"], terms);
     }
 
     [Fact]
@@ -501,7 +501,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 4662, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectPrefixUnaryExpressionTerms", "PrefixUnaryExpressionSyntax" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectPrefixUnaryExpressionTerms", "PrefixUnaryExpressionSyntax"], terms);
     }
 
     [Fact]
@@ -515,7 +515,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 4763, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectPrefixUnaryExpressionTerms" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectPrefixUnaryExpressionTerms"], terms);
     }
 
     [Fact]
@@ -529,7 +529,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 4801, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "PostfixUnaryExpressionSyntax", "PrefixUnaryExpressionSyntax" }, terms);
+        AssertEx.SetEqual(["expression", "PostfixUnaryExpressionSyntax", "PrefixUnaryExpressionSyntax"], terms);
     }
 
     [Fact]
@@ -543,7 +543,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 4862, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "PostfixUnaryExpressionSyntax" }, terms);
+        AssertEx.SetEqual(["expression", "PostfixUnaryExpressionSyntax"], terms);
     }
 
     [Fact]
@@ -557,7 +557,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 4881, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectPostfixUnaryExpressionTerms", "PostfixUnaryExpressionSyntax" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectPostfixUnaryExpressionTerms", "PostfixUnaryExpressionSyntax"], terms);
     }
 
     [Fact]
@@ -571,7 +571,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 4983, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectPostfixUnaryExpressionTerms" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectPostfixUnaryExpressionTerms"], terms);
     }
 
     [Fact]
@@ -585,7 +585,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 5021, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "BinaryExpressionSyntax", "PostfixUnaryExpressionSyntax" }, terms);
+        AssertEx.SetEqual(["expression", "BinaryExpressionSyntax", "PostfixUnaryExpressionSyntax"], terms);
     }
 
     [Fact]
@@ -599,7 +599,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 5076, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "BinaryExpressionSyntax" }, terms);
+        AssertEx.SetEqual(["expression", "BinaryExpressionSyntax"], terms);
     }
 
     [Fact]
@@ -613,7 +613,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 5095, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectBinaryExpressionTerms", "BinaryExpressionSyntax" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectBinaryExpressionTerms", "BinaryExpressionSyntax"], terms);
     }
 
     [Fact]
@@ -627,7 +627,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 5191, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectBinaryExpressionTerms" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType", "CollectBinaryExpressionTerms"], terms);
     }
 
     [Fact]
@@ -641,7 +641,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 5229, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid", "expression", "BinaryExpressionSyntax" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.Invalid", "expression", "BinaryExpressionSyntax"], terms);
     }
 
     [Fact]
@@ -655,7 +655,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 5455, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType"], terms);
     }
 
     [Fact]
@@ -669,7 +669,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 5470, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "flags", "position", "expression", "terms", "expressionType" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.Invalid", "flags", "position", "expression", "terms", "expressionType"], terms);
     }
 
     [Fact]
@@ -683,7 +683,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 5765, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "(MemberAccessExpressionSyntax)expression", "flags", "ExpressionType", "ExpressionType.Invalid", "memberAccess" }, terms);
+        AssertEx.SetEqual(["expression", "(MemberAccessExpressionSyntax)expression", "flags", "ExpressionType", "ExpressionType.Invalid", "memberAccess"], terms);
     }
 
     [Fact]
@@ -697,7 +697,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 5839, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "memberAccess", "memberAccess.Expression", "terms", "flags", "CollectExpressionTerms", "expression", "(MemberAccessExpressionSyntax)expression" }, terms);
+        AssertEx.SetEqual(["position", "memberAccess", "memberAccess.Expression", "terms", "flags", "CollectExpressionTerms", "expression", "(MemberAccessExpressionSyntax)expression"], terms);
     }
 
     [Fact]
@@ -711,7 +711,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 6170, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.ValidTerm", "expression", "SyntaxKind", "SyntaxKind.MemberAccessExpression", "SyntaxKind.PointerMemberAccessExpression", "position", "memberAccess", "memberAccess.Expression", "terms", "flags", "CollectExpressionTerms" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.ValidTerm", "expression", "SyntaxKind", "SyntaxKind.MemberAccessExpression", "SyntaxKind.PointerMemberAccessExpression", "position", "memberAccess", "memberAccess.Expression", "terms", "flags", "CollectExpressionTerms"], terms);
     }
 
     [Fact]
@@ -725,7 +725,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 6418, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidTerm", "expression", "SyntaxKind", "SyntaxKind.MemberAccessExpression", "SyntaxKind.PointerMemberAccessExpression" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "flags", "ExpressionType.ValidTerm", "expression", "SyntaxKind", "SyntaxKind.MemberAccessExpression", "SyntaxKind.PointerMemberAccessExpression"], terms);
     }
 
     [Fact]
@@ -739,7 +739,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 6437, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "flags", "terms", "memberAccess", "memberAccess.Expression", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm", "expression", "SyntaxKind", "SyntaxKind.MemberAccessExpression", "SyntaxKind.PointerMemberAccessExpression" }, terms);
+        AssertEx.SetEqual(["flags", "terms", "memberAccess", "memberAccess.Expression", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm", "expression", "SyntaxKind", "SyntaxKind.MemberAccessExpression", "SyntaxKind.PointerMemberAccessExpression"], terms);
     }
 
     [Fact]
@@ -753,7 +753,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 6666, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression", "ExpressionType.ValidTerm", "SyntaxKind.MemberAccessExpression", "SyntaxKind.PointerMemberAccessExpression", "terms", "memberAccess", "memberAccess.Expression", "ConvertToString" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "flags", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression", "ExpressionType.ValidTerm", "SyntaxKind.MemberAccessExpression", "SyntaxKind.PointerMemberAccessExpression", "terms", "memberAccess", "memberAccess.Expression", "ConvertToString"], terms);
     }
 
     [Fact]
@@ -767,7 +767,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 6837, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "flags", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression"], terms);
     }
 
     [Fact]
@@ -781,7 +781,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 6856, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "flags", "expressionType", "ExpressionType.ValidTerm", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "flags", "expressionType", "ExpressionType.ValidTerm", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression"], terms);
     }
 
     [Fact]
@@ -795,7 +795,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 6945, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "flags", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression"], terms);
     }
 
     [Fact]
@@ -809,7 +809,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 6964, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "flags", "expressionType", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "flags", "expressionType", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression"], terms);
     }
 
     [Fact]
@@ -823,7 +823,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 7215, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType"], terms);
     }
 
     [Fact]
@@ -837,7 +837,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 7451, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid", "position", "expression", "terms" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.Invalid", "position", "expression", "terms"], terms);
     }
 
     [Fact]
@@ -851,7 +851,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 7507, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "(ObjectCreationExpressionSyntax)expression", "ExpressionType", "expressionType", "ExpressionType.Invalid", "objectionCreation" }, terms);
+        AssertEx.SetEqual(["expression", "(ObjectCreationExpressionSyntax)expression", "ExpressionType", "expressionType", "ExpressionType.Invalid", "objectionCreation"], terms);
     }
 
     [Fact]
@@ -865,7 +865,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 7588, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "objectionCreation", "objectionCreation.ArgumentListOpt", "expression", "(ObjectCreationExpressionSyntax)expression" }, terms);
+        AssertEx.SetEqual(["objectionCreation", "objectionCreation.ArgumentListOpt", "expression", "(ObjectCreationExpressionSyntax)expression"], terms);
     }
 
     [Fact]
@@ -879,7 +879,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 7648, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "objectionCreation", "objectionCreation.ArgumentListOpt" }, terms);
+        AssertEx.SetEqual(["objectionCreation", "objectionCreation.ArgumentListOpt"], terms);
     }
 
     [Fact]
@@ -893,7 +893,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 7667, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "objectionCreation", "objectionCreation.ArgumentListOpt", "flags" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.Invalid", "objectionCreation", "objectionCreation.ArgumentListOpt", "flags"], terms);
     }
 
     [Fact]
@@ -907,7 +907,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 7720, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "objectionCreation", "objectionCreation.ArgumentListOpt", "terms", "flags", "CollectArgumentTerms", "ExpressionType", "ExpressionType.Invalid" }, terms);
+        AssertEx.SetEqual(["position", "objectionCreation", "objectionCreation.ArgumentListOpt", "terms", "flags", "CollectArgumentTerms", "ExpressionType", "ExpressionType.Invalid"], terms);
     }
 
     [Fact]
@@ -921,7 +921,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 7975, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.ValidTerm", "position", "objectionCreation", "objectionCreation.ArgumentListOpt", "terms", "flags", "CollectArgumentTerms" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.ValidTerm", "position", "objectionCreation", "objectionCreation.ArgumentListOpt", "terms", "flags", "CollectArgumentTerms"], terms);
     }
 
     [Fact]
@@ -935,7 +935,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8060, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "flags", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -949,7 +949,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8083, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "flags", "expressionType", "ExpressionType.ValidExpression", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "flags", "expressionType", "ExpressionType.ValidExpression", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -963,7 +963,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8352, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType"], terms);
     }
 
     [Fact]
@@ -977,7 +977,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8367, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "validTerm", "position", "expression", "terms", "expressionType" }, terms);
+        AssertEx.SetEqual(["validTerm", "position", "expression", "terms", "expressionType"], terms);
     }
 
     [Fact]
@@ -991,7 +991,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8402, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "(ArrayCreationExpressionSyntax)expression", "validTerm", "arrayCreation" }, terms);
+        AssertEx.SetEqual(["expression", "(ArrayCreationExpressionSyntax)expression", "validTerm", "arrayCreation"], terms);
     }
 
     [Fact]
@@ -1005,7 +1005,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8480, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "arrayCreation", "arrayCreation.InitializerOpt", "expression", "(ArrayCreationExpressionSyntax)expression" }, terms);
+        AssertEx.SetEqual(["arrayCreation", "arrayCreation.InitializerOpt", "expression", "(ArrayCreationExpressionSyntax)expression"], terms);
     }
 
     [Fact]
@@ -1019,7 +1019,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8535, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "arrayCreation", "arrayCreation.InitializerOpt" }, terms);
+        AssertEx.SetEqual(["arrayCreation", "arrayCreation.InitializerOpt"], terms);
     }
 
     [Fact]
@@ -1033,7 +1033,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8554, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "arrayCreation", "arrayCreation.InitializerOpt", "flags" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.Invalid", "arrayCreation", "arrayCreation.InitializerOpt", "flags"], terms);
     }
 
     [Fact]
@@ -1047,7 +1047,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8607, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "arrayCreation.InitializerOpt.Expressions", "flags", "ExpressionType", "ExpressionType.Invalid" }, terms);
+        AssertEx.SetEqual(["arrayCreation.InitializerOpt.Expressions", "flags", "ExpressionType", "ExpressionType.Invalid"], terms);
     }
 
     [Fact]
@@ -1061,7 +1061,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8731, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidTerm", "validTerm", "arrayCreation.InitializerOpt.Expressions" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "flags", "ExpressionType.ValidTerm", "validTerm", "arrayCreation.InitializerOpt.Expressions"], terms);
     }
 
     [Fact]
@@ -1075,7 +1075,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8838, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "flags", "validTerm", "arrayCreation", "arrayCreation.InitializerOpt", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["flags", "validTerm", "arrayCreation", "arrayCreation.InitializerOpt", "ExpressionType", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -1089,7 +1089,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8866, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "validTerm" }, terms);
+        AssertEx.SetEqual(["validTerm"], terms);
     }
 
     [Fact]
@@ -1103,7 +1103,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8885, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidExpression", "validTerm" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.ValidExpression", "validTerm"], terms);
     }
 
     [Fact]
@@ -1117,7 +1117,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8980, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "validTerm" }, terms);
+        AssertEx.SetEqual(["validTerm"], terms);
     }
 
     [Fact]
@@ -1131,7 +1131,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 8999, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid", "validTerm" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.Invalid", "validTerm"], terms);
     }
 
     [Fact]
@@ -1145,7 +1145,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 9238, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType"], terms);
     }
 
     [Fact]
@@ -1159,7 +1159,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 9367, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid", "position", "expression", "terms" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.Invalid", "position", "expression", "terms"], terms);
     }
 
     [Fact]
@@ -1173,7 +1173,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 9421, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "expressionType", "leftFlags", "rightFlags" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.Invalid", "expressionType", "leftFlags", "rightFlags"], terms);
     }
 
     [Fact]
@@ -1187,7 +1187,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 9524, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "(InvocationExpressionSyntax)expression", "leftFlags", "ExpressionType", "ExpressionType.Invalid", "rightFlags", "invocation" }, terms);
+        AssertEx.SetEqual(["expression", "(InvocationExpressionSyntax)expression", "leftFlags", "ExpressionType", "ExpressionType.Invalid", "rightFlags", "invocation"], terms);
     }
 
     [Fact]
@@ -1201,7 +1201,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 9594, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "invocation", "invocation.Expression", "terms", "leftFlags", "CollectExpressionTerms", "expression", "(InvocationExpressionSyntax)expression" }, terms);
+        AssertEx.SetEqual(["position", "invocation", "invocation.Expression", "terms", "leftFlags", "CollectExpressionTerms", "expression", "(InvocationExpressionSyntax)expression"], terms);
     }
 
     [Fact]
@@ -1215,7 +1215,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 9686, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "invocation", "invocation.ArgumentList", "terms", "rightFlags", "CollectArgumentTerms", "invocation.Expression", "leftFlags", "CollectExpressionTerms" }, terms);
+        AssertEx.SetEqual(["position", "invocation", "invocation.ArgumentList", "terms", "rightFlags", "CollectArgumentTerms", "invocation.Expression", "leftFlags", "CollectExpressionTerms"], terms);
     }
 
     [Fact]
@@ -1229,7 +1229,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 9781, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "leftFlags", "ExpressionType.ValidTerm", "position", "invocation", "invocation.ArgumentList", "terms", "rightFlags", "CollectArgumentTerms" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "leftFlags", "ExpressionType.ValidTerm", "position", "invocation", "invocation.ArgumentList", "terms", "rightFlags", "CollectArgumentTerms"], terms);
     }
 
     [Fact]
@@ -1243,7 +1243,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 9866, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "leftFlags", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "leftFlags", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -1257,7 +1257,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 9885, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "leftFlags", "terms", "invocation", "invocation.Expression", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["leftFlags", "terms", "invocation", "invocation.Expression", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -1271,7 +1271,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 10018, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "leftFlags", "rightFlags", "ExpressionType", "ExpressionType.ValidExpression", "expressionType", "ExpressionType.ValidTerm", "terms", "invocation", "invocation.Expression", "ConvertToString" }, terms);
+        AssertEx.SetEqual(["leftFlags", "rightFlags", "ExpressionType", "ExpressionType.ValidExpression", "expressionType", "ExpressionType.ValidTerm", "terms", "invocation", "invocation.Expression", "ConvertToString"], terms);
     }
 
     [Fact]
@@ -1285,7 +1285,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 10278, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType"], terms);
     }
 
     [Fact]
@@ -1299,7 +1299,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 10293, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid", "position", "expression", "terms" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.Invalid", "position", "expression", "terms"], terms);
     }
 
     [Fact]
@@ -1313,7 +1313,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 10347, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "expressionType", "flags" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.Invalid", "expressionType", "flags"], terms);
     }
 
     [Fact]
@@ -1327,7 +1327,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 10396, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "(PrefixUnaryExpressionSyntax)expression", "flags", "ExpressionType", "ExpressionType.Invalid", "prefixUnaryExpression" }, terms);
+        AssertEx.SetEqual(["expression", "(PrefixUnaryExpressionSyntax)expression", "flags", "ExpressionType", "ExpressionType.Invalid", "prefixUnaryExpression"], terms);
     }
 
     [Fact]
@@ -1341,7 +1341,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 10528, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "prefixUnaryExpression", "prefixUnaryExpression.Operand", "terms", "flags", "CollectExpressionTerms", "expression", "(PrefixUnaryExpressionSyntax)expression" }, terms);
+        AssertEx.SetEqual(["position", "prefixUnaryExpression", "prefixUnaryExpression.Operand", "terms", "flags", "CollectExpressionTerms", "expression", "(PrefixUnaryExpressionSyntax)expression"], terms);
     }
 
     [Fact]
@@ -1355,7 +1355,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 10674, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.ValidTerm", "position", "prefixUnaryExpression", "prefixUnaryExpression.Operand", "terms", "flags", "CollectExpressionTerms" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.ValidTerm", "position", "prefixUnaryExpression", "prefixUnaryExpression.Operand", "terms", "flags", "CollectExpressionTerms"], terms);
     }
 
     [Fact]
@@ -1369,7 +1369,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 10755, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "flags", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["flags", "ExpressionType", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -1383,7 +1383,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 10774, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "flags", "terms", "prefixUnaryExpression", "prefixUnaryExpression.Operand", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["flags", "terms", "prefixUnaryExpression", "prefixUnaryExpression.Operand", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -1397,7 +1397,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 10863, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "flags", "expression", "SyntaxKind", "SyntaxKind.LogicalNotExpression", "SyntaxKind.BitwiseNotExpression", "SyntaxKind.NegateExpression", "SyntaxKind.PlusExpression", "ExpressionType", "ExpressionType.ValidTerm", "terms", "prefixUnaryExpression", "prefixUnaryExpression.Operand", "ConvertToString" }, terms);
+        AssertEx.SetEqual(["flags", "expression", "SyntaxKind", "SyntaxKind.LogicalNotExpression", "SyntaxKind.BitwiseNotExpression", "SyntaxKind.NegateExpression", "SyntaxKind.PlusExpression", "ExpressionType", "ExpressionType.ValidTerm", "terms", "prefixUnaryExpression", "prefixUnaryExpression.Operand", "ConvertToString"], terms);
     }
 
     [Fact]
@@ -1411,7 +1411,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 11026, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "SyntaxKind", "SyntaxKind.LogicalNotExpression", "SyntaxKind.BitwiseNotExpression", "SyntaxKind.NegateExpression", "SyntaxKind.PlusExpression" }, terms);
+        AssertEx.SetEqual(["expression", "SyntaxKind", "SyntaxKind.LogicalNotExpression", "SyntaxKind.BitwiseNotExpression", "SyntaxKind.NegateExpression", "SyntaxKind.PlusExpression"], terms);
     }
 
     [Fact]
@@ -1425,7 +1425,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 11117, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "flags", "ExpressionType", "ExpressionType.ValidExpression", "expressionType", "expression", "SyntaxKind", "SyntaxKind.LogicalNotExpression", "SyntaxKind.BitwiseNotExpression", "SyntaxKind.NegateExpression", "SyntaxKind.PlusExpression" }, terms);
+        AssertEx.SetEqual(["flags", "ExpressionType", "ExpressionType.ValidExpression", "expressionType", "expression", "SyntaxKind", "SyntaxKind.LogicalNotExpression", "SyntaxKind.BitwiseNotExpression", "SyntaxKind.NegateExpression", "SyntaxKind.PlusExpression"], terms);
     }
 
     [Fact]
@@ -1439,7 +1439,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 11374, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType"], terms);
     }
 
     [Fact]
@@ -1453,7 +1453,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 11539, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid", "position", "expression", "terms" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.Invalid", "position", "expression", "terms"], terms);
     }
 
     [Fact]
@@ -1467,7 +1467,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 11595, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "expressionType", "flags" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.Invalid", "expressionType", "flags"], terms);
     }
 
     [Fact]
@@ -1481,7 +1481,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 11644, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "(PostfixUnaryExpressionSyntax)expression", "flags", "ExpressionType", "ExpressionType.Invalid", "postfixUnaryExpression" }, terms);
+        AssertEx.SetEqual(["expression", "(PostfixUnaryExpressionSyntax)expression", "flags", "ExpressionType", "ExpressionType.Invalid", "postfixUnaryExpression"], terms);
     }
 
     [Fact]
@@ -1495,7 +1495,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 11778, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "postfixUnaryExpression", "postfixUnaryExpression.Operand", "terms", "flags", "CollectExpressionTerms", "expression", "(PostfixUnaryExpressionSyntax)expression" }, terms);
+        AssertEx.SetEqual(["position", "postfixUnaryExpression", "postfixUnaryExpression.Operand", "terms", "flags", "CollectExpressionTerms", "expression", "(PostfixUnaryExpressionSyntax)expression"], terms);
     }
 
     [Fact]
@@ -1509,7 +1509,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 11925, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.ValidTerm", "position", "postfixUnaryExpression", "postfixUnaryExpression.Operand", "terms", "flags", "CollectExpressionTerms" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.ValidTerm", "position", "postfixUnaryExpression", "postfixUnaryExpression.Operand", "terms", "flags", "CollectExpressionTerms"], terms);
     }
 
     [Fact]
@@ -1523,7 +1523,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 12006, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "flags", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -1537,7 +1537,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 12025, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "flags", "terms", "postfixUnaryExpression", "postfixUnaryExpression.Operand", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["flags", "terms", "postfixUnaryExpression", "postfixUnaryExpression.Operand", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -1551,7 +1551,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 12279, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
+        AssertEx.SetEqual(["position", "expression", "terms", "expressionType"], terms);
     }
 
     [Fact]
@@ -1565,7 +1565,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 12294, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "leftFlags", "rightFlags", "position", "expression", "terms", "expressionType" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.Invalid", "leftFlags", "rightFlags", "position", "expression", "terms", "expressionType"], terms);
     }
 
     [Fact]
@@ -1579,7 +1579,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 12397, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "expression", "(BinaryExpressionSyntax)expression", "leftFlags", "ExpressionType", "ExpressionType.Invalid", "rightFlags", "binaryExpression" }, terms);
+        AssertEx.SetEqual(["expression", "(BinaryExpressionSyntax)expression", "leftFlags", "ExpressionType", "ExpressionType.Invalid", "rightFlags", "binaryExpression"], terms);
     }
 
     [Fact]
@@ -1593,7 +1593,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 12469, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "binaryExpression", "binaryExpression.Left", "terms", "leftFlags", "CollectExpressionTerms", "expression", "(BinaryExpressionSyntax)expression" }, terms);
+        AssertEx.SetEqual(["position", "binaryExpression", "binaryExpression.Left", "terms", "leftFlags", "CollectExpressionTerms", "expression", "(BinaryExpressionSyntax)expression"], terms);
     }
 
     [Fact]
@@ -1607,7 +1607,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 12561, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "binaryExpression", "binaryExpression.Right", "terms", "rightFlags", "CollectExpressionTerms", "binaryExpression.Left", "leftFlags" }, terms);
+        AssertEx.SetEqual(["position", "binaryExpression", "binaryExpression.Right", "terms", "rightFlags", "CollectExpressionTerms", "binaryExpression.Left", "leftFlags"], terms);
     }
 
     [Fact]
@@ -1621,7 +1621,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 12657, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "leftFlags", "ExpressionType.ValidTerm", "position", "binaryExpression", "binaryExpression.Right", "terms", "rightFlags", "CollectExpressionTerms" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "leftFlags", "ExpressionType.ValidTerm", "position", "binaryExpression", "binaryExpression.Right", "terms", "rightFlags", "CollectExpressionTerms"], terms);
     }
 
     [Fact]
@@ -1635,7 +1635,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 12742, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "leftFlags", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "leftFlags", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -1649,7 +1649,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 12761, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "leftFlags", "terms", "binaryExpression", "binaryExpression.Left", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["leftFlags", "terms", "binaryExpression", "binaryExpression.Left", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -1663,7 +1663,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 12842, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "leftFlags", "rightFlags", "ExpressionType", "ExpressionType.ValidTerm", "terms", "binaryExpression", "binaryExpression.Left", "ConvertToString" }, terms);
+        AssertEx.SetEqual(["leftFlags", "rightFlags", "ExpressionType", "ExpressionType.ValidTerm", "terms", "binaryExpression", "binaryExpression.Left", "ConvertToString"], terms);
     }
 
     [Fact]
@@ -1677,7 +1677,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 12928, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "rightFlags", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["rightFlags", "ExpressionType", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -1691,7 +1691,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 12947, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "terms", "rightFlags", "binaryExpression", "binaryExpression.Right", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["terms", "rightFlags", "binaryExpression", "binaryExpression.Right", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -1705,7 +1705,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 13202, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "rightFlags", "binaryExpression", "binaryExpression.Kind", "ExpressionType", "ExpressionType.ValidTerm", "terms", "binaryExpression.Right", "ConvertToString" }, terms);
+        AssertEx.SetEqual(["rightFlags", "binaryExpression", "binaryExpression.Kind", "ExpressionType", "ExpressionType.ValidTerm", "terms", "binaryExpression.Right", "ConvertToString"], terms);
     }
 
     [Fact]
@@ -1719,7 +1719,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 14452, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "leftFlags", "rightFlags", "ExpressionType", "ExpressionType.ValidExpression", "expressionType", "binaryExpression", "binaryExpression.Kind" }, terms);
+        AssertEx.SetEqual(["leftFlags", "rightFlags", "ExpressionType", "ExpressionType.ValidExpression", "expressionType", "binaryExpression", "binaryExpression.Kind"], terms);
     }
 
     [Fact]
@@ -1733,7 +1733,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 14549, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "leftFlags", "rightFlags", "ExpressionType", "ExpressionType.ValidExpression", "expressionType" }, terms);
+        AssertEx.SetEqual(["leftFlags", "rightFlags", "ExpressionType", "ExpressionType.ValidExpression", "expressionType"], terms);
     }
 
     [Fact]
@@ -1747,7 +1747,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 14606, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid", "binaryExpression", "binaryExpression.Kind" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.Invalid", "binaryExpression", "binaryExpression.Kind"], terms);
     }
 
     [Fact]
@@ -1761,7 +1761,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 14668, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "expressionType", "ExpressionType.Invalid"], terms);
     }
 
     [Fact]
@@ -1775,7 +1775,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 14866, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "argumentList", "terms", "expressionType" }, terms);
+        AssertEx.SetEqual(["position", "argumentList", "terms", "expressionType"], terms);
     }
 
     [Fact]
@@ -1789,7 +1789,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 14881, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "validExpr", "position", "argumentList", "terms", "expressionType" }, terms);
+        AssertEx.SetEqual(["validExpr", "position", "argumentList", "terms", "expressionType"], terms);
     }
 
     [Fact]
@@ -1803,7 +1803,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 15078, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "arg", "argumentList", "argumentList.Arguments", "validExpr" }, terms);
+        AssertEx.SetEqual(["arg", "argumentList", "argumentList.Arguments", "validExpr"], terms);
     }
 
     [Fact]
@@ -1817,7 +1817,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 15135, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "arg", "argumentList", "argumentList.Arguments" }, terms);
+        AssertEx.SetEqual(["arg", "argumentList", "argumentList.Arguments"], terms);
     }
 
     [Fact]
@@ -1831,7 +1831,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 15154, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "arg", "argumentList", "argumentList.Arguments", "flags" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.Invalid", "arg", "argumentList", "argumentList.Arguments", "flags"], terms);
     }
 
     [Fact]
@@ -1845,7 +1845,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 15209, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "arg", "arg.Expression", "terms", "flags", "CollectExpressionTerms", "ExpressionType", "ExpressionType.Invalid" }, terms);
+        AssertEx.SetEqual(["position", "arg", "arg.Expression", "terms", "flags", "CollectExpressionTerms", "ExpressionType", "ExpressionType.Invalid"], terms);
     }
 
     [Fact]
@@ -1859,7 +1859,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 15294, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.ValidTerm", "position", "arg", "arg.Expression", "terms", "flags", "CollectExpressionTerms" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "ExpressionType.ValidTerm", "position", "arg", "arg.Expression", "terms", "flags", "CollectExpressionTerms"], terms);
     }
 
     [Fact]
@@ -1873,7 +1873,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 15379, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "flags", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -1887,7 +1887,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 15402, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "flags", "terms", "arg", "arg.Expression", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
+        AssertEx.SetEqual(["flags", "terms", "arg", "arg.Expression", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm"], terms);
     }
 
     [Fact]
@@ -1901,7 +1901,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 15484, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidExpression", "validExpr", "ExpressionType.ValidTerm", "terms", "arg", "arg.Expression", "ConvertToString" }, terms);
+        AssertEx.SetEqual(["ExpressionType", "flags", "ExpressionType.ValidExpression", "validExpr", "ExpressionType.ValidTerm", "terms", "arg", "arg.Expression", "ConvertToString"], terms);
     }
 
     [Fact]
@@ -1915,7 +1915,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 15722, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "flags", "ExpressionType", "validExpr", "ExpressionType.ValidExpression", "expressionType", "arg", "argumentList", "argumentList.Arguments" }, terms);
+        AssertEx.SetEqual(["flags", "ExpressionType", "validExpr", "ExpressionType.ValidExpression", "expressionType", "arg", "argumentList", "argumentList.Arguments"], terms);
     }
 
     [Fact]
@@ -1929,7 +1929,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 15952, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "declarators", "terms" }, terms);
+        AssertEx.SetEqual(["position", "declarators", "terms"], terms);
     }
 
     [Fact]
@@ -1943,7 +1943,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 15967, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "declarator", "declarators", "position", "terms" }, terms);
+        AssertEx.SetEqual(["declarator", "declarators", "position", "terms"], terms);
     }
 
     [Fact]
@@ -1957,7 +1957,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 16020, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "declarator", "declarators" }, terms);
+        AssertEx.SetEqual(["declarator", "declarators"], terms);
     }
 
     [Fact]
@@ -1971,7 +1971,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 16039, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "declarator", "declarator.InitializerOpt", "declarators" }, terms);
+        AssertEx.SetEqual(["declarator", "declarator.InitializerOpt", "declarators"], terms);
     }
 
     [Fact]
@@ -1985,7 +1985,7 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 16095, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "declarator", "declarator.InitializerOpt" }, terms);
+        AssertEx.SetEqual(["declarator", "declarator.InitializerOpt"], terms);
     }
 
     [Fact]
@@ -1999,6 +1999,6 @@ public partial class ProximityExpressionsGetterTests
         var tree = GetTree();
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 16118, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.SetEqual(new[] { "position", "declarator.InitializerOpt", "declarator.InitializerOpt.Value", "terms", "CollectExpressionTerms", "declarator" }, terms);
+        AssertEx.SetEqual(["position", "declarator.InitializerOpt", "declarator.InitializerOpt.Value", "terms", "CollectExpressionTerms", "declarator"], terms);
     }
 }

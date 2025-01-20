@@ -134,7 +134,7 @@ internal abstract class AbstractAssignOutParametersCodeFixProvider : SyntaxEdito
 
     protected sealed override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var unassignedParameters = await GetUnassignedParametersAsync(
             document, diagnostics, cancellationToken).ConfigureAwait(false);
@@ -160,7 +160,7 @@ internal abstract class AbstractAssignOutParametersCodeFixProvider : SyntaxEdito
         {
             result.Add(generator.ExpressionStatement(generator.AssignmentStatement(
                 generator.IdentifierName(parameter.Name),
-                ExpressionGenerator.GenerateExpression(generator, parameter.Type, value: null, canUseFieldReference: false))));
+                ExpressionGenerator.GenerateExpression(parameter.Type, value: null, canUseFieldReference: false))));
         }
 
         return result.ToImmutableAndFree();

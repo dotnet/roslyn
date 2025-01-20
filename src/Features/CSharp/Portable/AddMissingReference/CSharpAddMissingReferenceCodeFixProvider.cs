@@ -9,8 +9,6 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddMissingReference;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Packaging;
-using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddMissingReference;
 
@@ -26,15 +24,6 @@ internal class CSharpAddMissingReferenceCodeFixProvider : AbstractAddMissingRefe
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
     public CSharpAddMissingReferenceCodeFixProvider()
-    {
-    }
-
-    /// <summary>For testing purposes only (so that tests can pass in mock values)</summary> 
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-    internal CSharpAddMissingReferenceCodeFixProvider(
-        IPackageInstallerService installerService,
-        ISymbolSearchService symbolSearchService)
-        : base(installerService, symbolSearchService)
     {
     }
 }

@@ -6,8 +6,10 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Value representing the kind of the document diagnostic report.
-///
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentDiagnosticReportKind">Language Server Protocol specification</see> for additional information.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentDiagnosticReportKind">Language Server Protocol specification</see> for additional information.
+/// </para>
+/// <remarks>Since LSP 3.17</remarks>
 /// </summary>
 internal static class DocumentDiagnosticReportKind
 {

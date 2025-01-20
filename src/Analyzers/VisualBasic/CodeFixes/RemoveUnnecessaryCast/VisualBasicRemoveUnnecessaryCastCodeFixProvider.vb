@@ -53,7 +53,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryCast
             document As Document,
             diagnostics As ImmutableArray(Of Diagnostic),
             editor As SyntaxEditor,
-            fallbackOptions As CodeActionOptionsProvider,
             cancellationToken As CancellationToken) As Task
 
             ' VB parsing is extremely hairy.  Unlike C#, it can be very dangerous to go and remove a

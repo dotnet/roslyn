@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -26,12 +25,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 
+using static GenerateFromMembersHelpers;
+
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
     Name = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers), Shared]
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
                 Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
 [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService? pickMembersService) : AbstractGenerateFromMembersCodeRefactoringProvider
+internal sealed partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService? pickMembersService)
+    : CodeRefactoringProvider
 {
     public const string GenerateOperatorsId = nameof(GenerateOperatorsId);
     public const string ImplementIEquatableId = nameof(ImplementIEquatableId);
@@ -56,18 +58,16 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
             return;
         }
 
-        var actions = await GenerateEqualsAndGetHashCodeFromMembersAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
+        var actions = await GenerateEqualsAndGetHashCodeFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         context.RegisterRefactorings(actions);
 
         if (actions.IsDefaultOrEmpty && textSpan.IsEmpty)
         {
-            await HandleNonSelectionAsync(context, context.Options).ConfigureAwait(false);
+            await HandleNonSelectionAsync(context).ConfigureAwait(false);
         }
     }
 
-    private async Task HandleNonSelectionAsync(
-        CodeRefactoringContext context,
-        CleanCodeGenerationOptionsProvider fallbackOptions)
+    private async Task HandleNonSelectionAsync(CodeRefactoringContext context)
     {
         var (document, textSpan, cancellationToken) = context;
 
@@ -114,7 +114,7 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
             return;
 
         var actions = await CreateActionsAsync(
-            document, typeDeclaration, containingType, viableMembers, fallbackOptions,
+            document, typeDeclaration, containingType, viableMembers,
             hasEquals, hasGetHashCode, withDialog: true, globalOptions, cancellationToken).ConfigureAwait(false);
 
         context.RegisterRefactorings(actions, textSpan);
@@ -169,7 +169,6 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
     public async Task<ImmutableArray<CodeAction>> GenerateEqualsAndGetHashCodeFromMembersAsync(
         Document document,
         TextSpan textSpan,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateEqualsAndGetHashCode, cancellationToken))
@@ -189,7 +188,7 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
                     RoslynDebug.AssertNotNull(typeDeclaration);
 
                     return await CreateActionsAsync(
-                        document, typeDeclaration, info.ContainingType, info.SelectedMembers, fallbackOptions,
+                        document, typeDeclaration, info.ContainingType, info.SelectedMembers,
                         hasEquals, hasGetHashCode, withDialog: false, globalOptions: null, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -200,7 +199,6 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
 
     private async Task<ImmutableArray<CodeAction>> CreateActionsAsync(
         Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> selectedMembers,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         bool hasEquals, bool hasGetHashCode, bool withDialog, ILegacyGlobalOptionsWorkspaceService? globalOptions, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<Task<CodeAction>>.GetInstance(out var tasks);
@@ -215,22 +213,22 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
             // the user would need to bother just generating that member without also
             // generating 'Equals' as well.
             tasks.Add(CreateCodeActionAsync(
-                document, typeDeclaration, containingType, selectedMembers, fallbackOptions, globalOptions,
+                document, typeDeclaration, containingType, selectedMembers, globalOptions,
                 generateEquals: true, generateGetHashCode: false, withDialog, cancellationToken));
             tasks.Add(CreateCodeActionAsync(
-                document, typeDeclaration, containingType, selectedMembers, fallbackOptions, globalOptions,
+                document, typeDeclaration, containingType, selectedMembers, globalOptions,
                 generateEquals: true, generateGetHashCode: true, withDialog, cancellationToken));
         }
         else if (!hasEquals)
         {
             tasks.Add(CreateCodeActionAsync(
-                document, typeDeclaration, containingType, selectedMembers, fallbackOptions, globalOptions,
+                document, typeDeclaration, containingType, selectedMembers, globalOptions,
                 generateEquals: true, generateGetHashCode: false, withDialog, cancellationToken));
         }
         else if (!hasGetHashCode)
         {
             tasks.Add(CreateCodeActionAsync(
-                document, typeDeclaration, containingType, selectedMembers, fallbackOptions, globalOptions,
+                document, typeDeclaration, containingType, selectedMembers, globalOptions,
                 generateEquals: false, generateGetHashCode: true, withDialog, cancellationToken));
         }
 
@@ -241,24 +239,24 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
 
     private Task<CodeAction> CreateCodeActionAsync(
         Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
-        CleanCodeGenerationOptionsProvider fallbackOptions, ILegacyGlobalOptionsWorkspaceService? globalOptions,
+        ILegacyGlobalOptionsWorkspaceService? globalOptions,
         bool generateEquals, bool generateGetHashCode, bool withDialog, CancellationToken cancellationToken)
     {
         if (withDialog)
         {
             // We can't create dialog code action if globalOptions is null
             Contract.ThrowIfNull(globalOptions);
-            return CreateCodeActionWithDialogAsync(document, typeDeclaration, containingType, members, fallbackOptions, globalOptions, generateEquals, generateGetHashCode, cancellationToken);
+            return CreateCodeActionWithDialogAsync(document, typeDeclaration, containingType, members, globalOptions, generateEquals, generateGetHashCode, cancellationToken);
         }
         else
         {
-            return CreateCodeActionWithoutDialogAsync(document, typeDeclaration, containingType, members, fallbackOptions, generateEquals, generateGetHashCode, cancellationToken);
+            return CreateCodeActionWithoutDialogAsync(document, typeDeclaration, containingType, members, generateEquals, generateGetHashCode, cancellationToken);
         }
     }
 
     private async Task<CodeAction> CreateCodeActionWithDialogAsync(
         Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
-        CleanCodeGenerationOptionsProvider fallbackOptions, ILegacyGlobalOptionsWorkspaceService globalOptions,
+        ILegacyGlobalOptionsWorkspaceService globalOptions,
         bool generateEquals, bool generateGetHashCode, CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -290,12 +288,11 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
         }
 
         return new GenerateEqualsAndGetHashCodeWithDialogCodeAction(
-            this, document, typeDeclaration, containingType, members, pickMembersOptions.ToImmutable(), fallbackOptions, globalOptions, generateEquals, generateGetHashCode);
+            this, document, typeDeclaration, containingType, members, pickMembersOptions.ToImmutable(), globalOptions, generateEquals, generateGetHashCode);
     }
 
     private static async Task<CodeAction> CreateCodeActionWithoutDialogAsync(
         Document document, SyntaxNode typeDeclaration, INamedTypeSymbol containingType, ImmutableArray<ISymbol> members,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         bool generateEquals, bool generateGetHashCode, CancellationToken cancellationToken)
     {
         var implementIEquatable = false;
@@ -311,7 +308,7 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
         }
 
         return new GenerateEqualsAndGetHashCodeAction(
-            document, typeDeclaration, containingType, members, fallbackOptions,
+            document, typeDeclaration, containingType, members,
             generateEquals, generateGetHashCode, implementIEquatable, generateOperators);
     }
 }

@@ -34,5 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// may need to be reinterpreted as query keywords.
         /// </summary>
         internal bool IsInQuery;
+
+        /// <summary>
+        /// If an accessor kind changes, "field" within the accessor may need to be reinterpreted,
+        /// to determine whether the token is a keyword or an identifier.
+        /// </summary>
+        internal bool IsInFieldKeywordContext;
     }
 }

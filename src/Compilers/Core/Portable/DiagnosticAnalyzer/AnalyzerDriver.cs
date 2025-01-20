@@ -2313,7 +2313,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 //     generated_code = true | false
                 // If there is no explicit user configuration, fallback to our generated code heuristic.
                 var options = AnalyzerExecutor.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-                return GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(options) ??
+                return GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options).ToNullable() ??
                     _isGeneratedCode(tree, cancellationToken);
             }
         }
@@ -2959,8 +2959,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 break;
 
                             case OperationKind.ExpressionStatement:
-                                // For constructor initializer, we generate an IInvocationOperation with an implicit IExpressionStatementOperation parent.
-                                Debug.Assert(operationBlock.Kind == OperationKind.Invocation);
+                                // For constructor initializer, we generate an IInvocationOperation (or invalid
+                                // operation in the case of an error) with an implicit IExpressionStatementOperation parent.
+                                Debug.Assert(operationBlock.Kind is OperationKind.Invocation or OperationKind.Invalid);
                                 Debug.Assert(operationBlock.Parent.IsImplicit);
                                 Debug.Assert(operationBlock.Parent.Parent is IConstructorBodyOperation ctorBody &&
                                     ctorBody.Initializer == operationBlock.Parent);

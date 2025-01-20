@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-internal class RQUnconstructedType(IList<string> namespaceNames, IList<RQUnconstructedTypeInfo> typeInfos) : RQTypeOrNamespace(namespaceNames)
+internal sealed class RQUnconstructedType(IList<string> namespaceNames, IList<RQUnconstructedTypeInfo> typeInfos) : RQTypeOrNamespace(namespaceNames)
 {
     public readonly ReadOnlyCollection<RQUnconstructedTypeInfo> TypeInfos = new ReadOnlyCollection<RQUnconstructedTypeInfo>(typeInfos);
 

@@ -79,7 +79,7 @@ internal class VisualStudioDefinitionsAndReferencesFactory(
         : DefinitionItem(
             tags,
             displayParts,
-            nameDisplayParts: ImmutableArray<TaggedText>.Empty,
+            nameDisplayParts: [],
             sourceSpans: default,
             metadataLocations: default,
             classifiedSpans: default,

@@ -22,10 +22,9 @@ internal abstract class AbstractFullyQualifyCodeFixProvider : CodeFixProvider
     {
         var cancellationToken = context.CancellationToken;
         var document = context.Document;
-        var hideAdvancedMembers = context.Options.GetOptions(document.Project.Services).HideAdvancedMembers;
 
         var service = document.GetRequiredLanguageService<IFullyQualifyService>();
-        var optFixData = await service.GetFixDataAsync(document, context.Span, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
+        var optFixData = await service.GetFixDataAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
         if (optFixData is null)
             return;
 

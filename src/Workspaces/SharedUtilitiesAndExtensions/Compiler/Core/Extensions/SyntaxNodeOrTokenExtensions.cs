@@ -51,7 +51,7 @@ internal static class SyntaxNodeOrTokenExtensions
     }
 
     public static SyntaxTrivia[] GetTrivia(params SyntaxNodeOrToken[] nodesOrTokens)
-        => nodesOrTokens.SelectMany(nodeOrToken => nodeOrToken.GetLeadingTrivia().Concat(nodeOrToken.GetTrailingTrivia())).ToArray();
+        => [.. nodesOrTokens.SelectMany(nodeOrToken => nodeOrToken.GetLeadingTrivia().Concat(nodeOrToken.GetTrailingTrivia()))];
 
     public static SyntaxNodeOrToken WithAppendedTrailingTrivia(this SyntaxNodeOrToken nodeOrToken, params SyntaxTrivia[] trivia)
         => WithAppendedTrailingTrivia(nodeOrToken, (IEnumerable<SyntaxTrivia>)trivia);

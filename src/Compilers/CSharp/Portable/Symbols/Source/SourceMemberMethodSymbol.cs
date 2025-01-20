@@ -554,13 +554,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // in NamedTypeSymbolAdapter.cs).
             return this.IsOverride ?
                 this.RequiresExplicitOverride(out _) :
-                !this.IsStatic && this.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
+                !this.IsStatic && this.IsMetadataVirtual(ignoreInterfaceImplementationChanges ? IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges : IsMetadataVirtualOption.None);
         }
 
         // TODO (tomat): sealed?
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
-            return this.flags.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
+#if DEBUG
+            if (option == IsMetadataVirtualOption.ForceCompleteIfNeeded && !this.flags.IsMetadataVirtualLocked)
+            {
+                this.ContainingSymbol.ForceComplete(locationOpt: null, filter: null, cancellationToken: CancellationToken.None);
+            }
+#endif
+
+            return this.flags.IsMetadataVirtual(ignoreInterfaceImplementationChanges: option == IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges);
         }
 
         internal void EnsureMetadataVirtual()
@@ -998,7 +1005,7 @@ done:
             return flags.IsNullableAnalysisEnabled;
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

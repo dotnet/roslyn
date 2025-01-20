@@ -74,7 +74,7 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
             token != node.TypeArgumentList.GreaterThanToken;
     }
 
-    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         if (!TryGetGenericIdentifier(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken,
@@ -133,8 +133,8 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
         var textSpan = GetTextSpan(genericIdentifier, lessThanToken);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        return CreateSignatureHelpItems(accessibleSymbols.Select(s =>
-            Convert(s, lessThanToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
+        return CreateSignatureHelpItems([.. accessibleSymbols.Select(s =>
+            Convert(s, lessThanToken, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService))],
             textSpan, GetCurrentArgumentState(root, position, syntaxFacts, cancellationToken), selectedItemIndex: null, parameterIndexOverride: -1);
     }
 
@@ -185,7 +185,7 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
                 GetPreambleParts(namedType, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(),
-                namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
+                [.. namedType.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
         }
         else
         {
@@ -198,7 +198,7 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
                 GetPreambleParts(method, semanticModel, position),
                 GetSeparatorParts(),
                 GetPostambleParts(method, semanticModel, position),
-                method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
+                [.. method.TypeParameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
         }
 
         return item;

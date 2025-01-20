@@ -6,9 +6,9 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
 Imports System.Collections.ObjectModel
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -2004,7 +2004,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateEmptyCompilationWithReferences(source, {TestMetadata.Net40.mscorlib, TestMetadata.Net40.MicrosoftVisualBasic}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {Net40.References.mscorlib, Net40.References.MicrosoftVisualBasic}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>

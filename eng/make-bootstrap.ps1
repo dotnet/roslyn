@@ -46,6 +46,8 @@ try {
     throw "Unsupported bootstrap toolset $toolset"
   }
 
+  $projectPath = Join-Path $RepoRoot $projectPath
+
   $name = Split-Path -Leaf $output
   $binaryLogFilePath = Join-Path $LogDir "bootstrap-$($name).binlog"
 

@@ -30,6 +30,13 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
             _renameService = renameService;
         }
 
+        public bool IsEnabled => true;
+
+        public Task<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty);
+        }
+
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var renameInfo = await _renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
@@ -81,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
                 return new InlineRenameLocationSet(
                     _renameInfo, _document.Project.Solution,
-                    references.ToImmutableArray());
+                    [.. references]);
             }
 
             public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)

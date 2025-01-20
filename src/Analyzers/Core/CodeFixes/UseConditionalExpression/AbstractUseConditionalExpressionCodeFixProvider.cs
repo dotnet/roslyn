@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -15,12 +13,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-
-#if CODE_STYLE
-using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
-#else
-using Formatter = Microsoft.CodeAnalysis.Formatting.Formatter;
-#endif
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression;
 
@@ -40,7 +32,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
     protected abstract ISyntaxFacts SyntaxFacts { get; }
     protected abstract AbstractFormattingRule GetMultiLineFormattingRule();
 
-    protected abstract ISyntaxFormatting GetSyntaxFormatting();
+    protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
     protected abstract TExpressionSyntax ConvertToExpression(IThrowOperation throwOperation);
     protected abstract TStatementSyntax WrapWithBlockIfAppropriate(TIfStatementSyntax ifStatement, TStatementSyntax statement);
@@ -51,17 +43,11 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-#if CODE_STYLE
-        var provider = GetSyntaxFormatting();
-#else
-        var provider = document.Project.Solution.Services;
-#endif
-        var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-        var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
 
         // Defer to our callback to actually make the edits for each diagnostic. In turn, it
         // will return 'true' if it made a multi-line conditional expression. In that case,
@@ -81,9 +67,9 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         // conditional expression as that's the only node that has the appropriate
         // annotation on it.
         var rules = ImmutableArray.Create(GetMultiLineFormattingRule());
+        var spansToFormat = FormattingExtensions.GetAnnotatedSpans(changedRoot, SpecializedFormattingAnnotation);
 
-        var formattedRoot = Formatter.Format(changedRoot, SpecializedFormattingAnnotation, provider, formattingOptions, rules, cancellationToken);
-
+        var formattedRoot = SyntaxFormatting.GetFormattingResult(changedRoot, spansToFormat, formattingOptions, rules, cancellationToken).GetFormattedRoot(cancellationToken);
         changedRoot = formattedRoot;
 
         editor.ReplaceNode(root, changedRoot);
@@ -110,7 +96,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         {
             return negate
                 ? (TExpressionSyntax)generator.Negate(generatorInternal, condition, semanticModel, cancellationToken).WithoutTrivia()
-                : (TExpressionSyntax)condition.WithoutTrivia();
+                : condition.WithoutTrivia();
         }
 
         var trueExpression = MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, trueStatement, trueValue));
@@ -118,13 +104,14 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         trueExpression = WrapReturnExpressionIfNecessary(trueExpression, trueStatement);
         falseExpression = WrapReturnExpressionIfNecessary(falseExpression, falseStatement);
 
-        var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
+        var initialExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
             condition.WithoutTrivia(),
             trueExpression,
             falseExpression);
+        var (conditionalExpression, makeMultiLine) = UpdateConditionalExpression(ifOperation, initialExpression);
 
         conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
-        var makeMultiLine = await MakeMultiLineAsync(
+        makeMultiLine = makeMultiLine || await MakeMultiLineAsync(
             document, condition,
             trueValue.Syntax, falseValue.Syntax, formattingOptions, cancellationToken).ConfigureAwait(false);
         if (makeMultiLine)
@@ -136,8 +123,14 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         return MakeRef(generatorInternal, isRef, conditionalExpression);
     }
 
-    protected virtual SyntaxNode WrapIfStatementIfNecessary(IConditionalOperation operation)
-        => operation.Condition.Syntax;
+    protected virtual (TConditionalExpressionSyntax conditional, bool makeMultiLine) UpdateConditionalExpression(
+        IConditionalOperation originalIfStatement, TConditionalExpressionSyntax conditionalExpression)
+    {
+        return (conditionalExpression, makeMultiLine: false);
+    }
+
+    protected virtual TExpressionSyntax WrapIfStatementIfNecessary(IConditionalOperation operation)
+        => (TExpressionSyntax)operation.Condition.Syntax;
 
     protected virtual TExpressionSyntax WrapReturnExpressionIfNecessary(TExpressionSyntax returnExpression, IOperation returnOperation)
         => returnExpression;
@@ -174,7 +167,12 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         if (statement is IThrowOperation throwOperation)
             return ConvertToExpression(throwOperation);
 
-        var sourceSyntax = value.Syntax.WithoutTrivia();
+        var suppressKind = this.SyntaxFacts.SyntaxKinds.SuppressNullableWarningExpression;
+        var sourceSyntax = value.Syntax;
+        while (sourceSyntax is { Parent.RawKind: var kind } && kind == suppressKind)
+            sourceSyntax = sourceSyntax.Parent;
+
+        sourceSyntax = sourceSyntax.WithoutTrivia();
 
         // If there was an implicit conversion generated by the compiler, then convert that to an
         // explicit conversion inside the condition.  This is needed as there is no type

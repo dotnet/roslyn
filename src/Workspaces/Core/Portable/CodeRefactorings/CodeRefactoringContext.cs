@@ -53,8 +53,6 @@ public readonly struct CodeRefactoringContext
     /// </summary>
     public CancellationToken CancellationToken { get; }
 
-    internal readonly CodeActionOptionsProvider Options;
-
     private readonly Action<CodeAction, TextSpan?> _registerRefactoring;
 
     /// <summary>
@@ -66,7 +64,7 @@ public readonly struct CodeRefactoringContext
         TextSpan span,
         Action<CodeAction> registerRefactoring,
         CancellationToken cancellationToken)
-        : this(document, span, (action, textSpan) => registerRefactoring(action), CodeActionOptions.DefaultProvider, cancellationToken)
+        : this(document, span, (action, textSpan) => registerRefactoring(action), cancellationToken)
     { }
 
     /// <summary>
@@ -77,7 +75,7 @@ public readonly struct CodeRefactoringContext
         TextSpan span,
         Action<CodeAction> registerRefactoring,
         CancellationToken cancellationToken)
-        : this(document, span, (action, textSpan) => registerRefactoring(action), CodeActionOptions.DefaultProvider, cancellationToken)
+        : this(document, span, (action, textSpan) => registerRefactoring(action), cancellationToken)
     { }
 
     /// <summary>
@@ -87,7 +85,6 @@ public readonly struct CodeRefactoringContext
         TextDocument document,
         TextSpan span,
         Action<CodeAction, TextSpan?> registerRefactoring,
-        CodeActionOptionsProvider options,
         CancellationToken cancellationToken)
     {
         // NOTE/TODO: Don't make this overload public & obsolete the `Action<CodeAction> registerRefactoring`
@@ -95,7 +92,6 @@ public readonly struct CodeRefactoringContext
         TextDocument = document ?? throw new ArgumentNullException(nameof(document));
         Span = span;
         _registerRefactoring = registerRefactoring ?? throw new ArgumentNullException(nameof(registerRefactoring));
-        Options = options;
         CancellationToken = cancellationToken;
     }
 

@@ -13,9 +13,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource;
 
-internal partial class CSharpMetadataAsSourceService
+internal sealed partial class CSharpMetadataAsSourceService
 {
-    private class FormattingRule : AbstractMetadataFormattingRule
+    private sealed class FormattingRule : AbstractMetadataFormattingRule
     {
         protected override AdjustNewLinesOperation GetAdjustNewLinesOperationBetweenMembersAndUsings(SyntaxToken token1, SyntaxToken token2)
         {

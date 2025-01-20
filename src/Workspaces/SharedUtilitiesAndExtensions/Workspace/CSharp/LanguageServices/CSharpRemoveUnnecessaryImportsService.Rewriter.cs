@@ -189,7 +189,7 @@ internal partial class CSharpRemoveUnnecessaryImportsService
                 resultCompilationUnit = resultCompilationUnit.ReplaceToken(firstToken, newFirstToken);
             }
 
-            return resultCompilationUnit;
+            return resultCompilationUnit.WithAdditionalAnnotations(s_annotation);
         }
 
         public override SyntaxNode VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
@@ -241,7 +241,7 @@ internal partial class CSharpRemoveUnnecessaryImportsService
                 resultNamespace = resultNamespace.ReplaceToken(firstToken, newFirstToken);
             }
 
-            return resultNamespace;
+            return resultNamespace.WithAdditionalAnnotations(s_annotation);
         }
 
         public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)

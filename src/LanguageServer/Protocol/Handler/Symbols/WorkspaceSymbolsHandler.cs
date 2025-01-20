@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class WorkspaceSymbolsHandler(IAsynchronousOperationListenerProvider listenerProvider)
-        : ILspServiceRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?>
+        : ILspServiceRequestHandler<WorkspaceSymbolParams, SumType<SymbolInformation[], WorkspaceSymbol[]>?>
     {
         private static readonly IImmutableSet<string> s_supportedKinds = [
             NavigateToItemKind.Class,
@@ -46,13 +47,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public async Task<SymbolInformation[]?> HandleRequestAsync(WorkspaceSymbolParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<SumType<SymbolInformation[], WorkspaceSymbol[]>?> HandleRequestAsync(WorkspaceSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
             var solution = context.Solution;
 
-            using var progress = BufferedProgress.Create(request.PartialResultToken);
+            using var progress = BufferedProgress.Create(
+                request.PartialResultToken,
+                (SymbolInformation[] t) => new SumType<SymbolInformation[], WorkspaceSymbol[]>(t));
+
             var searcher = NavigateToSearcher.Create(
                 solution,
                 _asyncListener,
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 cancellationToken);
 
             await searcher.SearchAsync(NavigateToSearchScope.Solution, cancellationToken).ConfigureAwait(false);
-            return progress.GetFlattenedValues();
+            return progress.GetValues()?.Flatten().ToArray();
         }
 
         private sealed class LSPNavigateToCallback(
@@ -75,6 +79,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Contract.ThrowIfNull(context.Solution);
                 var solution = context.Solution;
 
+                var clientCapabilities = context.GetRequiredClientCapabilities();
+                var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
+
                 foreach (var result in results)
                 {
                     var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false);
@@ -84,9 +91,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (location == null)
                         return;
 
-                    var service = solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
-                    var symbolInfo = service.Create(
-                        result.Name, result.AdditionalInformation, ProtocolConversions.NavigateToKindToSymbolKind(result.Kind), location, result.NavigableItem.Glyph);
+                    var symbolInfo = SymbolInformationFactory.Create(
+                        result.Name,
+                        result.AdditionalInformation,
+                        ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
+                        location,
+                        result.NavigableItem.Glyph,
+                        supportsVSExtensions);
 
                     progress.Report(symbolInfo);
                 }

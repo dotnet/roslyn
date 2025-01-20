@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         [ImportMany] IEnumerable<Lazy<IBraceCompletionService, LanguageMetadata>> braceCompletionServices,
         IGlobalOptionService globalOptions) : ILspServiceDocumentRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
     {
-        private readonly ImmutableArray<Lazy<IBraceCompletionService, LanguageMetadata>> _braceCompletionServices = braceCompletionServices.ToImmutableArray();
+        private readonly ImmutableArray<Lazy<IBraceCompletionService, LanguageMetadata>> _braceCompletionServices = [.. braceCompletionServices];
         private readonly IGlobalOptionService _globalOptions = globalOptions;
 
         public bool MutatesSolutionState => false;
@@ -48,6 +48,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             var document = context.Document;
             if (document == null)
+                return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
+
+            var onAutoInsertEnabled = _globalOptions.GetOption(LspOptionsStorage.LspEnableAutoInsert, document.Project.Language);
+            if (!onAutoInsertEnabled)
                 return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
 
             var servicesForDocument = _braceCompletionServices.Where(s => s.Metadata.Language == document.Project.Language).SelectAsArray(s => s.Value);
@@ -69,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 
             // We should use the options passed in by LSP instead of the document's options.
-            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(lspFormattingOptions, document, globalOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(lspFormattingOptions, document, cancellationToken).ConfigureAwait(false);
 
             // The editor calls this handler for C# and VB comment characters, but we only need to process the one for the language that matches the document
             if (character == "\n" || character == service.DocumentationCommentCharacter)
@@ -114,19 +118,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             DocumentationCommentOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var sourceText = parsedDocument.Text;
 
             var position = sourceText.Lines.GetPosition(linePosition);
 
             var result = character == "\n"
-                ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, options, cancellationToken)
-                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, cancellationToken, addIndentation: false);
+                ? service.GetDocumentationCommentSnippetOnEnterTyped(parsedDocument, position, options, cancellationToken)
+                : service.GetDocumentationCommentSnippetOnCharacterTyped(parsedDocument, position, options, cancellationToken, addIndentation: false);
 
             if (result == null)
-            {
                 return null;
-            }
 
             return new LSP.VSInternalDocumentOnAutoInsertResponseItem
             {
@@ -239,10 +241,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private static async Task<(IBraceCompletionService Service, BraceCompletionContext Context)?> GetBraceCompletionContextAsync(ImmutableArray<IBraceCompletionService> servicesForDocument, int caretLocation, Document document, CancellationToken cancellationToken)
         {
             var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var fallbackOptions = document.Project.GetFallbackAnalyzerOptions();
 
             foreach (var service in servicesForDocument)
             {
-                var context = service.GetCompletedBraceContext(parsedDocument, caretLocation);
+                var context = service.GetCompletedBraceContext(parsedDocument, fallbackOptions, caretLocation);
                 if (context != null)
                 {
                     return (service, context.Value);

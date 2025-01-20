@@ -8,27 +8,29 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Parameters for semantic tokens full Document request.
-    ///
+    /// Parameters for 'textDocument/semanticTokens/full' request.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
-    internal class SemanticTokensParams : ITextDocumentParams, IPartialResultParams<SemanticTokensPartialResult>
+    /// <remarks>Since LSP 3.16</remarks>
+    internal class SemanticTokensParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SemanticTokensPartialResult>
     {
         /// <summary>
         /// Gets or sets an identifier for the document to fetch semantic tokens from.
         /// </summary>
         [JsonPropertyName("textDocument")]
+        [JsonRequired]
         public TextDocumentIdentifier TextDocument { get; set; }
 
-        /// <summary>
-        /// Gets or sets the value of the Progress instance.
-        /// </summary>
+        /// <inheritdoc/>
+        [JsonPropertyName(Methods.WorkDoneTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
+
+        /// <inheritdoc/>
         [JsonPropertyName(Methods.PartialResultTokenName)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public IProgress<SemanticTokensPartialResult>? PartialResultToken
-        {
-            get;
-            set;
-        }
+        public IProgress<SemanticTokensPartialResult>? PartialResultToken { get; set; }
     }
 }

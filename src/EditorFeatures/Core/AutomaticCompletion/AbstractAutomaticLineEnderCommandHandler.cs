@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -61,7 +62,7 @@ internal abstract class AbstractAutomaticLineEnderCommandHandler :
     /// <summary>
     /// Add or remove the braces for <param name="selectedNode"/>.
     /// </summary>
-    protected abstract void ModifySelectedNode(AutomaticLineEnderCommandArgs args, ParsedDocument document, SyntaxNode selectedNode, bool addBrace, int caretPosition, CancellationToken cancellationToken);
+    protected abstract void ModifySelectedNode(AutomaticLineEnderCommandArgs args, ParsedDocument document, SyntaxNode selectedNode, bool addBrace, int caretPosition, StructuredAnalyzerConfigOptions fallbackOptions, CancellationToken cancellationToken);
 
     /// <summary>
     /// Get the syntax node needs add/remove braces.
@@ -131,7 +132,7 @@ internal abstract class AbstractAutomaticLineEnderCommandHandler :
             {
                 var (selectedNode, addBrace) = selectNodeAndOperationKind.Value;
                 using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
-                ModifySelectedNode(args, parsedDocument, selectedNode, addBrace, caretPosition, cancellationToken);
+                ModifySelectedNode(args, parsedDocument, selectedNode, addBrace, caretPosition, document.Project.GetFallbackAnalyzerOptions(), cancellationToken);
                 NextAction(operations, nextHandler);
                 transaction.Complete();
                 return;
@@ -142,7 +143,7 @@ internal abstract class AbstractAutomaticLineEnderCommandHandler :
             if (endingInsertionPosition != null)
             {
                 using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
-                var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, parsedDocument.LanguageServices, explicitFormat: false);
+                var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.GetFallbackAnalyzerOptions(), parsedDocument.LanguageServices, explicitFormat: false);
                 InsertEnding(args.TextView, args.SubjectBuffer, parsedDocument, endingInsertionPosition.Value, caretPosition, formattingOptions, cancellationToken);
                 NextAction(operations, nextHandler);
                 transaction.Complete();

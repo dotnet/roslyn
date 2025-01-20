@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging;
 /// contribute to the 'previous statement'
 /// </summary>
 [ExportLanguageService(typeof(IProximityExpressionsService), LanguageNames.CSharp), Shared]
-internal partial class CSharpProximityExpressionsService : IProximityExpressionsService
+internal sealed partial class CSharpProximityExpressionsService : IProximityExpressionsService
 {
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

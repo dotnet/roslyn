@@ -17,7 +17,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddExplicitCast), Shared]
-internal sealed partial class CSharpAddExplicitCastCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpAddExplicitCastCodeFixProvider()
     : AbstractAddExplicitCastCodeFixProvider<ExpressionSyntax>
 {
     /// <summary>
@@ -30,20 +32,12 @@ internal sealed partial class CSharpAddExplicitCastCodeFixProvider
     /// </summary>
     private const string CS1503 = nameof(CS1503);
 
-    private readonly ArgumentFixer _argumentFixer;
-    private readonly AttributeArgumentFixer _attributeArgumentFixer;
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpAddExplicitCastCodeFixProvider()
-    {
-        _argumentFixer = new ArgumentFixer();
-        _attributeArgumentFixer = new AttributeArgumentFixer();
-    }
+    private readonly ArgumentFixer _argumentFixer = new();
+    private readonly AttributeArgumentFixer _attributeArgumentFixer = new();
 
     public override ImmutableArray<string> FixableDiagnosticIds => [CS0266, CS1503];
 
-    protected override void GetPartsOfCastOrConversionExpression(ExpressionSyntax expression, out SyntaxNode type, out SyntaxNode castedExpression)
+    protected override void GetPartsOfCastOrConversionExpression(ExpressionSyntax expression, out SyntaxNode type, out ExpressionSyntax castedExpression)
     {
         var castExpression = (CastExpressionSyntax)expression;
         type = castExpression.Type;
@@ -53,26 +47,23 @@ internal sealed partial class CSharpAddExplicitCastCodeFixProvider
     protected override ExpressionSyntax Cast(ExpressionSyntax expression, ITypeSymbol type)
         => expression.Cast(type);
 
-    protected override bool TryGetTargetTypeInfo(
+    protected override void AddPotentialTargetTypes(
         Document document,
         SemanticModel semanticModel,
         SyntaxNode root,
         string diagnosticId,
         ExpressionSyntax spanNode,
-        CancellationToken cancellationToken,
-        out ImmutableArray<(ExpressionSyntax, ITypeSymbol)> potentialConversionTypes)
+        ArrayBuilder<(ExpressionSyntax node, ITypeSymbol type)> candidates,
+        CancellationToken cancellationToken)
     {
-        potentialConversionTypes = [];
-        using var _ = ArrayBuilder<(ExpressionSyntax, ITypeSymbol)>.GetInstance(out var mutablePotentialConversionTypes);
-
         if (diagnosticId == CS0266)
         {
             var inferenceService = document.GetRequiredLanguageService<ITypeInferenceService>();
             var conversionType = inferenceService.InferType(semanticModel, spanNode, objectAsDefault: false, cancellationToken);
             if (conversionType is null)
-                return false;
+                return;
 
-            mutablePotentialConversionTypes.Add((spanNode, conversionType));
+            candidates.Add((spanNode, conversionType));
         }
         else if (diagnosticId == CS1503)
         {
@@ -81,7 +72,7 @@ internal sealed partial class CSharpAddExplicitCastCodeFixProvider
                 && argumentList.Parent is SyntaxNode invocationNode)
             {
                 // invocationNode could be Invocation Expression, Object Creation, Base Constructor...)
-                mutablePotentialConversionTypes.AddRange(_argumentFixer.GetPotentialConversionTypes(
+                candidates.AddRange(_argumentFixer.GetPotentialConversionTypes(
                     document, semanticModel, root, targetArgument, argumentList, invocationNode, cancellationToken));
             }
             else if (spanNode.GetAncestorOrThis<AttributeArgumentSyntax>() is AttributeArgumentSyntax targetAttributeArgument
@@ -89,13 +80,31 @@ internal sealed partial class CSharpAddExplicitCastCodeFixProvider
                 && attributeArgumentList.Parent is AttributeSyntax attributeNode)
             {
                 // attribute node
-                mutablePotentialConversionTypes.AddRange(_attributeArgumentFixer.GetPotentialConversionTypes(
+                candidates.AddRange(_attributeArgumentFixer.GetPotentialConversionTypes(
                     document, semanticModel, root, targetAttributeArgument, attributeArgumentList, attributeNode, cancellationToken));
             }
         }
+    }
 
-        // clear up duplicate types
-        potentialConversionTypes = FilterValidPotentialConversionTypes(document, semanticModel, mutablePotentialConversionTypes);
-        return !potentialConversionTypes.IsEmpty;
+    protected override (SyntaxNode finalTarget, SyntaxNode finalReplacement) Cast(
+        SemanticModel semanticModel, ExpressionSyntax targetNode, ITypeSymbol conversionType)
+    {
+        // The compiler is very ambiguous with assignment expressions `(a += b)`.  An error on it may be an error on the
+        // entire expression or on the RHS of the assignment. Have to reverse engineer what it is doing here.
+        if (targetNode is AssignmentExpressionSyntax assignmentExpression &&
+            assignmentExpression.IsCompoundAssignExpression())
+        {
+            var leftType = semanticModel.GetTypeInfo(assignmentExpression.Left).Type;
+            var rightType = semanticModel.GetTypeInfo(assignmentExpression.Right).Type;
+
+            if (leftType != null && rightType != null)
+            {
+                var conversion = semanticModel.Compilation.ClassifyConversion(rightType, leftType);
+                if (conversion.Exists && conversion.IsExplicit)
+                    return (assignmentExpression.Right, this.Cast(assignmentExpression.Right, leftType));
+            }
+        }
+
+        return base.Cast(semanticModel, targetNode, conversionType);
     }
 }

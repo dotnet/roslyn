@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Navigation;
 
@@ -32,7 +34,7 @@ internal abstract partial class AbstractDefinitionLocationService(
         var service = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
         return service.GetLocationForPositionAsync(
-            workspace, document.Id, position, virtualSpace: 0, cancellationToken);
+            workspace, document.Id, position, cancellationToken);
     }
 
     public async Task<DefinitionLocation?> GetDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
@@ -48,14 +50,17 @@ internal abstract partial class AbstractDefinitionLocationService(
 
         async ValueTask<DefinitionLocation?> GetDefinitionLocationWorkerAsync(Document document)
         {
-            return await GetControlFlowTargetLocationAsync(document).ConfigureAwait(false) ??
-                   await GetSymbolLocationAsync(document).ConfigureAwait(false);
+            // We don't need nullable information to compute the symbol.  So avoid expensive work computing this.
+            var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return await GetControlFlowTargetLocationAsync(document, semanticModel).ConfigureAwait(false) ??
+                   await GetSymbolLocationAsync(document, semanticModel).ConfigureAwait(false);
         }
 
-        async ValueTask<DefinitionLocation?> GetControlFlowTargetLocationAsync(Document document)
+        async ValueTask<DefinitionLocation?> GetControlFlowTargetLocationAsync(
+            Document document, SemanticModel semanticModel)
         {
             var (controlFlowTarget, controlFlowSpan) = await symbolService.GetTargetIfControlFlowAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
+                document, semanticModel, position, cancellationToken).ConfigureAwait(false);
             if (controlFlowTarget == null)
                 return null;
 
@@ -64,11 +69,12 @@ internal abstract partial class AbstractDefinitionLocationService(
             return location is null ? null : new DefinitionLocation(location, new DocumentSpan(document, controlFlowSpan));
         }
 
-        async ValueTask<DefinitionLocation?> GetSymbolLocationAsync(Document document)
+        async ValueTask<DefinitionLocation?> GetSymbolLocationAsync(
+            Document document, SemanticModel semanticModel)
         {
             // Try to compute the referenced symbol and attempt to go to definition for the symbol.
             var (symbol, project, span) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
-                document, position, cancellationToken).ConfigureAwait(false);
+                document, semanticModel, position, cancellationToken).ConfigureAwait(false);
             if (symbol is null)
                 return null;
 
@@ -82,17 +88,35 @@ internal abstract partial class AbstractDefinitionLocationService(
             var isThirdPartyNavigationAllowed = await IsThirdPartyNavigationAllowedAsync(
                 symbol, position, document, cancellationToken).ConfigureAwait(false);
 
-            var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
-                symbol,
-                project.Solution,
-                _threadingContext,
-                _streamingPresenter,
-                thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+            var solution = project.Solution;
+            var regularDefinitions = await GoToDefinitionFeatureHelpers.GetDefinitionsAsync(
+                symbol, solution, isThirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
+            var interceptorDefinitions = await GetInterceptorDefinitionsAsync(
+                solution, document, span, cancellationToken).ConfigureAwait(false);
+
+            var symbolDisplayName = FindUsagesHelpers.GetDisplayName(symbol);
+            var title = interceptorDefinitions.Length == 0
+                ? string.Format(EditorFeaturesResources._0_declarations, symbolDisplayName)
+                : string.Format(EditorFeaturesResources._0_declarations_and_interceptors, symbolDisplayName);
+
+            var allDefinitions = regularDefinitions.Concat(interceptorDefinitions);
+            var location = await _streamingPresenter.GetStreamingLocationAsync(
+                _threadingContext, solution.Workspace, title, allDefinitions, cancellationToken).ConfigureAwait(false);
+
             if (location is null)
                 return null;
 
             return new DefinitionLocation(location, new DocumentSpan(document, span));
+        }
+
+        async ValueTask<ImmutableArray<DefinitionItem>> GetInterceptorDefinitionsAsync(
+            Solution solution, Document document, TextSpan span, CancellationToken cancellationToken)
+        {
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+
+            var interceptorSymbol = await semanticFacts.GetInterceptorSymbolAsync(document, span.Start, cancellationToken).ConfigureAwait(false);
+            return await GoToDefinitionFeatureHelpers.GetDefinitionsAsync(
+                interceptorSymbol, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -106,15 +130,12 @@ internal abstract partial class AbstractDefinitionLocationService(
     {
         var solution = project.Solution;
 
-        var sourceLocations = symbol.Locations.WhereAsArray(loc => loc.IsInSource);
-        if (sourceLocations.Length != 1)
+        if (symbol.DeclaringSyntaxReferences is not [{ SyntaxTree: { } definitionTree, Span: var definitionSpan }])
             return null;
 
-        var definitionLocation = sourceLocations[0];
-        if (!definitionLocation.SourceSpan.IntersectsWith(position))
+        if (!definitionSpan.IntersectsWith(position))
             return null;
 
-        var definitionTree = definitionLocation.SourceTree;
         var definitionDocument = solution.GetDocument(definitionTree);
         if (definitionDocument != originalDocument)
             return null;
@@ -122,7 +143,8 @@ internal abstract partial class AbstractDefinitionLocationService(
         // Ok, we were already on the definition. Look for better symbols we could show results for instead. This can be
         // expanded with other mappings in the future if appropriate.
         return await TryGetExplicitInterfaceLocationAsync().ConfigureAwait(false) ??
-               await TryGetInterceptedLocationAsync().ConfigureAwait(false);
+               await TryGetInterceptedLocationAsync().ConfigureAwait(false) ??
+               await TryGetOtherPartOfPartialAsync().ConfigureAwait(false);
 
         async ValueTask<INavigableLocation?> TryGetExplicitInterfaceLocationAsync()
         {
@@ -230,6 +252,24 @@ internal abstract partial class AbstractDefinitionLocationService(
                     return true;
                 });
             }
+        }
+        async ValueTask<INavigableLocation?> TryGetOtherPartOfPartialAsync()
+        {
+            ISymbol? otherPart = symbol is IMethodSymbol method ? method.PartialDefinitionPart ?? method.PartialImplementationPart : null;
+            otherPart ??= symbol is IPropertySymbol property ? property.PartialDefinitionPart ?? property.PartialImplementationPart : null;
+
+            if (otherPart is null || Equals(symbol, otherPart))
+                return null;
+
+            if (otherPart.Locations is not [{ SourceTree: { } sourceTree, SourceSpan: var span }])
+                return null;
+
+            var document = solution.GetDocument(sourceTree);
+            if (document is null)
+                return null;
+
+            var documentSpan = new DocumentSpan(document, span);
+            return await documentSpan.GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 

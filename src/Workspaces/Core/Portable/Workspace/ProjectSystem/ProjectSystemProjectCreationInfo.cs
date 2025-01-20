@@ -12,6 +12,7 @@ internal class ProjectSystemProjectCreationInfo
     public CompilationOptions? CompilationOptions { get; set; }
     public string? FilePath { get; set; }
     public ParseOptions? ParseOptions { get; set; }
+    public string? CompilationOutputAssemblyFilePath { get; set; }
 
     public Guid TelemetryId { get; set; }
 }

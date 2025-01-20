@@ -395,7 +395,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeDebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.Main");

@@ -21,11 +21,12 @@ internal sealed class CSharpConsoleSnippetProvider() : AbstractConsoleSnippetPro
     ArgumentListSyntax,
     LambdaExpressionSyntax>
 {
-    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
+    protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxContext = context.SyntaxContext;
+        var semanticModel = context.SemanticModel;
 
-        var consoleSymbol = GetConsoleSymbolFromMetaDataName(syntaxContext.SemanticModel.Compilation);
+        var consoleSymbol = GetConsoleSymbolFromMetaDataName(semanticModel.Compilation);
         if (consoleSymbol is null)
             return false;
 
@@ -33,7 +34,6 @@ internal sealed class CSharpConsoleSnippetProvider() : AbstractConsoleSnippetPro
         // Action a = () => Console.WriteLine("Action called");
         if (syntaxContext.TargetToken is { RawKind: (int)SyntaxKind.EqualsGreaterThanToken, Parent: LambdaExpressionSyntax lambda })
         {
-            var semanticModel = syntaxContext.SemanticModel;
             var lambdaSymbol = semanticModel.GetSymbolInfo(lambda, cancellationToken).Symbol;
 
             // Given that we are in a partially written lambda state compiler might not always infer return type correctly.

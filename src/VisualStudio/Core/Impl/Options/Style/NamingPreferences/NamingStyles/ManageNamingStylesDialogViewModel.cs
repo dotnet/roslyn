@@ -28,10 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         {
             _notificationService = notificationService;
 
-            Items = new ObservableCollection<INamingStylesInfoDialogViewModel>(namingStyles.Select(style => new NamingStyleViewModel(
+            Items = [.. namingStyles.Select(style => new NamingStyleViewModel(
                 style.Clone(),
                 !namingRules.Any(rule => rule.SelectedStyle?.ID == style.ID),
-                notificationService)));
+                notificationService))];
         }
 
         internal void RemoveNamingStyle(NamingStyleViewModel namingStyle)

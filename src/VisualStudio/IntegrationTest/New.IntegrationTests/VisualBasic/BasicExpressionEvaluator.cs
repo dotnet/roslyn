@@ -63,7 +63,7 @@ Module Module1
 End Module", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task ValidateLocalsWindow()
     {
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
@@ -91,7 +91,7 @@ End Module", HangMitigatingCancellationToken);
         Assert.Equal(("System.MulticastDelegate", "Nothing"), await TestServices.LocalsWindow.GetEntryAsync(["myMulticastDelegate"], HangMitigatingCancellationToken));
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task EvaluatePrimitiveValues()
     {
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
@@ -104,7 +104,7 @@ End Module", HangMitigatingCancellationToken);
         await TestServices.Debugger.CheckExpressionAsync("myString", "String", "\"\"", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task EvaluateLambdaExpressions()
     {
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
@@ -112,14 +112,14 @@ End Module", HangMitigatingCancellationToken);
         await TestServices.Debugger.CheckExpressionAsync("(Function(val As Integer)(val+val))(1)", "Integer", "2", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task EvaluateInvalidExpressions()
     {
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
         await TestServices.Debugger.CheckExpressionAsync("myNonsense", "", "error BC30451: 'myNonsense' is not declared. It may be inaccessible due to its protection level.", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task StateMachineTypeParameters()
     {
         await TestServices.Editor.SetTextAsync(@"

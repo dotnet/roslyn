@@ -4,7 +4,7 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Structure;
 
@@ -13,7 +13,7 @@ internal abstract class AbstractSyntaxTriviaStructureProvider : AbstractSyntaxSt
     public sealed override void CollectBlockSpans(
         SyntaxToken previousToken,
         SyntaxNode node,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken)
     {

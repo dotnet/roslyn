@@ -14,11 +14,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -28,14 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.InlineDeclaration), Shared]
-internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpInlineDeclarationCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.InlineDeclarationDiagnosticId];
 
@@ -47,9 +43,9 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Gather all statements to be removed
         // We need this to find the statements we can safely attach trivia to
@@ -97,7 +93,7 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
 
     private static SyntaxNode ReplaceIdentifierWithInlineDeclaration(
         Document document,
-        CSharpCodeFixOptionsProvider options, SemanticModel semanticModel,
+        CSharpSimplifierOptions options, SemanticModel semanticModel,
         SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
         IdentifierNameSyntax identifier, SyntaxNode currentNode,
         HashSet<StatementSyntax> declarationsToRemove,
@@ -119,24 +115,21 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
             // this local statement will be moved to be above the statement containing
             // the out-var.
             var localDeclarationStatement = (LocalDeclarationStatementSyntax)declaration.Parent;
-            var block = (BlockSyntax)localDeclarationStatement.Parent;
-            var declarationIndex = block.Statements.IndexOf(localDeclarationStatement);
+            var block = CSharpInlineDeclarationDiagnosticAnalyzer.GetEnclosingPseudoBlock(localDeclarationStatement.Parent);
+            var statements = GetStatements(block);
+            var declarationIndex = statements.IndexOf(localDeclarationStatement);
 
             // Try to find a predecessor Statement on the same line that isn't going to be removed
             StatementSyntax priorStatementSyntax = null;
             var localDeclarationToken = localDeclarationStatement.GetFirstToken();
             for (var i = declarationIndex - 1; i >= 0; i--)
             {
-                var statementSyntax = block.Statements[i];
+                var statementSyntax = statements[i];
                 if (declarationsToRemove.Contains(statementSyntax))
-                {
                     continue;
-                }
 
                 if (sourceText.AreOnSameLine(statementSyntax.GetLastToken(), localDeclarationToken))
-                {
                     priorStatementSyntax = statementSyntax;
-                }
 
                 break;
             }
@@ -162,9 +155,9 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
                 // We initialize this to null here but we must see at least the statement
                 // into which the declaration is going to be inlined so this will be not null
                 StatementSyntax nextStatementSyntax = null;
-                for (var i = declarationIndex + 1; i < block.Statements.Count; i++)
+                for (var i = declarationIndex + 1; i < statements.Length; i++)
                 {
-                    var statement = block.Statements[i];
+                    var statement = statements[i];
                     if (!declarationsToRemove.Contains(statement))
                     {
                         nextStatementSyntax = statement;
@@ -179,7 +172,9 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
             }
 
             // The above code handled the moving of trivia.  So remove the node, keeping around no trivia from it.
-            editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepNoTrivia);
+            editor.RemoveNode(localDeclarationStatement.Parent is GlobalStatementSyntax globalStatement
+                ? globalStatement
+                : localDeclarationStatement, SyntaxRemoveOptions.KeepNoTrivia);
         }
         else
         {
@@ -242,8 +237,22 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
         return editor.GetChangedRoot();
     }
 
+    private static ImmutableArray<StatementSyntax> GetStatements(SyntaxNode pseudoBlock)
+    {
+        if (pseudoBlock is BlockSyntax block)
+            return [.. block.Statements];
+
+        if (pseudoBlock is SwitchSectionSyntax switchSection)
+            return [.. switchSection.Statements];
+
+        if (pseudoBlock is CompilationUnitSyntax compilationUnit)
+            return [.. compilationUnit.Members.OfType<GlobalStatementSyntax>().Select(g => g.Statement)];
+
+        return [];
+    }
+
     public static TypeSyntax GenerateTypeSyntaxOrVar(
-       ITypeSymbol symbol, CSharpCodeFixOptionsProvider options)
+       ITypeSymbol symbol, CSharpSimplifierOptions options)
     {
         var useVar = IsVarDesired(symbol, options);
 
@@ -256,7 +265,7 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
             : symbol.GenerateTypeSyntax();
     }
 
-    private static bool IsVarDesired(ITypeSymbol type, CSharpCodeFixOptionsProvider options)
+    private static bool IsVarDesired(ITypeSymbol type, CSharpSimplifierOptions options)
     {
         // If they want it for intrinsics, and this is an intrinsic, then use var.
         if (type.IsSpecialType() == true)

@@ -144,7 +144,7 @@ Public Class E
     End Sub
 End Class
 ")
-            Dim vbCompilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(
+            Dim vbCompilation = CompilationUtils.CreateCompilationWithMscorlib461AndVBRuntime(
                 source:={source},
                 references:={csharpCompilation.EmitToImageReference()},
                 options:=TestOptions.DebugDll.WithOptionStrict(OptionStrict.On))
@@ -2566,6 +2566,60 @@ BC30401: 'E1' cannot implement 'E1' because there is no matching event on interf
             Assert.True(xSym.ContainingSymbol.IsImplicitlyDeclared)
             Assert.Same(e1.Type, xSym.ContainingType)
             Assert.Same(xSym, xSym.ContainingType.DelegateInvokeMethod.Parameters.First())
+        End Sub
+
+        <Fact()>
+        Public Sub CompilerLoweringPreserveAttribute_01()
+            Dim source1 = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Event)>
+Public Class Preserve1Attribute
+    Inherits Attribute
+End Class
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Event)>
+Public Class Preserve2Attribute
+    Inherits Attribute
+End Class
+
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Event)>
+Public Class Preserve3Attribute
+    Inherits Attribute
+End Class
+"
+            Dim source2 = "
+Class Test1
+    <Preserve1>
+    <Preserve2>
+    <Preserve3>
+    Event E1 As System.Action
+End Class
+"
+
+            Dim validate = Sub(m As ModuleSymbol)
+                               AssertEx.SequenceEqual(
+                                   {
+                                       "Preserve1Attribute",
+                                       "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                                       "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                                   },
+                                   m.GlobalNamespace.GetMember("Test1.E1Event").GetAttributes().Select(Function(a) a.ToString()))
+                           End Sub
+
+            Dim comp1 = CreateCompilation(
+                {source1, source2, CompilerLoweringPreserveAttributeDefinition},
+                options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            CompileAndVerify(comp1, symbolValidator:=validate).VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation([source2], references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            CompileAndVerify(comp2, symbolValidator:=validate).VerifyDiagnostics()
+
+            Dim comp3 = CreateCompilation(source2, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            CompileAndVerify(comp3, symbolValidator:=validate).VerifyDiagnostics()
         End Sub
 
     End Class

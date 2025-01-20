@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Public TryNavigateToPositionReturnValue As Boolean = True
             Public TryNavigateToSpanReturnValue As Boolean = True
 
-            Public Function CanNavigateToPosition(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToPositionAsync
+            Public Function CanNavigateToPosition(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, allowInvalidPosition As Boolean, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToPositionAsync
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedPosition = position
                 Me.ProvidedVirtualSpace = virtualSpace
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return If(CanNavigateToSpanReturnValue, SpecializedTasks.True, SpecializedTasks.False)
             End Function
 
-            Public Function GetLocationForPositionAsync(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements IDocumentNavigationService.GetLocationForPositionAsync
+            Public Function GetLocationForPositionAsync(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, allowInvalidPosition As Boolean, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements IDocumentNavigationService.GetLocationForPositionAsync
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedPosition = position
                 Me.ProvidedVirtualSpace = virtualSpace

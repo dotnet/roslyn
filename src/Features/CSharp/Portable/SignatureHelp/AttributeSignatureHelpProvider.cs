@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -23,7 +24,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 [ExportSignatureHelpProvider("AttributeSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
+internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -70,7 +71,7 @@ internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureH
             token != expression.ArgumentList.CloseParenToken;
     }
 
-    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         if (!TryGetAttributeExpression(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var attribute))
@@ -108,8 +109,8 @@ internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureH
         var symbolInfo = semanticModel.GetSymbolInfo(attribute, cancellationToken);
         var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo.Symbol);
 
-        return CreateSignatureHelpItems(accessibleConstructors.Select(c =>
-            Convert(c, within, attribute, semanticModel, structuralTypeDisplayService, documentationCommentFormatter, cancellationToken)).ToList(),
+        return CreateSignatureHelpItems([.. accessibleConstructors.Select(c =>
+            Convert(c, within, attribute, semanticModel, structuralTypeDisplayService, documentationCommentFormatter, cancellationToken))],
             textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem, parameterIndexOverride: -1);
     }
 
@@ -203,7 +204,7 @@ internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureH
         {
             return
             [
-                new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, CSharpFeaturesResources.Properties),
+                new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, FeaturesResources.Properties),
                 Punctuation(SyntaxKind.ColonToken),
                 Space()
             ];

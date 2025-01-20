@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -25,14 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.InvokeDelegateWithConditionalAccess), Shared]
-internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class InvokeDelegateWithConditionalAccessCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public InvokeDelegateWithConditionalAccessCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId];
 
     // Filter out the diagnostics we created for the faded out code.  We don't want
@@ -48,7 +43,7 @@ internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : Synt
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
         {
@@ -78,15 +73,12 @@ internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : Synt
         Diagnostic diagnostic,
         CancellationToken cancellationToken)
     {
-        var root = editor.OriginalRoot;
-
-        var ifStatementLocation = diagnostic.AdditionalLocations[0];
-        var expressionStatementLocation = diagnostic.AdditionalLocations[1];
-
-        var ifStatement = (IfStatementSyntax)root.FindNode(ifStatementLocation.SourceSpan);
+        // May be at the top level, pass `getInnermostNodeForTie: true` to peer into global statement.
+        var ifStatement = (IfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var expressionStatement = (ExpressionStatementSyntax)root.FindNode(expressionStatementLocation.SourceSpan);
+        // Always under another statement.block.  So getInnermostNodeForTie: true` is not necessary, but keeps things consistent.
+        var expressionStatement = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
         var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
@@ -121,23 +113,19 @@ internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : Synt
     private static void HandleVariableAndIfStatementForm(
         SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
-        var root = editor.OriginalRoot;
-
-        var localDeclarationLocation = diagnostic.AdditionalLocations[0];
-        var ifStatementLocation = diagnostic.AdditionalLocations[1];
-        var expressionStatementLocation = diagnostic.AdditionalLocations[2];
-
-        var localDeclarationStatement = (LocalDeclarationStatementSyntax)root.FindNode(localDeclarationLocation.SourceSpan);
+        // May be at the top level, pass `getInnermostNodeForTie: true` to peer into global statement.
+        var localDeclarationStatement = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var ifStatement = (IfStatementSyntax)root.FindNode(ifStatementLocation.SourceSpan);
+        // May be at the top level, pass `getInnermostNodeForTie: true` to peer into global statement.
+        var ifStatement = (IfStatementSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var expressionStatement = (ExpressionStatementSyntax)root.FindNode(expressionStatementLocation.SourceSpan);
+        // Always under another statement.block.  So getInnermostNodeForTie: true` is not necessary, but keeps things consistent.
+        var expressionStatement = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
         var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
-        var parentBlock = (BlockSyntax)localDeclarationStatement.GetRequiredParent();
 
         var invokeName =
             invocationExpression.Expression is MemberAccessExpressionSyntax { Name: IdentifierNameSyntax { Identifier.ValueText: nameof(Action.Invoke) } } memberAccessExpression

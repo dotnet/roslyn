@@ -20,7 +20,7 @@ public static class ButtonBaseExtensions
 
     static ButtonBaseExtensions()
     {
-        var methodInfo = typeof(RoutedCommand).GetMethod("ExecuteCore", BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(object), typeof(IInputElement), typeof(bool) }, null);
+        var methodInfo = typeof(RoutedCommand).GetMethod("ExecuteCore", BindingFlags.Instance | BindingFlags.NonPublic, null, [typeof(object), typeof(IInputElement), typeof(bool)], null);
         s_executeCoreMethod = methodInfo;
         //s_executeCore = (Action<RoutedCommand, object, IInputElement, bool>)Delegate.CreateDelegate(typeof(Action<RoutedCommand, object, IInputElement, bool>), firstArgument: null, methodInfo);
     }
@@ -72,7 +72,7 @@ public static class ButtonBaseExtensions
 
             if (routedCommand.CanExecute(commandParameter, commandTarget))
             {
-                s_executeCoreMethod.Invoke(routedCommand, new[] { commandParameter, commandTarget, userInitiated });
+                s_executeCoreMethod.Invoke(routedCommand, [commandParameter, commandTarget, userInitiated]);
                 //s_executeCore(routedCommand, commandParameter, commandTarget, userInitiated);
             }
         }

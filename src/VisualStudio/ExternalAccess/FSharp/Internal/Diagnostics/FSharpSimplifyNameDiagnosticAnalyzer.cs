@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
                     ExternalAccessFSharpResources.NameCanBeSimplified,
                     DiagnosticCategory.Style, DiagnosticSeverity.Hidden, isEnabledByDefault: true, customTags: FSharpDiagnosticCustomTags.Unnecessary);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
 
         public bool IsHighPriority => false;
 
@@ -73,11 +73,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
         {
             return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
-
-        public bool OpenFileOnly(SimplifierOptions options)
-        {
-            return true;
         }
     }
 }

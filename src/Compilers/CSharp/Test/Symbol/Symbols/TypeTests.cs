@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -533,7 +534,7 @@ public class A {
 }
 ";
 
-            var compilation = CreateEmptyCompilation(text, new[] { TestMetadata.Net40.mscorlib });
+            var compilation = CreateEmptyCompilation(text, new[] { Net40.References.mscorlib });
             int[] ary = new int[2];
 
             var globalNS = compilation.SourceModule.GlobalNamespace;

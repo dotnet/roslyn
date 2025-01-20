@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents save option configurations.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#saveOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class SaveOptions
     {

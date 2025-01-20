@@ -27,7 +27,6 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             Project project,
             Diagnostic diagnostic,
             AbstractSuppressionCodeFixProvider fixer,
-            CodeActionOptionsProvider options,
             CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -38,7 +37,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             }
             else if (documentOpt != null && !SuppressionHelpers.IsSynthesizedExternalSourceDiagnostic(diagnostic))
             {
-                var formattingOptions = await documentOpt.GetSyntaxFormattingOptionsAsync(options, cancellationToken).ConfigureAwait(false);
+                var formattingOptions = await documentOpt.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
                 return PragmaRemoveAction.Create(suppressionTargetInfo, documentOpt, formattingOptions, diagnostic, fixer);
             }
             else

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -275,11 +276,11 @@ namespace System.Diagnostics.Eventing
 }
 ";
 
-            var compilation1 = CreateEmptyCompilation(source1, new[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore });
+            var compilation1 = CreateEmptyCompilation(source1, new[] { Net40.References.mscorlib, Net40.References.SystemCore });
             compilation1.VerifyDiagnostics();
 
             var source2 = "public class A {}";
-            var compilation2 = CreateEmptyCompilation(source2, new MetadataReference[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore, compilation1.EmitToImageReference() },
+            var compilation2 = CreateEmptyCompilation(source2, new MetadataReference[] { Net40.References.mscorlib, Net40.References.SystemCore, compilation1.EmitToImageReference() },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var compilation1Lib = compilation2.ExternalReferences[2];

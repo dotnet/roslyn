@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Collections;
@@ -31,6 +32,28 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
+                dictionary.Add(key, value);
+                return value;
+            }
+        }
+
+        /// <summary>
+        /// If the given key is not found in the dictionary, add it with the result of invoking getValue and return the value.
+        /// Otherwise return the existing value associated with that key.
+        /// </summary>
+        public static TValue GetOrAdd<TKey, TValue>(
+            this Dictionary<TKey, TValue> dictionary,
+            TKey key,
+            Func<TValue> getValue)
+            where TKey : notnull
+        {
+            if (dictionary.TryGetValue(key, out var existingValue))
+            {
+                return existingValue;
+            }
+            else
+            {
+                var value = getValue();
                 dictionary.Add(key, value);
                 return value;
             }

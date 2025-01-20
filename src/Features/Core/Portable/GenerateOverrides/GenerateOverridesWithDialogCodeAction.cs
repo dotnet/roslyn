@@ -18,22 +18,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateOverrides;
 
-internal partial class GenerateOverridesCodeRefactoringProvider
+internal sealed partial class GenerateOverridesCodeRefactoringProvider
 {
     private sealed class GenerateOverridesWithDialogCodeAction(
         GenerateOverridesCodeRefactoringProvider service,
         Document document,
         TextSpan textSpan,
         INamedTypeSymbol containingType,
-        ImmutableArray<ISymbol> viableMembers,
-        CodeAndImportGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
+        ImmutableArray<ISymbol> viableMembers) : CodeActionWithOptions
     {
         private readonly GenerateOverridesCodeRefactoringProvider _service = service;
         private readonly Document _document = document;
         private readonly INamedTypeSymbol _containingType = containingType;
         private readonly ImmutableArray<ISymbol> _viableMembers = viableMembers;
         private readonly TextSpan _textSpan = textSpan;
-        private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
         public override string Title => FeaturesResources.Generate_overrides;
 
@@ -76,8 +74,7 @@ internal partial class GenerateOverridesCodeRefactoringProvider
                     _document.Project.Solution,
                     new CodeGenerationContext(
                         afterThisLocation: afterThisLocation,
-                        contextLocation: syntaxTree.GetLocation(_textSpan)),
-                    _fallbackOptions),
+                        contextLocation: syntaxTree.GetLocation(_textSpan))),
                 _containingType,
                 members,
                 cancellationToken).ConfigureAwait(false);

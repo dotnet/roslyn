@@ -16,18 +16,14 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConvertToAsync;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertToAsync), Shared]
-internal class CSharpConvertToAsyncMethodCodeFixProvider : AbstractConvertToAsyncCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpConvertToAsyncMethodCodeFixProvider() : AbstractConvertToAsyncCodeFixProvider
 {
     /// <summary>
     /// Cannot await void.
     /// </summary>
     private const string CS4008 = nameof(CS4008);
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpConvertToAsyncMethodCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds => [CS4008];
 

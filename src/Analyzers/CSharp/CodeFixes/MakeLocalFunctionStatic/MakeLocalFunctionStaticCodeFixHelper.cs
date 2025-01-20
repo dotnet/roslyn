@@ -29,12 +29,11 @@ internal static class MakeLocalFunctionStaticCodeFixHelper
         Document document,
         LocalFunctionStatementSyntax localFunction,
         ImmutableArray<ISymbol> captures,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var syntaxEditor = new SyntaxEditor(root, document.Project.Solution.Services);
-        await MakeLocalFunctionStaticAsync(document, localFunction, captures, syntaxEditor, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        await MakeLocalFunctionStaticAsync(document, localFunction, captures, syntaxEditor, cancellationToken).ConfigureAwait(false);
         return document.WithSyntaxRoot(syntaxEditor.GetChangedRoot());
     }
 
@@ -43,7 +42,6 @@ internal static class MakeLocalFunctionStaticCodeFixHelper
         LocalFunctionStatementSyntax localFunction,
         ImmutableArray<ISymbol> captures,
         SyntaxEditor syntaxEditor,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -167,12 +165,7 @@ internal static class MakeLocalFunctionStaticCodeFixHelper
             }
         }
 
-#if CODE_STYLE
-        var info = new CSharpCodeGenerationContextInfo(
-            CodeGenerationContext.Default, CSharpCodeGenerationOptions.Default, new CSharpCodeGenerationService(document.Project.GetExtendedLanguageServices().LanguageServices), root.SyntaxTree.Options.LanguageVersion());
-#else
-        var info = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
-#endif
+        var info = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
 
         // Updates the local function declaration with variables passed in as parameters
         syntaxEditor.ReplaceNode(

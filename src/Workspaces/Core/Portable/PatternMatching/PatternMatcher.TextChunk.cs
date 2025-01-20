@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching;
 
-internal partial class PatternMatcher
+internal abstract partial class PatternMatcher
 {
     /// <summary>
     /// Information about a chunk of text from the pattern.  The chunk is a piece of text, with 
@@ -38,6 +38,7 @@ internal partial class PatternMatcher
         public WordSimilarityChecker SimilarityChecker;
 
         public readonly bool IsLowercase;
+        public readonly bool IsUppercase;
 
         public TextChunk(string text, bool allowFuzzingMatching)
         {
@@ -50,6 +51,7 @@ internal partial class PatternMatcher
                 : default;
 
             IsLowercase = !ContainsUpperCaseLetter(text);
+            IsUppercase = !ContainsLowerCaseLetter(text);
         }
 
         public void Dispose()

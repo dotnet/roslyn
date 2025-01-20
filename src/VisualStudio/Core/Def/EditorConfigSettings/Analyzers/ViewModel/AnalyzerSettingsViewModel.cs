@@ -41,13 +41,12 @@ internal partial class AnalyzerSettingsViewModel : SettingsViewModelBase<
         };
 
     protected override string[] GetFixedColumns()
-        => new[]
-        {
+        => [
             ColumnDefinitions.Analyzer.Category,
             ColumnDefinitions.Analyzer.Id,
             ColumnDefinitions.Analyzer.Title,
             ColumnDefinitions.Analyzer.Description,
             ColumnDefinitions.Analyzer.Severity,
             ColumnDefinitions.Analyzer.Location,
-        };
+        ];
 }

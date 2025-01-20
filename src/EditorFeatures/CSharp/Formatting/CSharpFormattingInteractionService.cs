@@ -5,10 +5,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
@@ -24,10 +22,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 [ExportLanguageService(typeof(IFormattingInteractionService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpFormattingInteractionService(EditorOptionsService editorOptionsService) : IFormattingInteractionService
+internal sealed class CSharpFormattingInteractionService(EditorOptionsService editorOptionsService) : IFormattingInteractionService
 {
-    // All the characters that might potentially trigger formatting when typed
-    private static readonly char[] _supportedChars = ";{}#nte:)".ToCharArray();
+    /// <summary>
+    /// All the characters that might potentially trigger formatting when typed.  The punctuation characters are the
+    /// normal C# punctuation characters that start/end constructs we want to format when starting/ending them.  The
+    /// letters 'n', 't', and 'e' are the ending characters of certain identifiers that we want to format when they are
+    /// completely written.  For example, if the user types <c>#</c> we left align the preprocessor directive
+    /// immediately.  However, once they type <c>region</c> (which ends with 'n') we then want to indent it.  See <see
+    /// cref="CSharpSyntaxFormattingService.ValidSingleOrMultiCharactersTokenKind"/> for those identifier cases.
+    /// </summary>
+    private const string s_supportedChars = ";{}#:)nte";
 
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
@@ -47,36 +52,26 @@ internal partial class CSharpFormattingInteractionService(EditorOptionsService e
         //
         // See extended comment in GetFormattingChangesAsync for more details on this.
         if (isSmartIndent && ch is '{' or '}')
-        {
             return true;
-        }
 
         var options = _editorOptionsService.GlobalOptions.GetAutoFormattingOptions(LanguageNames.CSharp);
 
         // If format-on-typing is not on, then we don't support formatting on any other characters.
         var autoFormattingOnTyping = options.FormatOnTyping;
         if (!autoFormattingOnTyping)
-        {
             return false;
-        }
 
         if (ch == '}' && !options.FormatOnCloseBrace)
-        {
             return false;
-        }
 
         if (ch == ';' && !options.FormatOnSemicolon)
-        {
             return false;
-        }
 
         // don't auto format after these keys if smart indenting is not on.
         if (ch is '#' or 'n' && !isSmartIndent)
-        {
             return false;
-        }
 
-        return _supportedChars.Contains(ch);
+        return s_supportedChars.IndexOf(ch) >= 0;
     }
 
     public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(
@@ -86,7 +81,7 @@ internal partial class CSharpFormattingInteractionService(EditorOptionsService e
         CancellationToken cancellationToken)
     {
         var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-        var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: true);
+        var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), parsedDocument.LanguageServices, explicitFormat: true);
 
         var span = textSpan ?? new TextSpan(0, parsedDocument.Root.FullSpan.Length);
         var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(parsedDocument.Root, span);
@@ -97,7 +92,7 @@ internal partial class CSharpFormattingInteractionService(EditorOptionsService e
     public Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-        var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: true);
+        var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), parsedDocument.LanguageServices, explicitFormat: true);
         var service = parsedDocument.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
         return Task.FromResult(service.GetFormattingChangesOnPaste(parsedDocument, textSpan, options, cancellationToken));
     }
@@ -112,7 +107,7 @@ internal partial class CSharpFormattingInteractionService(EditorOptionsService e
 
         if (service.ShouldFormatOnTypedCharacter(parsedDocument, typedChar, position, cancellationToken))
         {
-            var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: false);
+            var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), parsedDocument.LanguageServices, explicitFormat: false);
             return Task.FromResult(service.GetFormattingChangesOnTypedCharacter(parsedDocument, position, indentationOptions, cancellationToken));
         }
 

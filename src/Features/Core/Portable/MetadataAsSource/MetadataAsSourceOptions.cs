@@ -3,19 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
 /// <summary>
-/// Options for metadata as source navigation
+/// Options for metadata as source navigation.
 /// </summary>
-/// <param name="GenerationOptions">Options to use to prettify the generated document.</param>
 [DataContract]
-internal readonly record struct MetadataAsSourceOptions(
-    [property: DataMember] CleanCodeGenerationOptions GenerationOptions)
+internal readonly record struct MetadataAsSourceOptions()
 {
+    public static readonly MetadataAsSourceOptions Default = new();
+
     /// <summary>
     /// <see langword="false"/> to disallow decompiling code, which may
     /// result in signagures only being returned if there is no other non-decompilation option available
@@ -36,7 +34,4 @@ internal readonly record struct MetadataAsSourceOptions(
     /// </summary>
     [DataMember]
     public bool NavigateToSourceLinkAndEmbeddedSources { get; init; } = true;
-
-    public static MetadataAsSourceOptions GetDefault(LanguageServices languageServices)
-        => new(GenerationOptions: CleanCodeGenerationOptions.GetDefault(languageServices));
 }

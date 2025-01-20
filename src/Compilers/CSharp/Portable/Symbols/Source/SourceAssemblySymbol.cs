@@ -1935,7 +1935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return guidString != null;
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -2739,6 +2739,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else if (unread)
                     {
                         diagnostics.Add(ErrorCode.WRN_UnreferencedField, field.GetFirstLocationOrNone(), field);
+                    }
+                    else if (field.RefKind != RefKind.None)
+                    {
+                        diagnostics.Add(ErrorCode.WRN_UnassignedInternalRefField, field.GetFirstLocationOrNone(), field);
                     }
                     else
                     {

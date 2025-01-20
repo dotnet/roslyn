@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -17,7 +18,6 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 public partial class ProjectDependencyGraph
 {
-    private readonly ImmutableHashSet<ProjectId> _projectIds;
 
     /// <summary>
     /// The map of projects to dependencies. This field is always fully initialized. Projects which do not reference
@@ -29,7 +29,7 @@ public partial class ProjectDependencyGraph
     /// <item><description>Projects which do not reference any other projects do not have a key in this map (i.e.
     /// they are omitted, as opposed to including them with an empty value)</description></item>
     /// <item><description>The keys and values in this map are always contained in
-    /// <see cref="_projectIds"/></description></item>
+    /// <see cref="ProjectIds"/></description></item>
     /// </list>
     /// </summary>
     private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _referencesMap;
@@ -55,6 +55,9 @@ public partial class ProjectDependencyGraph
     // These accumulate results on demand. They are never null, but a missing key/value pair indicates it needs to be computed.
     private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _transitiveReferencesMap;
     private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _reverseTransitiveReferencesMap;
+
+    // Pool of ImmutableHashSet builders used in ComputeReverseReferencesMap to avoid temporary HashSet allocations.
+    private static readonly ObjectPool<ImmutableHashSet<ProjectId>.Builder> s_reverseReferencesBuilderPool = new(static () => ImmutableHashSet.CreateBuilder<ProjectId>(), size: 256);
 
     /// <remarks>
     ///   Intentionally created with a null reverseReferencesMap. Doing so indicates _lazyReverseReferencesMap
@@ -97,7 +100,7 @@ public partial class ProjectDependencyGraph
         Contract.ThrowIfNull(transitiveReferencesMap);
         Contract.ThrowIfNull(reverseTransitiveReferencesMap);
 
-        _projectIds = projectIds;
+        ProjectIds = projectIds;
         _referencesMap = referencesMap;
         _lazyReverseReferencesMap = reverseReferencesMap;
         _transitiveReferencesMap = transitiveReferencesMap;
@@ -105,11 +108,11 @@ public partial class ProjectDependencyGraph
         _lazyTopologicallySortedProjects = topologicallySortedProjects;
         _lazyDependencySets = dependencySets;
 
-        ValidateForwardReferences(_projectIds, _referencesMap);
-        ValidateReverseReferences(_projectIds, _referencesMap, _lazyReverseReferencesMap);
+        ValidateForwardReferences(ProjectIds, _referencesMap);
+        ValidateReverseReferences(ProjectIds, _referencesMap, _lazyReverseReferencesMap);
     }
 
-    internal ImmutableHashSet<ProjectId> ProjectIds => _projectIds;
+    internal ImmutableHashSet<ProjectId> ProjectIds { get; }
 
     private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> RemoveItemsWithEmptyValues(
         ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> map)
@@ -131,7 +134,7 @@ public partial class ProjectDependencyGraph
 
     internal ProjectDependencyGraph WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
     {
-        Contract.ThrowIfFalse(_projectIds.Contains(projectId));
+        Contract.ThrowIfFalse(ProjectIds.Contains(projectId));
 
         if (!_referencesMap.ContainsKey(projectId))
         {
@@ -150,14 +153,14 @@ public partial class ProjectDependencyGraph
         // only include projects contained in the solution:
         var referencedProjectIds = projectReferences.IsEmpty() ? [] :
             projectReferences
-                .Where(r => _projectIds.Contains(r.ProjectId))
+                .Where(r => ProjectIds.Contains(r.ProjectId))
                 .Select(r => r.ProjectId)
                 .ToImmutableHashSet();
 
         var referencesMap = referencedProjectIds.IsEmpty ?
             _referencesMap.Remove(projectId) : _referencesMap.SetItem(projectId, referencedProjectIds);
 
-        return new ProjectDependencyGraph(_projectIds, referencesMap);
+        return new ProjectDependencyGraph(ProjectIds, referencesMap);
     }
 
     /// <summary>
@@ -202,7 +205,7 @@ public partial class ProjectDependencyGraph
         if (_lazyReverseReferencesMap == null)
         {
             _lazyReverseReferencesMap = this.ComputeReverseReferencesMap();
-            ValidateReverseReferences(_projectIds, _referencesMap, _lazyReverseReferencesMap);
+            ValidateReverseReferences(ProjectIds, _referencesMap, _lazyReverseReferencesMap);
         }
 
         return _lazyReverseReferencesMap.GetValueOrDefault(projectId, []);
@@ -210,17 +213,36 @@ public partial class ProjectDependencyGraph
 
     private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeReverseReferencesMap()
     {
-        var reverseReferencesMap = new Dictionary<ProjectId, HashSet<ProjectId>>();
-
+        using var _1 = PooledDictionary<ProjectId, ImmutableHashSet<ProjectId>.Builder>.GetInstance(out var reverseReferencesMapBuilders);
         foreach (var (projectId, references) in _referencesMap)
         {
             foreach (var referencedId in references)
-                reverseReferencesMap.MultiAdd(referencedId, projectId);
+            {
+                if (!reverseReferencesMapBuilders.TryGetValue(referencedId, out var builder))
+                {
+                    builder = s_reverseReferencesBuilderPool.Allocate();
+                    reverseReferencesMapBuilders.Add(referencedId, builder);
+                }
+
+                builder.Add(projectId);
+            }
         }
 
-        return reverseReferencesMap
-            .Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.ToImmutableHashSet()))
-            .ToImmutableDictionary();
+        // Convert all the populated ImmutableHashSet.Builder objects to ImmutableHashSets
+        var reverseReferencesBuilder = ImmutableDictionary.CreateBuilder<ProjectId, ImmutableHashSet<ProjectId>>();
+        foreach (var (projectId, builder) in reverseReferencesMapBuilders)
+        {
+            // Realize an ImmutableHashSet from the builder
+            var reverseReferencesForProject = builder.ToImmutableHashSet();
+
+            // Clear out the builder and release it back to the pool
+            builder.Clear();
+            s_reverseReferencesBuilderPool.Free(builder);
+
+            reverseReferencesBuilder.Add(projectId, reverseReferencesForProject);
+        }
+
+        return reverseReferencesBuilder.ToImmutable();
     }
 
     /// <summary>
@@ -366,7 +388,7 @@ public partial class ProjectDependencyGraph
         {
             using var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
             using var resultList = SharedPools.Default<List<ProjectId>>().GetPooledObject();
-            this.TopologicalSort(_projectIds, seenProjects.Object, resultList.Object, cancellationToken);
+            this.TopologicalSort(ProjectIds, seenProjects.Object, resultList.Object, cancellationToken);
             _lazyTopologicallySortedProjects = [.. resultList.Object];
         }
     }
@@ -427,7 +449,7 @@ public partial class ProjectDependencyGraph
 
     private void ComputeDependencySets(HashSet<ProjectId> seenProjects, List<IEnumerable<ProjectId>> results, CancellationToken cancellationToken)
     {
-        foreach (var project in _projectIds)
+        foreach (var project in ProjectIds)
         {
             if (seenProjects.Add(project))
             {
@@ -544,9 +566,9 @@ public partial class ProjectDependencyGraph
         // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
         // If the information is not available, do not compute it.
         var forwardDependencies = TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
-        if (forwardDependencies is object && forwardDependencies.Contains(potentialDependency))
+        if (forwardDependencies is object)
         {
-            return true;
+            return forwardDependencies.Contains(potentialDependency);
         }
 
         // Compute the set of all projects that depend on 'potentialDependency'. This information answers the same

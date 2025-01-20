@@ -224,13 +224,9 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         }
     }
 
-    void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
-    {
-    }
-
-    void IOpenTextBufferEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer textBuffer)
-    {
-    }
+    void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy) { }
+    void IOpenTextBufferEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer textBuffer) { }
+    void IOpenTextBufferEventListener.OnSaveDocument(string moniker) { }
 
     private sealed class OpenSourceGeneratedFile : IDisposable
     {

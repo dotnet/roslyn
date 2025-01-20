@@ -29,14 +29,14 @@ public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpComplet
 
     private protected override Task VerifyWorkerAsync(
         string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
-        SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
+        SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool checkForAbsence,
         int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
         List<CompletionFilter> matchingFilters, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
     {
         return base.VerifyWorkerAsync(code, position,
             expectedItemOrNull, expectedDescriptionOrNull,
-            SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence,
+            SourceCodeKind.Regular, usePreviousCharAsTrigger, deletedCharTrigger, checkForAbsence,
             glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
             displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options);
     }

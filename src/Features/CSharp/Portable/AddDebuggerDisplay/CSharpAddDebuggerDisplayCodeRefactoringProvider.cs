@@ -14,17 +14,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.AddDebuggerDisplay;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddDebuggerDisplay), Shared]
-internal sealed class CSharpAddDebuggerDisplayCodeRefactoringProvider
-    : AbstractAddDebuggerDisplayCodeRefactoringProvider<
-        TypeDeclarationSyntax,
-        MethodDeclarationSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpAddDebuggerDisplayCodeRefactoringProvider()
+    : AbstractAddDebuggerDisplayCodeRefactoringProvider<TypeDeclarationSyntax, MethodDeclarationSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpAddDebuggerDisplayCodeRefactoringProvider()
-    {
-    }
-
     protected override bool CanNameofAccessNonPublicMembersFromAttributeArgument => true;
 
     protected override bool SupportsConstantInterpolatedStrings(Document document)

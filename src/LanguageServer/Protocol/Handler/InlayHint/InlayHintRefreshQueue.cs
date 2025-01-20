@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             _globalOptionService.RemoveOptionChangedHandler(this, OnOptionChanged);
         }
 
-        private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
+        private void OnOptionChanged(object sender, object target, OptionChangedEventArgs e)
         {
             if (e.HasOption(static option =>
                     option.Equals(InlineHintsOptionsStorage.EnabledForParameters) ||

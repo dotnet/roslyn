@@ -22,21 +22,20 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         private readonly AbstractSuppressionCodeFixProvider _fixer = fixer;
         private readonly ISymbol _targetSymbol = targetSymbol;
         private readonly INamedTypeSymbol _suppressMessageAttribute = suppressMessageAttribute;
-        private readonly SyntaxNode _targetNode = targetNode;
         private readonly Document _document = document;
         private readonly Diagnostic _diagnostic = diagnostic;
 
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
             var newTargetNode = _fixer.AddLocalSuppressMessageAttribute(
-                _targetNode, _targetSymbol, _suppressMessageAttribute, _diagnostic);
+                TargetNode_TestOnly, _targetSymbol, _suppressMessageAttribute, _diagnostic);
             var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = root.ReplaceNode<SyntaxNode>(_targetNode, newTargetNode);
+            var newRoot = root.ReplaceNode<SyntaxNode>(TargetNode_TestOnly, newTargetNode);
             return _document.WithSyntaxRoot(newRoot);
         }
 
         protected override string DiagnosticIdForEquivalenceKey => _diagnostic.Id;
 
-        internal SyntaxNode TargetNode_TestOnly => _targetNode;
+        internal SyntaxNode TargetNode_TestOnly { get; } = targetNode;
     }
 }

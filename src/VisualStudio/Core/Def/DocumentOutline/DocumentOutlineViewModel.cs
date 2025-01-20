@@ -59,7 +59,7 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
     private Visibility _visibility_doNotAccessDirectly = Visibility.Visible;
     private SortOption _sortOption_doNotAccessDirectly = SortOption.Location;
     private string _searchText_doNotAccessDirectly = "";
-    private ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems_doNotAccessDirectly = ImmutableArray<DocumentSymbolDataViewModel>.Empty;
+    private ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems_doNotAccessDirectly = [];
     private DocumentOutlineViewState _lastPresentedViewState_doNotAccessDirectly;
 
     /// <summary>
@@ -119,7 +119,7 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
         => new(
             currentSnapshot,
             searchText: "",
-            ImmutableArray<DocumentSymbolDataViewModel>.Empty,
+            [],
             []);
 
     private void OnEventSourceChanged(object sender, TaggerEventArgs e)

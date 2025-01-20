@@ -139,7 +139,7 @@ internal static partial class FixAllContextHelper
             cancellationToken.ThrowIfCancellationRequested();
             if (!await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
             {
-                builder.Add(document, diagnosticsForDocument.ToImmutableArray());
+                builder.Add(document, [.. diagnosticsForDocument]);
             }
         }
 

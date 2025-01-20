@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -38,36 +39,59 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
     protected abstract string ExteriorTriviaText { get; }
     protected abstract bool AddIndent { get; }
 
+    private bool IsAtEndOfDocCommentTriviaOnBlankLine(SourceText text, int endPosition)
+    {
+        var commentStart = endPosition - "///".Length;
+        if (commentStart < 0)
+            return false;
+
+        var docCommentChar = this.DocumentationCommentCharacter[0];
+        if (text[commentStart + 0] != docCommentChar ||
+            text[commentStart + 1] != docCommentChar ||
+            text[commentStart + 2] != docCommentChar)
+        {
+            return false;
+        }
+
+        var line = text.Lines.GetLineFromPosition(commentStart);
+        for (var i = line.Start; i < commentStart; i++)
+        {
+            if (!char.IsWhiteSpace(text[i]))
+                return false;
+        }
+
+        return true;
+    }
+
     public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
-        SyntaxTree syntaxTree,
-        SourceText text,
+        ParsedDocument document,
         int position,
         in DocumentationCommentOptions options,
         CancellationToken cancellationToken,
         bool addIndentation = true)
     {
         if (!options.AutoXmlDocCommentGeneration)
-        {
             return null;
-        }
 
-        // Only generate if the position is immediately after '///', 
-        // and that is the only documentation comment on the target member.
+        // Only generate if the position is immediately after '///', with only whitespace before. And that is the only
+        // documentation comment on the target member.
+
+        var syntaxTree = document.SyntaxTree;
+        var text = document.Text;
+
+        if (!IsAtEndOfDocCommentTriviaOnBlankLine(text, position))
+            return null;
 
         var token = syntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
         if (position != token.SpanStart)
-        {
             return null;
-        }
 
         var lines = addIndentation
             ? GetDocumentationCommentLines(token, text, options, out _, out var caretOffset, out var spanToReplaceLength)
             : GetDocumentationCommentLinesNoIndentation(token, text, options, out caretOffset, out spanToReplaceLength);
 
         if (lines == null)
-        {
             return null;
-        }
 
         var newLine = options.NewLine;
 
@@ -166,11 +190,14 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         return lines;
     }
 
-    public bool IsValidTargetMember(SyntaxTree syntaxTree, SourceText text, int position, CancellationToken cancellationToken)
-        => GetTargetMember(syntaxTree, text, position, cancellationToken) != null;
+    public bool IsValidTargetMember(ParsedDocument document, int position, CancellationToken cancellationToken)
+        => GetTargetMember(document, position, cancellationToken) != null;
 
-    private TMemberNode? GetTargetMember(SyntaxTree syntaxTree, SourceText text, int position, CancellationToken cancellationToken)
+    private TMemberNode? GetTargetMember(ParsedDocument document, int position, CancellationToken cancellationToken)
     {
+        var syntaxTree = document.SyntaxTree;
+        var text = document.Text;
+
         var member = GetContainingMember(syntaxTree, position, cancellationToken);
         if (member == null)
         {
@@ -226,7 +253,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         }
     }
 
-    public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(SyntaxTree syntaxTree, SourceText text, int position, in DocumentationCommentOptions options, CancellationToken cancellationToken)
+    public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(ParsedDocument document, int position, in DocumentationCommentOptions options, CancellationToken cancellationToken)
     {
         // Don't attempt to generate a new XML doc comment on ENTER if the option to auto-generate
         // them isn't set. Regardless of the option, we should generate exterior trivia (i.e. /// or ''')
@@ -234,24 +261,33 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
 
         if (options.AutoXmlDocCommentGeneration)
         {
-            var result = GenerateDocumentationCommentAfterEnter(syntaxTree, text, position, options, cancellationToken);
+            var result = GenerateDocumentationCommentAfterEnter(document, position, options, cancellationToken);
             if (result != null)
-            {
                 return result;
-            }
         }
 
-        return GenerateExteriorTriviaAfterEnter(syntaxTree, text, position, options, cancellationToken);
+        return GenerateExteriorTriviaAfterEnter(document, position, options, cancellationToken);
     }
 
-    private DocumentationCommentSnippet? GenerateDocumentationCommentAfterEnter(SyntaxTree syntaxTree, SourceText text, int position, in DocumentationCommentOptions options, CancellationToken cancellationToken)
+    private DocumentationCommentSnippet? GenerateDocumentationCommentAfterEnter(ParsedDocument document, int position, in DocumentationCommentOptions options, CancellationToken cancellationToken)
     {
         // Find the documentation comment before the new line that was just pressed
+        var syntaxTree = document.SyntaxTree;
+        var text = document.Text;
+
+        // We will have already entered the newline for the <enter>.  So we need to look back to the prior line to make
+        // sure it is well formed.
+        var line = text.Lines.GetLineFromPosition(position);
+        if (line.LineNumber == 0)
+            return null;
+
+        var previousLine = text.Lines[line.LineNumber - 1];
+        if (!IsAtEndOfDocCommentTriviaOnBlankLine(text, previousLine.End))
+            return null;
+
         var token = GetTokenToLeft(syntaxTree, position, cancellationToken);
         if (!IsDocCommentNewLine(token))
-        {
             return null;
-        }
 
         var newLine = options.NewLine;
         var lines = GetDocumentationCommentLines(token, text, options, out var indentText, out _, out _);
@@ -286,9 +322,11 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         return new DocumentationCommentSnippet(replaceSpan, newText, offset);
     }
 
-    public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(SyntaxTree syntaxTree, SourceText text, int position, in DocumentationCommentOptions options, CancellationToken cancellationToken)
+    public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(ParsedDocument document, int position, in DocumentationCommentOptions options, CancellationToken cancellationToken)
     {
-        var targetMember = GetTargetMember(syntaxTree, text, position, cancellationToken);
+        var text = document.Text;
+
+        var targetMember = GetTargetMember(document, position, cancellationToken);
         if (targetMember == null)
         {
             return null;
@@ -323,9 +361,16 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         return new DocumentationCommentSnippet(replaceSpan, comments, offset);
     }
 
-    private DocumentationCommentSnippet? GenerateExteriorTriviaAfterEnter(SyntaxTree syntaxTree, SourceText text, int position, in DocumentationCommentOptions options, CancellationToken cancellationToken)
+    private DocumentationCommentSnippet? GenerateExteriorTriviaAfterEnter(ParsedDocument document, int position, in DocumentationCommentOptions options, CancellationToken cancellationToken)
     {
+        var syntaxTree = document.SyntaxTree;
+        var text = document.Text;
+
         // Find the documentation comment before the new line that was just pressed
+        var syntaxFacts = document.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+        if (syntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree, position, cancellationToken))
+            return null;
+
         var token = GetTokenToLeft(syntaxTree, position, cancellationToken);
         if (!IsDocCommentNewLine(token) && HasSkippedTrailingTrivia(token))
         {

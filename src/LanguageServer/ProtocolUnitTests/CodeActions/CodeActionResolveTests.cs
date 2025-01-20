@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             //             var i = 1;
             //         }
             //     }
-            var expectedTextEdits = new LSP.TextEdit[]
+            var expectedTextEdits = new SumType<TextEdit, AnnotatedTextEdit>[]
             {
                 GenerateTextEdit("var", new LSP.Range { Start = new Position(4, 8), End = new Position(4, 11) })
             };
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             //             int i = V;
             //         }
             //     }
-            var expectedTextEdits = new LSP.TextEdit[]
+            var expectedTextEdits = new SumType<TextEdit, AnnotatedTextEdit>[]
             {
                 GenerateTextEdit(@"private const int V = 1;
 
@@ -230,7 +230,7 @@ class {|caret:ABC|}
                 diagnostics: null);
 
             var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
-            var edits = new TextEdit[]
+            var edits = new SumType<TextEdit, AnnotatedTextEdit>[]
             {
                 new TextEdit()
                 {
@@ -355,8 +355,8 @@ class BCD
                     new TextDocumentEdit()
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newDocumentUri },
-                        Edits = new TextEdit[]
-                        {
+                        Edits =
+                        [
                             new TextEdit()
                             {
                                 Range = new LSP.Range
@@ -377,14 +377,14 @@ class BCD
 }
 "
                             }
-                        }
+                        ]
                     },
                     // Remove the declaration from existing file
                     new TextDocumentEdit()
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = existingDocumentUri },
-                        Edits = new TextEdit[]
-                        {
+                        Edits =
+                        [
                             new TextEdit()
                             {
                                 Range = new LSP.Range
@@ -402,7 +402,7 @@ class BCD
                                 },
                                 NewText = ""
                             }
-                        }
+                        ]
                     }
                 }
             };
@@ -447,7 +447,7 @@ class {|caret:BCD|}
                     }
                 },
 
-                DocumentFileContainingFolders = new[] { Path.Combine("dir1", "dir2", "dir3") },
+                DocumentFileContainingFolders = [Path.Combine("dir1", "dir2", "dir3")],
             });
 
             var titlePath = new string[] { string.Format(FeaturesResources.Move_type_to_0, "BCD.cs") };
@@ -482,8 +482,8 @@ class {|caret:BCD|}
                     new TextDocumentEdit()
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newDocumentUri },
-                        Edits = new TextEdit[]
-                        {
+                        Edits =
+                        [
                             new TextEdit()
                             {
                                 Range = new LSP.Range
@@ -503,14 +503,14 @@ class {|caret:BCD|}
 {
 }"
                             }
-                        }
+                        ]
                     },
                     // Remove the declaration from existing file
                     new TextDocumentEdit()
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = existingDocumentUri },
-                        Edits = new TextEdit[]
-                        {
+                        Edits =
+                        [
                             new TextEdit()
                             {
                                 Range = new LSP.Range
@@ -528,7 +528,7 @@ class {|caret:BCD|}
                                 },
                                 NewText = ""
                             }
-                        }
+                        ]
                     }
                 }
             };
@@ -567,7 +567,7 @@ class {|caret:BCD|}
 
         private static WorkspaceEdit GenerateWorkspaceEdit(
             IList<LSP.Location> locations,
-            TextEdit[] edits)
+            SumType<TextEdit, AnnotatedTextEdit>[] edits)
             => new LSP.WorkspaceEdit
             {
                 DocumentChanges = new TextDocumentEdit[]

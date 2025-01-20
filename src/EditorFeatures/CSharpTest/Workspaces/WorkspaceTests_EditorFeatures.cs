@@ -172,7 +172,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
         await VerifyRootTypeNameAsync(workspace, "D");
 
         workspace.OnParseOptionsChanged(document.Id.ProjectId,
-            new CSharpParseOptions(preprocessorSymbols: new[] { "GOO" }));
+            new CSharpParseOptions(preprocessorSymbols: ["GOO"]));
 
         await VerifyRootTypeNameAsync(workspace, "C");
     }
@@ -200,7 +200,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
         await VerifyRootTypeNameAsync(workspace, "D");
 
         workspace.OnParseOptionsChanged(document.Id.ProjectId,
-            new CSharpParseOptions(preprocessorSymbols: new[] { "GOO" }));
+            new CSharpParseOptions(preprocessorSymbols: ["GOO"]));
 
         await VerifyRootTypeNameAsync(workspace, "C");
 
@@ -425,7 +425,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
         var project1 = new EditorTestHostProject(workspace, document1, name: "project1");
 
         var document2 = new EditorTestHostDocument(@"class D : C { }");
-        var project2 = new EditorTestHostProject(workspace, document2, name: "project2", projectReferences: new[] { project1 });
+        var project2 = new EditorTestHostProject(workspace, document2, name: "project2", projectReferences: [project1]);
 
         workspace.AddTestProject(project1);
         workspace.AddTestProject(project2);
@@ -453,7 +453,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
               Inherits C
             End Class
             """);
-        var project2 = new EditorTestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: new[] { project1 });
+        var project2 = new EditorTestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: [project1]);
 
         workspace.AddTestProject(project1);
         workspace.AddTestProject(project2);
@@ -486,7 +486,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
               Inherits C
             End Class
             """);
-        var project2 = new EditorTestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: new[] { project1 });
+        var project2 = new EditorTestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: [project1]);
 
         workspace.AddTestProject(project1);
         workspace.AddTestProject(project2);
@@ -540,7 +540,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
               Inherits C
             End Class
             """);
-        var project2 = new EditorTestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: new[] { project1 });
+        var project2 = new EditorTestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: [project1]);
 
         workspace.AddTestProject(project1);
         workspace.AddTestProject(project2);
@@ -608,7 +608,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
               Inherits C
             End Class
             """);
-        var project2 = new EditorTestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: new[] { project1 });
+        var project2 = new EditorTestHostProject(workspace, document2, language: LanguageNames.VisualBasic, name: "project2", projectReferences: [project1]);
 
         workspace.AddTestProject(project1);
         workspace.AddTestProject(project2);
@@ -923,7 +923,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
     {
         using var workspace = CreateWorkspace();
         var document = new EditorTestHostDocument();
-        var project1 = new EditorTestHostProject(workspace, additionalDocuments: new[] { document }, name: "project1");
+        var project1 = new EditorTestHostProject(workspace, additionalDocuments: [document], name: "project1");
         var longEventTimeout = TimeSpan.FromMinutes(5);
         var shortEventTimeout = TimeSpan.FromSeconds(5);
 
@@ -984,7 +984,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
     {
         using var workspace = CreateWorkspace();
         var document = new EditorTestHostDocument();
-        var project1 = new EditorTestHostProject(workspace, analyzerConfigDocuments: new[] { document }, name: "project1");
+        var project1 = new EditorTestHostProject(workspace, analyzerConfigDocuments: [document], name: "project1");
         var longEventTimeout = TimeSpan.FromMinutes(5);
         var shortEventTimeout = TimeSpan.FromSeconds(5);
 
@@ -1046,7 +1046,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
         using var workspace = CreateWorkspace();
         var document = new EditorTestHostDocument("public class C { }");
         var additionalDoc = new EditorTestHostDocument("some text");
-        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
+        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: [document], additionalDocuments: [additionalDoc]);
 
         workspace.AddTestProject(project1);
 
@@ -1070,7 +1070,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
         using var workspace = CreateWorkspace();
         var document = new EditorTestHostDocument("public class C { }");
         var analyzerConfigDoc = new EditorTestHostDocument("root = true");
-        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
+        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: [document], analyzerConfigDocuments: [analyzerConfigDoc]);
 
         workspace.AddTestProject(project1);
 
@@ -1100,7 +1100,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
             """;
         var document = new EditorTestHostDocument("public class C { }");
         var additionalDoc = new EditorTestHostDocument(startText);
-        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
+        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: [document], additionalDocuments: [additionalDoc]);
 
         workspace.AddTestProject(project1);
 
@@ -1133,7 +1133,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
         var document = new EditorTestHostDocument("public class C { }");
         var analyzerConfigPath = PathUtilities.CombineAbsoluteAndRelativePaths(Temp.CreateDirectory().Path, ".editorconfig");
         var analyzerConfigDoc = new EditorTestHostDocument(startText, filePath: analyzerConfigPath);
-        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
+        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: [document], analyzerConfigDocuments: [analyzerConfigDoc]);
 
         workspace.AddTestProject(project1);
 
@@ -1166,7 +1166,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
             """;
         var document = new EditorTestHostDocument("public class C { }");
         var additionalDoc = new EditorTestHostDocument(startText);
-        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
+        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: [document], additionalDocuments: [additionalDoc]);
 
         workspace.AddTestProject(project1);
 
@@ -1195,7 +1195,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
         var startText = @"root = true";
         var document = new EditorTestHostDocument("public class C { }");
         var analyzerConfigDoc = new EditorTestHostDocument(startText);
-        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
+        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: [document], analyzerConfigDocuments: [analyzerConfigDoc]);
 
         workspace.AddTestProject(project1);
 
@@ -1226,7 +1226,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
             """;
         var document = new EditorTestHostDocument("public class C { }");
         var additionalDoc = new EditorTestHostDocument(startText, "original.config");
-        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
+        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: [document], additionalDocuments: [additionalDoc]);
         workspace.AddTestProject(project1);
 
         var project = workspace.CurrentSolution.Projects.Single();
@@ -1262,7 +1262,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
         var startText = @"root = true";
         var document = new EditorTestHostDocument("public class C { }");
         var analyzerConfigDoc = new EditorTestHostDocument(startText, "original.config");
-        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
+        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: [document], analyzerConfigDocuments: [analyzerConfigDoc]);
         workspace.AddTestProject(project1);
 
         var project = workspace.CurrentSolution.Projects.Single();
@@ -1300,7 +1300,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
             """;
         var document = new EditorTestHostDocument("public class C { }");
         var additionalDoc = new EditorTestHostDocument(startText, "original.config");
-        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
+        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: [document], additionalDocuments: [additionalDoc]);
         workspace.AddTestProject(project1);
 
         var project = workspace.CurrentSolution.Projects.Single();
@@ -1328,7 +1328,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
         var startText = @"root = true";
         var document = new EditorTestHostDocument("public class C { }");
         var analyzerConfigDoc = new EditorTestHostDocument(startText, "original.config");
-        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
+        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: [document], analyzerConfigDocuments: [analyzerConfigDoc]);
         workspace.AddTestProject(project1);
 
         var project = workspace.CurrentSolution.Projects.Single();
@@ -1358,7 +1358,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
         var additionalDoc = new EditorTestHostDocument("""
             <setting value = "goo"
             """, filePath: additionalDocFilePath);
-        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
+        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: [document], additionalDocuments: [additionalDoc]);
         workspace.AddTestProject(project1);
 
         var documentIdsWithFilePath = workspace.CurrentSolution.GetDocumentIdsWithFilePath(docFilePath);
@@ -1378,7 +1378,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
         var document = new EditorTestHostDocument("public class C { }", filePath: docFilePath);
         var analyzerConfigDocFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(Temp.CreateDirectory().Path, ".editorconfig");
         var analyzerConfigDoc = new EditorTestHostDocument(@"root = true", filePath: analyzerConfigDocFilePath);
-        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
+        var project1 = new EditorTestHostProject(workspace, name: "project1", documents: [document], analyzerConfigDocuments: [analyzerConfigDoc]);
         workspace.AddTestProject(project1);
 
         var documentIdsWithFilePath = workspace.CurrentSolution.GetDocumentIdsWithFilePath(docFilePath);
@@ -1520,7 +1520,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
         primaryWorkspace.GlobalOptions.RemoveOptionChangedHandler(this, OptionService_OptionChanged);
         return;
 
-        void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
+        void OptionService_OptionChanged(object sender, object target, OptionChangedEventArgs e)
         {
             // CurrentSolution has been updated when the event fires.
 

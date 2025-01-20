@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -9361,7 +9361,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.References.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'AsyncVoid.dll' failed.
@@ -9397,7 +9397,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.References.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncTaskMethodBuilder' from assembly or module 'AsyncTask.dll' failed.
@@ -9434,7 +9434,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.References.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncTaskMethodBuilder(Of )' from assembly or module 'AsyncTask_T.dll' failed.
@@ -12327,6 +12327,556 @@ End Class
             Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
+
+        <Fact()>
+        Public Sub CompilerLoweringPreserveAttribute_01()
+            Dim source1 = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter)>
+Public Class Preserve1Attribute
+    Inherits Attribute
+End Class
+
+<CompilerLoweringPreserve>
+<AttributeUsage(AttributeTargets.Parameter)>
+Public Class Preserve2Attribute
+    Inherits Attribute
+End Class
+
+<AttributeUsage(AttributeTargets.Field Or AttributeTargets.Parameter)>
+Public Class Preserve3Attribute
+    Inherits Attribute
+End Class
+"
+            Dim source2 = "
+Imports System.Threading.Tasks
+
+Class Test1
+    Async Function M2(<Preserve1,Preserve2,Preserve3> x As Integer) As Task(Of Integer)
+        Await Task.Yield()
+        Return x
+    End Function
+End Class
+"
+
+            Dim validate = Sub(m As ModuleSymbol)
+                               AssertEx.SequenceEqual(
+                                   {"Preserve1Attribute"},
+                                   m.GlobalNamespace.GetMember("Test1.VB$StateMachine_1_M2.$VB$Local_x").GetAttributes().Select(Function(a) a.ToString()))
+                           End Sub
+
+            Dim comp1 = CreateCompilation(
+                {source1, source2, CompilerLoweringPreserveAttributeDefinition},
+                options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            CompileAndVerify(comp1, symbolValidator:=validate).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29634")>
+        Public Sub ConditionalAccessInAsyncMethod_01()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Threading.Tasks
+
+#disable warning BC42356 ' This async method lacks 'Await' operators
+
+Module Program
+
+    Public Sub Main()
+
+        Dim result = Test("").GetAwaiter().GetResult()
+        Console.Write("({0})", result)
+
+        result = Test(Nothing).GetAwaiter().GetResult()
+        Console.Write("({0})", result)
+
+        Value = Nothing
+        result = Test("").GetAwaiter().GetResult()
+        Console.Write("({0})", result)
+    End Sub
+
+    Public Async Function Test(input As String) As Task(Of Integer?)
+        Return input?.Parse()?.Truncate()
+    End Function
+
+    Dim Value As Integer? = 3
+
+    <Extension>
+    Public Function Parse(input As String) As Integer?
+	    Console.Write("1")
+        Return Value
+    End Function
+
+    <Extension>
+    Public Function Truncate(value As Integer) As Integer
+	    Console.Write("2")
+        Return value
+    End Function
+
+End Module
+    ]]></file>
+</compilation>
+            Dim c = CreateCompilation(source, options:=TestOptions.DebugExe)
+
+            Dim verifier = CompileAndVerify(c, expectedOutput:="12(3)()1()").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_2_Test.MoveNext",
+            <![CDATA[
+{
+  // Code size      141 (0x8d)
+  .maxstack  3
+  .locals init (Integer? V_0,
+                Integer V_1,
+                System.Threading.Tasks.Task(Of Integer?) V_2,
+                Integer? V_3,
+                Integer? V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  nop
+    IL_0008:  ldarg.0
+    IL_0009:  ldfld      "Program.VB$StateMachine_2_Test.$VB$Local_input As String"
+    IL_000e:  brtrue.s   IL_001b
+    IL_0010:  ldloca.s   V_3
+    IL_0012:  initobj    "Integer?"
+    IL_0018:  ldloc.3
+    IL_0019:  br.s       IL_004d
+    IL_001b:  ldarg.0
+    IL_001c:  ldfld      "Program.VB$StateMachine_2_Test.$VB$Local_input As String"
+    IL_0021:  call       "Function Program.Parse(String) As Integer?"
+    IL_0026:  stloc.3
+    IL_0027:  ldloca.s   V_3
+    IL_0029:  call       "Function Integer?.get_HasValue() As Boolean"
+    IL_002e:  brtrue.s   IL_003c
+    IL_0030:  ldloca.s   V_4
+    IL_0032:  initobj    "Integer?"
+    IL_0038:  ldloc.s    V_4
+    IL_003a:  br.s       IL_004d
+    IL_003c:  ldloca.s   V_3
+    IL_003e:  call       "Function Integer?.GetValueOrDefault() As Integer"
+    IL_0043:  call       "Function Program.Truncate(Integer) As Integer"
+    IL_0048:  newobj     "Sub Integer?..ctor(Integer)"
+    IL_004d:  stloc.0
+    IL_004e:  leave.s    IL_0075
+  }
+  catch System.Exception
+  {
+    IL_0050:  dup
+    IL_0051:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0056:  stloc.s    V_5
+    IL_0058:  ldarg.0
+    IL_0059:  ldc.i4.s   -2
+    IL_005b:  stfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+    IL_0060:  ldarg.0
+    IL_0061:  ldflda     "Program.VB$StateMachine_2_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?)"
+    IL_0066:  ldloc.s    V_5
+    IL_0068:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?).SetException(System.Exception)"
+    IL_006d:  nop
+    IL_006e:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0073:  leave.s    IL_008c
+  }
+  IL_0075:  ldarg.0
+  IL_0076:  ldc.i4.s   -2
+  IL_0078:  dup
+  IL_0079:  stloc.1
+  IL_007a:  stfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+  IL_007f:  ldarg.0
+  IL_0080:  ldflda     "Program.VB$StateMachine_2_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?)"
+  IL_0085:  ldloc.0
+  IL_0086:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?).SetResult(Integer?)"
+  IL_008b:  nop
+  IL_008c:  ret
+}
+]]>)
+
+            c = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+
+            verifier = CompileAndVerify(c, expectedOutput:="12(3)()1()").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_2_Test.MoveNext",
+            <![CDATA[
+{
+  // Code size      137 (0x89)
+  .maxstack  3
+  .locals init (Integer? V_0,
+                Integer V_1,
+                Integer? V_2,
+                Integer? V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  ldarg.0
+    IL_0008:  ldfld      "Program.VB$StateMachine_2_Test.$VB$Local_input As String"
+    IL_000d:  brtrue.s   IL_001a
+    IL_000f:  ldloca.s   V_2
+    IL_0011:  initobj    "Integer?"
+    IL_0017:  ldloc.2
+    IL_0018:  br.s       IL_004b
+    IL_001a:  ldarg.0
+    IL_001b:  ldfld      "Program.VB$StateMachine_2_Test.$VB$Local_input As String"
+    IL_0020:  call       "Function Program.Parse(String) As Integer?"
+    IL_0025:  stloc.2
+    IL_0026:  ldloca.s   V_2
+    IL_0028:  call       "Function Integer?.get_HasValue() As Boolean"
+    IL_002d:  brtrue.s   IL_003a
+    IL_002f:  ldloca.s   V_3
+    IL_0031:  initobj    "Integer?"
+    IL_0037:  ldloc.3
+    IL_0038:  br.s       IL_004b
+    IL_003a:  ldloca.s   V_2
+    IL_003c:  call       "Function Integer?.GetValueOrDefault() As Integer"
+    IL_0041:  call       "Function Program.Truncate(Integer) As Integer"
+    IL_0046:  newobj     "Sub Integer?..ctor(Integer)"
+    IL_004b:  stloc.0
+    IL_004c:  leave.s    IL_0072
+  }
+  catch System.Exception
+  {
+    IL_004e:  dup
+    IL_004f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0054:  stloc.s    V_4
+    IL_0056:  ldarg.0
+    IL_0057:  ldc.i4.s   -2
+    IL_0059:  stfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+    IL_005e:  ldarg.0
+    IL_005f:  ldflda     "Program.VB$StateMachine_2_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?)"
+    IL_0064:  ldloc.s    V_4
+    IL_0066:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?).SetException(System.Exception)"
+    IL_006b:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0070:  leave.s    IL_0088
+  }
+  IL_0072:  ldarg.0
+  IL_0073:  ldc.i4.s   -2
+  IL_0075:  dup
+  IL_0076:  stloc.1
+  IL_0077:  stfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+  IL_007c:  ldarg.0
+  IL_007d:  ldflda     "Program.VB$StateMachine_2_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?)"
+  IL_0082:  ldloc.0
+  IL_0083:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?).SetResult(Integer?)"
+  IL_0088:  ret
+}
+]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/29634")>
+        Public Sub ConditionalAccessInAsyncMethod_02()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Threading.Tasks
+
+Module Program
+
+    Public Sub Main()
+
+        Dim result = Test("").GetAwaiter().GetResult()
+        Console.Write("({0})", result)
+
+        result = Test(Nothing).GetAwaiter().GetResult()
+        Console.Write("({0})", result)
+
+        Value = Nothing
+        result = Test("").GetAwaiter().GetResult()
+        Console.Write("({0})", result)
+    End Sub
+
+    Public Async Function Test(input As String) As Task(Of Integer?)
+        Return input?.Parse()?.Truncate(Await GetInt())
+    End Function
+
+    Dim Value As Integer? = 3
+
+    <Extension>
+    Public Function Parse(input As String) As Integer?
+	    Console.Write("1")
+        Return Value
+    End Function
+
+    <Extension>
+    Public Function Truncate(value As Integer, x As Integer) As Integer
+	    Console.Write("2")
+        Return value
+    End Function
+    
+    Async Function GetInt() As Task(Of Integer)
+        await Task.Yield()    
+        Return 0
+    End Function
+
+End Module
+    ]]></file>
+</compilation>
+            Dim c = CreateCompilation(source, options:=TestOptions.DebugExe)
+
+            Dim verifier = CompileAndVerify(c, expectedOutput:="12(3)()1()").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_2_Test.MoveNext",
+            <![CDATA[
+{
+  // Code size      285 (0x11d)
+  .maxstack  3
+  .locals init (Integer? V_0,
+                Integer V_1,
+                System.Threading.Tasks.Task(Of Integer?) V_2,
+                Integer? V_3,
+                Integer? V_4,
+                Integer? V_5,
+                Integer? V_6,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_7,
+                Program.VB$StateMachine_2_Test V_8,
+                Integer V_9,
+                System.Exception V_10)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  ldloc.1
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_0081
+    IL_000e:  nop
+    IL_000f:  ldarg.0
+    IL_0010:  ldfld      "Program.VB$StateMachine_2_Test.$VB$Local_input As String"
+    IL_0015:  brfalse    IL_00d4
+    IL_001a:  ldarg.0
+    IL_001b:  ldfld      "Program.VB$StateMachine_2_Test.$VB$Local_input As String"
+    IL_0020:  call       "Function Program.Parse(String) As Integer?"
+    IL_0025:  dup
+    IL_0026:  stloc.s    V_4
+    IL_0028:  stloc.s    V_6
+    IL_002a:  ldloca.s   V_6
+    IL_002c:  call       "Function Integer?.get_HasValue() As Boolean"
+    IL_0031:  brfalse    IL_00c7
+    IL_0036:  ldarg.0
+    IL_0037:  ldloca.s   V_4
+    IL_0039:  call       "Function Integer?.GetValueOrDefault() As Integer"
+    IL_003e:  stfld      "Program.VB$StateMachine_2_Test.$U1 As Integer"
+    IL_0043:  call       "Function Program.GetInt() As System.Threading.Tasks.Task(Of Integer)"
+    IL_0048:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_004d:  stloc.s    V_7
+    IL_004f:  ldloca.s   V_7
+    IL_0051:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0056:  brtrue.s   IL_00a0
+    IL_0058:  ldarg.0
+    IL_0059:  ldc.i4.0
+    IL_005a:  dup
+    IL_005b:  stloc.1
+    IL_005c:  stfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+    IL_0061:  ldarg.0
+    IL_0062:  ldloc.s    V_7
+    IL_0064:  stfld      "Program.VB$StateMachine_2_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0069:  ldarg.0
+    IL_006a:  ldflda     "Program.VB$StateMachine_2_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?)"
+    IL_006f:  ldloca.s   V_7
+    IL_0071:  ldarg.0
+    IL_0072:  stloc.s    V_8
+    IL_0074:  ldloca.s   V_8
+    IL_0076:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Test)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Test)"
+    IL_007b:  nop
+    IL_007c:  leave      IL_011c
+    IL_0081:  ldarg.0
+    IL_0082:  ldc.i4.m1
+    IL_0083:  dup
+    IL_0084:  stloc.1
+    IL_0085:  stfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+    IL_008a:  ldarg.0
+    IL_008b:  ldfld      "Program.VB$StateMachine_2_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0090:  stloc.s    V_7
+    IL_0092:  ldarg.0
+    IL_0093:  ldflda     "Program.VB$StateMachine_2_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0098:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_009e:  br.s       IL_00a0
+    IL_00a0:  ldarg.0
+    IL_00a1:  ldfld      "Program.VB$StateMachine_2_Test.$U1 As Integer"
+    IL_00a6:  ldloca.s   V_7
+    IL_00a8:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00ad:  stloc.s    V_9
+    IL_00af:  ldloca.s   V_7
+    IL_00b1:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00b7:  ldloc.s    V_9
+    IL_00b9:  call       "Function Program.Truncate(Integer, Integer) As Integer"
+    IL_00be:  newobj     "Sub Integer?..ctor(Integer)"
+    IL_00c3:  stloc.s    V_5
+    IL_00c5:  br.s       IL_00cf
+    IL_00c7:  ldloca.s   V_5
+    IL_00c9:  initobj    "Integer?"
+    IL_00cf:  ldloc.s    V_5
+    IL_00d1:  stloc.3
+    IL_00d2:  br.s       IL_00dc
+    IL_00d4:  ldloca.s   V_3
+    IL_00d6:  initobj    "Integer?"
+    IL_00dc:  ldloc.3
+    IL_00dd:  stloc.0
+    IL_00de:  leave.s    IL_0105
+  }
+  catch System.Exception
+  {
+    IL_00e0:  dup
+    IL_00e1:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00e6:  stloc.s    V_10
+    IL_00e8:  ldarg.0
+    IL_00e9:  ldc.i4.s   -2
+    IL_00eb:  stfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+    IL_00f0:  ldarg.0
+    IL_00f1:  ldflda     "Program.VB$StateMachine_2_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?)"
+    IL_00f6:  ldloc.s    V_10
+    IL_00f8:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?).SetException(System.Exception)"
+    IL_00fd:  nop
+    IL_00fe:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0103:  leave.s    IL_011c
+  }
+  IL_0105:  ldarg.0
+  IL_0106:  ldc.i4.s   -2
+  IL_0108:  dup
+  IL_0109:  stloc.1
+  IL_010a:  stfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+  IL_010f:  ldarg.0
+  IL_0110:  ldflda     "Program.VB$StateMachine_2_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?)"
+  IL_0115:  ldloc.0
+  IL_0116:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?).SetResult(Integer?)"
+  IL_011b:  nop
+  IL_011c:  ret
+}
+]]>)
+
+            c = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+
+            verifier = CompileAndVerify(c, expectedOutput:="12(3)()1()").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_2_Test.MoveNext",
+            <![CDATA[
+{
+  // Code size      266 (0x10a)
+  .maxstack  3
+  .locals init (Integer? V_0,
+                Integer V_1,
+                Integer? V_2,
+                Integer? V_3,
+                Integer? V_4,
+                Integer? V_5,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_6,
+                System.Exception V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  ldloc.1
+    IL_0008:  brfalse.s  IL_0076
+    IL_000a:  ldarg.0
+    IL_000b:  ldfld      "Program.VB$StateMachine_2_Test.$VB$Local_input As String"
+    IL_0010:  brfalse    IL_00c3
+    IL_0015:  ldarg.0
+    IL_0016:  ldfld      "Program.VB$StateMachine_2_Test.$VB$Local_input As String"
+    IL_001b:  call       "Function Program.Parse(String) As Integer?"
+    IL_0020:  dup
+    IL_0021:  stloc.3
+    IL_0022:  stloc.s    V_5
+    IL_0024:  ldloca.s   V_5
+    IL_0026:  call       "Function Integer?.get_HasValue() As Boolean"
+    IL_002b:  brfalse    IL_00b6
+    IL_0030:  ldarg.0
+    IL_0031:  ldloca.s   V_3
+    IL_0033:  call       "Function Integer?.GetValueOrDefault() As Integer"
+    IL_0038:  stfld      "Program.VB$StateMachine_2_Test.$U1 As Integer"
+    IL_003d:  call       "Function Program.GetInt() As System.Threading.Tasks.Task(Of Integer)"
+    IL_0042:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0047:  stloc.s    V_6
+    IL_0049:  ldloca.s   V_6
+    IL_004b:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_0050:  brtrue.s   IL_0093
+    IL_0052:  ldarg.0
+    IL_0053:  ldc.i4.0
+    IL_0054:  dup
+    IL_0055:  stloc.1
+    IL_0056:  stfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+    IL_005b:  ldarg.0
+    IL_005c:  ldloc.s    V_6
+    IL_005e:  stfld      "Program.VB$StateMachine_2_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0063:  ldarg.0
+    IL_0064:  ldflda     "Program.VB$StateMachine_2_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?)"
+    IL_0069:  ldloca.s   V_6
+    IL_006b:  ldarg.0
+    IL_006c:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Program.VB$StateMachine_2_Test)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Program.VB$StateMachine_2_Test)"
+    IL_0071:  leave      IL_0109
+    IL_0076:  ldarg.0
+    IL_0077:  ldc.i4.m1
+    IL_0078:  dup
+    IL_0079:  stloc.1
+    IL_007a:  stfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+    IL_007f:  ldarg.0
+    IL_0080:  ldfld      "Program.VB$StateMachine_2_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0085:  stloc.s    V_6
+    IL_0087:  ldarg.0
+    IL_0088:  ldflda     "Program.VB$StateMachine_2_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_008d:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0093:  ldarg.0
+    IL_0094:  ldfld      "Program.VB$StateMachine_2_Test.$U1 As Integer"
+    IL_0099:  ldloca.s   V_6
+    IL_009b:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_00a0:  ldloca.s   V_6
+    IL_00a2:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_00a8:  call       "Function Program.Truncate(Integer, Integer) As Integer"
+    IL_00ad:  newobj     "Sub Integer?..ctor(Integer)"
+    IL_00b2:  stloc.s    V_4
+    IL_00b4:  br.s       IL_00be
+    IL_00b6:  ldloca.s   V_4
+    IL_00b8:  initobj    "Integer?"
+    IL_00be:  ldloc.s    V_4
+    IL_00c0:  stloc.2
+    IL_00c1:  br.s       IL_00cb
+    IL_00c3:  ldloca.s   V_2
+    IL_00c5:  initobj    "Integer?"
+    IL_00cb:  ldloc.2
+    IL_00cc:  stloc.0
+    IL_00cd:  leave.s    IL_00f3
+  }
+  catch System.Exception
+  {
+    IL_00cf:  dup
+    IL_00d0:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00d5:  stloc.s    V_7
+    IL_00d7:  ldarg.0
+    IL_00d8:  ldc.i4.s   -2
+    IL_00da:  stfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+    IL_00df:  ldarg.0
+    IL_00e0:  ldflda     "Program.VB$StateMachine_2_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?)"
+    IL_00e5:  ldloc.s    V_7
+    IL_00e7:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?).SetException(System.Exception)"
+    IL_00ec:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00f1:  leave.s    IL_0109
+  }
+  IL_00f3:  ldarg.0
+  IL_00f4:  ldc.i4.s   -2
+  IL_00f6:  dup
+  IL_00f7:  stloc.1
+  IL_00f8:  stfld      "Program.VB$StateMachine_2_Test.$State As Integer"
+  IL_00fd:  ldarg.0
+  IL_00fe:  ldflda     "Program.VB$StateMachine_2_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?)"
+  IL_0103:  ldloc.0
+  IL_0104:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer?).SetResult(Integer?)"
+  IL_0109:  ret
+}
+]]>)
+        End Sub
+
     End Class
 End Namespace
 

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.LanguageService;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -119,6 +120,6 @@ internal static partial class IMethodSymbolExtensions
 
         // `Task` type doesn't have an `AsyncMethodBuilder` attribute, so we need to check for it separately
         return method.ReturnType.Equals(compilation.TaskType()) ||
-               method.ReturnType.GetAttributes().Any(a => a.AttributeClass?.Equals(compilation.AsyncMethodBuilderAttribute()) ?? false);
+               method.ReturnType.HasAttribute(compilation.AsyncMethodBuilderAttribute());
     }
 }

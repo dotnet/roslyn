@@ -582,7 +582,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
             }
 
             if (IsFieldDeclarationSyntax(node)
-                && semanticModel.GetExistingSymbols(node, cancellationToken).SingleOrDefault() is IFieldSymbol fieldSymbol)
+                && semanticModel.GetAllDeclaredSymbols(node, cancellationToken).SingleOrDefault() is IFieldSymbol fieldSymbol)
             {
                 return fieldSymbol;
             }

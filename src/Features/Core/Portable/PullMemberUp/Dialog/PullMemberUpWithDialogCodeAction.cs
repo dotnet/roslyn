@@ -19,8 +19,7 @@ internal abstract partial class AbstractPullMemberUpRefactoringProvider
     private sealed class PullMemberUpWithDialogCodeAction(
         Document document,
         ImmutableArray<ISymbol> selectedMembers,
-        IPullMemberUpOptionsService service,
-        CleanCodeGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
+        IPullMemberUpOptionsService service) : CodeActionWithOptions
     {
         /// <summary>
         /// Member which user initially selects. It will be selected initially when the dialog pops up.
@@ -28,7 +27,6 @@ internal abstract partial class AbstractPullMemberUpRefactoringProvider
         private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
         private readonly Document _document = document;
         private readonly IPullMemberUpOptionsService _service = service;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
         public override string Title => FeaturesResources.Pull_members_up_to_base_type;
 
@@ -42,7 +40,7 @@ internal abstract partial class AbstractPullMemberUpRefactoringProvider
         {
             if (options is PullMembersUpOptions pullMemberUpOptions)
             {
-                var changedSolution = await MembersPuller.PullMembersUpAsync(_document, pullMemberUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var changedSolution = await MembersPuller.PullMembersUpAsync(_document, pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
                 return new[] { new ApplyChangesOperation(changedSolution) };
             }
             else

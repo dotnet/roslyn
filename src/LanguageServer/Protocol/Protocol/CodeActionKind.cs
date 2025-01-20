@@ -9,8 +9,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Value representing the kind of a code action.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionKind">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter<CodeActionKind>))]
     [TypeConverter(typeof(StringEnumConverter<CodeActionKind>.TypeConverter))]
@@ -62,10 +63,13 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Base kind for a fix all source action, which automatically fixes errors that have a clear
         /// fix that do not require user input.
-        /// </summary>
-        /// <remarks>
+        /// <para>
         /// They should not suppress errors or perform unsafe fixes such as generating new
         /// types or classes.
+        /// </para>
+        /// </summary>
+        /// <remarks>
+        /// Since LSP 3.17
         /// </remarks>
         public static readonly CodeActionKind SourceFixAll = new("source.fixAll");
     }

@@ -46,46 +46,63 @@ internal sealed class RpcClient
         // We'll start this and let it run until Shutdown has been called.
         Task.Run(async () =>
         {
-            string? line;
-            while ((line = await _receivingStream.TryReadLineOrReturnNullIfCancelledAsync(_shutdownTokenSource.Token).ConfigureAwait(false)) != null)
+            Exception? processingException = null;
+            try
             {
-                var response = JsonConvert.DeserializeObject<Response>(line);
-
-                Contract.ThrowIfNull(response);
-
-                Contract.ThrowIfFalse(_outstandingRequests.TryRemove(response.Id, out var completionSourceAndExpectedType), $"We got a response for request ID {response.Id} but that was already completed.");
-                var (completionSource, expectedType) = completionSourceAndExpectedType;
-
-                if (response.Exception != null)
+                string? line;
+                while ((line = await _receivingStream.TryReadLineOrReturnNullIfCancelledAsync(_shutdownTokenSource.Token).ConfigureAwait(false)) != null)
                 {
-                    completionSource.SetException(new RemoteInvocationException(response.Exception));
-                }
-                else
-                {
-                    // If this is void-returning, then just set null
-                    if (expectedType == null)
+                    Response? response;
+                    try
                     {
-                        completionSource.SetResult(null);
+                        response = JsonConvert.DeserializeObject<Response>(line);
+                    }
+                    catch (JsonException ex)
+                    {
+                        var message = $"Failed to deserialize response from build host:{Environment.NewLine}{line}";
+                        throw new AggregateException(message, ex);
+                    }
+
+                    Contract.ThrowIfNull(response);
+
+                    Contract.ThrowIfFalse(_outstandingRequests.TryRemove(response.Id, out var completionSourceAndExpectedType), $"We got a response for request ID {response.Id} but that was already completed.");
+                    var (completionSource, expectedType) = completionSourceAndExpectedType;
+
+                    if (response.Exception != null)
+                    {
+                        completionSource.SetException(new RemoteInvocationException(response.Exception));
                     }
                     else
                     {
-                        try
+                        // If this is void-returning, then just set null
+                        if (expectedType == null)
                         {
-                            // response.Value might be null if the response was in fact null.
-                            var result = response.Value?.ToObject(expectedType);
-                            completionSource.SetResult(result);
+                            completionSource.SetResult(null);
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            completionSource.SetException(new Exception("Unable to deserialize the result", ex));
+                            try
+                            {
+                                // response.Value might be null if the response was in fact null.
+                                var result = response.Value?.ToObject(expectedType);
+                                completionSource.SetResult(result);
+                            }
+                            catch (Exception ex)
+                            {
+                                completionSource.SetException(new Exception("Unable to deserialize the result", ex));
+                            }
                         }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                processingException = ex;
+            }
 
             // We've disconnected, so cancel any remaining outstanding tasks
             foreach (var (request, _) in _outstandingRequests.Values)
-                request.SetException(new System.Exception("The server disconnected unexpectedly."));
+                request.SetException(processingException ?? new System.Exception("The server disconnected unexpectedly."));
 
             Disconnected?.Invoke(this, EventArgs.Empty);
         });

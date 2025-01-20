@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
         {
         }
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public static async ValueTask<OmniSharpOrganizeImportsOptionsWrapper> FromDocumentAsync(Document document, OmniSharpOrganizeImportsOptionsWrapper fallbackOptions, CancellationToken cancellationToken)
-            => new(await document.GetOrganizeImportsOptionsAsync(fallbackOptions.UnderlyingObject, cancellationToken).ConfigureAwait(false));
+#pragma warning restore IDE0060 // Remove unused parameter
+            => new(await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false));
     }
 }

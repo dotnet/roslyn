@@ -48,11 +48,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                 var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
                     testState.InvocationDocument,
                     testState.TestInvocationDocument.SelectedSpans.Single(),
-                    CodeActionOptions.DefaultProvider,
                     CancellationToken.None);
 
                 var operationTasks = actions
-                    .Cast<AbstractMoveToNamespaceCodeAction>()
                     .Select(action => action.GetOperationsAsync(workspace.CurrentSolution, action.GetOptions(CancellationToken.None), CodeAnalysisProgress.None, CancellationToken.None));
 
                 foreach (var task in operationTasks)

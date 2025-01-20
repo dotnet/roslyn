@@ -77,9 +77,9 @@ internal sealed class MutableConflictResolution(
                 // the "updated" node to maintain any annotation removals from descendants.
                 var newRoot = root.ReplaceSyntax(
                     nodes: annotationSet.GetAnnotatedNodes(root),
-                    computeReplacementNode: (original, updated) => annotationSet.WithoutAnnotations(updated, annotationSet.GetAnnotations(updated).ToArray()),
+                    computeReplacementNode: (original, updated) => annotationSet.WithoutAnnotations(updated, [.. annotationSet.GetAnnotations(updated)]),
                     tokens: annotationSet.GetAnnotatedTokens(root),
-                    computeReplacementToken: (original, updated) => annotationSet.WithoutAnnotations(updated, annotationSet.GetAnnotations(updated).ToArray()),
+                    computeReplacementToken: (original, updated) => annotationSet.WithoutAnnotations(updated, [.. annotationSet.GetAnnotations(updated)]),
                     trivia: [],
                     computeReplacementTrivia: null);
 

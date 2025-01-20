@@ -9,59 +9,58 @@ using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed class RemoteUnitTestingSearchService : BrokeredServiceBase, IRemoteUnitTestingSearchService
 {
-    internal sealed class RemoteUnitTestingSearchService : BrokeredServiceBase, IRemoteUnitTestingSearchService
+    internal sealed class Factory : FactoryBase<IRemoteUnitTestingSearchService>
     {
-        internal sealed class Factory : FactoryBase<IRemoteUnitTestingSearchService>
+        protected override IRemoteUnitTestingSearchService CreateService(in ServiceConstructionArguments arguments)
+            => new RemoteUnitTestingSearchService(arguments);
+    }
+
+    public RemoteUnitTestingSearchService(in ServiceConstructionArguments arguments)
+        : base(arguments)
+    {
+    }
+
+    public ValueTask<UnitTestingSourceLocation?> GetSourceLocationAsync(
+        Checksum solutionChecksum,
+        ProjectId projectId,
+        UnitTestingSearchQuery query,
+        CancellationToken cancellationToken)
+    {
+        return RunServiceAsync<UnitTestingSourceLocation?>(solutionChecksum, async solution =>
         {
-            protected override IRemoteUnitTestingSearchService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteUnitTestingSearchService(arguments);
-        }
+            var project = solution.GetRequiredProject(projectId);
 
-        public RemoteUnitTestingSearchService(in ServiceConstructionArguments arguments)
-            : base(arguments)
+            var resultOpt = await UnitTestingSearchHelpers.GetSourceLocationAsync(project, query, cancellationToken).ConfigureAwait(false);
+            if (resultOpt is null)
+                return null;
+
+            var result = resultOpt.Value;
+
+            return new UnitTestingSourceLocation(
+                new DocumentIdSpan(result.DocumentSpan.Document.Id, result.DocumentSpan.SourceSpan),
+                result.Span);
+        }, cancellationToken);
+    }
+
+    public ValueTask<ImmutableArray<UnitTestingSourceLocation>> GetSourceLocationsAsync(
+        Checksum solutionChecksum,
+        ProjectId projectId,
+        UnitTestingSearchQuery query,
+        CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(solutionChecksum, async solution =>
         {
-        }
+            var project = solution.GetRequiredProject(projectId);
 
-        public ValueTask<UnitTestingSourceLocation?> GetSourceLocationAsync(
-            Checksum solutionChecksum,
-            ProjectId projectId,
-            UnitTestingSearchQuery query,
-            CancellationToken cancellationToken)
-        {
-            return RunServiceAsync<UnitTestingSourceLocation?>(solutionChecksum, async solution =>
-            {
-                var project = solution.GetRequiredProject(projectId);
+            var results = await UnitTestingSearchHelpers.GetSourceLocationsAsync(project, query, cancellationToken).ConfigureAwait(false);
 
-                var resultOpt = await UnitTestingSearchHelpers.GetSourceLocationAsync(project, query, cancellationToken).ConfigureAwait(false);
-                if (resultOpt is null)
-                    return null;
-
-                var result = resultOpt.Value;
-
-                return new UnitTestingSourceLocation(
-                    new DocumentIdSpan(result.DocumentSpan.Document.Id, result.DocumentSpan.SourceSpan),
-                    result.Span);
-            }, cancellationToken);
-        }
-
-        public ValueTask<ImmutableArray<UnitTestingSourceLocation>> GetSourceLocationsAsync(
-            Checksum solutionChecksum,
-            ProjectId projectId,
-            UnitTestingSearchQuery query,
-            CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                var project = solution.GetRequiredProject(projectId);
-
-                var results = await UnitTestingSearchHelpers.GetSourceLocationsAsync(project, query, cancellationToken).ConfigureAwait(false);
-
-                return results.SelectAsArray(r => new UnitTestingSourceLocation(
-                    new DocumentIdSpan(r.DocumentSpan.Document.Id, r.DocumentSpan.SourceSpan),
-                    r.Span));
-            }, cancellationToken);
-        }
+            return results.SelectAsArray(r => new UnitTestingSourceLocation(
+                new DocumentIdSpan(r.DocumentSpan.Document.Id, r.DocumentSpan.SourceSpan),
+                r.Span));
+        }, cancellationToken);
     }
 }

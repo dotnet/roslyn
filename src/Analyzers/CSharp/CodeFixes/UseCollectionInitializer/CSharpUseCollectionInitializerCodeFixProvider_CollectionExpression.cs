@@ -5,14 +5,14 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 
-internal partial class CSharpUseCollectionInitializerCodeFixProvider
+internal sealed partial class CSharpUseCollectionInitializerCodeFixProvider
 {
     /// <summary>
     /// Creates the final collection-expression <c>[...]</c> that will replace the given <paramref
@@ -20,16 +20,16 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider
     /// </summary>
     private static Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync(
         Document document,
-        CodeActionOptionsProvider fallbackOptions,
         BaseObjectCreationExpressionSyntax objectCreation,
-        ImmutableArray<Match<StatementSyntax>> matches,
+        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
+        ImmutableArray<CollectionMatch<SyntaxNode>> postMatches,
         CancellationToken cancellationToken)
     {
         return CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
             document,
-            fallbackOptions,
             objectCreation,
-            matches.SelectAsArray(m => new CollectionExpressionMatch<StatementSyntax>(m.Statement, m.UseSpread)),
+            preMatches,
+            postMatches,
             static objectCreation => objectCreation.Initializer,
             static (objectCreation, initializer) => objectCreation.WithInitializer(initializer),
             cancellationToken);

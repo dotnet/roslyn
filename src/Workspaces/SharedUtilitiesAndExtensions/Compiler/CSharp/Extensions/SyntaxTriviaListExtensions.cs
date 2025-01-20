@@ -39,7 +39,7 @@ internal static class SyntaxTriviaListExtensions
             .LastOrNull();
     }
 
-    public static IEnumerable<SyntaxTrivia> SkipInitialWhitespace(this SyntaxTriviaList triviaList)
+    public static IEnumerable<SyntaxTrivia> SkipInitialWhitespace(this IEnumerable<SyntaxTrivia> triviaList)
         => triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
 
     private static ImmutableArray<ImmutableArray<SyntaxTrivia>> GetLeadingBlankLines(SyntaxTriviaList triviaList)
@@ -69,7 +69,7 @@ internal static class SyntaxTriviaListExtensions
     public static SyntaxTriviaList WithoutLeadingBlankLines(this SyntaxTriviaList triviaList)
     {
         var triviaInLeadingBlankLines = GetLeadingBlankLines(triviaList).SelectMany(l => l);
-        return new SyntaxTriviaList(triviaList.Skip(triviaInLeadingBlankLines.Count()));
+        return [.. triviaList.Skip(triviaInLeadingBlankLines.Count())];
     }
 
     /// <summary>

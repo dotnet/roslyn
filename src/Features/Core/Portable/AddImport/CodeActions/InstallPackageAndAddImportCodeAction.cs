@@ -88,9 +88,8 @@ internal sealed class InstallPackageAndAddImportCodeAction : AddImportCodeAction
         var oldText = await OriginalDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var newText = await updatedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
-        return ImmutableArray.Create<CodeActionOperation>(
-            new InstallPackageAndAddImportOperation(
-                OriginalDocument.Id, oldText, newText, _installOperation));
+        return [new InstallPackageAndAddImportOperation(
+                OriginalDocument.Id, oldText, newText, _installOperation)];
     }
 
     private sealed class InstallPackageAndAddImportOperation(

@@ -49,18 +49,24 @@ internal static class IDocumentNavigationServiceExtensions
     }
 
     public static async Task<bool> TryNavigateToPositionAsync(
-        this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
+        this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool allowInvalidPosition, NavigationOptions options, CancellationToken cancellationToken)
     {
-        var location = await service.GetLocationForPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);
+        var location = await service.GetLocationForPositionAsync(workspace, documentId, position, virtualSpace, allowInvalidPosition, cancellationToken).ConfigureAwait(false);
         return await location.TryNavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
     }
 
-    public static async Task<bool> TryNavigateToPositionAsync(
+    public static Task<bool> TryNavigateToPositionAsync(
         this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken)
+    {
+        return service.TryNavigateToPositionAsync(threadingContext, workspace, documentId, position, NavigationOptions.Default, cancellationToken);
+    }
+
+    public static async Task<bool> TryNavigateToPositionAsync(
+        this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, int position, NavigationOptions options, CancellationToken cancellationToken)
     {
         var location = await service.GetLocationForPositionAsync(
             workspace, documentId, position, cancellationToken).ConfigureAwait(false);
-        return await location.TryNavigateToAsync(threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+        return await location.TryNavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
     }
 
     public static async Task<bool> TryNavigateToLineAndOffsetAsync(

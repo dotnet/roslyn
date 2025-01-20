@@ -36,21 +36,38 @@ internal static partial class Extensions
     /// <summary>
     /// True if the project supports Edit and Continue.
     /// Only depends on the language of the project and never changes.
+    /// 
+    /// Source generated files in the project must match the paths used by the compiler, otherwise
+    /// different metadata might be emitted for file-scoped classes between compilation and EnC.
     /// </summary>
-    public static bool SupportsEditAndContinue(this Project project)
-        => project.Services.GetService<IEditAndContinueAnalyzer>() != null;
+    public static bool SupportsEditAndContinue(this Project project, TraceLog? log = null)
+    {
+        if (project.FilePath == null)
+        {
+            log?.Write("Project '{0}' (id '{1}') doesn't support EnC: no file path", project.Name, project.Id);
+            return false;
+        }
 
-    // Note: source generated files have relative paths: https://github.com/dotnet/roslyn/issues/51998
+        if (project.Services.GetService<IEditAndContinueAnalyzer>() == null)
+        {
+            log?.Write("Project '{0}' doesn't support EnC: no EnC service", project.FilePath);
+            return false;
+        }
+
+        if (!project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory)
+        {
+            log?.Write("Project '{0}' doesn't support EnC: no generated files output directory", project.FilePath);
+            return false;
+        }
+
+        return true;
+    }
+
     public static bool SupportsEditAndContinue(this TextDocumentState textDocumentState)
     {
         if (textDocumentState.Attributes.DesignTimeOnly)
         {
             return false;
-        }
-
-        if (textDocumentState is SourceGeneratedDocumentState { FilePath: not null })
-        {
-            return true;
         }
 
         if (!PathUtilities.IsAbsolute(textDocumentState.FilePath))
@@ -95,18 +112,25 @@ internal static partial class Extensions
         => filePath.EndsWith(".razor.g.cs", StringComparison.OrdinalIgnoreCase) ||
             filePath.EndsWith(".cshtml.g.cs", StringComparison.OrdinalIgnoreCase);
 
-    public static ManagedHotReloadDiagnostic ToHotReloadDiagnostic(this DiagnosticData data, ModuleUpdateStatus updateStatus)
+    public static ManagedHotReloadDiagnostic ToHotReloadDiagnostic(this DiagnosticData data, ModuleUpdateStatus updateStatus, bool isRudeEdit)
     {
         var fileSpan = data.DataLocation.MappedFileSpan;
 
         return new(
             data.Id,
             data.Message ?? FeaturesResources.Unknown_error_occurred,
-            updateStatus == ModuleUpdateStatus.RestartRequired
-                ? ManagedHotReloadDiagnosticSeverity.RestartRequired
-                : (data.Severity == DiagnosticSeverity.Error)
-                    ? ManagedHotReloadDiagnosticSeverity.Error
-                    : ManagedHotReloadDiagnosticSeverity.Warning,
+            isRudeEdit
+                ? data.DefaultSeverity switch
+                {
+                    DiagnosticSeverity.Error => ManagedHotReloadDiagnosticSeverity.RestartRequired,
+                    DiagnosticSeverity.Warning => ManagedHotReloadDiagnosticSeverity.Warning,
+                    _ => throw ExceptionUtilities.UnexpectedValue(data.DefaultSeverity)
+                }
+                : updateStatus == ModuleUpdateStatus.RestartRequired
+                    ? ManagedHotReloadDiagnosticSeverity.RestartRequired
+                    : (data.Severity == DiagnosticSeverity.Error)
+                        ? ManagedHotReloadDiagnosticSeverity.Error
+                        : ManagedHotReloadDiagnosticSeverity.Warning,
             fileSpan.Path ?? "",
             fileSpan.Span.ToSourceSpan());
     }
@@ -183,9 +207,33 @@ internal static partial class Extensions
         => (IMethodSymbol?)constructor.ContainingType.GetMembers(WellKnownMemberNames.DeconstructMethodName).FirstOrDefault(
             static (symbol, constructor) => symbol is IMethodSymbol method && HasDeconstructorSignature(method, constructor), constructor)?.PartialAsImplementation();
 
-    // https://github.com/dotnet/roslyn/issues/73772: does this helper need to be updated to use IPropertySymbol.PartialImplementationPart?
+    /// <summary>
+    /// Returns a partial implementation part of a partial member, or the member itself if it's not partial.
+    /// </summary>
     public static ISymbol PartialAsImplementation(this ISymbol symbol)
-        => symbol is IMethodSymbol { PartialImplementationPart: { } impl } ? impl : symbol;
+        => PartialImplementationPart(symbol) ?? symbol;
+
+    public static bool IsPartialDefinition(this ISymbol symbol)
+        => symbol is IMethodSymbol { IsPartialDefinition: true } or IPropertySymbol { IsPartialDefinition: true };
+
+    public static bool IsPartialImplementation(this ISymbol symbol)
+        => symbol is IMethodSymbol { PartialDefinitionPart: not null } or IPropertySymbol { PartialDefinitionPart: not null };
+
+    public static ISymbol? PartialDefinitionPart(this ISymbol symbol)
+        => symbol switch
+        {
+            IMethodSymbol { PartialDefinitionPart: var def } => def,
+            IPropertySymbol { PartialDefinitionPart: var def } => def,
+            _ => null
+        };
+
+    public static ISymbol? PartialImplementationPart(this ISymbol symbol)
+        => symbol switch
+        {
+            IMethodSymbol { PartialImplementationPart: var impl } => impl,
+            IPropertySymbol { PartialImplementationPart: var impl } => impl,
+            _ => null
+        };
 
     /// <summary>
     /// Returns true if any member of the type implements an interface member explicitly.

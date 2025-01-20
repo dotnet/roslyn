@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(this.Kind != SymbolKind.Assembly);
 
             ImmutableArray<CSharpAttributeData> userDefined;
-            ArrayBuilder<SynthesizedAttributeData> synthesized = null;
+            ArrayBuilder<CSharpAttributeData> synthesized = null;
             userDefined = this.GetAttributes();
             this.AddSynthesizedAttributes(moduleBuilder, ref synthesized);
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(
             ImmutableArray<CSharpAttributeData> userDefined,
-            ArrayBuilder<SynthesizedAttributeData> synthesized,
+            ArrayBuilder<CSharpAttributeData> synthesized,
             bool isReturnType,
             bool emittingAssemblyAttributesInNetModule)
         {
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private IEnumerable<CSharpAttributeData> GetCustomAttributesToEmitIterator(
             ImmutableArray<CSharpAttributeData> userDefined,
-            ArrayBuilder<SynthesizedAttributeData> synthesized,
+            ArrayBuilder<CSharpAttributeData> synthesized,
             bool isReturnType,
             bool emittingAssemblyAttributesInNetModule)
         {

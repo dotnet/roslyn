@@ -7,32 +7,40 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing the response sent for a workspace/applyEdit request.
-    ///
+    /// Class representing the response sent for a <c>workspace/applyEdit</c> request.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#applyWorkspaceEditResult">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
-
     internal class ApplyWorkspaceEditResponse
     {
         /// <summary>
-        /// Gets or sets a value indicating whether edits were applied or not.
+        /// Indicates whether the edit was applied or not.
         /// </summary>
         [JsonPropertyName("applied")]
-        public bool Applied
-        {
-            get;
-            set;
-        }
+        [JsonRequired]
+        public bool Applied { get; set; }
 
         /// <summary>
-        /// Gets or sets a string with textual description for why the edit was not applied.
+        /// An optional textual description for why the edit was not applied.
+        /// <para>
+        /// This may be used by the server for diagnostic logging or to provide
+        /// a suitable error for a request that triggered the edit.
+        /// </para>
         /// </summary>
         [JsonPropertyName("failureReason")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? FailureReason
-        {
-            get;
-            set;
-        }
+        public string? FailureReason { get; set; }
+
+        /// <summary>
+        /// Depending on the client's failure handling strategy this
+        /// might contain the index of the change that failed.
+        /// <para>
+        /// This property is only available if the client signals a <see cref="WorkspaceEditSetting.FailureHandling"/> strategy in its client capabilities.
+        /// </para>
+        /// </summary>
+        [JsonPropertyName("failedChange")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public int? FailedChange { get; init; }
     }
 }

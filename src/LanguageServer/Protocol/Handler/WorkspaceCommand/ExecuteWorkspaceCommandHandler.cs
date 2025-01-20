@@ -29,17 +29,14 @@ internal class ExecuteWorkspaceCommandHandler : ILspServiceRequestHandler<Execut
 
     public async Task<object?> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var requestExecutionQueue = context.GetRequiredService<IRequestExecutionQueue<RequestContext>>();
+        var handlerProvider = context.GetRequiredService<AbstractHandlerProvider>();
         var lspServices = context.GetRequiredService<ILspServices>();
 
         var requestMethod = AbstractExecuteWorkspaceCommandHandler.GetRequestNameForCommandName(request.Command);
 
-        var result = await requestExecutionQueue.ExecuteAsync<ExecuteCommandParams, object?>(
-            request,
-            LanguageServerConstants.DefaultLanguageName,
-            requestMethod,
-            lspServices,
-            cancellationToken).ConfigureAwait(false);
+        var handler = (AbstractExecuteWorkspaceCommandHandler)handlerProvider.GetMethodHandler(requestMethod, TypeRef.FromOrNull(typeof(ExecuteCommandParams)), TypeRef.FromOrNull(typeof(object)), LanguageServerConstants.DefaultLanguageName);
+
+        var result = await handler.HandleRequestAsync(request, context, cancellationToken).ConfigureAwait(false);
 
         return result;
     }

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression;
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpressionForTernaryConditionalCheck), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class UseCoalesceExpressionForTernaryConditionalCheckCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed class UseCoalesceExpressionForTernaryConditionalCheckCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId];
@@ -37,7 +37,7 @@ internal class UseCoalesceExpressionForTernaryConditionalCheckCodeFixProvider() 
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var expressionTypeOpt = semanticModel.Compilation.ExpressionOfTType();

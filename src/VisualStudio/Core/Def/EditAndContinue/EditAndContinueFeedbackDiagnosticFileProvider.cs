@@ -98,8 +98,8 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
 
     public IReadOnlyCollection<string> GetFiles()
         => _vsFeedbackSemaphoreFileWatcher is null
-           ? Array.Empty<string>()
-           : (IReadOnlyCollection<string>)(new[] { GetZipFilePath() });
+           ? []
+           : (IReadOnlyCollection<string>)([GetZipFilePath()]);
 
     private void OnFeedbackSemaphoreCreatedOrChanged()
     {

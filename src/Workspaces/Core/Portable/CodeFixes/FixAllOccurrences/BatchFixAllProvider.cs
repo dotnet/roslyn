@@ -28,8 +28,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
     }
 
     public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-        => ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project,
-            FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType);
+        => [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType];
 
     public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         => DefaultFixAllProviderHelpers.GetFixAsync(
@@ -153,7 +152,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
                 // Create a context that will add the reported code actions into this
                 using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
                 var action = GetRegisterCodeFixAction(fixAllContext.CodeActionEquivalenceKey, codeActions);
-                var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, [diagnostic], action, fixAllContext.State.CodeActionOptionsProvider, cancellationToken);
+                var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, [diagnostic], action, cancellationToken);
 
                 // Wait for the all the code actions to be reported for this diagnostic.
                 var registerTask = fixAllContext.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;

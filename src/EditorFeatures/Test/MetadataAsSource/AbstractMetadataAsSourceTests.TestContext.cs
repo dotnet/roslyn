@@ -12,7 +12,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -30,7 +32,7 @@ public abstract partial class AbstractMetadataAsSourceTests
 
     internal class TestContext : IDisposable
     {
-        public readonly TestWorkspace Workspace;
+        public readonly EditorTestWorkspace Workspace;
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
 
         public static TestContext Create(
@@ -40,22 +42,33 @@ public abstract partial class AbstractMetadataAsSourceTests
             string? sourceWithSymbolReference = null,
             string? languageVersion = null,
             string? metadataLanguageVersion = null,
-            string? metadataCommonReferences = null)
+            string? metadataCommonReferences = null,
+            bool fileScopedNamespaces = false,
+            string? commonReferencesValue = null)
         {
             projectLanguage ??= LanguageNames.CSharp;
             metadataSources ??= [];
             metadataSources = !metadataSources.Any()
-                ? new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource }
+                ? [DefaultMetadataSource]
                 : metadataSources;
 
             var workspace = CreateWorkspace(
                 projectLanguage, metadataSources, includeXmlDocComments,
-                sourceWithSymbolReference, languageVersion, metadataLanguageVersion, metadataCommonReferences);
+                sourceWithSymbolReference, languageVersion,
+                metadataLanguageVersion, metadataCommonReferences, commonReferencesValue);
+
+            if (fileScopedNamespaces)
+            {
+                workspace.SetAnalyzerFallbackOptions(new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent) }
+                });
+            }
 
             return new TestContext(workspace);
         }
 
-        public TestContext(TestWorkspace workspace)
+        public TestContext(EditorTestWorkspace workspace)
         {
             Workspace = workspace;
             _metadataAsSourceService = Workspace.GetService<IMetadataAsSourceFileService>();
@@ -77,14 +90,13 @@ public abstract partial class AbstractMetadataAsSourceTests
             Contract.ThrowIfNull(symbol);
 
             // Generate and hold onto the result so it can be disposed of with this context
-            return _metadataAsSourceService.GetGeneratedFileAsync(Workspace, project, symbol, signaturesOnly, MetadataAsSourceOptions.GetDefault(project.Services));
+            return _metadataAsSourceService.GetGeneratedFileAsync(Workspace, project, symbol, signaturesOnly, MetadataAsSourceOptions.Default, CancellationToken.None);
         }
 
         public async Task<MetadataAsSourceFile> GenerateSourceAsync(
             string? symbolMetadataName = null,
             Project? project = null,
-            bool signaturesOnly = true,
-            bool fileScopedNamespaces = false)
+            bool signaturesOnly = true)
         {
             symbolMetadataName ??= AbstractMetadataAsSourceTests.DefaultSymbolMetadataName;
             project ??= this.DefaultProject;
@@ -118,24 +130,8 @@ public abstract partial class AbstractMetadataAsSourceTests
                 }
             }
 
-            var options = MetadataAsSourceOptions.GetDefault(project.Services);
-
-            if (fileScopedNamespaces)
-            {
-                options = options with
-                {
-                    GenerationOptions = options.GenerationOptions with
-                    {
-                        GenerationOptions = new CSharpCodeGenerationOptions
-                        {
-                            NamespaceDeclarations = new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent)
-                        }
-                    }
-                };
-            }
-
             // Generate and hold onto the result so it can be disposed of with this context
-            var result = await _metadataAsSourceService.GetGeneratedFileAsync(Workspace, project, symbol, signaturesOnly, options);
+            var result = await _metadataAsSourceService.GetGeneratedFileAsync(Workspace, project, symbol, signaturesOnly, MetadataAsSourceOptions.Default, CancellationToken.None);
 
             return result;
         }
@@ -153,9 +149,9 @@ public abstract partial class AbstractMetadataAsSourceTests
             Assert.Equal(expectedSpan.End, actualSpan.End);
         }
 
-        public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, Project? project = null, bool signaturesOnly = true, bool fileScopedNamespaces = false)
+        public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, Project? project = null, bool signaturesOnly = true)
         {
-            var result = await GenerateSourceAsync(symbolMetadataName, project, signaturesOnly, fileScopedNamespaces);
+            var result = await GenerateSourceAsync(symbolMetadataName, project, signaturesOnly);
             VerifyResult(result, expected);
         }
 
@@ -247,24 +243,26 @@ public abstract partial class AbstractMetadataAsSourceTests
                 ? LanguageNames.VisualBasic : LanguageNames.CSharp;
         }
 
-        private static TestWorkspace CreateWorkspace(
+        private static EditorTestWorkspace CreateWorkspace(
             string projectLanguage,
             IEnumerable<string>? metadataSources,
             bool includeXmlDocComments,
             string? sourceWithSymbolReference,
             string? languageVersion,
             string? metadataLanguageVersion,
-            string? metadataCommonReferences)
+            string? metadataCommonReferences,
+            string? commonReferencesValue)
         {
             var languageVersionAttribute = languageVersion is null ? "" : $@" LanguageVersion=""{languageVersion}""";
 
-            var xmlString = string.Concat(@"
-<Workspace>
-    <Project Language=""", projectLanguage, @""" CommonReferences=""true"" ReferencesOnDisk=""true""", languageVersionAttribute);
+            commonReferencesValue ??= """CommonReferences="true" """;
 
-            xmlString += ">";
+            var xmlString = $$"""
+                <Workspace>
+                    <Project Language="{{projectLanguage}}" {{commonReferencesValue}}ReferencesOnDisk="true" {{languageVersionAttribute}}>
+                """;
 
-            metadataSources ??= new[] { AbstractMetadataAsSourceTests.DefaultMetadataSource };
+            metadataSources ??= [DefaultMetadataSource];
 
             foreach (var source in metadataSources)
             {
@@ -288,17 +286,19 @@ public abstract partial class AbstractMetadataAsSourceTests
                     sourceWithSymbolReference));
             }
 
-            xmlString = string.Concat(xmlString, @"
-    </Project>
-</Workspace>");
+            xmlString += """
+
+                    </Project>
+                </Workspace>
+                """;
 
             // We construct our own composition here because we only want the decompilation metadata as source provider
             // to be available.
             var composition = EditorTestCompositions.EditorFeatures
-                .WithExcludedPartTypes(ImmutableHashSet.Create(typeof(IMetadataAsSourceFileProvider)))
+                .WithExcludedPartTypes([typeof(IMetadataAsSourceFileProvider)])
                 .AddParts(typeof(DecompilationMetadataAsSourceFileProvider));
 
-            return TestWorkspace.Create(xmlString, composition: composition);
+            return EditorTestWorkspace.Create(xmlString, composition: composition);
         }
 
         internal Document GetDocument(MetadataAsSourceFile file)
@@ -306,7 +306,7 @@ public abstract partial class AbstractMetadataAsSourceTests
             using var reader = File.OpenRead(file.FilePath);
             var stringText = EncodedStringText.Create(reader);
 
-            Assert.True(_metadataAsSourceService.TryAddDocumentToWorkspace(file.FilePath, stringText.Container));
+            Assert.True(_metadataAsSourceService.TryAddDocumentToWorkspace(file.FilePath, stringText.Container, out var _));
 
             return stringText.Container.GetRelatedDocuments().Single();
         }

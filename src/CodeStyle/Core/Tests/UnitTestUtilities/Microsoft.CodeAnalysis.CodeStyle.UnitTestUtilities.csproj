@@ -24,7 +24,7 @@
     <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeRefactoringVerifier`1.cs" Link="VisualBasicCodeRefactoringVerifier`1.cs" />
     <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\Diagnostics\ParenthesesOptionsProvider.cs" Link="ParenthesesOptionsProvider.cs" />
     <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\NamingStyles\NamingStylesTestOptionSets.cs" Link="NamingStyles\NamingStylesTestOptionSets.cs" />
-    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\Utilities\StringSyntaxAttribute.cs" Link="Utilities\StringSyntaxAttribute.cs" />
+    <Compile Include="..\..\..\..\Features\TestUtilities\Utilities\StringSyntaxAttribute.cs" Link="Utilities\StringSyntaxAttribute.cs" />
     <Compile Include="..\..\..\..\Workspaces\CoreTestUtilities\OptionsCollection.cs" Link="OptionsCollection.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">

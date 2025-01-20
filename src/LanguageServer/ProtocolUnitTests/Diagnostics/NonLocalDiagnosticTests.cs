@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var markup2 = @"class B { }";
             var scope = fsaEnabled ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.OpenFiles;
             await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-                 new[] { markup1, markup2 }, mutatingLspWorkspace, scope, useVSDiagnostics: false);
+                 [markup1, markup2], mutatingLspWorkspace, scope, useVSDiagnostics: false);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.First();
 
@@ -68,16 +68,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         protected override TestComposition Composition => base.Composition.AddParts(typeof(NonLocalDiagnosticsAnalyzer));
 
         private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
-            => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, ImmutableArray.Create(
-                DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
-                new NonLocalDiagnosticsAnalyzer())));
+            => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, [DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new NonLocalDiagnosticsAnalyzer()]));
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private sealed class NonLocalDiagnosticsAnalyzer : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor NonLocalDescriptor = new("NonLocal0001", "Title1", "NonLocal0001", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
             public static readonly DiagnosticDescriptor CompilationEndDescriptor = new("NonLocal0002", "Title2", "NonLocal0002", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true, customTags: [WellKnownDiagnosticTags.CompilationEnd]);
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(NonLocalDescriptor, CompilationEndDescriptor);
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [NonLocalDescriptor, CompilationEndDescriptor];
 
             public override void Initialize(AnalysisContext context)
             {

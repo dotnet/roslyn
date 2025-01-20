@@ -40,7 +40,7 @@ internal abstract class BlockStructureServiceWithProviders : BlockStructureServi
                                    .Where(lz => lz.Metadata.Language == language)
                                    .Select(lz => lz.Value);
 
-        return providers.ToImmutableArray();
+        return [.. providers];
     }
 
     public override async Task<BlockStructure> GetBlockStructureAsync(
@@ -73,11 +73,10 @@ internal abstract class BlockStructureServiceWithProviders : BlockStructureServi
 
     private static BlockStructure CreateBlockStructure(in BlockStructureContext context)
     {
-        var updatedSpans = new FixedSizeArrayBuilder<BlockSpan>(context.Spans.Count);
-        foreach (var span in context.Spans)
-            updatedSpans.Add(UpdateBlockSpan(span, context.Options));
+        for (var i = 0; i < context.Spans.Count; i++)
+            context.Spans[i] = UpdateBlockSpan(context.Spans[i], context.Options);
 
-        return new BlockStructure(updatedSpans.MoveToImmutable());
+        return new BlockStructure(context.Spans.ToImmutable());
     }
 
     private static BlockSpan UpdateBlockSpan(BlockSpan blockSpan, in BlockStructureOptions options)

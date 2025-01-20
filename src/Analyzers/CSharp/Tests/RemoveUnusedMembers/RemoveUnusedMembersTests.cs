@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -30,19 +29,20 @@ public class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31582")]
     public async Task FieldReadViaSuppression()
     {
-        var code = """
-            #nullable enable
-            class MyClass
-            {
-                string? _field = null;
-                public void M()
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                class MyClass
                 {
-                    _field!.ToString();
+                    string? _field = null;
+                    public void M()
+                    {
+                        _field!.ToString();
+                    }
                 }
-            }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(code, code);
+                """
+        }.RunAsync();
     }
 
     [Theory]
@@ -53,14 +53,16 @@ public class RemoveUnusedMembersTests
     [InlineData("private protected")]
     public async Task NonPrivateField(string accessibility)
     {
-        var code = $$"""
-            class MyClass
-            {
-                {{accessibility}} int _goo;
-            }
-            """;
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                class MyClass
+                {
+                    {{accessibility}} int _goo;
+                }
+                """,
+        }.RunAsync();
 
-        await VerifyCS.VerifyCodeFixAsync(code, code);
     }
 
     [Theory]
@@ -71,14 +73,15 @@ public class RemoveUnusedMembersTests
     [InlineData("private protected")]
     public async Task NonPrivateFieldWithConstantInitializer(string accessibility)
     {
-        var code = $$"""
-            class MyClass
-            {
-                {{accessibility}} int _goo = 0;
-            }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(code, code);
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                class MyClass
+                {
+                    {{accessibility}} int _goo = 0;
+                }
+                """,
+        }.RunAsync();
     }
 
     [Theory]
@@ -89,15 +92,16 @@ public class RemoveUnusedMembersTests
     [InlineData("private protected")]
     public async Task NonPrivateFieldWithNonConstantInitializer(string accessibility)
     {
-        var code = $$"""
-            class MyClass
-            {
-                {{accessibility}} int _goo = _goo2;
-                private static readonly int _goo2 = 0;
-            }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(code, code);
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                class MyClass
+                {
+                    {{accessibility}} int _goo = _goo2;
+                    private static readonly int _goo2 = 0;
+                }
+                """,
+        }.RunAsync();
     }
 
     [Theory]
@@ -434,7 +438,6 @@ public class RemoveUnusedMembersTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             ExpectedDiagnostics =
             {
                 // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
@@ -1292,15 +1295,16 @@ public class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31581")]
     public async Task MethodInNameOf()
     {
-        var code = """
-            class MyClass
-            {
-                private void M() { }
-                private string _goo = nameof(M);
-            }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(code, code);
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class MyClass
+                {
+                    private void M() { }
+                    public string _goo = nameof(M);
+                }
+                """,
+        }.RunAsync();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33765")]
@@ -1462,30 +1466,26 @@ public class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33994")]
     public async Task PropertyIsOnlyWritten()
     {
-        var source =
-            """
-            class MyClass
-            {
-                private int {|#0:P|} { get; set; }
-                public void M()
-                {
-                    P = 0;
-                }
-            }
-            """;
-
-        var descriptor = new CSharpRemoveUnusedMembersDiagnosticAnalyzer().SupportedDiagnostics.First(x => x.Id == "IDE0052");
-        var expectedMessage = string.Format(AnalyzersResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked, "MyClass.P");
-
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = """
+                class MyClass
+                {
+                    private int {|#0:P|} { get; set; }
+                    public void M()
+                    {
+                        P = 0;
+                    }
+                }
+                """,
             ExpectedDiagnostics =
             {
                 // Test0.cs(3,17): info IDE0052: Private property 'MyClass.P' can be converted to a method as its get accessor is never invoked.
-                VerifyCS.Diagnostic(descriptor).WithMessage(expectedMessage).WithLocation(0),
+                VerifyCS
+                    .Diagnostic(new CSharpRemoveUnusedMembersDiagnosticAnalyzer().SupportedDiagnostics.First(x => x.Id == "IDE0052"))
+                    .WithMessage(string.Format(AnalyzersResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked, "MyClass.P"))
+                    .WithLocation(0),
             },
-            FixedCode = source,
         }.RunAsync();
     }
 
@@ -1745,20 +1745,21 @@ public class RemoveUnusedMembersTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
-    public async Task PropertyIsIncrementedAndValueDropped_VerifyAnalizerMessage()
+    public async Task PropertyIsIncrementedAndValueDropped_VerifyAnalyzerMessage()
     {
         var code = """
             class MyClass
             {
-                private int P { get; set; }
+                private int {|#0:P|} { get; set; }
                 public void M1() { ++P; }
             }
             """;
 
         await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
             CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
-            .WithSpan(3, 17, 3, 18)
-            .WithArguments("MyClass.P"));
+                .WithLocation(0)
+                .WithArguments("MyClass.P")
+                .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -1805,20 +1806,19 @@ public class RemoveUnusedMembersTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
-    public async Task IndexerIsIncrementedAndValueDropped_VerifyAnalizerMessage()
+    public async Task IndexerIsIncrementedAndValueDropped_VerifyAnalyzerMessage()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
-                private int this[int x] { get { return 0; } set { } }
+                private int {|#0:this|}[int x] { get { return 0; } set { } }
                 public void M1(int x) => ++this[x];
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
-            CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
-            .WithSpan(3, 17, 3, 21)
-            .WithArguments("MyClass.this"));
+            """, new DiagnosticResult(
+                CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+                    .WithLocation(0)
+                    .WithArguments("MyClass.this")
+                    .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -1921,20 +1921,21 @@ public class RemoveUnusedMembersTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
-    public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalizerMessage()
+    public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
     {
         var code = """
             class MyClass
             {
-                private int P { get; set; }
+                private int {|#0:P|} { get; set; }
                 public void M1(int x) { P += x; }
             }
             """;
 
         await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
             CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
-            .WithSpan(3, 17, 3, 18)
-            .WithArguments("MyClass.P"));
+                .WithLocation(0)
+                .WithArguments("MyClass.P")
+                .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -1986,15 +1987,16 @@ public class RemoveUnusedMembersTests
         var code = """
             class MyClass
             {
-                private int this[int x] { get { return 0; } set { } }
+                private int {|#0:this|}[int x] { get { return 0; } set { } }
                 public void M1(int x, int y) => this[x] += y;
             }
             """;
 
         await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
             CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
-            .WithSpan(3, 17, 3, 21)
-            .WithArguments("MyClass.this"));
+                .WithLocation(0)
+                .WithArguments("MyClass.this")
+                .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -3173,15 +3175,18 @@ public class RemoveUnusedMembersTests
             """
             class C
             {
-                private C(int i) { }
+                private {|#0:C|}(int i) { }
             }
             """,
-// /0/Test0.cs(3,13): info IDE0051: Private member 'C.C' is unused
-VerifyCS.Diagnostic("IDE0051").WithSpan(3, 13, 3, 14).WithArguments("C.C"));
+            // /0/Test0.cs(3,13): info IDE0051: Private member 'C.C' is unused
+            VerifyCS.Diagnostic("IDE0051")
+                .WithLocation(0)
+                .WithArguments("C.C")
+                .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]
-    public async Task DontWarnForAwaiterMethods()
+    public async Task DoNotWarnForAwaiterMethods()
     {
         const string code = """
             using System;
@@ -3236,5 +3241,293 @@ VerifyCS.Diagnostic("IDE0051").WithSpan(3, 13, 3, 14).WithArguments("C.C"));
             """;
 
         await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57470")]
+    public async Task TestForeach()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+
+                static class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        foreach (var i in 1..10)
+                            Console.WriteLine(i);
+                    }
+
+                    static IEnumerator GetEnumerator(this Range range)
+                    {
+                        for (int i = range.Start.Value; i < range.End.Value; i++)
+                            yield return i;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75995")]
+    public async Task KeepUsedDeconstructMethod()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public void M(
+                        ref object? o,
+                        ref object? p)
+                    {
+                        (o, p) = this;
+                    }
+
+                    void Deconstruct(
+                        out object? o,
+                        out object? p)
+                    {
+                        o = null;
+                        p = null;
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75995")]
+    public async Task RemoveUnusedDeconstructMethod()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public void M(
+                        ref object o,
+                        ref object p)
+                    {
+                    }
+
+                    void [|Deconstruct|](
+                        out object? o,
+                        out object? p)
+                    {
+                        o = null;
+                        p = null;
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+
+                class C
+                {
+                    public void M(
+                        ref object o,
+                        ref object p)
+                    {
+                    }
+                }
+                """,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69143")]
+    public async Task KeepInlineArrayInstanceMember()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Runtime.CompilerServices;
+
+                [InlineArray(4)]
+                struct S
+                {
+                    private int i;
+                    private static int [|j|];
+                }
+                """,
+            FixedCode = """
+                using System.Runtime.CompilerServices;
+
+                [InlineArray(4)]
+                struct S
+                {
+                    private int i;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54972")]
+    public async Task TestNameof1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class Program
+                {
+                    private int [|unused|];
+
+                    static void Main(string[] args)
+                    {
+                        Console.WriteLine(nameof(Main));
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Console.WriteLine(nameof(Main));
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54972")]
+    public async Task TestNameof2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class Program
+                {
+                    private int used;
+
+                    static void Main(string[] args)
+                    {
+                        Console.WriteLine(nameof(used));
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54972")]
+    public async Task TestNameof3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class Program
+                {
+                    private void M() { }
+                    private void M(int i) { }
+
+                    static void Main(string[] args)
+                    {
+                        Console.WriteLine(nameof(M));
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71847")]
+    public async Task TestRefFieldOnlyWrittenTo()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                public ref struct TestStruct
+                {
+                    private ref readonly byte m_toPin;
+                    private ref IntPtr m_toAssignPin;
+                    private IntPtr value;
+                    public void FromManaged(Span<byte> toPin)
+                    {
+                        m_toPin = ref toPin.GetPinnableReference();
+                        m_toAssignPin = ref Unsafe.AsRef(ref value);
+                    }
+
+                    public unsafe void ToUnmanaged()
+                    {
+                        m_toAssignPin = (IntPtr)Unsafe.AsPointer(ref Unsafe.AsRef(in m_toPin));
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71847")]
+    public async Task TestRefFieldNotReadOrWritten()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                public ref struct TestStruct
+                {
+                    private ref readonly byte m_toPin;
+                    private ref IntPtr [|m_toAssignPin|];
+
+                    public void FromManaged(Span<byte> toPin)
+                    {
+                        m_toPin = ref toPin.GetPinnableReference();
+                    }
+                
+                    public unsafe void ToUnmanaged()
+                    {
+                        _ = (IntPtr)Unsafe.AsPointer(ref Unsafe.AsRef(in m_toPin));
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                public ref struct TestStruct
+                {
+                    private ref readonly byte m_toPin;
+
+                    public void FromManaged(Span<byte> toPin)
+                    {
+                        m_toPin = ref toPin.GetPinnableReference();
+                    }
+                
+                    public unsafe void ToUnmanaged()
+                    {
+                        _ = (IntPtr)Unsafe.AsPointer(ref Unsafe.AsRef(in m_toPin));
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
     }
 }

@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -63,7 +62,7 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
     public sealed override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId, IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId];
 
-    protected abstract ISyntaxFormatting GetSyntaxFormatting();
+    protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
     /// <summary>
     /// Method to update the identifier token for the local/parameter declaration or reference
@@ -73,7 +72,7 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
     /// </summary>
     /// <param name="node">Flagged node containing the identifier token to be replaced.</param>
     /// <param name="newName">New identifier token</param>
-    protected abstract SyntaxNode TryUpdateNameForFlaggedNode(SyntaxNode node, SyntaxToken newName);
+    protected abstract SyntaxNode? TryUpdateNameForFlaggedNode(SyntaxNode node, SyntaxToken newName);
 
     /// <summary>
     /// Gets the identifier token for the iteration variable of the given foreach statement node.
@@ -282,10 +281,9 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
         return document.WithSyntaxRoot(root);
     }
 
-    protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-        var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
         var preprocessedDocument = await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
         var newRoot = await GetNewRootAsync(preprocessedDocument, formattingOptions, diagnostics, cancellationToken).ConfigureAwait(false);
         editor.ReplaceNode(editor.OriginalRoot, newRoot);
@@ -696,8 +694,7 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
             var insertionNode = node.FirstAncestorOrSelf<SyntaxNode>(
                 n => n.Parent is TSwitchCaseBlockSyntax ||
                      blockFacts.IsExecutableBlock(n.Parent) &&
-                     n is not TCatchStatementSyntax &&
-                     n is not TCatchBlockSyntax);
+                     n is not TCatchStatementSyntax and not TCatchBlockSyntax);
             if (insertionNode is TSwitchCaseLabelOrClauseSyntax)
             {
                 InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(
@@ -742,7 +739,7 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
         }
     }
 
-    protected abstract TLocalDeclarationStatementSyntax GetCandidateLocalDeclarationForRemoval(TVariableDeclaratorSyntax declarator);
+    protected abstract TLocalDeclarationStatementSyntax? GetCandidateLocalDeclarationForRemoval(TVariableDeclaratorSyntax declarator);
 
     private async Task<SyntaxNode> PostProcessDocumentAsync(
         Document document,
@@ -846,15 +843,10 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
         // Finally, we apply replace the memberDeclaration in the originalEditor as a single edit.
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var rootWithTrackedNodes = root.TrackNodes(originalDeclStatementsToMoveOrRemove);
+        var spansToFormat = originalDeclStatementsToMoveOrRemove.Select(s => s.Span);
 
         // Run formatter prior to invoking IMoveDeclarationNearReferenceService.
-#if CODE_STYLE
-        var provider = GetSyntaxFormatting();
-        rootWithTrackedNodes = FormatterHelper.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: default, cancellationToken);
-#else
-        var provider = document.Project.Solution.Services;
-        rootWithTrackedNodes = Formatter.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: default, cancellationToken);
-#endif
+        rootWithTrackedNodes = SyntaxFormatting.GetFormattingResult(rootWithTrackedNodes, spansToFormat, options, rules: default, cancellationToken).GetFormattedRoot(cancellationToken);
 
         document = document.WithSyntaxRoot(rootWithTrackedNodes);
         await OnDocumentUpdatedAsync().ConfigureAwait(false);
@@ -872,8 +864,13 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
             }
             else if (declStatement.HasAnnotation(s_newLocalDeclarationStatementAnnotation))
             {
-                // Otherwise, move the declaration closer to the first reference if possible.
-                if (await moveDeclarationService.CanMoveDeclarationNearReferenceAsync(document, declStatement, cancellationToken).ConfigureAwait(false))
+                // Otherwise, move the declaration closer to the first reference if possible.  Note: because the initial
+                // declaration value was unused (which is why we're removing/moving the local decl in the first place),
+                // there's no concern about changing the scope where the declaration now lives, which is why it's fine
+                // to ignore 'mayChangeSemantics' here.
+
+                var (canUse, mayChangeSemantics) = await moveDeclarationService.CanMoveDeclarationNearReferenceAsync(document, declStatement, cancellationToken).ConfigureAwait(false);
+                if (canUse)
                 {
                     document = await moveDeclarationService.MoveDeclarationNearReferenceAsync(document, declStatement, cancellationToken).ConfigureAwait(false);
                     await OnDocumentUpdatedAsync().ConfigureAwait(false);

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
                     ExternalAccessFSharpResources.UnusedOpens,
                     DiagnosticCategory.Style, DiagnosticSeverity.Hidden, isEnabledByDefault: true, customTags: FSharpDiagnosticCustomTags.Unnecessary);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
 
         public override int Priority => 90; // Default = 50
 
@@ -68,13 +68,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
         {
             return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-        }
-
-#pragma warning disable IDE0060 // Remove unused parameter
-        public bool OpenFileOnly(Workspace workspace)
-#pragma warning restore IDE0060 // Remove unused parameter
-        {
-            return true;
         }
     }
 }

@@ -42,7 +42,7 @@ internal abstract class AbstractRegexDiagnosticAnalyzer : AbstractBuiltInCodeSty
         var semanticModel = context.SemanticModel;
         var cancellationToken = context.CancellationToken;
 
-        var option = context.GetIdeAnalyzerOptions().ReportInvalidRegexPatterns;
+        var option = context.GetAnalyzerOptions().GetOption(RegexOptionsStorage.ReportInvalidRegexPatterns);
         if (!option || ShouldSkipAnalysis(context, notification: null))
             return;
 

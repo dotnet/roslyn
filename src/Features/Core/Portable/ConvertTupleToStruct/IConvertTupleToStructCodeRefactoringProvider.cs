@@ -13,5 +13,5 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct;
 internal interface IConvertTupleToStructCodeRefactoringProvider : ILanguageService
 {
     Task<Solution> ConvertToStructAsync(
-        Document document, TextSpan span, Scope scope, CleanCodeGenerationOptionsProvider fallbackOptions, bool isRecord, CancellationToken cancellationToken);
+        Document document, TextSpan span, Scope scope, bool isRecord, CancellationToken cancellationToken);
 }

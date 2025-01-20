@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     /// <summary>
     /// Flags controlling if generator documents should be created or not.

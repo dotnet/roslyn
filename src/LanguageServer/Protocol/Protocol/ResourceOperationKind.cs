@@ -9,8 +9,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Value representing the kind of resource operations supported by the client.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#resourceOperationKind">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter<ResourceOperationKind>))]
     [TypeConverter(typeof(StringEnumConverter<ResourceOperationKind>.TypeConverter))]

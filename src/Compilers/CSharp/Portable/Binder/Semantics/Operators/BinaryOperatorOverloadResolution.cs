@@ -958,7 +958,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void getDeclaredOperators(TypeSymbol constrainedToTypeOpt, NamedTypeSymbol type, BinaryOperatorKind kind, string name, ArrayBuilder<BinaryOperatorSignature> operators)
             {
-                foreach (MethodSymbol op in type.GetOperators(name))
+                var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
+                type.AddOperators(name, typeOperators);
+
+                foreach (MethodSymbol op in typeOperators)
                 {
                     // If we're in error recovery, we might have bad operators. Just ignore it.
                     if (op.ParameterCount != 2 || op.ReturnsVoid)
@@ -972,6 +975,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UserDefined | kind, leftOperandType, rightOperandType, resultType, op, constrainedToTypeOpt));
                 }
+
+                typeOperators.Free();
             }
 
             void addLiftedOperators(TypeSymbol constrainedToTypeOpt, BinaryOperatorKind kind, ArrayBuilder<BinaryOperatorSignature> operators)
@@ -1069,13 +1074,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            var candidates = result.Results;
+            RemoveLowerPriorityMembers<BinaryOperatorAnalysisResult, MethodSymbol>(candidates);
+
             // SPEC: Otherwise, the best function member is the one function member that is better than all other function 
             // SPEC: members with respect to the given argument list, provided that each function member is compared to all 
             // SPEC: other function members using the rules in 7.5.3.2. If there is not exactly one function member that is 
             // SPEC: better than all other function members, then the function member invocation is ambiguous and a binding-time 
             // SPEC: error occurs.
 
-            var candidates = result.Results;
             // Try to find a single best candidate
             int bestIndex = GetTheBestCandidateIndex(left, right, candidates, ref useSiteInfo);
             if (bestIndex != -1)

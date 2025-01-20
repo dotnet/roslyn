@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
@@ -42,17 +42,14 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
     where TStatementSyntax : SyntaxNode
     where TExpressionSyntax : SyntaxNode
 {
-    protected abstract SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatement);
     protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
     protected abstract Accessibility DetermineDefaultPropertyAccessibility();
-    protected abstract SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken);
     protected abstract SyntaxNode RemoveThrowNotImplemented(SyntaxNode propertySyntax);
-    protected abstract bool TryUpdateTupleAssignment(IBlockOperation? blockStatement, IParameterSymbol parameter, ISymbol fieldOrProperty, SyntaxEditor editor);
 
     protected sealed override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
         Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
         ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan,
-        CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         return SpecializedTasks.EmptyImmutableArray<CodeAction>();
     }
@@ -64,7 +61,6 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         SyntaxNode constructorDeclaration,
         IMethodSymbol method,
         IBlockOperation? blockStatement,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         // Only supported for constructor parameters.
@@ -77,15 +73,14 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
 
         // See if we're already assigning this parameter to a field/property in this type. If so, there's nothing
         // more for us to do.
-        var assignmentStatement = TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement);
+        var assignmentStatement = InitializeParameterHelpersCore.TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement);
         if (assignmentStatement != null)
             return [];
 
-        // Haven't initialized any fields/properties with this parameter.  Offer to assign
-        // to an existing matching field/prop if we can find one, or add a new field/prop
-        // if we can't.
+        // Haven't initialized any fields/properties with this parameter.  Offer to assign to an existing matching
+        // field/prop if we can find one, or add a new field/prop if we can't.
 
-        var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
         var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
         if (parameterNameParts.BaseName == "")
             return [];
@@ -96,12 +91,12 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         if (fieldOrProperty != null)
         {
             return HandleExistingFieldOrProperty(
-                document, parameter, constructorDeclaration, blockStatement, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions);
+                document, parameter, constructorDeclaration, blockStatement, fieldOrProperty, isThrowNotImplementedProperty);
         }
 
         return await HandleNoExistingFieldOrPropertyAsync(
             document, parameter, constructorDeclaration,
-            method, blockStatement, rules, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            method, blockStatement, rules, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<ImmutableArray<CodeAction>> HandleNoExistingFieldOrPropertyAsync(
@@ -111,17 +106,16 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         IMethodSymbol method,
         IBlockOperation? blockStatement,
         ImmutableArray<NamingRule> rules,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         // Didn't find a field/prop that this parameter could be assigned to.
         // Offer to create new one and assign to that.
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var allActions);
 
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var (fieldAction, propertyAction) = AddSpecificParameterInitializationActions(
-            document, parameter, constructorDeclaration, blockStatement, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions);
+            document, parameter, constructorDeclaration, blockStatement, rules, formattingOptions.AccessibilityModifiersRequired);
 
         // Check if the surrounding parameters are assigned to another field in this class.  If so, offer to
         // make this parameter into a field as well.  Otherwise, default to generating a property
@@ -138,7 +132,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         }
 
         var (allFieldsAction, allPropertiesAction) = AddAllParameterInitializationActions(
-            document, constructorDeclaration, method, blockStatement, rules, formattingOptions.AccessibilityModifiersRequired, fallbackOptions);
+            document, constructorDeclaration, method, blockStatement, rules, formattingOptions.AccessibilityModifiersRequired);
 
         if (allFieldsAction != null && allPropertiesAction != null)
         {
@@ -163,8 +157,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         IMethodSymbol method,
         IBlockOperation? blockStatement,
         ImmutableArray<NamingRule> rules,
-        AccessibilityModifiersRequired accessibilityModifiersRequired,
-        CodeGenerationOptionsProvider fallbackOptions)
+        AccessibilityModifiersRequired accessibilityModifiersRequired)
     {
         if (blockStatement == null)
             return default;
@@ -180,12 +173,12 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         var allFieldsAction = CodeAction.Create(
             FeaturesResources.Create_and_assign_remaining_as_fields,
             c => AddAllSymbolInitializationsAsync(
-                document, constructorDeclaration, blockStatement, parameters, fields, fallbackOptions, c),
+                document, constructorDeclaration, blockStatement, parameters, fields, c),
             nameof(FeaturesResources.Create_and_assign_remaining_as_fields));
         var allPropertiesAction = CodeAction.Create(
             FeaturesResources.Create_and_assign_remaining_as_properties,
             c => AddAllSymbolInitializationsAsync(
-                document, constructorDeclaration, blockStatement, parameters, properties, fallbackOptions, c),
+                document, constructorDeclaration, blockStatement, parameters, properties, c),
             nameof(FeaturesResources.Create_and_assign_remaining_as_properties));
 
         return (allFieldsAction, allPropertiesAction);
@@ -197,8 +190,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         SyntaxNode constructorDeclaration,
         IBlockOperation? blockStatement,
         ImmutableArray<NamingRule> rules,
-        AccessibilityModifiersRequired accessibilityModifiersRequired,
-        CodeGenerationOptionsProvider fallbackOptions)
+        AccessibilityModifiersRequired accessibilityModifiersRequired)
     {
         var field = CreateField(parameter, accessibilityModifiersRequired, rules);
         var property = CreateProperty(parameter, accessibilityModifiersRequired, rules);
@@ -208,11 +200,11 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
 
         var fieldAction = CodeAction.Create(
             string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
-            c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, field, isThrowNotImplementedProperty, fallbackOptions, c),
+            cancellationToken => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, field, isThrowNotImplementedProperty, cancellationToken),
             nameof(FeaturesResources.Create_and_assign_field_0) + "_" + field.Name);
         var propertyAction = CodeAction.Create(
             string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
-            c => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, property, isThrowNotImplementedProperty, fallbackOptions, c),
+            cancellationToken => AddSingleSymbolInitializationAsync(document, constructorDeclaration, blockStatement, parameter, property, isThrowNotImplementedProperty, cancellationToken),
             nameof(FeaturesResources.Create_and_assign_property_0) + "_" + property.Name);
 
         return (fieldAction, propertyAction);
@@ -231,7 +223,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
             if (parameterNameParts.BaseName == "")
                 continue;
 
-            var assignmentOp = TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement);
+            var assignmentOp = InitializeParameterHelpersCore.TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement);
             if (assignmentOp != null)
                 continue;
 
@@ -247,8 +239,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         SyntaxNode functionDeclaration,
         IBlockOperation? blockStatement,
         ISymbol fieldOrProperty,
-        bool isThrowNotImplementedProperty,
-        CodeGenerationOptionsProvider fallbackOptions)
+        bool isThrowNotImplementedProperty)
     {
         // Found a field/property that this parameter should be assigned to.
         // Just offer the simple assignment to it.
@@ -261,8 +252,8 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
 
         return [CodeAction.Create(
             title,
-            c => AddSingleSymbolInitializationAsync(
-                document, functionDeclaration, blockStatement, parameter, fieldOrProperty, isThrowNotImplementedProperty, fallbackOptions, c),
+            cancellationToken => AddSingleSymbolInitializationAsync(
+                document, functionDeclaration, blockStatement, parameter, fieldOrProperty, isThrowNotImplementedProperty, cancellationToken),
             title)];
     }
 
@@ -368,7 +359,6 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         IBlockOperation? blockStatement,
         ImmutableArray<IParameterSymbol> parameters,
         ImmutableArray<ISymbol> fieldsOrProperties,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         Debug.Assert(parameters.Length >= 2);
@@ -421,7 +411,6 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
                 currentParameter,
                 fieldOrProperty,
                 isThrowNotImplementedProperty: false,
-                fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -435,116 +424,115 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         IParameterSymbol parameter,
         ISymbol fieldOrProperty,
         bool isThrowNotImplementedProperty,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
-        var services = document.Project.Solution.Services;
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var editor = new SyntaxEditor(root, services);
-        var generator = editor.Generator;
-        var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-        var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
+        // First, add the field/property to the solution if they're a newly generated member and not a pre-existing one.
+        var (documentWithMemberAdded, currentParameter, currentFieldOrProperty) = await AddMissingFieldOrPropertyAsync(
+            document, constructorDeclaration, blockStatement, parameter, fieldOrProperty, cancellationToken).ConfigureAwait(false);
 
-        if (fieldOrProperty.ContainingType == null)
+        var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
+
+        var solutionWithAssignmentAdded = documentWithMemberAdded.Project.Solution;
+        if (currentParameter != null && currentFieldOrProperty != null)
         {
-            // We're generating a new field/property.  Place into the containing type,
-            // ideally before/after a relevant existing member.
-            // First, look for the right containing type (As a type may be partial). 
-            // We want the type-block that this constructor is contained within.
-            var typeDeclaration = constructorDeclaration.GetAncestor<TTypeDeclarationSyntax>()!;
-
-            // Now add the field/property to this type.  Use the 'ReplaceNode+callback' form
-            // so that nodes will be appropriate tracked and so we can then update the constructor
-            // below even after we've replaced the whole type with a new type.
-            //
-            // Note: We'll pass the appropriate options so that the new field/property 
-            // is appropriate placed before/after an existing field/property.  We'll try
-            // to preserve the same order for fields/properties that we have for the constructor
-            // parameters.
-            editor.ReplaceNode(
-                typeDeclaration,
-                (currentTypeDecl, _) =>
-                {
-                    if (fieldOrProperty is IPropertySymbol property)
-                    {
-                        return codeGenerator.AddProperty(
-                            currentTypeDecl, property,
-                            codeGenerator.GetInfo(GetAddContext<IPropertySymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), options, root.SyntaxTree.Options),
-                            cancellationToken);
-                    }
-                    else if (fieldOrProperty is IFieldSymbol field)
-                    {
-                        return codeGenerator.AddField(
-                            currentTypeDecl, field,
-                            codeGenerator.GetInfo(GetAddContext<IFieldSymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), options, root.SyntaxTree.Options),
-                            cancellationToken);
-                    }
-                    else
-                    {
-                        throw ExceptionUtilities.Unreachable();
-                    }
-                });
+            // Now, attempt to assign the parameter to that field/property.
+            solutionWithAssignmentAdded = await initializeParameterService.AddAssignmentAsync(
+               documentWithMemberAdded, currentParameter, currentFieldOrProperty, cancellationToken).ConfigureAwait(false);
         }
 
-        AddAssignment(constructorDeclaration, blockStatement, parameter, fieldOrProperty, editor);
-
-        // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws.
-        var currentSolution = document.Project.Solution;
-        if (isThrowNotImplementedProperty)
+        // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws as the
+        // constructor is now initializing the property properly with a value.
+        var finalSolution = solutionWithAssignmentAdded;
+        if (isThrowNotImplementedProperty && currentFieldOrProperty != null)
         {
-            var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
-            var propertySyntax = await declarationService.GetDeclarations(fieldOrProperty)[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-            var withoutThrowNotImplemented = RemoveThrowNotImplemented(propertySyntax);
+            var compilation = await finalSolution.GetRequiredProject(documentWithMemberAdded.Project.Id).GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var finalFieldOrProperty = SymbolFinder.FindSimilarSymbols(currentFieldOrProperty, compilation, cancellationToken).FirstOrDefault();
+            if (finalFieldOrProperty != null)
+            {
+                var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
+                var propertySyntax = await declarationService.GetDeclarations(finalFieldOrProperty)[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                var withoutThrowNotImplemented = RemoveThrowNotImplemented(propertySyntax);
 
-            if (propertySyntax.SyntaxTree == root.SyntaxTree)
-            {
-                // Edit to the same file, just update this editor.
-                editor.ReplaceNode(propertySyntax, withoutThrowNotImplemented);
-            }
-            else
-            {
-                // edit to a different file.  Just replace things directly in there.
-                var otherDocument = currentSolution.GetDocument(propertySyntax.SyntaxTree);
+                var otherDocument = finalSolution.GetDocument(propertySyntax.SyntaxTree);
                 if (otherDocument != null)
                 {
                     var otherRoot = await propertySyntax.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                    currentSolution = currentSolution.WithDocumentSyntaxRoot(
+                    finalSolution = finalSolution.WithDocumentSyntaxRoot(
                         otherDocument.Id, otherRoot.ReplaceNode(propertySyntax, withoutThrowNotImplemented));
                 }
             }
         }
 
-        return currentSolution.WithDocumentSyntaxRoot(document.Id, editor.GetChangedRoot());
+        return finalSolution;
     }
 
-    private void AddAssignment(
+    private static async Task<(Document documentWithMemberAdded, IParameterSymbol? currentParameter, ISymbol? currentFieldOrProperty)> AddMissingFieldOrPropertyAsync(
+        Document document,
         SyntaxNode constructorDeclaration,
         IBlockOperation? blockStatement,
         IParameterSymbol parameter,
         ISymbol fieldOrProperty,
-        SyntaxEditor editor)
+        CancellationToken cancellationToken)
     {
-        // First see if the user has `(_x, y) = (x, y);` and attempt to update that. 
-        if (TryUpdateTupleAssignment(blockStatement, parameter, fieldOrProperty, editor))
-            return;
+        if (fieldOrProperty.ContainingType is not null)
+            return (document, parameter, fieldOrProperty);
 
+        var services = document.Project.Solution.Services;
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var editor = new SyntaxEditor(root, services);
         var generator = editor.Generator;
+        var options = await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
 
-        // Now that we've added any potential members, create an assignment between it
-        // and the parameter.
-        var initializationStatement = (TStatementSyntax)generator.ExpressionStatement(
-            generator.AssignmentStatement(
-                generator.MemberAccessExpression(
-                    generator.ThisExpression(),
-                    generator.IdentifierName(fieldOrProperty.Name)),
-                generator.IdentifierName(parameter.Name)));
+        // We're generating a new field/property.  Place into the containing type,
+        // ideally before/after a relevant existing member.
+        // First, look for the right containing type (As a type may be partial). 
+        // We want the type-block that this constructor is contained within.
+        var typeDeclaration = constructorDeclaration.GetAncestor<TTypeDeclarationSyntax>()!;
 
-        // Attempt to place the initialization in a good location in the constructor
-        // We'll want to keep initialization statements in the same order as we see
-        // parameters for the constructor.
-        var statementToAddAfter = TryGetStatementToAddInitializationAfter(parameter, blockStatement);
+        // Now add the field/property to this type.  Use the 'ReplaceNode+callback' form
+        // so that nodes will be appropriate tracked and so we can then update the constructor
+        // below even after we've replaced the whole type with a new type.
+        //
+        // Note: We'll pass the appropriate options so that the new field/property 
+        // is appropriate placed before/after an existing field/property.  We'll try
+        // to preserve the same order for fields/properties that we have for the constructor
+        // parameters.
+        editor.ReplaceNode(
+            typeDeclaration,
+            (currentTypeDecl, _) =>
+            {
+                if (fieldOrProperty is IPropertySymbol property)
+                {
+                    return codeGenerator.AddProperty(
+                        currentTypeDecl, property,
+                        codeGenerator.GetInfo(GetAddContext<IPropertySymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), options, root.SyntaxTree.Options),
+                        cancellationToken);
+                }
+                else if (fieldOrProperty is IFieldSymbol field)
+                {
+                    return codeGenerator.AddField(
+                        currentTypeDecl, field,
+                        codeGenerator.GetInfo(GetAddContext<IFieldSymbol>(parameter, blockStatement, typeDeclaration, cancellationToken), options, root.SyntaxTree.Options),
+                        cancellationToken);
+                }
+                else
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+            });
 
-        InsertStatement(editor, constructorDeclaration, returnsVoid: true, statementToAddAfter, initializationStatement);
+        var documentWithMemberAdded = document.WithSyntaxRoot(editor.GetChangedRoot());
+        var compilation = await documentWithMemberAdded.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+        var currentParameter = SymbolFinder.FindSimilarSymbols(parameter, compilation, cancellationToken).FirstOrDefault();
+
+        var currentFieldOrProperty = currentParameter?.ContainingType
+            .GetMembers(fieldOrProperty.Name)
+            .Where(m => m.Kind == fieldOrProperty.Kind)
+            .FirstOrDefault();
+
+        return (documentWithMemberAdded, currentParameter, currentFieldOrProperty);
     }
 
     private static CodeGenerationContext GetAddContext<TSymbol>(
@@ -580,63 +568,6 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         }
 
         return CodeGenerationContext.Default;
-    }
-
-    private SyntaxNode? TryGetStatementToAddInitializationAfter(
-        IParameterSymbol parameter, IBlockOperation? blockStatement)
-    {
-        // look for an existing assignment for a parameter that comes before/after us.
-        // If we find one, we'll add ourselves before/after that parameter check.
-        foreach (var (sibling, before) in GetSiblingParameters(parameter))
-        {
-            var statement = TryFindFieldOrPropertyAssignmentStatement(sibling, blockStatement);
-            if (statement != null)
-            {
-                if (before)
-                {
-                    return statement.Syntax;
-                }
-                else
-                {
-                    var statementIndex = blockStatement!.Operations.IndexOf(statement);
-                    return statementIndex > 0 && blockStatement.Operations[statementIndex - 1] is { IsImplicit: false, Syntax: var priorSyntax }
-                        ? priorSyntax
-                        : null;
-                }
-            }
-        }
-
-        // We couldn't find a reasonable location for the new initialization statement.
-        // Just place ourselves after the last statement in the constructor.
-        return TryGetLastStatement(blockStatement);
-    }
-
-    private static IOperation? TryFindFieldOrPropertyAssignmentStatement(IParameterSymbol parameter, IBlockOperation? blockStatement)
-        => TryFindFieldOrPropertyAssignmentStatement(parameter, blockStatement, out _);
-
-    protected static bool TryGetPartsOfTupleAssignmentOperation(
-        IOperation operation,
-        [NotNullWhen(true)] out ITupleOperation? targetTuple,
-        [NotNullWhen(true)] out ITupleOperation? valueTuple)
-    {
-        if (operation is IExpressionStatementOperation
-            {
-                Operation: IDeconstructionAssignmentOperation
-                {
-                    Target: ITupleOperation targetTupleTemp,
-                    Value: IConversionOperation { Operand: ITupleOperation valueTupleTemp },
-                }
-            } &&
-            targetTupleTemp.Elements.Length == valueTupleTemp.Elements.Length)
-        {
-            targetTuple = targetTupleTemp;
-            valueTuple = valueTupleTemp;
-            return true;
-        }
-
-        targetTuple = null;
-        valueTuple = null;
-        return false;
     }
 
     private static IOperation? TryFindFieldOrPropertyAssignmentStatement(
@@ -688,12 +619,11 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
 
         var containingType = parameter.ContainingType;
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
 
-        // Walk through the naming rules against this parameter's name to see what
-        // name the user would like for it as a member in this type.  Note that we
-        // have some fallback rules that use the standard conventions around 
-        // properties /fields so that can still find things even if the user has no
-        // naming preferences set.
+        // Walk through the naming rules against this parameter's name to see what name the user would like for it as a
+        // member in this type.  Note that we have some fallback rules that use the standard conventions around
+        // properties /fields so that can still find things even if the user has no naming preferences set.
 
         foreach (var rule in rules)
         {
@@ -722,7 +652,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
                     // We also allow assigning into a property of the form `=> throw new NotImplementedException()`.
                     // That way users can easily spit out those methods, but then convert them to be normal
                     // properties with ease.
-                    if (IsThrowNotImplementedProperty(property))
+                    if (initializeParameterService.IsThrowNotImplementedProperty(compilation, property, cancellationToken))
                         return (property, isThrowNotImplementedProperty: true);
 
                     if (property.IsWritableInConstructor())
@@ -751,36 +681,6 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
             }
 
             return false;
-        }
-
-        bool IsThrowNotImplementedProperty(IPropertySymbol property)
-        {
-            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var accessors);
-
-            if (property.GetMethod != null)
-                accessors.AddIfNotNull(GetAccessorBody(property.GetMethod, cancellationToken));
-
-            if (property.SetMethod != null)
-                accessors.AddIfNotNull(GetAccessorBody(property.SetMethod, cancellationToken));
-
-            if (accessors.Count == 0)
-                return false;
-
-            foreach (var group in accessors.GroupBy(node => node.SyntaxTree))
-            {
-                var semanticModel = compilation.GetSemanticModel(group.Key);
-                foreach (var accessorBody in accessors)
-                {
-                    var operation = semanticModel.GetOperation(accessorBody, cancellationToken);
-                    if (operation is null)
-                        return false;
-
-                    if (!operation.IsSingleThrowNotImplementedOperation())
-                        return false;
-                }
-            }
-
-            return true;
         }
     }
 }

@@ -63,7 +63,7 @@ internal abstract class AbstractConvertAnonymousTypeToClassCodeRefactoringProvid
             context.RegisterRefactoring(
                 CodeAction.Create(
                     FeaturesResources.Convert_to_record,
-                    c => ConvertAsync(document, textSpan, context.Options, isRecord: true, c),
+                    c => ConvertAsync(document, textSpan, isRecord: true, c),
                     nameof(FeaturesResources.Convert_to_record)),
                 anonymousObject.Span);
         }
@@ -71,12 +71,12 @@ internal abstract class AbstractConvertAnonymousTypeToClassCodeRefactoringProvid
         context.RegisterRefactoring(
             CodeAction.Create(
                 FeaturesResources.Convert_to_class,
-                c => ConvertAsync(document, textSpan, context.Options, isRecord: false, c),
+                c => ConvertAsync(document, textSpan, isRecord: false, c),
                 nameof(FeaturesResources.Convert_to_class)),
             anonymousObject.Span);
     }
 
-    private async Task<Document> ConvertAsync(Document document, TextSpan span, CodeActionOptionsProvider fallbackOptions, bool isRecord, CancellationToken cancellationToken)
+    private async Task<Document> ConvertAsync(Document document, TextSpan span, bool isRecord, CancellationToken cancellationToken)
     {
         var (anonymousObject, anonymousType) = await TryGetAnonymousObjectAsync(document, span, cancellationToken).ConfigureAwait(false);
 
@@ -129,8 +129,8 @@ internal abstract class AbstractConvertAnonymousTypeToClassCodeRefactoringProvid
             sortMembers: false,
             autoInsertionLocation: false);
 
-        var info = await document.GetCodeGenerationInfoAsync(context, fallbackOptions, cancellationToken).ConfigureAwait(false);
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = await document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Then, actually insert the new class in the appropriate container.
         var container = anonymousObject.GetAncestor<TNamespaceDeclarationSyntax>() ?? root;
@@ -391,6 +391,7 @@ internal abstract class AbstractConvertAnonymousTypeToClassCodeRefactoringProvid
         });
 
         var assignmentStatements = generator.CreateAssignmentStatements(
+            generator.SyntaxGeneratorInternal,
             semanticModel, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
             addNullChecks: false, preferThrowExpression: false);
 

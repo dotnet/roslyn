@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter;
-
 internal abstract partial class AbstractInitializeParameterCodeRefactoringProvider<
     TTypeDeclarationSyntax,
     TParameterSyntax,
@@ -42,7 +40,6 @@ internal abstract partial class AbstractInitializeParameterCodeRefactoringProvid
         IBlockOperation? blockStatement,
         ImmutableArray<SyntaxNode> listOfParameterNodes,
         TextSpan parameterSpan,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken);
 
     protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
@@ -52,12 +49,7 @@ internal abstract partial class AbstractInitializeParameterCodeRefactoringProvid
         SyntaxNode functionDeclaration,
         IMethodSymbol methodSymbol,
         IBlockOperation? blockStatement,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken);
-
-    protected abstract void InsertStatement(
-        SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid,
-        SyntaxNode? statementToAddAfter, TStatementSyntax statement);
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -99,12 +91,13 @@ internal abstract partial class AbstractInitializeParameterCodeRefactoringProvid
         if (argumentNullExceptionType is null || semanticModel.Compilation.GetTypeByMetadataName(argumentNullExceptionType) is null)
             return;
 
-        if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
+        var service = document.GetRequiredLanguageService<IInitializeParameterService>();
+        if (service.TryGetBlockForSingleParameterInitialization(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
         {
             // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
             // actually determine if there are any viable refactorings here.
             var refactorings = await GetRefactoringsForSingleParameterAsync(
-                document, selectedParameter, parameter, functionDeclaration, methodSymbol, blockStatementOpt, context.Options, cancellationToken).ConfigureAwait(false);
+                document, selectedParameter, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(refactorings, context.Span);
         }
 
@@ -125,7 +118,7 @@ internal abstract partial class AbstractInitializeParameterCodeRefactoringProvid
             // actually determine if there are any viable refactorings here.
             var refactorings = await GetRefactoringsForAllParametersAsync(
                 document, functionDeclaration, methodSymbol, blockStatementOpt,
-                listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, context.Options, cancellationToken).ConfigureAwait(false);
+                listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(refactorings, context.Span);
         }
 
@@ -196,47 +189,6 @@ internal abstract partial class AbstractInitializeParameterCodeRefactoringProvid
                 return true;
         }
 
-        return false;
-    }
-
-    protected static bool IsFieldOrPropertyAssignment(IOperation statement, INamedTypeSymbol containingType, [NotNullWhen(true)] out IAssignmentOperation? assignmentExpression)
-        => IsFieldOrPropertyAssignment(statement, containingType, out assignmentExpression, out _);
-
-    protected static bool IsFieldOrPropertyAssignment(
-        IOperation statement, INamedTypeSymbol containingType,
-        [NotNullWhen(true)] out IAssignmentOperation? assignmentExpression,
-        [NotNullWhen(true)] out ISymbol? fieldOrProperty)
-    {
-        if (statement is IExpressionStatementOperation expressionStatement &&
-            expressionStatement.Operation is IAssignmentOperation assignment)
-        {
-            assignmentExpression = assignment;
-            return IsFieldOrPropertyReference(assignmentExpression.Target, containingType, out fieldOrProperty);
-        }
-
-        fieldOrProperty = null;
-        assignmentExpression = null;
-        return false;
-    }
-
-    protected static bool IsFieldOrPropertyReference(IOperation operation, INamedTypeSymbol containingType)
-        => IsFieldOrPropertyAssignment(operation, containingType, out _);
-
-    protected static bool IsFieldOrPropertyReference(
-        IOperation? operation, INamedTypeSymbol containingType,
-        [NotNullWhen(true)] out ISymbol? fieldOrProperty)
-    {
-        if (operation is IMemberReferenceOperation memberReference &&
-            memberReference.Member.ContainingType.Equals(containingType))
-        {
-            if (memberReference.Member is IFieldSymbol or IPropertySymbol)
-            {
-                fieldOrProperty = memberReference.Member;
-                return true;
-            }
-        }
-
-        fieldOrProperty = null;
         return false;
     }
 }

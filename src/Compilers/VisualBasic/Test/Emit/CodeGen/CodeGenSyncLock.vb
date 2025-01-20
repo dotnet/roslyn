@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenSyncLock
@@ -87,7 +88,7 @@ End Class
 </compilation>
 
             Dim allReferences As MetadataReference() = {
-                            TestMetadata.Net20.mscorlib,
+                            Net20.References.mscorlib,
                             SystemRef,
                             MsvbRef}
 

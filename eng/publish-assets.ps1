@@ -69,6 +69,11 @@ function Publish-Nuget($publishData, [string]$packageDir) {
         throw "$nupkg does not exist"
       }
 
+      if ($nupkg.EndsWith(".symbols.nupkg")) {
+        Write-Host "Skipping symbol package $nupkg"
+        continue
+      }
+
       $nupkgWithoutVersion = $nupkg -replace '(\.\d+){3}-.*.nupkg', ''
       if ($nupkgWithoutVersion.EndsWith(".Symbols")) {
         Write-Host "Skipping symbol package $nupkg"

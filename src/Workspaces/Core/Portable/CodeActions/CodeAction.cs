@@ -260,7 +260,7 @@ public abstract partial class CodeAction
     internal async Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(
         Solution originalSolution, CancellationToken cancellationToken)
     {
-        using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Preview_Summary, $"Total");
+        using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Preview_Summary, $"Total");
 
         var operations = await this.ComputePreviewOperationsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -463,9 +463,7 @@ public abstract partial class CodeAction
         // points.
         originalSolution ??= changedSolution.Workspace.CurrentSolution;
 
-        var globalOptions = changedSolution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
-        var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
-        return await CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, fallbackOptions, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+        return await CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -480,11 +478,7 @@ public abstract partial class CodeAction
     {
         if (document.SupportsSyntaxTree)
         {
-            // TODO: avoid ILegacyGlobalCodeActionOptionsWorkspaceService https://github.com/dotnet/roslyn/issues/60777
-            var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalCleanCodeGenerationOptionsWorkspaceService>();
-            var fallbackOptions = globalOptions?.Provider ?? CodeActionOptions.DefaultProvider;
-
-            var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
             return await CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
         }
 

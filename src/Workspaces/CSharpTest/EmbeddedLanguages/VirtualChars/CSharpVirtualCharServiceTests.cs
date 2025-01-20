@@ -164,11 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 
         [Fact]
         public void TestEscapeInInterpolatedSimpleString_E()
-            => TestFailure("$\"\\e\"");
-
-        [Fact]
-        public void TestEscapeInInterpolatedSimpleString_E_Preview()
-            => Test("$\"\\e\"", @"['\u001B',[2,4]]", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            => Test("$\"\\e\"", @"['\u001B',[2,4]]");
 
         [Fact]
         public void TestEscapeInInterpolatedVerbatimSimpleString()

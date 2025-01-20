@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,9 +21,9 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
     where TTypeDeclarationNode : SyntaxNode
     where TCodeGenerationContextInfo : CodeGenerationContextInfo
 {
-    protected abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken);
-    protected abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
-        TCodeGenerationContextInfo info, SyntaxNode property, string fieldName, SyntaxGenerator generator, CancellationToken cancellationToken);
+    protected abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken);
+    protected abstract (SyntaxNode newGetAccessor, SyntaxNode? newSetAccessor) GetNewAccessors(
+        TCodeGenerationContextInfo info, TPropertyDeclarationNode property, string fieldName, SyntaxGenerator generator, CancellationToken cancellationToken);
     protected abstract SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property);
     protected abstract SyntaxNode GetInitializerValue(SyntaxNode property);
     protected abstract SyntaxNode ConvertPropertyToExpressionBodyIfDesired(TCodeGenerationContextInfo info, SyntaxNode fullProperty);
@@ -49,7 +48,7 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
         context.RegisterRefactoring(
             CodeAction.Create(
                 FeaturesResources.Convert_to_full_property,
-                c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, context.Options, c),
+                cancellationToken => ExpandToFullPropertyAsync(document, property, propertySymbol, root, cancellationToken),
                 nameof(FeaturesResources.Convert_to_full_property)),
             property.Span);
     }
@@ -61,7 +60,7 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
         return field != null;
     }
 
-    private static async Task<SyntaxNode?> GetPropertyAsync(CodeRefactoringContext context)
+    private static async Task<TPropertyDeclarationNode?> GetPropertyAsync(CodeRefactoringContext context)
     {
         var containingProperty = await context.TryGetRelevantNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
         if (containingProperty?.Parent is not TTypeDeclarationNode)
@@ -72,21 +71,20 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
 
     private async Task<Document> ExpandToFullPropertyAsync(
         Document document,
-        SyntaxNode property,
+        TPropertyDeclarationNode property,
         IPropertySymbol propertySymbol,
         SyntaxNode root,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(document.DocumentState.ParseOptions);
 
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);
         var generator = editor.Generator;
-        var info = (TCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = (TCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
 
         // Create full property. If the auto property had an initial value
         // we need to remove it and later add it to the backing field
-        var fieldName = await GetFieldNameAsync(document, propertySymbol, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var fieldName = await GetFieldNameAsync(document, propertySymbol, cancellationToken).ConfigureAwait(false);
         var (newGetAccessor, newSetAccessor) = GetNewAccessors(info, property, fieldName, generator, cancellationToken);
         var fullProperty = generator
             .WithAccessorDeclarations(

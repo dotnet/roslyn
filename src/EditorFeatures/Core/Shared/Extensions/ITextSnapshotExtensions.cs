@@ -39,7 +39,7 @@ internal static partial class ITextSnapshotExtensions
 
         var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
 
-        var options = textBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.Services, explicitFormat: false);
+        var options = textBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, explicitFormat: false);
         var result = formatter.GetFormattingResult(documentSyntax.Root, [span], options, rules, cancellationToken);
         var changes = result.GetTextChanges(cancellationToken);
 

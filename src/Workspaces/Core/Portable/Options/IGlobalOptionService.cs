@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options;
 
@@ -65,7 +66,7 @@ internal interface IGlobalOptionService : IOptionsReader
     /// </remarks>
     bool RefreshOption(OptionKey2 optionKey, object? newValue);
 
-    void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler);
+    void AddOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler);
 
-    void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler);
+    void RemoveOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler);
 }

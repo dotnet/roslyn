@@ -11,14 +11,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 [ExportLanguageService(typeof(ISyntaxContextService), LanguageNames.CSharp), Shared]
-internal class CSharpSyntaxContextService : ISyntaxContextService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpSyntaxContextService() : ISyntaxContextService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpSyntaxContextService()
-    {
-    }
-
     public SyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         => CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
 }

@@ -92,13 +92,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _threadingContext = threadingContext;
             _vsFolderWorkspaceService = vsFolderWorkspaceService;
 
-            _remoteWorkspaceRootPaths = ImmutableHashSet<string>.Empty;
-            _registeredExternalPaths = ImmutableHashSet<string>.Empty;
+            _remoteWorkspaceRootPaths = [];
+            _registeredExternalPaths = [];
         }
 
         void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy) => NotifyOnDocumentOpened(moniker, textBuffer);
-
-        void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
 
         void IOpenTextBufferEventListener.OnCloseDocument(string moniker) => NotifyOnDocumentClosing(moniker);
 
@@ -111,6 +109,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             // Handled by Add/Remove.
         }
+
+        void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
+
+        void IOpenTextBufferEventListener.OnSaveDocument(string moniker) { }
 
         public async Task SetSessionAsync(CollaborationSession session)
         {
@@ -194,8 +196,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             // Clear the remote paths on end of session.  Live share handles closing all the files.
             using (s_RemotePathsGate.DisposableWait())
             {
-                _remoteWorkspaceRootPaths = ImmutableHashSet<string>.Empty;
-                _registeredExternalPaths = ImmutableHashSet<string>.Empty;
+                _remoteWorkspaceRootPaths = [];
+                _registeredExternalPaths = [];
             }
         }
 
@@ -322,7 +324,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         name: projectName,
                         assemblyName: projectName,
                         language,
-                        compilationOutputFilePaths: default,
+                        compilationOutputInfo: default,
                         checksumAlgorithm: SourceHashAlgorithms.Default));
 
                 OnProjectAdded(projectInfo);

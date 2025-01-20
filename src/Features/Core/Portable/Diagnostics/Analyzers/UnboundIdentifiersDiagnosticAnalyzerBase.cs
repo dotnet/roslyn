@@ -37,9 +37,6 @@ internal abstract class UnboundIdentifiersDiagnosticAnalyzerBase<TLanguageKindEn
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         => [DiagnosticDescriptor];
 
-    public bool OpenFileOnly(SimplifierOptions? options)
-        => false;
-
     public override void Initialize(AnalysisContext context)
     {
         context.EnableConcurrentExecution();

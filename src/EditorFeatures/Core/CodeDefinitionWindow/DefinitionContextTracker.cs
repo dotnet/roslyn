@@ -181,8 +181,8 @@ internal class DefinitionContextTracker : ITextViewConnectionListener
                 }
                 else if (_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                 {
-                    var options = _globalOptions.GetMetadataAsSourceOptions(document.Project.Services);
-                    var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options, cancellationToken).ConfigureAwait(false);
+                    var options = _globalOptions.GetMetadataAsSourceOptions();
+                    var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
                     var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                     locations.Add(new CodeDefinitionWindowLocation(
                         symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));

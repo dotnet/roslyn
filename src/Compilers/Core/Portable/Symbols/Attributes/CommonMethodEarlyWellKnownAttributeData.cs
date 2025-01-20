@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -69,6 +70,25 @@ namespace Microsoft.CodeAnalysis
             {
                 VerifySealed(false);
                 _hasSetsRequiredMembers = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region OverloadResolutionPriorityAttribute
+        private int _overloadResolutionPriority = 0;
+        [DisallowNull]
+        public int OverloadResolutionPriority
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _overloadResolutionPriority;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _overloadResolutionPriority = value;
                 SetDataStored();
             }
         }

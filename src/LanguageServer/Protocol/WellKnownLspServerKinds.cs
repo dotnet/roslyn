@@ -9,11 +9,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal enum WellKnownLspServerKinds
 {
     /// <summary>
-    /// Razor LSP server for Razor document requests (.razor and .cshtml files)
-    /// </summary>
-    RazorCohostServer,
-
-    /// <summary>
     /// Roslyn LSP server for razor c# requests.
     /// </summary>
     RazorLspServer,

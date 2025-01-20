@@ -16,7 +16,7 @@ public static class EncodingTestHelpers
 {
     public static IEnumerable<Encoding?> GetEncodings()
     {
-#if NETCOREAPP
+#if NET
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 #endif
         yield return null;
@@ -26,7 +26,7 @@ public static class EncodingTestHelpers
         yield return new UTF32Encoding(bigEndian: false, byteOrderMark: false);
         yield return new UnicodeEncoding(bigEndian: true, byteOrderMark: false);
         yield return new UnicodeEncoding(bigEndian: false, byteOrderMark: false);
-#if NETCOREAPP
+#if NET
         foreach (var info in CodePagesEncodingProvider.Instance.GetEncodings())
         {
             yield return info.GetEncoding();

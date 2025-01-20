@@ -33,16 +33,13 @@ internal abstract class AbstractJsonDiagnosticAnalyzer : AbstractBuiltInCodeStyl
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-    public override bool OpenFileOnly(SimplifierOptions? options)
-        => false;
-
     protected override void InitializeWorker(AnalysisContext context)
         => context.RegisterSemanticModelAction(Analyze);
 
     public void Analyze(SemanticModelAnalysisContext context)
     {
-        if (!context.GetIdeAnalyzerOptions().ReportInvalidJsonPatterns
-            || ShouldSkipAnalysis(context, notification: null))
+        if (!context.GetAnalyzerOptions().GetOption(JsonDetectionOptionsStorage.ReportInvalidJsonPatterns) ||
+            ShouldSkipAnalysis(context, notification: null))
         {
             return;
         }

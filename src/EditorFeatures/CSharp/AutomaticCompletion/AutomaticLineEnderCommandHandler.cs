@@ -28,12 +28,10 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
 
-/// <summary>
-/// csharp automatic line ender command handler
-/// </summary>
 [Export(typeof(ICommandHandler))]
 [ContentType(ContentTypeNames.CSharpContentType)]
 [Name(PredefinedCommandHandlerNames.AutomaticLineEnder)]
@@ -313,27 +311,28 @@ internal partial class AutomaticLineEnderCommandHandler(
         SyntaxNode selectedNode,
         bool addBrace,
         int caretPosition,
+        StructuredAnalyzerConfigOptions fallbackOptions,
         CancellationToken cancellationToken)
     {
-        var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.LanguageServices, explicitFormat: false);
+        var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, fallbackOptions, document.LanguageServices, explicitFormat: false);
 
         // Add braces for the selected node
         if (addBrace)
         {
             // For these syntax node, braces pair could be easily added by modify the syntax tree
             if (selectedNode is BaseTypeDeclarationSyntax
-                or BaseMethodDeclarationSyntax
-                or LocalFunctionStatementSyntax
-                or AccessorDeclarationSyntax
-                or ObjectCreationExpressionSyntax
-                or WhileStatementSyntax
-                or ForEachStatementSyntax
-                or ForStatementSyntax
-                or LockStatementSyntax
-                or UsingStatementSyntax
-                or DoStatementSyntax
-                or IfStatementSyntax
-                or ElseClauseSyntax)
+                    or BaseMethodDeclarationSyntax
+                    or LocalFunctionStatementSyntax
+                    or AccessorDeclarationSyntax
+                    or ObjectCreationExpressionSyntax
+                    or WhileStatementSyntax
+                    or CommonForEachStatementSyntax
+                    or ForStatementSyntax
+                    or LockStatementSyntax
+                    or UsingStatementSyntax
+                    or DoStatementSyntax
+                    or IfStatementSyntax
+                    or ElseClauseSyntax)
             {
                 // Add the braces and get the next caretPosition
                 var (newRoot, nextCaretPosition) = AddBraceToSelectedNode(document.SolutionServices, document.Root, selectedNode, formattingOptions, cancellationToken);

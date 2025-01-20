@@ -26,18 +26,14 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
    Name = PredefinedCodeRefactoringProviderNames.ReplacePropertyWithMethods), Shared]
-internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class ReplacePropertyWithMethodsCodeRefactoringProvider() :
     CodeRefactoringProvider,
     IEqualityComparer<(IPropertySymbol property, ReferenceLocation location)>
 {
     private const string GetPrefix = "Get";
     private const string SetPrefix = "Set";
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public ReplacePropertyWithMethodsCodeRefactoringProvider()
-    {
-    }
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -67,7 +63,7 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
         context.RegisterRefactoring(
             CodeAction.Create(
                 string.Format(resourceString, propertyName),
-                c => ReplacePropertyWithMethodsAsync(document, propertySymbol, context.Options, c),
+                cancellationToken => ReplacePropertyWithMethodsAsync(document, propertySymbol, cancellationToken),
                 propertyName),
             propertyDeclaration.Span);
     }
@@ -75,7 +71,6 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
     private async Task<Solution> ReplacePropertyWithMethodsAsync(
        Document document,
        IPropertySymbol propertySymbol,
-       CodeGenerationOptionsProvider fallbackOptions,
        CancellationToken cancellationToken)
     {
         var desiredMethodSuffix = NameGenerator.GenerateUniqueName(propertySymbol.Name,
@@ -112,7 +107,7 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
 
         updatedSolution = await ReplaceDefinitionsWithMethodsAsync(
             originalSolution, updatedSolution, propertyReferences, definitionToBackingField,
-            desiredGetMethodName, desiredSetMethodName, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            desiredGetMethodName, desiredSetMethodName, cancellationToken).ConfigureAwait(false);
 
         return updatedSolution;
     }
@@ -124,10 +119,7 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
         foreach (var reference in propertyReferences)
         {
             if (reference.Definition is IPropertySymbol property)
-            {
-                var backingField = GetBackingField(property);
-                definitionToBackingField[property] = backingField;
-            }
+                definitionToBackingField[property] = GetBackingField(property);
         }
 
         return definitionToBackingField.ToImmutable();
@@ -276,6 +268,11 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
                     editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
                         ConflictAnnotation.Create(FeaturesResources.Property_reference_cannot_be_updated)));
                 }
+                else if (syntaxFacts.IsNameOfSubpattern(parent))
+                {
+                    editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
+                        ConflictAnnotation.Create(FeaturesResources.Property_reference_cannot_be_updated)));
+                }
                 else
                 {
                     var fieldSymbol = propertyToBackingField.GetValueOrDefault(property);
@@ -295,7 +292,6 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
         IEnumerable<ReferencedSymbol> references,
         ImmutableDictionary<IPropertySymbol, IFieldSymbol?> definitionToBackingField,
         string desiredGetMethodName, string desiredSetMethodName,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var definitionsByDocumentId = await GetDefinitionsByDocumentIdAsync(originalSolution, references, cancellationToken).ConfigureAwait(false);
@@ -306,7 +302,7 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
 
             updatedSolution = await ReplaceDefinitionsWithMethodsAsync(
                 updatedSolution, documentId, definitions, definitionToBackingField,
-                desiredGetMethodName, desiredSetMethodName, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                desiredGetMethodName, desiredSetMethodName, cancellationToken).ConfigureAwait(false);
         }
 
         return updatedSolution;
@@ -346,7 +342,6 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
         MultiDictionary<DocumentId, IPropertySymbol>.ValueSet originalDefinitions,
         IDictionary<IPropertySymbol, IFieldSymbol?> definitionToBackingField,
         string desiredGetMethodName, string desiredSetMethodName,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var updatedDocument = updatedSolution.GetRequiredDocument(documentId);
@@ -373,21 +368,19 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
                 property, declaration,
                 definitionToBackingField.GetValueOrDefault(property),
                 desiredGetMethodName, desiredSetMethodName,
-                fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 
             // Properly make the members fit within an interface if that's what
             // we're generating into.
             if (property.ContainingType.TypeKind == TypeKind.Interface)
             {
-                members = members.Select(editor.Generator.AsInterfaceMember)
-                                 .WhereNotNull()
-                                 .ToImmutableArray();
+                members = members.SelectAsArray(m => editor.Generator.GetModifiers(m).IsAbstract
+                    ? editor.Generator.AsInterfaceMember(m)
+                    : m);
             }
 
             var nodeToReplace = service.GetPropertyNodeToReplace(declaration);
-            editor.InsertAfter(nodeToReplace, members);
-            editor.RemoveNode(nodeToReplace);
+            editor.ReplaceNode(nodeToReplace, (_, _) => members);
         }
 
         return updatedSolution.WithDocumentSyntaxRoot(documentId, editor.GetChangedRoot());

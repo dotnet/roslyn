@@ -43,7 +43,7 @@ internal sealed class MakeLocalFunctionStaticCodeRefactoringProvider : CodeRefac
         {
             context.RegisterRefactoring(CodeAction.Create(
                 CSharpAnalyzersResources.Make_local_function_static,
-                cancellationToken => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, context.Options, cancellationToken),
+                cancellationToken => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, cancellationToken),
                 nameof(CSharpAnalyzersResources.Make_local_function_static)));
         }
     }

@@ -29,7 +29,6 @@ public sealed class ConvertToFileScopedNamespaceAnalyzerTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             Options =
             {
@@ -49,7 +48,6 @@ public sealed class ConvertToFileScopedNamespaceAnalyzerTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -115,7 +113,6 @@ public sealed class ConvertToFileScopedNamespaceAnalyzerTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -138,7 +135,6 @@ public sealed class ConvertToFileScopedNamespaceAnalyzerTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -160,7 +156,6 @@ public sealed class ConvertToFileScopedNamespaceAnalyzerTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -182,7 +177,6 @@ public sealed class ConvertToFileScopedNamespaceAnalyzerTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             ExpectedDiagnostics =
             {
@@ -1538,6 +1532,48 @@ public sealed class ConvertToFileScopedNamespaceAnalyzerTests
                 }
                 """",
             LanguageVersion = LanguageVersion.CSharp11,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74214")]
+    public async Task TestNotWithClassAfter()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            namespace N
+            {
+                class Inner { }
+            }
+
+            class Outer { }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            Options =
+            {
+                { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74214")]
+    public async Task TestNotWithClassBefore()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            class Outer { }
+
+            namespace N
+            {
+                class Inner { }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped }

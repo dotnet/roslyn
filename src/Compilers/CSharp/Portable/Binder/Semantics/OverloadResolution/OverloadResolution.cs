@@ -98,35 +98,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Perform overload resolution on the given method group, with the given arguments and
         // names. The names can be null if no names were supplied to any arguments.
-        public void ObjectCreationOverloadResolution(ImmutableArray<MethodSymbol> constructors, AnalyzedArguments arguments, OverloadResolutionResult<MethodSymbol> result, bool dynamicResolution, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public void ObjectCreationOverloadResolution(ImmutableArray<MethodSymbol> constructors, AnalyzedArguments arguments, OverloadResolutionResult<MethodSymbol> result, bool dynamicResolution, bool isEarlyAttributeBinding, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!dynamicResolution || arguments.HasDynamicArgument);
 
             var results = result.ResultsBuilder;
 
             // First, attempt overload resolution not getting complete results.
-            PerformObjectCreationOverloadResolution(results, constructors, arguments, completeResults: false, dynamicResolution: dynamicResolution, ref useSiteInfo);
+            PerformObjectCreationOverloadResolution(results, constructors, arguments, completeResults: false, dynamicResolution: dynamicResolution, isEarlyAttributeBinding, ref useSiteInfo);
 
             if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
             {
                 // We didn't get a single good result. Get full results of overload resolution and return those.
                 result.Clear();
-                PerformObjectCreationOverloadResolution(results, constructors, arguments, completeResults: true, dynamicResolution: dynamicResolution, ref useSiteInfo);
+                PerformObjectCreationOverloadResolution(results, constructors, arguments, completeResults: true, dynamicResolution: dynamicResolution, isEarlyAttributeBinding, ref useSiteInfo);
             }
         }
 
         [Flags]
-        public enum Options : byte
+        public enum Options : ushort
         {
             None = 0,
-            IsMethodGroupConversion = 0b_00000001,
-            AllowRefOmittedArguments = 0b_00000010,
-            InferWithDynamic = 0b_00000100,
-            IgnoreNormalFormIfHasValidParamsParameter = 0b_00001000,
-            IsFunctionPointerResolution = 0b_00010000,
-            IsExtensionMethodResolution = 0b_00100000,
-            DynamicResolution = 0b_01000000,
-            DynamicConvertsToAnything = 0b_10000000,
+            IsMethodGroupConversion = 1 << 0,
+            AllowRefOmittedArguments = 1 << 1,
+            InferWithDynamic = 1 << 2,
+            IgnoreNormalFormIfHasValidParamsParameter = 1 << 3,
+            IsFunctionPointerResolution = 1 << 4,
+            IsExtensionMethodResolution = 1 << 5,
+            DynamicResolution = 1 << 6,
+            DynamicConvertsToAnything = 1 << 7,
+            DisallowExpandedNonArrayParams = 1 << 8,
+            InferringUniqueMethodGroupSignature = 1 << 9,
         }
 
         // Perform overload resolution on the given method group, with the given arguments and
@@ -218,6 +220,102 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
+        /// <returns>false if there are ambiguous candidates in the set</returns>
+        internal bool FilterMethodsForUniqueSignature(ArrayBuilder<MethodSymbol> methods, out bool useParams)
+        {
+            useParams = false;
+
+            if (methods.Count == 0)
+            {
+                return true;
+            }
+
+            var result = OverloadResolutionResult<MethodSymbol>.GetInstance();
+            var results = result.ResultsBuilder;
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            // Type arguments are verified in the caller.
+            var typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance(0);
+
+            // We do not have any arguments when determining unique signature.
+            var arguments = AnalyzedArguments.GetInstance();
+
+            // Avoid passing reduced methods to overload resolution.
+            var unreducedMethods = methods;
+            if (methods.Any(static m => m.ReducedFrom is not null))
+            {
+                unreducedMethods = ArrayBuilder<MethodSymbol>.GetInstance(methods.Count);
+                foreach (var method in methods)
+                {
+                    unreducedMethods.Add(method.ReducedFrom ?? method);
+                }
+            }
+
+            PerformMemberOverloadResolutionStart(
+                results,
+                unreducedMethods,
+                typeArguments,
+                arguments,
+                completeResults: false,
+                ref useSiteInfo,
+                Options.InferringUniqueMethodGroupSignature | Options.IgnoreNormalFormIfHasValidParamsParameter,
+                checkOverriddenOrHidden: true);
+
+            arguments.Free();
+            typeArguments.Free();
+
+            // If we have a candidate applicable in expanded form and a candidate applicable in normal form,
+            // that's an ambiguity (the candidates cannot have a unique signature).
+            var hasExpandedForm = results.Any(static r => r.Resolution == MemberResolutionKind.ApplicableInExpandedForm);
+            if (hasExpandedForm && results.Any(static r => r.Resolution == MemberResolutionKind.ApplicableInNormalForm))
+            {
+                if (unreducedMethods != methods)
+                {
+                    unreducedMethods.Free();
+                }
+
+                result.Free();
+                return false;
+            }
+
+            // Get applicable members (the original ones from `methods` not `unreducedMethods`).
+            if (unreducedMethods == methods)
+            {
+                var applicableMethods = result.GetAllApplicableMembers();
+                if (applicableMethods.Length != methods.Count)
+                {
+                    methods.Clear();
+                    methods.AddRange(applicableMethods);
+                }
+            }
+            else
+            {
+                var applicableMethods = ArrayBuilder<MethodSymbol>.GetInstance(methods.Count);
+                foreach (var res in results)
+                {
+                    if (res.Result.IsApplicable)
+                    {
+                        var index = unreducedMethods.IndexOf(res.Member);
+                        applicableMethods.Add(methods[index]);
+                    }
+                }
+                if (applicableMethods.Count != methods.Count)
+                {
+                    methods.Clear();
+                    methods.AddRange(applicableMethods);
+                }
+                applicableMethods.Free();
+                unreducedMethods.Free();
+            }
+
+            result.Free();
+
+            useParams = hasExpandedForm;
+            return true;
+        }
+#nullable disable
+
         private static bool OverloadResolutionResultIsValid<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, bool hasDynamicArgument)
             where TMember : Symbol
         {
@@ -249,28 +347,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SingleValidResult(results);
         }
 
-        // Perform method/indexer overload resolution, storing the results into "results". If
-        // completeResults is false, then invalid results don't have to be stored. The results will
-        // still contain all possible successful resolution.
-        private void PerformMemberOverloadResolution<TMember>(
+        private void PerformMemberOverloadResolutionStart<TMember>(
             ArrayBuilder<MemberResolutionResult<TMember>> results,
             ArrayBuilder<TMember> members,
             ArrayBuilder<TypeWithAnnotations> typeArguments,
-            BoundExpression receiver,
             AnalyzedArguments arguments,
             bool completeResults,
-            RefKind returnRefKind,
-            TypeSymbol returnType,
-            in CallingConventionInfo callingConventionInfo,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             Options options,
             bool checkOverriddenOrHidden)
             where TMember : Symbol
         {
-            // SPEC: The binding-time processing of a method invocation of the form M(A), where M is a 
-            // SPEC: method group (possibly including a type-argument-list), and A is an optional 
-            // SPEC: argument-list, consists of the following steps:
-
             // NOTE: We use a quadratic algorithm to determine which members override/hide
             // each other (i.e. we compare them pairwise).  We could move to a linear
             // algorithm that builds the closure set of overridden/hidden members and then
@@ -312,7 +399,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: The set of candidate methods is reduced to contain only methods from the most derived types.
             if (checkOverriddenOrHidden)
             {
-                if ((options & Options.DynamicResolution) != 0)
+                if ((options & Options.DynamicResolution) != 0 ||
+                    (options & Options.InferringUniqueMethodGroupSignature) != 0)
                 {
                     // 'AddMemberToCandidateSet' takes care of hiding by name and by override,
                     // but we still need to take care of hiding by signature in order to
@@ -321,6 +409,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // That is due to the fact that 'dynamic' converts to anything else, and
                     // a method applicable at compile time, might actually be inapplicable at runtime,
                     // therefore shouldn't shadow members with different signature from base, etc.
+                    // Similarly when inferring method signature we don't know the argument types
+                    // so we don't want to remove less derived members with different signature.
                     RemoveHiddenMembers(results);
                 }
                 else
@@ -328,6 +418,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RemoveLessDerivedMembers(results, ref useSiteInfo);
                 }
             }
+        }
+
+        // Perform method/indexer overload resolution, storing the results into "results". If
+        // completeResults is false, then invalid results don't have to be stored. The results will
+        // still contain all possible successful resolution.
+        private void PerformMemberOverloadResolution<TMember>(
+            ArrayBuilder<MemberResolutionResult<TMember>> results,
+            ArrayBuilder<TMember> members,
+            ArrayBuilder<TypeWithAnnotations> typeArguments,
+            BoundExpression receiver,
+            AnalyzedArguments arguments,
+            bool completeResults,
+            RefKind returnRefKind,
+            TypeSymbol returnType,
+            in CallingConventionInfo callingConventionInfo,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            Options options,
+            bool checkOverriddenOrHidden)
+            where TMember : Symbol
+        {
+            // SPEC: The binding-time processing of a method invocation of the form M(A), where M is a 
+            // SPEC: method group (possibly including a type-argument-list), and A is an optional 
+            // SPEC: argument-list, consists of the following steps:
+
+            PerformMemberOverloadResolutionStart(results, members, typeArguments, arguments, completeResults, ref useSiteInfo, options, checkOverriddenOrHidden);
 
             if (Compilation.LanguageVersion.AllowImprovedOverloadCandidates())
             {
@@ -361,6 +476,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((options & Options.DynamicResolution) == 0)
             {
+                RemoveLowerPriorityMembers<MemberResolutionResult<TMember>, TMember>(results);
+
                 // SPEC: The best method of the set of candidate methods is identified. If a single best method cannot be identified,
                 // SPEC: the method invocation is ambiguous, and a binding-time error occurs.
 
@@ -817,7 +934,7 @@ outerDefault:
             var result = normalResult;
             if (!normalResult.IsValid)
             {
-                if (IsValidParams(_binder, constructor, out TypeWithAnnotations definitionElementType))
+                if (IsValidParams(_binder, constructor, disallowExpandedNonArrayParams: false, out TypeWithAnnotations definitionElementType))
                 {
                     var expandedResult = IsConstructorApplicableInExpandedForm(constructor, arguments, definitionElementType, completeResults, ref useSiteInfo);
                     if (expandedResult.IsValid || completeResults)
@@ -873,6 +990,7 @@ outerDefault:
                 ignoreOpenTypes: false,
                 completeResults: completeResults,
                 dynamicConvertsToAnything: false,
+                isMethodGroupConversion: false,
                 useSiteInfo: ref useSiteInfo);
         }
 
@@ -917,6 +1035,7 @@ outerDefault:
                 ignoreOpenTypes: false,
                 completeResults: completeResults,
                 dynamicConvertsToAnything: false,
+                isMethodGroupConversion: false,
                 useSiteInfo: ref useSiteInfo);
 
             Debug.Assert(!result.IsValid || result.Kind == MemberResolutionKind.ApplicableInExpandedForm);
@@ -937,6 +1056,7 @@ outerDefault:
             where TMember : Symbol
         {
             Debug.Assert(checkOverriddenOrHidden || containingTypeMapOpt is null);
+            Debug.Assert((options & Options.IgnoreNormalFormIfHasValidParamsParameter) == 0 || (options & Options.IsMethodGroupConversion) == 0);
 
             // SPEC VIOLATION:
             //
@@ -1019,7 +1139,7 @@ outerDefault:
             var leastOverriddenMember = (TMember)member.GetLeastOverriddenMember(_binder.ContainingType);
 
             // Filter out members with unsupported metadata.
-            if (member.HasUnsupportedMetadata)
+            if ((options & Options.InferringUniqueMethodGroupSignature) == 0 && member.HasUnsupportedMetadata)
             {
                 Debug.Assert(!MemberAnalysisResult.UnsupportedMetadata().HasUseSiteDiagnosticToReportFor(member));
                 if (completeResults)
@@ -1040,8 +1160,9 @@ outerDefault:
             Debug.Assert(typeArguments.Count == 0 || typeArguments.Count == member.GetMemberArity());
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
-
-            var normalResult = ((options & Options.IgnoreNormalFormIfHasValidParamsParameter) != 0 && IsValidParams(_binder, leastOverriddenMember, out _))
+            bool disallowExpandedNonArrayParams = (options & Options.DisallowExpandedNonArrayParams) != 0;
+            bool skipNormalResult = ((options & Options.IgnoreNormalFormIfHasValidParamsParameter) != 0 && IsValidParams(_binder, leastOverriddenMember, disallowExpandedNonArrayParams, out _));
+            var normalResult = skipNormalResult
                 ? default(MemberResolutionResult<TMember>)
                 : IsMemberApplicableInNormalForm(
                     member,
@@ -1060,7 +1181,7 @@ outerDefault:
                 // tricks you can pull to make overriding methods [indexers] inconsistent with overridden
                 // methods [indexers] (or implementing methods [indexers] inconsistent with interfaces). 
 
-                if ((options & Options.IsMethodGroupConversion) == 0 && IsValidParams(_binder, leastOverriddenMember, out TypeWithAnnotations definitionElementType))
+                if ((options & Options.IsMethodGroupConversion) == 0 && IsValidParams(_binder, leastOverriddenMember, disallowExpandedNonArrayParams, out TypeWithAnnotations definitionElementType))
                 {
                     var expandedResult = IsMemberApplicableInExpandedForm(
                         member,
@@ -1068,12 +1189,13 @@ outerDefault:
                         typeArguments,
                         arguments,
                         definitionElementType,
-                        allowRefOmittedArguments: (options & Options.AllowRefOmittedArguments) != 0,
+                        options,
                         completeResults: completeResults,
                         dynamicConvertsToAnything: (options & Options.DynamicConvertsToAnything) != 0,
+                        isMethodGroupConversion: (options & Options.IsMethodGroupConversion) != 0,
                         useSiteInfo: ref useSiteInfo);
 
-                    if (PreferExpandedFormOverNormalForm(normalResult, expandedResult))
+                    if (skipNormalResult || PreferExpandedFormOverNormalForm(normalResult, expandedResult))
                     {
                         result = expandedResult;
                     }
@@ -1160,7 +1282,7 @@ outerDefault:
         // We need to know if this is a valid formal parameter list with a parameter array
         // as the final formal parameter. We might be in an error recovery scenario
         // where the params array is not an array type.
-        public static bool IsValidParams(Binder binder, Symbol member, out TypeWithAnnotations definitionElementType)
+        public static bool IsValidParams(Binder binder, Symbol member, bool disallowExpandedNonArrayParams, out TypeWithAnnotations definitionElementType)
         {
             // A varargs method is never a valid params method.
             if (member.GetIsVararg())
@@ -1178,7 +1300,7 @@ outerDefault:
 
             ParameterSymbol final = member.GetParameters().Last();
             if ((final.IsParamsArray && final.Type.IsSZArray()) ||
-                (final.IsParamsCollection && !final.Type.IsSZArray() &&
+                (final.IsParamsCollection && !final.Type.IsSZArray() && !disallowExpandedNonArrayParams &&
                  (binder.Compilation.LanguageVersion > LanguageVersion.CSharp12 || member.ContainingModule == binder.Compilation.SourceModule)))
             {
                 return TryInferParamsCollectionIterationType(binder, final.OriginalDefinition.Type, out definitionElementType);
@@ -1603,6 +1725,7 @@ outerDefault:
             AnalyzedArguments arguments,
             bool completeResults,
             bool dynamicResolution,
+            bool isEarlyAttributeBinding,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // SPEC: The instance constructor to invoke is determined using the overload resolution 
@@ -1620,6 +1743,16 @@ outerDefault:
 
             if (!dynamicResolution)
             {
+                if (!isEarlyAttributeBinding)
+                {
+                    // If we're still decoding early attributes, we can get into a cycle here where we attempt to decode early attributes,
+                    // which causes overload resolution, which causes us to attempt to decode early attributes, etc. Concretely, this means
+                    // that OverloadResolutionPriorityAttribute won't affect early bound attributes, so you can't use OverloadResolutionPriorityAttribute
+                    // to adjust what constructor of OverloadResolutionPriorityAttribute is chosen. See `CycleOnOverloadResolutionPriorityConstructor_02` for
+                    // an example.
+                    RemoveLowerPriorityMembers<MemberResolutionResult<MethodSymbol>, MethodSymbol>(results);
+                }
+
                 // The best method of the set of candidate methods is identified. If a single best
                 // method cannot be identified, the method invocation is ambiguous, and a binding-time
                 // error occurs. 
@@ -1696,6 +1829,94 @@ outerDefault:
             }
 
             return currentBestIndex;
+        }
+
+        private void RemoveLowerPriorityMembers<TMemberResolution, TMember>(ArrayBuilder<TMemberResolution> results)
+            where TMemberResolution : IMemberResolutionResultWithPriority<TMember>
+            where TMember : Symbol
+        {
+            if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureOverloadResolutionPriority))
+            {
+                return;
+            }
+
+            // - Then, the reduced set of candidate members is grouped by declaring type. Within each group:
+            //     - Candidate function members are ordered by *overload_resolution_priority*.
+            //     - All members that have a lower *overload_resolution_priority* than the highest found within its declaring type group are removed.
+            // - The reduced groups are then recombined into the final set of applicable candidate function members.
+
+            if (results.Count < 2)
+            {
+                // Can't prune anything unless there's at least 2 candidates
+                return;
+            }
+
+            // Attempt to avoid any allocations by starting with a quick pass through all results and seeing if any have non-default priority. If so, we'll do the full sort and filter.
+            if (results.All(r => r.MemberWithPriority?.GetOverloadResolutionPriority() is null or 0))
+            {
+                // All default, nothing to do
+                return;
+            }
+
+            bool removedMembers = false;
+            var resultsByContainingType = PooledDictionary<NamedTypeSymbol, OneOrMany<TMemberResolution>>.GetInstance();
+            var inapplicableMembers = ArrayBuilder<TMemberResolution>.GetInstance();
+
+            foreach (var result in results)
+            {
+                Debug.Assert(result.MemberWithPriority is not null);
+
+                // We don't filter out inapplicable members here, as we want to keep them in the list for diagnostics
+                // However, we don't want to take them into account for the priority filtering
+                if (!result.IsApplicable)
+                {
+                    inapplicableMembers.Add(result);
+                    continue;
+                }
+
+                var containingType = result.MemberWithPriority.ContainingType;
+                if (resultsByContainingType.TryGetValue(containingType, out var previousResults))
+                {
+                    var previousPriority = previousResults.First().MemberWithPriority.GetOverloadResolutionPriority();
+                    var currentPriority = result.MemberWithPriority.GetOverloadResolutionPriority();
+
+                    if (currentPriority > previousPriority)
+                    {
+                        removedMembers = true;
+                        resultsByContainingType[containingType] = OneOrMany.Create(result);
+                    }
+                    else if (currentPriority == previousPriority)
+                    {
+                        resultsByContainingType[containingType] = previousResults.Add(result);
+                    }
+                    else
+                    {
+                        removedMembers = true;
+                        Debug.Assert(previousResults.All(r => r.MemberWithPriority.GetOverloadResolutionPriority() == previousPriority));
+                    }
+                }
+                else
+                {
+                    resultsByContainingType.Add(containingType, OneOrMany.Create(result));
+                }
+            }
+
+            if (!removedMembers)
+            {
+                // No changes, so we can just return
+                resultsByContainingType.Free();
+                inapplicableMembers.Free();
+                return;
+            }
+
+            results.Clear();
+            foreach (var (_, resultsForType) in resultsByContainingType)
+            {
+                results.AddRange(resultsForType);
+            }
+            results.AddRange(inapplicableMembers);
+            resultsByContainingType.Free();
+            inapplicableMembers.Free();
         }
 
         private void RemoveWorseMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -2322,13 +2543,10 @@ outerDefault:
 
                     if (!Conversions.HasIdentityConversion(t1, t2))
                     {
-                        if (IsBetterParamsCollectionType(t1, t2, ref useSiteInfo))
+                        var betterResult = BetterParamsCollectionType(t1, t2, ref useSiteInfo);
+                        if (betterResult != BetterResult.Neither)
                         {
-                            return BetterResult.Left;
-                        }
-                        if (IsBetterParamsCollectionType(t2, t1, ref useSiteInfo))
-                        {
-                            return BetterResult.Right;
+                            return betterResult;
                         }
                     }
                 }
@@ -2756,15 +2974,17 @@ outerDefault:
             if (conv1.Kind == ConversionKind.CollectionExpression &&
                 conv2.Kind == ConversionKind.CollectionExpression)
             {
-                if (IsBetterCollectionExpressionConversion(t1, conv1, t2, conv2, ref useSiteInfo))
-                {
-                    return BetterResult.Left;
-                }
-                if (IsBetterCollectionExpressionConversion(t2, conv2, t1, conv1, ref useSiteInfo))
-                {
+                return BetterCollectionExpressionConversion((BoundUnconvertedCollectionExpression)node, t1, conv1, t2, conv2, ref useSiteInfo);
+            }
+
+            switch ((conv1.Kind, conv2.Kind))
+            {
+                case (ConversionKind.ImplicitSpan, ConversionKind.ImplicitSpan):
+                    break;
+                case (_, ConversionKind.ImplicitSpan):
                     return BetterResult.Right;
-                }
-                return BetterResult.Neither;
+                case (ConversionKind.ImplicitSpan, _):
+                    return BetterResult.Left;
             }
 
             // - T1 is a better conversion target than T2 and either C1 and C2 are both conditional expression
@@ -2772,19 +2992,149 @@ outerDefault:
             return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteInfo, out okToDowngradeToNeither);
         }
 
-        // Implements the rules for
-        // - E is a collection expression and one of the following holds: ...
-        private bool IsBetterCollectionExpressionConversion(TypeSymbol t1, Conversion conv1, TypeSymbol t2, Conversion conv2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private BetterResult BetterCollectionExpressionConversion(
+            BoundUnconvertedCollectionExpression collectionExpression,
+            TypeSymbol t1, Conversion conv1,
+            TypeSymbol t2, Conversion conv2,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            TypeSymbol elementType1;
-            var kind1 = conv1.GetCollectionExpressionTypeKind(out elementType1, out _, out _);
-            TypeSymbol elementType2;
-            var kind2 = conv2.GetCollectionExpressionTypeKind(out elementType2, out _, out _);
+            var kind1 = conv1.GetCollectionExpressionTypeKind(out TypeSymbol elementType1, out _, out _);
+            var kind2 = conv2.GetCollectionExpressionTypeKind(out TypeSymbol elementType2, out _, out _);
 
-            return IsBetterCollectionExpressionConversion(t1, kind1, elementType1, t2, kind2, elementType2, ref useSiteInfo);
+            if (Compilation.LanguageVersion < LanguageVersion.CSharp13)
+            {
+                if (IsBetterCollectionExpressionConversion_CSharp12(t1, kind1, elementType1, t2, kind2, elementType2, ref useSiteInfo))
+                {
+                    return BetterResult.Left;
+                }
+                if (IsBetterCollectionExpressionConversion_CSharp12(t2, kind2, elementType2, t1, kind1, elementType1, ref useSiteInfo))
+                {
+                    return BetterResult.Right;
+                }
+
+                return BetterResult.Neither;
+            }
+            else
+            {
+                return BetterCollectionExpressionConversion(
+                    collectionExpression.Elements,
+                    t1, kind1, elementType1, conv1.UnderlyingConversions,
+                    t2, kind2, elementType2, conv2.UnderlyingConversions,
+                    ref useSiteInfo);
+            }
         }
 
-        private bool IsBetterCollectionExpressionConversion(
+        // Implements the rules for
+        // - E is a collection expression and one of the following holds: ...
+        private BetterResult BetterCollectionExpressionConversion(
+            ImmutableArray<BoundNode> collectionExpressionElements,
+            TypeSymbol t1, CollectionExpressionTypeKind kind1, TypeSymbol elementType1, ImmutableArray<Conversion> underlyingElementConversions1,
+            TypeSymbol t2, CollectionExpressionTypeKind kind2, TypeSymbol elementType2, ImmutableArray<Conversion> underlyingElementConversions2,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            // Given:
+            // - `E` is a collection expression with element expressions `[EL₁, EL₂, ..., ELₙ]`
+            // - `T₁` and `T₂` are collection types
+            // - `E₁` is the element type of `T₁`
+            // - `E₂` is the element type of `T₂`
+            // - `CE₁ᵢ` are the series of conversions from `ELᵢ` to `E₁`
+            // - `CE₂ᵢ` are the series of conversions from `ELᵢ` to `E₂`
+
+            var t1IsSpanType = kind1 is CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span;
+            var t2IsSpanType = kind2 is CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span;
+
+            // `C₁` is a ***better collection conversion from expression*** than `C₂` if:
+            // - Both T₁ and T₂ are not *span types*, and `T₁` is implicitly convertible to `T₂`, and `T₂` is not implicitly convertible to `T₁`, or
+            if (!t1IsSpanType && !t2IsSpanType)
+            {
+                var t1IsConvertibleToT2 = Conversions.ClassifyImplicitConversionFromType(t1, t2, ref useSiteInfo).IsImplicit;
+                var t2IsConvertibleToT1 = Conversions.ClassifyImplicitConversionFromType(t2, t1, ref useSiteInfo).IsImplicit;
+
+                switch (t1IsConvertibleToT2, t2IsConvertibleToT1)
+                {
+                    case (true, false):
+                        return BetterResult.Left;
+                    case (false, true):
+                        return BetterResult.Right;
+                }
+            }
+
+            // - `E₁` does not have an identity conversion to `E₂`, and the element conversions to `E₁` are better than the element conversions to `E₂`, or
+            // - `E₁` has an identity conversion to `E₂`, and one of the following holds:
+
+            // `E₁` is compared to `E₂` as follows:
+            // If there is an identity conversion from `E₁` to `E₂`, then the element conversions are as good as each other. Otherwise, the element conversions
+            // to `E₁` are better than the element conversions to `E₂` if:
+            // - For every `ELᵢ`, `CE₁ᵢ` is at least as good as `CE₂ᵢ`, and
+            // - There is at least one i where `CE₁ᵢ` is better than `CE₂ᵢ`
+            // Otherwise, neither set of element conversions is better than the other, and they are also not as good as each other.  
+            // Conversion comparisons are made using better conversion from expression if `ELᵢ` is not a spread element. If `ELᵢ` is a spread element, we use better conversion from the element type of the spread collection to `E₁` or `E₂`, respectively.
+
+            if (!Conversions.HasIdentityConversion(elementType1, elementType2))
+            {
+                var betterResult = BetterResult.Neither;
+                Debug.Assert(underlyingElementConversions1.Length == underlyingElementConversions2.Length && underlyingElementConversions1.Length == collectionExpressionElements.Length);
+
+                for (int i = 0; i < underlyingElementConversions1.Length; i++)
+                {
+                    // Conversion comparisons are made using better conversion from expression if `ELᵢ` is not a spread element. If `ELᵢ` is a spread element,
+                    // we use better conversion from the element type of the spread collection to `E₁` or `E₂`, respectively.
+                    var element = collectionExpressionElements[i];
+                    var conversionToE1 = underlyingElementConversions1[i];
+                    var conversionToE2 = underlyingElementConversions2[i];
+
+                    BetterResult elementBetterResult;
+                    if (element is BoundCollectionExpressionSpreadElement spread)
+                    {
+                        elementBetterResult = BetterConversionTarget(spread, elementType1, conversionToE1, elementType2, conversionToE2, ref useSiteInfo, okToDowngradeToNeither: out _);
+                    }
+                    else
+                    {
+                        elementBetterResult = BetterConversionFromExpression((BoundExpression)element, elementType1, conversionToE1, elementType2, conversionToE2, ref useSiteInfo, okToDowngradeToNeither: out _);
+                    }
+
+                    if (elementBetterResult == BetterResult.Neither)
+                    {
+                        continue;
+                    }
+
+                    if (betterResult != BetterResult.Neither)
+                    {
+                        if (betterResult != elementBetterResult)
+                        {
+                            return BetterResult.Neither;
+                        }
+                    }
+                    else
+                    {
+                        betterResult = elementBetterResult;
+                    }
+                }
+
+                return betterResult;
+            }
+
+            // - `T₁` is `System.ReadOnlySpan<E₁>`, and `T₂` is `System.Span<E₂>`, or
+            // - `T₁` is `System.ReadOnlySpan<E₁>` or `System.Span<E₁>`, and `T₂` is an *array_or_array_interface* with *element type* `E₂`
+
+            if (t1IsSpanType || t2IsSpanType)
+            {
+                switch ((kind1, kind2))
+                {
+                    case (CollectionExpressionTypeKind.ReadOnlySpan, CollectionExpressionTypeKind.Span):
+                    case (CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span, _) when IsSZArrayOrArrayInterface(t2, out _):
+                        return BetterResult.Left;
+
+                    case (CollectionExpressionTypeKind.Span, CollectionExpressionTypeKind.ReadOnlySpan):
+                    case (_, CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span) when IsSZArrayOrArrayInterface(t1, out _):
+                        return BetterResult.Right;
+                }
+            }
+
+            return BetterResult.Neither;
+        }
+
+        private bool IsBetterCollectionExpressionConversion_CSharp12(
             TypeSymbol t1, CollectionExpressionTypeKind kind1, TypeSymbol elementType1,
             TypeSymbol t2, CollectionExpressionTypeKind kind2, TypeSymbol elementType2,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -2820,12 +3170,26 @@ outerDefault:
                 Conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteInfo).IsImplicit;
         }
 
-        private bool IsBetterParamsCollectionType(TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private BetterResult BetterParamsCollectionType(TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             CollectionExpressionTypeKind kind1 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t1, out TypeWithAnnotations elementType1);
             CollectionExpressionTypeKind kind2 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t2, out TypeWithAnnotations elementType2);
 
-            return IsBetterCollectionExpressionConversion(t1, kind1, elementType1.Type, t2, kind2, elementType2.Type, ref useSiteInfo);
+            if (kind1 is CollectionExpressionTypeKind.CollectionBuilder or CollectionExpressionTypeKind.ImplementsIEnumerable)
+            {
+                _binder.TryGetCollectionIterationType(CSharpSyntaxTree.Dummy.GetRoot(), t1, out elementType1);
+            }
+
+            if (kind2 is CollectionExpressionTypeKind.CollectionBuilder or CollectionExpressionTypeKind.ImplementsIEnumerable)
+            {
+                _binder.TryGetCollectionIterationType(CSharpSyntaxTree.Dummy.GetRoot(), t2, out elementType2);
+            }
+
+            return BetterCollectionExpressionConversion(
+                collectionExpressionElements: [],
+                t1, kind1, elementType1.Type, underlyingElementConversions1: [],
+                t2, kind2, elementType2.Type, underlyingElementConversions2: [],
+                ref useSiteInfo);
         }
 
         private static bool IsSZArrayOrArrayInterface(TypeSymbol type, out TypeSymbol elementType)
@@ -3012,7 +3376,7 @@ outerDefault:
                 return null;
             }
 
-            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            protected override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
             {
                 throw ExceptionUtilities.Unreachable();
             }
@@ -3032,17 +3396,6 @@ outerDefault:
 
         private const int BetterConversionTargetRecursionLimit = 100;
 
-#if DEBUG
-        private BetterResult BetterConversionTarget(
-            TypeSymbol type1,
-            TypeSymbol type2,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            bool okToDowngradeToNeither;
-            return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteInfo, out okToDowngradeToNeither, BetterConversionTargetRecursionLimit);
-        }
-#endif
-
         private BetterResult BetterConversionTargetCore(
             TypeSymbol type1,
             TypeSymbol type2,
@@ -3059,7 +3412,7 @@ outerDefault:
         }
 
         private BetterResult BetterConversionTarget(
-            BoundExpression node,
+            BoundNode node,
             TypeSymbol type1,
             Conversion conv1,
             TypeSymbol type2,
@@ -3071,7 +3424,7 @@ outerDefault:
         }
 
         private BetterResult BetterConversionTargetCore(
-            BoundExpression node,
+            BoundNode node,
             TypeSymbol type1,
             Conversion conv1,
             TypeSymbol type2,
@@ -3086,6 +3439,27 @@ outerDefault:
             {
                 // Both types are the same type.
                 return BetterResult.Neither;
+            }
+
+            // SPEC: T₁ is System.ReadOnlySpan<E₁>, T₂ is System.Span<E₂>, and an identity conversion from E₁ to E₂ exists
+            if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan))
+            {
+                if (isBetterSpanConversionTarget(type1, type2))
+                {
+                    return BetterResult.Left;
+                }
+                else if (isBetterSpanConversionTarget(type2, type1))
+                {
+                    return BetterResult.Right;
+                }
+                // The next case (a type is a better target if an implicit conversion from it to the other type exists)
+                // does not apply to span conversions except the covariant ReadOnlySpan->ReadOnlySpan conversion.
+                else if ((type1.IsSpan() || type1.IsReadOnlySpan()) &&
+                    (type2.IsSpan() || type2.IsReadOnlySpan()) &&
+                    !(type1.IsReadOnlySpan() && type2.IsReadOnlySpan()))
+                {
+                    return BetterResult.Neither;
+                }
             }
 
             // Given two different types T1 and T2, T1 is a better conversion target than T2 if no implicit conversion from T2 to T1 exists,
@@ -3226,6 +3600,22 @@ outerDefault:
             }
 
             return BetterResult.Neither;
+
+            static bool isBetterSpanConversionTarget(TypeSymbol type1, TypeSymbol type2)
+            {
+                // SPEC: T₁ is System.ReadOnlySpan<E₁>, T₂ is System.Span<E₂>, and an identity conversion from E₁ to E₂ exists
+                if (type1.IsReadOnlySpan() && type2.IsSpan())
+                {
+                    var type1Element = ((NamedTypeSymbol)type1).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                    var type2Element = ((NamedTypeSymbol)type2).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                    if (Conversions.HasIdentityConversion(type1Element, type2Element))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private bool IsMethodGroupConversionIncompatibleWithDelegate(BoundMethodGroup node, NamedTypeSymbol delegateType, Conversion conv)
@@ -3321,7 +3711,7 @@ outerDefault:
                             Debug.Assert(
                                 r1.IsErrorType() ||
                                 r2.IsErrorType() ||
-                                currentResult == BetterConversionTarget(r1, r2, ref useSiteInfo));
+                                currentResult == BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteInfo, out _, BetterConversionTargetRecursionLimit));
                         }
 #endif
                     }
@@ -3665,7 +4055,9 @@ outerDefault:
         {
             // AnalyzeArguments matches arguments to parameter names and positions. 
             // For that purpose we use the most derived member.
-            var argumentAnalysis = AnalyzeArguments(member, arguments, isMethodGroupConversion: (options & Options.IsMethodGroupConversion) != 0, expanded: false);
+            var argumentAnalysis = (options & Options.InferringUniqueMethodGroupSignature) != 0
+                ? ArgumentAnalysisResult.NormalForm(argsToParamsOpt: default)
+                : AnalyzeArguments(member, arguments, isMethodGroupConversion: (options & Options.IsMethodGroupConversion) != 0, expanded: false);
             if (!argumentAnalysis.IsValid)
             {
                 switch (argumentAnalysis.Kind)
@@ -3685,7 +4077,7 @@ outerDefault:
 
             // Check after argument analysis, but before more complicated type inference and argument type validation.
             // NOTE: The diagnostic may not be reported (e.g. if the member is later removed as less-derived).
-            if (member.HasUseSiteError)
+            if ((options & Options.InferringUniqueMethodGroupSignature) == 0 && member.HasUseSiteError)
             {
                 return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.UseSiteError(), hasTypeArgumentInferredFromFunctionType: false);
             }
@@ -3708,7 +4100,7 @@ outerDefault:
             // The applicability is checked based on effective parameters passed in.
             var applicableResult = IsApplicable(
                 member, leastOverriddenMemberConstructedFrom,
-                typeArguments, arguments, constructedFromEffectiveParameters,
+                typeArguments, arguments, options, constructedFromEffectiveParameters,
                 definitionParamsElementTypeOpt: default,
                 isExpanded: false,
                 argumentAnalysis.ArgsToParamsOpt,
@@ -3716,6 +4108,7 @@ outerDefault:
                 inferWithDynamic: (options & Options.InferWithDynamic) != 0,
                 completeResults: completeResults,
                 dynamicConvertsToAnything: (options & Options.DynamicConvertsToAnything) != 0,
+                isMethodGroupConversion: (options & Options.IsMethodGroupConversion) != 0,
                 useSiteInfo: ref useSiteInfo);
 
             // If we were producing complete results and had missing arguments, we pushed on in order to call IsApplicable for
@@ -3734,15 +4127,18 @@ outerDefault:
             ArrayBuilder<TypeWithAnnotations> typeArguments,
             AnalyzedArguments arguments,
             TypeWithAnnotations definitionParamsElementType,
-            bool allowRefOmittedArguments,
+            Options options,
             bool completeResults,
             bool dynamicConvertsToAnything,
+            bool isMethodGroupConversion,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
         {
             // AnalyzeArguments matches arguments to parameter names and positions. 
             // For that purpose we use the most derived member.
-            var argumentAnalysis = AnalyzeArguments(member, arguments, isMethodGroupConversion: false, expanded: true);
+            var argumentAnalysis = (options & Options.InferringUniqueMethodGroupSignature) != 0
+                ? ArgumentAnalysisResult.ExpandedForm(argsToParamsOpt: default)
+                : AnalyzeArguments(member, arguments, isMethodGroupConversion: false, expanded: true);
             if (!argumentAnalysis.IsValid)
             {
                 return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ArgumentParameterMismatch(argumentAnalysis), hasTypeArgumentInferredFromFunctionType: false);
@@ -3750,7 +4146,7 @@ outerDefault:
 
             // Check after argument analysis, but before more complicated type inference and argument type validation.
             // NOTE: The diagnostic may not be reported (e.g. if the member is later removed as less-derived).
-            if (member.HasUseSiteError)
+            if ((options & Options.InferringUniqueMethodGroupSignature) == 0 && member.HasUseSiteError)
             {
                 return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.UseSiteError(), hasTypeArgumentInferredFromFunctionType: false);
             }
@@ -3763,17 +4159,17 @@ outerDefault:
                 arguments.Arguments.Count,
                 argumentAnalysis.ArgsToParamsOpt,
                 arguments.RefKinds,
-                options: allowRefOmittedArguments ? Options.AllowRefOmittedArguments : Options.None,
+                options: options & Options.AllowRefOmittedArguments,
                 _binder,
                 out hasAnyRefOmittedArgument);
 
-            Debug.Assert(!hasAnyRefOmittedArgument || allowRefOmittedArguments);
+            Debug.Assert(!hasAnyRefOmittedArgument || (options & Options.AllowRefOmittedArguments) != 0);
 
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
             // The applicability is checked based on effective parameters passed in.
             var result = IsApplicable(
                 member, leastOverriddenMemberConstructedFrom,
-                typeArguments, arguments, constructedFromEffectiveParameters,
+                typeArguments, arguments, options, constructedFromEffectiveParameters,
                 definitionParamsElementType,
                 isExpanded: true,
                 argumentAnalysis.ArgsToParamsOpt,
@@ -3781,6 +4177,7 @@ outerDefault:
                 inferWithDynamic: false,
                 completeResults: completeResults,
                 dynamicConvertsToAnything: dynamicConvertsToAnything,
+                isMethodGroupConversion: isMethodGroupConversion,
                 useSiteInfo: ref useSiteInfo);
 
             Debug.Assert(!result.Result.IsValid || result.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm);
@@ -3792,6 +4189,7 @@ outerDefault:
             TMember leastOverriddenMember, // method or property 
             ArrayBuilder<TypeWithAnnotations> typeArgumentsBuilder,
             AnalyzedArguments arguments,
+            Options options,
             EffectiveParameters constructedFromEffectiveParameters,
             TypeWithAnnotations definitionParamsElementTypeOpt,
             bool isExpanded,
@@ -3800,6 +4198,7 @@ outerDefault:
             bool inferWithDynamic,
             bool completeResults,
             bool dynamicConvertsToAnything,
+            bool isMethodGroupConversion,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
         {
@@ -3809,7 +4208,8 @@ outerDefault:
             MethodSymbol method;
             EffectiveParameters constructedEffectiveParameters;
             bool hasTypeArgumentsInferredFromFunctionType = false;
-            if (member.Kind == SymbolKind.Method && (method = (MethodSymbol)(Symbol)member).Arity > 0)
+            if ((options & Options.InferringUniqueMethodGroupSignature) == 0 &&
+                member.Kind == SymbolKind.Method && (method = (MethodSymbol)(Symbol)member).Arity > 0)
             {
                 MethodSymbol leastOverriddenMethod = (MethodSymbol)(Symbol)leastOverriddenMember;
                 ImmutableArray<TypeWithAnnotations> typeArguments;
@@ -3920,6 +4320,7 @@ outerDefault:
                 ignoreOpenTypes: ignoreOpenTypes,
                 completeResults: completeResults,
                 dynamicConvertsToAnything: dynamicConvertsToAnything,
+                isMethodGroupConversion: isMethodGroupConversion,
                 useSiteInfo: ref useSiteInfo);
             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult, hasTypeArgumentsInferredFromFunctionType);
         }
@@ -3991,6 +4392,7 @@ outerDefault:
             bool ignoreOpenTypes,
             bool completeResults,
             bool dynamicConvertsToAnything,
+            bool isMethodGroupConversion,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             TypeWithAnnotations paramsElementTypeOpt;
@@ -4104,7 +4506,8 @@ outerDefault:
                         ref useSiteInfo,
                         forExtensionMethodThisArg,
                         hasInterpolatedStringRefMismatch,
-                        dynamicConvertsToAnything);
+                        dynamicConvertsToAnything,
+                        isMethodGroupConversion: isMethodGroupConversion);
 
                     Debug.Assert(
                         !forExtensionMethodThisArg ||
@@ -4186,7 +4589,8 @@ outerDefault:
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             bool forExtensionMethodThisArg,
             bool hasInterpolatedStringRefMismatch,
-            bool dynamicConvertsToAnything)
+            bool dynamicConvertsToAnything,
+            bool isMethodGroupConversion)
         {
             // Spec 7.5.3.1
             // For each argument in A, the parameter passing mode of the argument (i.e., value, ref, or out) is identical
@@ -4226,7 +4630,7 @@ outerDefault:
             if (argRefKind == RefKind.None || hasInterpolatedStringRefMismatch)
             {
                 var conversion = forExtensionMethodThisArg ?
-                    Conversions.ClassifyImplicitExtensionMethodThisArgConversion(argument, argument.Type, parameterType, ref useSiteInfo) :
+                    Conversions.ClassifyImplicitExtensionMethodThisArgConversion(argument, argument.Type, parameterType, ref useSiteInfo, isMethodGroupConversion: isMethodGroupConversion) :
                     ((!dynamicConvertsToAnything || !argument.Type.IsDynamic()) ?
                          Conversions.ClassifyImplicitConversionFromExpression(argument, parameterType, ref useSiteInfo) :
                          Conversion.ImplicitDynamic);

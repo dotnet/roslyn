@@ -23,14 +23,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             public readonly string Language;
             public readonly DiagnosticAnalyzer Analyzer;
+            public readonly bool IsHostAnalyzer;
 
             private readonly ConcurrentDictionary<DocumentId, ActiveFileState> _activeFileStates;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
 
-            public StateSet(string language, DiagnosticAnalyzer analyzer)
+            public StateSet(string language, DiagnosticAnalyzer analyzer, bool isHostAnalyzer)
             {
                 Language = language;
                 Analyzer = analyzer;
+                IsHostAnalyzer = isHostAnalyzer;
 
                 _activeFileStates = new ConcurrentDictionary<DocumentId, ActiveFileState>(concurrencyLevel: 2, capacity: 10);
                 _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);

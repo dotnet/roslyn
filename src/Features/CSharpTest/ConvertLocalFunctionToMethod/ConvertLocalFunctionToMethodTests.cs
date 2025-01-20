@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLocalFunctionToMethod;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertLocalFunctionToMethod)]
-public class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertLocalFunctionToMethodTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertLocalFunctionToMethodCodeRefactoringProvider();
@@ -1113,6 +1113,53 @@ class C
             {
                 public int Value;
             }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64904")]
+    public async Task TestNameofReferenceInParameterInitializer()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            sealed class A : Attribute
+            {
+                public A(string _) { }
+                public string P { get; set; }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    void [||]M2([A(nameof(b), P = nameof(b))] string b)
+                    {
+                    }
+                }
+            }
+            
+            """,
+            """
+            using System;
+
+            sealed class A : Attribute
+            {
+                public A(string _) { }
+                public string P { get; set; }
+            }
+
+            class C
+            {
+                void M()
+                {
+                }
+
+                private static void M2([A(nameof(b), P = nameof(b))] string b)
+                {
+                }
+            }
+            
             """);
     }
 }

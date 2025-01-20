@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 internal interface IMoveDeclarationNearReferenceService : ILanguageService
 {
     /// <summary>
-    /// Returns true if <paramref name="localDeclarationStatement"/> is local declaration statement
-    /// that can be moved forward to be closer to its first reference.
+    /// Returns <see langword="true"/> for <c>canMove</c> if <paramref name="localDeclarationStatement"/> is local
+    /// declaration statement that can be moved forward to be closer to its first reference.
     /// </summary>
-    Task<bool> CanMoveDeclarationNearReferenceAsync(Document document, SyntaxNode localDeclarationStatement, CancellationToken cancellationToken);
+    Task<(bool canMove, bool mayChangeSemantics)> CanMoveDeclarationNearReferenceAsync(Document document, SyntaxNode localDeclarationStatement, CancellationToken cancellationToken);
 
     /// <summary>
     /// Moves <paramref name="localDeclarationStatement"/> closer to its first reference. Only

@@ -60,8 +60,8 @@ internal sealed class LocationService : ILocationService
         {
             if (_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
             {
-                var options = _globalOptions.GetMetadataAsSourceOptions(project.Services);
-                var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
+                var options = _globalOptions.GetMetadataAsSourceOptions();
+                var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: true, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
                 var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                 locations.Add(new FileLinePositionSpan(declarationFile.FilePath, linePosSpan));
             }

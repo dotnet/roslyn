@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -42,36 +38,16 @@ internal abstract class AbstractAddMissingImportsRefactoringProvider : CodeRefac
         // Check pasted text span for missing imports
         var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 
-        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
-        var options = new AddMissingImportsOptions(
-            cleanupOptions,
-            context.Options.GetOptions(document.Project.Services).HideAdvancedMembers);
-
-        var analysis = await addMissingImportsService.AnalyzeAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
-        if (!analysis.CanAddMissingImports)
-        {
+        var fixData = await addMissingImportsService.AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+        if (fixData.IsDefaultOrEmpty)
             return;
-        }
 
         var addImportsCodeAction = CodeAction.Create(
             CodeActionTitle,
-            (progressTracker, cancellationToken) => AddMissingImportsAsync(
-                document, addMissingImportsService, analysis, options.CleanupOptions.FormattingOptions, progressTracker, cancellationToken),
+            async (progressTracker, cancellationToken) =>
+                (await addMissingImportsService.AddMissingImportsAsync(document, fixData, progressTracker, cancellationToken).ConfigureAwait(false)).Project.Solution,
             CodeActionTitle);
 
         context.RegisterRefactoring(addImportsCodeAction, textSpan);
-    }
-
-    private static async Task<Solution> AddMissingImportsAsync(
-        Document document,
-        IAddMissingImportsFeatureService addMissingImportsService,
-        AddMissingImportsAnalysisResult analysis,
-        SyntaxFormattingOptions formattingOptions,
-        IProgress<CodeAnalysisProgress> progressTracker,
-        CancellationToken cancellationToken)
-    {
-        var modifiedDocument = await addMissingImportsService.AddMissingImportsAsync(
-            document, analysis, formattingOptions, progressTracker, cancellationToken).ConfigureAwait(false);
-        return modifiedDocument.Project.Solution;
     }
 }

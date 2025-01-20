@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -22,9 +23,6 @@ internal static class DiagnosticAnalyzerExtensions
 
     public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
         => analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
-
-    public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, SimplifierOptions? options)
-        => analyzer is IBuiltInAnalyzer builtInAnalyzer && builtInAnalyzer.OpenFileOnly(options);
 
     public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions options)
     {
@@ -54,7 +52,7 @@ internal static class DiagnosticAnalyzerExtensions
     public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
         => analyzer.GetType().Assembly.GetName().Name ?? throw ExceptionUtilities.Unreachable();
 
-    public static void AppendAnalyzerMap(this Dictionary<string, DiagnosticAnalyzer> analyzerMap, IEnumerable<DiagnosticAnalyzer> analyzers)
+    public static void AppendAnalyzerMap(this Dictionary<string, DiagnosticAnalyzer> analyzerMap, ImmutableArray<DiagnosticAnalyzer> analyzers)
     {
         foreach (var analyzer in analyzers)
         {

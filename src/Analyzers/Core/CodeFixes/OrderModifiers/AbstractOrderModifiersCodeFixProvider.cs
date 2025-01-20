@@ -50,7 +50,7 @@ internal abstract class AbstractOrderModifiersCodeFixProvider : SyntaxEditorBase
     }
 
     protected override async Task FixAllAsync(
-        Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var options = await document.GetAnalyzerOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
         var option = GetCodeStyleOption(options);

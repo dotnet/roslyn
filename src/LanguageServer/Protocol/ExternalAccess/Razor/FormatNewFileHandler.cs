@@ -59,27 +59,33 @@ internal sealed class FormatNewFileHandler : ILspServiceRequestHandler<FormatNew
 
         var document = solution.GetRequiredDocument(documentId);
 
+        return await GetFormattedNewFileContentAsync(document, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal static async Task<string> GetFormattedNewFileContentAsync(Document document, CancellationToken cancellationToken)
+    {
+        var project = document.Project;
         // Run the new document formatting service, to make sure the right namespace type is used, among other things
         var formattingService = document.GetLanguageService<INewDocumentFormattingService>();
         if (formattingService is not null)
         {
             var hintDocument = project.Documents.FirstOrDefault();
-            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
             document = await formattingService.FormatNewDocumentAsync(document, hintDocument, cleanupOptions, cancellationToken).ConfigureAwait(false);
         }
 
         // Unlike normal new file formatting, Razor also wants to remove unnecessary usings
-        var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+        var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var removeImportsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
         if (removeImportsService is not null)
         {
-            document = await removeImportsService.RemoveUnnecessaryImportsAsync(document, syntaxFormattingOptions, cancellationToken).ConfigureAwait(false);
+            document = await removeImportsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
         // Now format the document so indentation etc. is correct
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-        root = Formatter.Format(root, solution.Services, syntaxFormattingOptions, cancellationToken);
+        root = Formatter.Format(root, project.Solution.Services, syntaxFormattingOptions, cancellationToken);
 
         return root.ToFullString();
     }

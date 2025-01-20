@@ -38,22 +38,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
         public TextDocumentIdentifier GetTextDocumentIdentifier(InlayHintParams request)
             => request.TextDocument;
 
-        public async Task<LSP.InlayHint[]?> HandleRequestAsync(InlayHintParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<LSP.InlayHint[]?> HandleRequestAsync(InlayHintParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.GetRequiredDocument();
-            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            var textSpan = ProtocolConversions.RangeToTextSpan(request.Range, text);
-
-            var inlineHintService = document.GetRequiredLanguageService<IInlineHintsService>();
-            var options = _optionsService.GetInlineHintsOptions(document.Project.Language);
-            var hints = await inlineHintService.GetInlineHintsAsync(document, textSpan, options, displayAllOverride: false, cancellationToken).ConfigureAwait(false);
-
-            var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
             var inlayHintCache = context.GetRequiredLspService<InlayHintCache>();
+            var options = _optionsService.GetInlineHintsOptions(document.Project.Language);
+
+            return GetInlayHintsAsync(document, request.TextDocument, request.Range, options, displayAllOverride: false, inlayHintCache, cancellationToken);
+        }
+
+        internal static async Task<LSP.InlayHint[]?> GetInlayHintsAsync(Document document, TextDocumentIdentifier textDocumentIdentifier, LSP.Range range, InlineHintsOptions options, bool displayAllOverride, InlayHintCache inlayHintCache, CancellationToken cancellationToken)
+        {
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var hints = await CalculateInlayHintsAsync(document, range, options, displayAllOverride, cancellationToken).ConfigureAwait(false);
+            var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
             // Store the members in the resolve cache so that when we get a resolve request for a particular
             // member we can re-use the inline hint.
-            var resultId = inlayHintCache.UpdateCache(new InlayHintCache.InlayHintCacheEntry(hints, syntaxVersion));
+            var resultId = inlayHintCache.UpdateCache(new InlayHintCache.InlayHintCacheEntry(hints));
 
             var inlayHints = new LSP.InlayHint[hints.Length];
             for (var i = 0; i < hints.Length; i++)
@@ -83,13 +85,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
                     ToolTip = null,
                     PaddingLeft = leftPadding,
                     PaddingRight = rightPadding,
-                    Data = new InlayHintResolveData(resultId, i, request.TextDocument)
+                    Data = new InlayHintResolveData(resultId, i, textDocumentIdentifier, syntaxVersion.ToString(), range, displayAllOverride)
                 };
 
                 inlayHints[i] = inlayHint;
             }
 
             return inlayHints;
+        }
+
+        internal static async Task<ImmutableArray<InlineHint>> CalculateInlayHintsAsync(Document document, LSP.Range range, InlineHintsOptions options, bool displayAllOverride, CancellationToken cancellationToken)
+        {
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var textSpan = ProtocolConversions.RangeToTextSpan(range, text);
+
+            var inlineHintService = document.GetRequiredLanguageService<IInlineHintsService>();
+            var hints = await inlineHintService.GetInlineHintsAsync(document, textSpan, options, displayAllOverride, cancellationToken).ConfigureAwait(false);
+            return hints;
         }
 
         /// <summary>

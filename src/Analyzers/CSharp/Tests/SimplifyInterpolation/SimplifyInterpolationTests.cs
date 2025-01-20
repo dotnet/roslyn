@@ -44,9 +44,9 @@ public partial class SimplifyInterpolationTests : AbstractCSharpDiagnosticProvid
         var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters);
 
         Assert.Equal(
-            new[] {
+            [
                 ("IDE0071", DiagnosticSeverity.Info),
-            },
+            ],
             diagnostics.Select(d => (d.Descriptor.Id, d.Severity)));
     }
 

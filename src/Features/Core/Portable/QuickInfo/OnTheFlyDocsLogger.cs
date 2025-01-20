@@ -41,7 +41,7 @@ internal static class OnTheFlyDocsLogger
 
     public static void ReportTelemetry()
     {
-        Logger.Log(FunctionId.InheritanceMargin_GetInheritanceMemberItems, KeyValueLogMessage.Create(m =>
+        Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Get_Counts, KeyValueLogMessage.Create(m =>
         {
             foreach (var kv in s_countLogAggregator)
             {

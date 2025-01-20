@@ -12,11 +12,6 @@
         <target state="translated">Reglas de formato de C#</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indentation_preferences">
-        <source>Indentation preferences</source>
-        <target state="translated">Preferencias de indentación</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
         <source>R&amp;emove and Sort Usings</source>
         <target state="translated">Q&amp;uitar y ordenar usos</target>
@@ -27,11 +22,6 @@
         <target state="translated">&amp;Ordenar instrucciones Using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Space_preferences">
-        <source>Space preferences</source>
-        <target state="translated">Preferencias de espacio</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">
         <source>Only attributes, constructor initializers, expressions or statements can be made explicit</source>
         <target state="translated">Solo los atributos, los inicializadores de constructor, las expresiones o las declaraciones se pueden hacer explícitos</target>
@@ -40,11 +30,6 @@
       <trans-unit id="Implement_Interface">
         <source>Implement Interface</source>
         <target state="translated">Implementar interfaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Wrapping_preferences">
-        <source>Wrapping preferences</source>
-        <target state="translated">Preferencias de encapsulado</target>
         <note />
       </trans-unit>
     </body>

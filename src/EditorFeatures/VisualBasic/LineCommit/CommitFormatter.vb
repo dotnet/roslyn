@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 ' create commit formatting cleanup provider that has line commit specific behavior
-                Dim cleanupOptions = buffer.GetCodeCleanupOptions(_editorOptionsService, document.Project.Services, isExplicitFormat, allowImportsInHiddenRegions:=document.AllowImportsInHiddenRegions())
+                Dim cleanupOptions = buffer.GetCodeCleanupOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, isExplicitFormat, allowImportsInHiddenRegions:=document.AllowImportsInHiddenRegions())
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                     document.Id,
                     document.Project.Services,
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     End If
                 End If
 
-                Dim changes = finalDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim changes = finalDocument.GetTextChangesSynchronously(document, cancellationToken)
                 buffer.ApplyChanges(changes)
             End Using
         End Sub

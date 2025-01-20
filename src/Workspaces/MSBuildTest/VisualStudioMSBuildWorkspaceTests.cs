@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             var solutionInfo = await msbuildProjectLoader.LoadSolutionInfoAsync(solutionFilePath);
             var projectInfo = Assert.Single(solutionInfo.Projects);
 
-            Assert.Single(projectInfo.Documents.Where(d => d.Name == "CSharpClass.cs"));
+            Assert.Single(projectInfo.Documents, d => d.Name == "CSharpClass.cs");
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -1838,15 +1838,15 @@ class C1
             var imports = options.GlobalImports;
 
             AssertEx.Equal(
-                expected: new[]
-                {
-                        "Microsoft.VisualBasic",
-                        "System",
-                        "System.Collections",
-                        "System.Collections.Generic",
-                        "System.Diagnostics",
-                        "System.Linq",
-                },
+                expected:
+                [
+                    "Microsoft.VisualBasic",
+                    "System",
+                    "System.Collections",
+                    "System.Collections.Generic",
+                    "System.Diagnostics",
+                    "System.Linq",
+                ],
                 actual: imports.Select(i => i.Name));
         }
 
@@ -1865,21 +1865,21 @@ class C1
             defines.Sort((x, y) => x.Key.CompareTo(y.Key));
 
             AssertEx.Equal(
-                expected: new[]
-                {
-                        new KeyValuePair<string, object>("_MyType", "Windows"),
-                        new KeyValuePair<string, object>("CONFIG", "Debug"),
-                        new KeyValuePair<string, object>("DEBUG", -1),
-                        new KeyValuePair<string, object>("F", false),
-                        new KeyValuePair<string, object>("PLATFORM", "AnyCPU"),
-                        new KeyValuePair<string, object>("T", -1),
-                        new KeyValuePair<string, object>("TARGET", "library"),
-                        new KeyValuePair<string, object>("TRACE", -1),
-                        new KeyValuePair<string, object>("VBC_VER", 123),
-                        new KeyValuePair<string, object>("X", 1),
-                        new KeyValuePair<string, object>("Y", 2),
-                        new KeyValuePair<string, object>("Z", true),
-                },
+                expected:
+                [
+                    new KeyValuePair<string, object>("_MyType", "Windows"),
+                    new KeyValuePair<string, object>("CONFIG", "Debug"),
+                    new KeyValuePair<string, object>("DEBUG", -1),
+                    new KeyValuePair<string, object>("F", false),
+                    new KeyValuePair<string, object>("PLATFORM", "AnyCPU"),
+                    new KeyValuePair<string, object>("T", -1),
+                    new KeyValuePair<string, object>("TARGET", "library"),
+                    new KeyValuePair<string, object>("TRACE", -1),
+                    new KeyValuePair<string, object>("VBC_VER", 123),
+                    new KeyValuePair<string, object>("X", 1),
+                    new KeyValuePair<string, object>("Y", 2),
+                    new KeyValuePair<string, object>("Z", true),
+                ],
                 actual: defines);
         }
 
@@ -1900,7 +1900,7 @@ class C1
             var compilation = await project.GetCompilationAsync();
             var metadataBytes = compilation.EmitToArray();
             var mtref = MetadataReference.CreateFromImage(metadataBytes);
-            var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
+            var mtcomp = CS.CSharpCompilation.Create("MT", references: [mtref]);
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
             var attrs = sym.GetAttributes();
 
@@ -1923,7 +1923,7 @@ class C1
             var compilation = await project.GetCompilationAsync();
             var metadataBytes = compilation.EmitToArray();
             var mtref = MetadataReference.CreateFromImage(metadataBytes);
-            var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
+            var mtcomp = CS.CSharpCompilation.Create("MT", references: [mtref]);
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
             var attrs = sym.GetAttributes();
 
@@ -1947,7 +1947,7 @@ class C1
             var compilation = await project.GetCompilationAsync();
             var metadataBytes = compilation.EmitToArray();
             var mtref = MetadataReference.CreateFromImage(metadataBytes);
-            var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
+            var mtcomp = CS.CSharpCompilation.Create("MT", references: [mtref]);
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
             var attrs = sym.GetAttributes();
 
@@ -1970,7 +1970,7 @@ class C1
             var compilation = await project.GetCompilationAsync();
             var metadataBytes = compilation.EmitToArray();
             var mtref = MetadataReference.CreateFromImage(metadataBytes);
-            var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
+            var mtcomp = CS.CSharpCompilation.Create("MT", references: [mtref]);
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
             var attrs = sym.GetAttributes();
 
@@ -2012,7 +2012,7 @@ class C1
             var project = solution.GetProjectsByName("CSharpProject").FirstOrDefault();
 
             var newText = SourceText.From("public class Bar { }");
-            workspace.AddDocument(project.Id, new string[] { "NewFolder" }, "Bar.cs", newText);
+            workspace.AddDocument(project.Id, ["NewFolder"], "Bar.cs", newText);
 
             // check workspace current solution
             var solution2 = workspace.CurrentSolution;
@@ -2487,7 +2487,7 @@ class C1
                 result.Add((fileName, text));
             }
 
-            return new FileSet(result.ToArray());
+            return new FileSet([.. result]);
         }
 
         private static string VisitProjectReferences(string projectFileText, Action<XElement> visitProjectReference)
@@ -2893,14 +2893,13 @@ class C { }";
             Assert.Equal(encoding.EncodingName, text.Encoding.EncodingName);
             Assert.Equal(fileContent, text.ToString());
 
-            // update root blindly again, after observing encoding, see that now encoding is known
+            // update root blindly again, after observing encoding, see that encoding is overridden to null
             var doc3 = document.WithSyntaxRoot(gen.CompilationUnit()); // empty CU
             var doc3text = await doc3.GetTextAsync();
-            Assert.NotNull(doc3text.Encoding);
-            Assert.Equal(encoding.EncodingName, doc3text.Encoding.EncodingName);
+            Assert.Null(doc3text.Encoding);
             var doc3tree = await doc3.GetSyntaxTreeAsync();
-            Assert.Equal(doc3text.Encoding, doc3tree.GetText().Encoding);
-            Assert.Equal(doc3text.Encoding, doc3tree.Encoding);
+            Assert.Null(doc3tree.Encoding);
+            Assert.Null(doc3tree.GetText().Encoding);
 
             // change doc to have no encoding, still succeeds at writing to disk with old encoding
             var root = await document.GetSyntaxRootAsync();
@@ -3215,7 +3214,7 @@ class C { }";
             Assert.Single(project.ProjectReferences);
 
             AssertEx.Equal(
-                new[] { "EmptyLibrary.dll", "System.Core.dll", "mscorlib.dll" },
+                ["EmptyLibrary.dll", "System.Core.dll", "mscorlib.dll"],
                 project.MetadataReferences.Select(r => Path.GetFileName(((PortableExecutableReference)r).FilePath)).OrderBy(StringComparer.Ordinal));
 
             var compilation = await project.GetCompilationAsync();
@@ -3241,7 +3240,7 @@ class C { }";
 
             // We should have exactly one .editorconfig corresponding to the file we had. We may also
             // have other files if there is a .editorconfig floating around somewhere higher on the disk.
-            var analyzerConfigDocument = Assert.Single(project.AnalyzerConfigDocuments.Where(d => d.FilePath == expectedEditorConfigPath));
+            var analyzerConfigDocument = Assert.Single(project.AnalyzerConfigDocuments, d => d.FilePath == expectedEditorConfigPath);
             Assert.Equal(".editorconfig", analyzerConfigDocument.Name);
             var text = await analyzerConfigDocument.GetTextAsync();
             Assert.Equal("root = true", text.ToString());

@@ -26,7 +26,7 @@ internal sealed class WrappedNavigationBarItem : NavigationBarItem, IEquatable<W
               underlyingItem.Text,
               underlyingItem.Glyph,
               GetSpans(underlyingItem),
-              underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(textVersion, v)),
+              underlyingItem.ChildItems.SelectAsArray(static (v, textVersion) => (NavigationBarItem)new WrappedNavigationBarItem(textVersion, v), textVersion),
               underlyingItem.Indent,
               underlyingItem.Bolded,
               underlyingItem.Grayed)

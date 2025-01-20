@@ -39,6 +39,7 @@ internal static partial class ProjectExtensions
 #else
         => project.Solution.Services.GetExtendedLanguageServices(project.Language);
 #endif
+
 #pragma warning restore RS0030 // Do not used banned APIs
 
     public static string? TryGetAnalyzerConfigPathForProjectConfiguration(this Project project)

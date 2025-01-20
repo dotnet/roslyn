@@ -13,15 +13,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UpdateProjectToAllowUnsafe;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UpdateProjectToAllowUnsafe), Shared]
-internal class CSharpUpdateProjectToAllowUnsafeCodeFixProvider : CodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpUpdateProjectToAllowUnsafeCodeFixProvider() : CodeFixProvider
 {
     private const string CS0227 = nameof(CS0227); // error CS0227: Unsafe code may only appear if compiling with /unsafe
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpUpdateProjectToAllowUnsafeCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [CS0227];

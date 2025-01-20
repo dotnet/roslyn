@@ -8,12 +8,13 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Parameters for a request for Edits that can be applied to a previous response
-    /// from a semantic tokens Document provider.
-    ///
+    /// Parameters for 'textDocument/semanticTokens/full/delta' request.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensDeltaParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
-    internal class SemanticTokensDeltaParams : ITextDocumentParams, IPartialResultParams<SemanticTokensDeltaPartialResult>
+    /// <remarks>Since LSP 3.16</remarks>
+    internal class SemanticTokensDeltaParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SemanticTokensDeltaPartialResult>
     {
         /// <summary>
         /// Gets or sets an identifier for the document to fetch semantic tokens from.
@@ -22,21 +23,21 @@ namespace Roslyn.LanguageServer.Protocol
         public TextDocumentIdentifier TextDocument { get; set; }
 
         /// <summary>
-        /// Gets or sets a property indicating the version of the semantic
-        /// tokens Document provider response that the edits will be applied to.
+        /// The result id of a previous response. The result Id can either point to
+        /// a full response or a delta response depending on what was received last.
+        /// The delta should be relative to this previous response.
         /// </summary>
         [JsonPropertyName("previousResultId")]
         public string PreviousResultId { get; set; }
 
-        /// <summary>
-        /// Gets or sets the value of the Progress instance.
-        /// </summary>
+        /// <inheritdoc/>
+        [JsonPropertyName(Methods.WorkDoneTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
+
+        /// <inheritdoc/>
         [JsonPropertyName(Methods.PartialResultTokenName)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public IProgress<SemanticTokensDeltaPartialResult>? PartialResultToken
-        {
-            get;
-            set;
-        }
+        public IProgress<SemanticTokensDeltaPartialResult>? PartialResultToken { get; set; }
     }
 }

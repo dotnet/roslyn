@@ -21,23 +21,16 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ChangeReturnType), Shared]
-internal class CSharpChangeToIEnumerableCodeFixProvider : AbstractIteratorCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpChangeToIEnumerableCodeFixProvider() : AbstractIteratorCodeFixProvider
 {
     /// <summary>
     /// CS1624: The body of 'x' cannot be an iterator block because 'y' is not an iterator interface type
     /// </summary>
     private const string CS1624 = nameof(CS1624);
 
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpChangeToIEnumerableCodeFixProvider()
-    {
-    }
-
-    public override ImmutableArray<string> FixableDiagnosticIds
-    {
-        get { return [CS1624]; }
-    }
+    public override ImmutableArray<string> FixableDiagnosticIds => [CS1624];
 
     protected override async Task<CodeAction?> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken)
     {

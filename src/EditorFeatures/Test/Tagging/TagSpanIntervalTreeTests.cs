@@ -80,7 +80,7 @@ public class TagSpanIntervalTreeTests
     public void TestManySpansWithEdit()
     {
         // Create a buffer with the second half of the buffer covered with spans
-        var (tree, buffer) = CreateTree(new string('c', 100), Enumerable.Range(50, count: 50).Select(s => new Span(s, 1)).ToArray());
+        var (tree, buffer) = CreateTree(new string('c', 100), [.. Enumerable.Range(50, count: 50).Select(s => new Span(s, 1))]);
         buffer.Insert(0, new string('c', 100));
 
         // We should have 50 spans if we start looking at just the end
@@ -94,7 +94,7 @@ public class TagSpanIntervalTreeTests
     public void TestManySpansWithEdit2()
     {
         // Cover the full buffer with spans
-        var (tree, buffer) = CreateTree(new string('c', 100), Enumerable.Range(0, count: 100).Select(s => new Span(s, 1)).ToArray());
+        var (tree, buffer) = CreateTree(new string('c', 100), [.. Enumerable.Range(0, count: 100).Select(s => new Span(s, 1))]);
         buffer.Insert(0, new string('c', 100));
 
         // We should see one span anywhere in the beginning of the buffer, since this is edge inclusive
@@ -109,7 +109,7 @@ public class TagSpanIntervalTreeTests
     public void TestManySpansWithDeleteAndEditAtStart()
     {
         // Cover the full buffer with spans
-        var (tree, buffer) = CreateTree(new string('c', 100), Enumerable.Range(0, count: 100).Select(s => new Span(s, 1)).ToArray());
+        var (tree, buffer) = CreateTree(new string('c', 100), [.. Enumerable.Range(0, count: 100).Select(s => new Span(s, 1))]);
 
         buffer.Delete(new Span(0, 50));
         buffer.Insert(0, new string('c', 50));
@@ -123,7 +123,7 @@ public class TagSpanIntervalTreeTests
     public void TestManySpansWithDeleteAndEditAtEnd()
     {
         // Cover the full buffer with spans
-        var (tree, buffer) = CreateTree(new string('c', 100), Enumerable.Range(0, count: 100).Select(s => new Span(s, 1)).ToArray());
+        var (tree, buffer) = CreateTree(new string('c', 100), [.. Enumerable.Range(0, count: 100).Select(s => new Span(s, 1))]);
 
         buffer.Delete(new Span(50, 50));
         buffer.Insert(50, new string('c', 50));
@@ -137,7 +137,7 @@ public class TagSpanIntervalTreeTests
     public void TestTagSpanOrdering()
     {
         // Cover the full buffer with spans
-        var (tree, buffer) = CreateTree(new string('c', 100), Enumerable.Range(0, count: 100).Select(s => new Span(s, 1)).ToArray());
+        var (tree, buffer) = CreateTree(new string('c', 100), [.. Enumerable.Range(0, count: 100).Select(s => new Span(s, 1))]);
 
         var lastStart = -1;
         foreach (var tag in GetIntersectingSpans(tree, new SnapshotSpan(buffer.CurrentSnapshot, 0, buffer.CurrentSnapshot.Length)))

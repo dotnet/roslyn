@@ -232,6 +232,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp12 = 1200,
 
         /// <summary>
+        /// C# language version 13.0
+        /// <br/>
+        /// Features:
+        /// <list type="bullet">
+        /// <item><description>Escape character</description></item>
+        /// <item><description>Method group natural type improvements</description></item>
+        /// <item><description>`Lock` object</description></item>
+        /// <item><description>Implicit indexer access in object initializers</description></item>
+        /// <item><description>`params` collections</description></item>
+        /// <item><description>ref/unsafe in iterators/async</description></item>
+        /// <item><description>`allows ref struct` constraint</description></item>
+        /// <item><description>Partial properties</description></item>
+        /// </list>
+        /// </summary>
+        CSharp13 = 1300,
+
+        /// <summary>
         /// The latest major supported version.
         /// </summary>
         LatestMajor = int.MaxValue - 2,
@@ -273,6 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp10:
                 case LanguageVersion.CSharp11:
                 case LanguageVersion.CSharp12:
+                case LanguageVersion.CSharp13:
                 case LanguageVersion.Preview:
                     return true;
             }
@@ -314,6 +332,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_FeatureNotAvailableInVersion11;
                 case LanguageVersion.CSharp12:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion12;
+                case LanguageVersion.CSharp13:
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion13;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
@@ -385,6 +405,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "11.0";
                 case LanguageVersion.CSharp12:
                     return "12.0";
+                case LanguageVersion.CSharp13:
+                    return "13.0";
                 case LanguageVersion.Default:
                     return "default";
                 case LanguageVersion.Latest:
@@ -501,6 +523,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = LanguageVersion.CSharp12;
                     return true;
 
+                case "13":
+                case "13.0":
+                    result = LanguageVersion.CSharp13;
+                    return true;
+
                 default:
                     result = LanguageVersion.Default;
                     return false;
@@ -517,13 +544,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.Latest:
                 case LanguageVersion.Default:
                 case LanguageVersion.LatestMajor:
-                    return LanguageVersion.CSharp12;
+                    return LanguageVersion.CSharp13;
                 default:
                     return version;
             }
         }
 
-        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp12;
+        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp13;
 
         /// <summary>Inference of tuple element names was added in C# 7.1</summary>
         internal static bool DisallowInferredTupleElementNames(this LanguageVersion self)

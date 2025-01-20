@@ -21,7 +21,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents;
 
-public class IntentTestsBase
+public abstract class IntentTestsBase
 {
     internal static async Task VerifyIntentMissingAsync(
         string intentName,
@@ -97,7 +97,7 @@ public class IntentTestsBase
         OptionsCollection? options = null,
         string? intentData = null)
     {
-        options?.SetGlobalOptions(workspace.GlobalOptions);
+        workspace.SetAnalyzerFallbackOptions(options);
 
         var intentSource = workspace.ExportProvider.GetExportedValue<IIntentSourceProvider>();
 

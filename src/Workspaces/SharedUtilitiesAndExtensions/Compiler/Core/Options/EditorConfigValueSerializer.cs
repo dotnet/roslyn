@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options;
@@ -50,7 +53,7 @@ internal static class EditorConfigValueSerializer
         return optionalBool.HasValue ? new Optional<bool?>(optionalBool.Value) : new Optional<bool?>();
     }
 
-    public static EditorConfigValueSerializer<T> Default<T>()
+    public static EditorConfigValueSerializer<T> GetDefault<T>(bool isEditorConfigOption)
     {
         if (typeof(T) == typeof(bool))
             return (EditorConfigValueSerializer<T>)(object)s_bool;
@@ -64,9 +67,10 @@ internal static class EditorConfigValueSerializer
         if (typeof(T) == typeof(bool?))
             return (EditorConfigValueSerializer<T>)(object)s_nullableBoolean;
 
-        // TODO: https://github.com/dotnet/roslyn/issues/65787
-        // Once all global options define a serializer this should be changed to:
-        // throw ExceptionUtilities.UnexpectedValue(typeof(T));
+        // editorconfig options must have a serializer:
+        if (isEditorConfigOption)
+            throw ExceptionUtilities.UnexpectedValue(typeof(T));
+
         return EditorConfigValueSerializer<T>.Unsupported;
     }
 
@@ -93,10 +97,40 @@ internal static class EditorConfigValueSerializer
         => new(parseValue: str => CodeStyleHelpers.TryParseStringEditorConfigCodeStyleOption(str, defaultValue, out var result) ? result : new Optional<CodeStyleOption2<string>>(),
                serializeValue: value => value.Value.ToLowerInvariant() + CodeStyleHelpers.GetEditorConfigStringNotificationPart(value, defaultValue));
 
+    /// <summary>
+    /// Creates a serializer for an enum value that uses the enum field names.
+    /// </summary>
     public static EditorConfigValueSerializer<T> CreateSerializerForEnum<T>() where T : struct, Enum
         => new(
             parseValue: str => TryParseEnum<T>(str, out var result) ? new Optional<T>(result) : new Optional<T>(),
             serializeValue: value => value.ToString());
+
+    /// <summary>
+    /// Creates a serializer for an enum value given a <paramref name="map"/> between value names and the corresponding enum values.
+    /// </summary>
+    public static EditorConfigValueSerializer<T> CreateSerializerForEnum<T>(BidirectionalMap<string, T> map) where T : struct, Enum
+        => CreateSerializerForEnum(map, ImmutableDictionary<string, T>.Empty);
+
+    /// <summary>
+    /// Creates a serializer for an enum value given a <paramref name="map"/> between value names and the corresponding enum values.
+    /// <paramref name="alternative"/> specifies alternative value representations for backward compatibility.
+    /// </summary>
+    public static EditorConfigValueSerializer<T> CreateSerializerForEnum<T>(BidirectionalMap<string, T> map, ImmutableDictionary<string, T> alternative) where T : struct, Enum
+        => new(parseValue: str => map.TryGetValue(str, out var result) || alternative.TryGetValue(str, out result) ? new Optional<T>(result) : new Optional<T>(),
+               serializeValue: value => map.TryGetKey(value, out var key) ? key : throw ExceptionUtilities.UnexpectedValue(value));
+
+    /// <summary>
+    /// Creates a serializer for an enum value given a <paramref name="entries"/> between value names and the corresponding enum values.
+    /// <paramref name="alternativeEntries"/> specifies alternative value representations for backward compatibility.
+    /// </summary>
+    public static EditorConfigValueSerializer<T> CreateSerializerForEnum<T>(IEnumerable<(string name, T value)> entries, IEnumerable<(string name, T value)> alternativeEntries) where T : struct, Enum
+    {
+        var map = new BidirectionalMap<string, T>(entries, StringComparer.OrdinalIgnoreCase);
+        var alternativeMap = ImmutableDictionary<string, T>.Empty.WithComparers(keyComparer: StringComparer.OrdinalIgnoreCase)
+            .AddRange(alternativeEntries.Select(static p => KeyValuePairUtil.Create(p.name, p.value)));
+
+        return CreateSerializerForEnum(map, alternativeMap);
+    }
 
     public static EditorConfigValueSerializer<T?> CreateSerializerForNullableEnum<T>() where T : struct, Enum
     {
@@ -136,5 +170,37 @@ internal static class EditorConfigValueSerializer
         }
 
         return Enum.TryParse(str, ignoreCase: true, out result);
+    }
+
+    /// <summary>
+    /// Serializes arbitrary editorconfig option value (including naming style preferences) into a given builder.
+    /// Replaces existing value if present.
+    /// </summary>
+    public static void Serialize(IDictionary<string, string> builder, IOption2 option, string language, object? value)
+    {
+        if (value is NamingStylePreferences preferences)
+        {
+            // remove existing naming style values:
+            foreach (var name in builder.Keys)
+            {
+                if (name.StartsWith("dotnet_naming_rule.") || name.StartsWith("dotnet_naming_symbols.") || name.StartsWith("dotnet_naming_style."))
+                {
+                    builder.Remove(name);
+                }
+            }
+
+            NamingStylePreferencesEditorConfigSerializer.WriteNamingStylePreferencesToEditorConfig(
+                preferences.SymbolSpecifications,
+                preferences.NamingStyles,
+                preferences.Rules.NamingRules,
+                language,
+                entryWriter: (name, value) => builder[name] = value,
+                triviaWriter: null,
+                setPrioritiesToPreserveOrder: true);
+        }
+        else
+        {
+            builder[option.Definition.ConfigName] = option.Definition.Serializer.Serialize(value);
+        }
     }
 }

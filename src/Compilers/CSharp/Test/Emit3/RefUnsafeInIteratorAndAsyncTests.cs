@@ -31,14 +31,14 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             """;
 
         CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (6,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,17): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         ref int y = ref x;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 17),
-            // (7,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 17),
+            // (7,26): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         ref readonly int z = ref y;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "z").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 26));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "z").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 26));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
         CreateCompilation(source).VerifyEmitDiagnostics();
     }
 
@@ -59,14 +59,14 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             """;
 
         CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (6,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,17): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         ref int y = ref x;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 17),
-            // (7,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 17),
+            // (7,26): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         ref readonly int z = ref y;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "z").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 26));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "z").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 26));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
         CreateCompilation(source).VerifyEmitDiagnostics();
     }
 
@@ -87,14 +87,14 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             """;
 
         CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (6,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,17): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         ref int y = ref x;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 17),
-            // (7,26): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 17),
+            // (7,26): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         ref readonly int z = ref y;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "z").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 26));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "z").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 26));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
         CreateCompilation(source).VerifyEmitDiagnostics();
     }
 
@@ -117,14 +117,14 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             """;
 
         CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (7,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (7,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         R y = default;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "R").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 9),
-            // (8,16): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "R").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 9),
+            // (8,16): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         scoped R z = default;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "R").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 16));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "R").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 16));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
         CreateCompilation(source).VerifyEmitDiagnostics();
     }
 
@@ -152,7 +152,7 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
@@ -173,11 +173,11 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             """;
 
         CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (7,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (7,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         System.TypedReference t = default;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.TypedReference").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 9));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "System.TypedReference").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 9));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
         CreateCompilation(source).VerifyEmitDiagnostics();
     }
 
@@ -204,7 +204,7 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
@@ -249,9 +249,9 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             """;
 
         CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (8,21): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (8,21): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //             ref int y = ref x;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 21),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 21),
             // (9,13): error CS4004: Cannot await in an unsafe context
             //             await Task.Yield();
             Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 13));
@@ -263,7 +263,7 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 13)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
@@ -284,9 +284,9 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             """;
 
         CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (6,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,17): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         ref int y = ref x;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 17),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 17),
             // (7,9): error CS4004: Cannot await in an unsafe context
             //         await Task.Yield();
             Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(7, 9));
@@ -298,7 +298,7 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(7, 9)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
@@ -322,9 +322,9 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             """;
 
         CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (6,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,17): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         ref int y = ref x;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 17));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 17));
 
         var expectedDiagnostics = new[]
         {
@@ -333,7 +333,7 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(10, 34)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
@@ -416,9 +416,9 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             """;
 
         CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
-            // (7,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (7,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         Span<int> y = new(ref x);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Span<int>").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 9));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "Span<int>").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 9));
 
         var expectedDiagnostics = new[]
         {
@@ -427,7 +427,7 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(9, 32)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
@@ -571,12 +571,12 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             """;
 
         CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (6,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,17): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         ref int y = ref x;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "y").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 17),
-            // (8,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 17),
+            // (8,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         unsafe { System.Console.Write(y); }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 9));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "unsafe").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 9));
 
         var expectedDiagnostics = new[]
         {
@@ -585,7 +585,7 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(8, 39)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 
@@ -836,9 +836,9 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             """;
 
         CreateCompilation(source, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
-            // (9,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (9,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         unsafe { Console.Write(y.ToString()); }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 9));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "unsafe").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(9, 9));
 
         var expectedDiagnostics = new[]
         {
@@ -847,7 +847,7 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(9, 32)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
     }
 

@@ -161,9 +161,18 @@ internal sealed class BuildHost : IBuildHost
     /// <summary>
     /// Returns the target ID of the <see cref="ProjectFile"/> object created for this.
     /// </summary>
-    public async Task<int> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken)
+    public Task<int> LoadProjectFileAsync(string projectFilePath, string languageName, CancellationToken cancellationToken)
     {
         EnsureMSBuildLoaded(projectFilePath);
+        return LoadProjectFileCoreAsync(projectFilePath, languageName, cancellationToken);
+    }
+
+    // When using the Mono runtime, the MSBuild types used in this method must be available
+    // to the JIT during compilation of the method, so they have to be loaded by the caller;
+    // therefore this method must not be inlined.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private async Task<int> LoadProjectFileCoreAsync(string projectFilePath, string languageName, CancellationToken cancellationToken)
+    {
         CreateBuildManager();
 
         ProjectFileLoader projectLoader = languageName switch

@@ -276,7 +276,7 @@ internal sealed class CommittedSolution
                         filePath: document.FilePath,
                         isGenerated: document.State.Attributes.IsGenerated)
                         .WithDesignTimeOnly(document.State.Attributes.DesignTimeOnly)
-                        .WithDocumentServiceProvider(document.State.Services));
+                        .WithDocumentServiceProvider(document.State.DocumentServiceProvider));
                 }
 
                 var matchingSourceText = maybeMatchingSourceText.Value;
@@ -360,13 +360,13 @@ internal sealed class CommittedSolution
             // Source files of these may not even be captured in the solution snapshot.
             if (!project.SupportsEditAndContinue())
             {
-                return Array.Empty<DocumentId?>();
+                return [];
             }
 
             using var debugInfoReaderProvider = GetMethodDebugInfoReader(compilationOutputsProvider(project), project.Name);
             if (debugInfoReaderProvider == null)
             {
-                return Array.Empty<DocumentId?>();
+                return [];
             }
 
             var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();

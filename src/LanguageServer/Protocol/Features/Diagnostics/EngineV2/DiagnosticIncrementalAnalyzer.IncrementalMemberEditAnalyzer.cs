@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
                         else
                         {
-                            var analyzerWithStateAndEmptyData = new AnalyzerWithState(analyzerWithState.Analyzer, analyzerWithState.State, DocumentAnalysisData.Empty);
+                            var analyzerWithStateAndEmptyData = new AnalyzerWithState(analyzerWithState.Analyzer, analyzerWithState.IsHostAnalyzer, analyzerWithState.State, DocumentAnalysisData.Empty);
                             if (!compilerAnalyzerData.HasValue && analyzerWithState.Analyzer.IsCompilerAnalyzer())
                                 compilerAnalyzerData = (analyzerWithStateAndEmptyData, spanBased: false);
                             else
@@ -216,7 +217,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var members = syntaxFacts.GetMethodLevelMembers(root);
+                using var pooledMembers = syntaxFacts.GetMethodLevelMembers(root);
+                var members = pooledMembers.Object;
+
                 var memberSpans = members.SelectAsArray(member => member.FullSpan);
                 var changedMemberId = members.IndexOf(changedMember);
 

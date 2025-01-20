@@ -142,15 +142,14 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
-            // https://github.com/dotnet/roslyn/issues/73772: should we also do this check for partial properties?
-            if (oldSymbol is IMethodSymbol { PartialImplementationPart: not null })
+            if (oldSymbol is IMethodSymbol { PartialImplementationPart: not null } or IPropertySymbol { PartialImplementationPart: not null })
             {
-                throw new ArgumentException("Partial method implementation required", nameof(oldSymbol));
+                throw new ArgumentException("Partial member implementation required", nameof(oldSymbol));
             }
 
-            if (newSymbol is IMethodSymbol { PartialImplementationPart: not null })
+            if (newSymbol is IMethodSymbol { PartialImplementationPart: not null } or IPropertySymbol { PartialImplementationPart: not null })
             {
-                throw new ArgumentException("Partial method implementation required", nameof(newSymbol));
+                throw new ArgumentException("Partial member implementation required", nameof(newSymbol));
             }
 
             if (kind == SemanticEditKind.Delete && oldSymbol is not (IMethodSymbol or IPropertySymbol or IEventSymbol))

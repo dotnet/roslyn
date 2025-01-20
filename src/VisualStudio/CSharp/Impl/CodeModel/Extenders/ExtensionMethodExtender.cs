@@ -20,14 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders
             return (ICSExtensionMethodExtender)ComAggregate.CreateAggregatedObject(result);
         }
 
-        private readonly bool _isExtension;
-
         private ExtensionMethodExtender(bool isExtension)
-            => _isExtension = isExtension;
+            => IsExtension = isExtension;
 
-        public bool IsExtension
-        {
-            get { return _isExtension; }
-        }
+        public bool IsExtension { get; }
     }
 }

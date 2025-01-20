@@ -12,7 +12,6 @@ using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -32,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Remote
             new ForceTypelessFormatter<SimplifierOptions>(),
             new ForceTypelessFormatter<SyntaxFormattingOptions>(),
             new ForceTypelessFormatter<CodeGenerationOptions>(),
-            new ForceTypelessFormatter<IdeCodeStyleOptions>(),
         ];
 
         private static readonly ImmutableArray<IFormatterResolver> s_resolvers = [StandardResolverAllowPrivate.Instance];

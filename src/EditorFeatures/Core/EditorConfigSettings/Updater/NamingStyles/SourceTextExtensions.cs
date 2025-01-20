@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -38,7 +39,7 @@ internal static class SourceTextExtensions
             if (parseResult.TryGetSectionForLanguage(language, out var existingSection))
             {
                 var span = new TextSpan(existingSection.Span.End, 0);
-                EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(rules, newNamingStyleSection, GetLanguageString(language));
+                AppendNamingStylePreferencesToEditorConfig(rules, newNamingStyleSection, GetLanguageString(language));
                 return WithChanges(sourceText, span, newNamingStyleSection.ToString());
             }
             else
@@ -46,7 +47,7 @@ internal static class SourceTextExtensions
                 var span = new TextSpan(sourceText.Length, 0);
                 newNamingStyleSection.Append("\r\n");
                 newNamingStyleSection.Append(Section.GetHeaderTextForLanguage(language));
-                EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(rules, newNamingStyleSection, GetLanguageString(language));
+                AppendNamingStylePreferencesToEditorConfig(rules, newNamingStyleSection, GetLanguageString(language));
                 return WithChanges(sourceText, span, newNamingStyleSection.ToString());
             }
         }
@@ -76,6 +77,18 @@ internal static class SourceTextExtensions
 
             throw new InvalidOperationException("Invalid language specified");
         }
+    }
+
+    private static void AppendNamingStylePreferencesToEditorConfig(IEnumerable<NamingRule> namingRules, StringBuilder editorconfig, string? language = null)
+    {
+        language ??= LanguageNames.CSharp;
+
+        NamingStylePreferencesEditorConfigSerializer.AppendNamingStylePreferencesToEditorConfig(
+            [.. namingRules.Select(static x => x.SymbolSpecification)],
+            [.. namingRules.Select(static x => x.NamingStyle)],
+            [.. namingRules],
+            language,
+            editorconfig);
     }
 
     private static (IEnumerable<NamingRule> Common, IEnumerable<NamingRule> CSharp, IEnumerable<NamingRule> VisualBasic) GetPreferencesForAllLanguages(IGlobalOptionService globalOptions)

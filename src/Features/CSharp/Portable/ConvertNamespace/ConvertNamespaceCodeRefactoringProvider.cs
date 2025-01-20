@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,14 +25,10 @@ using static ConvertNamespaceAnalysis;
 using static ConvertNamespaceTransform;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertNamespace), Shared]
-internal class ConvertNamespaceCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal class ConvertNamespaceCodeRefactoringProvider() : SyntaxEditorBasedCodeRefactoringProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public ConvertNamespaceCodeRefactoringProvider()
-    {
-    }
-
     protected override ImmutableArray<FixAllScope> SupportedFixAllScopes
         => [FixAllScope.Project, FixAllScope.Solution];
 
@@ -51,18 +48,18 @@ internal class ConvertNamespaceCodeRefactoringProvider : SyntaxEditorBasedCodeRe
         if (!IsValidPosition(namespaceDecl, position))
             return;
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         if (!CanOfferRefactoring(namespaceDecl, root, options, out var info))
             return;
 
         context.RegisterRefactoring(CodeAction.Create(
-            info.Value.title, c => ConvertAsync(document, namespaceDecl, options.GetFormattingOptions(), c), info.Value.equivalenceKey));
+            info.Value.title, c => ConvertAsync(document, namespaceDecl, options, c), info.Value.equivalenceKey));
     }
 
     private static bool CanOfferRefactoring(
         [NotNullWhen(true)] BaseNamespaceDeclarationSyntax? namespaceDecl,
         CompilationUnitSyntax root,
-        CSharpCodeFixOptionsProvider options,
+        CSharpSyntaxFormattingOptions options,
         [NotNullWhen(true)] out (string title, string equivalenceKey)? info)
     {
         info =
@@ -91,12 +88,11 @@ internal class ConvertNamespaceCodeRefactoringProvider : SyntaxEditorBasedCodeRe
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,
-        CodeActionOptionsProvider optionsProvider,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {
         var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var namespaceDecl = root.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault();
         if (!CanOfferRefactoring(namespaceDecl, root, options, out var info)
             || info.Value.equivalenceKey != equivalenceKey)
@@ -104,7 +100,7 @@ internal class ConvertNamespaceCodeRefactoringProvider : SyntaxEditorBasedCodeRe
             return;
         }
 
-        document = await ConvertAsync(document, namespaceDecl, options.GetFormattingOptions(), cancellationToken).ConfigureAwait(false);
+        document = await ConvertAsync(document, namespaceDecl, options, cancellationToken).ConfigureAwait(false);
         var newRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         editor.ReplaceNode(editor.OriginalRoot, newRoot);
     }

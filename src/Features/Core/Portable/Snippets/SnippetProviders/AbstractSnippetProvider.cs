@@ -27,13 +27,13 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
 
     public virtual ImmutableArray<string> AdditionalFilterTexts => [];
 
-    protected readonly SyntaxAnnotation FindSnippetAnnotation = new();
+    protected static readonly SyntaxAnnotation FindSnippetAnnotation = new();
 
     /// <summary>
     /// Implemented by each SnippetProvider to determine if that particular position is a valid
     /// location for the snippet to be inserted.
     /// </summary>
-    protected abstract bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken);
+    protected abstract bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken);
 
     /// <summary>
     /// Generates the new snippet's TextChanges that are being inserted into the document.
@@ -50,25 +50,16 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
     /// </summary>
     protected abstract ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TSnippetSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken);
 
-    /// <summary>
-    /// Determines if the location is valid for a snippet,
-    /// if so, then it creates a SnippetData.
-    /// </summary>
-    public ValueTask<SnippetData?> GetSnippetDataAsync(SnippetContext context, CancellationToken cancellationToken)
+    public bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
         var syntaxTree = context.SyntaxContext.SyntaxTree;
         if (syntaxFacts.IsInNonUserCode(syntaxTree, context.Position, cancellationToken))
         {
-            return ValueTaskFactory.FromResult<SnippetData?>(null);
+            return false;
         }
 
-        if (!IsValidSnippetLocation(in context, cancellationToken))
-        {
-            return ValueTaskFactory.FromResult<SnippetData?>(null);
-        }
-
-        return ValueTaskFactory.FromResult<SnippetData?>(new SnippetData(Description, Identifier, AdditionalFilterTexts));
+        return IsValidSnippetLocationCore(context, cancellationToken);
     }
 
     /// <summary>
@@ -76,7 +67,7 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
     /// Reformats the document with the snippet TextChange and annotates 
     /// appropriately for the cursor to get the target cursor position.
     /// </summary>
-    public async Task<SnippetChange> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken)
+    public async Task<SnippetChange> GetSnippetChangeAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
@@ -119,8 +110,8 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
 
         return new SnippetChange(
             textChanges: changesArray,
-            cursorPosition: GetTargetCaretPosition(mainChangeNode, sourceText),
-            placeholders: placeholders);
+            placeholders: placeholders,
+            finalCaretPosition: GetTargetCaretPosition(mainChangeNode, sourceText));
     }
 
     /// <summary>
@@ -145,14 +136,14 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
         return nodeWithTrivia;
     }
 
-    private async Task<Document> CleanupDocumentAsync(
+    private static async Task<Document> CleanupDocumentAsync(
         Document document, CancellationToken cancellationToken)
     {
         if (document.SupportsSyntaxTree)
         {
-            var addImportPlacementOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var simplifierOptions = await document.GetSimplifierOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var addImportPlacementOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
                 document, FindSnippetAnnotation, addImportPlacementOptions, cancellationToken: cancellationToken).ConfigureAwait(false);

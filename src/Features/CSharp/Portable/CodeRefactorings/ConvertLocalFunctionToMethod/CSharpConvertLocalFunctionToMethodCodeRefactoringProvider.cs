@@ -58,7 +58,7 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         context.RegisterRefactoring(
             CodeAction.Create(
                 CSharpFeaturesResources.Convert_to_method,
-                c => UpdateDocumentAsync(document, parentBlock, localFunction, container, context.Options, c),
+                c => UpdateDocumentAsync(document, parentBlock, localFunction, container, c),
                 nameof(CSharpFeaturesResources.Convert_to_method)),
             localFunction.Span);
     }
@@ -68,7 +68,6 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         BlockSyntax parentBlock,
         LocalFunctionStatementSyntax localFunction,
         MemberDeclarationSyntax container,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -127,7 +126,7 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
             typeParameters: [.. typeParameters],
             parameters: parameters.AddRange(capturesAsParameters));
 
-        var info = (CSharpCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = (CSharpCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
         var method = MethodGenerator.GenerateMethodDeclaration(methodSymbol, CodeGenerationDestination.Unspecified, info, cancellationToken);
 
         if (localFunction.AttributeLists.Count > 0)
@@ -260,16 +259,16 @@ internal sealed class CSharpConvertLocalFunctionToMethodCodeRefactoringProvider(
         => CSharpSyntaxGenerator.Instance.Argument(shouldUseNamedArguments ? name : null, p.RefKind, name.ToIdentifierName());
 
     private static List<string> GenerateUniqueParameterNames(ImmutableArray<IParameterSymbol> parameters, List<string> reservedNames)
-        => parameters.Select(p => NameGenerator.EnsureUniqueness(p.Name, reservedNames)).ToList();
+        => [.. parameters.Select(p => NameGenerator.EnsureUniqueness(p.Name, reservedNames))];
 
     private static List<string> GetReservedNames(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
-        => semanticModel.GetAllDeclaredSymbols(node.GetAncestor<MemberDeclarationSyntax>(), cancellationToken).Select(s => s.Name).ToList();
+        => [.. semanticModel.GetAllDeclaredSymbols(node.GetAncestor<MemberDeclarationSyntax>(), cancellationToken).Select(s => s.Name)];
 
-    private static ParameterSyntax GenerateParameter(IParameterSymbol p, string name)
+    private static ParameterSyntax GenerateParameter(IParameterSymbol parameter, string name)
     {
         return SyntaxFactory.Parameter(name.ToIdentifierToken())
-            .WithModifiers(CSharpSyntaxGeneratorInternal.GetParameterModifiers(p.RefKind))
-            .WithType(p.Type.GenerateTypeSyntax());
+            .WithModifiers(CSharpSyntaxGeneratorInternal.GetParameterModifiers(parameter))
+            .WithType(parameter.Type.GenerateTypeSyntax());
     }
 
     private static MethodDeclarationSyntax WithBodyFrom(

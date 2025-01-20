@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SyncLockTests
@@ -88,7 +89,7 @@ Class Program
     End Sub
 End Class
     </file>
-</compilation>, {TestMetadata.Net40.SystemCore}).VerifyDiagnostics()
+</compilation>, {Net40.References.SystemCore}).VerifyDiagnostics()
         End Sub
 
         <Fact()>
@@ -180,7 +181,7 @@ Module StringExtensions
     End Sub
 End Module
     </file>
-</compilation>, {TestMetadata.Net40.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_SyncLockRequiresReferenceType1, "syncroot.PrintInt()").WithArguments("Integer"),
+</compilation>, {Net40.References.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_SyncLockRequiresReferenceType1, "syncroot.PrintInt()").WithArguments("Integer"),
                                 Diagnostic(ERRID.ERR_VoidValue, "syncroot.PrintVoid"),
                                 Diagnostic(ERRID.WRN_DefAsgUseNullRef, "syncroot").WithArguments("syncroot"))
         End Sub
@@ -496,6 +497,53 @@ End Namespace
         SyncLock l
                  ~
 ")
+        End Sub
+
+        <Fact>
+        Public Sub LockType_InSyncLock_Net9()
+            Dim source = "
+Module Program
+    Sub Main()
+        Dim l = New System.Threading.Lock()
+        SyncLock l
+        End SyncLock
+    End Sub
+End Module
+"
+            CreateCompilation(source, targetFramework:=TargetFramework.Net90).AssertTheseDiagnostics(
+"BC37329: A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.
+        SyncLock l
+                 ~
+")
+        End Sub
+
+        ''' <summary>
+        ''' Verifies that the suggestion from the error in the test above (to manually call 'Enter' and 'Exit') compiles.
+        ''' </summary>
+        <Fact>
+        Public Sub LockType_InSyncLock_ManualEnterExit()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Threading
+Module Program
+    Sub Main()
+        Dim l = New Lock()
+        l.Enter()
+        Console.Write("1")
+        Try
+            Console.Write("2")
+        Finally
+            Console.Write("3")
+            l.Exit()
+            Console.Write("4")
+        End Try
+        Console.Write("5")
+    End Sub
+End Module
+]]>.Value
+            Dim comp = CreateCompilation(source, options:=TestOptions.ReleaseExe, targetFramework:=TargetFramework.Net90)
+            CompileAndVerify(comp, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "12345", Nothing),
+                             verify:=Verification.FailsPEVerify).VerifyDiagnostics()
         End Sub
 
         <Fact>

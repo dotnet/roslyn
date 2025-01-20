@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -16,15 +17,28 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSystemHashCode;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
-public partial class UseSystemHashCodeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public partial class UseSystemHashCodeTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public UseSystemHashCodeTests(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new UseSystemHashCodeDiagnosticAnalyzer(), new UseSystemHashCodeCodeFixProvider());
+
+    private new Task TestInRegularAndScript1Async(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        int index = 0,
+        TestParameters? parameters = null)
+    {
+        return base.TestInRegularAndScript1Async(initialMarkup, expectedMarkup, index, parameters);
+    }
+
+    private new Task TestMissingAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        TestParameters? parameters = null,
+        int codeActionIndex = 0)
+    {
+        return base.TestMissingAsync(initialMarkup, parameters, codeActionIndex);
+    }
 
     [Fact]
     public async Task TestDerivedClassWithFieldWithBase()
@@ -1445,6 +1459,18 @@ public partial class UseSystemHashCodeTests : AbstractCSharpDiagnosticProviderBa
                     return base.GetHashCode();
                 }
             }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74315")]
+    public async Task TestMissingBaseType()
+    {
+        await TestMissingAsync("""
+            using System;
+
+            namespace System { public struct HashCode { } }
+
+            record $$B(int I) : A(I);
             """);
     }
 }

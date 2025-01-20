@@ -33,10 +33,6 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
     where TTypeDeclarationSyntax : SyntaxNode
     where TArgumentSyntax : SyntaxNode
 {
-    protected AbstractGenerateTypeService()
-    {
-    }
-
     protected abstract bool TryInitializeState(SemanticDocument document, TSimpleNameSyntax simpleName, CancellationToken cancellationToken, out GenerateTypeServiceStateOptions generateTypeServiceStateOptions);
     protected abstract TExpressionSyntax GetLeftSideOfDot(TSimpleNameSyntax simpleName);
     protected abstract bool TryGetArgumentList(TObjectCreationExpressionSyntax objectCreationExpression, out IList<TArgumentSyntax> argumentList);
@@ -60,7 +56,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
     internal abstract bool IsSimpleName(TExpressionSyntax expression);
 
     internal abstract Task<Solution> TryAddUsingsOrImportToDocumentAsync(
-        Solution updatedSolution, SyntaxNode modifiedRoot, Document document, TSimpleNameSyntax simpleName, string includeUsingsOrImports, AddImportPlacementOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        Solution updatedSolution, SyntaxNode modifiedRoot, Document document, TSimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken);
 
     protected abstract bool TryGetNameParts(TExpressionSyntax expression, out IList<string> nameParts);
 
@@ -71,17 +67,16 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
     public async Task<ImmutableArray<CodeAction>> GenerateTypeAsync(
         Document document,
         SyntaxNode node,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Refactoring_GenerateType, cancellationToken))
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
+            var state = State.Generate((TService)this, semanticDocument, node, cancellationToken);
             if (state != null)
             {
-                var actions = GetActions(semanticDocument, node, state, fallbackOptions, cancellationToken);
+                var actions = GetActions(semanticDocument, node, state, cancellationToken);
                 if (actions.Length > 1)
                 {
                     // Wrap the generate type actions into a single top level suggestion
@@ -105,7 +100,6 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         SemanticDocument document,
         SyntaxNode node,
         State state,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
@@ -116,7 +110,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             if (document.Project.Solution.CanApplyChange(ApplyChangesKind.AddDocument))
             {
                 generateNewTypeInDialog = true;
-                result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, fallbackOptions, intoNamespace: true, inNewFile: true));
+                result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: true));
             }
 
             // If they just are generating "Goo" then we want to offer to generate it into the
@@ -129,15 +123,15 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             if ((isSimpleName || generateIntoContaining) &&
                 CanGenerateIntoContainingNamespace(document, node, cancellationToken))
             {
-                result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, fallbackOptions, intoNamespace: true, inNewFile: false));
+                result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: false));
             }
         }
 
         if (state.TypeToGenerateInOpt != null)
-            result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, fallbackOptions, intoNamespace: false, inNewFile: false));
+            result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: false, inNewFile: false));
 
         if (generateNewTypeInDialog)
-            result.Add(new GenerateTypeCodeActionWithOption((TService)this, document.Document, state, fallbackOptions));
+            result.Add(new GenerateTypeCodeActionWithOption((TService)this, document.Document, state));
 
         return result.ToImmutableAndClear();
     }
@@ -273,7 +267,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             ? state.TypeToGenerateInOpt.GetAllTypeParameters()
             : [];
 
-        return availableOuterTypeParameters.Concat(availableInnerTypeParameters).ToList();
+        return [.. availableOuterTypeParameters, .. availableInnerTypeParameters];
     }
 
     protected static async Task<bool> IsWithinTheImportingNamespaceAsync(Document document, int triggeringPosition, string includeUsingsOrImports, CancellationToken cancellationToken)

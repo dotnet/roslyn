@@ -7,6 +7,11 @@
         <target state="translated">Предпочтения для блоков кода</target>
         <note />
       </trans-unit>
+      <trans-unit id="EditorConfig_option_0_contains_unrecognized_value_1">
+        <source>EditorConfig option '{0}' contains unrecognized value '{1}'</source>
+        <target state="translated">Параметр EditorConfig "{0}" содержит нераспознанное значение "{1}"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expected_string_or_char_literal">
         <source>Expected string or char literal</source>
         <target state="translated">Требуется строка или знаковый литерал</target>
@@ -17,6 +22,11 @@
         <target state="translated">Члены, заданные выражениями</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indentation_preferences">
+        <source>Indentation preferences</source>
+        <target state="new">Indentation preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Null_checking_preferences">
         <source>Null-checking preferences</source>
         <target state="translated">Настройки проверки на null</target>
@@ -25,6 +35,16 @@
       <trans-unit id="Pattern_matching_preferences">
         <source>Pattern matching preferences</source>
         <target state="translated">Настройки соответствия шаблонов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Space_preferences">
+        <source>Space preferences</source>
+        <target state="new">Space preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping_preferences">
+        <source>Wrapping preferences</source>
+        <target state="new">Wrapping preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="using_directive_preferences">

@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Text
             : base(checksumAlgorithm: checksumAlgorithm)
         {
             Debug.Assert(!segments.IsDefaultOrEmpty);
+            Debug.Assert(segments.Length > 0);
 
             _segments = segments;
             _encoding = encoding;
@@ -40,9 +41,13 @@ namespace Microsoft.CodeAnalysis.Text
             for (int i = 0; i < _segmentOffsets.Length; i++)
             {
                 _segmentOffsets[i] = offset;
+                Debug.Assert(_segments[i].Length > 0);
                 offset += _segments[i].Length;
             }
         }
+
+        protected override TextLineCollection GetLinesCore()
+            => new CompositeTextLineInfo(this);
 
         public override Encoding? Encoding
         {
@@ -182,6 +187,8 @@ namespace Microsoft.CodeAnalysis.Text
                 ReduceSegmentCountIfNecessary(segments);
             }
 
+            RemoveSplitLineBreaksAndEmptySegments(segments);
+
             if (segments.Count == 0)
             {
                 return SourceText.From(string.Empty, original.Encoding, original.ChecksumAlgorithm);
@@ -193,6 +200,38 @@ namespace Microsoft.CodeAnalysis.Text
             else
             {
                 return new CompositeText(segments.ToImmutable(), original.Encoding, original.ChecksumAlgorithm);
+            }
+        }
+
+        private static void RemoveSplitLineBreaksAndEmptySegments(ArrayBuilder<SourceText> segments)
+        {
+            if (segments.Count > 1)
+            {
+                // Remove empty segments before checking for split line breaks
+                segments.RemoveWhere(static (s, _, _) => s.Length == 0, default(VoidResult));
+
+                var splitLineBreakFound = false;
+                for (int i = 1; i < segments.Count; i++)
+                {
+                    var prevSegment = segments[i - 1];
+                    var curSegment = segments[i];
+                    if (prevSegment.Length > 0 && prevSegment[^1] == '\r' && curSegment[0] == '\n')
+                    {
+                        splitLineBreakFound = true;
+
+                        segments[i - 1] = prevSegment.GetSubText(new TextSpan(0, prevSegment.Length - 1));
+                        segments.Insert(i, SourceText.From("\r\n"));
+                        segments[i + 1] = curSegment.GetSubText(new TextSpan(1, curSegment.Length - 1));
+                        i++;
+                    }
+                }
+
+                if (splitLineBreakFound)
+                {
+                    // If a split line break was present, ensure there aren't any empty lines again
+                    // due to the sourcetexts created from the GetSubText calls.
+                    segments.RemoveWhere(static (s, _, _) => s.Length == 0, default(VoidResult));
+                }
             }
         }
 
@@ -371,6 +410,162 @@ namespace Microsoft.CodeAnalysis.Text
 
                 segments.Clear();
                 segments.Add(writer.ToSourceText());
+            }
+        }
+
+        /// <summary>
+        /// Delegates to SourceTexts within the CompositeText to determine line information.
+        /// </summary>
+        private sealed class CompositeTextLineInfo : TextLineCollection
+        {
+            private readonly CompositeText _compositeText;
+
+            /// <summary>
+            /// The starting line number for the correspondingly indexed SourceTexts in _compositeText.Segments.
+            /// Multiple consecutive entries could indicate the same line number if the corresponding
+            /// segments don't contain newline characters.
+            /// </summary>
+            /// <remarks>
+            /// This will be of the same length as _compositeText.Segments
+            /// </remarks>
+            private readonly ImmutableArray<int> _segmentLineNumbers;
+
+            // The total number of lines in our _compositeText
+            private readonly int _lineCount;
+
+            public CompositeTextLineInfo(CompositeText compositeText)
+            {
+                var segmentLineNumbers = new int[compositeText.Segments.Length];
+                var accumulatedLineCount = 0;
+
+                Debug.Assert(compositeText.Segments.Length > 0);
+                for (int i = 0; i < compositeText.Segments.Length; i++)
+                {
+                    segmentLineNumbers[i] = accumulatedLineCount;
+
+                    var segment = compositeText.Segments[i];
+
+                    // Account for this segments lines in our accumulated lines. Subtract one as each segment
+                    // views its line count as one greater than the number of line breaks it contains.
+                    accumulatedLineCount += (segment.Lines.Count - 1);
+
+                    Debug.Assert(segment.Length > 0);
+
+                    // RemoveSplitLineBreaksAndEmptySegments ensured no split line breaks
+                    Debug.Assert(i == compositeText.Segments.Length - 1 || segment[^1] != '\r' || compositeText.Segments[i + 1][0] != '\n');
+                }
+
+                _compositeText = compositeText;
+                _segmentLineNumbers = ImmutableCollectionsMarshal.AsImmutableArray(segmentLineNumbers);
+
+                // Add one to the accumulatedLineCount for our stored line count (so that we maintain the 
+                // invariant that a text's line count is one greater than the number of newlines it contains)
+                _lineCount = accumulatedLineCount + 1;
+            }
+
+            public override int Count => _lineCount;
+
+            /// <summary>
+            /// Determines the line number of a position in this CompositeText
+            /// </summary>
+            public override int IndexOf(int position)
+            {
+                if (position < 0 || position > _compositeText.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(position));
+                }
+
+                _compositeText.GetIndexAndOffset(position, out var segmentIndex, out var segmentOffset);
+
+                var segment = _compositeText.Segments[segmentIndex];
+                var lineNumberWithinSegment = segment.Lines.IndexOf(segmentOffset);
+
+                return _segmentLineNumbers[segmentIndex] + lineNumberWithinSegment;
+            }
+
+            public override TextLine this[int lineNumber]
+            {
+                get
+                {
+                    if (lineNumber < 0 || lineNumber >= _lineCount)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(lineNumber));
+                    }
+
+                    // Determine the indices for segments that contribute to our view of the requested line's contents
+                    GetSegmentIndexRangeContainingLine(lineNumber, out var firstSegmentIndexInclusive, out var lastSegmentIndexInclusive);
+                    Debug.Assert(firstSegmentIndexInclusive <= lastSegmentIndexInclusive);
+
+                    var firstSegmentFirstLineNumber = _segmentLineNumbers[firstSegmentIndexInclusive];
+                    var firstSegment = _compositeText.Segments[firstSegmentIndexInclusive];
+                    var firstSegmentOffset = _compositeText._segmentOffsets[firstSegmentIndexInclusive];
+                    var firstSegmentTextLine = firstSegment.Lines[lineNumber - firstSegmentFirstLineNumber];
+
+                    var lineLength = firstSegmentTextLine.SpanIncludingLineBreak.Length;
+
+                    // walk forward through segments between firstSegmentIndexInclusive and lastSegmentIndexInclusive, and add their
+                    // view of the length of this line. This loop handles all segments between firstSegmentIndexInclusive and lastSegmentIndexInclusive.
+                    for (var nextSegmentIndex = firstSegmentIndexInclusive + 1; nextSegmentIndex < lastSegmentIndexInclusive; nextSegmentIndex++)
+                    {
+                        var nextSegment = _compositeText.Segments[nextSegmentIndex];
+
+                        // Segments between firstSegmentIndexInclusive and lastSegmentIndexInclusive should have either exactly one line or
+                        // exactly two lines and the second line being empty.
+                        Debug.Assert((nextSegment.Lines.Count == 1) ||
+                                     (nextSegment.Lines.Count == 2 && nextSegment.Lines[1].SpanIncludingLineBreak.IsEmpty));
+
+                        lineLength += nextSegment.Lines[0].SpanIncludingLineBreak.Length;
+                    }
+
+                    if (firstSegmentIndexInclusive != lastSegmentIndexInclusive)
+                    {
+                        var lastSegment = _compositeText.Segments[lastSegmentIndexInclusive];
+
+                        // lastSegment should have at least one line.
+                        Debug.Assert(lastSegment.Lines.Count >= 1);
+
+                        lineLength += lastSegment.Lines[0].SpanIncludingLineBreak.Length;
+                    }
+
+                    var resultLine = TextLine.FromSpanUnsafe(_compositeText, new TextSpan(firstSegmentOffset + firstSegmentTextLine.Start, lineLength));
+
+                    // Assert resultLine only has line breaks in the appropriate locations
+                    Debug.Assert(resultLine.ToString().All(static c => !TextUtilities.IsAnyLineBreakCharacter(c)));
+
+                    return resultLine;
+                }
+            }
+
+            private void GetSegmentIndexRangeContainingLine(int lineNumber, out int firstSegmentIndexInclusive, out int lastSegmentIndexInclusive)
+            {
+                var idx = _segmentLineNumbers.BinarySearch(lineNumber);
+                var binarySearchSegmentIndex = idx >= 0 ? idx : (~idx - 1);
+
+                // Walk backwards starting at binarySearchSegmentIndex to find the earliest segment index that intersects this line number
+                for (firstSegmentIndexInclusive = binarySearchSegmentIndex; firstSegmentIndexInclusive > 0; firstSegmentIndexInclusive--)
+                {
+                    if (_segmentLineNumbers[firstSegmentIndexInclusive] != lineNumber)
+                    {
+                        // This segment doesn't start at the requested line, no need to continue to earlier segments.
+                        break;
+                    }
+
+                    // No need to include the previous segment if it ends in a newline character
+                    var previousSegment = _compositeText.Segments[firstSegmentIndexInclusive - 1];
+                    var previousSegmentLastChar = previousSegment[^1];
+                    if (TextUtilities.IsAnyLineBreakCharacter(previousSegmentLastChar))
+                    {
+                        break;
+                    }
+                }
+
+                for (lastSegmentIndexInclusive = binarySearchSegmentIndex; lastSegmentIndexInclusive < _compositeText.Segments.Length - 1; lastSegmentIndexInclusive++)
+                {
+                    if (_segmentLineNumbers[lastSegmentIndexInclusive + 1] != lineNumber)
+                    {
+                        break;
+                    }
+                }
             }
         }
     }

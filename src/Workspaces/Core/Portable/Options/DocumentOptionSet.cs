@@ -20,7 +20,6 @@ public sealed class DocumentOptionSet : OptionSet
 {
     private readonly OptionSet _underlyingOptions;
     private readonly StructuredAnalyzerConfigOptions? _configOptions;
-    private readonly string _language;
 
     /// <summary>
     /// Cached internal values read from <see cref="_configOptions"/> or <see cref="_underlyingOptions"/>.
@@ -34,13 +33,13 @@ public sealed class DocumentOptionSet : OptionSet
 
     private DocumentOptionSet(StructuredAnalyzerConfigOptions? configOptions, OptionSet underlyingOptions, string language, ImmutableDictionary<OptionKey, object?> values)
     {
-        _language = language;
+        Language = language;
         _configOptions = configOptions;
         _underlyingOptions = underlyingOptions;
         _values = values;
     }
 
-    internal string Language => _language;
+    internal string Language { get; }
 
     [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
     internal override object? GetInternalOptionValue(OptionKey optionKey)
@@ -89,14 +88,14 @@ public sealed class DocumentOptionSet : OptionSet
     }
 
     public T GetOption<T>(PerLanguageOption<T> option)
-        => GetOption(option, _language);
+        => GetOption(option, Language);
 
     internal override OptionSet WithChangedOptionInternal(OptionKey optionKey, object? internalValue)
-        => new DocumentOptionSet(_configOptions, _underlyingOptions, _language, _values.SetItem(optionKey, internalValue));
+        => new DocumentOptionSet(_configOptions, _underlyingOptions, Language, _values.SetItem(optionKey, internalValue));
 
     /// <summary>
     /// Creates a new <see cref="DocumentOptionSet" /> that contains the changed value.
     /// </summary>
     public DocumentOptionSet WithChangedOption<T>(PerLanguageOption<T> option, T value)
-        => (DocumentOptionSet)WithChangedOption(option, _language, value);
+        => (DocumentOptionSet)WithChangedOption(option, Language, value);
 }

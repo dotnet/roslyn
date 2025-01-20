@@ -82,7 +82,7 @@ internal abstract class AbstractAddAnonymousTypeMemberNameCodeFixProvider<
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         // If we're only introducing one name, then add the rename annotation to
         // it so the user can pick a better name if they want.

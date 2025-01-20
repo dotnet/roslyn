@@ -14,7 +14,7 @@ $projectFileInfo = Get-ProjectFile $fileInfo
 if ($projectFileInfo) {
   $buildTool = InitializeBuildTool
   $frameworkArg = if ($framework -ne "") { " -p:TargetFramework=$framework" } else { "" }
-  $buildArgs = "$($buildTool.Command) -v:m -m -p:RunAnalyzersDuringBuild=false -p:GenerateFullPaths=true$frameworkArg $($projectFileInfo.FullName)"
+  $buildArgs = "$($buildTool.Command) -v:m -tl:off -m -p:RunAnalyzersDuringBuild=false -p:GenerateFullPaths=true$frameworkArg $($projectFileInfo.FullName)"
 
   Exec-Command $buildTool.Path $buildArgs
   exit 0

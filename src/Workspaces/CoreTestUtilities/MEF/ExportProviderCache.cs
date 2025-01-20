@@ -24,21 +24,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static readonly TestComposition s_defaultHostExportProviderComposition = TestComposition.Empty
             .AddAssemblies(MefHostServices.DefaultAssemblies)
             .AddParts(typeof(TestSerializerService.Factory));
-
-        private static bool _enabled;
-
         private static readonly Scope _localCompositionScope = new Scope("local");
         private static readonly Scope _remoteCompositionScope = new Scope("remote");
 
-        internal static bool Enabled => _enabled;
+        internal static bool Enabled { get; private set; }
 
         internal static ExportProvider? LocalExportProviderForCleanup => _localCompositionScope.CurrentExportProvider;
         internal static ExportProvider? RemoteExportProviderForCleanup => _remoteCompositionScope.CurrentExportProvider;
 
         internal static void SetEnabled_OnlyUseExportProviderAttributeCanCall(bool value)
         {
-            _enabled = value;
-            if (!_enabled)
+            Enabled = value;
+            if (!Enabled)
             {
                 _localCompositionScope.Clear();
                 _remoteCompositionScope.Clear();

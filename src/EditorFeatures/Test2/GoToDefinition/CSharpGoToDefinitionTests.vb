@@ -855,6 +855,95 @@ class C
             Await TestAsync(workspace)
         End Function
 
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57110")>
+        Public Async Function TestCSharpGoToOverriddenDefinition_FromOverride_LooseMatch() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    public virtual void [|F|](bool x)
+    {
+    }
+}
+
+class D : C
+{
+    public $$override void F(int x)
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57110")>
+        Public Async Function TestCSharpGoToOverriddenDefinition_FromOverride_LooseMatch2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    public virtual void F()
+    {
+    }
+
+    public virtual void [|F|](bool x)
+    {
+    }
+}
+
+class D : C
+{
+    public $$override void F(int x)
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57110")>
+        Public Async Function TestCSharpGoToOverriddenDefinition_FromOverride_LooseMatch3() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class B
+{
+    public virtual void F(bool x)
+    {
+    }
+}
+
+class C
+{
+    public virtual void [|F|]()
+    {
+    }
+}
+
+class D : C
+{
+    public $$override void F(int x)
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
         <WpfFact>
         Public Async Function TestCSharpGoToUnmanaged_Keyword() As Task
             Dim workspace =
@@ -3730,6 +3819,98 @@ class Program
             Await TestAsync(workspace)
         End Function
 
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestCSharpGoToDefinition_OnElementAccessExpression1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document>
+class C
+{
+    int [||]this[int i] => i;
+
+    void M(C c)
+    {
+        var v = c$$[0];
+    }
+}s
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69916")>
+        Public Async Function TestCSharpGoToDefinition_OnElementAccessExpression2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document>
+class C
+{
+    int [||]this[int i] => i;
+
+    void M(C c)
+    {
+        var v = c[0]$$;
+    }
+}s
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61268")>
+        Public Async Function TestAbstractExplicitInterfaceImplementation1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document><![CDATA[
+interface I1<T1> where T1 : I1<T1>
+{
+    static abstract void [|M1|]();
+    void M3();
+}
+
+interface I3<T3> : I1<T3> where T3 : I3<T3>
+{
+    static abstract void I1<T3>.$$M1();
+    abstract void I1<T3>.M3();
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/61268")>
+        Public Async Function TestAbstractExplicitInterfaceImplementation2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#">
+        <Document><![CDATA[
+interface I1<T1> where T1 : I1<T1>
+{
+    static abstract void M1();
+    void [|M3|]();
+}
+
+interface I3<T3> : I1<T3> where T3 : I3<T3>
+{
+    static abstract void I1<T3>.M1();
+    abstract void I1<T3>.$$M3();
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
         <WpfFact>
         Public Async Function TestInterceptors_AttributeMissingVersion() As Task
             Dim workspace =
@@ -3903,7 +4084,7 @@ namespace System.Runtime.CompilerServices
     }
 }"
 
-        Private Async Function TestInterceptor(code As String, getInvocations As Func(Of SyntaxNode, IEnumerable(Of InvocationExpressionSyntax))) As Task
+        Private Async Function TestInterceptorFromInterceptorDeclaration(code As String, getInvocations As Func(Of SyntaxNode, IEnumerable(Of InvocationExpressionSyntax))) As Task
             Dim firstFileContents = code & s_interceptsLocationCode
 
             Dim primordialWorkspace =
@@ -3950,7 +4131,7 @@ public partial class Program
 
         <WpfFact>
         Public Async Function TestInterceptors_SingleCaller() As Task
-            Await TestInterceptor("
+            Await TestInterceptorFromInterceptorDeclaration("
 public partial class Program
 {
     public void Method(int argument)
@@ -3962,7 +4143,7 @@ public partial class Program
 
         <WpfFact>
         Public Async Function TestInterceptors_SingleInterceptorForMultipleLocations() As Task
-            Await TestInterceptor("
+            Await TestInterceptorFromInterceptorDeclaration("
 public partial class Program
 {
     public void Method1()
@@ -3975,6 +4156,211 @@ public partial class Program
         this.{|PresenterLocation:Goo|}(1);
     }
 }", Function(root) root.DescendantNodes().OfType(Of InvocationExpressionSyntax))
+        End Function
+
+        <WpfFact>
+        Public Async Function TestInterceptors_FromCallSite1() As Task
+            Await TestInterceptorFromCallSite("
+class C
+{
+    void M()
+    {
+        $$Goo();
+    }
+
+    void [|Goo|]() { }
+}", methodName:="Goo", Function(root) root.DescendantNodes().OfType(Of InvocationExpressionSyntax))
+        End Function
+
+        <WpfFact>
+        Public Async Function TestInterceptors_FromCallSite2() As Task
+            Await TestInterceptorFromCallSite("
+class C
+{
+    void M()
+    {
+        this.$$Goo();
+    }
+
+    void [|Goo|]() { }
+}", methodName:="Goo", Function(root) root.DescendantNodes().OfType(Of InvocationExpressionSyntax))
+        End Function
+
+        <WpfFact>
+        Public Async Function TestInterceptors_FromCallSite3() As Task
+            Await TestInterceptorFromCallSite("
+class C
+{
+    void M(C? c)
+    {
+        c?.$$Goo();
+    }
+
+    void [|Goo|]() { }
+}", methodName:="Goo", Function(root) root.DescendantNodes().OfType(Of InvocationExpressionSyntax))
+        End Function
+
+        Private Async Function TestInterceptorFromCallSite(code As String, methodName As String, getInvocations As Func(Of SyntaxNode, IEnumerable(Of InvocationExpressionSyntax))) As Task
+            Dim firstFileContents = code & s_interceptsLocationCode
+
+            Dim primordialWorkspace =
+<Workspace>
+    <Project Language="C#">
+        <Document FilePath="C.cs"><%= firstFileContents %></Document>
+    </Project>
+</Workspace>
+
+            Using testWorkspace = EditorTestWorkspace.Create(primordialWorkspace, composition:=GoToTestHelpers.Composition)
+                Dim solution = testWorkspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+                Dim document = project.Documents.Single()
+
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim invocations = getInvocations(root)
+
+                Dim semanticModel = Await document.GetSemanticModelAsync()
+                Dim attributeText = ""
+
+                For Each invocation In invocations
+                    Dim location = semanticModel.GetInterceptableLocation(invocation)
+                    attributeText += location.GetInterceptsLocationAttributeSyntax() & vbCrLf
+                Next
+
+                Dim finalWorkspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document FilePath="C.cs"><%= firstFileContents %></Document>
+        <DocumentFromSourceGenerator FilePath="Generated.cs">
+public partial class Program
+{
+    <%= attributeText %>public void [|<%= methodName %>|]()
+    {
+    }
+}
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+
+                Await TestAsync(finalWorkspace)
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/76156")>
+        Public Async Function TestCSharpGotoDefinitionOnPartialMethodDefinition() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                partial void $$M();
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                partial void [|M|]()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/76156")>
+        Public Async Function TestCSharpGotoDefinitionOnPartialMethodImplementation() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                partial void [|M|]();
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                partial void $$M()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/76156")>
+        Public Async Function TestCSharpGotoDefinitionOnPartialPropertyDefinition() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public partial string $$Prop { get; set; }
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                public partial string [|Prop|]
+                {
+                    get
+                    {
+                        throw new NotImplementedException();
+                    }
+                    set
+                    {
+                        throw new NotImplementedException();
+                    }   
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/76156")>
+        Public Async Function TestCSharpGotoDefinitionOnPartialPropertyImplementation() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public partial string [|Prop|] { get; set; }
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                public partial string $$Prop
+                {
+                    get
+                    {
+                        throw new NotImplementedException();
+                    }
+                    set
+                    {
+                        throw new NotImplementedException();
+                    }   
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
         End Function
 
 #Enable Warning RSEXPERIMENTAL002 ' Type is for evaluation purposes only and is subject to change or removal in future updates.

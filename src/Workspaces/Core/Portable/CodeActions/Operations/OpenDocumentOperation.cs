@@ -12,15 +12,13 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 /// </summary>
 public sealed class OpenDocumentOperation(DocumentId documentId, bool activateIfAlreadyOpen = false) : CodeActionOperation
 {
-    private readonly DocumentId _documentId = documentId ?? throw new ArgumentNullException(nameof(documentId));
-
-    public DocumentId DocumentId => _documentId;
+    public DocumentId DocumentId { get; } = documentId ?? throw new ArgumentNullException(nameof(documentId));
 
     public override void Apply(Workspace workspace, CancellationToken cancellationToken)
     {
         if (workspace.CanOpenDocuments)
         {
-            workspace.OpenDocument(_documentId, activateIfAlreadyOpen);
+            workspace.OpenDocument(DocumentId, activateIfAlreadyOpen);
         }
     }
 }

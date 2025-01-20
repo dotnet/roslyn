@@ -44,7 +44,7 @@ internal partial class ChangeSignatureDialogViewModel
         {
             return !string.IsNullOrEmpty(value)
                 ? value
-                : ServicesVSResources.None;
+                : WorkspacesResources.None;
         }
 
         public Visibility HasParameterNameConflict { get; set; }

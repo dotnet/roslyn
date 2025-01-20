@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static (string processFilePath, string commandLineArguments, string toolFilePath) GetProcessInfo(string toolFilePathWithoutExtension, string commandLineArguments)
         {
-#if NETCOREAPP
+#if NET
             // First check for an app host file and return that if it's available.
             var appHostSuffix = PlatformInformation.IsWindows ? ".exe" : "";
             var appFilePath = $"{toolFilePathWithoutExtension}{appHostSuffix}";
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
-#if NETCOREAPP
+#if NET
 
         internal static bool IsCoreClrRuntime => true;
 

@@ -105,7 +105,6 @@ internal interface IRenameRewriterLanguageService : ILanguageService
     /// </summary>
     /// <param name="replacementText"></param>
     /// <param name="syntaxFactsService"></param>
-    /// <returns></returns>
     bool IsIdentifierValid(
         string replacementText,
         ISyntaxFactsService syntaxFactsService);
@@ -116,7 +115,6 @@ internal interface IRenameRewriterLanguageService : ILanguageService
     /// statement of this lambda.
     /// </summary>
     /// <param name="token">The token to get the complexification target for.</param>
-    /// <returns></returns>
     SyntaxNode? GetExpansionTargetForLocation(SyntaxToken token);
 }
 

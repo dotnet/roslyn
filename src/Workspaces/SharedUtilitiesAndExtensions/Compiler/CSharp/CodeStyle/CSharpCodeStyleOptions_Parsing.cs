@@ -84,7 +84,7 @@ internal static partial class CSharpCodeStyleOptions
             {
                 "block_scoped" => new(NamespaceDeclarationPreference.BlockScoped, notification),
                 "file_scoped" => new(NamespaceDeclarationPreference.FileScoped, notification),
-                _ => throw new NotSupportedException(),
+                _ => throw new NotSupportedException(string.Format(CSharpCompilerExtensionsResources.EditorConfig_option_0_contains_unrecognized_value_1, "csharp_style_namespace_declarations", value)),
             };
         }
 

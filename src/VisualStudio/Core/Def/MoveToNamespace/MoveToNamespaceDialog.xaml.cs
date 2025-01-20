@@ -7,6 +7,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace;
@@ -21,7 +22,7 @@ internal partial class MoveToNamespaceDialog : DialogWindow
     public string MoveToNamespaceDialogTitle => ServicesVSResources.Move_to_namespace;
     public string NamespaceLabelText => ServicesVSResources.Target_Namespace_colon;
     public string OK => ServicesVSResources.OK;
-    public string Cancel => ServicesVSResources.Cancel;
+    public string Cancel => EditorFeaturesResources.Cancel;
 
     internal MoveToNamespaceDialog(MoveToNamespaceDialogViewModel viewModel)
         : base()

@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
-using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 
@@ -37,7 +36,20 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 /// date by downloading patches on a daily basis.
 /// </summary>
 [ExportWorkspaceService(typeof(ISymbolSearchService), ServiceLayer.Host), Shared]
-internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedService, ISymbolSearchService, IDisposable
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal partial class VisualStudioSymbolSearchService(
+    IThreadingContext threadingContext,
+    IAsynchronousOperationListenerProvider listenerProvider,
+    VisualStudioWorkspaceImpl workspace,
+    IGlobalOptionService globalOptions,
+    SVsServiceProvider serviceProvider)
+    : AbstractDelayStartedService(threadingContext,
+        globalOptions,
+        workspace,
+        listenerProvider,
+        SymbolSearchGlobalOptionsStorage.Enabled,
+        [SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages]), ISymbolSearchService, IDisposable
 {
     // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
 #pragma warning disable RS0030 // Do not use banned APIs
@@ -48,29 +60,10 @@ internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedSer
     // but we want to keep it alive until the VS is closed, so we don't dispose it.
     private ISymbolSearchUpdateEngine? _lazyUpdateEngine;
 
-    private readonly SVsServiceProvider _serviceProvider;
-    private readonly IPackageInstallerService _installerService;
+    private readonly SVsServiceProvider _serviceProvider = serviceProvider;
+    private readonly IPackageInstallerService _installerService = workspace.Services.GetRequiredService<IPackageInstallerService>();
 
     private string? _localSettingsDirectory;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioSymbolSearchService(
-        IThreadingContext threadingContext,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        VisualStudioWorkspaceImpl workspace,
-        IGlobalOptionService globalOptions,
-        VSShell.SVsServiceProvider serviceProvider)
-        : base(threadingContext,
-               globalOptions,
-               workspace,
-               listenerProvider,
-               SymbolSearchGlobalOptionsStorage.Enabled,
-               [SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages])
-    {
-        _serviceProvider = serviceProvider;
-        _installerService = workspace.Services.GetRequiredService<IPackageInstallerService>();
-    }
 
     public void Dispose()
     {
@@ -105,21 +98,19 @@ internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedSer
         // When our service is enabled hook up to package source changes.
         // We need to know when the list of sources have changed so we can
         // kick off the work to process them.
-        _installerService.PackageSourcesChanged += OnPackageSourcesChanged;
+        _installerService.PackageSourcesChanged += (_, _) => StartWorking(_localSettingsDirectory);
 
         // Kick off the initial work to pull down the nuget index.
-        this.StartWorking();
+        this.StartWorking(_localSettingsDirectory);
     }
 
-    private void OnPackageSourcesChanged(object sender, EventArgs e)
-        => StartWorking();
-
-    private void StartWorking()
+    private void StartWorking(string localSettingsDirectory)
     {
         // Always pull down the nuget.org index.  It contains the MS reference assembly index
         // inside of it.
         var cancellationToken = ThreadingContext.DisposalToken;
-        Task.Run(() => UpdateSourceInBackgroundAsync(PackageSourceHelper.NugetOrgSourceName, cancellationToken), cancellationToken);
+        Task.Run(() => UpdateSourceInBackgroundAsync(
+            PackageSourceHelper.NugetOrgSourceName, localSettingsDirectory, cancellationToken), cancellationToken);
     }
 
     private async Task<ISymbolSearchUpdateEngine> GetEngineAsync(CancellationToken cancellationToken)
@@ -131,18 +122,19 @@ internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedSer
         }
     }
 
-    private async Task UpdateSourceInBackgroundAsync(string sourceName, CancellationToken cancellationToken)
+    private async Task UpdateSourceInBackgroundAsync(
+        string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
     {
         var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
-        await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, cancellationToken).ConfigureAwait(false);
+        await engine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory, cancellationToken).ConfigureAwait(false);
     }
 
-    public async ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-        string source, string name, int arity, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(
+        string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
     {
         var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
-        var allPackagesWithType = await engine.FindPackagesWithTypeAsync(
-            source, name, arity, cancellationToken).ConfigureAwait(false);
+        var allPackagesWithType = await engine.FindPackagesAsync(
+            source, typeQuery, namespaceQuery, cancellationToken).ConfigureAwait(false);
 
         return FilterAndOrderPackages(allPackagesWithType);
     }
@@ -158,7 +150,7 @@ internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedSer
     }
 
     private ImmutableArray<TPackageResult> FilterAndOrderPackages<TPackageResult>(
-        ImmutableArray<TPackageResult> allPackages) where TPackageResult : PackageResult
+        ImmutableArray<TPackageResult> allPackages) where TPackageResult : AbstractPackageResult
     {
         // The ranking threshold under while we start aggressively filtering out packages if they don't have a high
         // enough rank.  Above this and we will always include the item as it's shown more than enough usage to
@@ -208,11 +200,11 @@ internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedSer
         return result.ToImmutableAndFree();
     }
 
-    public async ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
-        string name, int arity, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
+        TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
     {
         var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
-        return await engine.FindReferenceAssembliesWithTypeAsync(
-            name, arity, cancellationToken).ConfigureAwait(false);
+        return await engine.FindReferenceAssembliesAsync(
+            typeQuery, namespaceQuery, cancellationToken).ConfigureAwait(false);
     }
 }

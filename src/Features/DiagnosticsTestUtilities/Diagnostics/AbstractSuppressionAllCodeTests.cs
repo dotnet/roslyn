@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             using var workspace = CreateWorkspaceFromFile(code, options);
             var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
 
-            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+            var analyzerReference = new AnalyzerImageReference([analyzer]);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var root = document.GetSyntaxRootAsync().GetAwaiter().GetResult();
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     continue;
                 }
 
-                var fixes = fixer.GetFixesAsync(document, diagnostic.Location.SourceSpan, [diagnostic], CodeActionOptions.DefaultProvider, CancellationToken.None).GetAwaiter().GetResult();
+                var fixes = fixer.GetFixesAsync(document, diagnostic.Location.SourceSpan, [diagnostic], CancellationToken.None).GetAwaiter().GetResult();
                 if (fixes == null || fixes.Count() <= 0)
                 {
                     continue;
@@ -142,15 +142,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             public bool IsHighPriority => false;
 
-            public bool OpenFileOnly(SimplifierOptions options) => false;
-
             public ImmutableArray<SyntaxNode> AllNodes { get; set; }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
                 get
                 {
-                    return ImmutableArray.Create(_descriptor);
+                    return [_descriptor];
                 }
             }
 

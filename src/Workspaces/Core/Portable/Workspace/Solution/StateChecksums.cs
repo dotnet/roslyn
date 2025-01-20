@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -210,7 +211,8 @@ internal sealed class SolutionStateChecksums(
     ProjectId? projectConeId,
     Checksum attributes,
     ProjectChecksumsAndIds projects,
-    ChecksumCollection analyzerReferences)
+    ChecksumCollection analyzerReferences,
+    Checksum fallbackAnalyzerOptionsChecksum)
 {
     private ProjectCone? _projectCone;
 
@@ -220,12 +222,14 @@ internal sealed class SolutionStateChecksums(
         attributes,
         projects.Checksum,
         analyzerReferences.Checksum,
+        fallbackAnalyzerOptionsChecksum,
     });
 
     public ProjectId? ProjectConeId { get; } = projectConeId;
     public Checksum Attributes { get; } = attributes;
     public ProjectChecksumsAndIds Projects { get; } = projects;
     public ChecksumCollection AnalyzerReferences { get; } = analyzerReferences;
+    public Checksum FallbackAnalyzerOptions => fallbackAnalyzerOptionsChecksum;
 
     // Acceptably not threadsafe.  ProjectCone is a class, and the runtime guarantees anyone will see this field fully
     // initialized.  It's acceptable to have multiple instances of this in a race condition as the data will be same
@@ -241,6 +245,7 @@ internal sealed class SolutionStateChecksums(
         checksums.AddIfNotNullChecksum(this.Attributes);
         this.Projects.Checksums.AddAllTo(checksums);
         this.AnalyzerReferences.AddAllTo(checksums);
+        checksums.AddIfNotNullChecksum(this.FallbackAnalyzerOptions);
     }
 
     public void Serialize(ObjectWriter writer)
@@ -253,6 +258,7 @@ internal sealed class SolutionStateChecksums(
         this.Attributes.WriteTo(writer);
         this.Projects.WriteTo(writer);
         this.AnalyzerReferences.WriteTo(writer);
+        this.FallbackAnalyzerOptions.WriteTo(writer);
     }
 
     public static SolutionStateChecksums Deserialize(ObjectReader reader)
@@ -263,7 +269,8 @@ internal sealed class SolutionStateChecksums(
             projectConeId: reader.ReadBoolean() ? ProjectId.ReadFrom(reader) : null,
             attributes: Checksum.ReadFrom(reader),
             projects: ProjectChecksumsAndIds.ReadFrom(reader),
-            analyzerReferences: ChecksumCollection.ReadFrom(reader));
+            analyzerReferences: ChecksumCollection.ReadFrom(reader),
+            fallbackAnalyzerOptionsChecksum: Checksum.ReadFrom(reader));
         Contract.ThrowIfFalse(result.Checksum == checksum);
         return result;
     }
@@ -291,6 +298,9 @@ internal sealed class SolutionStateChecksums(
 
             if (assetPath.IncludeSolutionAnalyzerReferences)
                 ChecksumCollection.Find(solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, onAssetFound, arg, cancellationToken);
+
+            if (assetPath.IncludeSolutionFallbackAnalyzerOptions && searchingChecksumsLeft.Remove(FallbackAnalyzerOptions))
+                onAssetFound(FallbackAnalyzerOptions, solution.FallbackAnalyzerOptions, arg);
         }
 
         if (searchingChecksumsLeft.Count == 0)
@@ -560,15 +570,37 @@ internal static class ChecksumCache
     }
 
     public static ChecksumCollection GetOrCreateChecksumCollection<TReference>(
+        ImmutableArray<TReference> references, ISerializerService serializer, CancellationToken cancellationToken) where TReference : class
+    {
+        // Grab the internal array from the immutable array.  This is safe as the callers can't modify it, and we just
+        // want the internal reference object to use as the key in the cache.
+        return GetOrCreateChecksumCollection(
+            ImmutableCollectionsMarshal.AsArray(references)!, serializer, cancellationToken);
+    }
+
+    public static ChecksumCollection GetOrCreateChecksumCollection<TReference>(
         IReadOnlyList<TReference> references, ISerializerService serializer, CancellationToken cancellationToken) where TReference : class
     {
+        // Cache both at the list-of-references level...
         return StronglyTypedChecksumCache<IReadOnlyList<TReference>, ChecksumCollection>.GetOrCreate(
             references,
             static (references, tuple) =>
             {
+                var (serializer, cancellationToken) = tuple;
                 var checksums = new FixedSizeArrayBuilder<Checksum>(references.Count);
                 foreach (var reference in references)
-                    checksums.Add(tuple.serializer.CreateChecksum(reference, tuple.cancellationToken));
+                {
+                    // ... and cache at the individual reference level.
+                    var checksum = GetOrCreate(
+                        reference,
+                        static (reference, arg) =>
+                        {
+                            var (serializer, cancellationToken) = arg;
+                            return serializer.CreateChecksum(reference, cancellationToken);
+                        },
+                        arg: (serializer, cancellationToken));
+                    checksums.Add(checksum);
+                }
 
                 return new ChecksumCollection(checksums.MoveToImmutable());
             },

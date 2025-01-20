@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    private partial class MetadataSymbolReference(
+    private sealed partial class MetadataSymbolReference(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
         SymbolResult<INamespaceOrTypeSymbol> symbolResult,
         ProjectId referenceProjectId,

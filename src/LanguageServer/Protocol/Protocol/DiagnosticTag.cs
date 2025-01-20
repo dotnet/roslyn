@@ -14,13 +14,13 @@ namespace Roslyn.LanguageServer.Protocol
     {
         /// <summary>
         /// Unused or unnecessary code.
-        /// Diagnostics with this tag are rendered faded out.
+        /// Clients are allowed to render diagnostics with this tag faded out.
         /// </summary>
         Unnecessary = 1,
 
         /// <summary>
         /// Deprecated or obsolete code.
-        /// Clients are allowed to rendered diagnostics with this tag strike through.
+        /// Clients are allowed to render diagnostics with this tag strike through.
         /// </summary>
         Deprecated = 2,
     }

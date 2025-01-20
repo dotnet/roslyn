@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageService;
 
@@ -107,4 +109,25 @@ internal partial interface ISemanticFacts
     bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, [NotNullWhen(true)] INamedTypeSymbol? expressionType, CancellationToken cancellationToken);
 
     string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets the <see cref="IPreprocessingSymbol"/> that the given node involves.
+    /// The node's kind must match any of the following kinds:
+    /// <list type="bullet">
+    /// <item><see cref="ISyntaxKinds.IdentifierName"/>,</item>
+    /// <item><see cref="ISyntaxKinds.DefineDirectiveTrivia"/>, or</item>
+    /// <item><see cref="ISyntaxKinds.UndefDirectiveTrivia"/>.</item>
+    /// </list>
+    /// </summary>
+    IPreprocessingSymbol? GetPreprocessingSymbol(SemanticModel semanticModel, SyntaxNode node);
+
+#if !CODE_STYLE
+
+    /// <summary>
+    /// Given a location in a document, returns the symbol that intercepts the original symbol called at that location.
+    /// The position must be the location of an identifier token used as the name of an invocation expression.
+    /// </summary>
+    Task<ISymbol?> GetInterceptorSymbolAsync(Document document, int position, CancellationToken cancellationToken);
+
+#endif
 }

@@ -43,7 +43,6 @@ public partial class UseNullPropagationTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             LanguageVersion = languageVersion,
         }.RunAsync();
     }
@@ -1949,6 +1948,46 @@ public partial class UseNullPropagationTests
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74273")]
+    public async Task TestParenthesizedPropertyAccess()
+    {
+        await TestInRegularAndScript1Async("""
+            using System;
+            
+            class C
+            {
+                int? Length(Array array) => [|array == null ? null : (array.Length)|];
+            }
+            """, """
+            using System;
+            
+            class C
+            {
+                int? Length(Array array) => (array?.Length);
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74273")]
+    public async Task TestReversedParenthesizedPropertyAccess()
+    {
+        await TestInRegularAndScript1Async("""
+            using System;
+            
+            class C
+            {
+                int? Length(Array array) => [|array != null ? (array.Length) : null|];
+            }
+            """, """
+            using System;
+            
+            class C
+            {
+                int? Length(Array array) => (array?.Length);
+            }
+            """);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49517")]
     public async Task TestParenthesizedNull()
     {
@@ -2409,6 +2448,62 @@ public partial class UseNullPropagationTests
                     else {
                         s?.ToString();
                     }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66141")]
+    public async Task TestOnValueOffOfNullableValueType1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                void M(byte? o)
+                {
+                    object v = [|o == null ? null : o.Value|];
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void M(byte? o)
+                {
+                    object v = o;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66141")]
+    public async Task TestOnValueOffOfNullableValueType2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                void M(byte? o)
+                {
+                    object v = [|o != null ? o.Value : null|];
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void M(byte? o)
+                {
+                    object v = o;
                 }
             }
             """);

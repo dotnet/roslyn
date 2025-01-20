@@ -48,6 +48,12 @@ namespace Microsoft.CodeAnalysis
         /// An Implementation only source output, registered via <see cref="IncrementalGeneratorInitializationContext.RegisterImplementationSourceOutput{TSource}(IncrementalValueProvider{TSource}, Action{SourceProductionContext, TSource})"/>
         /// or <see cref="IncrementalGeneratorInitializationContext.RegisterImplementationSourceOutput{TSource}(IncrementalValuesProvider{TSource}, Action{SourceProductionContext, TSource})"/>
         /// </summary>
-        Implementation = 0b100
+        Implementation = 0b100,
+
+        /// <summary>
+        /// A host specific output, registered via <see cref="IncrementalGeneratorInitializationContext.RegisterHostOutput{TSource}(IncrementalValueProvider{TSource}, Action{HostOutputProductionContext, TSource})"/> 
+        /// or <see cref="IncrementalGeneratorInitializationContext.RegisterHostOutput{TSource}(IncrementalValuesProvider{TSource}, Action{HostOutputProductionContext, TSource})"/>
+        /// </summary>
+        Host = 0b1000,
     }
 }

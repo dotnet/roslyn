@@ -59,7 +59,7 @@ internal class ConvertToBlockScopedNamespaceDiagnosticAnalyzer : AbstractBuiltIn
             diagnosticLocation,
             option.Notification,
             context.Options,
-            ImmutableArray.Create(declaration.GetLocation()),
+            [declaration.GetLocation()],
             ImmutableDictionary<string, string?>.Empty);
     }
 }

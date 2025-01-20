@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
@@ -71,11 +72,16 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             CreateFiles(GetNetCoreAppFiles());
 
             var projectFilePath = GetSolutionFileName("Project.csproj");
+            var projectDir = Path.GetDirectoryName(projectFilePath);
 
             DotNetRestore("Project.csproj");
 
             using var workspace = CreateMSBuildWorkspace();
             var project = await workspace.OpenProjectAsync(projectFilePath);
+
+            Assert.Equal(Path.Combine(projectDir, "bin", "Debug", "netcoreapp3.1", "Project.dll"), project.OutputFilePath);
+            Assert.Equal(Path.Combine(projectDir, "obj", "Debug", "netcoreapp3.1", "Project.dll"), project.CompilationOutputInfo.AssemblyPath);
+            Assert.Null(project.CompilationOutputInfo.GeneratedFilesOutputDirectory);
 
             // Assert that there is a single project loaded.
             Assert.Single(workspace.CurrentSolution.ProjectIds);
@@ -437,6 +443,40 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net6)");
             Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net5)");
+        }
+
+        [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        [UseCulture("en-EN", "en-EN")]
+        public async Task TestBuildHostLocale_EN()
+        {
+            await AssertInvalidTfmDiagnosticMessageContains("The TargetFramework value 'Invalid' was not recognized. It may be misspelled.");
+        }
+
+        [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        [UseCulture("de-DE", "de-DE")]
+        public async Task TestBuildHostLocale_DE()
+        {
+            await AssertInvalidTfmDiagnosticMessageContains("Der TargetFramework-Wert \"Invalid\" wurde nicht erkannt. Unter Umständen ist die Schreibweise nicht korrekt.");
+        }
+
+        private async Task AssertInvalidTfmDiagnosticMessageContains(string expected)
+        {
+            var projectPath = @"Project\Project.csproj";
+            var files = new FileSet((projectPath, Resources.ProjectFiles.CSharp.InvalidTFM));
+
+            CreateFiles(files);
+
+            var fullProjectPath = GetSolutionFileName(projectPath);
+
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+            var project = await workspace.OpenProjectAsync(fullProjectPath);
+
+            var diagnostic = Assert.Single(workspace.Diagnostics);
+            Assert.Contains(expected, diagnostic.Message);
         }
 
         [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]

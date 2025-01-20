@@ -5,7 +5,7 @@
 // Copied from:
 // https://github.com/dotnet/runtime/blob/fdd104ec5e1d0d2aa24a6723995a98d0124f724b/src/libraries/System.Private.CoreLib/src/System/Runtime/CompilerServices/CompilerFeatureRequiredAttribute.cs
 
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
 
 using System.Runtime.CompilerServices;
 

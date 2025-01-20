@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode? queryClause = null,
             bool allowFieldsAndProperties = false,
             bool ignoreNormalFormIfHasValidParamsParameter = false,
-            bool searchExtensionMethodsIfNecessary = true)
+            bool searchExtensionMethodsIfNecessary = true,
+            bool disallowExpandedNonArrayParams = false)
         {
             //
             // !!! ATTENTION !!!
@@ -137,7 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
-                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
+                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
+                disallowExpandedNonArrayParams: disallowExpandedNonArrayParams);
 
             // Query operator can't be called dynamically. 
             if (queryClause != null && result.Kind == BoundKind.DynamicInvocation)
@@ -323,7 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause = null,
-            bool ignoreNormalFormIfHasValidParamsParameter = false)
+            bool ignoreNormalFormIfHasValidParamsParameter = false,
+            bool disallowExpandedNonArrayParams = false)
         {
             //
             // !!! ATTENTION !!!
@@ -349,7 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportSuppressionIfNeeded(boundExpression, diagnostics);
                 result = BindMethodGroupInvocation(
                     node, expression, methodName, (BoundMethodGroup)boundExpression, analyzedArguments,
-                    diagnostics, queryClause, ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter, anyApplicableCandidates: out _);
+                    diagnostics, queryClause,
+                    ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
+                    disallowExpandedNonArrayParams: disallowExpandedNonArrayParams,
+                    anyApplicableCandidates: out _);
             }
             else if ((object)(delegateType = GetDelegateType(boundExpression)) != null)
             {
@@ -689,7 +695,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause,
             bool ignoreNormalFormIfHasValidParamsParameter,
-            out bool anyApplicableCandidates)
+            out bool anyApplicableCandidates,
+            bool disallowExpandedNonArrayParams = false)
         {
             //
             // !!! ATTENTION !!!
@@ -705,6 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodGroup, expression, methodName, analyzedArguments,
                 useSiteInfo: ref useSiteInfo,
                 options: (ignoreNormalFormIfHasValidParamsParameter ? OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter : OverloadResolution.Options.None) |
+                         (disallowExpandedNonArrayParams ? OverloadResolution.Options.DisallowExpandedNonArrayParams : OverloadResolution.Options.None) |
                          (analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None));
             diagnostics.Add(expression, useSiteInfo);
             anyApplicableCandidates = resolution.ResultKind == LookupResultKind.Viable && resolution.OverloadResolutionResult.HasAnyApplicableMember;
@@ -848,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsAmbiguousDynamicParamsArgument<TMethodOrPropertySymbol>(ArrayBuilder<BoundExpression> arguments, MemberResolutionResult<TMethodOrPropertySymbol> candidate, out SyntaxNode argumentSyntax)
              where TMethodOrPropertySymbol : Symbol
         {
-            if (OverloadResolution.IsValidParams(this, candidate.LeastOverriddenMember, out _) &&
+            if (OverloadResolution.IsValidParams(this, candidate.LeastOverriddenMember, disallowExpandedNonArrayParams: false, out _) &&
                 candidate.Result.Kind == MemberResolutionKind.ApplicableInNormalForm)
             {
                 var parameters = candidate.Member.GetParameters();
@@ -1207,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ParameterSymbol receiverParameter = method.Parameters.First();
 
                 // we will have a different receiver if ReplaceTypeOrValueReceiver has unwrapped TypeOrValue
-                if ((object)receiver != receiverArgument)
+                if ((object)receiver != methodGroup.Receiver)
                 {
                     // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate conversion here.
                     Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
@@ -1745,59 +1753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     Debug.Assert(conversion.IsCollectionExpression);
-
-                    bool infiniteRecursion = false;
-                    if (conversion.GetCollectionExpressionTypeKind(out _, out MethodSymbol? constructor, out bool isExpanded) == CollectionExpressionTypeKind.ImplementsIEnumerable &&
-                        isExpanded)
-                    {
-                        Debug.Assert(constructor is not null);
-
-                        // Check for infinite recursion through the constructor
-                        var constructorSet = PooledHashSet<MethodSymbol>.GetInstance();
-                        constructorSet.Add(constructor.OriginalDefinition);
-
-                        BoundUnconvertedCollectionExpression? emptyCollection = null;
-
-                        while (true)
-                        {
-                            var paramsType = constructor.Parameters[^1].Type;
-                            if (!paramsType.IsSZArray())
-                            {
-                                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                                emptyCollection ??= new BoundUnconvertedCollectionExpression(node, ImmutableArray<BoundNode>.CastUp(ImmutableArray<BoundExpression>.Empty)) { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
-                                Conversion nextConversion = Conversions.ClassifyImplicitConversionFromExpression(emptyCollection, paramsType, ref discardedUseSiteInfo);
-
-                                if (nextConversion.Exists &&
-                                    nextConversion.GetCollectionExpressionTypeKind(out _, out constructor, out isExpanded) == CollectionExpressionTypeKind.ImplementsIEnumerable &&
-                                    isExpanded)
-                                {
-                                    Debug.Assert(constructor is not null);
-
-                                    if (constructorSet.Add(constructor.OriginalDefinition))
-                                    {
-                                        continue;
-                                    }
-
-                                    infiniteRecursion = true;
-                                }
-                            }
-
-                            break;
-                        }
-
-                        constructorSet.Free();
-                    }
-
-                    if (infiniteRecursion)
-                    {
-                        Debug.Assert(constructor is not null);
-                        Error(diagnostics, ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, node, collectionType, constructor.OriginalDefinition);
-                        converted = BindCollectionExpressionForErrorRecovery(unconvertedCollection, collectionType, inConversion: true, diagnostics);
-                    }
-                    else
-                    {
-                        converted = ConvertCollectionExpression(unconvertedCollection, collectionType, conversion, diagnostics);
-                    }
+                    converted = ConvertCollectionExpression(unconvertedCollection, collectionType, conversion, diagnostics);
                 }
 
                 collection = new BoundConversion(

@@ -47,7 +47,6 @@ internal static class DocumentBasedFixAllProviderHelpers
         var cleanedSolution = await CodeAction.CleanSyntaxAndSemanticsAsync(
             originalSolution,
             dirtySolution,
-            originalFixAllContext.State.CodeActionOptionsProvider,
             progressTracker,
             cancellationToken).ConfigureAwait(false);
 

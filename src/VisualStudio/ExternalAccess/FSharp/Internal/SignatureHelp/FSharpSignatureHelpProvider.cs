@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp
             _provider = provider;
         }
 
-        public async Task<SignatureHelpItems> GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+        public async Task<SignatureHelpItems> GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
         {
             var mappedTriggerReason = FSharpSignatureHelpTriggerReasonHelpers.ConvertFrom(triggerInfo.TriggerReason);
             var mappedTriggerInfo = new FSharpSignatureHelpTriggerInfo(mappedTriggerReason, triggerInfo.TriggerCharacter);

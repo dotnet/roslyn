@@ -14,6 +14,9 @@ parameters:
   - name: queueSpeedometerValidation
     type: string
     default: 'true'
+  - name: retainInsertedBuild
+    type: string
+    default: 'true'
 
   - name: buildUserName
     type: string
@@ -207,7 +210,8 @@ steps:
         -updateCoreXTLibraries "(default)" `
         -visualStudioBranchName "$(Template.VSBranchName)" `
         -writePullRequest "prid.txt" `
-        -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}"
+        -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}" `
+        -retaininsertedbuild "${{ parameters.retainInsertedBuild }}" 
     displayName: 'Run OneOffInsertion.ps1'
 
   - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'

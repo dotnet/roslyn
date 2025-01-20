@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </remarks>
     public sealed class AnalyzerFileReference : AnalyzerReference, IEquatable<AnalyzerReference>
     {
-        private delegate IEnumerable<string> AttributeLanguagesFunc(PEModule module, CustomAttributeHandle attribute);
+        private delegate ImmutableArray<string> AttributeLanguagesFunc(PEModule module, CustomAttributeHandle attribute);
 
         public override string FullPath { get; }
 
@@ -224,31 +224,46 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             using var assembly = AssemblyMetadata.CreateFromFile(fullPath);
 
-            // This is longer than strictly necessary to avoid thrashing the GC with string allocations
-            // in the call to GetFullyQualifiedTypeNames. Specifically, this checks for the presence of
-            // supported languages prior to creating the type names.
-            var typeNameMap = from module in assembly.GetModules()
-                              from typeDefHandle in module.MetadataReader.TypeDefinitions
-                              let typeDef = module.MetadataReader.GetTypeDefinition(typeDefHandle)
-                              let supportedLanguages = GetSupportedLanguages(typeDef, module.Module, attributeType, languagesFunc)
-                              where supportedLanguages.Any()
-                              let typeName = GetFullyQualifiedTypeName(typeDef, module.Module)
-                              from supportedLanguage in supportedLanguages
-                              group typeName by supportedLanguage;
+            Dictionary<string, ImmutableHashSet<string>.Builder> typeNameMap = new Dictionary<string, ImmutableHashSet<string>.Builder>(StringComparer.OrdinalIgnoreCase);
 
-            return typeNameMap.ToImmutableSortedDictionary(g => g.Key, g => g.ToImmutableHashSet(), StringComparer.OrdinalIgnoreCase);
+            foreach (var module in assembly.GetModules())
+            {
+                foreach (var typeDefHandle in module.MetadataReader.TypeDefinitions)
+                {
+                    var typeDef = module.MetadataReader.GetTypeDefinition(typeDefHandle);
+                    var supportedLanguages = GetSupportedLanguages(typeDef, module.Module, attributeType, languagesFunc);
+
+                    // PERF: avoid calling GetFullyQualifiedTypeName when no supported languages.
+                    if (supportedLanguages.Length > 0)
+                    {
+                        var typeName = GetFullyQualifiedTypeName(typeDef, module.Module);
+                        foreach (var supportedLanguage in supportedLanguages)
+                        {
+                            if (!typeNameMap.TryGetValue(supportedLanguage, out var builder))
+                            {
+                                builder = ImmutableHashSet.CreateBuilder<string>();
+                                typeNameMap.Add(supportedLanguage, builder);
+                            }
+
+                            builder.Add(typeName);
+                        }
+                    }
+                }
+            }
+
+            return typeNameMap.ToImmutableSortedDictionary(g => g.Key, g => g.Value.ToImmutable(), StringComparer.OrdinalIgnoreCase);
         }
 
-        private static IEnumerable<string> GetSupportedLanguages(TypeDefinition typeDef, PEModule peModule, Type attributeType, AttributeLanguagesFunc languagesFunc)
+        private static ImmutableArray<string> GetSupportedLanguages(TypeDefinition typeDef, PEModule peModule, Type attributeType, AttributeLanguagesFunc languagesFunc)
         {
-            IEnumerable<string>? result = null;
+            ImmutableArray<string> result = [];
             foreach (CustomAttributeHandle customAttrHandle in typeDef.GetCustomAttributes())
             {
                 if (peModule.IsTargetAttribute(customAttrHandle, attributeType.Namespace!, attributeType.Name, ctor: out _))
                 {
                     if (languagesFunc(peModule, customAttrHandle) is { } attributeSupportedLanguages)
                     {
-                        if (result is null)
+                        if (result.IsDefaultOrEmpty)
                         {
                             result = attributeSupportedLanguages;
                         }
@@ -256,16 +271,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             // This is a slow path, but only occurs if a single type has multiple
                             // DiagnosticAnalyzerAttribute instances applied to it.
-                            result = result.Concat(attributeSupportedLanguages);
+                            result = result.AddRange(attributeSupportedLanguages);
                         }
                     }
                 }
             }
 
-            return result ?? SpecializedCollections.EmptyEnumerable<string>();
+            return result;
         }
 
-        private static IEnumerable<string> GetDiagnosticsAnalyzerSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle)
+        private static ImmutableArray<string> GetDiagnosticsAnalyzerSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle)
         {
             // The DiagnosticAnalyzerAttribute has one constructor, which has a string parameter for the
             // first supported language and an array parameter for additional supported languages.
@@ -274,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return ReadLanguagesFromAttribute(ref argsReader);
         }
 
-        private static IEnumerable<string> GetGeneratorSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle)
+        private static ImmutableArray<string> GetGeneratorSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle)
         {
             // The GeneratorAttribute has two constructors: one default, and one with a string parameter for the
             // first supported language and an array parameter for additional supported languages.
@@ -293,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // https://github.com/dotnet/roslyn/issues/53994 tracks re-enabling nullable and fixing this method
 #nullable disable
-        private static IEnumerable<string> ReadLanguagesFromAttribute(ref BlobReader argsReader)
+        private static ImmutableArray<string> ReadLanguagesFromAttribute(ref BlobReader argsReader)
         {
             if (argsReader.Length > 4)
             {
@@ -303,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     string firstLanguageName;
                     if (!PEModule.CrackStringInAttributeValue(out firstLanguageName, ref argsReader))
                     {
-                        return SpecializedCollections.EmptyEnumerable<string>();
+                        return [];
                     }
 
                     ImmutableArray<string> additionalLanguageNames;
@@ -311,14 +326,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         if (additionalLanguageNames.Length == 0)
                         {
-                            return SpecializedCollections.SingletonEnumerable(firstLanguageName);
+                            return [firstLanguageName];
                         }
 
                         return additionalLanguageNames.Insert(0, firstLanguageName);
                     }
                 }
             }
-            return SpecializedCollections.EmptyEnumerable<string>();
+            return [];
         }
 
 #nullable enable

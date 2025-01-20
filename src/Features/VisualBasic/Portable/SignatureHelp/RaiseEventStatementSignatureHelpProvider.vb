@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             document As Document,
             position As Integer,
             triggerInfo As SignatureHelpTriggerInfo,
-            options As SignatureHelpOptions,
+            options As MemberDisplayOptions,
             cancellationToken As CancellationToken
         ) As Task(Of SignatureHelpItems)
 

@@ -310,6 +310,12 @@ Friend Class MockNamedTypeSymbol
         End Get
     End Property
 
+    Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
+        Get
+            Throw New NotImplementedException()
+        End Get
+    End Property
+
     Friend Overrides ReadOnly Property IsExtensibleInterfaceNoUseSiteDiagnostics As Boolean
         Get
             Throw New NotImplementedException()
@@ -508,6 +514,10 @@ Friend Class MockMethodSymbol
             Return False
         End Get
     End Property
+
+    Public Overrides Function GetOverloadResolutionPriority() As Integer
+        Return 0
+    End Function
 
     Public Overrides ReadOnly Property IsOverridable As Boolean
         Get

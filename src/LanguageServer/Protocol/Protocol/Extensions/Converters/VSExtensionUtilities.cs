@@ -34,7 +34,9 @@ internal static class VSExtensionUtilities
         TryAddConverter<Diagnostic, VSDiagnostic>();
         TryAddConverter<Location, VSLocation>();
         TryAddConverter<ServerCapabilities, VSServerCapabilities>();
+#pragma warning disable CS0618 // SymbolInformation is obsolete but we need the converter regardless
         TryAddConverter<SymbolInformation, VSSymbolInformation>();
+#pragma warning restore CS0618
         TryAddConverter<TextDocumentIdentifier, VSTextDocumentIdentifier>();
 
         void TryAddConverter<TBase, TExtension>()

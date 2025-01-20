@@ -351,15 +351,15 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
         {
             case "":
             case null:
-                return (userIdExclusions: ImmutableArray<string>.Empty, userCategoryExclusions: ImmutableArray<string>.Empty, analyzerDisabled: false);
+                return (userIdExclusions: [], userCategoryExclusions: [], analyzerDisabled: false);
 
             case "all":
-                return (userIdExclusions: ImmutableArray<string>.Empty, userCategoryExclusions: ImmutableArray<string>.Empty, analyzerDisabled: true);
+                return (userIdExclusions: [], userCategoryExclusions: [], analyzerDisabled: true);
 
             default:
                 // Default string representation for unconfigured option value should be treated as no exclusions.
                 if (userExclusions == CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions.DefaultValue)
-                    return (userIdExclusions: ImmutableArray<string>.Empty, userCategoryExclusions: ImmutableArray<string>.Empty, analyzerDisabled: false);
+                    return (userIdExclusions: [], userCategoryExclusions: [], analyzerDisabled: false);
 
                 break;
         }
@@ -745,7 +745,9 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
             return false;
         }
 
-        var declarationNodes = SyntaxFacts.GetTopLevelAndMethodLevelMembers(root);
+        using var pooledDeclarationNodes = SyntaxFacts.GetTopLevelAndMethodLevelMembers(root);
+        var declarationNodes = pooledDeclarationNodes.Object;
+
         using var _ = PooledHashSet<ISymbol>.GetInstance(out var processedPartialSymbols);
         if (declarationNodes.Count > 0)
         {

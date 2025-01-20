@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                     Dim expectedDiagnostics = GetExpectedDiagnostics(workspace, diagnostics)
 
                     If ordered Then
-                        AssertEx.Equal(expectedDiagnostics, actualDiagnostics, New Comparer())
+                        AssertEx.SequenceEqual(expectedDiagnostics, actualDiagnostics, New Comparer())
                     Else
                         AssertEx.SetEqual(expectedDiagnostics, actualDiagnostics, New Comparer())
                     End If

@@ -56,7 +56,7 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
 
         if (!names.IsDefaultOrEmpty)
         {
-            var namingStyleOptions = await document.GetNamingStylePreferencesAsync(completionContext.CompletionOptions.NamingStyleFallbackOptions, cancellationToken).ConfigureAwait(false);
+            var namingStyleOptions = await document.GetNamingStylePreferencesAsync(cancellationToken).ConfigureAwait(false);
             GetRecommendedNames(names, nameInfo, context, result, namingStyleOptions, cancellationToken);
         }
 
@@ -207,7 +207,7 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
         NamingStylePreferences namingStyleOptions,
         CancellationToken cancellationToken)
     {
-        var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(FallbackNamingRules.CompletionFallbackRules);
+        var rules = namingStyleOptions.Rules.NamingRules.AddRange(FallbackNamingRules.CompletionFallbackRules);
 
         var supplementaryRules = FallbackNamingRules.CompletionSupplementaryRules;
         var semanticFactsService = context.GetRequiredLanguageService<ISemanticFactsService>();
@@ -318,8 +318,8 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
         {
             return baseMethod switch
             {
-                MethodDeclarationSyntax method => namedType.GetMembers(method.Identifier.ValueText).OfType<IMethodSymbol>().ToImmutableArray(),
-                ConstructorDeclarationSyntax constructor => namedType.GetMembers(WellKnownMemberNames.InstanceConstructorName).OfType<IMethodSymbol>().ToImmutableArray(),
+                MethodDeclarationSyntax method => [.. namedType.GetMembers(method.Identifier.ValueText).OfType<IMethodSymbol>()],
+                ConstructorDeclarationSyntax constructor => [.. namedType.GetMembers(WellKnownMemberNames.InstanceConstructorName).OfType<IMethodSymbol>()],
                 _ => []
             };
         }

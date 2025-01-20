@@ -14,16 +14,11 @@ using Microsoft.CodeAnalysis.UseCompoundAssignment;
 namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCompoundAssignment), Shared]
-internal class CSharpUseCompoundAssignmentCodeFixProvider
-    : AbstractUseCompoundAssignmentCodeFixProvider<SyntaxKind, AssignmentExpressionSyntax, ExpressionSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpUseCompoundAssignmentCodeFixProvider()
+    : AbstractUseCompoundAssignmentCodeFixProvider<SyntaxKind, AssignmentExpressionSyntax, ExpressionSyntax>(Utilities.Kinds)
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpUseCompoundAssignmentCodeFixProvider()
-        : base(Utilities.Kinds)
-    {
-    }
-
     protected override SyntaxToken Token(SyntaxKind kind)
         => SyntaxFactory.Token(kind);
 

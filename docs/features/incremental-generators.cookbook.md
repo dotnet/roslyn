@@ -124,6 +124,17 @@ wrapper around `StringBuilder` that will keep track of indent level and prepend 
 [this](https://github.com/dotnet/roslyn/issues/52914#issuecomment-1732680995) conversation on the performance of `NormalizeWhitespace` for more examples, performance
 measurements, and discussion on why we don't believe that `SyntaxNode`s are a good abstraction for this use case.
 
+### Put `Microsoft.CodeAnalysis.EmbeddedAttribute` on generated marker types
+
+Users might depend on your generator in multiple projects in the same solution, and these projects will often have `InternalsVisibleTo` applied. This means that your
+`internal` marker attributes may be defined in multiple projects, and the compiler will warn about this. While this doesn't block compilation, it can be irritating to
+users. To avoid this, mark such attributes with `Microsoft.CodeAnalysis.EmbeddedAttribute`; when the compiler sees this attribute on a type from separate assembly or
+project, it will not include that type in lookup results. To ensure that `Microsoft.CodeAnalysis.EmbeddedAttribute` is available in the compilation, call the
+`AddEmbeddedAttributeDefinition` helper method in your `RegisterPostInitializationOutput` callback.
+
+Another option is to provide an assembly in your nuget package that defines your marker attributes, but this can be more difficult to author. We recommend the
+`EmbeddedAttribute` approach, unless you need to support versions of Roslyn lower than 4.14.
+
 ## Designs
 
 This section is broken down by user scenarios, with general solutions listed first, and more specific examples later on.
@@ -157,11 +168,14 @@ public class CustomGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(static postInitializationContext => {
+            postInitializationContext.AddEmbeddedAttributeDefinition();
             postInitializationContext.AddSource("myGeneratedFile.cs", SourceText.From("""
                 using System;
+                using Microsoft.CodeAnalysis;
 
                 namespace GeneratedNamespace
                 {
+                    [Embedded]
                     internal sealed class GeneratedAttribute : Attribute
                     {
                     }
@@ -208,6 +222,15 @@ public class FileTransformGenerator : IIncrementalGenerator
 }
 ```
 
+Items need to be included in your csproj files by using the `AdditionalFiles` ItemGroup:
+
+```xml
+<ItemGroup>
+    <AdditionalFiles Include="file1.xml" />
+    <AdditionalFiles Include="file2.xml" />
+<ItemGroup>
+```
+
 ### Augment user code
 
 **User scenario:** As a generator author I want to be able to inspect and augment a user's code with new functionality.
@@ -223,7 +246,7 @@ Provide that attribute in a `RegisterPostInitializationOutput` step. Register fo
 ```csharp
 public partial class UserClass
 {
-    [Generate]
+    [GeneratedNamespace.Generated]
     public partial void UserMethod();
 }
 ```
@@ -235,16 +258,18 @@ public class AugmentingGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(static postInitializationContext =>
+            postInitializationContext.AddEmbeddedAttributeDefinition();
             postInitializationContext.AddSource("myGeneratedFile.cs", SourceText.From("""
                 using System;
+                using Microsoft.CodeAnalysis;
                 namespace GeneratedNamespace
                 {
-                    [AttributeUsage(AttributeTargets.Method)]
+                    [AttributeUsage(AttributeTargets.Method), Embedded]
                     internal sealed class GeneratedAttribute : Attribute
                     {
                     }
                 }
-                """, Encoding.UTF8));
+                """, Encoding.UTF8)));
 
         var pipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
             fullyQualifiedMetadataName: "GeneratedNamespace.GeneratedAttribute",
@@ -386,7 +411,7 @@ For example, to turn your generator project into a NuGet package at build, add t
 
 Any *runtime* dependencies, that is, code that the end users program will need to rely on, can simply be added as a dependency of the generator NuGet package via the usual referencing mechanism.
 
-For example, consider a generator that creates code that relies on `Newtonsoft.Json`. The generator does not directly use the dependency, it just emits code that relies on the library being referenced in the users compilation. The author would add a reference to `Newtonsoft.Json` as a public dependency, and when the user adds the generator package it will referenced automatically.
+For example, consider a generator that creates code that relies on `Newtonsoft.Json`. The generator does not directly use the dependency, it just emits code that relies on the library being referenced in the users compilation. The author would add a reference to `Newtonsoft.Json` as a public dependency, and when the user adds the generator package it will be referenced automatically.
 
 ```xml
 <Project>
@@ -544,7 +569,7 @@ Now, consider that the generator author wants to optionally allow opting in/out 
 This value of `MyGenerator_EnableLogging` will be emitted to a generated analyzer config file, for each of the additional files in the compilation, with an item name of `build_metadata.AdditionalFiles.MyGenerator_EnableLogging`. The generator can read this value in the context of each additional file:
 
 ```cs
-context.AdditionalFilesProvider
+context.AdditionalTextsProvider
        .Combine(context.AnalyzerConfigOptionsProvider)
        .Select((pair, ctx) =>
            pair.Right.GetOptions(pair.Left).TryGetValue("build_metadata.AdditionalFiles.MyGenerator_EnableLogging", out var perFileLoggingSwitch)
@@ -636,7 +661,192 @@ TODO: https://github.com/dotnet/roslyn/issues/72149
 
 ### Auto interface implementation
 
-TODO: https://github.com/dotnet/roslyn/issues/72149
+**User scenario:** As a generator author I want to be able to implement the properties of interfaces passed as arguments to a decorator of a class automatically for a user
+
+**Solution:** Require the user to decorate the class with the `[AutoImplement]` Attribute and pass as arguments the types of the interfaces they want to self-implement themselves; The classes that implement the attribute have to be `partial class`.
+Provide that attribute in a `RegisterPostInitializationOutput` step. Register for callbacks on the classes with
+`ForAttributeWithMetadataName` using the fullyQualifiedMetadataName `FullyQualifiedAttributeName`, and use tuples (or create an equatable model) to pass along that information.
+The attribute could work for structs too, the example was kept simple on purpose for the workbook sample.
+
+**Example:**
+
+```csharp
+public interface IUserInterface
+{
+    int InterfaceProperty { get; set; }
+}
+
+public interface IUserInterface2
+{
+    float InterfacePropertyOnlyGetter { get; }
+}
+
+[AutoImplementProperties(typeof(IUserInterface), typeof(IUserInterface2))]
+public partial class UserClass
+{
+    public string UserProp { get; set; }
+}
+```
+
+```csharp
+#nullable enable
+[Generator]
+public class AutoImplementGenerator : IIncrementalGenerator
+{
+    private const string AttributeNameSpace = "AttributeGenerator";
+    private const string AttributeName = "AutoImplementProperties";
+    private const string AttributeClassName = $"{AttributeName}Attribute";
+    private const string FullyQualifiedAttributeName = $"{AttributeNameSpace}.{AttributeClassName}";
+
+    public void Initialize(IncrementalGeneratorInitializationContext context)
+    {
+        context.RegisterPostInitializationOutput(ctx =>
+        {
+            ctx.AddEmbeddedAttributeDefinition();
+            //Generate the AutoImplementProperties Attribute
+            const string autoImplementAttributeDeclarationCode = $$"""
+// <auto-generated/>
+using System;
+using Microsoft.CodeAnalysis;
+namespace {{AttributeNameSpace}};
+
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false), Embedded]
+internal sealed class {{AttributeClassName}} : Attribute
+{
+    public Type[] InterfacesTypes { get; }
+    public {{AttributeClassName}}(params Type[] interfacesTypes)
+    {
+        InterfacesTypes = interfacesTypes;
+    }
+}
+""";
+            ctx.AddSource($"{AttributeClassName}.g.cs", autoImplementAttributeDeclarationCode);
+        });
+
+        IncrementalValuesProvider<ClassModel> provider = context.SyntaxProvider.ForAttributeWithMetadataName(
+            fullyQualifiedMetadataName: FullyQualifiedAttributeName,
+            predicate: static (node, cancellationToken_) => node is ClassDeclarationSyntax,
+            transform: static (ctx, cancellationToken) =>
+            {
+                ISymbol classSymbol = ctx.TargetSymbol;
+
+                return new ClassModel(
+                    classSymbol.Name,
+                    classSymbol.ContainingNamespace.ToDisplayString(),
+                    GetInterfaceModels(ctx.Attributes[0])
+                    );
+            });
+
+        context.RegisterSourceOutput(provider, static (context, classModel) =>
+        {
+            foreach (InterfaceModel interfaceModel in classModel.Interfaces)
+            {
+                StringBuilder sourceBuilder = new($$"""
+                    // <auto-generated/>
+                    namespace {{classModel.NameSpace}};
+
+                    public partial class {{classModel.Name}} : {{interfaceModel.FullyQualifiedName}}
+                    {
+
+                    """);
+
+                foreach (string property in interfaceModel.Properties)
+                {
+                    sourceBuilder.AppendLine(property);
+                }
+
+                sourceBuilder.AppendLine("""
+                    }
+                    """);
+
+                //Concat class name and interface name to have unique file name if a class implements two interfaces with AutoImplement Attribute
+                string generatedFileName = $"{classModel.Name}_{interfaceModel.FullyQualifiedName}.g.cs";
+                context.AddSource(generatedFileName, sourceBuilder.ToString());
+            }
+        });
+    }
+
+    private static EquatableList<InterfaceModel> GetInterfaceModels(AttributeData attribute)
+    {
+        EquatableList<InterfaceModel> ret = [];
+
+        if (attribute.ConstructorArguments.Length == 0)
+            return ret;
+
+        foreach(TypedConstant constructorArgumentValue in attribute.ConstructorArguments[0].Values)
+        {
+            if (constructorArgumentValue.Value is INamedTypeSymbol { TypeKind: TypeKind.Interface } interfaceSymbol)
+            {
+                EquatableList<string> properties = new();
+
+                foreach (IPropertySymbol interfaceProperty in interfaceSymbol
+                    .GetMembers()
+                    .OfType<IPropertySymbol>())
+                {
+                    string type = interfaceProperty.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+                    //Check if property has a setter
+                    string setter = interfaceProperty.SetMethod is not null
+                        ? "set; "
+                        : string.Empty;
+
+                    properties.Add($$"""
+                            public {{type}} {{interfaceProperty.Name}} { get; {{setter}}}
+                        """);
+                }
+
+                ret.Add(new InterfaceModel(interfaceSymbol.ToDisplayString(), properties));
+            }
+        }
+
+        return ret;
+    }
+
+    private record ClassModel(string Name, string NameSpace, EquatableList<InterfaceModel> Interfaces);
+    private record InterfaceModel(string FullyQualifiedName, EquatableList<string> Properties);
+
+    private class EquatableList<T> : List<T>, IEquatable<EquatableList<T>>
+    {
+        public bool Equals(EquatableList<T>? other)
+        {
+            // If the other list is null or a different size, they're not equal
+            if (other is null || Count != other.Count)
+            {
+                return false;
+            }
+
+            // Compare each pair of elements for equality
+            for (int i = 0; i < Count; i++)
+            {
+                if (!EqualityComparer<T>.Default.Equals(this[i], other[i]))
+                {
+                    return false;
+                }
+            }
+
+            // If we got this far, the lists are equal
+            return true;
+        }
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as EquatableList<T>);
+        }
+        public override int GetHashCode()
+        {
+            return this.Select(item => item?.GetHashCode() ?? 0).Aggregate((x, y) => x ^ y);
+        }
+        public static bool operator ==(EquatableList<T> list1, EquatableList<T> list2)
+        {
+            return ReferenceEquals(list1, list2)
+                || list1 is not null && list2 is not null && list1.Equals(list2);
+        }
+        public static bool operator !=(EquatableList<T> list1, EquatableList<T> list2)
+        {
+            return !(list1 == list2);
+        }
+    }
+}
+```
 
 ## Breaking Changes:
 

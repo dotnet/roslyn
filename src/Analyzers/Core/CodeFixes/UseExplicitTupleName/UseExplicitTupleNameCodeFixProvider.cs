@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName;
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseExplicitTupleName), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class UseExplicitTupleNameCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed partial class UseExplicitTupleNameCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId];
@@ -33,7 +33,7 @@ internal partial class UseExplicitTupleNameCodeFixProvider() : SyntaxEditorBased
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var generator = editor.Generator;
 
