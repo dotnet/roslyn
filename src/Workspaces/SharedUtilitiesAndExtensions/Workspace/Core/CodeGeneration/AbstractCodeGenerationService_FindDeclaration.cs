@@ -150,18 +150,6 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
         var declarationReferences = _symbolDeclarationService.GetDeclarations(symbol);
         var declarations = declarationReferences.SelectAsArray(r => r.GetSyntax(cancellationToken));
 
-        // Sort the declarations so that we prefer non-compilation-unit results over compilation-unit results. If we're
-        // adding to a type, we'd prefer to actually add to a real type-decl vs the compilation-unit if this is a top
-        //// level type.
-        //declarations = declarations.Sort(
-        //    static (n1, n2) => (n1 is ICompilationUnitSyntax, n2 is ICompilationUnitSyntax) switch
-        //    {
-        //        (true, true) => 0,
-        //        (true, false) => 1,
-        //        (false, true) => -1,
-        //        (false, false) => 0,
-        //    });
-
         using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var ancestors);
 
         var fallbackDeclaration = (SyntaxNode?)null;
@@ -170,30 +158,23 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             var token = location.FindToken(cancellationToken);
             ancestors.AddRange(token.GetAncestors<SyntaxNode>());
 
-            // First, ignore generated code checks.  We have a particular location we're trying to generate at.  So we
-            // should aim to satisfy that first.
-            if (TryAddTo(declarations, checkGeneratedCode: false, out var declaration1, out var availableIndices1))
+            // Prefer non-compilation-unit results over compilation-unit results. If we're adding to a type, we'd prefer
+            // to actually add to a real type-decl vs the compilation-unit if this is a top level type.
+
+            if (TryAddToRelatedDeclaration(declarations.Where(d => d is not ICompilationUnitSyntax), checkGeneratedCode: false, out var declaration1, out var availableIndices1) ||
+                TryAddToRelatedDeclaration(declarations.Where(d => d is ICompilationUnitSyntax), checkGeneratedCode: false, out declaration1, out availableIndices1))
+            {
                 return (declaration1, availableIndices1);
+            }
         }
 
-        // If there is a declaration in a non auto-generated file, prefer it.
-        if (TryAddTo(declarations, checkGeneratedCode: true, out var declaration2, out var availableIndices2))
+        // Check all declarations, preferring declarations not in generated files.
+        if (TryAddToLoop(declarations, checkGeneratedCode: true, out var declaration2, out var availableIndices2, predicate: node => true))
             return (declaration2, availableIndices2);
 
         // Generate into any declaration we can find.
         return (fallbackDeclaration, availableIndices: null);
-
-        bool TryAddTo(
-            IEnumerable<SyntaxNode> declarations,
-            bool checkGeneratedCode,
-            [NotNullWhen(true)] out SyntaxNode? declaration,
-            out IList<bool>? availableIndices)
-        {
-            return TryAddToWorker(declarations.Where(d => d is not ICompilationUnitSyntax), checkGeneratedCode, out declaration, out availableIndices)
-                || TryAddToWorker(declarations.Where(d => d is ICompilationUnitSyntax), checkGeneratedCode, out declaration, out availableIndices);
-        }
-
-        bool TryAddToWorker(
+        bool TryAddToRelatedDeclaration(
             IEnumerable<SyntaxNode> declarations,
             bool checkGeneratedCode,
             [NotNullWhen(true)] out SyntaxNode? declaration,
@@ -225,25 +206,24 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             // is because this container isn't really used by the user to place code, but is instead just used to
             // separate out the nested type.  It would be nice to detect this and do the right thing.
 
-            foreach (var decl in declarations)
-            {
-                if (ancestors.Contains(decl))
-                {
-                    fallbackDeclaration ??= decl;
-                    if (CanAddTo(decl, solution, cancellationToken, out availableIndices, checkGeneratedCode))
-                    {
-                        declaration = decl;
-                        return true;
-                    }
-                }
-            }
-
             // If we didn't find a declaration that the context node is contained within, then just pick the first
             // declaration in the same file.
 
+            return
+                TryAddToLoop(declarations, checkGeneratedCode, out declaration, out availableIndices, d => ancestors.Contains(d)) ||
+                TryAddToLoop(declarations, checkGeneratedCode, out declaration, out availableIndices, d => d.SyntaxTree == location?.SourceTree);
+        }
+
+        bool TryAddToLoop(
+            IEnumerable<SyntaxNode> declarations,
+            bool checkGeneratedCode,
+            [NotNullWhen(true)] out SyntaxNode? declaration,
+            out IList<bool>? availableIndices,
+            Func<SyntaxNode, bool> predicate)
+        {
             foreach (var decl in declarations)
             {
-                if (decl.SyntaxTree == location?.SourceTree)
+                if (predicate(decl))
                 {
                     fallbackDeclaration ??= decl;
                     if (CanAddTo(decl, solution, cancellationToken, out availableIndices, checkGeneratedCode))
@@ -251,16 +231,6 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
                         declaration = decl;
                         return true;
                     }
-                }
-            }
-
-            foreach (var decl in declarations)
-            {
-                fallbackDeclaration ??= decl;
-                if (CanAddTo(decl, solution, cancellationToken, out availableIndices, checkGeneratedCode))
-                {
-                    declaration = decl;
-                    return true;
                 }
             }
 
