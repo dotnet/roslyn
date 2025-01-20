@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -115,7 +116,7 @@ internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxE
             // this local statement will be moved to be above the statement containing
             // the out-var.
             var localDeclarationStatement = (LocalDeclarationStatementSyntax)declaration.Parent;
-            var block = CSharpInlineDeclarationDiagnosticAnalyzer.GetEnclosingPseudoBlock(localDeclarationStatement.Parent);
+            var block = CSharpBlockFacts.Instance.GetImmediateParentExecutableBlockForStatement(localDeclarationStatement);
             var statements = GetStatements(block);
             var declarationIndex = statements.IndexOf(localDeclarationStatement);
 

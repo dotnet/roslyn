@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -174,7 +175,7 @@ internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer()
         // for references to the local to make sure that no reads/writes happen before
         // the out-argument.  If there are any reads/writes we can't inline as those
         // accesses will become invalid.
-        var enclosingBlockOfLocalStatement = GetEnclosingPseudoBlock(localStatement.Parent);
+        var enclosingBlockOfLocalStatement = CSharpBlockFacts.Instance.GetImmediateParentExecutableBlockForStatement(localStatement);
         if (enclosingBlockOfLocalStatement is null)
             return;
 
@@ -243,20 +244,6 @@ internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer()
             context.Options,
             additionalLocations: allLocations,
             properties: null));
-    }
-
-    public static SyntaxNode? GetEnclosingPseudoBlock(SyntaxNode? parent)
-    {
-        if (parent is BlockSyntax)
-            return parent;
-
-        if (parent is SwitchSectionSyntax)
-            return parent;
-
-        if (parent is GlobalStatementSyntax)
-            return parent.Parent as CompilationUnitSyntax;
-
-        return null;
     }
 
     private static StatementSyntax GetLastStatement(SyntaxNode enclosingBlock)
