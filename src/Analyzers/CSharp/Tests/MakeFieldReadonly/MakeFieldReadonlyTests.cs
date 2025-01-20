@@ -2323,4 +2323,31 @@ $@"class MyClass
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47198")]
+    public async Task TestIndexedAndAssignedField()
+    {
+        await TestMissingAsync(
+            """
+            class GreenNode { }
+
+            struct SyntaxListBuilder<TNode>
+            {
+                public GreenNode this[int index]
+                {
+                    get => default;
+                    set { }
+                }
+            }
+
+            class SkippedTriviaBuilder
+                private SyntaxListBuilder<GreenNode> [|_triviaListBuilder|];
+
+                public AddSkippedTrivia(GreenNode trivia)
+                {
+                    _triviaListBuilder[0] = trivia;
+                }
+            }
+            """);
+    }
 }
