@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -305,13 +303,13 @@ internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer()
     {
         for (var current = argumentExpression; current != null; current = current.Parent)
         {
-            if (current.Parent is LambdaExpressionSyntax lambda &&
-                current == lambda.Body)
-            {
-                // We were in a lambda.  The lambda body will be the new scope of the 
-                // out var.
+            // We were in a lambda.  The lambda body will be the new scope of the out var.
+            if (current.Parent is LambdaExpressionSyntax lambda && current == lambda.Body)
                 return current;
-            }
+
+            // The arm of a switch expression is its own isolated scope.
+            if (current.Parent is SwitchExpressionArmSyntax switchArm && current == switchArm.Expression)
+                return current;
 
             // Any loop construct defines a scope for out-variables, as well as each of the following:
             // * Using statements
