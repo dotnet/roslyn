@@ -2735,7 +2735,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
                 private static int Main(string[] args)
                 {
                     Dictionary<int, int> dict = new Dictionary<int, int> { /* ... */ };
-                    [|int|] price; // IDE0018 
+                    [|int|] price;
                     bool found = args[0] switch
                     {
                         "First" => dict.TryGetValue(1, out price) ? price == 1 : false,
@@ -2756,7 +2756,7 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
                     Dictionary<int, int> dict = new Dictionary<int, int> { /* ... */ };
                     bool found = args[0] switch
                     {
-                        "First" => dict.TryGetValue(1, out var price) ? price == 1 : false,
+                        "First" => dict.TryGetValue(1, out int price) ? price == 1 : false,
                         _ => false,
                     };
 
