@@ -2400,4 +2400,55 @@ $@"class MyClass
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49290")]
+    public async Task TestPropertyMutatedField_StructType()
+    {
+        await TestMissingAsync(
+            """
+            interface I
+            {
+                int P { get; set; }
+            }
+
+            class C<T> where T : struct, I
+            {
+                private T [|_x|];
+
+                public void Foo() => _x.P = 42;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49290")]
+    public async Task TestPropertyMutatedField_ClassType()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            interface I
+            {
+                int P { get; set; }
+            }
+
+            class C<T> where T : class, I
+            {
+                private T [|_x|];
+
+                public void Foo() => _x.P = 42;
+            }
+            """,
+            """
+            interface I
+            {
+                int P { get; set; }
+            }
+            
+            class C<T> where T : class, I
+            {
+                private readonly T _x;
+            
+                public void Foo() => _x.P = 42;
+            }
+            """);
+    }
 }
