@@ -9,9 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -164,8 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
             if (AdaptedMethodSymbol.IsDefinition && // can't be generic instantiation
-                AdaptedMethodSymbol.ContainingModule == moduleBeingBuilt.SourceModule &&  // must be declared in the module we are building
-                AdaptedMethodSymbol is not Async2ThunkForAsyncMethod)  // must not be a thunk to an async2 method
+                AdaptedMethodSymbol.ContainingModule == moduleBeingBuilt.SourceModule) // must be declared in the module we are building
             {
                 Debug.Assert((object)AdaptedMethodSymbol.PartialDefinitionPart == null); // must be definition
                 return this;
@@ -242,8 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            var type = AdaptedMethodSymbol.ReturnType;
-            return ((PEModuleBuilder)context.Module).Translate(type,
+            return ((PEModuleBuilder)context.Module).Translate(AdaptedMethodSymbol.ReturnType,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                 diagnostics: context.Diagnostics);
         }

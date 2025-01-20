@@ -23,66 +23,86 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_factory.CurrentFunction?.IsAsync2 == true)
             {
                 BoundExpression arg = loweredAwait.Expression;
-                if (arg is BoundCall call1 &&
-                    (call1.Method.ReturnType.IsGenericNonCustomTaskType(_factory.Compilation) ||
-                     call1.Method.ReturnType.IsNonGenericNonCustomTaskType(_factory.Compilation) ||
-                     call1.Method.ReturnType.IsGenericNonCustomValueTaskType(_factory.Compilation) ||
-                     call1.Method.ReturnType.IsNonGenericNonCustomValueTaskType(_factory.Compilation)))
+
+                // TODO: VS does this need to be a call?
+                if (arg is BoundCall call1)
                 {
-                    var thunkMethod = new Async2ThunkForAsyncMethod(call1.Method);
-                    return call1.Update(
-                        call1.ReceiverOpt,
-                        call1.InitialBindingReceiverIsSubjectToCloning,
-                        thunkMethod,
-                        call1.Arguments,
-                        call1.ArgumentNamesOpt,
-                        call1.ArgumentRefKindsOpt,
-                        call1.IsDelegateCall,
-                        call1.Expanded,
-                        call1.InvokedAsExtensionMethod,
-                        call1.ArgsToParamsOpt,
-                        call1.DefaultArguments,
-                        call1.ResultKind,
-                        loweredAwait.Type);
+                    MethodSymbol? awaitHelper = null;
+                    if (call1.Method.ReturnType.IsGenericNonCustomTaskType(_factory.Compilation))
+                    {
+                        awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_Task_T);
+                        if (awaitHelper != null)
+                        {
+                            TypeSymbol elementType = ((NamedTypeSymbol)call1.Method.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                            awaitHelper = awaitHelper.Construct(elementType);
+                        }
+                    }
+                    else if (call1.Method.ReturnType.IsNonGenericNonCustomTaskType(_factory.Compilation))
+                    {
+                        awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_Task);
+                    }
+                    else if (call1.Method.ReturnType.IsGenericNonCustomValueTaskType(_factory.Compilation))
+                    {
+                        awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_ValueTask_T);
+                        if (awaitHelper != null)
+                        {
+                            TypeSymbol elementType = ((NamedTypeSymbol)call1.Method.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                            awaitHelper = awaitHelper.Construct(elementType);
+                        }
+                    }
+                    else if (call1.Method.ReturnType.IsNonGenericNonCustomValueTaskType(_factory.Compilation))
+                    {
+                        awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_ValueTask);
+                    }
+
+                    if (awaitHelper != null)
+                    {
+                        // REWRITE: 
+                        // await arg
+                        // == INTO ===> 
+                        // Await(arg)
+                        return _factory.Call(
+                            null,
+                            awaitHelper,
+                            arg);
+                    }
                 }
-                else
-                {
-                    // REWRITE: 
-                    // await arg
-                    //
-                    // == INTO ===> 
-                    //
-                    // sequence
-                    // {
-                    //   var awaiter = arg.GetAwaiter();
-                    //   if (awaiter.IsComplete())
-                    //   {
-                    //       UnsafeAwaitAwaiterFromRuntimeAsync(awaiter)
-                    //   }
-                    //   awaiter.GetResult()
-                    // }
 
-                    BoundCall getAwaiter = _factory.Call(arg, (MethodSymbol)loweredAwait.AwaitableInfo.GetAwaiter!.ExpressionSymbol!);
-                    BoundLocal awaiterTmp = _factory.StoreToTemp(getAwaiter, out var awaiterTempAssignment);
+                // REWRITE: 
+                // await arg
+                //
+                // == INTO ===> 
+                //
+                // sequence
+                // {
+                //   var awaiter = arg.GetAwaiter();
+                //   if (awaiter.IsComplete())
+                //   {
+                //       UnsafeAwaitAwaiterFromRuntimeAsync(awaiter)
+                //   }
+                //   awaiter.GetResult()
+                // }
 
-                    BoundCall isCompleted = _factory.Call(awaiterTmp, loweredAwait.AwaitableInfo.IsCompleted!.GetMethod);
+                BoundCall getAwaiter = _factory.Call(arg, (MethodSymbol)loweredAwait.AwaitableInfo.GetAwaiter!.ExpressionSymbol!);
+                BoundLocal awaiterTmp = _factory.StoreToTemp(getAwaiter, out var awaiterTempAssignment);
 
-                    MethodSymbol helperMethod = (MethodSymbol)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter)!;
-                    helperMethod = helperMethod.Construct(getAwaiter.Type);
-                    BoundCall helperCall = _factory.Call(null, helperMethod, awaiterTmp);
+                BoundCall isCompleted = _factory.Call(awaiterTmp, loweredAwait.AwaitableInfo.IsCompleted!.GetMethod);
 
-                    BoundExpression ifNotCompleteCallHelper = _factory.Conditional(isCompleted, _factory.Default(helperCall.Type), helperCall, helperCall.Type);
+                MethodSymbol helperMethod = (MethodSymbol)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter)!;
+                helperMethod = helperMethod.Construct(getAwaiter.Type);
+                BoundCall helperCall = _factory.Call(null, helperMethod, awaiterTmp);
 
-                    MethodSymbol getResultMethod = (MethodSymbol)loweredAwait.AwaitableInfo.GetResult!;
-                    BoundCall getResult = _factory.Call(awaiterTmp, getResultMethod);
+                BoundExpression ifNotCompleteCallHelper = _factory.Conditional(isCompleted, _factory.Default(helperCall.Type), helperCall, helperCall.Type);
 
-                    return _factory.Sequence(
-                        ImmutableArray.Create(awaiterTmp.LocalSymbol),
-                        ImmutableArray.Create(
-                            awaiterTempAssignment,
-                            ifNotCompleteCallHelper),
-                        getResult);
-                }
+                MethodSymbol getResultMethod = (MethodSymbol)loweredAwait.AwaitableInfo.GetResult!;
+                BoundCall getResult = _factory.Call(awaiterTmp, getResultMethod);
+
+                return _factory.Sequence(
+                    ImmutableArray.Create(awaiterTmp.LocalSymbol),
+                    ImmutableArray.Create(
+                        awaiterTempAssignment,
+                        ifNotCompleteCallHelper),
+                    getResult);
             }
 
             return loweredAwait;
