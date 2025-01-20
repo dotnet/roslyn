@@ -49,7 +49,7 @@ internal static partial class OperationExtensions
 
         */
         // Workaround for https://github.com/dotnet/roslyn/issues/30753
-        if (operation is ILocalReferenceOperation { IsDeclaration: true, IsImplicit: false } localReference)
+        if (operation is ILocalReferenceOperation { IsDeclaration: true, IsImplicit: false })
         {
             // Declaration expression is a definition (write) for the declared local.
             return ValueUsageInfo.Write;
