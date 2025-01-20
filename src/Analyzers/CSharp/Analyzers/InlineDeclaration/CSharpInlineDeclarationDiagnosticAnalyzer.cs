@@ -246,20 +246,6 @@ internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer()
             properties: null));
     }
 
-    private static StatementSyntax GetLastStatement(SyntaxNode enclosingBlock)
-    {
-        if (enclosingBlock is BlockSyntax block)
-            return block.Statements.Last();
-
-        if (enclosingBlock is SwitchSectionSyntax switchSection)
-            return switchSection.Statements.Last();
-
-        if (enclosingBlock is CompilationUnitSyntax compilationUnit)
-            return compilationUnit.Members.OfType<GlobalStatementSyntax>().Last().Statement;
-
-        throw ExceptionUtilities.Unreachable();
-    }
-
     private static bool WouldCauseDefiniteAssignmentErrors(
         SemanticModel semanticModel,
         LocalDeclarationStatementSyntax localStatement,
@@ -281,7 +267,7 @@ internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer()
 
         var dataFlow = semanticModel.AnalyzeDataFlow(
             nextStatement,
-            GetLastStatement(enclosingBlock));
+            CSharpBlockFacts.Instance.GetExecutableBlockStatements(enclosingBlock).Last());
         Contract.ThrowIfNull(dataFlow);
         return dataFlow.DataFlowsIn.Contains(outLocalSymbol);
     }
