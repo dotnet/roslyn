@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             ITextManagerAdapter textManagerAdapter)
         {
             // Keep track that code model was accessed.  We want to get a sense of how widespread usage of it still is.
-            Logger.Log(FunctionId.CodeModel_FileCodeModel_Create, logLevel: RoslynLog.LogLevel.Information);
+            Logger.Log(FunctionId.CodeModel_FileCodeModel_Create, logLevel: LogLevel.Information);
             return new FileCodeModel(state, parent, documentId, isSourceGeneratorOutput, textManagerAdapter).GetComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>();
         }
 
