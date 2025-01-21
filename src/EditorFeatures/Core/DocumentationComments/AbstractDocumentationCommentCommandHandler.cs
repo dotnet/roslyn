@@ -4,10 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -24,7 +27,9 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
+using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
@@ -114,10 +119,12 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
             if (snippet != null)
             {
                 ApplySnippet(snippet, subjectBuffer, textView);
-                returnValue = true;
+                var oldSnapshot = subjectBuffer.CurrentSnapshot;
+                var oldCaret = textView.Caret.Position.VirtualBufferPosition;
 
-                // Retrieve the locations for the proposals here
-                if (snippet.Proposal != null && _suggestionManagerBase != null)
+                returnValue = true;
+                // Only calls into the suggestion manager is available, the shell of the comment still gets inserted regardless.
+                if (_suggestionManagerBase != null)
                 {
                     _threadingContext.ThrowIfNotOnUIThread();
 
@@ -125,18 +132,33 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                     {
                         await Task.Run(async () =>
                         {
-                            await _suggestionManagerBase.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
+                            // Bailing out if copilot is not available or the option is not enabled.
                             if (document.GetRequiredLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
                                 await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
                             {
                                 return;
                             }
 
-                            var list = new List<ProposedEdit>();
+                            if (document.GetLanguageService<ICopilotOptionsService>() is not { } copilotOptionService ||
+                                !await copilotOptionService.IsGenerateDocumentationCommentOptionEnabledAsync().ConfigureAwait(false))
+                            {
+                                return;
+                            }
 
-                            var proposalEdits = await GetProposedEditsAsync(snippet.Proposal, subjectBuffer, copilotService, cancellationToken).ConfigureAwait(false);
+                            var snippetProposal = GetSnippetProposal(snippet.SnippetText, snippet.MemberNode, snippet.Position, snippet.CaretOffset);
 
-                            var proposal = new DocumentationCommentHandlerProposal(textView.Caret.Position.VirtualBufferPosition, proposalEdits);
+                            if (snippetProposal is null)
+                            {
+                                return;
+                            }
+
+                            // Does not do IntelliCode line completions if we're about to generate a documentation comment
+                            // so that won't have interfering grey text.
+                            /*var intellicodeLineCompletionsDisposable = */await _suggestionManagerBase.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
+
+                            var proposalEdits = await GetProposedEditsAsync(snippetProposal, copilotService, oldSnapshot, cancellationToken).ConfigureAwait(false);
+
+                            var proposal = new DocumentationCommentHandlerProposal(oldCaret, proposalEdits);
                             var suggestion = new DocumentationCommentSuggestion(this, proposal);
 
                             var session = this._suggestionSession = await (_suggestionManagerBase.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
@@ -154,15 +176,143 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         return returnValue;
     }
 
+    /// <summary>
+    /// Traverses the documentation comment shell and retrieves the pieces that are needed to generate the documentation comment.
+    /// </summary>
+    private static DocumentationCommentProposal? GetSnippetProposal(string? comments, SyntaxNode? memberNode, int? position, int caret)
+    {
+        if (comments is null)
+        {
+            return null;
+        }
+
+        if (memberNode is null)
+        {
+            return null;
+        }
+
+        if (position is null)
+        {
+            return null;
+        }
+
+        var startIndex = position.Value;
+        var proposedEdits = new List<DocumentationCommentProposedEdit>();
+        var index = 0;
+
+        var summaryStartTag = comments.IndexOf("<summary>", index, StringComparison.Ordinal);
+        var summaryEndTag = comments.IndexOf("</summary>", index, StringComparison.Ordinal);
+        if (summaryEndTag != -1 && summaryStartTag != -1)
+        {
+            proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(caret + startIndex, 0), null, DocumentationCommentTagType.Summary));
+        }
+
+        while (true)
+        {
+            var paramEndTag = comments.IndexOf("</param>", index, StringComparison.Ordinal);
+            var paramStartTag = comments.IndexOf("<param name=\"", index, StringComparison.Ordinal);
+
+            if (paramStartTag == -1 || paramEndTag == -1)
+            {
+                break;
+            }
+
+            var paramNameStart = paramStartTag + "<param name=\"".Length;
+            var paramNameEnd = comments.IndexOf("\">", paramNameStart, StringComparison.Ordinal);
+            if (paramNameEnd != -1)
+            {
+                var parameterName = comments.Substring(paramNameStart, paramNameEnd - paramNameStart);
+                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(paramEndTag + startIndex, 0), parameterName, DocumentationCommentTagType.Param));
+            }
+
+            index = paramEndTag + "</param>".Length;
+        }
+
+        var returnsEndTag = comments.IndexOf("</returns>", index, StringComparison.Ordinal);
+        if (returnsEndTag != -1)
+        {
+            proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(returnsEndTag + startIndex, 0), null, DocumentationCommentTagType.Returns));
+        }
+
+        while (true)
+        {
+            var exceptionEndTag = comments.IndexOf("</exception>", index, StringComparison.Ordinal);
+            var exceptionStartTag = comments.IndexOf("<exception cref=\"", index, StringComparison.Ordinal);
+
+            if (exceptionEndTag == -1 || exceptionStartTag == -1)
+            {
+                break;
+            }
+
+            var exceptionNameStart = exceptionStartTag + "<exception cref=\"".Length;
+            var exceptionNameEnd = comments.IndexOf("\">", exceptionNameStart, StringComparison.Ordinal);
+            if (exceptionNameEnd != -1)
+            {
+                var exceptionName = comments.Substring(exceptionNameStart, exceptionNameEnd - exceptionNameStart);
+                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(exceptionEndTag + startIndex, 0), exceptionName, DocumentationCommentTagType.Exception));
+            }
+
+            index = exceptionEndTag + "</exception>".Length;
+        }
+
+        return new DocumentationCommentProposal(memberNode.ToFullString(), proposedEdits.ToImmutableArray());
+    }
+
+    /// <summary>
+    /// Calls into the copilot service to get the pieces for the documentation comment.
+    /// </summary>
     private static async Task<IReadOnlyList<ProposedEdit>> GetProposedEditsAsync(
-        DocumentationCommentProposal proposal, ITextBuffer textBuffer, ICopilotCodeAnalysisService copilotService, CancellationToken cancellationToken)
+        DocumentationCommentProposal proposal, ICopilotCodeAnalysisService copilotService,
+        ITextSnapshot oldSnapshot, CancellationToken cancellationToken)
     {
         var list = new List<ProposedEdit>();
+        var copilotText = await copilotService.GetDocumentationCommentAsync(proposal, cancellationToken).ConfigureAwait(false);
+
+        // The response from Copilot is structured like a JSON object, so make sure it is being returned appropriately.
+        if (copilotText is null || copilotText.AsSpan().Trim() is "{}" or "{ }" or "")
+        {
+            return list;
+        }
+
+        // If the response can't be properly converted, something went wrong and bail out.
+        Dictionary<string, string>? props;
+        try
+        {
+            props = JsonConvert.DeserializeObject<Dictionary<string, string>>(copilotText);
+        }
+        catch (Exception)
+        {
+            return list;
+        }
+
+        if (props is null)
+        {
+            return list;
+        }
+
         foreach (var edit in proposal.ProposedEdits)
         {
+            string? copilotStatement = null;
             var textSpan = edit.SpanToReplace;
-            var copilotText = await copilotService.GetDocumentationCommentAsync(proposal.SymbolToAnalyze, edit.SymbolName, edit.TagType.ToString(), cancellationToken).ConfigureAwait(false);
-            var proposedEdit = new ProposedEdit(new SnapshotSpan(textBuffer.CurrentSnapshot, textSpan.Start, textSpan.Length), copilotText);
+
+            if (edit.TagType == DocumentationCommentTagType.Summary && props.TryGetValue(DocumentationCommentTagType.Summary.ToString(), out var summary) && !string.IsNullOrEmpty(summary))
+            {
+                copilotStatement = summary;
+            }
+            else if (edit.TagType == DocumentationCommentTagType.Param && props.TryGetValue(edit.SymbolName!, out var param) && !string.IsNullOrEmpty(param))
+            {
+                copilotStatement = param;
+            }
+            else if (edit.TagType == DocumentationCommentTagType.Returns && props.TryGetValue(DocumentationCommentTagType.Returns.ToString(), out var returns) && !string.IsNullOrEmpty(returns))
+            {
+                copilotStatement = returns;
+            }
+            else if (edit.TagType == DocumentationCommentTagType.Exception && props.TryGetValue(edit.SymbolName!, out var exception) && !string.IsNullOrEmpty(exception))
+            {
+                copilotStatement = exception;
+            }
+
+            var proposedEdit = new ProposedEdit(new SnapshotSpan(oldSnapshot, textSpan.Start, textSpan.Length), copilotStatement!);
             list.Add(proposedEdit);
         }
 

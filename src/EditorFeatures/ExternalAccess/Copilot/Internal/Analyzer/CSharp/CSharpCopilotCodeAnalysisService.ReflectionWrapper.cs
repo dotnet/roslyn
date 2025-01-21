@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
@@ -22,7 +23,7 @@ using StartRefinementSessionAsyncDelegateType = Func<Document, Document, Diagnos
 using GetOnTheFlyDocsAsyncDelegateType = Func<string, ImmutableArray<string>, string, CancellationToken, Task<string>>;
 using IsAnyExclusionAsyncDelegateType = Func<CancellationToken, Task<bool>>;
 using IsFileExcludedAsyncDelegateType = Func<string, CancellationToken, Task<bool>>;
-using GetDocumentationCommentAsyncDelegateType = Func<string, string?, string, CancellationToken, Task<string>>;
+using GetDocumentationCommentAsyncDelegateType = Func<CopilotDocumentationCommentProposalWrapper, CancellationToken, Task<string>>;
 
 internal sealed partial class CSharpCopilotCodeAnalysisService
 {
@@ -124,7 +125,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
             => CreateDelegate<IsFileExcludedAsyncDelegateType>(IsFileExcludedAsyncMethodName, [typeof(string), typeof(CancellationToken)]);
 
         private GetDocumentationCommentAsyncDelegateType? CreateGetDocumentationCommentAsyncDelegate()
-            => CreateDelegate<GetDocumentationCommentAsyncDelegateType>(GetDocumentationCommentAsyncMethodName, [typeof(string), typeof(string), typeof(string), typeof(CancellationToken)]);
+            => CreateDelegate<GetDocumentationCommentAsyncDelegateType>(GetDocumentationCommentAsyncMethodName, [typeof(CopilotDocumentationCommentProposalWrapper), typeof(CancellationToken)]);
 
         public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         {
@@ -182,12 +183,12 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
             return await _lazyIsFileExcludedAsyncDelegate.Value(filePath, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<string> GetDocumentationCommentAsync(string memberDeclaration, string? symbolName, string tagType, CancellationToken cancellationToken)
+        public async Task<string> GetDocumentationCommentAsync(CopilotDocumentationCommentProposalWrapper proposal, CancellationToken cancellationToken)
         {
             if (_lazyGetDocumentationCommentAsyncDelegate is null)
                 return string.Empty;
 
-            return await _lazyGetDocumentationCommentAsyncDelegate.Value(memberDeclaration, symbolName, tagType, cancellationToken).ConfigureAwait(false);
+            return await _lazyGetDocumentationCommentAsyncDelegate.Value(proposal, cancellationToken).ConfigureAwait(false);
         }
     }
 }

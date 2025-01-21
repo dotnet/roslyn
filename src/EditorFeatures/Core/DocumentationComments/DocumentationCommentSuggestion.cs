@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public override Task OnProposalUpdatedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForUpdate reason, VirtualSnapshotPoint caret, CompletionState? completionState, CancellationToken cancel)
         {
-            if (currentProposal is null)
+            if (reason.HasFlag(ReasonForUpdate.Diverged))
             {
                 return session.DismissAsync(ReasonForDismiss.DismissedAfterBufferChange, cancel);
             }

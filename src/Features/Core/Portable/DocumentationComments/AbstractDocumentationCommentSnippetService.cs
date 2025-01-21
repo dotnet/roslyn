@@ -105,14 +105,8 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         var replaceSpan = new TextSpan(token.Span.Start, spanToReplaceLength);
 
         var memberNode = GetContainingMember(syntaxTree, position, cancellationToken);
-        var proposal = GetProposal(replaceSpan, comments, memberNode, position, caretOffset);
 
-        if (addGreyText)
-        {
-            return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset, proposal);
-        }
-
-        return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset);
+        return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset, position, memberNode);
     }
 
     private List<string>? GetDocumentationCommentLines(SyntaxToken token, SourceText text, in DocumentationCommentOptions options, out string? indentText, out int caretOffset, out int spanToReplaceLength)
@@ -329,7 +323,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
             replaceSpan = new TextSpan(start, currentLinePosition.Value - start);
         }
 
-        return new DocumentationCommentSnippet(replaceSpan, newText, offset);
+        return new DocumentationCommentSnippet(replaceSpan, newText, offset, position: null, memberNode: null);
     }
 
     public DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(ParsedDocument document, int position, in DocumentationCommentOptions options, CancellationToken cancellationToken)
@@ -368,7 +362,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         // For a command we don't replace a token, but insert before it
         var replaceSpan = new TextSpan(token.Span.Start, 0);
 
-        return new DocumentationCommentSnippet(replaceSpan, comments, offset);
+        return new DocumentationCommentSnippet(replaceSpan, comments, offset, position: null, memberNode: null);
     }
 
     private DocumentationCommentSnippet? GenerateExteriorTriviaAfterEnter(ParsedDocument document, int position, in DocumentationCommentOptions options, CancellationToken cancellationToken)
@@ -444,7 +438,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
             ? TextSpan.FromBounds(currentLine.Start, currentLine.Start + firstNonWhitespaceOffset.Value)
             : currentLine.Span;
 
-        return new DocumentationCommentSnippet(replaceSpan, insertionText, insertionText.Length);
+        return new DocumentationCommentSnippet(replaceSpan, insertionText, insertionText.Length, position: null, memberNode: null);
     }
 
     private string CreateInsertionTextFromPreviousLine(TextLine previousLine, in DocumentationCommentOptions options)
@@ -465,10 +459,5 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
             : " ";
 
         return firstNonWhitespaceColumn.CreateIndentationString(options.UseTabs, options.TabSize) + ExteriorTriviaText + extraIndent;
-    }
-
-    protected virtual DocumentationCommentProposal? GetProposal(TextSpan textSpan, string? comments, TMemberNode? memberNode, int startIndex, int caret)
-    {
-        return null;
     }
 }

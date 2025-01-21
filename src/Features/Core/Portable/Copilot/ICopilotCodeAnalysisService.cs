@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -77,6 +78,6 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// </summary>
     Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken);
 
-    Task<string> GetDocumentationCommentAsync(string memberDeclaration, string? symbolName, string tagType, CancellationToken cancellationToken);
+    Task<string> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
 
 }

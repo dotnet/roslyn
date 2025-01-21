@@ -25,13 +25,22 @@ internal sealed class DocumentationCommentSnippet
     /// </summary>
     public int CaretOffset { get; }
 
-    public DocumentationCommentProposal? Proposal { get; }
+    /// <summary>
+    /// 
+    /// </summary>
+    public int? Position { get; }
 
-    internal DocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset, DocumentationCommentProposal? proposal = null)
+    /// <summary>
+    /// 
+    /// </summary>
+    public SyntaxNode? MemberNode { get; }
+
+    internal DocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset, int? position, SyntaxNode? memberNode)
     {
         SpanToReplace = spanToReplace;
         SnippetText = snippetText;
         CaretOffset = caretOffset;
-        Proposal = proposal;
+        Position = position;
+        MemberNode = memberNode;
     }
 }

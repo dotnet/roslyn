@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Copilot
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -363,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.FromResult(False)
             End Function
 
-            Public Function GetDocumentationCommentAsync(memberDeclaration As String, symbolName As String, tagType As String, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetDocumentationCommentAsync
+            Public Function GetDocumentationCommentAsync(proposal As DocumentationCommentProposal, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetDocumentationCommentAsync
                 Return Task.FromResult("")
             End Function
         End Class

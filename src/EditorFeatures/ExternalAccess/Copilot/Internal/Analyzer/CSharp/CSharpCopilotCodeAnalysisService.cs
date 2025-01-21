@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -83,6 +84,6 @@ internal sealed partial class CSharpCopilotCodeAnalysisService : AbstractCopilot
     protected override Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken)
         => _lazyExternalCopilotService.Value.IsFileExcludedAsync(filePath, cancellationToken);
 
-    protected override Task<string> GetDocumentationCommentCoreAsync(string memberDeclaration, string? symbolName, string tagType, CancellationToken cancellationToken)
-        => _lazyExternalCopilotService.Value.GetDocumentationCommentAsync(memberDeclaration, symbolName, tagType, cancellationToken);
+    protected override Task<string> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.GetDocumentationCommentAsync(new CopilotDocumentationCommentProposalWrapper(proposal), cancellationToken);
 }
