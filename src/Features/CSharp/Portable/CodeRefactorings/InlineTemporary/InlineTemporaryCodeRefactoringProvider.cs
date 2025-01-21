@@ -268,7 +268,7 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider()
                     editor.ReplaceNode(
                         spreadElement,
                         (_, _) => collectionToInline.Elements.Select(
-                            e => e.WithLeadingTrivia(leadingTrivia).WithoutTrailingTrivia()));
+                            e => e.WithLeadingTrivia(leadingTrivia)));
                 }
                 else
                 {
