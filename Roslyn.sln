@@ -119,7 +119,7 @@ Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VisualBasicErrorFactsGenera
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Workspaces.Desktop", "src\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj", "{2E87FA96-50BB-4607-8676-46521599F998}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Workspaces.MSBuild", "src\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj", "{96EB2D3B-F694-48C6-A284-67382841E086}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Workspaces.MSBuild", "src\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj", "{96EB2D3B-F694-48C6-A284-67382841E086}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Workspaces", "src\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj", "{21B239D0-D144-430F-A394-C066D58EE267}"
 EndProject
@@ -322,7 +322,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Debu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.PooledObjects.Package", "src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.Package.csproj", "{49E7C367-181B-499C-AC2E-8E17C81418D6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests", "src\Workspaces\MSBuildTest\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.csproj", "{037F06F0-3BE8-42D0-801E-2F74FC380AB8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests", "src\Workspaces\MSBuild\Test\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.csproj", "{037F06F0-3BE8-42D0-801E-2F74FC380AB8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InteractiveHost64", "src\Interactive\HostProcess\x64\InteractiveHost64.csproj", "{2F11618A-9251-4609-B3D5-CE4D2B3D3E49}"
 EndProject
@@ -533,7 +533,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Xaml", "src\Tools\ExternalAccess\Xaml\Microsoft.CodeAnalysis.ExternalAccess.Xaml.csproj", "{8988270E-393A-4B92-AC1A-534F903CFD34}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost", "src\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj", "{B1481D94-682E-46EC-ADBE-A16EB46FEEE9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost", "src\Workspaces\MSBuild\BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj", "{B1481D94-682E-46EC-ADBE-A16EB46FEEE9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Copilot", "src\EditorFeatures\ExternalAccess\Copilot\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj", "{5E8FB6D6-6C5C-42E6-9220-1EAA7ED9BCAD}"
 EndProject

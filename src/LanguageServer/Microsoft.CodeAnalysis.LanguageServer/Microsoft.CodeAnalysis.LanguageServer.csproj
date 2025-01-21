@@ -64,7 +64,7 @@
   </ItemDefinitionGroup>
 
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
+    <ProjectReference Include="..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
     <ProjectReference Include="..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
 
