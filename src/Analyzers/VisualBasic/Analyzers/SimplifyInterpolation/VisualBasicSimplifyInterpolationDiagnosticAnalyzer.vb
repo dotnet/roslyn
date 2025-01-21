@@ -17,6 +17,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
 
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
         Protected Overrides ReadOnly Property VirtualCharService As IVirtualCharService = VisualBasicVirtualCharService.Instance
-        Protected Overrides ReadOnly Property Helpers As AbstractSimplifyInterpolationHelpers = VisualBasicSimplifyInterpolationHelpers.Instance
+        Protected Overrides ReadOnly Property Helpers As AbstractSimplifyInterpolationHelpers(Of InterpolationSyntax, ExpressionSyntax) = VisualBasicSimplifyInterpolationHelpers.Instance
     End Class
 End Namespace

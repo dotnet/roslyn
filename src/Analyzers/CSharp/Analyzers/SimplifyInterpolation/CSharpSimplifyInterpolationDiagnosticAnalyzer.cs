@@ -19,5 +19,5 @@ internal sealed class CSharpSimplifyInterpolationDiagnosticAnalyzer
 {
     protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
     protected override IVirtualCharService VirtualCharService => CSharpVirtualCharService.Instance;
-    protected override AbstractSimplifyInterpolationHelpers Helpers => CSharpSimplifyInterpolationHelpers.Instance;
+    protected override AbstractSimplifyInterpolationHelpers<InterpolationSyntax, ExpressionSyntax> Helpers => CSharpSimplifyInterpolationHelpers.Instance;
 }

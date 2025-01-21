@@ -25,7 +25,7 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
 {
     protected abstract ISyntaxFacts SyntaxFacts { get; }
     protected abstract IVirtualCharService VirtualCharService { get; }
-    protected abstract AbstractSimplifyInterpolationHelpers Helpers { get; }
+    protected abstract AbstractSimplifyInterpolationHelpers<TInterpolationSyntax, TExpressionSyntax> Helpers { get; }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -65,7 +65,7 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
                 return;
         }
 
-        GetHelpers().UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
+        this.Helpers.UnwrapInterpolation(
             this.VirtualCharService, this.SyntaxFacts, interpolation, out _, out var alignment, out _,
             out var formatString, out var unnecessaryLocations);
 

@@ -22,7 +22,7 @@ internal sealed class CSharpSimplifyInterpolationCodeFixProvider() : AbstractSim
     InterpolationFormatClauseSyntax,
     InterpolatedStringExpressionSyntax>
 {
-    protected override AbstractSimplifyInterpolationHelpers GetHelpers() => CSharpSimplifyInterpolationHelpers.Instance;
+    protected override AbstractSimplifyInterpolationHelpers<InterpolationSyntax, ExpressionSyntax> Helpers => CSharpSimplifyInterpolationHelpers.Instance;
 
     protected override InterpolationSyntax WithExpression(InterpolationSyntax interpolation, ExpressionSyntax expression)
         => interpolation.WithExpression(expression);

@@ -30,7 +30,7 @@ internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.SimplifyInterpolationId];
 
-    protected abstract AbstractSimplifyInterpolationHelpers GetHelpers();
+    protected abstract AbstractSimplifyInterpolationHelpers<TInterpolationSyntax, TExpressionSyntax> Helpers { get; }
 
     protected abstract TInterpolationSyntax WithExpression(TInterpolationSyntax interpolation, TExpressionSyntax expression);
     protected abstract TInterpolationSyntax WithAlignmentClause(TInterpolationSyntax interpolation, TInterpolationAlignmentClause alignmentClause);
@@ -50,7 +50,7 @@ internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var generator = editor.Generator;
         var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-        var helpers = GetHelpers();
+        var helpers = this.Helpers;
 
         foreach (var diagnostic in diagnostics)
         {
@@ -59,7 +59,7 @@ internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
             if (interpolation?.Syntax is TInterpolationSyntax interpolationSyntax &&
                 interpolationSyntax.Parent is TInterpolatedStringExpressionSyntax interpolatedString)
             {
-                helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
+                helpers.UnwrapInterpolation(
                     document.GetRequiredLanguageService<IVirtualCharLanguageService>(),
                     document.GetRequiredLanguageService<ISyntaxFactsService>(),
                     interpolation, out var unwrapped, out var alignment, out var negate, out var formatString, out _);

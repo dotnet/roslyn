@@ -18,13 +18,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation;
 
-internal abstract class AbstractSimplifyInterpolationHelpers
+internal abstract class AbstractSimplifyInterpolationHelpers<
+    TInterpolationSyntax,
+    TExpressionSyntax>
+    where TInterpolationSyntax : SyntaxNode
+    where TExpressionSyntax : SyntaxNode
 {
     protected abstract bool PermitNonLiteralAlignmentComponents { get; }
 
     protected abstract SyntaxNode GetPreservedInterpolationExpressionSyntax(IOperation operation);
 
-    public void UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
+    public void UnwrapInterpolation(
         IVirtualCharService virtualCharService,
         ISyntaxFacts syntaxFacts,
         IInterpolationOperation interpolation,
@@ -33,8 +37,6 @@ internal abstract class AbstractSimplifyInterpolationHelpers
         out bool negate,
         out string? formatString,
         out ImmutableArray<Location> unnecessaryLocations)
-            where TInterpolationSyntax : SyntaxNode
-            where TExpressionSyntax : SyntaxNode
     {
         alignment = null;
         negate = false;
@@ -198,13 +200,12 @@ internal abstract class AbstractSimplifyInterpolationHelpers
             : TextSpan.FromBounds(sequence.First().Span.Start, sequence.Last().Span.End);
     }
 
-    private void UnwrapAlignmentPadding<TExpressionSyntax>(
+    private void UnwrapAlignmentPadding(
         IOperation expression,
         out IOperation unwrapped,
         out TExpressionSyntax? alignment,
         out bool negate,
         ArrayBuilder<TextSpan> unnecessarySpans)
-        where TExpressionSyntax : SyntaxNode
     {
         if (expression is IInvocationOperation invocation &&
             HasNonImplicitInstance(invocation, out var instance))
