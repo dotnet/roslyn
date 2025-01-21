@@ -7,7 +7,8 @@ using Microsoft.CodeAnalysis.SimplifyInterpolation;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.SimplifyInterpolation;
 
-internal sealed class CSharpSimplifyInterpolationHelpers : AbstractSimplifyInterpolationHelpers
+internal sealed class CSharpSimplifyInterpolationHelpers
+    : AbstractSimplifyInterpolationHelpers<InterpolationSyntax, ExpressionSyntax>
 {
     public static CSharpSimplifyInterpolationHelpers Instance { get; } = new();
 
