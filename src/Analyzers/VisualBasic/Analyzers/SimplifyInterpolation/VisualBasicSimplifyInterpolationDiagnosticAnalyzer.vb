@@ -15,12 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
     Friend NotInheritable Class VisualBasicSimplifyInterpolationDiagnosticAnalyzer
         Inherits AbstractSimplifyInterpolationDiagnosticAnalyzer(Of InterpolationSyntax, ExpressionSyntax)
 
-        Protected Overrides Function GetHelpers() As AbstractSimplifyInterpolationHelpers
-            Return VisualBasicSimplifyInterpolationHelpers.Instance
-        End Function
-
-        Protected Overrides ReadOnly Property VirtualCharService As IVirtualCharService = VisualBasicVirtualCharService.Instance
-
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+        Protected Overrides ReadOnly Property VirtualCharService As IVirtualCharService = VisualBasicVirtualCharService.Instance
+        Protected Overrides ReadOnly Property Helpers As AbstractSimplifyInterpolationHelpers = VisualBasicSimplifyInterpolationHelpers.Instance
     End Class
 End Namespace

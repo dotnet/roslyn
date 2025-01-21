@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation;
 internal sealed class CSharpSimplifyInterpolationDiagnosticAnalyzer
     : AbstractSimplifyInterpolationDiagnosticAnalyzer<InterpolationSyntax, ExpressionSyntax>
 {
-    protected override IVirtualCharService VirtualCharService => CSharpVirtualCharService.Instance;
-
     protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
-
-    protected override AbstractSimplifyInterpolationHelpers GetHelpers() => CSharpSimplifyInterpolationHelpers.Instance;
+    protected override IVirtualCharService VirtualCharService => CSharpVirtualCharService.Instance;
+    protected override AbstractSimplifyInterpolationHelpers Helpers => CSharpSimplifyInterpolationHelpers.Instance;
 }

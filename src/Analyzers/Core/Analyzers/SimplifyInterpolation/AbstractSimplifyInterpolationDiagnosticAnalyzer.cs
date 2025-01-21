@@ -23,10 +23,9 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
     where TInterpolationSyntax : SyntaxNode
     where TExpressionSyntax : SyntaxNode
 {
-    protected abstract IVirtualCharService VirtualCharService { get; }
     protected abstract ISyntaxFacts SyntaxFacts { get; }
-
-    protected abstract AbstractSimplifyInterpolationHelpers GetHelpers();
+    protected abstract IVirtualCharService VirtualCharService { get; }
+    protected abstract AbstractSimplifyInterpolationHelpers Helpers { get; }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
