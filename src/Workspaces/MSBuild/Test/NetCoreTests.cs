@@ -398,12 +398,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public async Task TestOpenProject_ReferenceConfigurationSpecificMetadata()
         {
-            var files = GetBaseFiles()
-                .WithFile(@"Solution.sln", Resources.SolutionFiles.Issue30174_Solution)
-                .WithFile(@"InspectedLibrary\InspectedLibrary.csproj", Resources.ProjectFiles.CSharp.Issue30174_InspectedLibrary)
-                .WithFile(@"InspectedLibrary\InspectedClass.cs", Resources.SourceFiles.CSharp.Issue30174_InspectedClass)
-                .WithFile(@"ReferencedLibrary\ReferencedLibrary.csproj", Resources.ProjectFiles.CSharp.Issue30174_ReferencedLibrary)
-                .WithFile(@"ReferencedLibrary\SomeMetadataAttribute.cs", Resources.SourceFiles.CSharp.Issue30174_SomeMetadataAttribute);
+            var files = new FileSet(
+                (@"Solution.sln", Resources.SolutionFiles.Issue30174_Solution),
+                (@"InspectedLibrary\InspectedLibrary.csproj", Resources.ProjectFiles.CSharp.Issue30174_InspectedLibrary),
+                (@"InspectedLibrary\InspectedClass.cs", Resources.SourceFiles.CSharp.Issue30174_InspectedClass),
+                (@"ReferencedLibrary\ReferencedLibrary.csproj", Resources.ProjectFiles.CSharp.Issue30174_ReferencedLibrary),
+                (@"ReferencedLibrary\SomeMetadataAttribute.cs", Resources.SourceFiles.CSharp.Issue30174_SomeMetadataAttribute));
 
             CreateFiles(files);
 
