@@ -2,34 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation;
 
 internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
     TInterpolationSyntax,
-    TExpressionSyntax> : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
+    TExpressionSyntax>() : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.SimplifyInterpolationId,
+        EnforceOnBuildValues.SimplifyInterpolation,
+        CodeStyleOptions2.PreferSimplifiedInterpolation,
+        fadingOption: null,
+        new LocalizableResourceString(nameof(AnalyzersResources.Simplify_interpolation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        new LocalizableResourceString(nameof(AnalyzersResources.Interpolation_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     where TInterpolationSyntax : SyntaxNode
     where TExpressionSyntax : SyntaxNode
 {
-    protected AbstractSimplifyInterpolationDiagnosticAnalyzer()
-       : base(IDEDiagnosticIds.SimplifyInterpolationId,
-              EnforceOnBuildValues.SimplifyInterpolation,
-              CodeStyleOptions2.PreferSimplifiedInterpolation,
-              fadingOption: null,
-              new LocalizableResourceString(nameof(AnalyzersResources.Simplify_interpolation), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-              new LocalizableResourceString(nameof(AnalyzersResources.Interpolation_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
-    {
-    }
-
-    protected abstract IVirtualCharService GetVirtualCharService();
-
-    protected abstract ISyntaxFacts GetSyntaxFacts();
+    protected abstract IVirtualCharService VirtualCharService { get; }
+    protected abstract ISyntaxFacts SyntaxFacts { get; }
 
     protected abstract AbstractSimplifyInterpolationHelpers GetHelpers();
 
@@ -37,20 +32,42 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
-        => context.RegisterOperationAction(AnalyzeInterpolation, OperationKind.Interpolation);
+        => context.RegisterCompilationStartAction(
+            context =>
+            {
+                var formattableStringType = context.Compilation.FormattableStringType();
+                context.RegisterOperationAction(context => AnalyzeInterpolation(context, formattableStringType), OperationKind.Interpolation);
+            });
 
-    private void AnalyzeInterpolation(OperationAnalysisContext context)
+    private void AnalyzeInterpolation(
+        OperationAnalysisContext context,
+        INamedTypeSymbol? formattableStringType)
     {
         var option = context.GetAnalyzerOptions().PreferSimplifiedInterpolation;
+
+        // No point in analyzing if the option is off.
         if (!option.Value || ShouldSkipAnalysis(context, option.Notification))
-        {
-            // No point in analyzing if the option is off.
             return;
-        }
 
         var interpolation = (IInterpolationOperation)context.Operation;
+
+        // Formattable strings can observe the inner types of the arguments passed to them.  So we can't safely change
+        // to drop ToString in that.
+        if (interpolation.Parent is IInterpolatedStringOperation { Parent: IConversionOperation { Type: { } convertedType } conversion } &&
+            convertedType.Equals(formattableStringType))
+        {
+            // One exception to this is calling directly into FormattableString.Invariant.  That method has known good
+            // behavior that is fine to continue calling into.
+            var isInvariantInvocation =
+                conversion.Parent is IArgumentOperation { Parent: IInvocationOperation invocation } &&
+                invocation.TargetMethod.Name == nameof(FormattableString.Invariant) &&
+                invocation.TargetMethod.ContainingType.Equals(formattableStringType);
+            if (!isInvariantInvocation)
+                return;
+        }
+
         GetHelpers().UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
-            GetVirtualCharService(), GetSyntaxFacts(), interpolation, out _, out var alignment, out _,
+            this.VirtualCharService, this.SyntaxFacts, interpolation, out _, out var alignment, out _,
             out var formatString, out var unnecessaryLocations);
 
         if (alignment == null && formatString == null)

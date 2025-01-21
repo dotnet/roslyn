@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -24,9 +25,14 @@ internal abstract class AbstractSimplifyInterpolationHelpers
     protected abstract SyntaxNode GetPreservedInterpolationExpressionSyntax(IOperation operation);
 
     public void UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
-        IVirtualCharService virtualCharService, ISyntaxFacts syntaxFacts, IInterpolationOperation interpolation,
-        out TExpressionSyntax? unwrapped, out TExpressionSyntax? alignment, out bool negate,
-        out string? formatString, out ImmutableArray<Location> unnecessaryLocations)
+        IVirtualCharService virtualCharService,
+        ISyntaxFacts syntaxFacts,
+        IInterpolationOperation interpolation,
+        out TExpressionSyntax? unwrapped,
+        out TExpressionSyntax? alignment,
+        out bool negate,
+        out string? formatString,
+        out ImmutableArray<Location> unnecessaryLocations)
             where TInterpolationSyntax : SyntaxNode
             where TExpressionSyntax : SyntaxNode
     {
@@ -34,7 +40,7 @@ internal abstract class AbstractSimplifyInterpolationHelpers
         negate = false;
         formatString = null;
 
-        var unnecessarySpans = new List<TextSpan>();
+        using var _ = ArrayBuilder<TextSpan>.GetInstance(out var unnecessarySpans);
 
         var expression = Unwrap(interpolation.Expression);
         if (interpolation.Alignment == null)
@@ -73,8 +79,12 @@ internal abstract class AbstractSimplifyInterpolationHelpers
     }
 
     private void UnwrapFormatString(
-        IVirtualCharService virtualCharService, ISyntaxFacts syntaxFacts, IOperation expression, out IOperation unwrapped,
-        out string? formatString, List<TextSpan> unnecessarySpans)
+        IVirtualCharService virtualCharService,
+        ISyntaxFacts syntaxFacts,
+        IOperation expression,
+        out IOperation unwrapped,
+        out string? formatString,
+        ArrayBuilder<TextSpan> unnecessarySpans)
     {
         Contract.ThrowIfNull(expression.SemanticModel);
 
@@ -189,8 +199,11 @@ internal abstract class AbstractSimplifyInterpolationHelpers
     }
 
     private void UnwrapAlignmentPadding<TExpressionSyntax>(
-        IOperation expression, out IOperation unwrapped,
-        out TExpressionSyntax? alignment, out bool negate, List<TextSpan> unnecessarySpans)
+        IOperation expression,
+        out IOperation unwrapped,
+        out TExpressionSyntax? alignment,
+        out bool negate,
+        ArrayBuilder<TextSpan> unnecessarySpans)
         where TExpressionSyntax : SyntaxNode
     {
         if (expression is IInvocationOperation invocation &&

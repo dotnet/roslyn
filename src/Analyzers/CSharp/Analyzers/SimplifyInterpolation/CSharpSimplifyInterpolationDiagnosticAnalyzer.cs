@@ -14,14 +14,12 @@ using Microsoft.CodeAnalysis.SimplifyInterpolation;
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpSimplifyInterpolationDiagnosticAnalyzer : AbstractSimplifyInterpolationDiagnosticAnalyzer<
-    InterpolationSyntax, ExpressionSyntax>
+internal sealed class CSharpSimplifyInterpolationDiagnosticAnalyzer
+    : AbstractSimplifyInterpolationDiagnosticAnalyzer<InterpolationSyntax, ExpressionSyntax>
 {
-    protected override IVirtualCharService GetVirtualCharService()
-        => CSharpVirtualCharService.Instance;
+    protected override IVirtualCharService VirtualCharService => CSharpVirtualCharService.Instance;
 
-    protected override ISyntaxFacts GetSyntaxFacts()
-        => CSharpSyntaxFacts.Instance;
+    protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
     protected override AbstractSimplifyInterpolationHelpers GetHelpers() => CSharpSimplifyInterpolationHelpers.Instance;
 }

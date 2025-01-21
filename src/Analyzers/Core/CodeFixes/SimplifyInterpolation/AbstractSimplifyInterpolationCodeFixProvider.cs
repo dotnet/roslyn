@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -57,8 +54,8 @@ internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
 
         foreach (var diagnostic in diagnostics)
         {
-            var loc = diagnostic.AdditionalLocations[0];
-            var interpolation = semanticModel.GetOperation(loc.FindNode(getInnermostNodeForTie: true, cancellationToken), cancellationToken) as IInterpolationOperation;
+            var node = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var interpolation = semanticModel.GetOperation(node, cancellationToken) as IInterpolationOperation;
             if (interpolation?.Syntax is TInterpolationSyntax interpolationSyntax &&
                 interpolationSyntax.Parent is TInterpolatedStringExpressionSyntax interpolatedString)
             {
@@ -71,9 +68,7 @@ internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
                     continue;
 
                 if (alignment != null && negate)
-                {
                     alignment = (TExpressionSyntax)generator.NegateExpression(alignment);
-                }
 
                 editor.ReplaceNode(
                     interpolationSyntax,
