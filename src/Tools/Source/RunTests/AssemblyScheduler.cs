@@ -10,9 +10,6 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using ICSharpCode.Decompiler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace RunTests
