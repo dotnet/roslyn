@@ -104,11 +104,6 @@ internal abstract class TelemetryLogger : ILogger
 
     public void Log(FunctionId functionId, LogMessage logMessage)
     {
-        if (IgnoreMessage(logMessage))
-        {
-            return;
-        }
-
         var telemetryEvent = new TelemetryEvent(GetEventName(functionId));
         SetProperties(telemetryEvent, functionId, logMessage);
 
@@ -123,11 +118,6 @@ internal abstract class TelemetryLogger : ILogger
 
     public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
     {
-        if (IgnoreMessage(logMessage))
-        {
-            return;
-        }
-
         var eventName = GetEventName(functionId);
         var kind = GetKind(logMessage);
 
@@ -142,11 +132,6 @@ internal abstract class TelemetryLogger : ILogger
 
     public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int blockId, int delta, CancellationToken cancellationToken)
     {
-        if (IgnoreMessage(logMessage))
-        {
-            return;
-        }
-
         Contract.ThrowIfFalse(_pendingScopes.TryRemove(blockId, out var scope));
 
         var endEvent = GetEndEvent(scope);
@@ -162,9 +147,6 @@ internal abstract class TelemetryLogger : ILogger
         {
         }
     }
-
-    private static bool IgnoreMessage(LogMessage logMessage)
-        => logMessage.LogLevel < LogLevel.Information;
 
     private static LogType GetKind(LogMessage logMessage)
         => logMessage is KeyValueLogMessage kvLogMessage
