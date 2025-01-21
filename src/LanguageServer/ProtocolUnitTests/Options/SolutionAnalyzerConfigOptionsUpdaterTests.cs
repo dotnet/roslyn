@@ -151,7 +151,7 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
 
         // Once a C# project is added the preferences stored in global options should be applied to fallback options:
         Assert.True(workspace.CurrentSolution.FallbackAnalyzerOptions.TryGetValue(LanguageNames.CSharp, out var fallbackOptions));
-        AssertEx.SequenceEqual(
+        AssertEx.Equal(
             initialPeferences.Rules.NamingRules.Select(r => r.Inspect()),
             fallbackOptions.GetNamingStylePreferences().Rules.NamingRules.Select(r => r.Inspect()));
 
@@ -164,7 +164,7 @@ public class SolutionAnalyzerConfigOptionsUpdaterTests
         // Initial preferences should be replaced by host preferences.
         // Note: rules are ordered but symbol and naming style specifications are not.
         Assert.True(workspace.CurrentSolution.FallbackAnalyzerOptions.TryGetValue(LanguageNames.CSharp, out fallbackOptions));
-        AssertEx.SequenceEqual(
+        AssertEx.Equal(
             hostPeferences.Rules.NamingRules.Select(r => r.Inspect()),
             fallbackOptions.GetNamingStylePreferences().Rules.NamingRules.Select(r => r.Inspect()));
 
