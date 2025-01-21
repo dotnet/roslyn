@@ -71,9 +71,7 @@ internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
             out var formatString, out var unnecessaryLocations);
 
         if (alignment == null && formatString == null)
-        {
             return;
-        }
 
         // The diagnostic itself fades the first unnecessary location, and the remaining locations are passed as
         // additional unnecessary locations.
