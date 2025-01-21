@@ -231,8 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var originalOperators = ArrayBuilder<MethodSymbol>.GetInstance(operators.Count);
-                    originalOperators.AddRange(operators);
+                    var originalOperatorCount = operators.Count;
 
                     var operators2 = ArrayBuilder<MethodSymbol>.GetInstance();
                     declaringType.AddOperators(WellKnownMemberNames.ExplicitConversionName, operators2);
@@ -242,9 +241,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Drop operators that have a match among the checked ones.
                         bool add = true;
 
-                        foreach (MethodSymbol op in originalOperators)
+                        for (var i = 0; i < originalOperatorCount; i++)
                         {
-                            if (SourceMemberContainerTypeSymbol.DoOperatorsPair(op, op2))
+                            if (SourceMemberContainerTypeSymbol.DoOperatorsPair(operators[i], op2))
                             {
                                 add = false;
                                 break;
@@ -257,7 +256,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    originalOperators.Free();
                     operators2.Free();
                 }
             }
