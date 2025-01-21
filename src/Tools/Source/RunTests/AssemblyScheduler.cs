@@ -44,7 +44,7 @@ namespace RunTests
             {
                 var typeCount = kvp.Value.Length;
                 var testCount = kvp.Value.Sum(t => t.Tests.Length);
-                ConsoleUtil.WriteLine($"\tAssembly: {Path.GetFileName(kvp.Key),-25}, Test Type Count: {typeCount,-10}, Test Count: {testCount}");
+                ConsoleUtil.WriteLine($"\tAssembly: {Path.GetFileName(kvp.Key)}, Test Type Count: {typeCount}, Test Count: {testCount}");
             }
 
             if (testHistory.IsEmpty)

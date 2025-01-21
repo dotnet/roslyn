@@ -14,6 +14,7 @@ using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.TestManagement.WebApi;
 using Microsoft.VisualStudio.Services.TestResults.WebApi;
 using Microsoft.VisualStudio.Services.WebApi;
+using Xunit;
 
 namespace RunTests;
 internal class TestHistoryManager
@@ -175,7 +176,9 @@ internal class TestHistoryManager
             var maxTime = build.FinishTime!.Value;
             var runsInBuild = await testClient.QueryTestRunsAsync2("public", minTime, maxTime, buildIds: new int[] { build.Id }, cancellationToken: cancellationToken);
 
-            var runForThisStage = runsInBuild.SingleOrDefault(r => r.Name.Contains(phaseName));
+            // If the last successful builds had multiple attempts then there are potentially multiple runs with 
+            // the same name. Take the last one as it will be the successful one.
+            var runForThisStage = runsInBuild.LastOrDefault(r => r.Name.Contains(phaseName));
             return runForThisStage;
         }
         catch (Exception ex)
