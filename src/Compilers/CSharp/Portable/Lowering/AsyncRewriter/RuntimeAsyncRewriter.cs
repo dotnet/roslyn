@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp;
@@ -89,16 +90,50 @@ internal class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 
         var originalType = awaitedCall.Type.OriginalDefinition;
 
-        if (!originalType.Equals(Task)
-            && !originalType.Equals(TaskT)
-            && !originalType.Equals(ValueTask)
-            && !originalType.Equals(ValueTaskT))
+        WellKnownMember awaitCall;
+        TypeWithAnnotations? maybeNestedType = null;
+
+        if (originalType.Equals(Task))
+        {
+            awaitCall = WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTask;
+        }
+        else if (originalType.Equals(TaskT))
+        {
+            awaitCall = WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTaskT_T;
+            maybeNestedType = ((NamedTypeSymbol)awaitedCall.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+        }
+        else if (originalType.Equals(ValueTask))
+        {
+            awaitCall = WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTask;
+        }
+        else if (originalType.Equals(ValueTaskT))
+        {
+            awaitCall = WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTaskT_T;
+            maybeNestedType = ((NamedTypeSymbol)awaitedCall.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+        }
+        else
         {
             return base.VisitAwaitExpression(node);
         }
 
-        var runtimeAsyncMethodSymbol = new RuntimeAsyncMethodSymbol(awaitedCall.Method, _compilation);
+        // PROTOTYPE: Make sure that we report an error in initial binding if these are missing
+        var awaitMethod = (MethodSymbol?)_compilation.GetWellKnownTypeMember(awaitCall);
+        Debug.Assert(awaitMethod is not null);
 
-        return awaitedCall.Update(runtimeAsyncMethodSymbol, runtimeAsyncMethodSymbol.ReturnType);
+        if (maybeNestedType is { } nestedType)
+        {
+            Debug.Assert(awaitMethod.TypeParameters.Length == 1);
+            // PROTOTYPE: Check diagnostic
+            awaitMethod = awaitMethod.Construct([nestedType]);
+        }
+#if DEBUG
+        else
+        {
+            Debug.Assert(awaitMethod.TypeParameters.Length == 0);
+        }
+#endif
+
+        // System.Runtime.CompilerServices.RuntimeHelpers.Await(awaitedCall)
+        return _factory.Call(receiver: null, awaitMethod, awaitedCall);
     }
 }

@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncTests : EmitMetadataTestBase
     {
-        private static readonly SymbolDisplayFormat ILWithModReqDisplayFormat = SymbolDisplayFormat.ILVisualizationFormat.WithCompilerInternalOptions(SymbolDisplayFormat.ILVisualizationFormat.CompilerInternalOptions | SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers);
-
         internal static string ExpectedOutput(string output)
         {
             return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
@@ -170,15 +168,18 @@ class Test
 ";
             CompileAndVerify(source, expectedOutput: expected);
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90);
             comp.Assembly.SetOverrideRuntimeAsync();
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, symbolValidator: verify);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = "[F]: Return value missing on the stack. { Offset = 0x2e }",
+            }, symbolValidator: verify);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("Test.F", """
                 {
-                  // Code size       43 (0x2b)
+                  // Code size       47 (0x2f)
                   .maxstack  3
                   IL_0000:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
                   IL_0005:  ldsfld     "System.Action Test.<>c.<>9__1_0"
@@ -187,14 +188,14 @@ class Test
                   IL_000d:  pop
                   IL_000e:  ldsfld     "Test.<>c Test.<>c.<>9"
                   IL_0013:  ldftn      "void Test.<>c.<F>b__1_0()"
-                  IL_0019:  newobj     "System.Action..ctor(object, System.IntPtr)"
+                  IL_0019:  newobj     "System.Action..ctor(object, nint)"
                   IL_001e:  dup
                   IL_001f:  stsfld     "System.Action Test.<>c.<>9__1_0"
-                  IL_0024:  callvirt   "void modreq(System.Threading.Tasks.Task) System.Threading.Tasks.TaskFactory.StartNew(System.Action)"
-                  IL_0029:  pop
-                  IL_002a:  ret
+                  IL_0024:  callvirt   "System.Threading.Tasks.Task System.Threading.Tasks.TaskFactory.StartNew(System.Action)"
+                  IL_0029:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_002e:  ret
                 }
-                """, ilSymbolDisplayFormat: ILWithModReqDisplayFormat);
+                """);
 
             void verify(ModuleSymbol module)
             {
