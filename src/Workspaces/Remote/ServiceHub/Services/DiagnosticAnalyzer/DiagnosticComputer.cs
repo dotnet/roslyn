@@ -117,7 +117,6 @@ internal class DiagnosticComputer
         DiagnosticAnalyzerInfoCache analyzerInfoCache,
         HostWorkspaceServices hostWorkspaceServices,
         bool isExplicit,
-        bool reportSuppressedDiagnostics,
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
@@ -146,14 +145,13 @@ internal class DiagnosticComputer
         // from clients such as editor diagnostic tagger to show squiggles, background analysis to populate the error list, etc.
         var diagnosticsComputer = new DiagnosticComputer(document, project, solutionChecksum, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
         return isExplicit
-            ? diagnosticsComputer.GetHighPriorityDiagnosticsAsync(projectAnalyzerIds, hostAnalyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken)
-            : diagnosticsComputer.GetNormalPriorityDiagnosticsAsync(projectAnalyzerIds, hostAnalyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+            ? diagnosticsComputer.GetHighPriorityDiagnosticsAsync(projectAnalyzerIds, hostAnalyzerIds, logPerformanceInfo, getTelemetryInfo, cancellationToken)
+            : diagnosticsComputer.GetNormalPriorityDiagnosticsAsync(projectAnalyzerIds, hostAnalyzerIds, logPerformanceInfo, getTelemetryInfo, cancellationToken);
     }
 
     private async Task<SerializableDiagnosticAnalysisResults> GetHighPriorityDiagnosticsAsync(
         ImmutableArray<string> projectAnalyzerIds,
         ImmutableArray<string> hostAnalyzerIds,
-        bool reportSuppressedDiagnostics,
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
@@ -162,7 +160,7 @@ internal class DiagnosticComputer
 
         // Step 1:
         //  - Create the core 'computeTask' for computing diagnostics.
-        var computeTask = GetDiagnosticsAsync(projectAnalyzerIds, hostAnalyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+        var computeTask = GetDiagnosticsAsync(projectAnalyzerIds, hostAnalyzerIds, logPerformanceInfo, getTelemetryInfo, cancellationToken);
 
         // Step 2:
         //  - Add this computeTask to the set of currently executing high priority tasks.
@@ -228,7 +226,6 @@ internal class DiagnosticComputer
     private async Task<SerializableDiagnosticAnalysisResults> GetNormalPriorityDiagnosticsAsync(
         ImmutableArray<string> projectAnalyzerIds,
         ImmutableArray<string> hostAnalyzerIds,
-        bool reportSuppressedDiagnostics,
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
@@ -257,7 +254,7 @@ internal class DiagnosticComputer
             {
                 // Step 3:
                 //  - Execute the core compute task for diagnostic computation.
-                return await GetDiagnosticsAsync(projectAnalyzerIds, hostAnalyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo,
+                return await GetDiagnosticsAsync(projectAnalyzerIds, hostAnalyzerIds, logPerformanceInfo, getTelemetryInfo,
                     cancellationTokenSource.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException ex) when (ex.CancellationToken == cancellationTokenSource.Token)
@@ -320,7 +317,6 @@ internal class DiagnosticComputer
     private async Task<SerializableDiagnosticAnalysisResults> GetDiagnosticsAsync(
         ImmutableArray<string> projectAnalyzerIds,
         ImmutableArray<string> hostAnalyzerIds,
-        bool reportSuppressedDiagnostics,
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
@@ -363,7 +359,7 @@ internal class DiagnosticComputer
         var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
 
         return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo,
-            reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
+            logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<SerializableDiagnosticAnalysisResults> AnalyzeAsync(
@@ -372,7 +368,6 @@ internal class DiagnosticComputer
         ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
         ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
         SkippedHostAnalyzersInfo skippedAnalyzersInfo,
-        bool reportSuppressedDiagnostics,
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
@@ -407,7 +402,7 @@ internal class DiagnosticComputer
             builderMap = builderMap.AddRange(await analysisResult.ToResultBuilderMapAsync(
                 additionalPragmaSuppressionDiagnostics, documentAnalysisScope,
                 _project, VersionStamp.Default,
-                projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false));
+                projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo, cancellationToken).ConfigureAwait(false));
         }
 
         var telemetry = getTelemetryInfo

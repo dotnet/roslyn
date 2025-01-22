@@ -134,25 +134,41 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         }
 
         /// <summary>
-        /// Running code analysis on the project force computes and caches the diagnostics on the DiagnosticAnalyzerService.
-        /// We return these cached document diagnostics here, including both local and non-local document diagnostics.
+        /// Running code analysis on the project force computes and caches the diagnostics on the
+        /// DiagnosticAnalyzerService. We return these cached document diagnostics here, including both local and
+        /// non-local document diagnostics.
         /// </summary>
-        public Task<ImmutableArray<DiagnosticData>> GetLastComputedDocumentDiagnosticsAsync(DocumentId documentId, CancellationToken cancellationToken)
-            => _clearedProjectIds.Contains(documentId.ProjectId)
-                ? SpecializedTasks.EmptyImmutableArray<DiagnosticData>()
-                : _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(_workspace, documentId.ProjectId,
-                    documentId, includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true,
-                    includeNonLocalDocumentDiagnostics: true, cancellationToken);
+        /// <remarks>
+        /// Only returns non-suppressed diagnostics.
+        /// </remarks>
+        public async Task<ImmutableArray<DiagnosticData>> GetLastComputedDocumentDiagnosticsAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            if (_clearedProjectIds.Contains(documentId.ProjectId))
+                return [];
+
+            var diagnostics = await _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(
+                _workspace, documentId.ProjectId, documentId, includeLocalDocumentDiagnostics: true,
+                includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+            return diagnostics.WhereAsArray(d => !d.IsSuppressed);
+        }
 
         /// <summary>
-        /// Running code analysis on the project force computes and caches the diagnostics on the DiagnosticAnalyzerService.
-        /// We return these cached project diagnostics here, i.e. diagnostics with no location, by excluding all local and non-local document diagnostics.
+        /// Running code analysis on the project force computes and caches the diagnostics on the
+        /// DiagnosticAnalyzerService. We return these cached project diagnostics here, i.e. diagnostics with no
+        /// location, by excluding all local and non-local document diagnostics.
         /// </summary>
-        public Task<ImmutableArray<DiagnosticData>> GetLastComputedProjectDiagnosticsAsync(ProjectId projectId, CancellationToken cancellationToken)
-            => _clearedProjectIds.Contains(projectId)
-                ? SpecializedTasks.EmptyImmutableArray<DiagnosticData>()
-                : _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(_workspace, projectId, documentId: null,
-                    includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: false,
-                    includeNonLocalDocumentDiagnostics: false, cancellationToken);
+        /// <remarks>
+        /// Only returns non-suppressed diagnostics.
+        /// </remarks>
+        public async Task<ImmutableArray<DiagnosticData>> GetLastComputedProjectDiagnosticsAsync(ProjectId projectId, CancellationToken cancellationToken)
+        {
+            if (_clearedProjectIds.Contains(projectId))
+                return [];
+
+            var diagnostics = await _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(
+                _workspace, projectId, documentId: null, includeLocalDocumentDiagnostics: false,
+                includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
+            return diagnostics.WhereAsArray(d => !d.IsSuppressed);
+        }
     }
 }
