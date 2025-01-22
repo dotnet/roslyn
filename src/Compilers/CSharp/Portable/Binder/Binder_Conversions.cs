@@ -895,14 +895,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                // PROTOTYPE: Handle collection arguments.
-                collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, diagnostics);
+
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+                collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, analyzedArguments, diagnostics);
+                analyzedArguments.Free();
                 Debug.Assert((collectionCreation is BoundNewT && !isExpanded && constructor is null) ||
                              (collectionCreation is BoundObjectCreationExpression creation && creation.Expanded == isExpanded && creation.Constructor == constructor));
 
                 if (collectionCreation.HasErrors)
                 {
                     return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
+                }
+
+                // Bind any collection arguments.
+                BoundExpression? collectionWithArgumentsCreation = null;
+                foreach (var element in elements)
+                {
+                    if (element is BoundUnconvertedCollectionArguments collectionArguments)
+                    {
+                        analyzedArguments = AnalyzedArguments.GetInstance();
+                        collectionArguments.GetArguments(analyzedArguments);
+                        var withArguments = BindCollectionExpressionConstructor(syntax, targetType, constructor: null, analyzedArguments, diagnostics);
+                        analyzedArguments.Free();
+                        collectionWithArgumentsCreation ??= withArguments;
+                    }
+                }
+
+                // Prefer collection creation with arguments over parameterless collection creation.
+                if (collectionWithArgumentsCreation is { })
+                {
+                    collectionCreation = collectionWithArgumentsCreation;
                 }
 
                 if (!elements.IsDefaultOrEmpty && HasCollectionInitializerTypeInProgress(syntax, targetType))
@@ -914,21 +936,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var collectionInitializerAddMethodBinder = new CollectionInitializerAddMethodBinder(syntax, targetType, this);
                 foreach (var element in elements)
                 {
-                    Debug.Assert(element is not BoundUnconvertedCollectionArguments); // PROTOTYPE: Handle collection arguments.
-                    BoundNode convertedElement = element is BoundCollectionExpressionSpreadElement spreadElement ?
-                        (BoundNode)BindCollectionExpressionSpreadElementAddMethod(
-                            (SpreadElementSyntax)spreadElement.Syntax,
-                            spreadElement,
-                            collectionInitializerAddMethodBinder,
-                            implicitReceiver,
-                            diagnostics) :
-                        BindCollectionInitializerElementAddMethod(
-                            element.Syntax,
-                            ImmutableArray.Create((BoundExpression)element),
-                            hasEnumerableInitializerType: true,
-                            collectionInitializerAddMethodBinder,
-                            diagnostics,
-                            implicitReceiver);
+                    BoundNode convertedElement;
+                    switch (element)
+                    {
+                        case BoundUnconvertedCollectionArguments collectionArguments:
+                            // Handled above.
+                            continue;
+                        case BoundCollectionExpressionSpreadElement spreadElement:
+                            convertedElement = BindCollectionExpressionSpreadElementAddMethod(
+                                (SpreadElementSyntax)spreadElement.Syntax,
+                                spreadElement,
+                                collectionInitializerAddMethodBinder,
+                                implicitReceiver,
+                                diagnostics);
+                            break;
+                        case BoundKeyValuePairElement:
+                            throw ExceptionUtilities.UnexpectedValue(element);
+                        default:
+                            convertedElement = BindCollectionInitializerElementAddMethod(
+                                element.Syntax,
+                                ImmutableArray.Create((BoundExpression)element),
+                                hasEnumerableInitializerType: true,
+                                collectionInitializerAddMethodBinder,
+                                diagnostics,
+                                implicitReceiver);
+                            break;
+                    }
                     builder.Add(convertedElement);
                 }
             }
@@ -975,8 +1008,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (element)
                     {
                         case BoundUnconvertedCollectionArguments collectionArguments:
-                            var creationExpression = BindCollectionArguments(targetType, collectionTypeKind, collectionArguments, diagnostics);
-                            collectionCreation ??= creationExpression;
+                            if (collectionArguments.Arguments.Length > 0)
+                            {
+                                var creationExpression = BindCollectionArguments(targetType, collectionTypeKind, collectionArguments, diagnostics);
+                                collectionCreation ??= creationExpression;
+                            }
                             continue;
                         case BoundCollectionExpressionSpreadElement spreadElement:
                             convertedElement = bindSpreadElement(
@@ -1092,15 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
-                analyzedArguments.Arguments.AddRange(collectionArguments.Arguments);
-                if (!collectionArguments.ArgumentNamesOpt.IsDefault)
-                {
-                    analyzedArguments.Names.AddRange(collectionArguments.ArgumentNamesOpt);
-                }
-                if (!collectionArguments.ArgumentRefKindsOpt.IsDefault)
-                {
-                    analyzedArguments.RefKinds.AddRange(collectionArguments.ArgumentRefKindsOpt);
-                }
+                collectionArguments.GetArguments(analyzedArguments);
 
                 if (TryPerformConstructorOverloadResolution(
                         type,
@@ -1198,7 +1226,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionBuilderMethod;
         }
 
-        internal BoundExpression BindCollectionExpressionConstructor(SyntaxNode syntax, TypeSymbol targetType, MethodSymbol? constructor, BindingDiagnosticBag diagnostics)
+        internal BoundExpression BindCollectionExpressionConstructor(
+            SyntaxNode syntax,
+            TypeSymbol targetType,
+            MethodSymbol? constructor,
+            AnalyzedArguments analyzedArguments,
+            BindingDiagnosticBag diagnostics)
         {
             //
             // !!! ATTENTION !!!
@@ -1208,10 +1241,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
 
             BoundExpression collectionCreation;
-            var analyzedArguments = AnalyzedArguments.GetInstance();
             if (targetType is NamedTypeSymbol namedType)
             {
-                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, constructor);
+                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, constructor); // PROTOTYPE: Are there potential cycles when binding collection args?
                 collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
                 collectionCreation.WasCompilerGenerated = true;
             }
@@ -1224,7 +1256,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 throw ExceptionUtilities.UnexpectedValue(targetType);
             }
-            analyzedArguments.Free();
             return collectionCreation;
         }
 

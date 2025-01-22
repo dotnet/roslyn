@@ -122,6 +122,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal readonly CollectionExpressionTypeKind CollectionExpressionTypeKind;
             internal readonly TypeSymbol ElementType;
+            // PROTOTYPE: Do we need these fields? It looks like we will determine the constructor needed
+            // when calling BindCollectionExpressionConstructor() in ConvertCollectionExpression(), at least
+            // when there is a non-empty arguments list. Consider removing these fields and simply
+            // determining the constructor there.
             internal readonly MethodSymbol? Constructor;
             internal readonly bool ConstructorUsedInExpandedForm;
         }

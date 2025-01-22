@@ -2387,6 +2387,11 @@
         <target state="translated">Überprüfte benutzerdefinierte Operatoren</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionExpressionArguments">
+        <source>collection expression arguments</source>
+        <target state="new">collection expression arguments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
         <target state="translated">Sammlungsausdrücke</target>

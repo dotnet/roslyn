@@ -294,7 +294,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_OverloadResolutionPriority = MessageBase + 12848,
 
         IDS_FeatureFirstClassSpan = MessageBase + 12849,
-        IDS_FeatureDictionaryExpressions = MessageBase + 12850,
+        IDS_FeatureCollectionExpressionArguments = MessageBase + 12850,
+        IDS_FeatureDictionaryExpressions = MessageBase + 12851,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -477,6 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# preview features.
                 case MessageID.IDS_FeatureFieldKeyword:
                 case MessageID.IDS_FeatureFirstClassSpan:
+                case MessageID.IDS_FeatureCollectionExpressionArguments:
                 case MessageID.IDS_FeatureDictionaryExpressions: // semantic check
                     return LanguageVersion.Preview;
 

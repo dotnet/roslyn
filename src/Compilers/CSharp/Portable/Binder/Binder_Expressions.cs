@@ -5276,18 +5276,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: false);
         }
 
-        private BoundNode BindKeyValuePair(KeyValuePairElementSyntax syntax, BindingDiagnosticBag diagnostics)
-        {
-            MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.ColonToken.GetLocation());
-            var key = BindValue(syntax.KeyExpression, diagnostics, BindValueKind.RValue);
-            var value = BindValue(syntax.ValueExpression, diagnostics, BindValueKind.RValue);
-            return new BoundKeyValuePairElement(syntax, key, value);
-        }
-
         // Similar to BindImplicitObjectCreationExpression.
         private BoundNode BindCollectionArguments(CollectionArgumentsSyntax syntax, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax.WithKeyword);
+            MessageID.IDS_FeatureCollectionExpressionArguments.CheckFeatureAvailability(diagnostics, syntax.WithKeyword);
             var arguments = AnalyzedArguments.GetInstance();
             BindArgumentsAndNames(syntax.ArgumentList, diagnostics, arguments, allowArglist: true);
             var result = new BoundUnconvertedCollectionArguments(
@@ -5298,6 +5290,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder: this);
             arguments.Free();
             return result;
+        }
+
+        private BoundNode BindKeyValuePair(KeyValuePairElementSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.ColonToken.GetLocation());
+            var key = BindValue(syntax.KeyExpression, diagnostics, BindValueKind.RValue);
+            var value = BindValue(syntax.ValueExpression, diagnostics, BindValueKind.RValue);
+            return new BoundKeyValuePairElement(syntax, key, value);
         }
 #nullable disable
 
