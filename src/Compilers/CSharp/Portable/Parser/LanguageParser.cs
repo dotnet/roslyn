@@ -4758,7 +4758,7 @@ parse_member_name:;
             open = this.EatToken(openKind);
 
             var saveTerm = _termState;
-            _termState |= TerminatorState.IsEndOfParameterList;
+            //_termState |= TerminatorState.IsEndOfParameterList; // TODO2 look for affected test
 
             var parameters = ParseCommaSeparatedSyntaxList(
                 ref open,
