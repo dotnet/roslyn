@@ -19,12 +19,12 @@
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
-        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <target state="translated">無法在此成員上使用 'OverloadResolutionPriorityAttribute'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
-        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <target state="translated">無法在覆寫成員上使用 'OverloadResolutionPriorityAttribute'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
         <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</source>
-        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</target>
+        <target state="translated">類型 'Microsoft.CodeAnalysis.EmbeddedAttribute' 必須是非泛型、好友、NotInheritable、具有公用無參數建構函式、繼承自 System.Attribute，而且可以套用到任何類型</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -179,7 +179,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_OverloadResolutionPriority">
         <source>overload resolution priority</source>
-        <target state="new">overload resolution priority</target>
+        <target state="translated">多載解析優先順序</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -681,12 +681,12 @@
       </trans-unit>
       <trans-unit id="WRN_ExperimentalWithMessage">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</source>
-        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</target>
+        <target state="translated">'{0}' 僅供評估用。後續更新: '{1}' 時可能會有所變更或移除。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExperimentalWithMessage_Title">
         <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates.</target>
+        <target state="translated">類型僅供評估之用。後續更新時可能會有所變更或移除。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
