@@ -351,8 +351,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.CompletedTask
             End Function
 
-            Public Function GetOnTheFlyDocsAsync(symbolSignature As String, declarationCode As ImmutableArray(Of String), language As String, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsAsync
-                Return Task.FromResult("")
+            Public Function GetOnTheFlyDocsAsync(symbolSignature As String, declarationCode As ImmutableArray(Of String), language As String, cancellationToken As CancellationToken) As Task(Of (ResponseString As String, ResponseStatus As Integer)) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsAsync
+                Return Task.FromResult(("", -1))
             End Function
 
             Public Function IsFileExcludedAsync(filePath As String, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsFileExcludedAsync

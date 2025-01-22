@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -20,6 +23,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -40,6 +46,8 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     private readonly OnTheFlyDocsInfo _onTheFlyDocsInfo;
     private readonly ContentControl _responseControl = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly List<ClassifiedTextRun> quotaExceededContent;
+    private readonly IServiceProvider _serviceProvider;
 
     private OnTheFlyDocsState _currentState = OnTheFlyDocsState.OnDemandLink;
 
@@ -51,6 +59,11 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     /// </summary>
     public event EventHandler ResultsRequested;
 
+    /// <summary>
+    /// Event that fires when the user requests to upgrade their Copilot plan.
+    /// </summary>
+    public event EventHandler? PlanUpgradeRequested;
+
 #pragma warning disable CA1822 // Mark members as static
     /// <summary>
     /// Used to display the "On the fly documentation" directly in the associated XAML file.
@@ -58,7 +71,9 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     public string OnTheFlyDocumentation => EditorFeaturesResources.On_the_fly_documentation;
 #pragma warning restore CA1822 // Mark members as static
 
-    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IAsynchronousOperationListenerProvider listenerProvider, IAsyncQuickInfoSession asyncQuickInfoSession, IThreadingContext threadingContext, QuickInfoOnTheFlyDocsElement onTheFlyDocsElement)
+    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService,
+        IAsynchronousOperationListenerProvider listenerProvider, IAsyncQuickInfoSession asyncQuickInfoSession,
+        IThreadingContext threadingContext, QuickInfoOnTheFlyDocsElement onTheFlyDocsElement, IServiceProvider serviceProvider)
     {
         _textView = textView;
         _viewElementFactoryService = viewElementFactoryService;
@@ -67,6 +82,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         _threadingContext = threadingContext;
         _onTheFlyDocsInfo = onTheFlyDocsElement.Info;
         _document = onTheFlyDocsElement.Document;
+        _serviceProvider = serviceProvider;
 
         var sparkle = new ImageElement(new VisualStudio.Core.Imaging.ImageId(CopilotConstants.CopilotIconMonikerGuid, CopilotConstants.CopilotIconSparkleId));
         object onDemandLinkText = _onTheFlyDocsInfo.IsContentExcluded
@@ -111,6 +127,33 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                     _responseControl,
                 ]));
 
+        var quotaExceededMatch = Regex.Match(
+                EditorFeaturesResources.Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset,
+                @"^(.*)\[(.*)\](.*)$");
+        if (quotaExceededMatch == null)
+        {
+            // The text wasn't localized correctly. Assert and fallback to showing it verbatim.
+            Debug.Fail("Copilot Hover quota exceeded message was not correctly localized.");
+            quotaExceededContent = [new ClassifiedTextRun(
+                    ClassifiedTextElement.TextClassificationTypeName,
+                    EditorFeaturesResources.Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset)];
+        }
+        else
+        {
+            quotaExceededContent = [
+                new ClassifiedTextRun(
+                        ClassifiedTextElement.TextClassificationTypeName,
+                        quotaExceededMatch.Groups[1].Value),
+                    new ClassifiedTextRun(
+                        ClassifiedTextElement.TextClassificationTypeName,
+                        quotaExceededMatch.Groups[2].Value,
+                        () => this.PlanUpgradeRequested?.Invoke(this, EventArgs.Empty)),
+                    new ClassifiedTextRun(
+                        ClassifiedTextElement.TextClassificationTypeName,
+                        quotaExceededMatch.Groups[3].Value),
+                ];
+        }
+
         ResultsRequested += (_, _) => PopulateAIDocumentationElements(_cancellationTokenSource.Token);
         _asyncQuickInfoSession.StateChanged += (_, _) => OnQuickInfoSessionChanged();
         InitializeComponent();
@@ -135,31 +178,61 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 
         try
         {
-            var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsInfo.SymbolSignature, _onTheFlyDocsInfo.DeclarationCode, _onTheFlyDocsInfo.Language, cancellationToken).ConfigureAwait(false);
+            var (responseString, responseStatus) = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsInfo.SymbolSignature, _onTheFlyDocsInfo.DeclarationCode, _onTheFlyDocsInfo.Language, cancellationToken).ConfigureAwait(false);
             var copilotRequestTime = stopwatch.Elapsed;
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (response is null || response.Length == 0)
+            if (responseString is null || responseString.Length == 0)
             {
+                // If the responseStatus is 8, then that means the quota has been exceeded.
+                if (responseStatus == 8)
+                {
+                    this.PlanUpgradeRequested += (_, _) =>
+                    {
+                        // GUID and command ID from
+                        // https://dev.azure.com/devdiv/DevDiv/_wiki/wikis/DevDiv.wiki/45121/Free-SKU-Handling-Guidance-and-Recommendations
+                        var uiShell = _serviceProvider.GetServiceOnMainThread<SVsUIShell, IVsUIShell>();
+                        uiShell.PostExecCommand(
+                            new Guid("39B0DEDE-D931-4A92-9AA2-3447BC4998DC"),
+                            0x3901,
+                            nCmdexecopt: 0,
+                            pvaIn: null);
+
+                        // The platform team has requested that we post
+                        // this specific event after showing the upsell.
+                        var telemetryEvent = new OperationEvent(
+                            "vs/copilot/showcopilotfreestatus",
+                            TelemetryResult.Success);
+                        telemetryEvent.Properties["vs.copilot.source"] = "CSharpOnTheFlyDocs";
+                        TelemetryService.DefaultSession.PostEvent(telemetryEvent);
+
+                        _asyncQuickInfoSession.DismissAsync();
+                    };
+
+                    ShowQuotaExceededResult();
+                }
+
                 SetResultText(EditorFeaturesResources.An_error_occurred_while_generating_documentation_for_this_code);
-                CurrentState = OnTheFlyDocsState.Finished;
                 Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Error_Displayed, KeyValueLogMessage.Create(m =>
                 {
                     m["ElapsedTime"] = copilotRequestTime;
                 }, LogLevel.Information));
+
+                CurrentState = OnTheFlyDocsState.Finished;
+
             }
             else
             {
-                SetResultText(response);
+                SetResultText(responseString);
                 CurrentState = OnTheFlyDocsState.Finished;
 
                 Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Results_Displayed, KeyValueLogMessage.Create(m =>
                 {
                     m["ElapsedTime"] = copilotRequestTime;
-                    m["ResponseLength"] = response.Length;
+                    m["ResponseLength"] = responseString.Length;
                 }, LogLevel.Information));
             }
         }
@@ -220,6 +293,19 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     {
         _responseControl.Content = ToUIElement(
             new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement([new ClassifiedTextRun(ClassificationTypeNames.Text, text)])));
+    }
+
+    /// <summary>
+    /// Shows a result message for exceeding the quota of the Copilot Free plan.
+    /// </summary>
+    public void ShowQuotaExceededResult()
+    {
+        var elements = new List<object>
+        {
+            new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement(this.quotaExceededContent))
+        };
+
+        _responseControl.Content = this.ToUIElement(new ContainerElement(ContainerElementStyle.Stacked, elements));
     }
 
     private void OnPropertyChanged<T>(ref T member, T value, [CallerMemberName] string? name = null)

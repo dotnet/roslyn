@@ -70,7 +70,7 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// <paramref name="language"/> is the language of the originating <see cref="ISymbol"/>.
     /// </para>
     /// </summary>
-    Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
+    Task<(string ResponseString, int ResponseStatus)> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
 
     /// <summary>
     /// Determines if the given <paramref name="filePath"/> is excluded in the workspace.
