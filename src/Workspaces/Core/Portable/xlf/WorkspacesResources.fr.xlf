@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="After">
         <source>After</source>
-        <target state="new">After</target>
+        <target state="translated">Après</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
