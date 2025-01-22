@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, DiagnosticKind.All, includeSuppressedDiagnostics:=False, CancellationToken.None)
+                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, DiagnosticKind.All, CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Length)
 
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CancellationToken.None)
 
-                Assert.Equal(0, fixes.Length)
+                Assert.Empty(fixes)
 
                 ' Verify available codefix with a global fixer + a project fixer
                 ' We will use this assembly as a project fixer provider.
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CancellationToken.None)
 
-                Assert.Equal(0, fixes.Length)
+                Assert.Empty(fixes)
             End Using
         End Function
 
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, DiagnosticKind.All, includeSuppressedDiagnostics:=False, CancellationToken.None)
+                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, DiagnosticKind.All, CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Length)
 
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CancellationToken.None)
 
-                Assert.Equal(0, fixes.Length)
+                Assert.Empty(fixes)
 
                 ' Verify no codefix with a global fixer + a project fixer
                 ' We will use this assembly as a project fixer provider.
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CancellationToken.None)
 
-                Assert.Equal(0, fixes.Length)
+                Assert.Empty(fixes)
             End Using
         End Function
 

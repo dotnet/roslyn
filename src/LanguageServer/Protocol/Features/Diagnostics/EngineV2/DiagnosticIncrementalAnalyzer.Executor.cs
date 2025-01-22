@@ -144,7 +144,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             project,
                             projectAnalyzersToRun,
                             hostAnalyzersToRun,
-                            compilationWithAnalyzers.ReportSuppressedDiagnostics,
                             AnalyzerService.CrashOnAnalyzerException,
                             cancellationToken).ConfigureAwait(false);
 

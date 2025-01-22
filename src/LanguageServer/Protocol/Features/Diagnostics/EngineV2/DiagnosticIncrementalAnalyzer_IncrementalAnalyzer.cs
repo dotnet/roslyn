@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CompilationWithAnalyzersPair? compilationWithAnalyzers = null;
 
                 compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
-                    project, activeProjectAnalyzers, activeHostAnalyzers, includeSuppressedDiagnostics: true, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                    project, activeProjectAnalyzers, activeHostAnalyzers, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, stateSets, cancellationToken).ConfigureAwait(false);
 
