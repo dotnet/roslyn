@@ -1379,7 +1379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     case DeclarationModifiers.Partial:
                         var nextToken = PeekToken(1);
-                        if (this.IsPartialType() || this.IsPartialMember())
+                        if (this.IsPartialType() || this.IsPartialMember(allowPartialCtor: !forTopLevelStatements))
                         {
                             // Standard legal cases.
                             modTok = ConvertToKeyword(this.EatToken());
@@ -1632,26 +1632,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return false;
         }
 
-        private bool IsPartialMember()
+        private bool IsPartialMember(bool allowPartialCtor)
         {
-            // note(cyrusn): this could have been written like so:
-            //
-            //  return
-            //    this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
-            //    this.PeekToken(1).Kind == SyntaxKind.VoidKeyword;
-            //
-            // However, we want to be lenient and allow the user to write 
-            // 'partial' in most modifier lists.  We will then provide them with
-            // a more specific message later in binding that they are doing 
-            // something wrong.
-            //
-            // Some might argue that the simple check would suffice.
-            // However, we'd like to maintain behavior with 
-            // previously shipped versions, and so we're keeping this code.
-
-            // Here we check for:
-            //   partial ReturnType MemberName
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+
+            // Check for:
+            //   partial event
+            if (this.PeekToken(1).Kind == SyntaxKind.EventKeyword)
+            {
+                return true;
+            }
+
+            // Check for constructor:
+            //   partial Identifier(
+            if (allowPartialCtor &&
+                this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
+                this.PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+            {
+                return true;
+            }
+
+            // Check for method/property:
+            //   partial ReturnType MemberName
             using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
             this.EatToken(); // partial
@@ -5680,7 +5682,7 @@ parse_member_name:;
         {
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
-                if (!IsCurrentTokenPartialKeywordOfPartialMethodOrType() &&
+                if (!IsCurrentTokenPartialKeywordOfPartialMemberOrType() &&
                     !IsCurrentTokenQueryKeywordInQuery() &&
                     !IsCurrentTokenWhereOfConstraintClause())
                 {
@@ -5727,7 +5729,7 @@ parse_member_name:;
                 // show the correct parameter help in this case.  So, when we see "partial" we check if it's being used
                 // as an identifier or as a contextual keyword.  If it's the latter then we bail out.  See
                 // Bug: vswhidbey/542125
-                if (IsCurrentTokenPartialKeywordOfPartialMethodOrType() || IsCurrentTokenQueryKeywordInQuery())
+                if (IsCurrentTokenPartialKeywordOfPartialMemberOrType() || IsCurrentTokenQueryKeywordInQuery())
                 {
                     var result = CreateMissingIdentifierToken();
                     result = this.AddError(result, ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
@@ -5754,11 +5756,11 @@ parse_member_name:;
             return this.IsInQuery && this.IsCurrentTokenQueryContextualKeyword;
         }
 
-        private bool IsCurrentTokenPartialKeywordOfPartialMethodOrType()
+        private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
         {
             if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
             {
-                if (this.IsPartialType() || this.IsPartialMember())
+                if (this.IsPartialType() || this.IsPartialMember(allowPartialCtor: false))
                 {
                     return true;
                 }

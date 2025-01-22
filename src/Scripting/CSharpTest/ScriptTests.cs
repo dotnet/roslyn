@@ -1067,6 +1067,18 @@ return reply;
             Assert.True(exceptionThrown);
         }
 
+        [Fact]
+        public async Task Function_ReturningPartialType()
+        {
+            var script = CSharpScript.Create("class partial;", ScriptOptions)
+                .ContinueWith("partial M() => new();")
+                .ContinueWith("M()");
+            script.GetCompilation().VerifyDiagnostics();
+
+            var result = await script.EvaluateAsync();
+            Assert.Equal("partial", result.GetType().Name);
+        }
+
         private class StreamOffsetResolver : SourceReferenceResolver
         {
             public override bool Equals(object other) => ReferenceEquals(this, other);
