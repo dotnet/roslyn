@@ -1049,7 +1049,7 @@ class A {
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true, includeTaskListItems: false, category: PullDiagnosticCategories.Task);
 
-        Assert.Equal(0, results.Length);
+        Assert.Empty(results);
     }
 
     [Theory, CombinatorialData]
@@ -1115,7 +1115,7 @@ class A {
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true, includeTaskListItems: false, category: PullDiagnosticCategories.Task);
 
-        Assert.Equal(0, results.Length);
+        Assert.Empty(results);
     }
 
     [Theory, CombinatorialData]
@@ -2115,7 +2115,7 @@ class A {";
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.Equal(0, results.Length);
+        Assert.Empty(results);
 
         var options = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
         options.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);

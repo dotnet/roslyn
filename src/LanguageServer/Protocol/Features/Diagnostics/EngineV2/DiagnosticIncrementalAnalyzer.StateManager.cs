@@ -141,14 +141,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (includeWorkspacePlaceholderAnalyzers)
                 {
                     builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(language, FileContentLoadAnalyzer.Instance, isHostAnalyzer: true));
-                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(language, GeneratorDiagnosticsPlaceholderAnalyzer.Instance, isHostAnalyzer: true));
                 }
 
                 foreach (var analyzers in projectAnalyzerCollection)
                 {
                     foreach (var analyzer in analyzers)
                     {
-                        Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance && analyzer != GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
+                        Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance);
 
                         // TODO: 
                         // #1, all de-duplication should move to DiagnosticAnalyzerInfoCache
@@ -167,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     foreach (var analyzer in analyzers)
                     {
-                        Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance && analyzer != GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
+                        Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance);
 
                         // TODO: 
                         // #1, all de-duplication should move to DiagnosticAnalyzerInfoCache

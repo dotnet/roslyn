@@ -463,8 +463,8 @@ internal sealed class EditSession
 
     private static async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(Project project, ArrayBuilder<ProjectDiagnostics>? diagnostics, CancellationToken cancellationToken)
     {
-        var generatorDiagnostics = await project.Solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, cancellationToken).ConfigureAwait(false);
-
+        var runResult = await project.Solution.CompilationState.GetSourceGeneratorRunResultAsync(project.State, cancellationToken).ConfigureAwait(false);
+        var generatorDiagnostics = runResult?.Diagnostics ?? [];
         if (generatorDiagnostics is not [])
         {
             diagnostics?.Add(new ProjectDiagnostics(project.Id, generatorDiagnostics));
