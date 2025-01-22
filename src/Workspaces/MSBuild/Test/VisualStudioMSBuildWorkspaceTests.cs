@@ -3285,7 +3285,7 @@ class C { }";
             var solutionFilePath = GetSolutionFileName(@"InvalidSolutionFilter.slnf");
 
             using var workspace = CreateMSBuildWorkspace();
-            var exception = await Assert.ThrowsAsync<Exception>(() => workspace.OpenSolutionAsync(solutionFilePath));
+            var exception = await Assert.ThrowsAsync<RemoteInvocationException>(() => workspace.OpenSolutionAsync(solutionFilePath));
 
             Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
         }
