@@ -1966,7 +1966,7 @@ public interface IFace
         private void CheckAddRemoveAttribute(SyntaxNode declaration)
         {
             var initialAttributes = Generator.GetAttributes(declaration);
-            Assert.Equal(0, initialAttributes.Count);
+            Assert.Empty(initialAttributes);
 
             var withAttribute = Generator.AddAttributes(declaration, Generator.Attribute("a"));
             var attrsAdded = Generator.GetAttributes(withAttribute);
@@ -1974,7 +1974,7 @@ public interface IFace
 
             var withoutAttribute = Generator.RemoveNode(withAttribute, attrsAdded[0]);
             var attrsRemoved = Generator.GetAttributes(withoutAttribute);
-            Assert.Equal(0, attrsRemoved.Count);
+            Assert.Empty(attrsRemoved);
         }
 
         [Fact]
@@ -3662,7 +3662,7 @@ public class C
 
             var baseListN = Generator.GetBaseAndInterfaceTypes(classN);
             Assert.NotNull(baseListN);
-            Assert.Equal(0, baseListN.Count);
+            Assert.Empty(baseListN);
         }
 
         [Fact]
