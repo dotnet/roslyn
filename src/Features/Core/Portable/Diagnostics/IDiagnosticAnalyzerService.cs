@@ -118,16 +118,6 @@ internal interface IDiagnosticAnalyzerService
 internal static class IDiagnosticAnalyzerServiceExtensions
 {
     /// <summary>
-    /// Return up to date diagnostics for the given <paramref name="range"/> for the given <paramref name="document"/>.
-    /// <para>
-    /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
-    /// </para>
-    /// </summary>
-    public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(this IDiagnosticAnalyzerService service,
-        TextDocument document, TextSpan? range, CancellationToken cancellationToken)
-        => service.GetDiagnosticsForSpanAsync(document, range, DiagnosticKind.All, includeSuppressedDiagnostics: false, cancellationToken);
-
-    /// <summary>
     /// Return up to date diagnostics of the given <paramref name="diagnosticKind"/> for the given <paramref name="range"/>
     /// for the given <paramref name="document"/>.
     /// <para>
