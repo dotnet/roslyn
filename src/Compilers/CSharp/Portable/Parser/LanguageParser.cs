@@ -1732,7 +1732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _termState |= TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature;
 
             var saveTerm = _termState;
-            _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
+            //_termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop; // TODO2 looking for affected test
 
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
@@ -1790,7 +1790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 // This token can start a member -- go parse it
                                 var saveTerm2 = _termState;
-                                _termState |= TerminatorState.IsPossibleMemberStartOrStop;
+                                //_termState |= TerminatorState.IsPossibleMemberStartOrStop; // TODO2 looking for affected test
 
                                 var member = this.ParseMemberDeclaration(keyword.Kind);
                                 if (member != null)
@@ -1802,7 +1802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 {
                                     throw new System.Exception("JCOUV"); // TODO2
                                     // we get here if we couldn't parse the lookahead as a statement or a declaration (we haven't consumed any tokens):
-                                    this.SkipBadMemberListTokens(ref openBrace, members);
+                                    //this.SkipBadMemberListTokens(ref openBrace, members);
                                 }
 
                                 _termState = saveTerm2;
@@ -1973,7 +1973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxToken extensionKeyword = this.EatContextualToken(SyntaxKind.ExtensionKeyword);
 
             var outerSaveTerm = _termState;
-            _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
+            _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop; // TODO2 add test affected
 
             TypeParameterListSyntax typeParameters = this.ParseTypeParameterList();
             ReceiverParameterSyntax receiverParameter = parseReceiverParameter(out var openParenToken, out var closeParenToken);
@@ -2014,7 +2014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             // This token can start a member -- go parse it
                             var saveTerm = _termState;
-                            _termState |= TerminatorState.IsPossibleMemberStartOrStop;
+                            _termState |= TerminatorState.IsPossibleMemberStartOrStop; // TODO2 add affected test
 
                             MemberDeclarationSyntax member = this.ParseMemberDeclaration(SyntaxKind.ExtensionContainer);
                             if (member != null)
