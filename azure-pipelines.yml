@@ -43,7 +43,7 @@ variables:
   # Set pool / queue name variables depending on which instance we're running in.
   - name: PoolName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: NetCore-Public-Test-Test
+      value: NetCore-Public-Test
     ${{ else }}:
       value: NetCore1ESPool-Internal
 
@@ -162,7 +162,7 @@ stages:
     container: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9
     pool:
       ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore-Svc-Public' ), False, 'NetCore-Public-Test-Test')]
+        name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore-Svc-Public' ), False, 'NetCore-Public-Test')]
         demands: ImageOverride -equals Build.Ubuntu.2204.Amd64.Open
 
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
