@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End Function
 
                 Private Shared Function CheckActiveStatements(statements As ImmutableArray(Of StatementSyntax)) As OperationStatus
-                    Dim count = statements.Count()
+                    Dim count = statements.Length
                     If count = 0 Then
                         Return OperationStatus.NoActiveStatement
                     End If
