@@ -4346,7 +4346,7 @@ public sealed partial class CollectionArgumentsSyntax : CollectionElementSyntax
     {
     }
 
-    public SyntaxToken ArgsKeyword => new SyntaxToken(this, ((InternalSyntax.CollectionArgumentsSyntax)this.Green).argsKeyword, Position, 0);
+    public SyntaxToken WithKeyword => new SyntaxToken(this, ((InternalSyntax.CollectionArgumentsSyntax)this.Green).withKeyword, Position, 0);
 
     public ArgumentListSyntax ArgumentList => GetRed(ref this.argumentList, 1)!;
 
@@ -4357,11 +4357,11 @@ public sealed partial class CollectionArgumentsSyntax : CollectionElementSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCollectionArguments(this);
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCollectionArguments(this);
 
-    public CollectionArgumentsSyntax Update(SyntaxToken argsKeyword, ArgumentListSyntax argumentList)
+    public CollectionArgumentsSyntax Update(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
     {
-        if (argsKeyword != this.ArgsKeyword || argumentList != this.ArgumentList)
+        if (withKeyword != this.WithKeyword || argumentList != this.ArgumentList)
         {
-            var newNode = SyntaxFactory.CollectionArguments(argsKeyword, argumentList);
+            var newNode = SyntaxFactory.CollectionArguments(withKeyword, argumentList);
             var annotations = GetAnnotations();
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
@@ -4369,8 +4369,8 @@ public sealed partial class CollectionArgumentsSyntax : CollectionElementSyntax
         return this;
     }
 
-    public CollectionArgumentsSyntax WithArgsKeyword(SyntaxToken argsKeyword) => Update(argsKeyword, this.ArgumentList);
-    public CollectionArgumentsSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.ArgsKeyword, argumentList);
+    public CollectionArgumentsSyntax WithWithKeyword(SyntaxToken withKeyword) => Update(withKeyword, this.ArgumentList);
+    public CollectionArgumentsSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.WithKeyword, argumentList);
 
     public CollectionArgumentsSyntax AddArgumentListArguments(params ArgumentSyntax[] items) => WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
 }

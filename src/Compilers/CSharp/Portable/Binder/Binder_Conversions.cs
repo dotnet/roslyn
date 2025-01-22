@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                // PROTOTYPE: Handle args(...).
+                // PROTOTYPE: Handle collection arguments.
                 collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, diagnostics);
                 Debug.Assert((collectionCreation is BoundNewT && !isExpanded && constructor is null) ||
                              (collectionCreation is BoundObjectCreationExpression creation && creation.Expanded == isExpanded && creation.Constructor == constructor));
@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var collectionInitializerAddMethodBinder = new CollectionInitializerAddMethodBinder(syntax, targetType, this);
                 foreach (var element in elements)
                 {
-                    Debug.Assert(element is not BoundUnconvertedCollectionArguments); // PROTOTYPE: Handle args(...).
+                    Debug.Assert(element is not BoundUnconvertedCollectionArguments); // PROTOTYPE: Handle collection arguments.
                     BoundNode convertedElement = element is BoundCollectionExpressionSpreadElement spreadElement ?
                         (BoundNode)BindCollectionExpressionSpreadElementAddMethod(
                             (SpreadElementSyntax)spreadElement.Syntax,

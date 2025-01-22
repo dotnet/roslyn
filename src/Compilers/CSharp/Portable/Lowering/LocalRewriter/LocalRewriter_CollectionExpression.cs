@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // PROTOTYPE: Should we always use overload resolution in binding to generate the
-                // object creation expression, rather than only when 'args()' is supplied?
+                // object creation expression, rather than only when 'with()' is supplied?
 
                 // Dictionary<K, V> dictionary = new();
                 var typeArguments = targetType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
@@ -1205,9 +1205,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
-
-            // PROTOTYPE: Should we always use overload resolution in binding to generate the
-            // object creation expression, rather than only when 'args()' is supplied?
 
             // Create a temp for the dictionary.
             BoundAssignmentOperator assignmentToTemp;

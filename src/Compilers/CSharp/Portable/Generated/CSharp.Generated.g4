@@ -863,7 +863,7 @@ collection_element
   ;
 
 collection_arguments
-  : args_keyword argument_list
+  : 'with' argument_list
   ;
 
 expression_element
@@ -1745,10 +1745,6 @@ punctuation_token
   | ']'
   | '{'
   | '}'
-  ;
-
-args_keyword
-  : /* see lexical specification */
   ;
 
 base_argument_list

@@ -1849,8 +1849,8 @@
   </Node>
   <Node Name="CollectionArgumentsSyntax" Base="CollectionElementSyntax">
     <Kind Name="CollectionArguments"/>
-    <Field Name="ArgsKeyword" Type="SyntaxToken">
-      <Kind Name="ArgsKeyword"/>
+    <Field Name="WithKeyword" Type="SyntaxToken">
+      <Kind Name="WithKeyword"/>
     </Field>
     <Field Name="ArgumentList" Type="ArgumentListSyntax" />
   </Node>

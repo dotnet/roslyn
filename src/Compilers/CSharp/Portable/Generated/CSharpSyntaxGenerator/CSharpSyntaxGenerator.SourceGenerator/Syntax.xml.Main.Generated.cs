@@ -1714,7 +1714,7 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
         => node.Update((ExpressionSyntax?)Visit(node.KeyExpression) ?? throw new ArgumentNullException("keyExpression"), VisitToken(node.ColonToken), (ExpressionSyntax?)Visit(node.ValueExpression) ?? throw new ArgumentNullException("valueExpression"));
 
     public override SyntaxNode? VisitCollectionArguments(CollectionArgumentsSyntax node)
-        => node.Update(VisitToken(node.ArgsKeyword), (ArgumentListSyntax?)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"));
+        => node.Update(VisitToken(node.WithKeyword), (ArgumentListSyntax?)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"));
 
     public override SyntaxNode? VisitQueryExpression(QueryExpressionSyntax node)
         => node.Update((FromClauseSyntax?)Visit(node.FromClause) ?? throw new ArgumentNullException("fromClause"), (QueryBodySyntax?)Visit(node.Body) ?? throw new ArgumentNullException("body"));
@@ -3449,16 +3449,16 @@ public static partial class SyntaxFactory
         => SyntaxFactory.KeyValuePairElement(keyExpression, SyntaxFactory.Token(SyntaxKind.ColonToken), valueExpression);
 
     /// <summary>Creates a new CollectionArgumentsSyntax instance.</summary>
-    public static CollectionArgumentsSyntax CollectionArguments(SyntaxToken argsKeyword, ArgumentListSyntax argumentList)
+    public static CollectionArgumentsSyntax CollectionArguments(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
     {
-        if (argsKeyword.Kind() != SyntaxKind.ArgsKeyword) throw new ArgumentException(nameof(argsKeyword));
+        if (withKeyword.Kind() != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
         if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
-        return (CollectionArgumentsSyntax)Syntax.InternalSyntax.SyntaxFactory.CollectionArguments((Syntax.InternalSyntax.SyntaxToken)argsKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
+        return (CollectionArgumentsSyntax)Syntax.InternalSyntax.SyntaxFactory.CollectionArguments((Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
     }
 
     /// <summary>Creates a new CollectionArgumentsSyntax instance.</summary>
     public static CollectionArgumentsSyntax CollectionArguments(ArgumentListSyntax? argumentList = default)
-        => SyntaxFactory.CollectionArguments(SyntaxFactory.Token(SyntaxKind.ArgsKeyword), argumentList ?? SyntaxFactory.ArgumentList());
+        => SyntaxFactory.CollectionArguments(SyntaxFactory.Token(SyntaxKind.WithKeyword), argumentList ?? SyntaxFactory.ArgumentList());
 
     /// <summary>Creates a new QueryExpressionSyntax instance.</summary>
     public static QueryExpressionSyntax QueryExpression(FromClauseSyntax fromClause, QueryBodySyntax body)

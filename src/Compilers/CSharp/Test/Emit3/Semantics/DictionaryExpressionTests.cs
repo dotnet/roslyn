@@ -1131,11 +1131,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         // PROTOTYPE: Test language version.
-        // PROTOTYPE: Test [args()].
-        // PROTOTYPE: Test [x, args()].
-        // PROTOTYPE: Test [args()] with generic type parameter target type.
-        // PROTOTYPE: Test [args(x)] with generic type parameter target type.
-        // PROTOTYPE: Test binding within later args: eg. [args(), args(too, many, args)].
+        // PROTOTYPE: Test [with()].
+        // PROTOTYPE: Test [x, with()].
+        // PROTOTYPE: Test [with()] with generic type parameter target type.
+        // PROTOTYPE: Test [with(x)] with generic type parameter target type.
+        // PROTOTYPE: Test binding within later args: eg. [with(), with(too, many, args)].
         // PROTOTYPE: Test unrecognized parameter name.
         // PROTOTYPE: Test reordered parameters.
         // PROTOTYPE: Test order of evaluation, including with reordered parameters.
@@ -1155,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         F2("two", 2).Report();
                     }
                     static IDictionary<K, V> F1<K, V>(K k, V v) => [k:v];
-                    static IDictionary<K, V> F2<K, V>(K k, V v) => [args(), k:v];
+                    static IDictionary<K, V> F2<K, V>(K k, V v) => [with(), k:v];
                 }
                 """;
             var verifier = CompileAndVerify(
@@ -1189,7 +1189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         F("one", 1).Report();
                     }
-                    static IDictionary<K, V> F<K, V>(K k, V v) => [args(comparer: null, capacity: 2), k:v];
+                    static IDictionary<K, V> F<K, V>(K k, V v) => [with(comparer: null, capacity: 2), k:v];
                 }
                 """;
             var verifier = CompileAndVerify(
@@ -1219,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 using System.Collections.Generic;
                 class Program
                 {
-                    static IReadOnlyDictionary<K, V> F<K, V>() => [args(comparer: null, capacity: 2)];
+                    static IReadOnlyDictionary<K, V> F<K, V>() => [with(comparer: null, capacity: 2)];
                 }
                 """;
             // PROTOTYPE: Should report error that capacity is not supported.

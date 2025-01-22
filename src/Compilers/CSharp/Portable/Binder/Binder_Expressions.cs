@@ -5287,8 +5287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Similar to BindImplicitObjectCreationExpression.
         private BoundNode BindCollectionArguments(CollectionArgumentsSyntax syntax, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax.ArgsKeyword);
-
+            MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax.WithKeyword);
             var arguments = AnalyzedArguments.GetInstance();
             BindArgumentsAndNames(syntax.ArgumentList, diagnostics, arguments, allowArglist: true);
             var result = new BoundUnconvertedCollectionArguments(
