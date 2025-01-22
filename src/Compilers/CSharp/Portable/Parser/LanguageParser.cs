@@ -1800,7 +1800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 }
                                 else
                                 {
-                                    throw new System.Exception("JCOUV");
+                                    throw new System.Exception("JCOUV"); // TODO2
                                     // we get here if we couldn't parse the lookahead as a statement or a declaration (we haven't consumed any tokens):
                                     this.SkipBadMemberListTokens(ref openBrace, members);
                                 }
