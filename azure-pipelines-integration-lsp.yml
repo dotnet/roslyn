@@ -44,9 +44,9 @@ parameters:
 - name: poolName
   displayName: Pool Name
   type: string
-  default: NetCore-Public-Test
+  default: NetCore-Public
   values:
-  - NetCore-Public-Test
+  - NetCore-Public
   - NetCore-Svc-Public
 - name: queueName
   displayName: Queue Name

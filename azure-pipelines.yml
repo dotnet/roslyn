@@ -43,7 +43,7 @@ variables:
   # Set pool / queue name variables depending on which instance we're running in.
   - name: PoolName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: NetCore-Public-Test
+      value: NetCore-Public
     ${{ else }}:
       value: NetCore1ESPool-Internal
 
@@ -193,7 +193,7 @@ stages:
         testArguments: -testDesktop -testArch x86
         helixQueueName: $(HelixWindowsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
-        poolParameters: ${{ parameters.windowsPool }}
+        poolParameters: NetCore-Public-Test
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -204,7 +204,7 @@ stages:
       testArguments: -testDesktop -testArch x64
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+      poolParameters: NetCore-Public-Test
 
 - stage: Windows_Release_Desktop
   dependsOn: Windows_Release_Build
@@ -221,7 +221,7 @@ stages:
       testArguments: -testDesktop -testArch x86
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+      poolParameters: NetCore-Public-Test
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -233,7 +233,7 @@ stages:
         testArguments: -testDesktop -testArch x64
         helixQueueName: $(HelixWindowsQueueName)
         helixApiAccessToken: $(HelixApiAccessToken)
-        poolParameters: ${{ parameters.windowsPool }}
+        poolParameters: NetCore-Public-Test
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -261,7 +261,7 @@ stages:
       testArguments: -testCoreClr
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+      poolParameters: NetCore-Public-Test
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -294,7 +294,7 @@ stages:
       testArguments: -testCoreClr -testIOperation -testCompilerOnly
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+      poolParameters: NetCore-Public-Test
 
   # This leg runs almost all the compiler tests supported on CoreCLR, but
   #  with additional validation for used assemblies and GetEmitDiagnostics
@@ -307,7 +307,7 @@ stages:
       testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+      poolParameters: NetCore-Public-Test
 
 - stage: Windows_Release_CoreClr
   dependsOn: Windows_Release_Build
@@ -324,7 +324,7 @@ stages:
       testArguments: -testCoreClr
       helixQueueName: $(HelixWindowsQueueName)
       helixApiAccessToken: $(HelixApiAccessToken)
-      poolParameters: ${{ parameters.windowsPool }}
+      poolParameters: NetCore-Public-Test
 
 - stage: Unix_Debug_CoreClr
   dependsOn: Unix_Build
