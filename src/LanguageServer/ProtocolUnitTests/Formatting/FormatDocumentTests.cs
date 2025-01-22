@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,28 +24,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
         public async Task TestFormatDocumentAsync(bool mutatingLspWorkspace)
         {
             var markup =
-@"class A
-{
-void M()
-{
-            int i = 1;{|caret:|}
-    }
-}";
+                """
+                class A
+                {
+                void M()
+                {
+                            int i = 1;{|caret:|}
+                    }
+                }
+                """;
             var expected =
-@"class A
-{
-    void M()
-    {
-        int i = 1;
-    }
-}";
+                """
+                class A
+                {
+                    void M()
+                    {
+                        int i = 1;
+                    }
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
-            var documentText = await testLspServer.GetDocumentTextAsync(documentURI);
-
-            var results = await RunFormatDocumentAsync(testLspServer, documentURI);
-            var actualText = ApplyTextEdits(results, documentText);
-            AssertEx.EqualOrDiff(expected, actualText);
+            await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
         }
 
         [Theory, CombinatorialData]
@@ -79,11 +80,7 @@ void M()
 
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
-            var documentText = await testLspServer.GetDocumentTextAsync(documentURI);
-
-            var results = await RunFormatDocumentAsync(testLspServer, documentURI);
-            var actualText = ApplyTextEdits(results, documentText);
-            AssertEx.EqualOrDiff(expected, actualText);
+            await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
         }
 
         [Theory, CombinatorialData]
@@ -118,11 +115,7 @@ void M()
 
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
-            var documentText = await testLspServer.GetDocumentTextAsync(documentURI);
-
-            var results = await RunFormatDocumentAsync(testLspServer, documentURI);
-            var actualText = ApplyTextEdits(results, documentText);
-            AssertEx.EqualOrDiff(expected, actualText);
+            await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
         }
 
         [Theory, CombinatorialData]
@@ -157,11 +150,7 @@ void M()
 
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
-            var documentText = await testLspServer.GetDocumentTextAsync(documentURI);
-
-            var results = await RunFormatDocumentAsync(testLspServer, documentURI);
-            var actualText = ApplyTextEdits(results, documentText);
-            AssertEx.EqualOrDiff(expected, actualText);
+            await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
         }
 
         [Theory, CombinatorialData]
@@ -196,11 +185,50 @@ void M()
 
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
-            var documentText = await testLspServer.GetDocumentTextAsync(documentURI);
+            await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
+        }
 
-            var results = await RunFormatDocumentAsync(testLspServer, documentURI);
-            var actualText = ApplyTextEdits(results, documentText);
-            AssertEx.EqualOrDiff(expected, actualText);
+        [Theory, CombinatorialData]
+        public async Task TestFormatDocumentWithOrganizeImports5Async(bool mutatingLspWorkspace)
+        {
+            var markup =
+                """
+                using   System.Collections;
+                using  System;
+
+                class A{|caret:|}
+                {
+                void M()
+                {
+                            int i = 1;
+                    }
+                }
+                """;
+            var expected =
+                """
+                using System;
+                using System.Collections;
+
+                class A
+                {
+                    void M()
+                    {
+                        int i = 1;
+                    }
+                }
+                """;
+
+            var options = new InitializationOptions
+            {
+                OptionUpdater = globalOptions =>
+                {
+                    globalOptions.SetGlobalOption(LspOptionsStorage.LspOrganizeImportsOnFormat, LanguageNames.CSharp, true);
+                },
+            };
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+            await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
         }
 
         [Theory, CombinatorialData]
@@ -227,67 +255,78 @@ void M()
 
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
-            var documentText = await testLspServer.GetDocumentTextAsync(documentURI);
-
-            var results = await RunFormatDocumentAsync(testLspServer, documentURI);
-            var actualText = ApplyTextEdits(results, documentText);
-            AssertEx.EqualOrDiff(expected, actualText);
+            await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
         }
 
         [Theory, CombinatorialData]
         public async Task TestFormatDocument_UseTabsAsync(bool mutatingLspWorkspace)
         {
             var markup =
-@"class A
-{
-void M()
-{
-			int i = 1;{|caret:|}
-    }
-}";
+                """
+                class A
+                {
+                void M()
+                {
+                			int i = 1;{|caret:|}
+                    }
+                }
+                """;
             var expected =
-@"class A
-{
-	void M()
-	{
-		int i = 1;
-	}
-}";
+                """
+                class A
+                {
+                	void M()
+                	{
+                		int i = 1;
+                	}
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
-            var documentText = await testLspServer.GetDocumentTextAsync(documentURI);
-
-            var results = await RunFormatDocumentAsync(testLspServer, documentURI, insertSpaces: false, tabSize: 4);
-            var actualText = ApplyTextEdits(results, documentText);
-            AssertEx.EqualOrDiff(expected, actualText);
+            await AssertFormatDocumentAsync(testLspServer, documentURI, expected, insertSpaces: false, tabSize: 4);
         }
 
         [Theory, CombinatorialData]
         public async Task TestFormatDocument_ModifyTabIndentSizeAsync(bool mutatingLspWorkspace)
         {
             var markup =
-@"class A
-{
-void M()
-{
-			int i = 1;{|caret:|}
-    }
-}";
+                """
+                class A
+                {
+                void M()
+                {
+                			int i = 1;{|caret:|}
+                    }
+                }
+                """;
             var expected =
-@"class A
-{
-  void M()
-  {
-    int i = 1;
-  }
-}";
+                """
+                class A
+                {
+                  void M()
+                  {
+                    int i = 1;
+                  }
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var documentURI = testLspServer.GetLocations("caret").Single().Uri;
-            var documentText = await testLspServer.GetDocumentTextAsync(documentURI);
+            await AssertFormatDocumentAsync(testLspServer, documentURI, expected, insertSpaces: true, tabSize: 2);
+        }
 
-            var results = await RunFormatDocumentAsync(testLspServer, documentURI, insertSpaces: true, tabSize: 2);
+        private static async Task AssertFormatDocumentAsync(
+            TestLspServer testLspServer,
+            Uri uri,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedText,
+            bool insertSpaces = true,
+            int tabSize = 4
+            )
+        {
+            var documentText = await testLspServer.GetDocumentTextAsync(uri);
+
+            var results = await RunFormatDocumentAsync(testLspServer, uri, insertSpaces, tabSize);
             var actualText = ApplyTextEdits(results, documentText);
-            AssertEx.EqualOrDiff(expected, actualText);
+            AssertEx.EqualOrDiff(expectedText, actualText);
         }
 
         private static async Task<LSP.TextEdit[]?> RunFormatDocumentAsync(
