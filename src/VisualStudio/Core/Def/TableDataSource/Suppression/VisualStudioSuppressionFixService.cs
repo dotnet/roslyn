@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -98,6 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         public bool AddSuppressions(IVsHierarchy? projectHierarchy)
         {
+            Logger.Log(FunctionId.Suppression_Add, logLevel: LogLevel.Information);
             if (_tableControl == null)
             {
                 return false;
@@ -118,6 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         public bool AddSuppressions(bool selectedErrorListEntriesOnly, bool suppressInSource, IVsHierarchy? projectHierarchy)
         {
+            Logger.Log(FunctionId.Suppression_Add, logLevel: LogLevel.Information);
             if (_tableControl == null)
             {
                 return false;
@@ -129,6 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         public bool RemoveSuppressions(bool selectedErrorListEntriesOnly, IVsHierarchy? projectHierarchy)
         {
+            Logger.Log(FunctionId.Suppression_Remove, logLevel: LogLevel.Information);
             if (_tableControl == null)
             {
                 return false;

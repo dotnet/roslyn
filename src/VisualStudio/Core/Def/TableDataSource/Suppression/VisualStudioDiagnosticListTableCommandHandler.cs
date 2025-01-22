@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
@@ -26,6 +27,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -170,6 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private void SetSeverityHandler(object sender, EventArgs args)
         {
+            Logger.Log(FunctionId.Suppression_Set_Severity, logLevel: LogLevel.Information);
             var selectedItem = (MenuCommand)sender;
             var reportDiagnostic = TryMapSelectedItemToReportDiagnostic(selectedItem);
             if (reportDiagnostic == null)
