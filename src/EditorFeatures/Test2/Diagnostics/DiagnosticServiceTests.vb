@@ -97,14 +97,14 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim descriptorsMap = hostAnalyzers.GetDiagnosticDescriptorsPerReference(diagnosticService.AnalyzerInfoCache, project)
                 Assert.Equal(1, descriptorsMap.Count)
                 Dim descriptors = descriptorsMap.First().Value
-                Assert.Equal(1, descriptors.Count())
+                Assert.Equal(1, descriptors.Length)
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
 
                 Dim document = project.Documents.Single()
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = Await GetDiagnosticsForDocumentAsync(diagnosticService, document)
 
-                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Length)
 
                 ' Add a project analyzer reference
                 Dim projectAnalyzers1 = ImmutableArray.Create(Of DiagnosticAnalyzer)(projectDiagnosticAnalyzer1)
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 document = project.Documents.Single()
                 diagnostics = Await GetDiagnosticsForDocumentAsync(diagnosticService, document)
-                Assert.Equal(3, diagnostics.Count())
+                Assert.Equal(3, diagnostics.Length)
 
                 ' Remove a project analyzer
                 project = project.RemoveAnalyzerReference(projectAnalyzerReference1)
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 document = project.Documents.Single()
                 diagnostics = Await GetDiagnosticsForDocumentAsync(diagnosticService, document)
 
-                Assert.Equal(2, diagnostics.Count())
+                Assert.Equal(2, diagnostics.Length)
 
                 ' Verify available diagnostic descriptors/analyzers if not project specific
                 descriptorsMap = hostAnalyzers.GetDiagnosticDescriptorsPerReference(diagnosticService.AnalyzerInfoCache)
@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 document = project.Documents.Single()
                 diagnostics = Await GetDiagnosticsForDocumentAsync(diagnosticService, document)
-                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Length)
             End Using
         End Function
 
@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 Assert.Equal(1, descriptorsMap.Count)
                 Dim descriptors = descriptorsMap.First().Value
-                Assert.Equal(1, descriptors.Count())
+                Assert.Equal(1, descriptors.Length)
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
             End Using
         End Sub
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim descriptorsMap = hostAnalyzers.GetDiagnosticDescriptorsPerReference(diagnosticService.AnalyzerInfoCache, project)
                 Assert.Equal(1, descriptorsMap.Count)
                 Dim descriptors = descriptorsMap.First().Value
-                Assert.Equal(1, descriptors.Count())
+                Assert.Equal(1, descriptors.Length)
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
 
                 Dim document = project.Documents.Single()
@@ -495,14 +495,14 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim descriptorsMap = solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(diagnosticService.AnalyzerInfoCache, project)
                 Assert.Equal(1, descriptorsMap.Count)
                 Dim descriptors = descriptorsMap.First().Value
-                Assert.Equal(0, descriptors.Count())
+                Assert.Equal(0, descriptors.Length)
 
                 Dim document = project.Documents.Single()
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = Await GetDiagnosticsForDocumentAsync(diagnosticService, document)
 
-                Assert.Equal(0, diagnostics.Count())
+                Assert.Equal(0, diagnostics.Length)
             End Using
         End Function
 
@@ -535,7 +535,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim root = Await document.GetSyntaxRootAsync().ConfigureAwait(False)
                 Dim diagnostics = Await GetDiagnosticsForSpanAsync(diagnosticService, document, root.FullSpan)
-                Assert.Equal(0, diagnostics.Count())
+                Assert.Equal(0, diagnostics.Length)
 
                 diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
                     project.Solution, projectId:=Nothing, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
@@ -576,7 +576,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim span = (Await document.GetSyntaxRootAsync().ConfigureAwait(False)).FullSpan
                 Dim diagnostics = Await GetDiagnosticsForSpanAsync(diagnosticService, document, span).ConfigureAwait(False)
-                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Length)
                 Assert.True(diagnostics(0).Id = "IDE1100")
                 Assert.Equal(String.Format(WorkspacesResources.Error_reading_content_of_source_file_0_1, "Test.cs", "Bad data!"), diagnostics(0).Message)
             End Using
@@ -611,7 +611,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                     Dim diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
                         project.Solution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
                         includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
-                    Assert.Equal(1, diagnostics.Count())
+                    Assert.Equal(1, diagnostics.Length)
                     Dim diagnostic = diagnostics.First()
                     Assert.Equal(OperationAnalyzer.Descriptor.Id, diagnostic.Id)
                     Dim expectedMessage = String.Format(OperationAnalyzer.Descriptor.MessageFormat.ToString(), actionKind)
@@ -648,7 +648,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = Await GetDiagnosticsForDocumentAsync(diagnosticService, document)
 
-                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Length)
                 Dim diagnostic = diagnostics.First()
                 Assert.Equal(CodeBlockEndedAnalyzer.Descriptor.Id, diagnostic.Id)
             End Using
@@ -682,7 +682,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = Await GetDiagnosticsForDocumentAsync(diagnosticService, document)
-                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Length)
                 Dim diagnostic = diagnostics.First()
                 Assert.Equal(CodeBlockEndedAnalyzer.Descriptor.Id, diagnostic.Id)
             End Using
@@ -759,7 +759,7 @@ class AnonymousFunctions
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = Await GetDiagnosticsForDocumentAsync(diagnosticService, document)
 
-                Assert.Equal(4, diagnostics.Count())
+                Assert.Equal(4, diagnostics.Length)
                 Dim diagnostic = diagnostics.First()
                 Assert.Equal(CodeBlockEndedAnalyzer.Descriptor.Id, diagnostic.Id)
             End Using
@@ -810,7 +810,7 @@ class AnonymousFunctions
                     project.Solution, project.Id, documentId:=Nothing,
                     diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
                     includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
-                Assert.Equal(2, projectDiagnostics.Count())
+                Assert.Equal(2, projectDiagnostics.Length)
 
                 Dim noLocationDiagnostic = projectDiagnostics.First(Function(d) d.DataLocation.DocumentId Is Nothing)
                 Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, noLocationDiagnostic.Id)
@@ -993,7 +993,7 @@ class AnonymousFunctions
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = Await GetDiagnosticsForSpanAsync(diagnosticService, document, fullSpan)
-                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Length)
                 Assert.Equal(PartialTypeDiagnosticAnalyzer.DiagDescriptor.Id, diagnostics.Single().Id)
             End Using
         End Function
@@ -1049,7 +1049,7 @@ class AnonymousFunctions
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
                     project.Solution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
                     includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
-                Assert.Equal(2, diagnostics.Count())
+                Assert.Equal(2, diagnostics.Length)
                 Dim file1HasDiag = False, file2HasDiag = False
                 For Each diagnostic In diagnostics
                     Assert.Equal(PartialTypeDiagnosticAnalyzer.DiagDescriptor.Id, diagnostic.Id)
@@ -1101,7 +1101,7 @@ public class B
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = Await GetDiagnosticsForSpanAsync(diagnosticService, document, fullSpan)
-                Assert.Equal(6, diagnostics.Count())
+                Assert.Equal(6, diagnostics.Length)
                 Assert.Equal(3, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Descriptor1.Id).Count)
                 Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Descriptor4.Id).Count)
                 Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Descriptor5.Id).Count)
@@ -1145,7 +1145,7 @@ public class B
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = Await GetDiagnosticsForSpanAsync(diagnosticService, document, fullSpan)
 
-                Assert.Equal(3, diagnostics.Count())
+                Assert.Equal(3, diagnostics.Length)
                 Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Descriptor4.Id).Count)
                 Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Descriptor5.Id).Count)
                 Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Descriptor6.Id).Count)
@@ -1239,7 +1239,7 @@ End Class
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = Await GetDiagnosticsForSpanAsync(diagnosticService, document, fullSpan)
-                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Length)
                 Assert.Equal(1, diagnostics.Where(Function(d) d.Id = MustOverrideMethodAnalyzer.Descriptor1.Id).Count)
             End Using
         End Function
@@ -1433,7 +1433,7 @@ public class B
             Dim fullSpan = (Await document.GetSyntaxRootAsync()).FullSpan
 
             Dim diagnostics = Await GetDiagnosticsForSpanAsync(diagnosticService, document, fullSpan)
-            Assert.Equal(1, diagnostics.Count())
+            Assert.Equal(1, diagnostics.Length)
             Assert.Equal(CompilationAnalyzerWithAnalyzerOptions.Descriptor.Id, diagnostics(0).Id)
             Assert.Equal(expectedDiagnosticMessage, diagnostics(0).Message)
         End Function
@@ -1971,7 +1971,7 @@ End Class
                 Dim diagnostics = Await GetDiagnosticsForDocumentAsync(diagnosticService, document)
 
                 Dim expectedCount = If(onlyStatelessAction, 1, 2)
-                Assert.Equal(expectedCount, diagnostics.Count())
+                Assert.Equal(expectedCount, diagnostics.Length)
 
                 Dim diagnostic = diagnostics.Single(Function(d) d.Id = CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id)
                 Assert.Equal("CodeBlock : M", diagnostic.Message)
@@ -2029,7 +2029,7 @@ namespace ConsoleApplication1
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = Await GetDiagnosticsForDocumentAsync(diagnosticService, document)
-                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Length)
 
                 Dim diagnostic = diagnostics.Single(Function(d) d.Id = expectedId)
                 Assert.Equal(expectedMessage, diagnostic.Message)
@@ -2098,7 +2098,7 @@ class MyClass
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await GetDiagnosticsForDocumentAsync(diagnosticService, document)
 
-                Assert.Equal(0, diagnostics.Count())
+                Assert.Equal(0, diagnostics.Length)
             End Using
         End Function
 
@@ -2146,13 +2146,13 @@ class MyClass
                 ' in v2, solution crawler never creates non-local hidden diagnostics.
                 ' v2 still creates those for LB and explicit queries such as FixAll.
                 Dim expectedCount = 0
-                Assert.Equal(expectedCount, diagnostics.Count())
+                Assert.Equal(expectedCount, diagnostics.Length)
 
                 ' Get diagnostics explicitly
                 Dim hiddenDiagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
                     project.Solution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
                     includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
-                Assert.Equal(1, hiddenDiagnostics.Count())
+                Assert.Equal(1, hiddenDiagnostics.Length)
                 Assert.Equal(analyzer.Descriptor.Id, hiddenDiagnostics.Single().Id)
             End Using
         End Function
@@ -2239,7 +2239,7 @@ class C
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(
                     project.Solution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
                     includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None)
-                Assert.Equal(0, diagnostics.Count())
+                Assert.Equal(0, diagnostics.Length)
             End Using
         End Function
 
