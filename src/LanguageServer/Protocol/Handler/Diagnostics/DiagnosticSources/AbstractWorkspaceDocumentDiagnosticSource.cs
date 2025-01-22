@@ -80,7 +80,7 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
                                 diagnosticIds: null, shouldIncludeAnalyzer,
                                 // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this project.
                                 static (project, _) => [.. project.DocumentIds.Concat(project.AdditionalDocumentIds)],
-                                includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                                includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
                             // TODO(cyrusn): Should we be filtering out suppressed diagnostics here?
                             return allDiagnostics.Where(d => !d.IsSuppressed && d.DocumentId != null).ToLookup(d => d.DocumentId!);

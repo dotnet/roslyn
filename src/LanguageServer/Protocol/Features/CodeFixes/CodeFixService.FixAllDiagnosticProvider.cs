@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 var solution = document.Project.Solution;
                 var diagnostics = Filter(await _diagnosticService.GetDiagnosticsForIdsAsync(
-                    solution, projectId: null, document.Id, _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
+                    solution, projectId: null, document.Id, _diagnosticIds, shouldIncludeAnalyzer: null, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
                 Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
                 return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
             }
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 // Get all diagnostics for the entire project, including document diagnostics.
                 var diagnostics = Filter(await _diagnosticService.GetDiagnosticsForIdsAsync(
-                    project.Solution, project.Id, documentId: null, _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
+                    project.Solution, project.Id, documentId: null, _diagnosticIds, shouldIncludeAnalyzer: null, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
                 return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
             }
 

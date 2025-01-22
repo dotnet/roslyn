@@ -320,11 +320,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)
             End Function
 
-            Public Function GetCachedDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, includeLocalDocumentDiagnostics As Boolean, includeNonLocalDocumentDiagnostics As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetCachedDiagnosticsAsync
+            Public Function GetCachedDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, includeNonLocalDocumentDiagnostics As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetCachedDiagnosticsAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 
-            Public Function GetDiagnosticsForIdsAsync(solution As Solution, projectId As ProjectId, documentId As DocumentId, diagnosticIds As ImmutableHashSet(Of String), shouldIncludeAnalyzer As Func(Of DiagnosticAnalyzer, Boolean), getDocuments As Func(Of Project, DocumentId, IReadOnlyList(Of DocumentId)), includeLocalDocumentDiagnostics As Boolean, includeNonLocalDocumentDiagnostics As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForIdsAsync
+            Public Function GetDiagnosticsForIdsAsync(solution As Solution, projectId As ProjectId, documentId As DocumentId, diagnosticIds As ImmutableHashSet(Of String), shouldIncludeAnalyzer As Func(Of DiagnosticAnalyzer, Boolean), getDocuments As Func(Of Project, DocumentId, IReadOnlyList(Of DocumentId)), includeNonLocalDocumentDiagnostics As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForIdsAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 

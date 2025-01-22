@@ -69,7 +69,7 @@ public class DiagnosticAnalyzerServiceTests
 
         var diagnostics = await analyzer.GetDiagnosticsForIdsAsync(
             workspace.CurrentSolution, projectId: null, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null, getDocuments: null,
-            includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
+            includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
         Assert.NotEmpty(diagnostics);
     }
 
