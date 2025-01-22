@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CancellationToken.None)
 
-                Assert.Equal(0, fixes.Length)
+                Assert.Empty(fixes)
 
                 ' Verify available codefix with a global fixer + a project fixer
                 ' We will use this assembly as a project fixer provider.
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CancellationToken.None)
 
-                Assert.Equal(0, fixes.Length)
+                Assert.Empty(fixes)
             End Using
         End Function
 
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CancellationToken.None)
 
-                Assert.Equal(0, fixes.Length)
+                Assert.Empty(fixes)
 
                 ' Verify no codefix with a global fixer + a project fixer
                 ' We will use this assembly as a project fixer provider.
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CancellationToken.None)
 
-                Assert.Equal(0, fixes.Length)
+                Assert.Empty(fixes)
             End Using
         End Function
 

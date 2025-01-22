@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.Equal(0, assembly.Count);
-                Assert.Equal(0, locals.Count);
+                Assert.Empty(assembly);
+                Assert.Empty(locals);
                 locals.Free();
             });
         }
@@ -2491,7 +2491,7 @@ public struct B
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
             ]);
 
-                Assert.Equal(0, locals.Count);
+                Assert.Empty(locals);
                 locals.Free();
             });
         }
@@ -2535,7 +2535,7 @@ public struct B
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("I", "Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
             ]);
 
-                Assert.Equal(0, locals.Count);
+                Assert.Empty(locals);
                 locals.Free();
             });
         }
@@ -5116,7 +5116,7 @@ class C
             Assert.NotNull(assembly);
             if (count == 0)
             {
-                Assert.Equal(0, assembly.Count);
+                Assert.Empty(assembly);
             }
             else
             {
@@ -5156,7 +5156,7 @@ class C
             Assert.NotNull(assembly);
             if (count == 0)
             {
-                Assert.Equal(0, assembly.Count);
+                Assert.Empty(assembly);
             }
             else
             {
