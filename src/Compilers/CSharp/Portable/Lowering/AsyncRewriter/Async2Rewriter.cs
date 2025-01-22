@@ -23,49 +23,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_factory.CurrentFunction?.IsAsync2 == true)
             {
                 BoundExpression arg = loweredAwait.Expression;
+                TypeSymbol argType = arg.Type!;
 
-                // TODO: VS does this need to be a call?
-                if (arg is BoundCall call1)
+                MethodSymbol? awaitHelper = null;
+                if (argType.IsGenericNonCustomTaskType(_factory.Compilation))
                 {
-                    MethodSymbol? awaitHelper = null;
-                    if (call1.Method.ReturnType.IsGenericNonCustomTaskType(_factory.Compilation))
-                    {
-                        awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_Task_T);
-                        if (awaitHelper != null)
-                        {
-                            TypeSymbol elementType = ((NamedTypeSymbol)call1.Method.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                            awaitHelper = awaitHelper.Construct(elementType);
-                        }
-                    }
-                    else if (call1.Method.ReturnType.IsNonGenericNonCustomTaskType(_factory.Compilation))
-                    {
-                        awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_Task);
-                    }
-                    else if (call1.Method.ReturnType.IsGenericNonCustomValueTaskType(_factory.Compilation))
-                    {
-                        awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_ValueTask_T);
-                        if (awaitHelper != null)
-                        {
-                            TypeSymbol elementType = ((NamedTypeSymbol)call1.Method.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                            awaitHelper = awaitHelper.Construct(elementType);
-                        }
-                    }
-                    else if (call1.Method.ReturnType.IsNonGenericNonCustomValueTaskType(_factory.Compilation))
-                    {
-                        awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_ValueTask);
-                    }
-
+                    awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_Task_T);
                     if (awaitHelper != null)
                     {
-                        // REWRITE: 
-                        // await arg
-                        // == INTO ===> 
-                        // Await(arg)
-                        return _factory.Call(
-                            null,
-                            awaitHelper,
-                            arg);
+                        TypeSymbol elementType = ((NamedTypeSymbol)argType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                        awaitHelper = awaitHelper.Construct(elementType);
                     }
+                }
+                else if (argType.IsNonGenericNonCustomTaskType(_factory.Compilation))
+                {
+                    awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_Task);
+                }
+                else if (argType.IsGenericNonCustomValueTaskType(_factory.Compilation))
+                {
+                    awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_ValueTask_T);
+                    if (awaitHelper != null)
+                    {
+                        TypeSymbol elementType = ((NamedTypeSymbol)argType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                        awaitHelper = awaitHelper.Construct(elementType);
+                    }
+                }
+                else if (argType.IsNonGenericNonCustomValueTaskType(_factory.Compilation))
+                {
+                    awaitHelper = (MethodSymbol?)_factory.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__Await_ValueTask);
+                }
+
+                if (awaitHelper != null)
+                {
+                    // REWRITE: 
+                    // await arg
+                    // == INTO ===> 
+                    // Await(arg)
+                    return _factory.Call(
+                        null,
+                        awaitHelper,
+                        arg);
                 }
 
                 // REWRITE: 

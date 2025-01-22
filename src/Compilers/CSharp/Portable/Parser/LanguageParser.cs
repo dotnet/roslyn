@@ -1444,6 +1444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         break;
 
                     case DeclarationModifiers.Async:
+                    case DeclarationModifiers.Async2:
                         if (!ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                         {
                             return;
@@ -2921,7 +2922,7 @@ parse_member_name:;
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
         {
             if (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None &&
-                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.RequiredKeyword or SyntaxKind.FileKeyword) &&
+                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.Async2Keyword or SyntaxKind.RequiredKeyword or SyntaxKind.FileKeyword) &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;
@@ -3214,7 +3215,7 @@ parse_member_name:;
 
             var identifier = ((IdentifierNameSyntax)type).Identifier;
             var contextualKind = identifier.ContextualKind;
-            if (contextualKind != SyntaxKind.AsyncKeyword ||
+            if (((contextualKind != SyntaxKind.AsyncKeyword) && (contextualKind != SyntaxKind.Async2Keyword)) ||
                 modifiers.Any((int)contextualKind))
             {
                 return false;
@@ -3508,7 +3509,7 @@ parse_member_name:;
             // restored, just assumed to be false and reset accordingly after parsing the method body.
             Debug.Assert(!IsInAsync);
 
-            IsInAsync = modifiers.Any((int)SyntaxKind.AsyncKeyword);
+            IsInAsync = modifiers.Any((int)SyntaxKind.AsyncKeyword) || modifiers.Any((int)SyntaxKind.Async2Keyword);
 
             this.ParseBlockAndExpressionBodiesWithSemicolon(out var blockBody, out var expressionBody, out var semicolon);
 
@@ -7450,7 +7451,7 @@ done:
                             // (e.g. `x is Y ? await ...`), not a nullable type pattern (since users would not use
                             // 'await' as the name of a variable).  So just treat this as a conditional expression.
                             // 3. `from` most likely starts a linq query: `x is Y ? from item in collection select item : ...`
-                            if (this.CurrentToken.ContextualKind is SyntaxKind.AsyncKeyword or SyntaxKind.AwaitKeyword or SyntaxKind.FromKeyword)
+                            if (this.CurrentToken.ContextualKind is SyntaxKind.AsyncKeyword or SyntaxKind.Async2Keyword or SyntaxKind.AwaitKeyword or SyntaxKind.FromKeyword)
                                 return false;
 
                             var nextToken = PeekToken(1);
@@ -8210,7 +8211,7 @@ done:
 
             var isPossibleModifier =
                 IsAdditionalLocalFunctionModifier(tk)
-                && (tk is not (SyntaxKind.AsyncKeyword or SyntaxKind.ScopedKeyword) || ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true));
+                && (tk is not (SyntaxKind.AsyncKeyword or SyntaxKind.Async2Keyword or SyntaxKind.ScopedKeyword) || ShouldContextualKeywordBeTreatedAsModifier(parsingStatementNotDeclaration: true));
             if (isPossibleModifier)
             {
                 return true;

@@ -6964,6 +6964,115 @@ class Test
         }
 
         [Fact]
+        public void Async2_Task_NotCall()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeHelpers
+    {
+        public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter)
+        {
+        }
+
+        public static T Await<T>(Task<T> t)
+        {
+            return default;
+        }
+
+        public static void Await(Task t)
+        {
+        }
+    }
+}
+
+class TT
+{
+    private static Task a;
+
+    public static async2 Task M1()
+    {
+        // async2 awaits ordinary awaitable
+        await Task.FromResult(1);
+    }
+
+    public static async2 Task M2()
+    {
+        // async2 awaits async2 awaitable
+        a = M1();
+        await a;
+    }
+}
+
+class CC
+{
+    public static async Task M3()
+    {
+        // ordinary async awaits async2 awaitable
+        await TT.M2();
+    }
+}
+
+class Test
+{
+    public static void Main()
+    {
+        var m = CC.M3();
+        m.Wait();
+    }
+}";
+
+            var c = CompileAndVerify(source, options: TestOptions.ReleaseExe, verify: Verification.Fails);
+
+            c.VerifyTypeIL("TT", @"
+    .class private auto ansi beforefieldinit TT
+    extends [mscorlib]System.Object
+{
+    // Fields
+    .field private static class [mscorlib]System.Threading.Tasks.Task a
+    // Methods
+    .method public hidebysig static 
+        class [mscorlib]System.Threading.Tasks.Task M1 () cil managed flag(0400) 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 13 (0xd)
+        .maxstack 8
+        IL_0000: ldc.i4.1
+        IL_0001: call class [mscorlib]System.Threading.Tasks.Task`1<!!0> [mscorlib]System.Threading.Tasks.Task::FromResult<int32>(!!0)
+        IL_0006: call !!0 System.Runtime.CompilerServices.RuntimeHelpers::Await<int32>(class [mscorlib]System.Threading.Tasks.Task`1<!!0>)
+        IL_000b: pop
+        IL_000c: ret
+    } // end of method TT::M1
+    .method public hidebysig static 
+        class [mscorlib]System.Threading.Tasks.Task M2 () cil managed flag(0400) 
+    {
+        // Method begins at RVA 0x2075
+        // Code size 21 (0x15)
+        .maxstack 8
+        IL_0000: call class [mscorlib]System.Threading.Tasks.Task TT::M1()
+        IL_0005: stsfld class [mscorlib]System.Threading.Tasks.Task TT::a
+        IL_000a: ldsfld class [mscorlib]System.Threading.Tasks.Task TT::a
+        IL_000f: call void System.Runtime.CompilerServices.RuntimeHelpers::Await(class [mscorlib]System.Threading.Tasks.Task)
+        IL_0014: ret
+    } // end of method TT::M2
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x208b
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method TT::.ctor
+} // end of class TT
+");
+        }
+
+        [Fact]
         public void Async2_TaskT_Override()
         {
             var source = @"
