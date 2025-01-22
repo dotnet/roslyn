@@ -44,7 +44,8 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             if (Document is SourceGeneratedDocument sourceGeneratedDocument)
             {
                 // Unfortunately GetDiagnosticsForIdsAsync returns nothing for source generated documents.
-                var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(sourceGeneratedDocument, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
+                    sourceGeneratedDocument, range: null, DiagnosticKind.All, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
                 return documentDiagnostics;
             }
             else
