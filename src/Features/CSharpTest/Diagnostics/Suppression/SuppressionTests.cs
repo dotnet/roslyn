@@ -458,7 +458,7 @@ class Class
                     [suppressionProviderFactory]);
                 var document = GetDocumentAndSelectSpan(workspace, out var span);
                 var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(
-                    document, span, DiagnosticKind.All, includeSuppressedDiagnostics: false, CancellationToken.None);
+                    document, span, DiagnosticKind.All, CancellationToken.None);
                 Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
 
                 var allFixes = (await fixService.GetFixesAsync(document, span, CancellationToken.None))

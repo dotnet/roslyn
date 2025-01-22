@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             TextDocument document,
             TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
-            bool includeSuppressedDiagnostics,
             bool includeCompilerDiagnostics,
             ICodeActionRequestPriorityProvider priorityProvider,
             DiagnosticKind diagnosticKinds,
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
 
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(
-                this, document, range, includeSuppressedDiagnostics, includeCompilerDiagnostics,
+                this, document, range, includeCompilerDiagnostics,
                 priorityProvider, shouldIncludeDiagnostic, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
             await getter.GetAsync(list, cancellationToken).ConfigureAwait(false);
 
@@ -61,7 +60,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly CompilationWithAnalyzersPair? _compilationWithAnalyzers;
 
             private readonly TextSpan? _range;
-            private readonly bool _includeSuppressedDiagnostics;
             private readonly ICodeActionRequestPriorityProvider _priorityProvider;
             private readonly Func<string, bool>? _shouldIncludeDiagnostic;
             private readonly bool _includeCompilerDiagnostics;
@@ -76,7 +74,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  DiagnosticIncrementalAnalyzer owner,
                  TextDocument document,
                  TextSpan? range,
-                 bool includeSuppressedDiagnostics,
                  bool includeCompilerDiagnostics,
                  ICodeActionRequestPriorityProvider priorityProvider,
                  Func<string, bool>? shouldIncludeDiagnostic,
@@ -99,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // We log performance info when we are computing diagnostics for a span
                 var logPerformanceInfo = range.HasValue;
-                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, includeSuppressedDiagnostics, owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 // If we are computing full document diagnostics, we will attempt to perform incremental
                 // member edit analysis. This analysis is currently only enabled with LSP pull diagnostics.
@@ -108,14 +105,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 return new LatestDiagnosticsForSpanGetter(
                     owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,
-                    range, includeSuppressedDiagnostics, priorityProvider,
-                    isExplicit, logPerformanceInfo, incrementalAnalysis, diagnosticKinds);
+                    range, priorityProvider, isExplicit, logPerformanceInfo, incrementalAnalysis, diagnosticKinds);
             }
 
             private static async Task<CompilationWithAnalyzersPair?> GetOrCreateCompilationWithAnalyzersAsync(
                 Project project,
                 ImmutableArray<StateSet> stateSets,
-                bool includeSuppressedDiagnostics,
                 bool crashOnAnalyzerException,
                 CancellationToken cancellationToken)
             {
@@ -133,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
 
-                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, stateSets, includeSuppressedDiagnostics, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, stateSets, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
                 s_lastProjectAndCompilationWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
                 return compilationWithAnalyzers;
 
@@ -160,7 +155,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Func<string, bool>? shouldIncludeDiagnostic,
                 bool includeCompilerDiagnostics,
                 TextSpan? range,
-                bool includeSuppressedDiagnostics,
                 ICodeActionRequestPriorityProvider priorityProvider,
                 bool isExplicit,
                 bool logPerformanceInfo,
@@ -175,7 +169,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _shouldIncludeDiagnostic = shouldIncludeDiagnostic;
                 _includeCompilerDiagnostics = includeCompilerDiagnostics;
                 _range = range;
-                _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
                 _priorityProvider = priorityProvider;
                 _isExplicit = isExplicit;
                 _logPerformanceInfo = logPerformanceInfo;
@@ -531,7 +524,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 return diagnostic.DocumentId == _document.Id &&
                     (_range == null || _range.Value.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(_text)))
-                    && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                     && (_includeCompilerDiagnostics || !diagnostic.CustomTags.Any(static t => t is WellKnownDiagnosticTags.Compiler))
                     && (_shouldIncludeDiagnostic == null || _shouldIncludeDiagnostic(diagnostic.Id));
             }
