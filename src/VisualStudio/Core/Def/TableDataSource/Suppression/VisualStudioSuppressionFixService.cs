@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         public bool AddSuppressions(IVsHierarchy? projectHierarchy)
         {
-            Logger.Log(FunctionId.Suppression_Add, logLevel: LogLevel.Information);
+            Logger.Log(FunctionId.Suppression_Add_Hierarchy, logLevel: LogLevel.Information);
             if (_tableControl == null)
             {
                 return false;

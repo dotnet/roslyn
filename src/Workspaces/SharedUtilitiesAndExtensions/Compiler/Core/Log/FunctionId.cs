@@ -619,7 +619,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         // 750-760 for suppression of diagnostic/fix related ids
         Suppression_Add = 750,
-        Suppression_Remove = 751,
-        Suppression_Set_Severity = 752,
+        Suppression_Add_Hierarchy = 751,
+        Suppression_Remove = 752,
+        Suppression_Set_Severity = 753,
     }
 }
