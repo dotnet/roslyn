@@ -828,7 +828,9 @@ End Namespace
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty,
                          WellKnownMember.System_Span_T__ctor_ref_T,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T,
-                         WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32
+                         WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32,
+                         WellKnownMember.System_Text_Encoding__get_UTF8,
+                         WellKnownMember.System_Text_Encoding__GetString
                         ' Not always available.
                         Continue For
                 End Select
@@ -1037,7 +1039,9 @@ End Namespace
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty,
                          WellKnownMember.System_Span_T__ctor_ref_T,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T,
-                         WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32
+                         WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32,
+                         WellKnownMember.System_Text_Encoding__get_UTF8,
+                         WellKnownMember.System_Text_Encoding__GetString
                         ' Not always available.
                         Continue For
                 End Select
