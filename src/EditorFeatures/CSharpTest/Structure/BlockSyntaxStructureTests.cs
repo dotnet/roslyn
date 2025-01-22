@@ -464,13 +464,13 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
 
                 {|hint:static void Goo(){|textspan:
                 {$$
-                   {|hint2:{|textspan2:// ...|}|}
+                   {|hint2:{|textspan2:// comment|}|}
                 }|}|}
                 """;
 
         await VerifyBlockSpansAsync(code,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
-            Region("textspan2", "hint2", "// ... ...", autoCollapse: true));
+            Region("textspan2", "hint2", "// comment ...", autoCollapse: true));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68513")]
@@ -483,7 +483,7 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 {
                     {|hint1:static void Goo(){|textspan1:
                     {$$
-                       {|hint2:{|textspan2:// ...|}|}
+                       {|hint2:{|textspan2:// comment|}|}
                     }|}|}
                 }
             }
@@ -491,7 +491,7 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
 
         await VerifyBlockSpansAsync(code,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-            Region("textspan2", "hint2", "// ... ...", autoCollapse: true));
+            Region("textspan2", "hint2", "// comment ...", autoCollapse: true));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68513")]
@@ -504,7 +504,7 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 {
                     {|hint:static void Goo(){|textspan:
                     {$$
-                       {|hint2:{|textspan2:// ...|}|}
+                       {|hint2:{|textspan2:// comment|}|}
                     }|}|}
                 }
             }
@@ -514,6 +514,6 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
         {
             CollapseLocalFunctionsWhenCollapsingToDefinitions = true,
         }, Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
-           Region("textspan2", "hint2", "// ... ...", autoCollapse: true));
+           Region("textspan2", "hint2", "// comment ...", autoCollapse: true));
     }
 }
