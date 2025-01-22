@@ -15,6 +15,8 @@ namespace Analyzer.Utilities
     internal static class MSBuildPropertyOptionNames
     {
         public const string TargetFramework = nameof(TargetFramework);
+        public const string TargetFrameworkIdentifier = nameof(TargetFrameworkIdentifier);
+        public const string TargetFrameworkVersion = nameof(TargetFrameworkVersion);
         public const string TargetPlatformMinVersion = nameof(TargetPlatformMinVersion);
         public const string UsingMicrosoftNETSdkWeb = nameof(UsingMicrosoftNETSdkWeb);
         public const string ProjectTypeGuids = nameof(ProjectTypeGuids);
