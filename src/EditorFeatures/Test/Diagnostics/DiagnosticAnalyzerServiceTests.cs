@@ -70,7 +70,6 @@ public class DiagnosticAnalyzerServiceTests
         var diagnostics = await analyzer.GetDiagnosticsForIdsAsync(
             workspace.CurrentSolution, projectId: null, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null, getDocuments: null,
             includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
-        diagnostics = diagnostics.WhereAsArray(d => !d.IsSuppressed);
         Assert.NotEmpty(diagnostics);
     }
 
