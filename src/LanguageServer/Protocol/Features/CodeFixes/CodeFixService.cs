@@ -200,7 +200,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
                     includeCompilerDiagnostics: true, priorityProvider, DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
-                diagnostics = diagnostics.WhereAsArray(d => includeSuppressionFixes || !d.IsSuppressed);
+                if (!includeSuppressionFixes)
+                    diagnostics = diagnostics.WhereAsArray(d => !d.IsSuppressed);
             }
 
             var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
