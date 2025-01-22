@@ -184,13 +184,11 @@ public class CodeFixServiceTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67354")]
     public async Task TestGetFixesAsyncForGeneratorDiagnosticAsync()
     {
-        // We have a special GeneratorDiagnosticsPlaceholderAnalyzer that report 0 SupportedDiagnostics.
-        // We need to ensure that we don't skip this special analyzer
-        // when computing the diagnostics/code fixes for "Normal" priority bucket, which
-        // normally only execute those analyzers which report at least one fixable supported diagnostic.
-        // Note that this special placeholder analyzer instance is always included for the project,
-        // we do not need to include it in the passed in analyzers.
-        Assert.Empty(GeneratorDiagnosticsPlaceholderAnalyzer.Instance.SupportedDiagnostics);
+        // We have a special GeneratorDiagnosticsPlaceholderAnalyzer that report 0 SupportedDiagnostics. We need to
+        // ensure that we don't skip this special analyzer when computing the diagnostics/code fixes for "Normal"
+        // priority bucket, which normally only execute those analyzers which report at least one fixable supported
+        // diagnostic. Note that this special placeholder analyzer instance is always included for the project, we do
+        // not need to include it in the passed in analyzers.
 
         var analyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
         var generator = new MockAnalyzerReference.MockGenerator();

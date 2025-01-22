@@ -273,7 +273,6 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         AssertEx.Equal(
         [
             typeof(FileContentLoadAnalyzer),
-            typeof(GeneratorDiagnosticsPlaceholderAnalyzer),
             typeof(CSharpCompilerDiagnosticAnalyzer),
             typeof(Analyzer),
             typeof(Priority0Analyzer),

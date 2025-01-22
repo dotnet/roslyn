@@ -1175,16 +1175,8 @@ internal sealed partial class SolutionCompilationState
             : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
     }
 
-    public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(
-        ProjectState project, CancellationToken cancellationToken)
-    {
-        return project.SupportsCompilation
-            ? GetCompilationTracker(project.Id).GetSourceGeneratorDiagnosticsAsync(this, cancellationToken)
-            : new([]);
-    }
-
     public ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(
-    ProjectState project, CancellationToken cancellationToken)
+        ProjectState project, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
             ? GetCompilationTracker(project.Id).GetSourceGeneratorRunResultAsync(this, cancellationToken)

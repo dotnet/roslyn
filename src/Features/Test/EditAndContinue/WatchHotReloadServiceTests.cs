@@ -153,7 +153,8 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         AssertEx.AreEqual("generated: text", generatedText);
         Assert.Equal(1, generatorExecutionCount);
 
-        var generatorDiagnostics = await solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, CancellationToken.None);
+        var runResult = await solution.CompilationState.GetSourceGeneratorRunResultAsync(project.State, CancellationToken.None);
+        var generatorDiagnostics = runResult.Diagnostics;
         Assert.Empty(generatorDiagnostics);
 
         var hotReload = new WatchHotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
