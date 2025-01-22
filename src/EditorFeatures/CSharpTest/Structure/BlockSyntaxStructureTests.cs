@@ -464,12 +464,13 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
 
                 {|hint:static void Goo(){|textspan:
                 {$$
-                   // ...
+                   {|hint2:{|textspan2:// ...|}|}
                 }|}|}
                 """;
 
         await VerifyBlockSpansAsync(code,
-            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+            Region("textspan2", "hint2", "// ... ...", autoCollapse: true));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68513")]
@@ -490,7 +491,7 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
 
         await VerifyBlockSpansAsync(code,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-            Region("textspan2", "hint2", "// ... ...", autoCollapse: false));
+            Region("textspan2", "hint2", "// ... ...", autoCollapse: true));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68513")]
@@ -503,7 +504,7 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 {
                     {|hint:static void Goo(){|textspan:
                     {$$
-                       // ...
+                       {|hint2:{|textspan2:// ...|}|}
                     }|}|}
                 }
             }
@@ -512,6 +513,7 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
         await VerifyBlockSpansAsync(code, GetDefaultOptions() with
         {
             CollapseLocalFunctionsWhenCollapsingToDefinitions = true,
-        }, Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }, Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+           Region("textspan2", "hint2", "// ... ...", autoCollapse: true));
     }
 }
