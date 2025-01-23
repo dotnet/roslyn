@@ -17,15 +17,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private sealed class GroupedAnalyzerActions : IGroupedAnalyzerActions
         {
-            public static readonly GroupedAnalyzerActions Empty = new GroupedAnalyzerActions(ImmutableArray<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)>.Empty, AnalyzerActions.Empty);
+            public static readonly GroupedAnalyzerActions Empty = new GroupedAnalyzerActions(
+                ImmutableArray<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)>.Empty,
+                ImmutableDictionary<TLanguageKindEnum, ImmutableArray<DiagnosticAnalyzer>>.Empty,
+                AnalyzerActions.Empty);
 
-            private GroupedAnalyzerActions(ImmutableArray<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)> groupedActionsAndAnalyzers, in AnalyzerActions analyzerActions)
+            private GroupedAnalyzerActions(
+                ImmutableArray<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)> groupedActionsAndAnalyzers,
+                ImmutableDictionary<TLanguageKindEnum, ImmutableArray<DiagnosticAnalyzer>> analyzersByKind,
+                in AnalyzerActions analyzerActions)
             {
                 GroupedActionsByAnalyzer = groupedActionsAndAnalyzers;
                 AnalyzerActions = analyzerActions;
+                AnalyzersByKind = analyzersByKind;
             }
 
             public ImmutableArray<(DiagnosticAnalyzer analyzer, GroupedAnalyzerActionsForAnalyzer groupedActions)> GroupedActionsByAnalyzer { get; }
+
+            public ImmutableDictionary<TLanguageKindEnum, ImmutableArray<DiagnosticAnalyzer>> AnalyzersByKind { get; }
 
             public AnalyzerActions AnalyzerActions { get; }
 
@@ -48,7 +57,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var groupedActions = new GroupedAnalyzerActionsForAnalyzer(analyzer, analyzerActions, analyzerActionsNeedFiltering: false);
                 var groupedActionsAndAnalyzers = ImmutableArray<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)>.Empty.Add((analyzer, groupedActions));
-                return new GroupedAnalyzerActions(groupedActionsAndAnalyzers, in analyzerActions);
+                var analyzersByKind = CreateAnalyzersByKind(groupedActionsAndAnalyzers);
+                return new GroupedAnalyzerActions(groupedActionsAndAnalyzers, analyzersByKind, in analyzerActions);
             }
 
             public static GroupedAnalyzerActions Create(ImmutableArray<DiagnosticAnalyzer> analyzers, in AnalyzerActions analyzerActions)
@@ -58,7 +68,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var groups = analyzers.SelectAsArray(
                     (analyzer, analyzerActions) => (analyzer, new GroupedAnalyzerActionsForAnalyzer(analyzer, analyzerActions, analyzerActionsNeedFiltering: true)),
                     analyzerActions);
-                return new GroupedAnalyzerActions(groups, in analyzerActions);
+                var analyzersByKind = CreateAnalyzersByKind(groups);
+                return new GroupedAnalyzerActions(groups, analyzersByKind, in analyzerActions);
             }
 
             IGroupedAnalyzerActions IGroupedAnalyzerActions.Append(IGroupedAnalyzerActions igroupedAnalyzerActions)
@@ -74,7 +85,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var newGroupedActions = GroupedActionsByAnalyzer.AddRange(groupedAnalyzerActions.GroupedActionsByAnalyzer);
                 var newAnalyzerActions = AnalyzerActions.Append(groupedAnalyzerActions.AnalyzerActions);
-                return new GroupedAnalyzerActions(newGroupedActions, newAnalyzerActions);
+                var analyzersByKind = CreateAnalyzersByKind(newGroupedActions);
+                return new GroupedAnalyzerActions(newGroupedActions, analyzersByKind, newAnalyzerActions);
+            }
+
+            private static ImmutableDictionary<TLanguageKindEnum, ImmutableArray<DiagnosticAnalyzer>> CreateAnalyzersByKind(ImmutableArray<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)> groupedActionsAndAnalyzers)
+            {
+                var analyzersByKind = PooledDictionary<TLanguageKindEnum, ArrayBuilder<DiagnosticAnalyzer>>.GetInstance();
+                foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActionsAndAnalyzers)
+                {
+                    foreach (var (kind, _) in groupedActionsForAnalyzer.NodeActionsByAnalyzerAndKind)
+                    {
+                        if (!analyzersByKind.TryGetValue(kind, out var builder))
+                        {
+                            builder = ArrayBuilder<DiagnosticAnalyzer>.GetInstance();
+                            analyzersByKind.Add(kind, builder);
+                        }
+                        builder.Add(analyzer);
+                    }
+                }
+
+                // Essentially an inline of PooledBuilderExtensions.ToImmutableMultiDictionaryAndFree
+                var result = ImmutableDictionary.CreateBuilder<TLanguageKindEnum, ImmutableArray<DiagnosticAnalyzer>>();
+                foreach (var (key, items) in analyzersByKind)
+                {
+                    result.Add(key, items.ToImmutableAndFree());
+                }
+
+                analyzersByKind.Free();
+                return result.ToImmutable();
             }
         }
     }
