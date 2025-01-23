@@ -127,6 +127,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                     _responseControl,
                 ]));
 
+        // Locates the "upgrade now" link in the localized text, surrounded by square brackets.
         var quotaExceededMatch = Regex.Match(
                 EditorFeaturesResources.Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset,
                 @"^(.*)\[(.*)\](.*)$");
@@ -201,8 +202,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                             nCmdexecopt: 0,
                             pvaIn: null);
 
-                        // The platform team has requested that we post
-                        // this specific event after showing the upsell.
+                        // Telemetry to track when users reach the quota of the Copilot Free plan.
                         var telemetryEvent = new OperationEvent(
                             "vs/copilot/showcopilotfreestatus",
                             TelemetryResult.Success);
