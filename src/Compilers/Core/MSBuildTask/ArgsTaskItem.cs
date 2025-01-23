@@ -55,8 +55,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public void CopyMetadataTo(ITaskItem destinationItem)
         {
+            // Implementation notes that we should not overwrite existing metadata on the destination.
+            var sourceMetadataNames = MetadataNames.OfType<string>();
             var destinationMetadataNames = destinationItem.MetadataNames.OfType<string>();
-            var metadataNamesToCopy = _metadata.Keys.Intersect(destinationMetadataNames, StringComparer.OrdinalIgnoreCase).ToArray();
+            var metadataNamesToCopy = sourceMetadataNames.Except(destinationMetadataNames, StringComparer.OrdinalIgnoreCase).ToArray();
 
             foreach (var metadataName in metadataNamesToCopy)
             {
