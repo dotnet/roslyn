@@ -2360,7 +2360,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitlyTypedParamsParameter = 9272,
         ERR_VariableDeclarationNamedField = 9273,
         ERR_CollectionExpressionKeyValuePairNotSupported = 9274,
-        ERR_WithElementMustBeFirst = 9275,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
