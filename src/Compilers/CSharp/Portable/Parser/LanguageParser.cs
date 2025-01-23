@@ -12759,6 +12759,8 @@ done:
 
         private CollectionElementSyntax ParseCollectionElement()
         {
+            // PROTOTYPE: This is technically a breaking change.  Ensure this is discussed with LDM and we codify any
+            // desired outcome.  If we decide on a breaking change, add to documentation.
             if (this.CurrentToken.ContextualKind == SyntaxKind.WithKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
                 return _syntaxFactory.WithElement(this.EatContextualToken(SyntaxKind.WithKeyword), this.ParseParenthesizedArgumentList());
 
