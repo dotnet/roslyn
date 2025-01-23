@@ -483,6 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureUnboundGenericTypesInNameof:
                 case MessageID.IDS_FeatureSimpleLambdaParameterModifiers:
                 case MessageID.IDS_FeatureDictionaryExpressions: // semantic check
+                case MessageID.IDS_FeatureCollectionExpressionArguments: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 13.0 features.
