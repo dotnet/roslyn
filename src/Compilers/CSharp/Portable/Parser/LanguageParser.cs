@@ -1379,6 +1379,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     case DeclarationModifiers.Partial:
                         var nextToken = PeekToken(1);
+                        // Partial constructors aren't allowed in top-level statements to avoid breaking valid method declarations like
+                        //   partial M() => new partial(...); // 'partial' is a type here
                         if (this.IsPartialType() || this.IsPartialMember(allowPartialCtor: !forTopLevelStatements))
                         {
                             // Standard legal cases.
@@ -1645,6 +1647,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Check for constructor:
             //   partial Identifier(
+            // Partial constructors aren't allowed in top-level statements to avoid breaking valid method declarations like
+            //   partial M() => new partial(...); // 'partial' is a type here
             if (allowPartialCtor &&
                 this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
                 this.PeekToken(2).Kind == SyntaxKind.OpenParenToken)
@@ -5760,6 +5764,9 @@ parse_member_name:;
         {
             if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
             {
+                // Partial constructors aren't allowed in top-level statements to avoid breaking valid method declarations like
+                //   partial M() => new partial(...); // 'partial' is a type here
+                // We might be in a top-level context here, so we disallow partial constructors.
                 if (this.IsPartialType() || this.IsPartialMember(allowPartialCtor: false))
                 {
                     return true;
