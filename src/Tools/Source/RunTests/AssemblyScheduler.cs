@@ -57,6 +57,8 @@ namespace RunTests
                 return workItemsByMethodCount;
             }
 
+            LogLongTests(testHistory);
+
             // Now for our current set of test methods we got from the assemblies we built, match them to tests from our test run history
             // so that we can extract an estimate of the test execution time for each test.
             orderedTypeInfos = UpdateTestsWithExecutionTimes(orderedTypeInfos, testHistory);
@@ -70,6 +72,22 @@ namespace RunTests
                 addFunc: static (currentTest, accumulatedExecutionTime) => currentTest.ExecutionTime + accumulatedExecutionTime);
             LogWorkItems(workItems);
             return workItems;
+        }
+
+        private static void LogLongTests(ImmutableDictionary<string, TimeSpan> testHistory)
+        {
+            var longTests = testHistory
+                .Where(kvp => kvp.Value > s_maxExecutionTime)
+                .OrderBy(kvp => kvp.Key)
+                .ToList();
+            if (longTests.Count > 0)
+            {
+                ConsoleUtil.Warning($"There are {longTests.Count} tests have execution times greater than the maximum execution time of {s_maxExecutionTime}");
+                foreach (var (test, time) in longTests)
+                {
+                    ConsoleUtil.WriteLine($"\t{test} - {time:hh\\:mm\\:ss}");
+                }
+            }
         }
 
         private static ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> UpdateTestsWithExecutionTimes(
@@ -226,16 +244,9 @@ namespace RunTests
         private static void LogWorkItems(ImmutableArray<HelixWorkItem> workItems)
         {
             ConsoleUtil.WriteLine($"Built {workItems.Length} work items");
-            ConsoleUtil.WriteLine("==== Work Item List ====");
             foreach (var workItem in workItems)
             {
-                ConsoleUtil.WriteLine($"- Work Item {workItem.Id} (Execution time {workItem.EstimatedExecutionTime})");
-                if (workItem.EstimatedExecutionTime > s_maxExecutionTime == true)
-                {
-                    // Log a warning to the console with work item details when we were not able to partition in under our limit.
-                    // This can happen when a single specific test exceeds our execution time limit.
-                    ConsoleUtil.Warning($"Estimated execution {workItem.EstimatedExecutionTime} time exceeds max execution time {s_maxExecutionTime}.");
-                }
+                ConsoleUtil.WriteLine($"- Work Item: {workItem.Id} Execution time: {workItem.EstimatedExecutionTime:hh\\:mm\\:ss}");
             }
         }
 
