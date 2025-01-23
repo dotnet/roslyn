@@ -20397,4 +20397,352 @@ class C
         }
         EOF();
     }
+
+    [Fact]
+    public void WithElement34()
+    {
+        UsingExpression("[with():y]",
+            // (1,8): error CS1003: Syntax error, ',' expected
+            // [with():y]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 8),
+            // (1,8): error CS1525: Invalid expression term ':'
+            // [with():y]
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(1, 8));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.WithElement);
+            {
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "y");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void WithElement35()
+    {
+        UsingExpression("[x:with()]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void WithElement36()
+    {
+        UsingExpression("[..with()]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.SpreadElement);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void WithElement37()
+    {
+        UsingExpression("[with()++]",
+            // (1,8): error CS1003: Syntax error, ',' expected
+            // [with()++]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "++").WithArguments(",").WithLocation(1, 8),
+            // (1,10): error CS1525: Invalid expression term ']'
+            // [with()++]
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "]").WithArguments("]").WithLocation(1, 10));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.WithElement);
+            {
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.PreIncrementExpression);
+                {
+                    N(SyntaxKind.PlusPlusToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void WithElement38()
+    {
+        UsingExpression("[with()[0]]",
+            // (1,8): error CS1003: Syntax error, ',' expected
+            // [with()[0]]
+            Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",").WithLocation(1, 8));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.WithElement);
+            {
+                N(SyntaxKind.WithKeyword);
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            M(SyntaxKind.CommaToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.CollectionExpression);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.ExpressionElement);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void WithElement39()
+    {
+        UsingTree("""
+            void M()
+            {
+                var v = [await with()];
+            }
+            """,
+            // (3,20): error CS1003: Syntax error, ',' expected
+            //     var v = [await with()];
+            Diagnostic(ErrorCode.ERR_SyntaxError, "with").WithArguments(",").WithLocation(3, 20));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "var");
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "v");
+                                    N(SyntaxKind.EqualsValueClause);
+                                    {
+                                        N(SyntaxKind.EqualsToken);
+                                        N(SyntaxKind.CollectionExpression);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.ExpressionElement);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "await");
+                                                }
+                                            }
+                                            M(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.WithElement);
+                                            {
+                                                N(SyntaxKind.WithKeyword);
+                                                N(SyntaxKind.ArgumentList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void WithElement40()
+    {
+        UsingTree("""
+            async void M()
+            {
+                var v = [await with()];
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.AsyncKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "var");
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "v");
+                                    N(SyntaxKind.EqualsValueClause);
+                                    {
+                                        N(SyntaxKind.EqualsToken);
+                                        N(SyntaxKind.CollectionExpression);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.ExpressionElement);
+                                            {
+                                                N(SyntaxKind.AwaitExpression);
+                                                {
+                                                    N(SyntaxKind.AwaitKeyword);
+                                                    N(SyntaxKind.InvocationExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "with");
+                                                        }
+                                                        N(SyntaxKind.ArgumentList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
 }
