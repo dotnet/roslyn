@@ -13,8 +13,6 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.TeamFoundation.TestManagement.WebApi;
-using Moq;
 
 namespace RunTests
 {
