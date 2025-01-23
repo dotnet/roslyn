@@ -43828,5 +43828,40 @@ class Program
                 // List<string> c = ["", with(capacity: 0), with(capacity: 1)];
                 Diagnostic(ErrorCode.ERR_WithElementMustBeFirst, "with").WithLocation(3, 42));
         }
+
+        [Fact]
+        public void TestWithElementNotFirst3()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
+
+                List<string> c = ["", with(capacity: 0), "", with(capacity: 1)];
+                """).VerifyDiagnostics(
+                // (3,23): error CS9275: 'with(...)' element must be first element in collection expression
+                // List<string> c = ["", with(capacity: 0), "", with(capacity: 1)];
+                Diagnostic(ErrorCode.ERR_WithElementMustBeFirst, "with").WithLocation(3, 23),
+                // (3,23): error CS1003: Syntax error, ',' expected
+                // List<string> c = ["", with(capacity: 0), "", with(capacity: 1)];
+                Diagnostic(ErrorCode.ERR_SyntaxError, "with").WithArguments(",").WithLocation(3, 23),
+                // (3,46): error CS9275: 'with(...)' element must be first element in collection expression
+                // List<string> c = ["", with(capacity: 0), "", with(capacity: 1)];
+                Diagnostic(ErrorCode.ERR_WithElementMustBeFirst, "with").WithLocation(3, 46));
+        }
+
+        [Fact]
+        public void TestWithElementNotFirst4()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
+
+                List<string> c = [with(capacity: 0), "", with(capacity: 1)];
+                """).VerifyDiagnostics(
+                // (3,19): error CS1003: Syntax error, ',' expected
+                // List<string> c = [with(capacity: 0), "", with(capacity: 1)];
+                Diagnostic(ErrorCode.ERR_SyntaxError, "with").WithArguments(",").WithLocation(3, 19),
+                // (3,42): error CS9275: 'with(...)' element must be first element in collection expression
+                // List<string> c = [with(capacity: 0), "", with(capacity: 1)];
+                Diagnostic(ErrorCode.ERR_WithElementMustBeFirst, "with").WithLocation(3, 42));
+        }
     }
 }
