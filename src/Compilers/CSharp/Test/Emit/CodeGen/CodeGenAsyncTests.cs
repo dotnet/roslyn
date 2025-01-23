@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncTests : EmitMetadataTestBase
     {
+        private const MethodImplAttributes MethodImplOptionsAsync = (MethodImplAttributes)1024;
+
         internal static string ExpectedOutput(string output)
         {
             return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
@@ -43,6 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             var compilation = CreateCompilation(source, references: references, options: options);
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: verify);
         }
+
+        private static string ReturnValueMissing(string method, string offset) => $$"""[{{method}}]: Return value missing on the stack. { Offset = {{offset}} }""";
 
         [Fact]
         public void StructVsClass()
@@ -173,7 +177,7 @@ class Test
 
             var verifier = CompileAndVerify(comp, verify: Verification.Fails with
             {
-                ILVerifyMessage = "[F]: Return value missing on the stack. { Offset = 0x2e }",
+                ILVerifyMessage = ReturnValueMissing("F", "0x2e"),
             }, symbolValidator: verify);
             verifier.VerifyDiagnostics();
 
@@ -201,8 +205,73 @@ class Test
             {
                 var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
                 var f = test.GetMethod("F");
-                Assert.Equal((MethodImplAttributes)1024, f.ImplementationAttributes);
+                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
                 AssertEx.Equal(["<>c"], test.GetTypeMembers().SelectAsArray(t => t.Name));
+            }
+        }
+
+        [Fact]
+        public void ValueTaskReturningAsync()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Test
+{
+    static int i = 0;
+
+    public static async ValueTask F()
+    {
+        await Impl();
+
+        async ValueTask Impl()
+        {
+            Test.i = 42;
+        }
+    }
+
+    public static async Task Main()
+    {
+        await F();
+        Console.WriteLine(Test.i);
+    }
+}";
+
+            //var expected = "42";
+            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90);
+            comp.Assembly.SetOverrideRuntimeAsync();
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    {ReturnValueMissing("F", "0xa")}
+                    {ReturnValueMissing("Main", "0x14")}
+                    {ReturnValueMissing("<F>g__Impl|1_0", "0x7")}
+                    """
+            }, symbolValidator: verify);
+            verifier.VerifyDiagnostics(
+                // (13,25): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         async ValueTask Impl()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Impl").WithLocation(13, 25)
+            );
+
+            verifier.VerifyIL("Test.F", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  call       "System.Threading.Tasks.ValueTask Test.<F>g__Impl|1_0()"
+                  IL_0005:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_000a:  ret
+                }
+                """);
+
+            void verify(ModuleSymbol module)
+            {
+                var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var f = test.GetMethod("F");
+                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                Assert.Empty(test.GetTypeMembers());
             }
         }
 
@@ -211,7 +280,6 @@ class Test
         {
             var source = @"
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 class Test
@@ -232,6 +300,97 @@ class Test
 O brave new world...
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90);
+            comp.Assembly.SetOverrideRuntimeAsync();
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = "[F]: Unexpected type on the stack. { Offset = 0x2e, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }",
+            }, symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.F", """
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  3
+                  IL_0000:  call       "System.Threading.Tasks.TaskFactory System.Threading.Tasks.Task.Factory.get"
+                  IL_0005:  ldsfld     "System.Func<string> Test.<>c.<>9__0_0"
+                  IL_000a:  dup
+                  IL_000b:  brtrue.s   IL_0024
+                  IL_000d:  pop
+                  IL_000e:  ldsfld     "Test.<>c Test.<>c.<>9"
+                  IL_0013:  ldftn      "string Test.<>c.<F>b__0_0()"
+                  IL_0019:  newobj     "System.Func<string>..ctor(object, nint)"
+                  IL_001e:  dup
+                  IL_001f:  stsfld     "System.Func<string> Test.<>c.<>9__0_0"
+                  IL_0024:  callvirt   "System.Threading.Tasks.Task<string> System.Threading.Tasks.TaskFactory.StartNew<string>(System.Func<string>)"
+                  IL_0029:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
+                  IL_002e:  ret
+                }
+                """);
+
+            void verify(ModuleSymbol module)
+            {
+                var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var f = test.GetMethod("F");
+                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                AssertEx.Equal(["<>c"], test.GetTypeMembers().SelectAsArray(t => t.Name));
+            }
+        }
+
+        [Fact]
+        public void GenericValueTaskReturningAsync()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Test
+{
+    public static async ValueTask<string> F()
+    {
+        return await Impl();
+
+        ValueTask<string> Impl() => ValueTask.FromResult(""O brave new world..."");
+    }
+
+    public static async Task Main()
+    {
+        string s = await F();
+        Console.WriteLine(s);
+    }
+}";
+            //var expected = @"O brave new world...";
+            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90);
+            comp.Assembly.SetOverrideRuntimeAsync();
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0xa, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
+                    {{ReturnValueMissing("Main", "0xf")}}
+                    """,
+            }, symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.F", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  call       "System.Threading.Tasks.ValueTask<string> Test.<F>g__Impl|0_0()"
+                  IL_0005:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
+                  IL_000a:  ret
+                }
+                """);
+
+            void verify(ModuleSymbol module)
+            {
+                var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var f = test.GetMethod("F");
+                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                AssertEx.Empty(test.GetTypeMembers());
+            }
         }
 
         [Fact]
