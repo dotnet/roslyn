@@ -28,7 +28,7 @@ namespace RunTests
         ///   3.  Setting up the test host for each assembly.
         ///   
         /// </summary>
-        private static readonly TimeSpan s_maxExecutionTime = TimeSpan.FromSeconds(60 * 2);
+        private static readonly TimeSpan s_maxExecutionTime = TimeSpan.FromSeconds(60 * 10);
 
         /// <summary>
         /// If we were unable to find the test execution history, we fall back to partitioning by just method count.
