@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return DkmCompiledClrLocalsQuery.Create(runtimeInstance, null, CompilerId, result.Assembly, result.TypeName, result.Locals);
                 }
 
-                // TODO: better error reporting to the debugger
+                // TODO: better error reporting to the debugger (https://github.com/dotnet/roslyn/issues/76887)
                 throw new BadImageFormatException(error);
             }
             catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))

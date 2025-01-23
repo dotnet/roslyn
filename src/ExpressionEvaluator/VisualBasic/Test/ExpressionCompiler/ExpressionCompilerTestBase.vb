@@ -248,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Dim symReader As ISymUnmanagedReader = Nothing
             Dim methodToken = 0
             Dim localSignatureToken = 0
-            GetContextState(runtime, methodName, blocks, ModuleId, symReader, methodToken, localSignatureToken)
+            GetContextState(runtime, methodName, blocks, moduleId, symReader, methodToken, localSignatureToken)
             Const methodVersion = 1
 
             Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber)
@@ -284,12 +284,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Dim symReader As ISymUnmanagedReader = Nothing
             Dim typeToken = 0
             Dim localSignatureToken = 0
-            GetContextState(runtime, typeName, blocks, ModuleId, symReader, typeToken, localSignatureToken)
+            GetContextState(runtime, typeName, blocks, moduleId, symReader, typeToken, localSignatureToken)
             Return VisualBasicExpressionCompiler.CreateTypeContextHelper(
                 New AppDomain(),
                 Function(ad) ad.GetMetadataContext(),
                 blocks,
-                ModuleId,
+                moduleId,
                 typeToken,
                 MakeAssemblyReferencesKind.AllAssemblies)
         End Function
