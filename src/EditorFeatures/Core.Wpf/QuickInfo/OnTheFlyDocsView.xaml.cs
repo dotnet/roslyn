@@ -143,8 +143,8 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         {
             quotaExceededContent = [
                 new ClassifiedTextRun(
-                        ClassifiedTextElement.TextClassificationTypeName,
-                        quotaExceededMatch.Groups[1].Value),
+                    ClassifiedTextElement.TextClassificationTypeName,
+                    quotaExceededMatch.Groups[1].Value),
                     new ClassifiedTextRun(
                         ClassifiedTextElement.TextClassificationTypeName,
                         quotaExceededMatch.Groups[2].Value,
@@ -186,7 +186,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (responseString is null || responseString.Length == 0)
+            if (string.IsNullOrEmpty(responseString))
             {
                 // If the responseStatus is 8, then that means the quota has been exceeded.
                 if (isQuotaExceeded)
@@ -301,12 +301,8 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     /// </summary>
     public void ShowQuotaExceededResult()
     {
-        var elements = new List<object>
-        {
-            new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement(this.quotaExceededContent))
-        };
-
-        _responseControl.Content = ToUIElement(new ContainerElement(ContainerElementStyle.Stacked, elements));
+        _responseControl.Content = ToUIElement(new ContainerElement(ContainerElementStyle.Stacked,
+            [new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement(this.quotaExceededContent))]));
     }
 
     private void OnPropertyChanged<T>(ref T member, T value, [CallerMemberName] string? name = null)
