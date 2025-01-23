@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // that intersect the requested span if we do.
                 if (_textBuffer.Properties.TryGetProperty<IList<ClassificationSpan>>(s_classificationsKey, out var classifications))
                 {
-                    return classifications.Where(c => c.Span.IntersectsWith(span)).ToList();
+                    return [.. classifications.Where(c => c.Span.IntersectsWith(span))];
                 }
 
                 return [];

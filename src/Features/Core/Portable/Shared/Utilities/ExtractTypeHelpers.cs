@@ -85,7 +85,7 @@ internal static class ExtractTypeHelpers
                 newDocument.Project.Solution,
                 context),
             newSemanticModel.GetEnclosingNamespace(0, cancellationToken),
-            newSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
+            newSymbol.GenerateRootNamespaceOrType([.. namespaceParts]),
             cancellationToken).ConfigureAwait(false);
 
         var newCleanupOptions = await newTypeDocument.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);

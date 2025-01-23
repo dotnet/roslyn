@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -87,7 +88,7 @@ namespace Roslyn.Test.Utilities
                 ImmutableArray<MappedSpanResult> mappedResult = default;
                 if (document.Name == GeneratedFileName)
                 {
-                    mappedResult = spans.Select(span => new MappedSpanResult(s_mappedFilePath, s_mappedLinePosition, new TextSpan(0, 5))).ToImmutableArray();
+                    mappedResult = [.. spans.Select(span => new MappedSpanResult(s_mappedFilePath, s_mappedLinePosition, new TextSpan(0, 5)))];
                 }
 
                 return Task.FromResult(mappedResult);
@@ -102,9 +103,9 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private protected class OrderLocations : Comparer<LSP.Location>
+        private protected class OrderLocations : Comparer<LSP.Location?>
         {
-            public override int Compare(LSP.Location x, LSP.Location y) => CompareLocations(x, y);
+            public override int Compare(LSP.Location? x, LSP.Location? y) => CompareLocations(x, y);
         }
 
         protected virtual TestComposition Composition => EditorFeaturesLspComposition;
@@ -148,8 +149,17 @@ namespace Roslyn.Test.Utilities
             AssertJsonEquals(orderedExpectedLocations, orderedActualLocations);
         }
 
-        private protected static int CompareLocations(LSP.Location l1, LSP.Location l2)
+        private protected static int CompareLocations(LSP.Location? l1, LSP.Location? l2)
         {
+            if (ReferenceEquals(l1, l2))
+                return 0;
+
+            if (l1 is null)
+                return -1;
+
+            if (l2 is null)
+                return 1;
+
             var compareDocument = l1.Uri.AbsoluteUri.CompareTo(l2.Uri.AbsoluteUri);
             var compareRange = CompareRange(l1.Range, l2.Range);
             return compareDocument != 0 ? compareDocument : compareRange;
@@ -162,19 +172,10 @@ namespace Roslyn.Test.Utilities
             return compareLine != 0 ? compareLine : compareChar;
         }
 
-        private protected static string ApplyTextEdits(LSP.TextEdit[] edits, SourceText originalMarkup)
+        private protected static string ApplyTextEdits(LSP.TextEdit[]? edits, SourceText originalMarkup)
         {
-            var text = originalMarkup;
-            foreach (var edit in edits)
-            {
-                var lines = text.Lines;
-                var startPosition = ProtocolConversions.PositionToLinePosition(edit.Range.Start);
-                var endPosition = ProtocolConversions.PositionToLinePosition(edit.Range.End);
-                var textSpan = lines.GetTextSpan(new LinePositionSpan(startPosition, endPosition));
-                text = text.Replace(textSpan, edit.NewText);
-            }
-
-            return text.ToString();
+            var changes = Array.ConvertAll(edits ?? [], edit => ProtocolConversions.TextEditToTextChange(edit, originalMarkup));
+            return originalMarkup.WithChanges(changes).ToString();
         }
 
         internal static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, Glyph glyph, string? containerName = null)
@@ -281,7 +282,7 @@ namespace Roslyn.Test.Utilities
                 item.Icon = tags.ToImmutableArray().GetFirstGlyph().GetImageElement().ToLSPImageElement();
 
             if (commitCharacters != null)
-                item.CommitCharacters = commitCharacters.Value.Select(c => c.ToString()).ToArray();
+                item.CommitCharacters = [.. commitCharacters.Value.Select(c => c.ToString())];
 
             return item;
         }
@@ -300,13 +301,13 @@ namespace Roslyn.Test.Utilities
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, string[] codeActionPath, IEnumerable<string>? customTags = null)
             => new(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri), fixAllFlavors: null, nestedCodeActions: null, codeActionPath: codeActionPath);
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
+        private protected Task<TestLspServer> CreateTestLspServerAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, bool mutatingLspWorkspace, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
             => CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized });
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, TestComposition? composition = null)
+        private protected Task<TestLspServer> CreateTestLspServerAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, TestComposition? composition = null)
             => CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace, initializationOptions, composition);
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, TestComposition? composition = null)
+        private protected Task<TestLspServer> CreateTestLspServerAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string[] markups, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, TestComposition? composition = null)
             => CreateTestLspServerAsync(markups, LanguageNames.CSharp, mutatingLspWorkspace, initializationOptions, composition);
 
         private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, TestComposition? composition = null)
@@ -459,7 +460,7 @@ namespace Roslyn.Test.Utilities
 
                     // Linked files will return duplicate annotated Locations for each document that links to the same file.
                     // Since the test output only cares about the actual file, make sure we de-dupe before returning.
-                    locations[name] = locationsForName.Distinct().ToList();
+                    locations[name] = [.. locationsForName.Distinct()];
                 }
             }
 
@@ -701,26 +702,26 @@ namespace Roslyn.Test.Utilities
             {
                 var didChangeParams = CreateDidChangeTextDocumentParams(
                     documentUri,
-                    changes.ToImmutableArray());
+                    [.. changes]);
                 return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName, didChangeParams, CancellationToken.None);
             }
 
             public Task InsertTextAsync(Uri documentUri, params (int Line, int Column, string Text)[] changes)
             {
-                return ReplaceTextAsync(documentUri, changes.Select(change => (new LSP.Range
+                return ReplaceTextAsync(documentUri, [.. changes.Select(change => (new LSP.Range
                 {
                     Start = new LSP.Position { Line = change.Line, Character = change.Column },
                     End = new LSP.Position { Line = change.Line, Character = change.Column }
-                }, change.Text)).ToArray());
+                }, change.Text))]);
             }
 
             public Task DeleteTextAsync(Uri documentUri, params (int StartLine, int StartColumn, int EndLine, int EndColumn)[] changes)
             {
-                return ReplaceTextAsync(documentUri, changes.Select(change => (new LSP.Range
+                return ReplaceTextAsync(documentUri, [.. changes.Select(change => (new LSP.Range
                 {
                     Start = new LSP.Position { Line = change.StartLine, Character = change.StartColumn },
                     End = new LSP.Position { Line = change.EndLine, Character = change.EndColumn }
-                }, string.Empty)).ToArray());
+                }, string.Empty))]);
             }
 
             public Task CloseDocumentAsync(Uri documentUri)
@@ -781,7 +782,7 @@ namespace Roslyn.Test.Utilities
 
             internal T GetRequiredLspService<T>() where T : class, ILspService => LanguageServer.GetTestAccessor().GetRequiredLspService<T>();
 
-            internal ImmutableArray<SourceText> GetTrackedTexts() => GetManager().GetTrackedLspText().Values.Select(v => v.Text).ToImmutableArray();
+            internal ImmutableArray<SourceText> GetTrackedTexts() => [.. GetManager().GetTrackedLspText().Values.Select(v => v.Text)];
 
             internal Task RunCodeAnalysisAsync(ProjectId? projectId)
                 => _codeAnalysisService.RunAnalysisAsync(GetCurrentSolution(), projectId, onAfterProjectAnalyzed: _ => { }, CancellationToken.None);

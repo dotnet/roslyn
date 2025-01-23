@@ -87,6 +87,11 @@
         <target state="translated">'end' は 'start' より小さくすることはできません。start='{0}' end='{1}'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExceptionMessage_FileMayBeLockedBy">
+        <source>{0}; file may be locked by {1}</source>
+        <target state="new">{0}; file may be locked by {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
         <target state="translated">ジェネレーター</target>

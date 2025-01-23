@@ -704,7 +704,7 @@ class C
     void M()
     {
         System.Action&lt;string&gt; g = null;
-        var h = (Goo&lt;string&gt;) + g;
+        var h = (Goo) + g;
     }
 
     static void Goo&lt;T&gt;(T y) { }

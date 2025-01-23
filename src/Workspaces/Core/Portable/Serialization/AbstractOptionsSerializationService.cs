@@ -159,7 +159,7 @@ internal abstract class AbstractOptionsSerializationService : IOptionsSerializat
         var xmlReferenceResolver = XmlFileResolver.Default;
         var sourceReferenceResolver = SourceFileResolver.Default;
         var assemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default;
-        var strongNameProvider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, Path.GetTempPath());
+        var strongNameProvider = new DesktopStrongNameProvider([], Path.GetTempPath());
 
         return (
             outputKind,

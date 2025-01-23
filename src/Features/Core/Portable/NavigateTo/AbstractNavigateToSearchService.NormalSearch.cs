@@ -59,7 +59,7 @@ internal abstract partial class AbstractNavigateToSearchService
             document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, t => results.Add(t), cancellationToken).ConfigureAwait(false);
 
         if (results.Count > 0)
-            await onItemsFound(results.ToImmutableArray(), default, cancellationToken).ConfigureAwait(false);
+            await onItemsFound([.. results], default, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task SearchProjectsAsync(

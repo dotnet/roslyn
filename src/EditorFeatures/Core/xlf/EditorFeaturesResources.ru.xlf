@@ -792,11 +792,6 @@
         <target state="translated">Операция переименования завершена неправильно. Некоторые файлы должны быть обновлены.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">Переименовать "{0}" в "{1}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Preview_Warning">
         <source>Preview Warning</source>
         <target state="translated">Предварительный просмотр предупреждения</target>

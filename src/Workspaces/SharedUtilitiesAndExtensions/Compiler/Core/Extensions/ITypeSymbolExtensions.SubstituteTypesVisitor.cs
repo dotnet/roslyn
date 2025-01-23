@@ -68,8 +68,8 @@ internal static partial class ITypeSymbolExtensions
             }
 
             // If we don't even have any type arguments, then there's nothing to do.
-            var allTypeArguments = symbol.GetAllTypeArguments().ToList();
-            if (allTypeArguments.Count == 0)
+            var allTypeArguments = symbol.GetAllTypeArguments();
+            if (allTypeArguments.Length == 0)
             {
                 return symbol;
             }
@@ -89,7 +89,7 @@ internal static partial class ITypeSymbolExtensions
                 return symbol;
             }
 
-            return _typeGenerator.Construct(symbol.OriginalDefinition, substitutedArguments.ToArray()).WithNullableAnnotation(symbol.NullableAnnotation);
+            return _typeGenerator.Construct(symbol.OriginalDefinition, [.. substitutedArguments]).WithNullableAnnotation(symbol.NullableAnnotation);
         }
 
         public override ITypeSymbol VisitArrayType(IArrayTypeSymbol symbol)

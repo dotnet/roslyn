@@ -344,16 +344,16 @@ internal sealed class RoslynGraphProvider : IGraphProvider
         => typeKinds.Any(k => node[RoslynGraphProperties.TypeKind].Equals(k));
 
     private static readonly GraphCommandDefinition s_overridesCommandDefinition =
-        new("Overrides", ServicesVSResources.Overrides_, GraphContextDirection.Target, 700);
+        new("Overrides", EditorFeaturesResources.Overrides_, GraphContextDirection.Target, 700);
 
     private static readonly GraphCommandDefinition s_overriddenByCommandDefinition =
-        new("OverriddenBy", ServicesVSResources.Overridden_By, GraphContextDirection.Source, 700);
+        new("OverriddenBy", EditorFeaturesResources.Overridden_By, GraphContextDirection.Source, 700);
 
     private static readonly GraphCommandDefinition s_implementsCommandDefinition =
-        new("Implements", ServicesVSResources.Implements_, GraphContextDirection.Target, 600);
+        new("Implements", EditorFeaturesResources.Implements_, GraphContextDirection.Target, 600);
 
     private static readonly GraphCommandDefinition s_implementedByCommandDefinition =
-        new("ImplementedBy", ServicesVSResources.Implemented_By, GraphContextDirection.Source, 600);
+        new("ImplementedBy", EditorFeaturesResources.Implemented_By, GraphContextDirection.Source, 600);
 
     public T? GetExtension<T>(GraphObject graphObject, T previous) where T : class
     {

@@ -45,7 +45,7 @@ internal sealed class CSharpRemoveConfusingSuppressionDiagnosticAnalyzer : Abstr
             ((PostfixUnaryExpressionSyntax)left).OperatorToken.GetLocation(),
             NotificationOption2.Warning,
             context.Options,
-            ImmutableArray.Create(node.GetLocation()),
+            [node.GetLocation()],
             properties: null));
     }
 }

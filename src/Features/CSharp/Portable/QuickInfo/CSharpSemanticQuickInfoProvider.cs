@@ -158,14 +158,13 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         }
 
         var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
-            document, position, cancellationToken).ConfigureAwait(false);
+            document, semanticModel, position, cancellationToken).ConfigureAwait(false);
 
         // Don't show on-the-fly-docs for namespace symbols.
-        if (symbol is null || symbol.IsNamespace())
-        {
+        if (symbol is null or INamespaceSymbol)
             return null;
-        }
 
         if (symbol.MetadataToken != 0)
         {

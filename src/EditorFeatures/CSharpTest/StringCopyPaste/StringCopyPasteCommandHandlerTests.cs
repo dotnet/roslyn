@@ -123,7 +123,7 @@ public abstract class StringCopyPasteCommandHandlerTests
                 {
                     // we were given text to directly place on the clipboard without needing to do a copy.
                     Contract.ThrowIfNull(pasteText);
-                    var json = new StringCopyPasteData(ImmutableArray.Create(StringCopyPasteContent.ForText(pasteText))).ToJson();
+                    var json = new StringCopyPasteData([StringCopyPasteContent.ForText(pasteText)]).ToJson();
                     Contract.ThrowIfNull(json);
                     service!.TrySetClipboardData(StringCopyPasteCommandHandler.KeyAndVersion, json);
                 }

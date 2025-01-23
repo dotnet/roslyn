@@ -33,7 +33,6 @@ public class UseCompoundCoalesceAssignmentTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             LanguageVersion = languageVersion,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
@@ -999,5 +998,47 @@ public class UseCompoundCoalesceAssignmentTests
                 }
             }
             """, LanguageVersion.CSharp12);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76633")]
+    public async Task TestFieldKeyword1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                class C
+                {
+                    string Goo
+                    {
+                        get
+                        {
+                            [|if|] (field is null)
+                            {
+                                field = "";
+                            }
+
+                            return field;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                class C
+                {
+                    string Goo
+                    {
+                        get
+                        {
+                            field ??= "";
+            
+                            return field;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
     }
 }

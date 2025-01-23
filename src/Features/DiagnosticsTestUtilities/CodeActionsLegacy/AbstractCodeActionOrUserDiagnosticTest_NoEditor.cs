@@ -877,9 +877,9 @@ Consider using the title as the equivalence key instead of 'null'";
 
         protected static ImmutableArray<CodeAction> FlattenActions(ImmutableArray<CodeAction> codeActions)
         {
-            return codeActions.SelectMany(a => a.NestedActions.Length > 0
+            return [.. codeActions.SelectMany(a => a.NestedActions.Length > 0
                 ? a.NestedActions
-                : ImmutableArray.Create(a)).ToImmutableArray();
+                : [a])];
         }
 
         protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)

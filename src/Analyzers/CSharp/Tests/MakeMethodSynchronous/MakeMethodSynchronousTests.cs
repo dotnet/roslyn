@@ -16,9 +16,10 @@ using VerifyCS = CSharpCodeFixVerifier<
     EmptyDiagnosticAnalyzer,
     CSharpMakeMethodSynchronousCodeFixProvider>;
 
-public class MakeMethodSynchronousTests
+[Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+public sealed class MakeMethodSynchronousTests
 {
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task TestTaskReturnType()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -44,7 +45,7 @@ public class MakeMethodSynchronousTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task TestTaskOfTReturnType()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -72,7 +73,7 @@ public class MakeMethodSynchronousTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task TestSecondModifier()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -98,7 +99,7 @@ public class MakeMethodSynchronousTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task TestFirstModifier()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -124,7 +125,7 @@ public class MakeMethodSynchronousTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task TestTrailingTrivia()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -151,7 +152,7 @@ public class MakeMethodSynchronousTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task TestRenameMethod()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -177,7 +178,7 @@ public class MakeMethodSynchronousTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task TestRenameMethod1()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -213,7 +214,7 @@ public class MakeMethodSynchronousTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task TestParenthesizedLambda()
     {
         var source =
@@ -260,7 +261,7 @@ public class MakeMethodSynchronousTests
         }.RunAsync();
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task TestSimpleLambda()
     {
         var source =
@@ -307,7 +308,7 @@ public class MakeMethodSynchronousTests
         }.RunAsync();
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task TestLambdaWithExpressionBody()
     {
         var source =
@@ -356,7 +357,7 @@ public class MakeMethodSynchronousTests
         }.RunAsync();
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task TestAnonymousMethod()
     {
         var source =
@@ -403,7 +404,7 @@ public class MakeMethodSynchronousTests
         }.RunAsync();
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task TestFixAll()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -443,7 +444,7 @@ public class MakeMethodSynchronousTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
     public async Task TestRemoveAwaitFromCaller1()
     {
@@ -492,7 +493,7 @@ public class MakeMethodSynchronousTests
         }.RunAsync();
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
     public async Task TestRemoveAwaitFromCaller2()
     {
@@ -541,7 +542,7 @@ public class MakeMethodSynchronousTests
         }.RunAsync();
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
     public async Task TestRemoveAwaitFromCaller3()
     {
@@ -590,7 +591,7 @@ public class MakeMethodSynchronousTests
         }.RunAsync();
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
     public async Task TestRemoveAwaitFromCaller4()
     {
@@ -639,7 +640,7 @@ public class MakeMethodSynchronousTests
         }.RunAsync();
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
     public async Task TestRemoveAwaitFromCallerNested1()
     {
@@ -690,7 +691,7 @@ public class MakeMethodSynchronousTests
         }.RunAsync();
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13961")]
     public async Task TestRemoveAwaitFromCallerNested()
     {
@@ -861,7 +862,7 @@ public class MakeMethodSynchronousTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task MethodWithUsingAwait()
     {
         var source =
@@ -890,7 +891,7 @@ public class MakeMethodSynchronousTests
         }.RunAsync();
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task MethodWithUsingNoAwait()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -920,7 +921,7 @@ public class MakeMethodSynchronousTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task MethodWithAwaitForEach()
     {
         var source =
@@ -943,7 +944,7 @@ public class MakeMethodSynchronousTests
             source);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task MethodWithForEachNoAwait()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -971,7 +972,7 @@ public class MakeMethodSynchronousTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task MethodWithForEachVariableAwait()
     {
         var source =
@@ -994,7 +995,7 @@ public class MakeMethodSynchronousTests
             source);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task MethodWithForEachVariableNoAwait()
     {
         await VerifyCS.VerifyCodeFixAsync(
@@ -1022,7 +1023,7 @@ public class MakeMethodSynchronousTests
             """);
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task TestIAsyncEnumerableReturnType()
     {
         var source =
@@ -1060,7 +1061,7 @@ public class MakeMethodSynchronousTests
         }.RunAsync();
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
+    [Fact]
     public async Task TestIAsyncEnumeratorReturnTypeOnLocalFunction()
     {
         var source =

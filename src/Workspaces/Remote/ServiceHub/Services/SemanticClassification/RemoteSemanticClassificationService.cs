@@ -57,7 +57,7 @@ internal sealed partial class RemoteSemanticClassificationService : BrokeredServ
                 _workQueue.AddWork((document, type, options));
             }
 
-            return SerializableClassifiedSpans.Dehydrate([.. temp]);
+            return SerializableClassifiedSpans.Dehydrate(temp);
         }, cancellationToken);
     }
 }

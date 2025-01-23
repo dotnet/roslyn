@@ -3451,7 +3451,7 @@ namespace NS
     {
         var optionsSet = options != null
                 ? new[] { options }
-                : new[] { TestOptions.Regular, TestOptions.Script };
+                : [TestOptions.Regular, TestOptions.Script];
 
         foreach (var option in optionsSet)
         {
@@ -3507,7 +3507,7 @@ namespace NS
     {
         var optionsSet = options != null
             ? new[] { options }
-            : new[] { TestOptions.Regular, TestOptions.Script };
+            : [TestOptions.Regular, TestOptions.Script];
 
         foreach (var option in optionsSet)
         {
@@ -3536,7 +3536,7 @@ namespace NS
     {
         var optionsSet = options != null
             ? new[] { options }
-            : new[] { TestOptions.Regular, TestOptions.Script };
+            : [TestOptions.Regular, TestOptions.Script];
 
         foreach (var option in optionsSet)
         {

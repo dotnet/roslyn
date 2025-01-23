@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var mockCompilationOutputsProvider = new Func<Project, CompilationOutputs>(_ => new MockCompilationOutputs(Guid.NewGuid()));
 
+            var log = new TraceLog("Test");
+
             var debuggingSession = new DebuggingSession(
                 new DebuggingSessionId(1),
                 solution,
@@ -50,6 +52,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 mockCompilationOutputsProvider,
                 NullPdbMatchingSourceTextProvider.Instance,
                 initialDocumentStates: [],
+                log,
+                log,
                 reportDiagnostics: true);
 
             if (initialState != CommittedSolution.DocumentState.None)
@@ -250,19 +254,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var newActiveStatementsInChangedDocuments = ImmutableArray.Create(
                 new DocumentActiveStatementChanges(
                     oldSpans: oldActiveStatements2,
-                    newStatements: ImmutableArray.Create(
+                    newStatements:
+                    [
                         statements[3].WithFileSpan(statements[3].FileSpan.AddLineDelta(+1)),
                         statements[2].WithFileSpan(statements[2].FileSpan.AddLineDelta(+2)),
-                        statements[4]),
-                    newExceptionRegions: ImmutableArray.Create(
+                        statements[4],
+                    ],
+                    newExceptionRegions:
+                    [
                         oldActiveStatements2[0].ExceptionRegions.Spans.SelectAsArray(es => es.AddLineDelta(+1)),
                         oldActiveStatements2[1].ExceptionRegions.Spans,
-                        oldActiveStatements2[2].ExceptionRegions.Spans)));
+                        oldActiveStatements2[2].ExceptionRegions.Spans,
+                    ]));
 
             EditSession.GetActiveStatementAndExceptionRegionSpans(
                 module2,
                 baseActiveStatementsMap,
-                updatedMethodTokens: ImmutableArray.Create(0x06000004), // contains only recompiled methods in the project we are interested in (module2)
+                updatedMethodTokens: [0x06000004], // contains only recompiled methods in the project we are interested in (module2)
                 previousNonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
@@ -366,18 +374,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var newActiveStatementsInChangedDocuments = ImmutableArray.Create(
                 new DocumentActiveStatementChanges(
                     oldSpans: oldActiveStatements,
-                    newStatements: ImmutableArray.Create(
-                        baseActiveStatements[0],
-                        baseActiveStatements[1].WithFileSpan(baseActiveStatements[1].FileSpan.AddLineDelta(+1))),
-                    newExceptionRegions: ImmutableArray.Create(
-                        oldActiveStatements[0].ExceptionRegions.Spans,
-                        oldActiveStatements[1].ExceptionRegions.Spans))
+                    newStatements: [baseActiveStatements[0], baseActiveStatements[1].WithFileSpan(baseActiveStatements[1].FileSpan.AddLineDelta(+1))],
+                    newExceptionRegions: [oldActiveStatements[0].ExceptionRegions.Spans, oldActiveStatements[1].ExceptionRegions.Spans])
             );
 
             EditSession.GetActiveStatementAndExceptionRegionSpans(
                 module1,
                 baseActiveStatementMap,
-                updatedMethodTokens: ImmutableArray.Create(0x06000001), // F1
+                updatedMethodTokens: [0x06000001], // F1
                 previousNonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
@@ -556,21 +560,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var newActiveStatementsInChangedDocuments = ImmutableArray.Create(
                 new DocumentActiveStatementChanges(
                     oldSpans: oldActiveStatements,
-                    newStatements: ImmutableArray.Create(
+                    newStatements:
+                    [
                         baseActiveStatements[0],
                         baseActiveStatements[1].WithFileSpan(baseActiveStatements[1].FileSpan.AddLineDelta(-1)),
                         baseActiveStatements[2],
-                        baseActiveStatements[3].WithFileSpan(baseActiveStatements[3].FileSpan.AddLineDelta(+2))),
-                    newExceptionRegions: ImmutableArray.Create(
+                        baseActiveStatements[3].WithFileSpan(baseActiveStatements[3].FileSpan.AddLineDelta(+2)),
+                    ],
+                    newExceptionRegions:
+                    [
                         oldActiveStatements[0].ExceptionRegions.Spans,
                         oldActiveStatements[1].ExceptionRegions.Spans.SelectAsArray(es => es.AddLineDelta(-1)),
                         oldActiveStatements[2].ExceptionRegions.Spans,
-                        oldActiveStatements[3].ExceptionRegions.Spans.SelectAsArray(es => es.AddLineDelta(+2)))));
+                        oldActiveStatements[3].ExceptionRegions.Spans.SelectAsArray(es => es.AddLineDelta(+2)),
+                    ]));
 
             EditSession.GetActiveStatementAndExceptionRegionSpans(
                 module1,
                 baseActiveStatementMap,
-                updatedMethodTokens: ImmutableArray.Create(0x06000002, 0x06000004), // F2, F4
+                updatedMethodTokens: [0x06000002, 0x06000004], // F2, F4
                 initialNonRemappableRegions,
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,

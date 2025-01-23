@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => true;
 
-        internal sealed override int? TryGetOverloadResolutionPriority() => throw ExceptionUtilities.Unreachable();
+        internal sealed override int TryGetOverloadResolutionPriority() => throw ExceptionUtilities.Unreachable();
 
         #endregion
     }

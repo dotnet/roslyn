@@ -10,6 +10,15 @@
           $(RestoreSources);
           https://pkgs.dev.azure.com/devdiv/_packaging/dotnet-core-internal-tooling/nuget/v3/index.json
         </RestoreSources>
+
+        <!-- Workaround for https://github.com/dotnet/dnceng/issues/4441. -->
+        <RestoreSources Condition="'$(ForceAzureComSources)' == 'true'">
+          https://pkgs.dev.azure.com/devdiv/_packaging/dotnet-core-internal-tooling/nuget/v3/index.json;
+          https://pkgs.dev.azure.com/devdiv/_packaging/VS/nuget/v3/index.json;
+          https://pkgs.dev.azure.com/devdiv/_packaging/Engineering/nuget/v3/index.json;
+          https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json;
+          https://pkgs.dev.azure.com/devdiv/_packaging/dotnet-core-internal-tooling/nuget/v3/index.json
+        </RestoreSources>
     </PropertyGroup>
     
     <ItemGroup Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'">

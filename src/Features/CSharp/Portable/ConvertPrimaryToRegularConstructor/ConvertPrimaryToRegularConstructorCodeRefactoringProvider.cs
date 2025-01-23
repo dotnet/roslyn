@@ -326,6 +326,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                     if (lastFieldOrProperty < 0)
                         lastFieldOrProperty = currentTypeDeclaration.Members.LastIndexOf(m => m is PropertyDeclarationSyntax);
 
+                    currentTypeDeclaration = currentTypeDeclaration.EnsureOpenAndCloseBraceTokens();
                     if (lastFieldOrProperty >= 0)
                     {
                         constructorDeclaration = constructorDeclaration

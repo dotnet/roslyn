@@ -538,7 +538,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         // Start with an empty workspace.
         await using var testLspServer = await CreateTestLspServerAsync(
-            Array.Empty<string>(), mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+            [], mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Open the doc
         var filePath = "c:\\\ue25b\ud86d\udeac.cs";

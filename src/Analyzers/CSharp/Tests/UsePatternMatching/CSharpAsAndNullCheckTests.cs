@@ -16,13 +16,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public CSharpAsAndNullCheckTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpAsAndNullCheckDiagnosticAnalyzer(), new CSharpAsAndNullCheckCodeFixProvider());
 
@@ -2133,6 +2129,28 @@ public partial class CSharpAsAndNullCheckTests : AbstractCSharpDiagnosticProvide
                     if (s == null)
                     {
                         s = null;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39600")]
+    public async Task TestNotWithInterveningMutation()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            using System;
+
+            class Program
+            {
+                void Goo(object[] values, int index)
+                {
+                    [|var|] v1 = values[index++] as string;
+                    index++;
+
+                    if (v1 != null)
+                    {
+                        Console.WriteLine(v1);
                     }
                 }
             }

@@ -34,7 +34,7 @@ internal abstract class EfficientTagger<TTag> : ITagger<TTag>, IDisposable where
     /// </summary>
     public IEnumerable<TagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
     {
-        using var pooledObject = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var list);
+        using var _ = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var list);
 
         AddTags(spans, list);
 

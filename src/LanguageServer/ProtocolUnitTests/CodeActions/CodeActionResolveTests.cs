@@ -355,8 +355,8 @@ class BCD
                     new TextDocumentEdit()
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newDocumentUri },
-                        Edits = new SumType<TextEdit, AnnotatedTextEdit>[]
-                        {
+                        Edits =
+                        [
                             new TextEdit()
                             {
                                 Range = new LSP.Range
@@ -377,14 +377,14 @@ class BCD
 }
 "
                             }
-                        }
+                        ]
                     },
                     // Remove the declaration from existing file
                     new TextDocumentEdit()
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = existingDocumentUri },
-                        Edits = new SumType<TextEdit, AnnotatedTextEdit>[]
-                        {
+                        Edits =
+                        [
                             new TextEdit()
                             {
                                 Range = new LSP.Range
@@ -402,7 +402,7 @@ class BCD
                                 },
                                 NewText = ""
                             }
-                        }
+                        ]
                     }
                 }
             };
@@ -447,7 +447,7 @@ class {|caret:BCD|}
                     }
                 },
 
-                DocumentFileContainingFolders = new[] { Path.Combine("dir1", "dir2", "dir3") },
+                DocumentFileContainingFolders = [Path.Combine("dir1", "dir2", "dir3")],
             });
 
             var titlePath = new string[] { string.Format(FeaturesResources.Move_type_to_0, "BCD.cs") };
@@ -482,8 +482,8 @@ class {|caret:BCD|}
                     new TextDocumentEdit()
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newDocumentUri },
-                        Edits = new SumType<TextEdit, AnnotatedTextEdit>[]
-                        {
+                        Edits =
+                        [
                             new TextEdit()
                             {
                                 Range = new LSP.Range
@@ -503,14 +503,14 @@ class {|caret:BCD|}
 {
 }"
                             }
-                        }
+                        ]
                     },
                     // Remove the declaration from existing file
                     new TextDocumentEdit()
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = existingDocumentUri },
-                        Edits = new SumType<TextEdit, AnnotatedTextEdit>[]
-                        {
+                        Edits =
+                        [
                             new TextEdit()
                             {
                                 Range = new LSP.Range
@@ -528,7 +528,7 @@ class {|caret:BCD|}
                                 },
                                 NewText = ""
                             }
-                        }
+                        ]
                     }
                 }
             };

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -140,7 +141,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
             return;
 
         var (location, additionalLocation) = GetDiagnosticLocation(owningMethod, cancellationToken);
-        if (location == null || !context.ShouldAnalyzeSpan(location.SourceSpan))
+        if (location == null || additionalLocation == null || !context.ShouldAnalyzeSpan(location.SourceSpan))
             return;
 
         foreach (var blockOperation in context.OperationBlocks)
@@ -163,7 +164,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 location,
                 notificationOption,
                 context.Options,
-                additionalLocations: ImmutableArray.Create(additionalLocation),
+                additionalLocations: [additionalLocation],
                 properties: null);
         }
     }

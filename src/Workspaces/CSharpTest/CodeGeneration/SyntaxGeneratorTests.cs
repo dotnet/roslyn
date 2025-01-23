@@ -1966,7 +1966,7 @@ public interface IFace
         private void CheckAddRemoveAttribute(SyntaxNode declaration)
         {
             var initialAttributes = Generator.GetAttributes(declaration);
-            Assert.Equal(0, initialAttributes.Count);
+            Assert.Empty(initialAttributes);
 
             var withAttribute = Generator.AddAttributes(declaration, Generator.Attribute("a"));
             var attrsAdded = Generator.GetAttributes(withAttribute);
@@ -1974,7 +1974,7 @@ public interface IFace
 
             var withoutAttribute = Generator.RemoveNode(withAttribute, attrsAdded[0]);
             var attrsRemoved = Generator.GetAttributes(withoutAttribute);
-            Assert.Equal(0, attrsRemoved.Count);
+            Assert.Empty(attrsRemoved);
         }
 
         [Fact]
@@ -2617,15 +2617,15 @@ public class C { } // end").Members[0];
             => AssertNamesEqual(expectedNames, Generator.GetMembers(declaration));
 
         private void AssertMemberNamesEqual(string expectedName, SyntaxNode declaration)
-            => AssertNamesEqual(new[] { expectedName }, Generator.GetMembers(declaration));
+            => AssertNamesEqual([expectedName], Generator.GetMembers(declaration));
 
         [Fact]
         public void TestAddNamespaceImports()
         {
             AssertNamesEqual("x.y", Generator.GetNamespaceImports(Generator.AddNamespaceImports(Generator.CompilationUnit(), Generator.NamespaceImportDeclaration("x.y"))));
-            AssertNamesEqual(new[] { "x.y", "z" }, Generator.GetNamespaceImports(Generator.AddNamespaceImports(Generator.CompilationUnit(), Generator.NamespaceImportDeclaration("x.y"), Generator.IdentifierName("z"))));
+            AssertNamesEqual(["x.y", "z"], Generator.GetNamespaceImports(Generator.AddNamespaceImports(Generator.CompilationUnit(), Generator.NamespaceImportDeclaration("x.y"), Generator.IdentifierName("z"))));
             AssertNamesEqual("", Generator.GetNamespaceImports(Generator.AddNamespaceImports(Generator.CompilationUnit(), Generator.MethodDeclaration("m"))));
-            AssertNamesEqual(new[] { "x", "y.z" }, Generator.GetNamespaceImports(Generator.AddNamespaceImports(Generator.CompilationUnit(Generator.IdentifierName("x")), Generator.DottedName("y.z"))));
+            AssertNamesEqual(["x", "y.z"], Generator.GetNamespaceImports(Generator.AddNamespaceImports(Generator.CompilationUnit(Generator.IdentifierName("x")), Generator.DottedName("y.z"))));
         }
 
         [Fact]
@@ -2754,12 +2754,12 @@ public class C
             AssertMemberNamesEqual("n2", Generator.AddMembers(Generator.NamespaceDeclaration("n"), [Generator.NamespaceDeclaration("n2")]));
             AssertMemberNamesEqual("n", Generator.AddMembers(Generator.CompilationUnit(), [Generator.NamespaceDeclaration("n")]));
 
-            AssertMemberNamesEqual(new[] { "m", "m2" }, Generator.AddMembers(Generator.ClassDeclaration("d", members: [Generator.MethodDeclaration("m")]), [Generator.MethodDeclaration("m2")]));
-            AssertMemberNamesEqual(new[] { "m", "m2" }, Generator.AddMembers(Generator.StructDeclaration("s", members: [Generator.MethodDeclaration("m")]), [Generator.MethodDeclaration("m2")]));
-            AssertMemberNamesEqual(new[] { "m", "m2" }, Generator.AddMembers(Generator.InterfaceDeclaration("i", members: [Generator.MethodDeclaration("m")]), [Generator.MethodDeclaration("m2")]));
-            AssertMemberNamesEqual(new[] { "v", "v2" }, Generator.AddMembers(Generator.EnumDeclaration("i", members: [Generator.EnumMember("v")]), [Generator.EnumMember("v2")]));
-            AssertMemberNamesEqual(new[] { "n1", "n2" }, Generator.AddMembers(Generator.NamespaceDeclaration("n", [Generator.NamespaceDeclaration("n1")]), [Generator.NamespaceDeclaration("n2")]));
-            AssertMemberNamesEqual(new[] { "n1", "n2" }, Generator.AddMembers(Generator.CompilationUnit(declarations: [Generator.NamespaceDeclaration("n1")]), [Generator.NamespaceDeclaration("n2")]));
+            AssertMemberNamesEqual(["m", "m2"], Generator.AddMembers(Generator.ClassDeclaration("d", members: [Generator.MethodDeclaration("m")]), [Generator.MethodDeclaration("m2")]));
+            AssertMemberNamesEqual(["m", "m2"], Generator.AddMembers(Generator.StructDeclaration("s", members: [Generator.MethodDeclaration("m")]), [Generator.MethodDeclaration("m2")]));
+            AssertMemberNamesEqual(["m", "m2"], Generator.AddMembers(Generator.InterfaceDeclaration("i", members: [Generator.MethodDeclaration("m")]), [Generator.MethodDeclaration("m2")]));
+            AssertMemberNamesEqual(["v", "v2"], Generator.AddMembers(Generator.EnumDeclaration("i", members: [Generator.EnumMember("v")]), [Generator.EnumMember("v2")]));
+            AssertMemberNamesEqual(["n1", "n2"], Generator.AddMembers(Generator.NamespaceDeclaration("n", [Generator.NamespaceDeclaration("n1")]), [Generator.NamespaceDeclaration("n2")]));
+            AssertMemberNamesEqual(["n1", "n2"], Generator.AddMembers(Generator.CompilationUnit(declarations: [Generator.NamespaceDeclaration("n1")]), [Generator.NamespaceDeclaration("n2")]));
         }
 
         [Fact]
@@ -3662,7 +3662,7 @@ public class C
 
             var baseListN = Generator.GetBaseAndInterfaceTypes(classN);
             Assert.NotNull(baseListN);
-            Assert.Equal(0, baseListN.Count);
+            Assert.Empty(baseListN);
         }
 
         [Fact]

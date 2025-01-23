@@ -1458,7 +1458,7 @@ Delta.2: Test D2
                 loader.AddDependencyLocation(destFile);
 
                 var copiedAssembly = loader.LoadFromPath(destFile);
-                Assert.Single(AppDomain.CurrentDomain.GetAssemblies().Where(x => x.FullName == assembly.FullName));
+                Assert.Single(AppDomain.CurrentDomain.GetAssemblies(), x => x.FullName == assembly.FullName);
                 Assert.Same(copiedAssembly, assembly);
             });
         }
@@ -1810,7 +1810,7 @@ Delta.2: Test D2
 
             public List<AssemblyName> CalledFor { get; } = [];
 
-            public Assembly? ResolveAssembly(AssemblyName assemblyName)
+            public Assembly? ResolveAssembly(AssemblyName assemblyName, string rootDirectory)
             {
                 CalledFor.Add(assemblyName);
                 return _func(assemblyName);

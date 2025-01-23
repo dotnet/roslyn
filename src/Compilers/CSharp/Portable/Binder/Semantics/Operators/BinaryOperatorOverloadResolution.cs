@@ -958,7 +958,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void getDeclaredOperators(TypeSymbol constrainedToTypeOpt, NamedTypeSymbol type, BinaryOperatorKind kind, string name, ArrayBuilder<BinaryOperatorSignature> operators)
             {
-                foreach (MethodSymbol op in type.GetOperators(name))
+                var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
+                type.AddOperators(name, typeOperators);
+
+                foreach (MethodSymbol op in typeOperators)
                 {
                     // If we're in error recovery, we might have bad operators. Just ignore it.
                     if (op.ParameterCount != 2 || op.ReturnsVoid)
@@ -972,6 +975,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UserDefined | kind, leftOperandType, rightOperandType, resultType, op, constrainedToTypeOpt));
                 }
+
+                typeOperators.Free();
             }
 
             void addLiftedOperators(TypeSymbol constrainedToTypeOpt, BinaryOperatorKind kind, ArrayBuilder<BinaryOperatorSignature> operators)

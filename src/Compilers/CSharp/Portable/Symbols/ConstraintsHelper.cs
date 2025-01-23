@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// generic method. In those cases, additional constraint checks are applied.
         /// </summary>
         public static TypeParameterBounds ResolveBounds(
-            this SourceTypeParameterSymbolBase typeParameter,
+            this SourceTypeParameterSymbol typeParameter,
             AssemblySymbol corLibrary,
             ConsList<TypeParameterSymbol> inProgress,
             ImmutableArray<TypeWithAnnotations> constraintTypes,

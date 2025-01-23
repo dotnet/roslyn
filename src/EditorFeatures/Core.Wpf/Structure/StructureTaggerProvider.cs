@@ -18,48 +18,47 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using StructureTag = Microsoft.CodeAnalysis.Editor.Implementation.Structure.StructureTag;
 
-namespace Microsoft.CodeAnalysis.Editor.Structure
+namespace Microsoft.CodeAnalysis.Editor.Structure;
+
+[Export(typeof(ITaggerProvider))]
+[Export(typeof(AbstractStructureTaggerProvider))]
+[TagType(typeof(IStructureTag))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class StructureTaggerProvider(
+    TaggerHost taggerHost,
+    EditorOptionsService editorOptionsService,
+    IProjectionBufferFactoryService projectionBufferFactoryService,
+    ITextEditorFactoryService textEditorFactoryService) : AbstractStructureTaggerProvider(taggerHost, editorOptionsService, projectionBufferFactoryService)
 {
-    [Export(typeof(ITaggerProvider))]
-    [Export(typeof(AbstractStructureTaggerProvider))]
-    [TagType(typeof(IStructureTag))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class StructureTaggerProvider(
-        TaggerHost taggerHost,
-        EditorOptionsService editorOptionsService,
-        IProjectionBufferFactoryService projectionBufferFactoryService,
-        ITextEditorFactoryService textEditorFactoryService) : AbstractStructureTaggerProvider(taggerHost, editorOptionsService, projectionBufferFactoryService)
+    private readonly ITextEditorFactoryService _textEditorFactoryService = textEditorFactoryService;
+
+    internal override object? GetCollapsedHintForm(StructureTag structureTag)
     {
-        private readonly ITextEditorFactoryService _textEditorFactoryService = textEditorFactoryService;
-
-        internal override object? GetCollapsedHintForm(StructureTag structureTag)
-        {
-            return new ViewHostingControl(CreateElisionBufferView, () => CreateElisionBufferForTagTooltip(structureTag));
-        }
-
-        private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)
-            => CreateShrunkenTextView(ThreadingContext, _textEditorFactoryService, finalBuffer);
-
-        private static IWpfTextView CreateShrunkenTextView(
-            IThreadingContext threadingContext,
-            ITextEditorFactoryService textEditorFactoryService,
-            ITextBuffer finalBuffer)
-        {
-            var roles = textEditorFactoryService.CreateTextViewRoleSet(OutliningRegionTextViewRole);
-            var view = textEditorFactoryService.CreateTextView(finalBuffer, roles);
-
-            view.Background = Brushes.Transparent;
-
-            view.SizeToFit(threadingContext);
-
-            // Zoom out a bit to shrink the text.
-            view.ZoomLevel *= 0.75;
-
-            return view;
-        }
-
-        private const string OutliningRegionTextViewRole = nameof(OutliningRegionTextViewRole);
+        return new ViewHostingControl(CreateElisionBufferView, () => CreateElisionBufferForTagTooltip(structureTag));
     }
+
+    private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)
+        => CreateShrunkenTextView(ThreadingContext, _textEditorFactoryService, finalBuffer);
+
+    private static IWpfTextView CreateShrunkenTextView(
+        IThreadingContext threadingContext,
+        ITextEditorFactoryService textEditorFactoryService,
+        ITextBuffer finalBuffer)
+    {
+        var roles = textEditorFactoryService.CreateTextViewRoleSet(OutliningRegionTextViewRole);
+        var view = textEditorFactoryService.CreateTextView(finalBuffer, roles);
+
+        view.Background = Brushes.Transparent;
+
+        view.SizeToFit(threadingContext);
+
+        // Zoom out a bit to shrink the text.
+        view.ZoomLevel *= 0.75;
+
+        return view;
+    }
+
+    private const string OutliningRegionTextViewRole = nameof(OutliningRegionTextViewRole);
 }

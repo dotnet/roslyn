@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace BuildActionTelemetryTable
 {
-    public class Program
+    public static class Program
     {
         private static readonly string s_executingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
 

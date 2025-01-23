@@ -325,7 +325,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// in the Visual Studio client.
         /// </summary>
         /// <param name="glyph"></param>
-        /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public static (Guid guid, int id) GetVsImageData(this Glyph glyph)
         {

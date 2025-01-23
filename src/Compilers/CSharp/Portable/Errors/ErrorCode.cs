@@ -2350,8 +2350,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_AccessorDoesNotUseBackingField = 9266,
 
         ERR_IteratorRefLikeElementType = 9267,
-        ERR_CollectionExpressionKeyValuePairNotSupported = 9268,
-        ERR_WithElementMustBeFirst = 9269,
+
+        WRN_ExperimentalWithMessage = 9268,
+
+        WRN_UnscopedRefAttributeOldRules = 9269,
+        WRN_InterceptsLocationAttributeUnsupportedSignature = 9270,
+
+        ERR_EmbeddedAttributeMustFollowPattern = 9271,
+        ERR_ImplicitlyTypedParamsParameter = 9272,
+        ERR_VariableDeclarationNamedField = 9273,
+        ERR_CollectionExpressionKeyValuePairNotSupported = 9274,
+        ERR_WithElementMustBeFirst = 9275,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

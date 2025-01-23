@@ -14344,6 +14344,38 @@ class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "y").WithArguments("System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", ".ctor").WithLocation(7, 51));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
+        public void SynthesizedDelegateTypes_UnscopedRefAttribute_MissingConstructor_03()
+        {
+            string sourceA = """
+                using System.Diagnostics.CodeAnalysis;
+                public class A
+                {
+                    public static ref int F(int x, [UnscopedRef] ref int y) => ref y;
+                }
+                """;
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net70);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        int i = 0;
+                        var d = A.F;
+                        d(0, ref i);
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: [refA], parseOptions: TestOptions.Regular10);
+            comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor);
+            comp.VerifyEmitDiagnostics(
+                // (6,17): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.UnscopedRefAttribute..ctor'
+                //         var d = A.F;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "A.F").WithArguments("System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", ".ctor").WithLocation(6, 17));
+        }
+
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedInvokeMethod)
         {
             var expectedBaseType = ((CSharpCompilation)model.Compilation).GetSpecialType(SpecialType.System_MulticastDelegate);

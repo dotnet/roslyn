@@ -1835,7 +1835,7 @@ outerDefault:
             where TMemberResolution : IMemberResolutionResultWithPriority<TMember>
             where TMember : Symbol
         {
-            if (!Compilation.IsFeatureEnabled(MessageID.IDS_OverloadResolutionPriority))
+            if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureOverloadResolutionPriority))
             {
                 return;
             }
@@ -1860,12 +1860,17 @@ outerDefault:
 
             bool removedMembers = false;
             var resultsByContainingType = PooledDictionary<NamedTypeSymbol, OneOrMany<TMemberResolution>>.GetInstance();
+            var inapplicableMembers = ArrayBuilder<TMemberResolution>.GetInstance();
 
             foreach (var result in results)
             {
-                if (result.MemberWithPriority is null)
+                Debug.Assert(result.MemberWithPriority is not null);
+
+                // We don't filter out inapplicable members here, as we want to keep them in the list for diagnostics
+                // However, we don't want to take them into account for the priority filtering
+                if (!result.IsApplicable)
                 {
-                    // Can happen for things like built-in binary operators
+                    inapplicableMembers.Add(result);
                     continue;
                 }
 
@@ -1900,6 +1905,7 @@ outerDefault:
             {
                 // No changes, so we can just return
                 resultsByContainingType.Free();
+                inapplicableMembers.Free();
                 return;
             }
 
@@ -1908,7 +1914,9 @@ outerDefault:
             {
                 results.AddRange(resultsForType);
             }
+            results.AddRange(inapplicableMembers);
             resultsByContainingType.Free();
+            inapplicableMembers.Free();
         }
 
         private void RemoveWorseMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -3433,6 +3441,27 @@ outerDefault:
                 return BetterResult.Neither;
             }
 
+            // SPEC: T₁ is System.ReadOnlySpan<E₁>, T₂ is System.Span<E₂>, and an identity conversion from E₁ to E₂ exists
+            if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan))
+            {
+                if (isBetterSpanConversionTarget(type1, type2))
+                {
+                    return BetterResult.Left;
+                }
+                else if (isBetterSpanConversionTarget(type2, type1))
+                {
+                    return BetterResult.Right;
+                }
+                // The next case (a type is a better target if an implicit conversion from it to the other type exists)
+                // does not apply to span conversions except the covariant ReadOnlySpan->ReadOnlySpan conversion.
+                else if ((type1.IsSpan() || type1.IsReadOnlySpan()) &&
+                    (type2.IsSpan() || type2.IsReadOnlySpan()) &&
+                    !(type1.IsReadOnlySpan() && type2.IsReadOnlySpan()))
+                {
+                    return BetterResult.Neither;
+                }
+            }
+
             // Given two different types T1 and T2, T1 is a better conversion target than T2 if no implicit conversion from T2 to T1 exists,
             // and at least one of the following holds:
             bool type1ToType2 = Conversions.ClassifyImplicitConversionFromType(type1, type2, ref useSiteInfo).IsImplicit;
@@ -3571,6 +3600,22 @@ outerDefault:
             }
 
             return BetterResult.Neither;
+
+            static bool isBetterSpanConversionTarget(TypeSymbol type1, TypeSymbol type2)
+            {
+                // SPEC: T₁ is System.ReadOnlySpan<E₁>, T₂ is System.Span<E₂>, and an identity conversion from E₁ to E₂ exists
+                if (type1.IsReadOnlySpan() && type2.IsSpan())
+                {
+                    var type1Element = ((NamedTypeSymbol)type1).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                    var type2Element = ((NamedTypeSymbol)type2).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                    if (Conversions.HasIdentityConversion(type1Element, type2Element))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private bool IsMethodGroupConversionIncompatibleWithDelegate(BoundMethodGroup node, NamedTypeSymbol delegateType, Conversion conv)

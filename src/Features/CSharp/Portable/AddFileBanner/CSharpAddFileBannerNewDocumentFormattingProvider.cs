@@ -15,14 +15,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.AddFileBanner;
 
 [ExportNewDocumentFormattingProvider(LanguageNames.CSharp), Shared]
-internal class CSharpAddFileBannerNewDocumentFormattingProvider : AbstractAddFileBannerNewDocumentFormattingProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpAddFileBannerNewDocumentFormattingProvider() : AbstractAddFileBannerNewDocumentFormattingProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpAddFileBannerNewDocumentFormattingProvider()
-    {
-    }
-
     protected override SyntaxGenerator SyntaxGenerator => CSharpSyntaxGenerator.Instance;
     protected override SyntaxGeneratorInternal SyntaxGeneratorInternal => CSharpSyntaxGeneratorInternal.Instance;
     protected override AbstractFileHeaderHelper FileHeaderHelper => CSharpFileHeaderHelper.Instance;

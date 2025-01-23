@@ -797,11 +797,6 @@
         <target state="translated">Der Umbenennungsvorgang wurde nicht ordnungsgemäß abgeschlossen. Möglicherweise wurden manche Dateien nicht aktualisiert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">"{0}" in "{1}" umbenennen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Preview_Warning">
         <source>Preview Warning</source>
         <target state="translated">Vorschau der Warnung anzeigen</target>

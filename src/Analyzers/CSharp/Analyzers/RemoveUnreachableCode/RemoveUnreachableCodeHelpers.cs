@@ -18,11 +18,11 @@ internal static class RemoveUnreachableCodeHelpers
         switch (firstUnreachableStatement.Parent)
         {
             case BlockSyntax block:
-                siblingStatements = ImmutableArray.CreateRange(block.Statements);
+                siblingStatements = [.. block.Statements];
                 break;
 
             case SwitchSectionSyntax switchSection:
-                siblingStatements = ImmutableArray.CreateRange(switchSection.Statements);
+                siblingStatements = [.. switchSection.Statements];
                 break;
 
             case GlobalStatementSyntax globalStatement:

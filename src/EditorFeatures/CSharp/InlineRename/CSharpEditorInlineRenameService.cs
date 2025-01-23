@@ -53,9 +53,9 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
             if (symbolService is not null)
             {
                 var textSpan = inlineRenameInfo.TriggerSpan;
+                var semanticModel = await renameDefinition.Document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
-                    renameDefinition.Document, textSpan.Start, cancellationToken)
-                    .ConfigureAwait(true);
+                    renameDefinition.Document, semanticModel, textSpan.Start, cancellationToken).ConfigureAwait(true);
                 var docComment = symbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
                 if (!string.IsNullOrWhiteSpace(docComment))
                 {

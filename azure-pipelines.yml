@@ -53,6 +53,12 @@ variables:
     ${{ else }}:
       value: windows.vs2022preview.amd64
 
+  - name: Vs2022RegularQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: windows.vs2022.amd64.open
+    ${{ else }}:
+      value: windows.vs2022.amd64
+
   - name: UbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
       value: Build.Ubuntu.2004.Amd64.Open
@@ -107,6 +113,11 @@ parameters:
     default:
       name: $(PoolName)
       demands: ImageOverride -equals $(Vs2022PreviewQueueName)
+  - name: vs2022RegularPool
+    type: object
+    default:
+      name: $(PoolName)
+      demands: ImageOverride -equals $(Vs2022RegularQueueName)
 
 stages:
 - stage: Windows_Debug_Build
@@ -271,7 +282,7 @@ stages:
         jobName: Test_Windows_CoreClr_Debug_Single_Machine
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
-        poolParameters: ${{ parameters.vs2022PreviewPool }}
+        poolParameters: ${{ parameters.vs2022RegularPool }}
         testArguments: -testCoreClr
 
   - template: eng/pipelines/test-windows-job.yml

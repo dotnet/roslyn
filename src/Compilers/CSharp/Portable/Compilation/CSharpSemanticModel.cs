@@ -5229,7 +5229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lineNumberOneIndexed = lineSpan.Line + 1;
             var characterNumberOneIndexed = lineSpan.Character + 1;
 
-            return new InterceptableLocation1(checksum, path, nameSyntax.Position, lineNumberOneIndexed, characterNumberOneIndexed);
+            return new InterceptableLocation1(checksum, path, Compilation.Options.SourceReferenceResolver, nameSyntax.Position, lineNumberOneIndexed, characterNumberOneIndexed);
         }
 #nullable disable
 

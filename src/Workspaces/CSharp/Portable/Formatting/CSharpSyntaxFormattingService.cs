@@ -116,7 +116,7 @@ internal sealed class CSharpSyntaxFormattingService(LanguageServices languageSer
             // if we're only doing smart indent, then ignore all edits to this token that occur before the span of the
             // token. They're irrelevant and may screw up other code the user doesn't want touched.
             var tokenEdits = FormatToken(document, indentationOptions, token, formattingRules, cancellationToken);
-            return tokenEdits.Where(t => t.Span.Start >= token.FullSpan.Start).ToImmutableArray();
+            return [.. tokenEdits.Where(t => t.Span.Start >= token.FullSpan.Start)];
         }
 
         // if formatting range fails, do format token one at least

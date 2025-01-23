@@ -324,7 +324,7 @@ public enum BinaryOperatorSpacingOptions
 
 internal static class CSharpFormattingOptionGroups
 {
-    public static readonly OptionGroup Indentation = new("csharp_indentation", CSharpWorkspaceResources.Indentation_preferences, priority: 3, parent: FormattingOptionGroups.FormattingOptionGroup);
-    public static readonly OptionGroup Spacing = new("csharp_spacing", CSharpWorkspaceResources.Space_preferences, priority: 4, parent: FormattingOptionGroups.FormattingOptionGroup);
-    public static readonly OptionGroup Wrapping = new("csharp_wrapping", CSharpWorkspaceResources.Wrapping_preferences, priority: 5, parent: FormattingOptionGroups.FormattingOptionGroup);
+    public static readonly OptionGroup Indentation = new("csharp_indentation", CSharpCompilerExtensionsResources.Indentation_preferences, priority: 3, parent: FormattingOptionGroups.FormattingOptionGroup);
+    public static readonly OptionGroup Spacing = new("csharp_spacing", CSharpCompilerExtensionsResources.Space_preferences, priority: 4, parent: FormattingOptionGroups.FormattingOptionGroup);
+    public static readonly OptionGroup Wrapping = new("csharp_wrapping", CSharpCompilerExtensionsResources.Wrapping_preferences, priority: 5, parent: FormattingOptionGroups.FormattingOptionGroup);
 }

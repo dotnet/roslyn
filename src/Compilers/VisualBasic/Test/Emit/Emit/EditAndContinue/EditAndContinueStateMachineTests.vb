@@ -13,6 +13,7 @@ Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
+    <CompilerTrait(CompilerFeature.Iterator, CompilerFeature.Async, CompilerFeature.AsyncStreams)>
     Public Class EditAndContinueStateMachineTests
         Inherits EditAndContinueTestBase
 
@@ -253,9 +254,12 @@ End Class
   IL_0018:  ret
 }
 {
-  // Code size        1 (0x1)
+  // Code size        9 (0x9)
   .maxstack  8
-  IL_0000:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -2
+  IL_0003:  stfld      0x04000005
+  IL_0008:  ret
 }
 {
   // Code size       63 (0x3f)
@@ -4993,7 +4997,7 @@ End Try</N:3>
 
                 v0.VerifyIL("C.VB$StateMachine_9_F.Dispose", "
 {
-  // Code size       38 (0x26)
+  // Code size       46 (0x2e)
   .maxstack  2
   .locals init (Integer V_0)
   IL_0000:  ldarg.0
@@ -5013,11 +5017,14 @@ End Try</N:3>
   IL_001e:  ldarg.0
   IL_001f:  call       ""Function C.VB$StateMachine_9_F.MoveNext() As Boolean""
   IL_0024:  pop
-  IL_0025:  ret
+  IL_0025:  ldarg.0
+  IL_0026:  ldc.i4.s   -2
+  IL_0028:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+  IL_002d:  ret
 }")
                 diff1.VerifyIL("C.VB$StateMachine_9_F.Dispose", "
 {
-  // Code size       78 (0x4e)
+  // Code size       86 (0x56)
   .maxstack  2
   .locals init (Integer V_0)
   IL_0000:  ldarg.0
@@ -5050,7 +5057,10 @@ End Try</N:3>
   IL_0046:  ldarg.0
   IL_0047:  call       ""Function C.VB$StateMachine_9_F.MoveNext() As Boolean""
   IL_004c:  pop
-  IL_004d:  ret
+  IL_004d:  ldarg.0
+  IL_004e:  ldc.i4.s   -2
+  IL_0050:  stfld      ""C.VB$StateMachine_9_F.$State As Integer""
+  IL_0055:  ret
 }")
                 v0.VerifyIL("C.VB$StateMachine_9_F.MoveNext", "
   {
@@ -5496,8 +5506,8 @@ End Using
                     "C: {VB$StateMachine_6_F}")
 
                 v0.VerifyIL("C.VB$StateMachine_6_F.Dispose", "
-  {
-  // Code size       38 (0x26)
+{
+  // Code size       46 (0x2e)
   .maxstack  2
   .locals init (Integer V_0)
   IL_0000:  ldarg.0
@@ -5507,24 +5517,24 @@ End Using
   IL_0008:  ldc.i4.1
   IL_0009:  beq.s      IL_000d
   IL_000b:  br.s       IL_0017
-
   IL_000d:  ldarg.0
   IL_000e:  ldc.i4.s   -3
   IL_0010:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
   IL_0015:  br.s       IL_001e
-
   IL_0017:  ldarg.0
   IL_0018:  ldc.i4.m1
   IL_0019:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
-
   IL_001e:  ldarg.0
   IL_001f:  call       ""Function C.VB$StateMachine_6_F.MoveNext() As Boolean""
   IL_0024:  pop
-  IL_0025:  ret
+  IL_0025:  ldarg.0
+  IL_0026:  ldc.i4.s   -2
+  IL_0028:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
+  IL_002d:  ret
 }")
                 diff1.VerifyIL("C.VB$StateMachine_6_F.Dispose", "
 {
-  // Code size       40 (0x28)
+  // Code size       48 (0x30)
   .maxstack  2
   .locals init (Integer V_0)
   IL_0000:  ldarg.0
@@ -5536,20 +5546,20 @@ End Using
   IL_000a:  ldc.i4.1
   IL_000b:  ble.un.s   IL_000f
   IL_000d:  br.s       IL_0019
-
   IL_000f:  ldarg.0
   IL_0010:  ldc.i4.s   -3
   IL_0012:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
   IL_0017:  br.s       IL_0020
-
   IL_0019:  ldarg.0
   IL_001a:  ldc.i4.m1
   IL_001b:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
-
   IL_0020:  ldarg.0
   IL_0021:  call       ""Function C.VB$StateMachine_6_F.MoveNext() As Boolean""
   IL_0026:  pop
-  IL_0027:  ret
+  IL_0027:  ldarg.0
+  IL_0028:  ldc.i4.s   -2
+  IL_002a:  stfld      ""C.VB$StateMachine_6_F.$State As Integer""
+  IL_002f:  ret
 }")
                 v0.VerifyIL("C.VB$StateMachine_6_F.MoveNext", "
 {

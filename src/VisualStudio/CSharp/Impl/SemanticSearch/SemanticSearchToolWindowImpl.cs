@@ -222,6 +222,7 @@ internal sealed class SemanticSearchToolWindowImpl(
         context.XmlnsDictionary.Add("x", "http://schemas.microsoft.com/winfx/2006/xaml");
         context.XmlnsDictionary.Add("vsui", "clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0");
 
+        // CodeQL [SM02229] The string being passed to the deserialize method is practically constant and all the types listed are controlled by the VS platform.
         return (ControlTemplate)XamlReader.Parse($$$"""
             <ControlTemplate x:Key="ButtonTemplate" TargetType="{x:Type ButtonBase}">
                 <Border x:Name="border" Background="Transparent" BorderThickness="0,0,0,0" SnapsToDevicePixels="true">

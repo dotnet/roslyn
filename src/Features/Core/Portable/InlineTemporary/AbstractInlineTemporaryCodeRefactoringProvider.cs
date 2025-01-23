@@ -40,11 +40,10 @@ internal abstract class AbstractInlineTemporaryCodeRefactoringProvider<
             if (referencedSymbol != null)
             {
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                return referencedSymbol.Locations
+                return [.. referencedSymbol.Locations
                     .Where(loc => !semanticModel.SyntaxTree.OverlapsHiddenPosition(loc.Location.SourceSpan, cancellationToken))
                     .Select(loc => root.FindToken(loc.Location.SourceSpan.Start).Parent as TIdentifierNameSyntax)
-                    .WhereNotNull()
-                    .ToImmutableArray();
+                    .WhereNotNull()];
             }
         }
 

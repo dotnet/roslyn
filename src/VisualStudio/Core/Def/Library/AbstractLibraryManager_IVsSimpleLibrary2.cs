@@ -5,6 +5,8 @@
 #nullable disable
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -14,7 +16,7 @@ internal partial class AbstractLibraryManager : IVsSimpleLibrary2
 {
     public abstract uint GetLibraryFlags();
     protected abstract uint GetSupportedCategoryFields(uint category);
-    protected abstract IVsSimpleObjectList2 GetList(uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch);
+    protected abstract Task<IVsSimpleObjectList2> GetListAsync(uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, CancellationToken cancellationToken);
     protected abstract uint GetUpdateCounter();
 
     protected virtual int CreateNavInfo(SYMBOL_DESCRIPTION_NODE[] rgSymbolNodes, uint ulcNodes, out IVsNavInfo ppNavInfo)
@@ -50,7 +52,8 @@ internal partial class AbstractLibraryManager : IVsSimpleLibrary2
 
     int IVsSimpleLibrary2.GetList2(uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch, out IVsSimpleObjectList2 ppIVsSimpleObjectList2)
     {
-        ppIVsSimpleObjectList2 = GetList(listType, flags, pobSrch);
+        ppIVsSimpleObjectList2 = this.ThreadingContext.JoinableTaskFactory.Run(
+            () => GetListAsync(listType, flags, pobSrch, CancellationToken.None));
 
         return ppIVsSimpleObjectList2 != null
             ? VSConstants.S_OK

@@ -241,7 +241,7 @@ internal static partial class ISymbolExtensions
             try
             {
                 var element = XElement.Parse(xmlText, LoadOptions.PreserveWhitespace);
-                element.ReplaceNodes(RewriteMany(symbol, visitedSymbols, compilation, element.Nodes().ToArray(), cancellationToken));
+                element.ReplaceNodes(RewriteMany(symbol, visitedSymbols, compilation, [.. element.Nodes()], cancellationToken));
                 xmlText = element.ToString(SaveOptions.DisableFormatting);
             }
             catch (XmlException)
@@ -324,7 +324,7 @@ internal static partial class ISymbolExtensions
 
         if (oldNodes != null)
         {
-            var rewritten = RewriteMany(symbol, visitedSymbols, compilation, oldNodes.ToArray(), cancellationToken);
+            var rewritten = RewriteMany(symbol, visitedSymbols, compilation, [.. oldNodes], cancellationToken);
             container.ReplaceNodes(rewritten);
         }
 
@@ -656,7 +656,7 @@ internal static partial class ISymbolExtensions
         return symbols.WhereAsArray((s, arg) =>
             // Check if symbol is namespace (which is always visible) first to avoid realizing all locations
             // of each namespace symbol, which might end up allocating in LOH
-            (s.IsNamespace() || s.Locations.Any(static loc => loc.IsInSource) || !s.HasUnsupportedMetadata) &&
+            (s is INamespaceSymbol || s.Locations.Any(static loc => loc.IsInSource) || !s.HasUnsupportedMetadata) &&
             !s.IsDestructor() &&
             s.IsEditorBrowsable(
                 arg.hideAdvancedMembers,

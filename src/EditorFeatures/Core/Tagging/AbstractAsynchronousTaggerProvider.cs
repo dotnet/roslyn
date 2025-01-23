@@ -120,8 +120,8 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     /// Subclasses should always override this.  It is only virtual for binary compat.
     /// </para>
     /// </summary>
-    protected virtual bool TagEquals(TTag tag1, TTag tag2)
-        => EqualityComparer<TTag>.Default.Equals(tag1, tag2);
+    protected virtual bool TagEquals(TTag latestTag, TTag previousTag)
+        => EqualityComparer<TTag>.Default.Equals(latestTag, previousTag);
 
     // Prevent accidental usage of object.Equals instead of TagEquals when comparing tags.
     [Obsolete("Did you mean to call TagEquals(TTag tag1, TTag tag2) instead", error: true)]

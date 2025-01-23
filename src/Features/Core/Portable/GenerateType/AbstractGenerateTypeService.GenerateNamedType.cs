@@ -324,7 +324,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                 ? _state.TypeToGenerateInOpt.GetAllTypeParameters()
                 : [];
 
-            return availableOuterTypeParameters.Concat(availableInnerTypeParameters).ToList();
+            return [.. availableOuterTypeParameters, .. availableInnerTypeParameters];
         }
     }
 

@@ -501,4 +501,102 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75950")]
+    public async Task RemoveTrailingComma()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = [||]new { a = 1, b = 2, };
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = (a: 1, b: 2);
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50470")]
+    public async Task TestMultiLine1()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = var items = new[]
+                    {
+                        [||]new
+                        {
+                            x = 1,
+                            y = 2,
+                        },
+                    };
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = var items = new[]
+                    {
+                        (
+                            x: 1,
+                            y: 2
+                        ),
+                    };
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50470")]
+    public async Task TestMultiLine2()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = var items = new[]
+                    {
+                        [||]new
+                        {
+                            x = 1,
+                            y = 2
+                        },
+                    };
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = var items = new[]
+                    {
+                        (
+                            x: 1,
+                            y: 2
+                        ),
+                    };
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 }

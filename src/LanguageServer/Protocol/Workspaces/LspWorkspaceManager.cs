@@ -329,10 +329,13 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     {
         // Ensure that the loose files workspace is searched last.
         var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
-        registeredWorkspaces = registeredWorkspaces
-            .Where(workspace => workspace.Kind != WorkspaceKind.MiscellaneousFiles)
-            .Concat(registeredWorkspaces.Where(workspace => workspace.Kind == WorkspaceKind.MiscellaneousFiles))
-            .ToImmutableArray();
+        registeredWorkspaces =
+        [
+            .. registeredWorkspaces
+                        .Where(workspace => workspace.Kind != WorkspaceKind.MiscellaneousFiles)
+,
+            .. registeredWorkspaces.Where(workspace => workspace.Kind == WorkspaceKind.MiscellaneousFiles),
+        ];
 
         var solutions = new FixedSizeArrayBuilder<(Workspace, Solution, bool)>(registeredWorkspaces.Length);
         foreach (var workspace in registeredWorkspaces)
@@ -391,7 +394,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             // Step 3: Check to see if the LSP text matches the workspace text.
 
-            var documentsInWorkspace = GetDocumentsForUris(_trackedDocuments.Keys.ToImmutableArray(), workspaceCurrentSolution);
+            var documentsInWorkspace = GetDocumentsForUris([.. _trackedDocuments.Keys], workspaceCurrentSolution);
             var sourceGeneratedDocuments =
                 _trackedDocuments.Keys.Where(static uri => uri.Scheme == SourceGeneratedDocumentUri.Scheme)
                     .Select(uri => (identity: SourceGeneratedDocumentUri.DeserializeIdentity(workspaceCurrentSolution, uri), _trackedDocuments[uri].Text))

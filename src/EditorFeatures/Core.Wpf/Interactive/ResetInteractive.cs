@@ -41,36 +41,35 @@ namespace Microsoft.CodeAnalysis.Interactive
             _createImport = createImport;
         }
 
-        internal Task ExecuteAsync(IInteractiveWindow interactiveWindow, string title)
+        internal async Task ExecuteAsync(IInteractiveWindow interactiveWindow, string title)
         {
             if (GetProjectProperties(out var references, out var referenceSearchPaths, out var sourceSearchPaths, out var projectNamespaces, out var projectDirectory, out var platform))
             {
-                // Now, we're going to do a bunch of async operations.  So create a wait
-                // indicator so the user knows something is happening, and also so they cancel.
-                var uiThreadOperationExecutor = GetUIThreadOperationExecutor();
-                var context = uiThreadOperationExecutor.BeginExecute(title, EditorFeaturesWpfResources.Building_Project, allowCancellation: true, showProgress: false);
+                try
+                {
+                    // Now, we're going to do a bunch of async operations.  So create a wait
+                    // indicator so the user knows something is happening, and also so they cancel.
+                    var uiThreadOperationExecutor = GetUIThreadOperationExecutor();
+                    using var context = uiThreadOperationExecutor.BeginExecute(title, EditorFeaturesWpfResources.Building_Project, allowCancellation: true, showProgress: false);
 
-                var resetInteractiveTask = ResetInteractiveAsync(
-                    interactiveWindow,
-                    references,
-                    referenceSearchPaths,
-                    sourceSearchPaths,
-                    projectNamespaces,
-                    projectDirectory,
-                    platform,
-                    context);
-
-                // Once we're done resetting, dismiss the wait indicator and focus the REPL window.
-                return resetInteractiveTask.SafeContinueWith(
-                    _ =>
-                    {
-                        context.Dispose();
-                        ExecutionCompleted?.Invoke(this, new EventArgs());
-                    },
-                    TaskScheduler.FromCurrentSynchronizationContext());
+                    // We want to come back onto the calling context to dismiss the wait indicator and to notify about
+                    // execution completion.
+                    await ResetInteractiveAsync(
+                        interactiveWindow,
+                        references,
+                        referenceSearchPaths,
+                        sourceSearchPaths,
+                        projectNamespaces,
+                        projectDirectory,
+                        platform,
+                        context).ConfigureAwait(true);
+                }
+                finally
+                {
+                    // Once we're done resetting focus the REPL window.
+                    ExecutionCompleted?.Invoke(this, new EventArgs());
+                }
             }
-
-            return Task.CompletedTask;
         }
 
         private async Task ResetInteractiveAsync(

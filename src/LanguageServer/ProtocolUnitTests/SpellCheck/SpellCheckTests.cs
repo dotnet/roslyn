@@ -99,7 +99,7 @@ class {|Identifier:A{{v}}|}
                 AssertJsonEquals(results[i], new VSInternalSpellCheckableRangeReport
                 {
                     ResultId = "DocumentSpellCheckHandler:1",
-                    Ranges = allRanges.Skip(3 * i * 1000).Take(3 * 1000).ToArray(),
+                    Ranges = [.. allRanges.Skip(3 * i * 1000).Take(3 * 1000)],
                 });
             }
         }
@@ -679,7 +679,7 @@ class {|Identifier:A|}
 
         private static ImmutableArray<(string resultId, Uri uri)> CreateParamsFromPreviousReports(VSInternalWorkspaceSpellCheckableReport[] results)
         {
-            return results.Select(r => (r.ResultId!, r.TextDocument.Uri)).ToImmutableArray();
+            return [.. results.Select(r => (r.ResultId!, r.TextDocument.Uri))];
         }
     }
 }

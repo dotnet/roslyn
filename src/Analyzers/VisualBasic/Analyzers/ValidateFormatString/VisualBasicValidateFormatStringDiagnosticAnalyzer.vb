@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
 
             For Each argument In arguments
                 Dim simpleArgumentSyntax = TryCast(argument, SimpleArgumentSyntax)
-                If Not simpleArgumentSyntax Is Nothing AndAlso simpleArgumentSyntax.NameColonEquals?.Name.Identifier.ValueText.Equals(searchArgumentName) Then
+                If simpleArgumentSyntax IsNot Nothing AndAlso simpleArgumentSyntax.NameColonEquals?.Name.Identifier.ValueText.Equals(searchArgumentName) Then
                     Return argument
                 End If
             Next
