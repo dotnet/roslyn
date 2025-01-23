@@ -202,14 +202,14 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                             nCmdexecopt: 0,
                             pvaIn: null);
 
+                        _asyncQuickInfoSession.DismissAsync();
+
                         // Telemetry to track when users reach the quota of the Copilot Free plan.
                         var telemetryEvent = new OperationEvent(
                             "vs/copilot/showcopilotfreestatus",
                             TelemetryResult.Success);
                         telemetryEvent.Properties["vs.copilot.source"] = "CSharpOnTheFlyDocs";
                         TelemetryService.DefaultSession.PostEvent(telemetryEvent);
-
-                        _asyncQuickInfoSession.DismissAsync();
                     };
 
                     ShowQuotaExceededResult();
@@ -222,8 +222,8 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                         m["ElapsedTime"] = copilotRequestTime;
                     }, LogLevel.Information));
                 }
-                CurrentState = OnTheFlyDocsState.Finished;
 
+                CurrentState = OnTheFlyDocsState.Finished;
             }
             else
             {
