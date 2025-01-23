@@ -917,6 +917,73 @@ class C
             var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
             var newTree = oldTree.WithReplaceFirst("extension", "class D");
             oldTree.GetDiagnostics().Verify();
+            newTree.GetDiagnostics().Verify(
+                // (4,19): error CS1001: Identifier expected
+                //     class D(object) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 19));
+
+            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            TestDiffsInOrder(diffs,
+                            SyntaxKind.CompilationUnit,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.ClassKeyword,
+                            SyntaxKind.IdentifierToken,
+                            SyntaxKind.ParameterList,
+                            SyntaxKind.Parameter,
+                            SyntaxKind.IdentifierToken);
+
+            UsingTree(newTree,
+                // (4,19): error CS1001: Identifier expected
+                //     class D(object) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 19));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "D");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.ObjectKeyword);
+                                }
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void UpdateFromExtensionToClass_WithName()
+        {
+            var text = @"
+class C
+{
+    extension E(object x) { }
+}
+";
+            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var newTree = oldTree.WithReplaceFirst("extension", "class");
+            oldTree.GetDiagnostics().Verify();
             newTree.GetDiagnostics().Verify();
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
@@ -939,7 +1006,7 @@ class C
                     N(SyntaxKind.ClassDeclaration);
                     {
                         N(SyntaxKind.ClassKeyword);
-                        N(SyntaxKind.IdentifierToken, "D");
+                        N(SyntaxKind.IdentifierToken, "E");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -949,6 +1016,7 @@ class C
                                 {
                                     N(SyntaxKind.ObjectKeyword);
                                 }
+                                N(SyntaxKind.IdentifierToken, "x");
                             }
                             N(SyntaxKind.CloseParenToken);
                         }
@@ -1065,6 +1133,63 @@ class C
                                 {
                                     N(SyntaxKind.ObjectKeyword);
                                 }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void UpdateFromClassToExtension_WithName()
+        {
+            var text = @"
+class C
+{
+    struct D(object x) { }
+}
+";
+            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var newTree = oldTree.WithReplaceFirst("struct", "extension");
+            oldTree.GetDiagnostics().Verify();
+            newTree.GetDiagnostics().Verify();
+
+            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            TestDiffsInOrder(diffs,
+                            SyntaxKind.CompilationUnit,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.ExtensionDeclaration,
+                            SyntaxKind.ExtensionKeyword);
+
+            UsingTree(newTree);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExtensionDeclaration);
+                    {
+                        N(SyntaxKind.ExtensionKeyword);
+                        N(SyntaxKind.IdentifierToken, "D");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.ObjectKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
                             }
                             N(SyntaxKind.CloseParenToken);
                         }
