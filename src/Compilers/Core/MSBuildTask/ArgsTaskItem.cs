@@ -5,9 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Build.Framework;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -43,24 +41,40 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public string ItemSpec { get; set; }
 
         // Implementation notes that we should include the built-in metadata names as well as our custom ones.
-        public ICollection MetadataNames => _metadata.Keys.Concat(WellKnownItemSpecMetadataNames).ToImmutableArray();
+        public ICollection MetadataNames
+        {
+            get
+            {
+                var clone = new List<string>(_metadata.Keys);
+                clone.AddRange(WellKnownItemSpecMetadataNames);
+                return clone;
+            }
+        }
 
         // Implementation notes that we should include the built-in metadata names as well as our custom ones.
         public int MetadataCount => _metadata.Count + WellKnownItemSpecMetadataNames.Length;
 
         public IDictionary CloneCustomMetadata()
         {
-            return _metadata.ToImmutableDictionary();
+            return new Dictionary<string, string>(_metadata, StringComparer.OrdinalIgnoreCase);
         }
 
         public void CopyMetadataTo(ITaskItem destinationItem)
         {
             // Implementation notes that we should not overwrite existing metadata on the destination.
-            var destinationMetadataNames = destinationItem.MetadataNames.OfType<string>();
-            var metadataNamesToCopy = _metadata.Keys.Except(destinationMetadataNames, StringComparer.OrdinalIgnoreCase).ToArray();
-
-            foreach (var metadataName in metadataNamesToCopy)
+            var destinationMetadataNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var name in destinationItem.MetadataNames)
             {
+                destinationMetadataNames.Add((string)name);
+            }
+
+            foreach (var metadataName in _metadata.Keys)
+            {
+                if (destinationMetadataNames.Contains(metadataName))
+                {
+                    continue;
+                }
+
                 var metadataValue = _metadata[metadataName];
                 destinationItem.SetMetadata(metadataName, metadataValue);
             }
