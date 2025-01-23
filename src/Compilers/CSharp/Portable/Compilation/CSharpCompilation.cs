@@ -3506,11 +3506,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (moduleBeingBuilt.OutputKind.IsApplication())
                 {
-                    var entryPoint = GetEntryPointAndDiagnostics(cancellationToken);
-                    diagnostics.AddRange(entryPoint.Diagnostics.Diagnostics);
-                    if (entryPoint.MethodSymbol != null)
+                    var entryPointDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+                    var entryPoint = MethodCompiler.GetEntryPoint(
+                        this,
+                        moduleBeingBuilt,
+                        hasDeclarationErrors: false,
+                        emitMethodBodies: false,
+                        entryPointDiagnostics,
+                        cancellationToken);
+                    diagnostics.AddRange(entryPointDiagnostics.DiagnosticBag!);
+                    if (entryPoint != null)
                     {
-                        moduleBeingBuilt.SetPEEntryPoint(entryPoint.MethodSymbol, diagnostics);
+                        moduleBeingBuilt.SetPEEntryPoint(entryPoint, diagnostics);
                     }
                     else
                     {

@@ -3525,6 +3525,30 @@ public class Child : Parent, IParent
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe_AsyncMain()
+        {
+            CompileAndVerify("""
+                using System.Threading.Tasks;
+                static class Program
+                {
+                    static async Task Main()
+                    {
+                        await Task.Yield();
+                        System.Console.WriteLine("a");
+                    }
+                }
+                """,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true),
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+                    Assert.NotNull(module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>"));
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
         public void EmitMetadataOnly_Exe_NoMain()
         {
             var emitResult = CreateCompilation("""
@@ -3555,6 +3579,31 @@ public class Child : Parent, IParent
                 {
                     Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
                     Assert.NotNull(module.GlobalNamespace.GetMember<MethodSymbol>("Program.Main"));
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe_PrivateMain_ExcludePrivateMembers_AsyncMain()
+        {
+            CompileAndVerify("""
+                using System.Threading.Tasks;
+                static class Program
+                {
+                    private static async Task Main()
+                    {
+                        await Task.Yield();
+                    }
+                }
+                """,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: EmitOptions.Default
+                    .WithEmitMetadataOnly(true)
+                    .WithIncludePrivateMembers(false),
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+                    Assert.NotNull(module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>"));
                 })
                 .VerifyDiagnostics();
         }
@@ -3593,6 +3642,47 @@ public class Child : Parent, IParent
                 var comp = CreateCompilation("", references: [reference],
                     options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
                 Assert.NotNull(comp.GetMember<MethodSymbol>("Program.Main"));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void ExcludePrivateMembers_PrivateMain_AsyncMain()
+        {
+            using var peStream = new MemoryStream();
+            using var metadataStream = new MemoryStream();
+            var comp = CreateCompilation("""
+                using System.Threading.Tasks;
+                static class Program
+                {
+                    private static async Task Main()
+                    {
+                        await Task.Yield();
+                    }
+                }
+                """,
+                options: TestOptions.ReleaseExe);
+            var emitResult = comp.Emit(
+                peStream: peStream,
+                metadataPEStream: metadataStream,
+                options: EmitOptions.Default.WithIncludePrivateMembers(false));
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify();
+
+            verify(peStream);
+            verify(metadataStream);
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+
+            static void verify(Stream stream)
+            {
+                stream.Position = 0;
+                Assert.NotEqual(0, new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+
+                stream.Position = 0;
+                var reference = AssemblyMetadata.CreateFromStream(stream).GetReference();
+                var comp = CreateCompilation("", references: [reference],
+                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+                Assert.NotNull(comp.GetMember<MethodSymbol>("Program.<Main>"));
             }
         }
     }
