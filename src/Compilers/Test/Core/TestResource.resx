@@ -877,6 +877,14 @@ class RawStringLiterals
                                     """;
 }
 
+static class Extensions
+{
+    extension(object o)
+    {
+        void M() { }
+    }
+}
+
 #line 6
 #line 2 "test.cs"
 #line default
