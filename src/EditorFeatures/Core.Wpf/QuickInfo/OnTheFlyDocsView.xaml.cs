@@ -179,7 +179,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 
         try
         {
-            var (responseString, responseStatus) = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsInfo.SymbolSignature, _onTheFlyDocsInfo.DeclarationCode, _onTheFlyDocsInfo.Language, cancellationToken).ConfigureAwait(false);
+            var (responseString, isQuotaExceeded) = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsInfo.SymbolSignature, _onTheFlyDocsInfo.DeclarationCode, _onTheFlyDocsInfo.Language, cancellationToken).ConfigureAwait(false);
             var copilotRequestTime = stopwatch.Elapsed;
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -189,7 +189,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
             if (responseString is null || responseString.Length == 0)
             {
                 // If the responseStatus is 8, then that means the quota has been exceeded.
-                if (responseStatus == 8)
+                if (isQuotaExceeded)
                 {
                     this.PlanUpgradeRequested += (_, _) =>
                     {
