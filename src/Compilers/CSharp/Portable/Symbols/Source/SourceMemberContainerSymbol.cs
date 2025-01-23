@@ -3755,6 +3755,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            foreach (var pair in membersByName)
+            {
+                if (pair.Value is ArrayBuilder<Symbol> arrayBuilder)
+                {
+                    foreach (var symbol in arrayBuilder)
+                    {
+                        fixupNotMergedPartialProperty(symbol);
+                    }
+                }
+                else
+                {
+                    fixupNotMergedPartialProperty((Symbol)pair.Value);
+                }
+            }
+
+            static void fixupNotMergedPartialProperty(Symbol symbol)
+            {
+                Debug.Assert(symbol.IsPartialMember());
+                if (symbol is SourcePropertySymbol { OtherPartOfPartial: null } property)
+                {
+                    property.SetMergedBackingField(property.DeclaredBackingField);
+                }
+            }
+
             void mergePartialMethods(ArrayBuilder<Symbol> nonTypeMembers, SourceOrdinaryMethodSymbol currentMethod, SourceOrdinaryMethodSymbol prevMethod, BindingDiagnosticBag diagnostics)
             {
                 if (currentMethod.IsPartialImplementation &&
