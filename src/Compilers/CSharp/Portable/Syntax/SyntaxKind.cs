@@ -929,6 +929,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         SpreadElement = 9078,
 
         ExtensionDeclaration = 9079,
-        ReceiverParameter = 9080,
     }
 }

@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -846,7 +847,7 @@ class C
             WalkTreeAndVerify(withCloseBraceDeletedTree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
-        [Fact]
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
         public void UpdateFromExtensionToClass()
         {
             var text = @"
@@ -904,7 +905,7 @@ class C
             EOF();
         }
 
-        [Fact]
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
         public void UpdateFromExtensionToClass_NoParameterIdentifier()
         {
             var text = @"
@@ -961,7 +962,7 @@ class C
             EOF();
         }
 
-        [Fact]
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
         public void UpdateFromClassToExtension()
         {
             var text = @"
@@ -1017,7 +1018,7 @@ class C
             EOF();
         }
 
-        [Fact]
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
         public void UpdateFromClassToExtension_NoParameterIdentifier()
         {
             var text = @"

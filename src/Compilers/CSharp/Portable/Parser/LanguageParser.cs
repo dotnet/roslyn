@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             IsEndOfFunctionPointerParameterList = 1 << 23,
             IsEndOfFunctionPointerParameterListErrored = 1 << 24,
             IsEndOfFunctionPointerCallingConvention = 1 << 25,
-            IsEndOfRecordOrClassOrStructOrInterfaceSignature = 1 << 26,
+            IsEndOfRecordOrClassOrStructOrInterfaceOrExtensionSignature = 1 << 26,
             IsExpressionOrPatternInCaseLabelOfSwitchStatement = 1 << 27,
             IsPatternInSwitchExpressionArm = 1 << 28,
         }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case TerminatorState.IsEndOfFunctionPointerParameterList when this.IsEndOfFunctionPointerParameterList(errored: false):
                     case TerminatorState.IsEndOfFunctionPointerParameterListErrored when this.IsEndOfFunctionPointerParameterList(errored: true):
                     case TerminatorState.IsEndOfFunctionPointerCallingConvention when this.IsEndOfFunctionPointerCallingConvention():
-                    case TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature when this.IsEndOfRecordOrClassOrStructOrInterfaceSignature():
+                    case TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceOrExtensionSignature when this.IsEndOfRecordOrClassOrStructOrInterfaceOrExtensionSignature():
                         return true;
                 }
             }
@@ -1732,32 +1732,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             bool isExtension = keyword.Kind == SyntaxKind.ExtensionKeyword;
             var outerSaveTerm = _termState;
-            _termState |= TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature;
+            _termState |= TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceOrExtensionSignature;
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
 
-            SyntaxToken? name;
-            if (isExtension)
-            {
-                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
-                {
-                    name = this.ParseIdentifierToken();
-                }
-                else
-                {
-                    name = null;
-                }
-            }
-            else
-            {
-                name = this.ParseIdentifierToken();
-            }
+            SyntaxToken? name = (isExtension && this.CurrentToken.Kind != SyntaxKind.IdentifierToken) ? null : this.ParseIdentifierToken();
 
             var typeParameters = this.ParseTypeParameterList();
 
             var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken || isExtension
-                ? ParseParenthesizedParameterList(forExtension: isExtension) : null;
+                ? ParseParenthesizedParameterList(allowOptionalIdentifier: isExtension) : null;
 
             var baseList = this.ParseBaseList();
             _termState = saveTerm;
@@ -2092,7 +2077,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private BaseListSyntax ParseBaseList()
         {
             // We are only called from ParseClassOrStructOrInterfaceDeclaration which unilaterally sets this.
-            Debug.Assert((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature) != 0);
+            Debug.Assert((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceOrExtensionSignature) != 0);
 
             var colon = this.TryEatToken(SyntaxKind.ColonToken);
             if (colon == null)
@@ -2201,7 +2186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     bool haveComma;
 
                     if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                        || ((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                        || ((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceOrExtensionSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                         || this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
                         || this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                     {
@@ -3372,7 +3357,7 @@ parse_member_name:;
             _termState |= TerminatorState.IsEndOfMethodSignature;
             try
             {
-                var paramList = this.ParseParenthesizedParameterList(forExtension: false);
+                var paramList = this.ParseParenthesizedParameterList(allowOptionalIdentifier: false);
                 var initializer = this.CurrentToken.Kind == SyntaxKind.ColonToken
                     ? this.ParseConstructorInitializer()
                     : null;
@@ -3512,7 +3497,7 @@ parse_member_name:;
         private bool IsEndOfMethodSignature()
             => this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
 
-        private bool IsEndOfRecordOrClassOrStructOrInterfaceSignature()
+        private bool IsEndOfRecordOrClassOrStructOrInterfaceOrExtensionSignature()
         {
             return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
         }
@@ -3538,7 +3523,7 @@ parse_member_name:;
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfMethodSignature;
 
-            var paramList = this.ParseParenthesizedParameterList(forExtension: false);
+            var paramList = this.ParseParenthesizedParameterList(allowOptionalIdentifier: false);
 
             var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
             if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
@@ -3750,7 +3735,7 @@ parse_member_name:;
                     type = ParseIdentifierName();
                 }
 
-                var paramList = this.ParseParenthesizedParameterList(forExtension: false);
+                var paramList = this.ParseParenthesizedParameterList(allowOptionalIdentifier: false);
 
                 this.ParseBlockAndExpressionBodiesWithSemicolon(out var blockBody, out var expressionBody, out var semicolon);
 
@@ -3954,7 +3939,7 @@ parse_member_name:;
                 }
             }
 
-            var paramList = this.ParseParenthesizedParameterList(forExtension: false);
+            var paramList = this.ParseParenthesizedParameterList(allowOptionalIdentifier: false);
 
             switch (paramList.Parameters.Count)
             {
@@ -4567,14 +4552,14 @@ parse_member_name:;
             };
         }
 
-        internal ParameterListSyntax ParseParenthesizedParameterList(bool forExtension)
+        internal ParameterListSyntax ParseParenthesizedParameterList(bool allowOptionalIdentifier)
         {
             if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameterList(this.CurrentNode as CSharp.Syntax.ParameterListSyntax))
             {
                 return (ParameterListSyntax)this.EatNode();
             }
 
-            var parameters = this.ParseParameterList(out var open, out var close, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken, forExtension);
+            var parameters = this.ParseParameterList(out var open, out var close, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken, allowOptionalIdentifier);
             return _syntaxFactory.ParameterList(open, parameters, close);
         }
 
@@ -4585,7 +4570,7 @@ parse_member_name:;
                 return (BracketedParameterListSyntax)this.EatNode();
             }
 
-            var parameters = this.ParseParameterList(out var open, out var close, SyntaxKind.OpenBracketToken, SyntaxKind.CloseBracketToken, forExtension: false);
+            var parameters = this.ParseParameterList(out var open, out var close, SyntaxKind.OpenBracketToken, SyntaxKind.CloseBracketToken, allowOptionalIdentifier: false);
             return _syntaxFactory.BracketedParameterList(open, parameters, close);
         }
 
@@ -4650,7 +4635,7 @@ parse_member_name:;
             out SyntaxToken close,
             SyntaxKind openKind,
             SyntaxKind closeKind,
-            bool forExtension)
+            bool allowOptionalIdentifier)
         {
             open = this.EatToken(openKind);
 
@@ -4664,9 +4649,9 @@ parse_member_name:;
                 static (@this, allowOptionalIdentifier) => @this.ParseParameter(allowOptionalIdentifier),
                 skipBadParameterListTokens,
                 allowTrailingSeparator: false,
-                requireOneElement: forExtension,
+                requireOneElement: allowOptionalIdentifier,
                 allowSemicolonAsSeparator: false,
-                parseElementArg: forExtension);
+                parseElementArg: allowOptionalIdentifier);
 
             _termState = saveTerm;
             close = this.EatToken(closeKind);
@@ -5523,7 +5508,7 @@ parse_member_name:;
             using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
             var typeParameterListOpt = this.ParseTypeParameterList();
-            var paramList = ParseParenthesizedParameterList(forExtension: false);
+            var paramList = ParseParenthesizedParameterList(allowOptionalIdentifier: false);
 
             if (!paramList.IsMissing &&
                  (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken ||
@@ -5583,7 +5568,7 @@ parse_member_name:;
             _termState |= TerminatorState.IsEndOfMethodSignature;
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
-            var parameterList = this.ParseParenthesizedParameterList(forExtension: false);
+            var parameterList = this.ParseParenthesizedParameterList(allowOptionalIdentifier: false);
             var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
 
             if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
@@ -8512,7 +8497,7 @@ done:
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfMethodSignature;
 
-            var paramList = this.ParseParenthesizedParameterList(forExtension: false);
+            var paramList = this.ParseParenthesizedParameterList(allowOptionalIdentifier: false);
 
             _termState = saveTerm;
             var separatedParameters = paramList.Parameters.GetWithSeparators();
@@ -10624,7 +10609,7 @@ done:
 
             TypeParameterListSyntax typeParameterListOpt = this.ParseTypeParameterList();
             // "await f<T>()" still makes sense, so don't force accept a local function if there's a type parameter list.
-            ParameterListSyntax paramList = this.ParseParenthesizedParameterList(forExtension: false);
+            ParameterListSyntax paramList = this.ParseParenthesizedParameterList(allowOptionalIdentifier: false);
             // "await x()" is ambiguous (see note at start of this method), but we assume "await x(await y)" is meant to be a function if it's in a non-async context.
             if (!forceLocalFunc)
             {
@@ -13278,7 +13263,7 @@ done:
                 ParameterListSyntax parameterList = null;
                 if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
                 {
-                    parameterList = this.ParseParenthesizedParameterList(forExtension: false);
+                    parameterList = this.ParseParenthesizedParameterList(allowOptionalIdentifier: false);
                 }
 
                 // In mismatched braces cases (missing a }) it is possible for delegate declarations to be
@@ -13353,7 +13338,8 @@ done:
                     return true;
                 case var kind:
                     return IsPredefinedType(kind);
-            };
+            }
+            ;
         }
 
         /// <summary>
