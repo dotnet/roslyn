@@ -5222,7 +5222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (element is WithElementSyntax withElement)
                 {
-                    MessageID.IDS_FeatureCollectionExpressionConstructionArguments.CheckFeatureAvailability(diagnostics, syntax, withElement.WithKeyword.GetLocation());
+                    MessageID.IDS_FeatureCollectionExpressionArguments.CheckFeatureAvailability(diagnostics, syntax, withElement.WithKeyword.GetLocation());
 
                     // PROTOTYPE: Error for now.  Flesh this out when we do the binding for `with(...)` arguments.
                     Error(diagnostics, ErrorCode.ERR_SyntaxError, withElement.WithKeyword, ",");
