@@ -43823,7 +43823,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_WithElementMustBeFirst, "with").WithLocation(3, 23),
                 // (3,23): error CS1003: Syntax error, ',' expected
                 // List<string> c = ["", with(capacity: 0), with(capacity: 1)];
-                Diagnostic(ErrorCode.ERR_SyntaxError, "with").WithArguments(",").WithLocation(3, 23));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "with").WithArguments(",").WithLocation(3, 23),
+                // (3,42): error CS9275: 'with(...)' element must be first element in collection expression
+                // List<string> c = ["", with(capacity: 0), with(capacity: 1)];
+                Diagnostic(ErrorCode.ERR_WithElementMustBeFirst, "with").WithLocation(3, 42));
         }
     }
 }

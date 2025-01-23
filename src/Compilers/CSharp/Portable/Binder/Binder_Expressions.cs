@@ -5239,10 +5239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var element = syntax.Elements[i];
                 if (element is WithElementSyntax withElement)
-                {
                     Error(diagnostics, ErrorCode.ERR_WithElementMustBeFirst, withElement.WithKeyword.GetLocation());
-                    break;
-                }
             }
 
             foreach (var element in syntax.Elements)
