@@ -1016,7 +1016,7 @@ BC30420: 'Sub Main' was not found in 'MyLib'.
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
-        Public Sub EmitMetadataOnly_Exe_PrivateMain_ExcludePrivateMembers()
+        Public Sub EmitMetadataOnly_Exe_FriendMain_ExcludePrivateMembers()
             CompileAndVerify(
                 <compilation>
                     <file>
@@ -1036,7 +1036,7 @@ End Module
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
-        Public Sub ExcludePrivateMembers_PrivateMain()
+        Public Sub ExcludePrivateMembers_FriendMain()
             Using peStream As New MemoryStream()
                 Using metadataStream As New MemoryStream()
                     Dim comp = CreateCompilation(
