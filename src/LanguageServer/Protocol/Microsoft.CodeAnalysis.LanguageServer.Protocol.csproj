@@ -9,6 +9,7 @@
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for Language Server Protocol.
     </PackageDescription>
+    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
   </PropertyGroup>
 
   <ItemGroup Label="Project References">
