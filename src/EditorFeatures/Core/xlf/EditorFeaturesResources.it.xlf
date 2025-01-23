@@ -792,11 +792,6 @@
         <target state="translated">L'operazione di ridenominazione non è stata completata correttamente. Alcuni file potrebbero non essere stati aggiornati.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">Rinomina '{0}' in '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Preview_Warning">
         <source>Preview Warning</source>
         <target state="translated">Avviso di anteprima</target>

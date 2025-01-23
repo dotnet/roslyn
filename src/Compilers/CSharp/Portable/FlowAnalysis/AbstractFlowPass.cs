@@ -2548,6 +2548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             do
             {
                 stack.Push(binary);
+                EnterRegionIfNeeded(binary);
                 binary = binary.Left as BoundBinaryOperator;
             }
             while (binary != null && !binary.OperatorKind.IsLogical() && binary.InterpolatedStringHandlerData is null);
@@ -2557,6 +2558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        /// <param name="stack">Nested left-associative binary operators, pushed on from outermost to innermost.</param>
         protected virtual void VisitBinaryOperatorChildren(ArrayBuilder<BoundBinaryOperator> stack)
         {
             var binary = stack.Pop();
@@ -2599,6 +2601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetConditionalState(isNullConstant == isEquals(binary)
                     ? (State, stateWhenNotNull)
                     : (stateWhenNotNull, State));
+                LeaveRegionIfNeeded(binary);
 
                 if (stack.Count == 0)
                 {
@@ -2616,6 +2619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Unsplit();
                     VisitRvalue(binary.Right);
                 }
+                LeaveRegionIfNeeded(binary);
 
                 if (stack.Count == 0)
                 {
@@ -3748,7 +3752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
         {
-            Visit(node.InvokedExpression);
+            VisitRvalue(node.InvokedExpression);
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, node.FunctionPointer.Signature);
             return null;
         }

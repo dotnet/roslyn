@@ -13,42 +13,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal abstract partial class AbstractOverrideCompletionProvider
 {
-    private sealed partial class ItemGetter
+    private sealed partial class ItemGetter(
+        AbstractOverrideCompletionProvider overrideCompletionProvider,
+        Document document,
+        int position,
+        SourceText text,
+        SyntaxTree syntaxTree,
+        int startLineNumber,
+        CancellationToken cancellationToken)
+        : AbstractItemGetter<AbstractOverrideCompletionProvider>(
+            overrideCompletionProvider,
+            document,
+            position,
+            text,
+            syntaxTree,
+            startLineNumber,
+            cancellationToken)
     {
-        private readonly CancellationToken _cancellationToken;
-        private readonly int _position;
-        private readonly AbstractOverrideCompletionProvider _provider;
-        private readonly SymbolDisplayFormat _overrideNameFormat = SymbolDisplayFormats.NameFormat.WithParameterOptions(
-            SymbolDisplayParameterOptions.IncludeDefaultValue |
-            SymbolDisplayParameterOptions.IncludeExtensionThis |
-            SymbolDisplayParameterOptions.IncludeType |
-            SymbolDisplayParameterOptions.IncludeName |
-            SymbolDisplayParameterOptions.IncludeParamsRefOut)
-            .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
-
-        private readonly Document _document;
-        private readonly SourceText _text;
-        private readonly SyntaxTree _syntaxTree;
-        private readonly int _startLineNumber;
-
-        private ItemGetter(
-            AbstractOverrideCompletionProvider overrideCompletionProvider,
-            Document document,
-            int position,
-            SourceText text,
-            SyntaxTree syntaxTree,
-            int startLineNumber,
-            CancellationToken cancellationToken)
-        {
-            _provider = overrideCompletionProvider;
-            _document = document;
-            _position = position;
-            _text = text;
-            _syntaxTree = syntaxTree;
-            _startLineNumber = startLineNumber;
-            _cancellationToken = cancellationToken;
-        }
-
         public static async Task<ItemGetter> CreateAsync(
             AbstractOverrideCompletionProvider overrideCompletionProvider,
             Document document,
@@ -62,25 +43,25 @@ internal abstract partial class AbstractOverrideCompletionProvider
             return new ItemGetter(overrideCompletionProvider, document, position, text, syntaxTree, startLineNumber, cancellationToken);
         }
 
-        public async Task<ImmutableArray<CompletionItem>> GetItemsAsync()
+        public override async Task<ImmutableArray<CompletionItem>> GetItemsAsync()
         {
             // modifiers* override modifiers* type? |
-            if (!TryCheckForTrailingTokens(_position))
+            if (!TryCheckForTrailingTokens(Position))
                 return default;
 
-            var startToken = _provider.FindStartingToken(_syntaxTree, _position, _cancellationToken);
+            var startToken = Provider.FindStartingToken(SyntaxTree, Position, CancellationToken);
             if (startToken.Parent == null)
                 return default;
 
-            var semanticModel = await _document.ReuseExistingSpeculativeModelAsync(startToken.Parent, _cancellationToken).ConfigureAwait(false);
-            if (!_provider.TryDetermineReturnType(startToken, semanticModel, _cancellationToken, out var returnType, out var tokenAfterReturnType) ||
-                !_provider.TryDetermineModifiers(tokenAfterReturnType, _text, _startLineNumber, out var seenAccessibility, out var modifiers) ||
+            var semanticModel = await Document.ReuseExistingSpeculativeModelAsync(startToken.Parent, CancellationToken).ConfigureAwait(false);
+            if (!Provider.TryDetermineReturnType(startToken, semanticModel, CancellationToken, out var returnType, out var tokenAfterReturnType) ||
+                !Provider.TryDetermineModifiers(tokenAfterReturnType, Text, StartLineNumber, out var seenAccessibility, out var modifiers) ||
                 !TryDetermineOverridableMembers(semanticModel, startToken, seenAccessibility, out var overridableMembers))
             {
                 return default;
             }
 
-            return _provider
+            return Provider
                 .FilterOverrides(overridableMembers, returnType)
                 .SelectAsArray(m => CreateItem(m, semanticModel, startToken, modifiers));
         }
@@ -91,13 +72,13 @@ internal abstract partial class AbstractOverrideCompletionProvider
         {
             var position = startToken.SpanStart;
 
-            var displayString = symbol.ToMinimalDisplayString(semanticModel, position, _overrideNameFormat);
+            var displayString = symbol.ToMinimalDisplayString(semanticModel, position, DefaultNameFormat);
 
             return MemberInsertionCompletionItem.Create(
                 displayString,
                 displayTextSuffix: "",
                 modifiers,
-                _startLineNumber,
+                StartLineNumber,
                 symbol,
                 startToken,
                 position,
@@ -110,14 +91,14 @@ internal abstract partial class AbstractOverrideCompletionProvider
             Accessibility seenAccessibility,
             out ImmutableArray<ISymbol> overridableMembers)
         {
-            var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(startToken.SpanStart, _cancellationToken);
+            var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(startToken.SpanStart, CancellationToken);
             if (containingType is null)
             {
                 overridableMembers = default;
                 return false;
             }
 
-            var result = containingType.GetOverridableMembers(_cancellationToken);
+            var result = containingType.GetOverridableMembers(CancellationToken);
 
             // Filter based on accessibility
             if (seenAccessibility != Accessibility.NotApplicable)
@@ -148,7 +129,7 @@ internal abstract partial class AbstractOverrideCompletionProvider
 
         private bool TryCheckForTrailingTokens(int position)
         {
-            var root = _syntaxTree.GetRoot(_cancellationToken);
+            var root = SyntaxTree.GetRoot(CancellationToken);
             var token = root.FindToken(position);
 
             // Don't want to offer Override completion if there's a token after the current
@@ -166,8 +147,5 @@ internal abstract partial class AbstractOverrideCompletionProvider
 
             return true;
         }
-
-        private bool IsOnStartLine(int position)
-            => _text.Lines.IndexOf(position) == _startLineNumber;
     }
 }

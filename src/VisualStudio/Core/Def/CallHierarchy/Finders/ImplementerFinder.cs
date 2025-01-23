@@ -45,7 +45,7 @@ internal class ImplementerFinder : AbstractCallFinder
             var bestLocation = sourceLocations.FirstOrDefault(d => documents == null || documents.Contains(d));
             if (bestLocation != null)
             {
-                var item = await Provider.CreateItemAsync(implementation, bestLocation.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(false);
+                var item = await Provider.CreateItemAsync(implementation, bestLocation.Project, [], cancellationToken).ConfigureAwait(false);
                 callback.AddResult(item);
                 cancellationToken.ThrowIfCancellationRequested();
             }

@@ -31,7 +31,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider
             GetNormalTypePreambleParts(constructor, semanticModel, position),
             GetSeparatorParts(),
             GetNormalTypePostambleParts(),
-            constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
+            [.. constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
 
         return item;
     }

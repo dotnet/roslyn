@@ -93,6 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get { return ImmutableArray<CustomModifier>.Empty; } }
 
-        internal override int? TryGetOverloadResolutionPriority() => null;
+        internal override int TryGetOverloadResolutionPriority() => 0;
     }
 }

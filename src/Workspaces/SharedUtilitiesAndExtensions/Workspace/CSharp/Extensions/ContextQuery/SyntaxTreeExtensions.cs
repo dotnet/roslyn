@@ -1868,7 +1868,7 @@ internal static partial class SyntaxTreeExtensions
         }
 
         // scoped v|
-        if (token.IsKind(SyntaxKind.ScopedKeyword) && token.Parent is IncompleteMemberSyntax)
+        if (token.IsKind(SyntaxKind.ScopedKeyword) && token.Parent is IncompleteMemberSyntax or ScopedTypeSyntax)
         {
             return true;
         }

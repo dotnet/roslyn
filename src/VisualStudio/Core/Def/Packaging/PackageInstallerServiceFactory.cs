@@ -155,7 +155,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
         {
             // The result was not available yet (or it was canceled/faulted).  Just return an empty result to
             // signify we couldn't get this right now.
-            return ImmutableArray<PackageSource>.Empty;
+            return [];
         }
     }
 
@@ -178,7 +178,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
             // https://github.com/dotnet/roslyn/issues/40857
         }
 
-        return ImmutableArray<PackageSource>.Empty;
+        return [];
     }
 
     [MemberNotNullWhen(true, nameof(_packageInstaller))]
@@ -630,7 +630,7 @@ internal partial class PackageInstallerService : AbstractDelayStartedService, IP
             return diff != 0 ? diff : -v1.Version.CompareTo(v2.Version);
         });
 
-        return versionsAndSplits.Select(v => v.Version).ToImmutableArray();
+        return [.. versionsAndSplits.Select(v => v.Version)];
     }
 
     private static int CompareSplit(string[] split1, string[] split2)

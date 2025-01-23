@@ -32,21 +32,6 @@
         <target state="translated">Formátuje se dokument...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_new_line">
-        <source>Insert new line</source>
-        <target state="translated">Vložit nový řádek</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Formatting_pasted_text">
-        <source>Formatting pasted text...</source>
-        <target state="translated">Formátuje se vložený text...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Paste">
-        <source>Paste</source>
-        <target state="translated">Vložit</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_on_Save">
         <source>Format on Save</source>
         <target state="translated">Formátovat při uložení</target>

@@ -42,6 +42,7 @@ internal abstract class SyntaxContext
     public bool IsNameOfContext { get; }
     public bool IsNamespaceContext { get; }
     public bool IsNamespaceDeclarationNameContext { get; }
+    public bool IsObjectCreationTypeContext { get; }
     public bool IsOnArgumentListBracketOrComma { get; }
     public bool IsPossibleTupleContext { get; }
     public bool IsPreProcessorDirectiveContext { get; }
@@ -76,6 +77,7 @@ internal abstract class SyntaxContext
         bool isNameOfContext,
         bool isNamespaceContext,
         bool isNamespaceDeclarationNameContext,
+        bool isObjectCreationTypeContext,
         bool isOnArgumentListBracketOrComma,
         bool isPossibleTupleContext,
         bool isPreProcessorDirectiveContext,
@@ -110,6 +112,7 @@ internal abstract class SyntaxContext
         this.IsNameOfContext = isNameOfContext;
         this.IsNamespaceContext = isNamespaceContext;
         this.IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
+        this.IsObjectCreationTypeContext = isObjectCreationTypeContext;
         this.IsOnArgumentListBracketOrComma = isOnArgumentListBracketOrComma;
         this.IsPossibleTupleContext = isPossibleTupleContext;
         this.IsPreProcessorDirectiveContext = isPreProcessorDirectiveContext;

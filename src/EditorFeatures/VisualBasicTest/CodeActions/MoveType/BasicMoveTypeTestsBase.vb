@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
         ) As Task
 
             Dim expectedText As String = Nothing
-            If Not expectedCode Is Nothing Then
+            If expectedCode IsNot Nothing Then
                 expectedText = expectedCode.ConvertTestSourceTag()
             End If
 

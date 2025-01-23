@@ -10,29 +10,10 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace RunTests
 {
-    internal record struct WorkItemInfo(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>> Filters, int PartitionIndex)
-    {
-        internal readonly string DisplayName
-        {
-            get
-            {
-                var assembliesString = string.Join("_", Filters.Keys.Select(a => Path.GetFileNameWithoutExtension(a.AssemblyName)));
-
-                // Currently some helix APIs don't work when the work item friendly name is more than 200 characters.
-                // Until that is fixed we manually truncate the name ourselves to a reasonable limit.
-                // https://github.com/dotnet/arcade/issues/11079
-                assembliesString = assembliesString.Length > 150 ? $"{assembliesString[..150]}..." : assembliesString;
-                return $"{assembliesString}_{PartitionIndex}";
-            }
-        }
-    }
-
     internal sealed class AssemblyScheduler
     {
         /// <summary>
@@ -42,47 +23,35 @@ namespace RunTests
         ///   2.  Downloading assets to the helix machine.
         ///   3.  Setting up the test host for each assembly.
         ///   
-        /// we need to actually build partitions that run in under 5 minutes, hence our limit here of 2m30s.
         /// </summary>
-        private static readonly TimeSpan s_maxExecutionTime = TimeSpan.FromSeconds(150);
+        private static readonly TimeSpan s_maxExecutionTime = TimeSpan.FromSeconds(60 * 10);
 
         /// <summary>
         /// If we were unable to find the test execution history, we fall back to partitioning by just method count.
         /// </summary>
         private static readonly int s_maxMethodCount = 500;
 
-        private readonly Options _options;
-
-        internal AssemblyScheduler(Options options)
+        public static ImmutableArray<HelixWorkItem> Schedule(
+            IEnumerable<string> assemblyFilePaths,
+            ImmutableDictionary<string, TimeSpan> testHistory)
         {
-            _options = options;
-        }
-
-        public async Task<ImmutableArray<WorkItemInfo>> ScheduleAsync(ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
-        {
-            Logger.Log($"Scheduling {assemblies.Length} assemblies");
-
-            if (_options.Sequential || !_options.UseHelix)
+            var orderedTypeInfos = assemblyFilePaths.ToImmutableSortedDictionary(x => x, GetTypeInfoList);
+            ConsoleUtil.WriteLine($"Scheduling {orderedTypeInfos.Count} assemblies");
+            foreach (var kvp in orderedTypeInfos)
             {
-                Logger.Log("Building work items with one assembly each.");
-                // return individual work items per assembly that contain all the tests in that assembly.
-                return CreateWorkItemsForFullAssemblies(assemblies);
+                var typeCount = kvp.Value.Length;
+                var testCount = kvp.Value.Sum(t => t.Tests.Length);
+                ConsoleUtil.WriteLine($"\tAssembly: {Path.GetFileName(kvp.Key)}, Test Type Count: {typeCount}, Test Count: {testCount}");
             }
 
-            var orderedTypeInfos = assemblies.ToImmutableSortedDictionary(assembly => assembly, GetTypeInfoList);
-
-            ConsoleUtil.WriteLine($"Found {orderedTypeInfos.Values.SelectMany(t => t).SelectMany(t => t.Tests).Count()} tests to run in {orderedTypeInfos.Keys.Count()} assemblies");
-
-            // Retrieve test runtimes from azure devops historical data.
-            var testHistory = await TestHistoryManager.GetTestHistoryAsync(_options, cancellationToken);
             if (testHistory.IsEmpty)
             {
                 // We didn't have any test history from azure devops, just partition by test count.
                 ConsoleUtil.Warning($"Could not look up test history - partitioning based on test count instead");
                 var workItemsByMethodCount = BuildWorkItems<int>(
                     orderedTypeInfos,
-                    isOverLimitFunc: (accumulatedMethodCount) => accumulatedMethodCount >= s_maxMethodCount,
-                    addFunc: (currentTest, accumulatedMethodCount) => accumulatedMethodCount + 1);
+                    isOverLimitFunc: static (accumulatedMethodCount) => accumulatedMethodCount >= s_maxMethodCount,
+                    addFunc: static (currentTest, accumulatedMethodCount) => accumulatedMethodCount + 1);
 
                 LogWorkItems(workItemsByMethodCount);
                 return workItemsByMethodCount;
@@ -97,27 +66,14 @@ namespace RunTests
             // that some work items will run tests from multiple assemblies due to large variances in test execution time.
             var workItems = BuildWorkItems<TimeSpan>(
                 orderedTypeInfos,
-                isOverLimitFunc: (accumulatedExecutionTime) => accumulatedExecutionTime >= s_maxExecutionTime,
-                addFunc: (currentTest, accumulatedExecutionTime) => currentTest.ExecutionTime + accumulatedExecutionTime);
+                isOverLimitFunc: static (accumulatedExecutionTime) => accumulatedExecutionTime >= s_maxExecutionTime,
+                addFunc: static (currentTest, accumulatedExecutionTime) => currentTest.ExecutionTime + accumulatedExecutionTime);
             LogWorkItems(workItems);
             return workItems;
-
-            static ImmutableArray<WorkItemInfo> CreateWorkItemsForFullAssemblies(ImmutableArray<AssemblyInfo> assemblies)
-            {
-                var workItems = new List<WorkItemInfo>();
-                var partitionIndex = 0;
-                foreach (var assembly in assemblies)
-                {
-                    var currentWorkItem = ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>>.Empty.Add(assembly, ImmutableArray<TestMethodInfo>.Empty);
-                    workItems.Add(new WorkItemInfo(currentWorkItem, partitionIndex++));
-                }
-
-                return workItems.ToImmutableArray();
-            }
         }
 
-        private static ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> UpdateTestsWithExecutionTimes(
-            ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> assemblyTypes,
+        private static ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> UpdateTestsWithExecutionTimes(
+            ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> assemblyTypes,
             ImmutableDictionary<string, TimeSpan> testHistory)
         {
             // Determine the average execution time so that we can use it for tests that do not have any history.
@@ -133,7 +89,7 @@ namespace RunTests
                 kvp => kvp.Key,
                 kvp => kvp.Value.Select(WithTypeExecutionTime).ToImmutableArray());
 
-            LogResults();
+            WriteResults();
             return updated;
 
             TypeInfo WithTypeExecutionTime(TypeInfo typeInfo)
@@ -159,17 +115,17 @@ namespace RunTests
                 return methodInfo with { ExecutionTime = averageExecutionTime };
             }
 
-            void LogResults()
+            void WriteResults()
             {
                 foreach (var unmatchedLocalTest in unmatchedLocalTests)
                 {
-                    Logger.Log($"Could not find test execution history for test {unmatchedLocalTest}");
+                    ConsoleUtil.WriteLine($"Could not find test execution history for test {unmatchedLocalTest}");
                 }
 
                 var unmatchedRemoteTests = testHistory.Keys.Where(type => !matchedRemoteTests.Contains(type));
                 foreach (var unmatchedRemoteTest in unmatchedRemoteTests)
                 {
-                    Logger.Log($"Found historical data for test {unmatchedRemoteTest} that was not present in local assemblies");
+                    ConsoleUtil.WriteLine($"Found historical data for test {unmatchedRemoteTest} that was not present in local assemblies");
                 }
 
                 var allTests = assemblyTypes.Values.SelectMany(v => v).SelectMany(v => v.Tests).Select(t => t.FullyQualifiedName).ToList();
@@ -179,29 +135,27 @@ namespace RunTests
             }
         }
 
-        private ImmutableArray<WorkItemInfo> BuildWorkItems<TWeight>(
-            ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TypeInfo>> typeInfos,
+        private static ImmutableArray<HelixWorkItem> BuildWorkItems<TWeight>(
+            ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> typeInfos,
             Func<TWeight, bool> isOverLimitFunc,
             Func<TestMethodInfo, TWeight, TWeight> addFunc) where TWeight : struct
         {
-            var workItems = new List<WorkItemInfo>();
-
-            // Keep track of which work item we are creating - used to identify work items in names.
-            var workItemIndex = 0;
+            var workItems = new List<HelixWorkItem>();
 
             // Keep track of the limit of the current work item we are adding to.
             var accumulatedValue = default(TWeight);
 
-            // Keep track of the types we're planning to add to the current work item.
-            var currentFilters = new SortedDictionary<AssemblyInfo, List<TestMethodInfo>>();
+            // Keep track of the types we're planning to add to the current work item. The key 
+            // is the file path of the assembly
+            var currentFilters = new SortedDictionary<string, List<TestMethodInfo>>();
 
             // First find any assemblies we need to run in single assembly work items (due to state sharing concerns).
-            var singlePartitionAssemblies = typeInfos.Where(kvp => ShouldPartitionInSingleWorkItem(kvp.Key.AssemblyPath));
+            var singlePartitionAssemblies = typeInfos.Where(kvp => ShouldPartitionInSingleWorkItem(kvp.Key));
             typeInfos = typeInfos.RemoveRange(singlePartitionAssemblies.Select(kvp => kvp.Key));
-            foreach (var (assembly, types) in singlePartitionAssemblies)
+            foreach (var (assemblyFilePaths, types) in singlePartitionAssemblies)
             {
-                Logger.Log($"Building single assembly work item {workItemIndex} for {assembly.AssemblyPath}");
-                types.SelectMany(t => t.Tests).ToList().ForEach(test => AddFilter(assembly, test));
+                ConsoleUtil.WriteLine($"Building single assembly work item {workItems.Count} for {assemblyFilePaths}");
+                types.SelectMany(t => t.Tests).ToList().ForEach(test => AddFilter(assemblyFilePaths, test));
 
                 // End the work item so we don't include anything after this assembly.
                 AddCurrentWorkItem();
@@ -210,7 +164,7 @@ namespace RunTests
             // Iterate through each assembly and type and build up the work items to run.
             // We add types from assemblies one by one until we hit our limit,
             // at which point we create a work item with the current types and start a new one.
-            foreach (var (assembly, types) in typeInfos)
+            foreach (var (assemblyFilePath, types) in typeInfos)
             {
                 foreach (var type in types)
                 {
@@ -228,7 +182,7 @@ namespace RunTests
                         }
 
                         // Update the current group in the work item with this new type.
-                        AddFilter(assembly, test);
+                        AddFilter(assemblyFilePath, test);
                     }
                 }
             }
@@ -241,72 +195,53 @@ namespace RunTests
             {
                 if (currentFilters.Any())
                 {
-                    workItems.Add(new WorkItemInfo(currentFilters.ToImmutableSortedDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray()), workItemIndex));
-                    workItemIndex++;
+                    var e = currentFilters.Values
+                        .SelectMany(v => v)
+                        .Sum(v => v.ExecutionTime.TotalSeconds);
+                    var workItemInfo = new HelixWorkItem(
+                        workItems.Count,
+                        currentFilters.Keys.ToImmutableArray(),
+                        currentFilters.Values.SelectMany(v => v).Select(x => x.FullyQualifiedName).ToImmutableArray(),
+                        TimeSpan.FromSeconds(e));
+                    workItems.Add(workItemInfo);
                 }
 
                 currentFilters.Clear();
                 accumulatedValue = default;
             }
 
-            void AddFilter(AssemblyInfo assembly, TestMethodInfo test)
+            void AddFilter(string assemblyFilePath, TestMethodInfo test)
             {
-                if (currentFilters.TryGetValue(assembly, out var assemblyFilters))
+                if (!currentFilters.TryGetValue(assemblyFilePath, out var assemblyFilters))
                 {
-                    assemblyFilters.Add(test);
-                }
-                else
-                {
-                    var filterList = new List<TestMethodInfo>
-                    {
-                        test
-                    };
-                    currentFilters.Add(assembly, filterList);
+                    assemblyFilters = new List<TestMethodInfo>();
+                    currentFilters.Add(assemblyFilePath, assemblyFilters);
                 }
 
+                assemblyFilters.Add(test);
                 accumulatedValue = addFunc(test, accumulatedValue);
             }
         }
 
-        private static void LogWorkItems(ImmutableArray<WorkItemInfo> workItems)
+        private static void LogWorkItems(ImmutableArray<HelixWorkItem> workItems)
         {
             ConsoleUtil.WriteLine($"Built {workItems.Length} work items");
-            Logger.Log("==== Work Item List ====");
+            ConsoleUtil.WriteLine("==== Work Item List ====");
             foreach (var workItem in workItems)
             {
-                var totalExecutionTime = TimeSpan.FromMilliseconds(workItem.Filters.Values.SelectMany(f => f).Sum(f => f.ExecutionTime.TotalMilliseconds));
-                Logger.Log($"- Work Item {workItem.PartitionIndex} (Execution time {totalExecutionTime})");
-                if (totalExecutionTime > s_maxExecutionTime)
+                ConsoleUtil.WriteLine($"- Work Item {workItem.Id} (Execution time {workItem.EstimatedExecutionTime})");
+                if (workItem.EstimatedExecutionTime > s_maxExecutionTime == true)
                 {
                     // Log a warning to the console with work item details when we were not able to partition in under our limit.
                     // This can happen when a single specific test exceeds our execution time limit.
-                    ConsoleUtil.Warning($"Work item {workItem.PartitionIndex} estimated execution {totalExecutionTime} time exceeds max execution time {s_maxExecutionTime}.");
-                    LogFilters(workItem, ConsoleUtil.WriteLine);
-                }
-                else
-                {
-                    LogFilters(workItem, Logger.Log);
-                }
-            }
-
-            static void LogFilters(WorkItemInfo workItem, Action<string> logger)
-            {
-                foreach (var assembly in workItem.Filters)
-                {
-                    var assemblyRuntime = TimeSpan.FromMilliseconds(assembly.Value.Sum(f => f.ExecutionTime.TotalMilliseconds));
-                    logger($"    - {assembly.Key.AssemblyName} with execution time {assemblyRuntime}");
-                    var testFilters = assembly.Value;
-                    if (testFilters.Length > 0)
-                    {
-                        logger($"        - {testFilters.Length} tests: {string.Join(",", testFilters.Select(t => t.FullyQualifiedName))}");
-                    }
+                    ConsoleUtil.Warning($"Estimated execution {workItem.EstimatedExecutionTime} time exceeds max execution time {s_maxExecutionTime}.");
                 }
             }
         }
 
-        private static ImmutableArray<TypeInfo> GetTypeInfoList(AssemblyInfo assemblyInfo)
+        private static ImmutableArray<TypeInfo> GetTypeInfoList(string assemblyFilePath)
         {
-            var assemblyDirectory = Path.GetDirectoryName(assemblyInfo.AssemblyPath);
+            var assemblyDirectory = Path.GetDirectoryName(assemblyFilePath);
             var testListPath = Path.Combine(assemblyDirectory!, "testlist.json");
             if (!File.Exists(testListPath))
             {
@@ -341,27 +276,26 @@ namespace RunTests
         /// Looks for the assembly marker attribute <see cref="RunTestsInSinglePartitionAttribute"/>
         /// that signifies tests in the assembly must be run separately.
         /// </summary>
-        private static bool ShouldPartitionInSingleWorkItem(string assemblyPath)
+        private static bool ShouldPartitionInSingleWorkItem(string assemblyFilePath)
         {
-            using (var stream = File.OpenRead(assemblyPath))
-            using (var peReader = new PEReader(stream))
+            using var stream = File.OpenRead(assemblyFilePath);
+            using var peReader = new PEReader(stream);
+
+            var metadataReader = peReader.GetMetadataReader();
+            var attributes = metadataReader.GetAssemblyDefinition().GetCustomAttributes();
+            foreach (var attributeHandle in attributes)
             {
-                var metadataReader = peReader.GetMetadataReader();
-                var attributes = metadataReader.GetAssemblyDefinition().GetCustomAttributes();
-                foreach (var attributeHandle in attributes)
+                var attribute = metadataReader.GetCustomAttribute(attributeHandle);
+                if (attribute.Constructor.Kind is HandleKind.MemberReference)
                 {
-                    var attribute = metadataReader.GetCustomAttribute(attributeHandle);
-                    if (attribute.Constructor.Kind is HandleKind.MemberReference)
+                    var ctor = metadataReader.GetMemberReference((MemberReferenceHandle)attribute.Constructor);
+                    if (ctor.Parent.Kind is HandleKind.TypeReference)
                     {
-                        var ctor = metadataReader.GetMemberReference((MemberReferenceHandle)attribute.Constructor);
-                        if (ctor.Parent.Kind is HandleKind.TypeReference)
+                        var typeNameHandle = metadataReader.GetTypeReference((TypeReferenceHandle)ctor.Parent).Name;
+                        var typeName = metadataReader.GetString(typeNameHandle);
+                        if (typeName == nameof(RunTestsInSinglePartitionAttribute))
                         {
-                            var typeNameHandle = metadataReader.GetTypeReference((TypeReferenceHandle)ctor.Parent).Name;
-                            var typeName = metadataReader.GetString(typeNameHandle);
-                            if (typeName == nameof(RunTestsInSinglePartitionAttribute))
-                            {
-                                return true;
-                            }
+                            return true;
                         }
                     }
                 }

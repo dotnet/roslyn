@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return false;
         }
 
-        internal override int? TryGetOverloadResolutionPriority() => null;
+        internal override int TryGetOverloadResolutionPriority() => 0;
 
 #if DEBUG
         protected override MethodSymbolAdapter CreateCciAdapter()

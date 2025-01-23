@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 }
 
                 AssertEx.EqualOrDiff(endDocument.Text, (await updatedDocument.GetTextAsync()).ToString());
-                Assert.Equal(0, remainingErrors.Count);
+                Assert.Empty(remainingErrors);
             }
         }
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 return splitPath;
             }
 
-            return splitPath.Take(splitPath.Length - 1).ToArray();
+            return [.. splitPath.Take(splitPath.Length - 1)];
         }
 
         protected Task TestRenameDocument(string startText, string expectedText, string newDocumentName = null, string newDocumentPath = null, string documentName = null, string documentPath = null, string[] expectedErrors = null)

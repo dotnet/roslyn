@@ -382,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 New ContainerElement(
                     ContainerElementStyle.Stacked,
                     New ClassifiedTextElement(
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, FeaturesResources.Exceptions_colon)),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, WorkspacesResources.Exceptions_colon)),
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, "  "),
                         New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException", navigationAction:=Sub() Return, "IOException"))))

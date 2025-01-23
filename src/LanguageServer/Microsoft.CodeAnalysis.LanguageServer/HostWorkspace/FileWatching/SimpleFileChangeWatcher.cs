@@ -46,8 +46,8 @@ internal sealed class SimpleFileChangeWatcher : IFileChangeWatcher
                     var watcher = new FileSystemWatcher(watchedDirectory.Path);
                     watcher.IncludeSubdirectories = true;
 
-                    if (watchedDirectory.ExtensionFilter != null)
-                        watcher.Filter = '*' + watchedDirectory.ExtensionFilter;
+                    foreach (var filter in watchedDirectory.ExtensionFilters)
+                        watcher.Filters.Add('*' + filter);
 
                     watcher.Changed += RaiseEvent;
                     watcher.Created += RaiseEvent;

@@ -81,6 +81,6 @@ internal sealed class VisualStudioSymbolRenamedCodeActionOperationFactoryWorkspa
             }
         }
 
-        public override string Title => string.Format(EditorFeaturesResources.Rename_0_to_1, _symbol.Name, _newName);
+        public override string Title => string.Format(WorkspacesResources.Rename_0_to_1, _symbol.Name, _newName);
     }
 }

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression
     <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)>
     Partial Public Class VisualBasicSimplifyLinqExpressionTests
         <Fact>
-        Public Shared Async Function FixAllInDocument() As Task
+        Public Async Function FixAllInDocument() As Task
             Dim testCode = $"
 Imports System
 Imports System.Linq
@@ -46,7 +46,7 @@ End Module"
         End Function
 
         <Fact>
-        Public Shared Async Function FixAllInDocumentExplicitCall() As Task
+        Public Async Function FixAllInDocumentExplicitCall() As Task
             Dim testCode = $"
 Imports System
 Imports System.Linq
@@ -83,7 +83,7 @@ End Module"
         End Function
 
         <Fact>
-        Public Shared Async Function NestedInDocument() As Task
+        Public Async Function NestedInDocument() As Task
             Dim testCode = $"
 Imports System
 Imports System.Linq

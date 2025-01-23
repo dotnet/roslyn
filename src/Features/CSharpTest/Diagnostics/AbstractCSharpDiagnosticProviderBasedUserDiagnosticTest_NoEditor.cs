@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 
 public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor : AbstractDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    private static readonly CSharpParseOptions Script = new CSharpParseOptions(kind: SourceCodeKind.Script);
+    private static readonly CSharpParseOptions Script = new(kind: SourceCodeKind.Script);
 
     protected AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(ITestOutputHelper logger)
        : base(logger)

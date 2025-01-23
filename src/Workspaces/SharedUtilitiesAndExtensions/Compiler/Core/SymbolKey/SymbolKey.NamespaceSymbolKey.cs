@@ -76,7 +76,7 @@ internal partial struct SymbolKey
 
             if (containingSymbolFailureReason != null)
             {
-                failureReason = $"({nameof(EventSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
+                failureReason = $"({nameof(NamespaceSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
                 return default;
             }
 

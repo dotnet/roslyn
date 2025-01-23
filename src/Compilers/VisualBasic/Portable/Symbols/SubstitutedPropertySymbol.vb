@@ -181,6 +181,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return _originalDefinition.GetOverloadResolutionPriority()
+        End Function
+
         Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
             Get
                 Return _originalDefinition.IsImplicitlyDeclared

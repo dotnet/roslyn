@@ -672,7 +672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _lazyCustomAttributesBag = attributeData
         End Sub
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             If Me.IsConst Then

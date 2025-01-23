@@ -42,7 +42,6 @@ public sealed partial class UseCollectionInitializerTests
         var test = new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
         };
 
         if (languageVersion != null)

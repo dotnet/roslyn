@@ -36,7 +36,6 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
     public readonly bool IsLocalFunctionDeclarationContext;
     public readonly bool IsLocalVariableDeclarationContext;
     public readonly bool IsNonAttributeExpressionContext;
-    public readonly bool IsObjectCreationTypeContext;
     public readonly bool IsParameterTypeContext;
     public readonly bool IsPossibleLambdaOrAnonymousMethodParameterTypeContext;
     public readonly bool IsPreProcessorKeywordContext;
@@ -130,6 +129,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
               isNameOfContext: isNameOfContext,
               isNamespaceContext: isNamespaceContext,
               isNamespaceDeclarationNameContext: isNamespaceDeclarationNameContext,
+              isObjectCreationTypeContext: isObjectCreationTypeContext,
               isOnArgumentListBracketOrComma: isOnArgumentListBracketOrComma,
               isPossibleTupleContext: isPossibleTupleContext,
               isPreProcessorDirectiveContext: isPreProcessorDirectiveContext,
@@ -164,7 +164,6 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         this.IsLocalFunctionDeclarationContext = isLocalFunctionDeclarationContext;
         this.IsLocalVariableDeclarationContext = isLocalVariableDeclarationContext;
         this.IsNonAttributeExpressionContext = isNonAttributeExpressionContext;
-        this.IsObjectCreationTypeContext = isObjectCreationTypeContext;
         this.IsParameterTypeContext = isParameterTypeContext;
         this.IsPossibleLambdaOrAnonymousMethodParameterTypeContext = isPossibleLambdaOrAnonymousMethodParameterTypeContext;
         this.IsPreProcessorKeywordContext = isPreProcessorKeywordContext;

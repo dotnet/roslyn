@@ -9,12 +9,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -34,21 +32,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 /// be implementing the <see cref="ICodeCleanUpFixer"/> interface, this abstract base class allows Roslyn to operate
 /// on MEF instances of fixers known to be relevant in the context of Roslyn languages.
 /// </summary>
-internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
+internal abstract partial class AbstractCodeCleanUpFixer(
+    IThreadingContext threadingContext,
+    VisualStudioWorkspaceImpl workspace,
+    IVsHierarchyItemManager vsHierarchyItemManager) : ICodeCleanUpFixer
 {
-    private readonly IThreadingContext _threadingContext;
-    private readonly VisualStudioWorkspaceImpl _workspace;
-    private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
-
-    protected AbstractCodeCleanUpFixer(
-        IThreadingContext threadingContext,
-        VisualStudioWorkspaceImpl workspace,
-        IVsHierarchyItemManager vsHierarchyItemManager)
-    {
-        _threadingContext = threadingContext;
-        _workspace = workspace;
-        _vsHierarchyItemManager = vsHierarchyItemManager;
-    }
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly VisualStudioWorkspaceImpl _workspace = workspace;
+    private readonly IVsHierarchyItemManager _vsHierarchyItemManager = vsHierarchyItemManager;
 
     public Task<bool> FixAsync(ICodeCleanUpScope scope, ICodeCleanUpExecutionContext context)
         => scope switch
@@ -68,7 +59,7 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
                 _workspace,
                 // Just defer to FixProjectsAsync, passing in all fixable projects in the solution.
                 (progress, cancellationToken) => FixProjectsAsync(
-                    solution, solution.Projects.Where(p => p.SupportsCompilation).ToImmutableArray(), context.EnabledFixIds, progress, cancellationToken),
+                    solution, [.. solution.Projects.Where(p => p.SupportsCompilation)], context.EnabledFixIds, progress, cancellationToken),
                 context).ConfigureAwait(false);
         }
 
@@ -151,19 +142,17 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
 
         // Let LSP handle code cleanup in the cloud scenario
         if (buffer.IsInLspEditorContext())
-        {
             return SpecializedTasks.False;
-        }
 
         var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document == null)
-        {
             return SpecializedTasks.False;
-        }
 
         var workspace = buffer.GetWorkspace();
-        Contract.ThrowIfNull(workspace);
-        return FixAsync(workspace, ApplyFixAsync, context);
+        if (workspace is not VisualStudioWorkspace visualStudioWorkspace)
+            return SpecializedTasks.False;
+
+        return FixAsync(visualStudioWorkspace, ApplyFixAsync, context);
 
         // Local function
         async Task<Solution> ApplyFixAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
@@ -177,7 +166,7 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
     }
 
     private async Task<bool> FixAsync(
-        Workspace workspace,
+        VisualStudioWorkspace workspace,
         Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> applyFixAsync,
         ICodeCleanUpExecutionContext context)
     {

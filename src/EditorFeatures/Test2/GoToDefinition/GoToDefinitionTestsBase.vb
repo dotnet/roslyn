@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
-    Public Class GoToDefinitionTestsBase
+    Public MustInherit Class GoToDefinitionTestsBase
         Public Shared Async Function TestAsync(
                 workspaceDefinition As XElement,
                 Optional expectedResult As Boolean = True) As Task

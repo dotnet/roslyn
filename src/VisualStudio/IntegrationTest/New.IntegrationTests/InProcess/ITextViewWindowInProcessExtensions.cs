@@ -91,7 +91,7 @@ internal static class ITextViewWindowInProcessExtensions
 
         var view = await textViewWindow.GetActiveTextViewAsync(cancellationToken);
         if (view is null)
-            return ImmutableArray<Completion>.Empty;
+            return [];
 
         var broker = await textViewWindow.TestServices.Shell.GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
         var sessions = broker.GetSessions(view);
@@ -101,7 +101,7 @@ internal static class ITextViewWindowInProcessExtensions
         }
 
         var selectedCompletionSet = sessions[0].SelectedCompletionSet;
-        return selectedCompletionSet.Completions.ToImmutableArray();
+        return [.. selectedCompletionSet.Completions];
     }
 
     public static async Task InvokeCodeActionListAsync(this ITextViewWindowInProcess textViewWindow, CancellationToken cancellationToken)

@@ -355,6 +355,8 @@ namespace Microsoft.CodeAnalysis
         System_Linq_Expressions_NewArrayExpression,
         System_Linq_Expressions_DefaultExpression,
 
+        System_Text_Encoding,
+
         System_Collections_Generic_Dictionary_KV,
         System_Collections_Generic_KeyValuePair_KV,
 
@@ -698,6 +700,8 @@ namespace Microsoft.CodeAnalysis
             "System.Linq.Expressions.InvocationExpression",
             "System.Linq.Expressions.NewArrayExpression",
             "System.Linq.Expressions.DefaultExpression",
+
+            "System.Text.Encoding",
 
             "System.Collections.Generic.Dictionary`2",
             "System.Collections.Generic.KeyValuePair`2",

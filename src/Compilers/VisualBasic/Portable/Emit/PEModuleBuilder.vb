@@ -386,9 +386,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(HaveDeterminedTopLevelTypes)
 
             If _lazyExportedTypes.IsDefault Then
-                _lazyExportedTypes = CalculateExportedTypes()
+                Dim initialized = ImmutableInterlocked.InterlockedInitialize(_lazyExportedTypes, CalculateExportedTypes())
 
-                If _lazyExportedTypes.Length > 0 Then
+                If initialized AndAlso _lazyExportedTypes.Length > 0 Then
                     ReportExportedTypeNameCollisions(_lazyExportedTypes, diagnostics)
                 End If
             End If

@@ -1278,7 +1278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool ContainsFunctionPointer(this TypeSymbol type) =>
             type.VisitType((TypeSymbol t, object? _, bool _) => t.IsFunctionPointer(), null) is object;
 
-        internal static bool ContainsPointer(this TypeSymbol type) =>
+        internal static bool ContainsPointerOrFunctionPointer(this TypeSymbol type) =>
             type.VisitType((TypeSymbol t, object? _, bool _) => t.TypeKind is TypeKind.Pointer or TypeKind.FunctionPointer, null) is object;
 
         /// <summary>
@@ -2135,6 +2135,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return typeSymbol is NamedTypeSymbol { Name: WellKnownMemberNames.LockTypeName, Arity: 0, ContainingType: null } &&
                 typeSymbol.IsContainedInNamespace(nameof(System), nameof(System.Threading));
+        }
+
+        internal static bool IsMicrosoftCodeAnalysisEmbeddedAttribute(this TypeSymbol typeSymbol)
+        {
+            return typeSymbol is NamedTypeSymbol
+            {
+                Name: "EmbeddedAttribute",
+                Arity: 0,
+                ContainingType: null,
+            }
+            && typeSymbol.IsContainedInNamespace("Microsoft", "CodeAnalysis");
         }
 
         private static bool IsWellKnownInteropServicesTopLevelType(this TypeSymbol typeSymbol, string name)

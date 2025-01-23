@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DecompiledSource
         {
             if (_inMemoryImagesForTesting.TryGetValue(metadataReference, out var pair))
             {
-                return new PEFile(pair.fileName, new MemoryStream(pair.image.ToArray()), streamOptions);
+                return new PEFile(pair.fileName, new MemoryStream([.. pair.image]), streamOptions);
             }
 
             return null;

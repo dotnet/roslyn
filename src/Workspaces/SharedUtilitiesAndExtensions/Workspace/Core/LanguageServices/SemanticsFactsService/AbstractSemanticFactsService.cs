@@ -89,7 +89,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     /// could cause a compiler error if its name is re-used at that location.
     /// </summary>
     protected virtual IEnumerable<ISymbol> GetCollidableSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode container, CancellationToken cancellationToken)
-        => semanticModel.LookupSymbols(location.SpanStart).Concat(semanticModel.GetExistingSymbols(container, cancellationToken));
+        => semanticModel.LookupSymbols(location.SpanStart).Concat(semanticModel.GetAllDeclaredSymbols(container, cancellationToken));
 
     public SyntaxToken GenerateUniqueName(string baseName, IEnumerable<string> usedNames)
     {
@@ -253,6 +253,9 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
 
     public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
         => SemanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize, cancellationToken);
+
+    public IPreprocessingSymbol GetPreprocessingSymbol(SemanticModel semanticModel, SyntaxNode node)
+        => SemanticFacts.GetPreprocessingSymbol(semanticModel, node);
 
 #if !CODE_STYLE
 
