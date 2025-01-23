@@ -54,6 +54,8 @@ public static class RuntimeHelpers
 We presume the following `MethodImplOptions` bit is present. This is used to indicate to the JIT that it should generate an async state machine for the method. This bit is not allowed to be used manually on any method; it is added by the compiler
 to an `async` method.
 
+TODO: We may want to block directly calling `MethodImplOptions.Async` methods with non-`Task`/`ValueTask` return types.
+
 ```cs
 namespace System.Runtime.CompilerServices;
 
