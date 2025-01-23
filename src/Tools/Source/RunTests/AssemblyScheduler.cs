@@ -5,12 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.TeamFoundation.TestManagement.WebApi;
+using Moq;
 
 namespace RunTests
 {
@@ -48,10 +52,10 @@ namespace RunTests
             {
                 // We didn't have any test history from azure devops, just partition by test count.
                 ConsoleUtil.Warning($"Could not look up test history - partitioning based on test count instead");
-                var workItemsByMethodCount = BuildWorkItems<int>(
+                var workItemsByMethodCount = BuildWorkItems(
                     orderedTypeInfos,
-                    isOverLimitFunc: static (accumulatedMethodCount) => accumulatedMethodCount >= s_maxMethodCount,
-                    addFunc: static (currentTest, accumulatedMethodCount) => accumulatedMethodCount + 1);
+                    getWeightFunc: static test => 1,
+                    limit: s_maxMethodCount);
 
                 LogWorkItems(workItemsByMethodCount);
                 return workItemsByMethodCount;
@@ -66,10 +70,10 @@ namespace RunTests
             // Create work items by partitioning tests by historical execution time with the goal of running under our time limit.
             // While we do our best to run tests from the same assembly together (by building work items in assembly order) it is expected
             // that some work items will run tests from multiple assemblies due to large variances in test execution time.
-            var workItems = BuildWorkItems<TimeSpan>(
+            var workItems = BuildWorkItems(
                 orderedTypeInfos,
-                isOverLimitFunc: static (accumulatedExecutionTime) => accumulatedExecutionTime >= s_maxExecutionTime,
-                addFunc: static (currentTest, accumulatedExecutionTime) => currentTest.ExecutionTime + accumulatedExecutionTime);
+                getWeightFunc: static test => test.ExecutionTime.TotalSeconds,
+                limit: s_maxExecutionTime.TotalSeconds);
             LogWorkItems(workItems);
             return workItems;
         }
@@ -155,89 +159,82 @@ namespace RunTests
 
         private static ImmutableArray<HelixWorkItem> BuildWorkItems<TWeight>(
             ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> typeInfos,
-            Func<TWeight, bool> isOverLimitFunc,
-            Func<TestMethodInfo, TWeight, TWeight> addFunc) where TWeight : struct
+            Func<TestMethodInfo, TWeight> getWeightFunc,
+            TWeight limit)
+            where TWeight : struct, INumber<TWeight>
         {
             var workItems = new List<HelixWorkItem>();
+            var currentWeight = TWeight.Zero;
+            var currentFilters = new List<(string AssemblyFilePath, TestMethodInfo TestMethodInfo)>();
 
-            // Keep track of the limit of the current work item we are adding to.
-            var accumulatedValue = default(TWeight);
-
-            // Keep track of the types we're planning to add to the current work item. The key 
-            // is the file path of the assembly
-            var currentFilters = new SortedDictionary<string, List<TestMethodInfo>>();
-
-            // First find any assemblies we need to run in single assembly work items (due to state sharing concerns).
-            var singlePartitionAssemblies = typeInfos.Where(kvp => ShouldPartitionInSingleWorkItem(kvp.Key));
-            typeInfos = typeInfos.RemoveRange(singlePartitionAssemblies.Select(kvp => kvp.Key));
-            foreach (var (assemblyFilePaths, types) in singlePartitionAssemblies)
-            {
-                ConsoleUtil.WriteLine($"Building single assembly work item {workItems.Count} for {assemblyFilePaths}");
-                types.SelectMany(t => t.Tests).ToList().ForEach(test => AddFilter(assemblyFilePaths, test));
-
-                // End the work item so we don't include anything after this assembly.
-                AddCurrentWorkItem();
-            }
-
-            // Iterate through each assembly and type and build up the work items to run.
-            // We add types from assemblies one by one until we hit our limit,
-            // at which point we create a work item with the current types and start a new one.
             foreach (var (assemblyFilePath, types) in typeInfos)
             {
+                if (ShouldPartitionInSingleWorkItem(assemblyFilePath))
+                {
+                    AddWorkItem(types.SelectMany(x => x.Tests).Select(x => (assemblyFilePath, x)));
+                    continue;
+                }
+
                 foreach (var type in types)
                 {
                     foreach (var test in type.Tests)
                     {
-                        // Get a new value representing the value from the test plus the accumulated value in the work item.
-                        var newAccumulatedValue = addFunc(test, accumulatedValue);
+                        var weight = getWeightFunc(test);
 
-                        // If the new accumulated value is greater than the limit
-                        if (isOverLimitFunc(newAccumulatedValue))
+                        // When the single test is greater than the limit, give it a dedicated work item
+                        if (weight > limit)
                         {
-                            // Adding this type would put us over the time limit for this partition.
-                            // Add the current work item to our list and start a new one.
-                            AddCurrentWorkItem();
+                            AddWorkItem([(assemblyFilePath, test)]);
+                            continue;
                         }
 
-                        // Update the current group in the work item with this new type.
-                        AddFilter(assemblyFilePath, test);
+                        currentWeight += weight;
+
+                        // If the accumulated value is greater than the limit then we close off the current
+                        // work item and start a new one
+                        if (currentWeight > limit)
+                        {
+                            MaybeAddCurrentWorkItem();
+                            currentWeight = weight;
+                        }
+
+                        currentFilters.Add((assemblyFilePath, test));
                     }
                 }
             }
 
-            // Add any remaining tests to the work item.
-            AddCurrentWorkItem();
+            MaybeAddCurrentWorkItem();
             return workItems.ToImmutableArray();
 
-            void AddCurrentWorkItem()
+            void MaybeAddCurrentWorkItem()
             {
-                if (currentFilters.Any())
+                if (currentFilters.Count > 0)
                 {
-                    var e = currentFilters.Values
-                        .SelectMany(v => v)
-                        .Sum(v => v.ExecutionTime.TotalSeconds);
-                    var workItemInfo = new HelixWorkItem(
-                        workItems.Count,
-                        currentFilters.Keys.ToImmutableArray(),
-                        currentFilters.Values.SelectMany(v => v).Select(x => x.FullyQualifiedName).ToImmutableArray(),
-                        TimeSpan.FromSeconds(e));
-                    workItems.Add(workItemInfo);
+                    AddWorkItem(currentFilters);
+                    currentFilters.Clear();
+                    currentWeight = TWeight.Zero;
                 }
-
-                currentFilters.Clear();
-                accumulatedValue = default;
             }
 
-            void AddFilter(string assemblyFilePath, TestMethodInfo test)
+            void AddWorkItem(params IEnumerable<(string AssemblyFilePath, TestMethodInfo TestMethodInfo)> tests)
             {
-                if (!currentFilters.TryGetValue(assemblyFilePath, out var assemblyFilters))
-                {
-                    assemblyFilters = new List<TestMethodInfo>();
-                    currentFilters.Add(assemblyFilePath, assemblyFilters);
-                }
-
-                assemblyFilters.Add(test);
-                accumulatedValue = addFunc(test, accumulatedValue);
+                Debug.Assert(tests.Any());
+                var assemblyFilePaths = tests
+                    .Select(x => x.AssemblyFilePath)
+                    .Distinct()
+                    .Order()
+                    .ToImmutableArray();
+                var testMethodNames = tests
+                    .Select(x => x.TestMethodInfo.FullyQualifiedName)
+                    .ToImmutableArray();
+                var executionTime = tests
+                    .Sum(x => x.TestMethodInfo.ExecutionTime.TotalSeconds);
+                var workItem = new HelixWorkItem(
+                    workItems.Count,
+                    assemblyFilePaths,
+                    testMethodNames,
+                    TimeSpan.FromSeconds(executionTime));
+                workItems.Add(workItem);
             }
         }
 
