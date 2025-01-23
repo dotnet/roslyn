@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Threading.Tasks;
+
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 
 internal interface ISession<TModel>
@@ -12,5 +14,5 @@ internal interface ISession<TModel>
 
     void Stop();
 
-    TModel WaitForController();
+    Task WaitForModelComputation_ForTestingPurposesOnlyAsync();
 }

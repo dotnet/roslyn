@@ -2700,7 +2700,35 @@ public class UseCollectionExpressionForFluentTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71145")]
-    public async Task TestNotInParallelEnumerable()
+    public async Task TestNotInParallelEnumerable1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        const bool shouldParallelize = false;
+
+                        IEnumerable<int> sequence = null!;
+
+                        var result = sequence.AsParallel().ToArray();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71145")]
+    public async Task TestNotInParallelEnumerable2()
     {
         await new VerifyCS.Test
         {
@@ -2721,7 +2749,28 @@ public class UseCollectionExpressionForFluentTests
 
                         var result = shouldParallelize
                             ? sequence.AsParallel().ToArray()
-                            : sequence.ToArray();
+                            : sequence.[|ToArray|]();
+                    }
+                }
+                """,
+            FixedCode =
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        const bool shouldParallelize = false;
+
+                        IEnumerable<int> sequence = null!;
+
+                        var result = shouldParallelize
+                            ? sequence.AsParallel().ToArray()
+                            : [.. sequence];
                     }
                 }
                 """,
@@ -3059,6 +3108,42 @@ public class UseCollectionExpressionForFluentTests
                     void M(int[] values, int[] x)
                     {
                         List<int> list = [.. values, 1, 2, 3, .. x];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75870")]
+    public async Task TestSelectToImmutableArray()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    ImmutableArray<string> GetFormattedNumbers(ImmutableArray<int> numbers)
+                    {
+                        return numbers.Select(n => $"Number: {n}").[|ToImmutableArray|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    ImmutableArray<string> GetFormattedNumbers(ImmutableArray<int> numbers)
+                    {
+                        return [.. numbers.Select(n => $"Number: {n}")];
                     }
                 }
                 """,

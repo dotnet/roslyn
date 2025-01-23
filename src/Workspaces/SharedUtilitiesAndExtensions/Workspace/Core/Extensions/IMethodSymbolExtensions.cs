@@ -137,7 +137,7 @@ internal static partial class IMethodSymbolExtensions
             newTypeParameter.ConstraintTypes = ImmutableArray.CreateRange(newTypeParameter.ConstraintTypes, t => t.SubstituteTypes(mapping, typeGenerator));
         }
 
-        return newTypeParameters.Cast<ITypeParameterSymbol>().ToImmutableArray();
+        return [.. newTypeParameters.Cast<ITypeParameterSymbol>()];
     }
 
     public static IMethodSymbol RemoveInaccessibleAttributesAndAttributesOfTypes(

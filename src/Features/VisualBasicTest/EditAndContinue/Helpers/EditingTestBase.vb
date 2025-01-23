@@ -28,11 +28,6 @@ Namespace System.Runtime.CompilerServices
     End Class
 End Namespace
 "
-
-        Friend Shared Function CreateAnalyzer() As VisualBasicEditAndContinueAnalyzer
-            Return New VisualBasicEditAndContinueAnalyzer()
-        End Function
-
         Public Enum MethodKind
             Regular
             Async
@@ -249,7 +244,8 @@ End Namespace
                                                 src2 As String,
                                                 Optional kind As MethodKind = MethodKind.Regular) As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))
             Dim methodMatch = GetMethodMatch(src1, src2, kind)
-            Return EditAndContinueTestVerifier.GetMethodMatches(CreateAnalyzer(), methodMatch)
+            Dim analyzer = EditAndContinueTestVerifier.CreateAnalyzer(faultInjector:=Nothing, LanguageNames.VisualBasic)
+            Return EditAndContinueTestVerifier.GetMethodMatches(analyzer, methodMatch)
         End Function
 
         Public Shared Function ToMatchingPairs(match As Match(Of SyntaxNode)) As MatchingPairs

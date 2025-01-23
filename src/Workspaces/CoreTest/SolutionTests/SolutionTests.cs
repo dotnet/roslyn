@@ -4611,7 +4611,7 @@ public class C : A {
 
             var syntaxTrees = GetSyntaxTrees();
 
-            Assert.Equal(documentIds.Count(), syntaxTrees.Count());
+            Assert.Equal(documentIds.Length, syntaxTrees.Length);
 
             Assert.Equal("test5.cs", syntaxTrees[0].FilePath, StringComparer.OrdinalIgnoreCase);
             Assert.Equal("test4.cs", syntaxTrees[1].FilePath, StringComparer.OrdinalIgnoreCase);
@@ -5695,7 +5695,7 @@ class C
             Assert.Single(frozenCompilation2.SyntaxTrees);
             Assert.True(frozenCompilation2.ContainsSyntaxTree(await frozenProject2.Documents.Single().GetSyntaxTreeAsync()));
 
-            Assert.Single(frozenCompilation2.References.Where(r => r is CompilationReference c && c.Compilation == frozenCompilation1));
+            Assert.Single(frozenCompilation2.References, r => r is CompilationReference c && c.Compilation == frozenCompilation1);
         }
 
         [Fact]

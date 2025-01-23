@@ -11,14 +11,10 @@ using Microsoft.CodeAnalysis.UseCompoundAssignment;
 namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseCompoundAssignmentDiagnosticAnalyzer
-    : AbstractUseCompoundAssignmentDiagnosticAnalyzer<SyntaxKind, AssignmentExpressionSyntax, BinaryExpressionSyntax>
+internal sealed class CSharpUseCompoundAssignmentDiagnosticAnalyzer()
+    : AbstractUseCompoundAssignmentDiagnosticAnalyzer<SyntaxKind, AssignmentExpressionSyntax, BinaryExpressionSyntax>(
+        CSharpSyntaxFacts.Instance, Utilities.Kinds)
 {
-    public CSharpUseCompoundAssignmentDiagnosticAnalyzer()
-        : base(CSharpSyntaxFacts.Instance, Utilities.Kinds)
-    {
-    }
-
     protected override SyntaxKind GetAnalysisKind()
         => SyntaxKind.SimpleAssignmentExpression;
 

@@ -97,7 +97,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
 
         var arguments = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false);
 
-        SetCommandLine(arguments.ToImmutableArray());
+        SetCommandLine([.. arguments]);
     }
 
     public void SetCommandLine(ImmutableArray<string> arguments)
@@ -199,7 +199,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
             .WithConcurrentBuild(concurrent: false)
             .WithXmlReferenceResolver(new XmlFileResolver(_commandLineArgumentsForCommandLine.BaseDirectory))
             .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
-            .WithStrongNameProvider(new DesktopStrongNameProvider(_commandLineArgumentsForCommandLine.KeyFileSearchPaths.WhereNotNull().ToImmutableArray(), Path.GetTempPath()));
+            .WithStrongNameProvider(new DesktopStrongNameProvider([.. _commandLineArgumentsForCommandLine.KeyFileSearchPaths.WhereNotNull()], Path.GetTempPath()));
 
         // Override the default documentation mode.
         var documentationMode = _commandLineArgumentsForCommandLine.DocumentationPath != null ? DocumentationMode.Diagnose : DocumentationMode.Parse;
@@ -246,7 +246,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
             // the effective result did. Then we call UpdateProjectOptions_NoLock to reapply any values; that will also re-acquire the new ruleset
             // includes in the IDE so we can be watching for changes again.
             var commandLine = _commandLineStorageHandle == null
-                ? ImmutableArray<string>.Empty
+                ? []
                 : EnumerateLines(_commandLineStorageHandle).ToImmutableArray();
 
             DisposeOfRuleSetFile_NoLock();

@@ -514,9 +514,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override int? TryGetOverloadResolutionPriority()
+        internal override int TryGetOverloadResolutionPriority()
         {
-            return null;
+            return 0;
         }
     }
 }

@@ -27,15 +27,11 @@ using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
-internal sealed partial class CSharpReplacePropertyWithMethodsService :
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class CSharpReplacePropertyWithMethodsService() :
     AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, NameMemberCrefSyntax, StatementSyntax, PropertyDeclarationSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpReplacePropertyWithMethodsService()
-    {
-    }
-
     public override async Task<ImmutableArray<SyntaxNode>> GetReplacementMembersAsync(
         Document document,
         IPropertySymbol property,
@@ -92,10 +88,12 @@ internal sealed partial class CSharpReplacePropertyWithMethodsService :
         var setMethod = property.SetMethod;
         if (setMethod != null)
         {
+            // Only copy leading trivia to the setter if we didn't already copy it to the getter.
             result.Add(GetSetMethod(
                 languageVersion,
                 generator, propertyDeclaration, propertyBackingField,
                 setMethod, desiredSetMethodName, expressionBodyPreference,
+                copyLeadingTrivia: getMethod is null,
                 cancellationToken));
         }
 
@@ -110,13 +108,13 @@ internal sealed partial class CSharpReplacePropertyWithMethodsService :
         IMethodSymbol setMethod,
         string desiredSetMethodName,
         ExpressionBodyPreference expressionBodyPreference,
+        bool copyLeadingTrivia,
         CancellationToken cancellationToken)
     {
         var methodDeclaration = GetSetMethodWorker();
 
-        // The analyzer doesn't report diagnostics when the trivia contains preprocessor directives, so it's safe
-        // to copy the complete leading trivia to both generated methods.
-        methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, ConvertValueToParamRewriter.Instance);
+        if (copyLeadingTrivia)
+            methodDeclaration = CopyLeadingTrivia(propertyDeclaration, methodDeclaration, ConvertValueToParamRewriter.Instance);
 
         return UseExpressionOrBlockBodyIfDesired(
             languageVersion, methodDeclaration, expressionBodyPreference,
@@ -236,13 +234,9 @@ internal sealed partial class CSharpReplacePropertyWithMethodsService :
 
     private static SyntaxTrivia ConvertTrivia(SyntaxTrivia trivia, CSharpSyntaxRewriter rewriter)
     {
-        if (trivia.Kind() is SyntaxKind.MultiLineDocumentationCommentTrivia or
-            SyntaxKind.SingleLineDocumentationCommentTrivia)
-        {
-            return ConvertDocumentationComment(trivia, rewriter);
-        }
-
-        return trivia;
+        return trivia.Kind() is SyntaxKind.MultiLineDocumentationCommentTrivia or SyntaxKind.SingleLineDocumentationCommentTrivia
+            ? ConvertDocumentationComment(trivia, rewriter)
+            : trivia;
     }
 
     private static SyntaxTrivia ConvertDocumentationComment(SyntaxTrivia trivia, CSharpSyntaxRewriter rewriter)
@@ -253,7 +247,7 @@ internal sealed partial class CSharpReplacePropertyWithMethodsService :
         return Trivia((StructuredTriviaSyntax)rewritten);
     }
 
-    private static SyntaxNode UseExpressionOrBlockBodyIfDesired(
+    private static MethodDeclarationSyntax UseExpressionOrBlockBodyIfDesired(
         LanguageVersion languageVersion,
         MethodDeclarationSyntax methodDeclaration,
         ExpressionBodyPreference expressionBodyPreference,

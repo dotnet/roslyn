@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     <[UseExportProvider]>
     Public Class AbstractTextViewFilterTests
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617826"), Trait(Traits.Feature, Traits.Features.Venus), Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub MapPointsInProjectionCSharp()
+        Public Async Function MapPointsInProjectionCSharp() As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -45,13 +45,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                                                          ]]></text>.Value.Replace(vbLf, vbCrLf), {doc})
 
                 Dim matchingSpan = projected.SelectedSpans.Single()
-                TestSpan(workspace, projected, projected.CursorPosition.Value, matchingSpan.End)
-                TestSpan(workspace, projected, matchingSpan.End, projected.CursorPosition.Value)
+                Await TestSpan(workspace, projected, projected.CursorPosition.Value, matchingSpan.End)
+                Await TestSpan(workspace, projected, matchingSpan.End, projected.CursorPosition.Value)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub GotoBraceNavigatesToOuterPositionOfMatchingBraceCSharp()
+        Public Async Function GotoBraceNavigatesToOuterPositionOfMatchingBraceCSharp() As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -75,13 +75,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
-                TestSpan(workspace, doc, doc.CursorPosition.Value, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
-                TestSpan(workspace, doc, span.End, doc.CursorPosition.Value, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                Await TestSpan(workspace, doc, doc.CursorPosition.Value, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                Await TestSpan(workspace, doc, span.End, doc.CursorPosition.Value, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub GotoBraceFromLeftAndRightOfOpenAndCloseBracesCSharp()
+        Public Async Function GotoBraceFromLeftAndRightOfOpenAndCloseBracesCSharp() As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -105,15 +105,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
-                TestSpan(workspace, doc, span.Start, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
-                TestSpan(workspace, doc, span.End, span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
-                TestSpan(workspace, doc, span.Start + 1, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
-                TestSpan(workspace, doc, span.End - 1, span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                Await TestSpan(workspace, doc, span.Start, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                Await TestSpan(workspace, doc, span.End, span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                Await TestSpan(workspace, doc, span.Start + 1, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                Await TestSpan(workspace, doc, span.End - 1, span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub GotoBraceExtFindsTheInnerPositionOfCloseBraceAndOuterPositionOfOpenBraceCSharp()
+        Public Async Function GotoBraceExtFindsTheInnerPositionOfCloseBraceAndOuterPositionOfOpenBraceCSharp() As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -137,13 +137,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
-                TestSpan(workspace, doc, caretPosition:=span.Start, startPosition:=span.Start, endPosition:=span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
-                TestSpan(workspace, doc, caretPosition:=doc.CursorPosition.Value, startPosition:=span.End, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                Await TestSpan(workspace, doc, caretPosition:=span.Start, startPosition:=span.Start, endPosition:=span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                Await TestSpan(workspace, doc, caretPosition:=doc.CursorPosition.Value, startPosition:=span.End, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub GotoBraceExtFromLeftAndRightOfOpenAndCloseBracesCSharp()
+        Public Async Function GotoBraceExtFromLeftAndRightOfOpenAndCloseBracesCSharp() As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
@@ -169,17 +169,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 Dim span = doc.SelectedSpans.Single()
 
                 ' Test from left and right of Open parenthesis
-                TestSpan(workspace, doc, caretPosition:=span.Start, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
-                TestSpan(workspace, doc, caretPosition:=span.Start + 1, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                Await TestSpan(workspace, doc, caretPosition:=span.Start, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                Await TestSpan(workspace, doc, caretPosition:=span.Start + 1, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
 
                 ' Test from left and right of Close parenthesis
-                TestSpan(workspace, doc, caretPosition:=span.End, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
-                TestSpan(workspace, doc, caretPosition:=span.End - 1, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                Await TestSpan(workspace, doc, caretPosition:=span.End, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                Await TestSpan(workspace, doc, caretPosition:=span.End - 1, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub GotoBraceFromLeftAndRightOfOpenAndCloseBracesBasic()
+        Public Async Function GotoBraceFromLeftAndRightOfOpenAndCloseBracesBasic() As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
@@ -202,15 +202,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim doc = workspace.Documents.Single()
                 Dim span = doc.SelectedSpans.Single()
-                TestSpan(workspace, doc, span.Start, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
-                TestSpan(workspace, doc, span.End, span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
-                TestSpan(workspace, doc, span.Start + 1, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
-                TestSpan(workspace, doc, span.End - 1, span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                Await TestSpan(workspace, doc, span.Start, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                Await TestSpan(workspace, doc, span.End, span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                Await TestSpan(workspace, doc, span.Start + 1, span.End, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
+                Await TestSpan(workspace, doc, span.End - 1, span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE))
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
-        Public Sub GotoBraceExtFromLeftAndRightOfOpenAndCloseBracesBasic()
+        Public Async Function GotoBraceExtFromLeftAndRightOfOpenAndCloseBracesBasic() As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language=<%= LanguageNames.VisualBasic %> CommonReferences="true">
@@ -235,58 +235,58 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 Dim span = doc.SelectedSpans.Single()
 
                 ' Test from left and right of Open parenthesis
-                TestSpan(workspace, doc, caretPosition:=span.Start, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
-                TestSpan(workspace, doc, caretPosition:=span.Start + 1, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                Await TestSpan(workspace, doc, caretPosition:=span.Start, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                Await TestSpan(workspace, doc, caretPosition:=span.Start + 1, startPosition:=span.Start, endPosition:=span.End - 1, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
 
                 ' Test from left and right of Close parenthesis
-                TestSpan(workspace, doc, caretPosition:=span.End, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
-                TestSpan(workspace, doc, caretPosition:=span.End - 1, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                Await TestSpan(workspace, doc, caretPosition:=span.End, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
+                Await TestSpan(workspace, doc, caretPosition:=span.End - 1, startPosition:=span.End - 1, endPosition:=span.Start, commandId:=CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT))
             End Using
-        End Sub
+        End Function
 
-        Private Shared Sub TestSpan(workspace As EditorTestWorkspace, document As EditorTestHostDocument, startPosition As Integer, endPosition As Integer, Optional commandId As UInteger = Nothing)
+        Private Shared Async Function TestSpan(workspace As EditorTestWorkspace, document As EditorTestHostDocument, startPosition As Integer, endPosition As Integer, Optional commandId As UInteger = Nothing) As Task
             Dim braceMatcher = workspace.ExportProvider.GetExportedValue(Of IBraceMatchingService)()
             Dim initialLine = document.InitialTextSnapshot.GetLineFromPosition(startPosition)
             Dim initialLineNumber = initialLine.LineNumber
             Dim initialIndex = startPosition - initialLine.Start.Position
             Dim spans() = {New VsTextSpan()}
-            Assert.Equal(0, AbstractVsTextViewFilter.GetPairExtentsWorker(
-                         document.GetTextView(),
-                         braceMatcher,
-                         workspace.GlobalOptions,
-                         initialLineNumber,
-                         initialIndex,
-                         spans,
-                         commandId = CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT),
-                         CancellationToken.None))
+            Assert.Equal(0, Await AbstractVsTextViewFilter.GetPairExtentsAsync(
+                document.GetTextView(),
+                braceMatcher,
+                workspace.GlobalOptions,
+                initialLineNumber,
+                initialIndex,
+                spans,
+                commandId = CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT),
+                CancellationToken.None))
 
             ' Note - we only set either the start OR the end to the result, the other gets set to the source.
             Dim resultLine = document.InitialTextSnapshot.GetLineFromPosition(endPosition)
             Dim resultIndex = endPosition - resultLine.Start.Position
             AssertSpansMatch(startPosition, endPosition, initialLineNumber, initialIndex, spans, resultLine, resultIndex)
-        End Sub
+        End Function
 
-        Private Shared Sub TestSpan(workspace As EditorTestWorkspace, document As EditorTestHostDocument, caretPosition As Integer, startPosition As Integer, endPosition As Integer, Optional commandId As UInteger = Nothing)
+        Private Shared Async Function TestSpan(workspace As EditorTestWorkspace, document As EditorTestHostDocument, caretPosition As Integer, startPosition As Integer, endPosition As Integer, Optional commandId As UInteger = Nothing) As Task
             Dim braceMatcher = workspace.ExportProvider.GetExportedValue(Of IBraceMatchingService)()
             Dim initialLine = document.InitialTextSnapshot.GetLineFromPosition(caretPosition)
             Dim initialLineNumber = initialLine.LineNumber
             Dim initialIndex = caretPosition - initialLine.Start.Position
             Dim spans() = {New VsTextSpan()}
-            Assert.Equal(0, AbstractVsTextViewFilter.GetPairExtentsWorker(
-                         document.GetTextView(),
-                         braceMatcher,
-                         workspace.GlobalOptions,
-                         initialLineNumber,
-                         initialIndex,
-                         spans,
-                         commandId = CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT),
-                         CancellationToken.None))
+            Assert.Equal(0, Await AbstractVsTextViewFilter.GetPairExtentsAsync(
+                document.GetTextView(),
+                braceMatcher,
+                workspace.GlobalOptions,
+                initialLineNumber,
+                initialIndex,
+                spans,
+                commandId = CUInt(VSConstants.VSStd2KCmdID.GOTOBRACE_EXT),
+                CancellationToken.None))
             'In extending selection (GotoBraceExt) scenarios we set both start AND end to the result.
             Dim startIndex = startPosition - initialLine.Start.Position
             Dim resultLine = document.InitialTextSnapshot.GetLineFromPosition(endPosition)
             Dim resultIndex = endPosition - resultLine.Start.Position
             AssertSpansMatch(startPosition, endPosition, initialLineNumber, startIndex, spans, resultLine, resultIndex)
-        End Sub
+        End Function
 
         Private Shared Sub AssertSpansMatch(startPosition As Integer, endPosition As Integer, initialLineNumber As Integer, startIndex As Integer, spans() As VsTextSpan, resultLine As Text.ITextSnapshotLine, resultIndex As Integer)
             If endPosition > startPosition Then

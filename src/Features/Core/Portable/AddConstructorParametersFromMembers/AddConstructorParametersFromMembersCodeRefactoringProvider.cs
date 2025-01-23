@@ -21,19 +21,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
 
+using static GenerateFromMembersHelpers;
+
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
     Name = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers), Shared]
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
                 Before = PredefinedCodeRefactoringProviderNames.GenerateOverrides)]
 [IntentProvider(WellKnownIntents.AddConstructorParameter, LanguageNames.CSharp)]
-internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider, IIntentProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider()
+        : CodeRefactoringProvider, IIntentProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public AddConstructorParametersFromMembersCodeRefactoringProvider()
-    {
-    }
-
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, textSpan, cancellationToken) = context;

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             private readonly object _gate = new();
             private bool _initialized = false;
-            private readonly ImmutableArray<IEventListener<object>> _eventListeners = eventListeners.ToImmutableArray();
+            private readonly ImmutableArray<IEventListener<object>> _eventListeners = [.. eventListeners];
 
             public void EnsureListeners()
             {

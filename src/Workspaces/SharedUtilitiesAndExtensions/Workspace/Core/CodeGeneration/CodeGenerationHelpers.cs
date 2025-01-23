@@ -175,12 +175,12 @@ internal static class CodeGenerationHelpers
         return node.WithLeadingTrivia(leadingTrivia);
     }
 
-    public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationContextInfo info)
+    public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute)
         where T : SyntaxNode
     {
         Contract.ThrowIfNull(attribute);
 
-        return info.Context.ReuseSyntax && attribute.ApplicationSyntaxReference != null
+        return attribute.ApplicationSyntaxReference != null
             ? attribute.ApplicationSyntaxReference.GetSyntax() as T
             : null;
     }

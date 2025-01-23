@@ -666,7 +666,7 @@ public class C<T> where T : int
             var compilation = CreateCompilation(code).VerifyDiagnostics();
             var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
 
-            SourceTypeParameterSymbol sourceTypeParameter = (SourceTypeParameterSymbol)sourceAssembly.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+            SourceTypeTypeParameterSymbol sourceTypeParameter = (SourceTypeTypeParameterSymbol)sourceAssembly.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
             Assert.Equal(isUnmanaged, sourceTypeParameter.HasUnmanagedTypeConstraint);
 
             var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);

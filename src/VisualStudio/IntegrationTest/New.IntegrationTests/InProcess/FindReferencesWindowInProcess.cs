@@ -56,7 +56,7 @@ internal partial class FindReferencesWindowInProcess
         var forcedUpdateResult = await tableControl.ForceUpdateAsync().WithCancellation(cancellationToken);
 
         // Extract the basic text of the results.
-        return forcedUpdateResult.AllEntries.Cast<ITableEntryHandle2>().ToImmutableArray();
+        return [.. forcedUpdateResult.AllEntries.Cast<ITableEntryHandle2>()];
     }
 
     public async Task NavigateToAsync(ITableEntryHandle2 referenceInGeneratedFile, bool isPreview, bool shouldActivate, CancellationToken cancellationToken)

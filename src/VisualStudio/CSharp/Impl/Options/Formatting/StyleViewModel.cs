@@ -10,7 +10,9 @@ using System.Windows.Data;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
@@ -1489,7 +1491,7 @@ class Customer2
     }}
 //]", $@"
 //[
-    // {CSharpVSResources.Outside_namespace}
+    // {CSharpEditorResources.Outside_namespace}
     using System;
     using System.Linq;
 
@@ -2208,7 +2210,7 @@ class C2
             var usingDirectivePlacementPreferences = new List<CodeStylePreference>
             {
                 new CodeStylePreference(CSharpVSResources.Inside_namespace, isChecked: false),
-                new CodeStylePreference(CSharpVSResources.Outside_namespace, isChecked: false),
+                new CodeStylePreference(CSharpEditorResources.Outside_namespace, isChecked: false),
             };
 
             var qualifyMemberAccessPreferences = new List<CodeStylePreference>
@@ -2291,8 +2293,8 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferConditionalDelegateCall, CSharpVSResources.Prefer_conditional_delegate_call, s_preferConditionalDelegateCall, s_preferConditionalDelegateCall, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionStore, nullCheckingGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionStore, nullCheckingGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, CSharpVSResources.Prefer_null_check_over_type_check, s_preferNullcheckOverTypeCheck, s_preferNullcheckOverTypeCheck, this, optionStore, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, EditorFeaturesResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionStore, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, CSharpAnalyzersResources.Prefer_null_check_over_type_check, s_preferNullcheckOverTypeCheck, s_preferNullcheckOverTypeCheck, this, optionStore, nullCheckingGroupTitle));
 
             // Using directive preferences.
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<AddImportPlacement>(
@@ -2350,8 +2352,8 @@ class C2
         {
             var bracesPreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference(ServicesVSResources.Yes, isChecked: false),
-                new CodeStylePreference(ServicesVSResources.No, isChecked: false),
+                new CodeStylePreference(EditorFeaturesResources.Yes, isChecked: false),
+                new CodeStylePreference(EditorFeaturesResources.No, isChecked: false),
                 new CodeStylePreference(CSharpVSResources.When_on_multiple_lines, isChecked: false),
             };
 
@@ -2387,7 +2389,7 @@ class C2
         {
             var expressionBodyPreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference(CSharpVSResources.Never, isChecked: false),
+                new CodeStylePreference(ServicesVSResources.Never, isChecked: false),
                 new CodeStylePreference(CSharpVSResources.When_possible, isChecked: false),
                 new CodeStylePreference(CSharpVSResources.When_on_single_line, isChecked: false),
             };
@@ -2455,7 +2457,7 @@ class C2
         {
             var unusedValuePreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference(CSharpVSResources.Unused_local, isChecked: false),
+                new CodeStylePreference(ServicesVSResources.Unused_local, isChecked: false),
                 new CodeStylePreference(CSharpVSResources.Discard, isChecked: true),
             };
 

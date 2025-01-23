@@ -317,7 +317,7 @@ internal readonly struct DiagnosticAnalysisResult
             documents = documents.Concat(nonLocals.Keys);
         }
 
-        return ImmutableHashSet.CreateRange(documents);
+        return [.. documents];
     }
 
     [Conditional("DEBUG")]

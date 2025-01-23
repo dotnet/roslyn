@@ -112,7 +112,7 @@ internal sealed partial class FunctionPointerUnmanagedCallingConventionCompletio
                 completionItems.Add(
                     SymbolCompletionItem.CreateWithSymbolId(
                         displayName,
-                        ImmutableArray.Create(type),
+                        [type],
                         rules: CompletionItemRules.Default,
                         contextPosition));
             }

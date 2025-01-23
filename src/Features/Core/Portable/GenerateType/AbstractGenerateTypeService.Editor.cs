@@ -409,7 +409,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var root = await generateTypeOptionsResult.ExistingDocument.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
             var folders = generateTypeOptionsResult.ExistingDocument.Folders;
 
-            var namespaceContainersAndUsings = GetNamespaceContainersAndAddUsingsOrImport(isDialog, new List<string>(folders), generateTypeOptionsResult.AreFoldersValidIdentifiers, generateTypeOptionsResult.Project, triggeringProject);
+            var namespaceContainersAndUsings = GetNamespaceContainersAndAddUsingsOrImport(isDialog, [.. folders], generateTypeOptionsResult.AreFoldersValidIdentifiers, generateTypeOptionsResult.Project, triggeringProject);
 
             var containers = namespaceContainersAndUsings.containers;
             var includeUsingsOrImports = namespaceContainersAndUsings.usingOrImport;

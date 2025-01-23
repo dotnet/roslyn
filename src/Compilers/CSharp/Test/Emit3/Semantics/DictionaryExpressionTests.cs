@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (12,16): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         return [1:"one", x, ..y];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, @"[1:""one"", x, ..y]").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(12, 16),
-                // (12,17): error CS9268: Collection expression type 'Dictionary<int, string>' does not support key-value pair elements.
+                // (12,17): error CS9274: Collection expression type 'Dictionary<int, string>' does not support key-value pair elements.
                 //         return [1:"one", x, ..y];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"1:""one""").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(12, 17));
         }
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation(sourceB1, references: [refA]);
             comp.VerifyEmitDiagnostics(
-                // (10,17): error CS9268: Collection expression type 'IEnumerable<MyKeyValuePair<K, V>>' does not support key-value pair elements.
+                // (10,17): error CS9274: Collection expression type 'IEnumerable<MyKeyValuePair<K, V>>' does not support key-value pair elements.
                 //         return [k:v];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("System.Collections.Generic.IEnumerable<MyKeyValuePair<K, V>>").WithLocation(10, 17));
 

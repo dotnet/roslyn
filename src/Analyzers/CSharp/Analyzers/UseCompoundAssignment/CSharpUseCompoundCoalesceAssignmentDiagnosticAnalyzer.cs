@@ -25,17 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 /// </list>
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer
-    : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.UseCoalesceCompoundAssignmentDiagnosticId,
+        EnforceOnBuildValues.UseCoalesceCompoundAssignment,
+        CodeStyleOptions2.PreferCompoundAssignment,
+        new LocalizableResourceString(nameof(AnalyzersResources.Use_compound_assignment), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
 {
-    public CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.UseCoalesceCompoundAssignmentDiagnosticId,
-               EnforceOnBuildValues.UseCoalesceCompoundAssignment,
-               CodeStyleOptions2.PreferCompoundAssignment,
-               new LocalizableResourceString(nameof(AnalyzersResources.Use_compound_assignment), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -97,7 +93,7 @@ internal class CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer
             coalesceExpression.OperatorToken.GetLocation(),
             option.Notification,
             context.Options,
-            additionalLocations: ImmutableArray.Create(coalesceExpression.GetLocation()),
+            additionalLocations: [coalesceExpression.GetLocation()],
             properties: null));
     }
 
@@ -170,7 +166,7 @@ internal class CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer
             ifStatement.IfKeyword.GetLocation(),
             option.Notification,
             context.Options,
-            additionalLocations: ImmutableArray.Create(ifStatement.GetLocation()),
+            additionalLocations: [ifStatement.GetLocation()],
             properties: null));
     }
 

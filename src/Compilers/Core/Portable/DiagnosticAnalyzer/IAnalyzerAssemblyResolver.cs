@@ -14,8 +14,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Attempts to resolve an assembly by name.
         /// </summary>
-        /// <param name="assemblyName">The assembly to resolve</param>
+        /// <param name="assemblyName">The assembly to resolve.</param>
+        /// <param name="rootDirectory">The root directory the calling <see cref="AnalyzerAssemblyLoader"/> is configured with.</param>
         /// <returns>The resolved assembly, or <see langword="null"/></returns>
-        Assembly? ResolveAssembly(AssemblyName assemblyName);
+        Assembly? ResolveAssembly(AssemblyName assemblyName, string rootDirectory);
     }
 }

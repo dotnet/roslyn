@@ -45,8 +45,11 @@ internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider
     }
 
     protected override async Task FixOneAsync(
-        Document document, Diagnostic diagnostic,
-        SyntaxEditor editor, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
+        Document document,
+        Diagnostic diagnostic,
+        SyntaxEditor editor,
+        SyntaxFormattingOptions formattingOptions,
+        CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var ifStatement = (TIfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
@@ -56,7 +59,7 @@ internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider
         var containingSymbol = semanticModel.GetRequiredEnclosingSymbol(ifStatement.SpanStart, cancellationToken);
 
         if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
-                syntaxFacts, ifOperation, containingSymbol, out var isRef,
+                syntaxFacts, ifOperation, containingSymbol, cancellationToken, out var isRef,
                 out var trueStatement, out var falseStatement,
                 out var trueReturn, out var falseReturn))
         {

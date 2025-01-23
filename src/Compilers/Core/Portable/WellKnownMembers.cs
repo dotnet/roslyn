@@ -4352,6 +4352,17 @@ namespace Microsoft.CodeAnalysis
                         1,
                         (byte)SignatureTypeCode.GenericMethodParameter, 0,
 
+                // System_Linq_Enumerable__ToArray
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Enumerable,                                                                 // DeclaringTypeId
+                1,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericMethodParameter, 0, // Return Type
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
+                        1,
+                        (byte)SignatureTypeCode.GenericMethodParameter, 0,
+
                 // System_Linq_Expressions_Expression__ArrayIndex_Expression_Expression,
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
@@ -5171,6 +5182,22 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
 
+                // System_Text_Encoding__get_UTF8
+                (byte)(MemberFlags.PropertyGet | MemberFlags.Static),                                                       // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Text_Encoding - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Text_Encoding - WellKnownType.ExtSentinel), // Return Type
+
+                // System_Text_Encoding__GetString
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Text_Encoding - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Return Type
+                    (byte)SignatureTypeCode.Pointer, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Byte,     // Argument: byte*
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,                                     // Argument: int
+
                 // System_Collections_Generic_Dictionary_KV__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_Dictionary_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
@@ -5736,6 +5763,7 @@ namespace Microsoft.CodeAnalysis
                 "AddRange",                                 // System_Collections_Generic_List_T__AddRange
                 ".ctor",                                    // System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
                 "ToList",                                   // System_Linq_Enumerable__ToList
+                "ToArray",                                  // System_Linq_Enumerable__ToArray
                 "ArrayIndex",                               // System_Linq_Expressions_Expression__ArrayIndex_Expression_Expression
                 "ArrayIndex",                               // System_Linq_Expressions_Expression__ArrayIndex_Expression_Expressions
                 "Constant",                                 // System_Linq_Expressions_Expression__Constant
@@ -5823,6 +5851,8 @@ namespace Microsoft.CodeAnalysis
                 "GreaterThanOrEqual",                       // System_Linq_Expressions_Expression__GreaterThanOrEqual_MethodInfo,
                 "Default",                                  // System_Linq_Expressions_Expression__Default
                 "Power",                                    // System_Linq_Expressions_Expression__Power_MethodInfo,
+                "get_UTF8",                                 // System_Text_Encoding__get_UTF8
+                "GetString",                                // System_Text_Encoding__GetString
                 ".ctor",                                    // System_Collections_Generic_Dictionary_KV__ctor,
                 "set_Item",                                 // System_Collections_Generic_Dictionary_KV__set_Item
                 "get_Key",                                  // System_Collections_Generic_KeyValuePair_KV__get_Key

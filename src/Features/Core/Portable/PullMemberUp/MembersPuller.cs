@@ -95,8 +95,8 @@ internal static class MembersPuller
         var solution = document.Project.Solution;
         var solutionEditor = new SolutionEditor(solution);
         var codeGenerationService = document.Project.Services.GetRequiredService<ICodeGenerationService>();
-        var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
-            solution, pullMemberUpOptions.Destination, location: null, cancellationToken).ConfigureAwait(false);
+        var destinationSyntaxNode = codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclaration(
+            solution, pullMemberUpOptions.Destination, location: null, cancellationToken);
         var symbolToDeclarationsMap = await InitializeSymbolToDeclarationsMapAsync(pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
         var symbolsToPullUp = pullMemberUpOptions.MemberAnalysisResults.SelectAsArray(GetSymbolsToPullUp);
 
@@ -271,8 +271,8 @@ internal static class MembersPuller
         var solutionEditor = new SolutionEditor(solution);
         var codeGenerationService = document.Project.Services.GetRequiredService<ICodeGenerationService>();
 
-        var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
-            solution, result.Destination, location: null, cancellationToken).ConfigureAwait(false);
+        var destinationSyntaxNode = codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclaration(
+            solution, result.Destination, location: null, cancellationToken);
 
         var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
             solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),

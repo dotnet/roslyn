@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal sealed class UnitTestingRemoteServiceCallbackDispatcherRegistry : IRemoteServiceCallbackDispatcherProvider
     {
-        public static readonly UnitTestingRemoteServiceCallbackDispatcherRegistry Empty = new(Array.Empty<(Type, UnitTestingRemoteServiceCallbackDispatcher)>());
+        public static readonly UnitTestingRemoteServiceCallbackDispatcherRegistry Empty = new([]);
 
         private readonly ImmutableDictionary<Type, UnitTestingRemoteServiceCallbackDispatcher> _lazyDispatchers;
 

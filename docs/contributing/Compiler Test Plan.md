@@ -34,6 +34,7 @@ This document provides guidance for thinking about language interactions and tes
 - Performance and stress testing
 - Can build VS
 - Check that `Obsolete` is honored for members used in binding/lowering
+- LangVersion
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
@@ -51,6 +52,9 @@ This document provides guidance for thinking about language interactions and tes
 - events (including add/remove accessors)
 - Parameter modifiers: ref, out, in, ref readonly, params (for array, for non-array)
 - Attributes (including generic attributes and security attributes)
+  - Compiler-recognized attributes should not have any effect in earlier LangVersions,
+    except a LangVersion error should be reported when functionality depending on the attribute is used
+    (for example, InlineArray conversion to Span).
 - Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
 - Default and constant values
 - Partial classes

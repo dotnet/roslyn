@@ -105,7 +105,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 {
                     var (@this, e, tagsToRemove, allTagsList, allTagsSet) = args;
 
-                    // Compre-and-swap loops until we can successfully update the tag trees.  Clear out the collections
+                    // Compare-and-swap loops until we can successfully update the tag trees.  Clear out the collections
                     // so we're back in an initial state before performing any work in this lambda.
                     tagsToRemove.Clear();
                     allTagsList.Clear();

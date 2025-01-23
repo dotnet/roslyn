@@ -2,60 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Debugging;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities.Debugging;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.DebuggingDataTips)]
-public class DataTipInfoGetterTests
+public sealed class DataTipInfoGetterTests : AbstractDataTipInfoGetterTests
 {
-    private static async Task TestAsync(string markup, string expectedText = null)
-    {
-        await TestSpanGetterAsync(markup, async (document, position, expectedSpan) =>
-        {
-            var result = await DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None);
-
-            Assert.Equal(expectedSpan, result.Span);
-            Assert.Equal(expectedText, result.Text);
-        });
-    }
-
-    private static async Task TestNoDataTipAsync(string markup)
-    {
-        await TestSpanGetterAsync(markup, async (document, position, expectedSpan) =>
-        {
-            var result = await DataTipInfoGetter.GetInfoAsync(document, position, CancellationToken.None);
-            Assert.True(result.IsDefault);
-        });
-    }
-
-    private static async Task TestSpanGetterAsync(string markup, Func<Document, int, TextSpan?, Task> continuation)
-    {
-        using var workspace = EditorTestWorkspace.CreateCSharp(markup);
-        var testHostDocument = workspace.Documents.Single();
-        var position = testHostDocument.CursorPosition.Value;
-        var expectedSpan = testHostDocument.SelectedSpans.Any()
-            ? testHostDocument.SelectedSpans.Single()
-            : (TextSpan?)null;
-
-        await continuation(
-            workspace.CurrentSolution.Projects.First().Documents.First(),
-            position,
-            expectedSpan);
-    }
+    protected override EditorTestWorkspace CreateWorkspace(string markup)
+        => EditorTestWorkspace.CreateCSharp(markup);
 
     [Fact]
     public async Task TestCSharpLanguageDebugInfoGetDataTipSpanAndText()
@@ -460,104 +420,147 @@ public class DataTipInfoGetterTests
             """);
     }
 
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")]
-    public async Task TestConditionalAccessExpression()
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")]
+    // One level.
+    [InlineData("[|Me?.$$B|]")]
+    // Two levels.
+    [InlineData("[|Me?.$$B|].C")]
+    [InlineData("[|Me?.B.$$C|]")]
+    [InlineData("[|Me.$$B|]?.C")]
+    [InlineData("[|Me.B?.$$C|]")]
+    [InlineData("[|Me?.$$B|]?.C")]
+    [InlineData("[|Me?.B?.$$C|]")]
+    // Three levels.
+    [InlineData("[|Me?.$$B|].C.D")]
+    [InlineData("[|Me?.B.$$C|].D")]
+    [InlineData("[|Me?.B.C.$$D|]")]
+    [InlineData("[|Me.$$B|]?.C.D")]
+    [InlineData("[|Me.B?.$$C|].D")]
+    [InlineData("[|Me.B?.C.$$D|]")]
+    [InlineData("[|Me.$$B|].C?.D")]
+    [InlineData("[|Me.B.$$C|]?.D")]
+    [InlineData("[|Me.B.C?.$$D|]")]
+    [InlineData("[|Me?.$$B|]?.C.D")]
+    [InlineData("[|Me?.B?.$$C|].D")]
+    [InlineData("[|Me?.B?.C.$$D|]")]
+    [InlineData("[|Me?.$$B|].C?.D")]
+    [InlineData("[|Me?.B.$$C|]?.D")]
+    [InlineData("[|Me?.B.C?.$$D|]")]
+    [InlineData("[|Me.$$B|]?.C?.D")]
+    [InlineData("[|Me.B?.$$C|]?.D")]
+    [InlineData("[|Me.B?.C?.$$D|]")]
+    [InlineData("[|Me?.$$B|]?.C?.D")]
+    [InlineData("[|Me?.B?.$$C|]?.D")]
+    [InlineData("[|Me?.B?.C?.$$D|]")]
+    public async Task TestConditionalAccessExpression(string data)
     {
-        var sourceTemplate = """
+        await TestAsync($$"""
             class A
-            {{
+            {
                 B B;
 
                 object M()
-                {{
-                    return {0};
-                }}
-            }}
+                {
+                    return {{data}};
+                }
+            }
 
             class B
-            {{
+            {
                 C C;
-            }}
+            }
 
             class C
-            {{
+            {
                 D D;
-            }}
+            }
 
             class D
-            {{
-            }}
-            """;
-
-        // One level.
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|]"));
-
-        // Two levels.
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|].C"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B.$$C|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me.$$B|]?.C"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me.B?.$$C|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|]?.C"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.$$C|]"));
-
-        // Three levels.
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|].C.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B.$$C|].D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B.C.$$D|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me.$$B|]?.C.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me.B?.$$C|].D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me.B?.C.$$D|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me.$$B|].C?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me.B.$$C|]?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me.B.C?.$$D|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|]?.C.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.$$C|].D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.C.$$D|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|].C?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B.$$C|]?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B.C?.$$D|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me.$$B|]?.C?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me.B?.$$C|]?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me.B?.C?.$$D|]"));
-
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.$$B|]?.C?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.$$C|]?.D"));
-        await TestAsync(string.Format(sourceTemplate, "[|Me?.B?.C?.$$D|]"));
+            {
+            }
+            """);
     }
 
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")]
-    public async Task TestConditionalAccessExpression_Trivia()
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077843")]
+    [InlineData("/*1*/[|$$Me|]/*2*/?./*3*/B/*4*/?./*5*/C/*6*/")]
+    [InlineData("/*1*/[|Me/*2*/?./*3*/$$B|]/*4*/?./*5*/C/*6*/")]
+    [InlineData("/*1*/[|Me/*2*/?./*3*/B/*4*/?./*5*/$$C|]/*6*/")]
+    public async Task TestConditionalAccessExpression_Trivia(string data)
     {
-        var sourceTemplate = """
+        await TestAsync($$"""
             class A
-            {{
+            {
                 B B;
 
                 object M()
-                {{
-                    return {0};
-                }}
-            }}
+                {
+                    return {{data}};
+                }
+            }
 
             class B
-            {{
+            {
                 C C;
-            }}
+            }
 
             class C
-            {{
-            }}
-            """;
+            {
+            }
+            """);
+    }
 
-        await TestAsync(string.Format(sourceTemplate, "/*1*/[|$$Me|]/*2*/?./*3*/B/*4*/?./*5*/C/*6*/"));
-        await TestAsync(string.Format(sourceTemplate, "/*1*/[|Me/*2*/?./*3*/$$B|]/*4*/?./*5*/C/*6*/"));
-        await TestAsync(string.Format(sourceTemplate, "/*1*/[|Me/*2*/?./*3*/B/*4*/?./*5*/$$C|]/*6*/"));
+    [Fact]
+    public async Task TestLinq1()
+    {
+        await TestAsync("""
+            using System.Linq;
+
+            int[] args;
+            var v = $$[|args|].Select(a => a.ToString());
+            """);
+    }
+
+    [Fact]
+    public async Task TestLinq2()
+    {
+        await TestAsync("""
+            using System.Linq;
+
+            int[] args;
+            var v = {|LinqExpression:[|args.$$Select|](a => a.ToString())|};
+            """);
+    }
+
+    [Fact]
+    public async Task TestLinq3()
+    {
+        await TestAsync("""
+            using System.Linq;
+
+            int[] args;
+            var v = $$[|args|].Select(a => a.ToString()).Where(a => a.Length >= 0);
+            """);
+    }
+
+    [Fact]
+    public async Task TestLinq4()
+    {
+        await TestAsync("""
+            using System.Linq;
+
+            int[] args;
+            var v = {|LinqExpression:[|args.$$Select|](a => a.ToString())|}.Where(a => a.Length >= 0);
+            """);
+    }
+
+    [Fact]
+    public async Task TestLinq5()
+    {
+        await TestAsync("""
+            using System.Linq;
+
+            int[] args;
+            var v = {|LinqExpression:[|args.Select(a => a.ToString()).$$Where|](a => a.Length >= 0)|};
+            """);
     }
 }

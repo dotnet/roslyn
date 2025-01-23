@@ -120,7 +120,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
             capabilitiesProvider,
             logger,
             workspace.Services.HostServices,
-            ImmutableArray.Create(InternalLanguageNames.TypeScript),
+            [InternalLanguageNames.TypeScript],
             WellKnownLspServerKinds.RoslynTypeScriptLspServer);
 
         jsonRpc.StartListening();

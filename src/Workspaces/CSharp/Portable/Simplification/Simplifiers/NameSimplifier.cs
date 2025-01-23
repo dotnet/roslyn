@@ -548,7 +548,6 @@ internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
     /// property.
     /// </summary>
     /// <param name="node"></param>
-    /// <returns></returns>
     private static bool IsPartOfNamespaceDeclarationName(SyntaxNode node)
     {
         var parent = node;

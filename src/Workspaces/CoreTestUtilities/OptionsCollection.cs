@@ -106,10 +106,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     NamingStylePreferencesEditorConfigSerializer.WriteNamingStylePreferencesToEditorConfig(
                         namingPreferences.SymbolSpecifications,
                         namingPreferences.NamingStyles,
-                        namingPreferences.NamingRules,
+                        namingPreferences.Rules.NamingRules,
                         LanguageName,
                         entryWriter: builder.Add,
-                        triviaWriter: null);
+                        triviaWriter: null,
+                        setPrioritiesToPreserveOrder: false);
                 }
                 else
                 {

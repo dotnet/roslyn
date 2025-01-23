@@ -25,51 +25,46 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
-public class CSharpCodeActions : AbstractEditorTest
+public sealed class CSharpCodeActions() : AbstractEditorTest(nameof(CSharpCodeActions))
 {
-    public CSharpCodeActions()
-        : base(nameof(CSharpCodeActions))
-    {
-    }
-
     protected override string LanguageName => LanguageNames.CSharp;
 
     [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
     public async Task GenerateMethodInClosedFile()
     {
         var project = ProjectName;
-        await TestServices.SolutionExplorer.AddFileAsync(project, "Foo.cs", contents: @"
-public class Foo
-{
-}
-", cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddFileAsync(project, "Foo.cs", contents: """
+            public class Foo
+            {
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
 
-        await SetUpEditorAsync(@"
-using System;
+        await SetUpEditorAsync("""
+            using System;
 
-public class Program
-{
-    public static void Main(string[] args)
-    {
-        Foo f = new Foo();
-        f.Bar()$$
-    }
-}
-", HangMitigatingCancellationToken);
+            public class Program
+            {
+                public static void Main(string[] args)
+                {
+                    Foo f = new Foo();
+                    f.Bar()$$
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Generate method 'Bar'", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
-        await TestServices.SolutionVerifier.FileContentsAsync(project, "Foo.cs", @"
-using System;
+        await TestServices.SolutionVerifier.FileContentsAsync(project, "Foo.cs", """
+            using System;
 
-public class Foo
-{
-    internal void Bar()
-    {
-        throw new NotImplementedException();
-    }
-}
-", HangMitigatingCancellationToken);
+            public class Foo
+            {
+                internal void Bar()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """, HangMitigatingCancellationToken);
     }
 
     [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -77,12 +72,12 @@ public class Foo
     {
         // Need to ensure that incomplete member diagnostics run at high pri so that add-using can be
         // triggered by them.
-        await SetUpEditorAsync(@"
-class Program
-{
-    DateTime$$
-}
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            class Program
+            {
+                DateTime$$
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("using System;", cancellationToken: HangMitigatingCancellationToken);
     }
@@ -95,15 +90,15 @@ class Program
         // to get it to invoke without any sort of waiting to happen.  This helps address a bug
         // we had where our asynchronous smart tags interfered with asynchrony in VS, which caused
         // the second smart tag to not expand if you tried invoking it too quickly
-        await SetUpEditorAsync(@"
-class Program
-{
-    static void Main(string[] args)
-    {
-        Exception $$ex = new System.ArgumentException();
-    }
-}
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Exception $$ex = new System.ArgumentException();
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         // Suspend file change notification during code action application, since spurious file change notifications
         // can cause silent failure to apply the code action if they occur within this block.
@@ -122,44 +117,46 @@ class Program
         }
 
         await TestServices.EditorVerifier.TextContainsAsync(
-            @"
-using System;
+            """
+            using System;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        Exception ex = new ArgumentException();
-    }
-}", cancellationToken: HangMitigatingCancellationToken);
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Exception ex = new ArgumentException();
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
     public async Task InvokeDelegateWithConditionalAccessMultipleTimes()
     {
-        var markup = @"
-using System;
-class C
-{
-    public event EventHandler First;
-    public event EventHandler Second;
-    void RaiseFirst()
-    {
-        var temp1 = First;
-        if (temp1 != null)
-        {
-            temp1$$(this, EventArgs.Empty);
-        }
-    }
-    void RaiseSecond()
-    {
-        var temp2 = Second;
-        if (temp2 != null)
-        {
-            temp2(this, EventArgs.Empty);
-        }
-    }
-}";
+        var markup = """
+            using System;
+            class C
+            {
+                public event EventHandler First;
+                public event EventHandler Second;
+                void RaiseFirst()
+                {
+                    var temp1 = First;
+                    if (temp1 != null)
+                    {
+                        temp1$$(this, EventArgs.Empty);
+                    }
+                }
+                void RaiseSecond()
+                {
+                    var temp2 = Second;
+                    if (temp2 != null)
+                    {
+                        temp2(this, EventArgs.Empty);
+                    }
+                }
+            }
+            """;
         MarkupTestFile.GetSpans(markup, out _, out var _);
 
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
@@ -179,40 +176,42 @@ class C
     [WorkItem("https://github.com/dotnet/roslyn/issues/19089")]
     public async Task ApplyEditorConfigAndFixAllOccurrences()
     {
-        var markup = @"
-class C
-{
-    public int X1
-    {
-        get
-        {
-            $$return 3;
-        }
-    }
+        var markup = """
+            class C
+            {
+                public int X1
+                {
+                    get
+                    {
+                        $$return 3;
+                    }
+                }
 
-    public int Y1 => 5;
+                public int Y1 => 5;
 
-    public int X2
-    {
-        get
-        {
-            return 3;
-        }
-    }
+                public int X2
+                {
+                    get
+                    {
+                        return 3;
+                    }
+                }
 
-    public int Y2 => 5;
-}";
-        var expectedText = @"
-class C
-{
-    public int X1 => 3;
+                public int Y2 => 5;
+            }
+            """;
+        var expectedText = """
+            class C
+            {
+                public int X1 => 3;
 
-    public int Y1 => 5;
+                public int Y1 => 5;
 
-    public int X2 => 3;
+                public int X2 => 3;
 
-    public int Y2 => 5;
-}";
+                public int Y2 => 5;
+            }
+            """;
 
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
 
@@ -234,11 +233,12 @@ class C
             HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionsNotShowingAsync(HangMitigatingCancellationToken);
 
-        var editorConfig = @"root = true
+        var editorConfig = """
+            root = true
 
-[*.cs]
-csharp_style_expression_bodied_properties = true:warning
-";
+            [*.cs]
+            csharp_style_expression_bodied_properties = true:warning
+            """;
 
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", editorConfig, open: false, HangMitigatingCancellationToken);
 
@@ -283,41 +283,42 @@ csharp_style_expression_bodied_properties = true:warning
             fixAllScope: FixAllScope.Project,
             cancellationToken: HangMitigatingCancellationToken);
 
-        expectedText = @"
-class C
-{
-    public int X1
-    {
-        get
-        {
-            return 3;
-        }
-    }
+        expectedText = """
+            class C
+            {
+                public int X1
+                {
+                    get
+                    {
+                        return 3;
+                    }
+                }
 
-    public int Y1
-    {
-        get
-        {
-            return 5;
-        }
-    }
+                public int Y1
+                {
+                    get
+                    {
+                        return 5;
+                    }
+                }
 
-    public int X2
-    {
-        get
-        {
-            return 3;
-        }
-    }
+                public int X2
+                {
+                    get
+                    {
+                        return 3;
+                    }
+                }
 
-    public int Y2
-    {
-        get
-        {
-            return 5;
-        }
-    }
-}";
+                public int Y2
+                {
+                    get
+                    {
+                        return 5;
+                    }
+                }
+            }
+            """;
 
         AssertEx.EqualOrDiff(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
     }
@@ -327,38 +328,36 @@ class C
     [InlineData(FixAllScope.Solution)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/33507")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74761")]
     public async Task FixAllOccurrencesIgnoresGeneratedCode(FixAllScope scope)
     {
-        var markup = @"
-using System;
-using $$System.Threading;
+        var markup = """
+            using System;
+            using $$System.Threading;
 
-class C
-{
-    public IntPtr X1 { get; set; }
-}";
-        var expectedText = @"
-using System;
+            class C
+            {
+                public IntPtr X1 { get; set; }
+            }
+            """;
+        var expectedText = """
+            using System;
 
-class C
-{
-    public IntPtr X1 { get; set; }
-}";
-        var generatedSourceMarkup = @"// <auto-generated/>
-using System;
-using $$System.Threading;
+            class C
+            {
+                public IntPtr X1 { get; set; }
+            }
+            """;
+        var generatedSourceMarkup = """
+            // <auto-generated/>
+            using System;
+            using $$System.Threading;
 
-class D
-{
-    public IntPtr X1 { get; set; }
-}";
-        var expectedGeneratedSource = @"// <auto-generated/>
-using System;
-
-class D
-{
-    public IntPtr X1 { get; set; }
-}";
+            class D
+            {
+                public IntPtr X1 { get; set; }
+            }
+            """;
 
         MarkupTestFile.GetPosition(generatedSourceMarkup, out var generatedSource, out int generatedSourcePosition);
 
@@ -387,58 +386,34 @@ class D
         // The current behavior is observable; any change to this behavior should be part of an intentional design
         // change.
         await TestServices.Editor.MoveCaretAsync(generatedSourcePosition, HangMitigatingCancellationToken);
-        await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.CodeActionAsync(
-            "Remove unnecessary usings",
-            applyFix: true,
-            fixAllScope: FixAllScope.Document,
-            cancellationToken: HangMitigatingCancellationToken);
-
-        AssertEx.EqualOrDiff(generatedSource, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
-
-        // Verify that the code action can still be applied manually from within the generated file.
-        // This is a regression test for correctness with respect to the design.
-        await TestServices.Editor.MoveCaretAsync(generatedSourcePosition, HangMitigatingCancellationToken);
-        await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.CodeActionAsync(
-            "Remove unnecessary usings",
-            applyFix: true,
-            fixAllScope: null,
-            cancellationToken: HangMitigatingCancellationToken);
-
-        AssertEx.EqualOrDiff(expectedGeneratedSource, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+        await TestServices.EditorVerifier.CodeActionsNotShowingAsync(HangMitigatingCancellationToken);
     }
 
-    [CriticalIdeTheory]
-    [InlineData(FixAllScope.Project)]
-    [InlineData(FixAllScope.Solution)]
+    [IdeFact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/33507")]
-    public async Task FixAllOccurrencesTriggeredFromGeneratedCode(FixAllScope scope)
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74761")]
+    public async Task FixAllOccurrencesNotTriggeredFromGeneratedCode()
     {
-        var markup = @"// <auto-generated/>
-using System;
-using $$System.Threading;
+        var markup = """
+            // <auto-generated/>
+            using System;
+            using $$System.Threading;
 
-class C
-{
-    public IntPtr X1 { get; set; }
-}";
-        var secondFile = @"
-using System;
-using System.Threading;
+            class C
+            {
+                public IntPtr X1 { get; set; }
+            }
+            """;
+        var secondFile = """
+            using System;
+            using System.Threading;
 
-class D
-{
-    public IntPtr X1 { get; set; }
-}";
-        var expectedSecondFile = @"
-using System;
-
-class D
-{
-    public IntPtr X1 { get; set; }
-}";
+            class D
+            {
+                public IntPtr X1 { get; set; }
+            }
+            """;
 
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "D.cs", secondFile, open: false, HangMitigatingCancellationToken);
 
@@ -451,30 +426,26 @@ class D
         // change.
         MarkupTestFile.GetPosition(markup, out var expectedText, out int _);
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
-        await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.CodeActionAsync(
-            "Remove unnecessary usings",
-            applyFix: true,
-            fixAllScope: scope,
-            cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CodeActionsNotShowingAsync(HangMitigatingCancellationToken);
 
         AssertEx.EqualOrDiff(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
 
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "D.cs", HangMitigatingCancellationToken);
-        AssertEx.EqualOrDiff(expectedSecondFile, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+        AssertEx.EqualOrDiff(secondFile, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
     public async Task ClassificationInPreviewPane()
     {
-        await SetUpEditorAsync(@"
-class Program
-{
-    int Main()
-    {
-        Foo$$();
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            class Program
+            {
+                int Main()
+                {
+                    Foo$$();
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         var classifiedTokens = await TestServices.Editor.GetLightBulbPreviewClassificationsAsync("Generate method 'Foo'", HangMitigatingCancellationToken);
         Assert.True(classifiedTokens.Any(c => c.Span.GetText().ToString() == "void" && c.ClassificationType.Classification == "keyword"));
@@ -483,16 +454,17 @@ class Program
     [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
     public async Task AddUsingExactMatchBeforeRenameTracking()
     {
-        await SetUpEditorAsync(@"
-public class Program
-{
-    static void Main(string[] args)
-    {
-        P2$$ p;
-    }
-}
+        await SetUpEditorAsync("""
+            public class Program
+            {
+                static void Main(string[] args)
+                {
+                    P2$$ p;
+                }
+            }
 
-public class P2 { }", HangMitigatingCancellationToken);
+            public class P2 { }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync([VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Stream"], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
@@ -543,22 +515,23 @@ public class P2 { }", HangMitigatingCancellationToken);
     [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
     public async Task GFUFuzzyMatchAfterRenameTrackingAndAfterGenerateType()
     {
-        await SetUpEditorAsync(@"
-namespace N
-{
-    class Goober { }
-}
+        await SetUpEditorAsync("""
+            namespace N
+            {
+                class Goober { }
+            }
 
-namespace NS
-{
-    public class P2
-    {
-        static void Main(string[] args)
-        {
-            P2$$ p;
-        }
-    }
-}", HangMitigatingCancellationToken);
+            namespace NS
+            {
+                public class P2
+                {
+                    static void Main(string[] args)
+                    {
+                        P2$$ p;
+                    }
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync([VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Foober"], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
             [
@@ -599,18 +572,19 @@ namespace NS
     [IdeFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
     public async Task SuppressionAfterRefactorings()
     {
-        await SetUpEditorAsync(@"
-[System.Obsolete]
-class C
-{
-}
-class Program
-{
-    static void Main(string[] args)
-    {
-        C p = $$2;
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            [System.Obsolete]
+            class C
+            {
+            }
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    C p = $$2;
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.SelectTextInCurrentDocumentAsync("2", HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
@@ -642,16 +616,17 @@ class Program
     [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
     public async Task OrderFixesByCursorProximityLeft()
     {
-        await SetUpEditorAsync(@"
-using System;
-public class Program
-{
-    static void Main(string[] args)
-    {
-        Byte[] bytes = null;
-        GCHandle$$ handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            using System;
+            public class Program
+            {
+                static void Main(string[] args)
+                {
+                    Byte[] bytes = null;
+                    GCHandle$$ handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         var expectedItems = new[]
         {
@@ -666,16 +641,17 @@ public class Program
     [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
     public async Task OrderFixesByCursorProximityRight()
     {
-        await SetUpEditorAsync(@"
-using System;
-public class Program
-{
-    static void Main(string[] args)
-    {
-        Byte[] bytes = null;
-        GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.$$Pinned);
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            using System;
+            public class Program
+            {
+                static void Main(string[] args)
+                {
+                    Byte[] bytes = null;
+                    GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.$$Pinned);
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         var expectedItems = new[]
         {
@@ -690,15 +666,16 @@ public class Program
     [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
     public async Task ConfigureCodeStyleOptionValueAndSeverity()
     {
-        await SetUpEditorAsync(@"
-using System;
-public class Program
-{
-    static void Main(string[] args)
-    {
-        var $$x = new Program();
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            using System;
+            public class Program
+            {
+                static void Main(string[] args)
+                {
+                    var $$x = new Program();
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.CodeActionsAsync([
@@ -714,15 +691,16 @@ public class Program
     [WorkItem("https://github.com/dotnet/roslyn/issues/46784")]
     public async Task ConfigureSeverity()
     {
-        var markup = @"
-class C
-{
-    public static void Main()
-    {
-        // CS0168: The variable 'x' is declared but never used
-        int $$x;
-    }
-}";
+        var markup = """
+            class C
+            {
+                public static void Main()
+                {
+                    // CS0168: The variable 'x' is declared but never used
+                    int $$x;
+                }
+            }
+            """;
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
@@ -802,15 +780,16 @@ class C
     [WorkItem("https://github.com/dotnet/roslyn/issues/46784")]
     public async Task ConfigureSeverityWithManualEditsToEditorconfig()
     {
-        var markup = @"
-class C
-{
-    public static void Main()
-    {
-        // CS0168: The variable 'x' is declared but never used
-        int $$x;
-    }
-}";
+        var markup = """
+            class C
+            {
+                public static void Main()
+                {
+                    // CS0168: The variable 'x' is declared but never used
+                    int $$x;
+                }
+            }
+            """;
         await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
@@ -827,9 +806,10 @@ class C
 
         // Add an .editorconfig file to the project to change severity to error.
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", open: true, cancellationToken: HangMitigatingCancellationToken);
-        await TestServices.Input.SendAsync(@"
-[*.cs]
-dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
+        await TestServices.Input.SendAsync("""
+            [*.cs]
+            dotnet_diagnostic.CS0168.severity =
+            """, HangMitigatingCancellationToken);
 
         // NOTE: Below wait is a critical step in repro-ing the original regression.
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
@@ -884,27 +864,29 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
     [InlineData(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution)]
     internal async Task ConfigureSeverityWithManualEditsToEditorconfig_CurrentDocumentScope(BackgroundAnalysisScope analyzerScope, CompilerDiagnosticsScope compilerScope)
     {
-        var markup1 = @"
-class C
-{
-    public static void Main()
-    {
-        // CS0219: The variable 'x' is assigned but its value is never used
-        // IDE0059: Unnecessary assignment of a value to 'x'
-        int x = 0;
-    }
-}";
+        var markup1 = """
+            class C
+            {
+                public static void Main()
+                {
+                    // CS0219: The variable 'x' is assigned but its value is never used
+                    // IDE0059: Unnecessary assignment of a value to 'x'
+                    int x = 0;
+                }
+            }
+            """;
 
-        var markup2 = @"
-class C2
-{
-    public static void M()
-    {
-        // CS0219: The variable 'y' is assigned but its value is never used
-        // IDE0059: Unnecessary assignment of a value to 'y'
-        int $$y = 0;
-    }
-}";
+        var markup2 = """
+            class C2
+            {
+                public static void M()
+                {
+                    // CS0219: The variable 'y' is assigned but its value is never used
+                    // IDE0059: Unnecessary assignment of a value to 'y'
+                    int $$y = 0;
+                }
+            }
+            """;
         await TestServices.Workspace.SetBackgroundAnalysisOptionsAsync(analyzerScope, compilerScope, HangMitigatingCancellationToken);
 
         await SetUpEditorAsync(markup2, HangMitigatingCancellationToken);
@@ -934,10 +916,11 @@ class C2
 
         // Add an .editorconfig file to the project to change severities to error.
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", open: true, cancellationToken: HangMitigatingCancellationToken);
-        await TestServices.Editor.SetTextAsync(@"
-[*.cs]
-dotnet_diagnostic.CS0219.severity = error
-dotnet_diagnostic.IDE0059.severity = error", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+            [*.cs]
+            dotnet_diagnostic.CS0219.severity = error
+            dotnet_diagnostic.IDE0059.severity = error
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
             [
@@ -952,10 +935,11 @@ dotnet_diagnostic.IDE0059.severity = error", HangMitigatingCancellationToken);
         await VerifyDiagnosticsInErrorListAsync("error", "error", TestServices, HangMitigatingCancellationToken);
 
         // Edit editorconfig file to disable both compiler and analyzer diagnostics.
-        await TestServices.Editor.SetTextAsync(@"
-[*.cs]
-dotnet_diagnostic.CS0219.severity = none
-dotnet_diagnostic.IDE0059.severity = none", HangMitigatingCancellationToken);
+        await TestServices.Editor.SetTextAsync("""
+            [*.cs]
+            dotnet_diagnostic.CS0219.severity = none
+            dotnet_diagnostic.IDE0059.severity = none
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
             [
@@ -1010,64 +994,66 @@ dotnet_diagnostic.IDE0059.severity = none", HangMitigatingCancellationToken);
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task TestFixAllOccurrences_CodeFix_ContainingMember()
     {
-        var markup = @"
-class Program1
-{
-    static void Main()
-    {
-        $$if (true) if (true) return;
-
-        if (false) if (false) return;
-    }
-
-    void OtherMethod()
-    {
-        if (true) if (true) return;
-    }
-}
-
-class OtherType
-{
-    void OtherMethod()
-    {
-        if (true) if (true) return;
-    }
-}";
-        var expectedText = @"
-class Program1
-{
-    static void Main()
-    {
-        if (true)
-        {
-            if (true)
+        var markup = """
+            class Program1
             {
-                return;
-            }
-        }
+                static void Main()
+                {
+                    $$if (true) if (true) return;
 
-        if (false)
-        {
-            if (false)
+                    if (false) if (false) return;
+                }
+
+                void OtherMethod()
+                {
+                    if (true) if (true) return;
+                }
+            }
+
+            class OtherType
             {
-                return;
+                void OtherMethod()
+                {
+                    if (true) if (true) return;
+                }
             }
-        }
-    }
+            """;
+        var expectedText = """
+            class Program1
+            {
+                static void Main()
+                {
+                    if (true)
+                    {
+                        if (true)
+                        {
+                            return;
+                        }
+                    }
 
-    void OtherMethod()
-    {
-        if (true) if (true) return;
-    }
-}
+                    if (false)
+                    {
+                        if (false)
+                        {
+                            return;
+                        }
+                    }
+                }
 
-class OtherType
-{
-    void OtherMethod()
-    {
-        if (true) if (true) return;
-    }
-}";
+                void OtherMethod()
+                {
+                    if (true) if (true) return;
+                }
+            }
+
+            class OtherType
+            {
+                void OtherMethod()
+                {
+                    if (true) if (true) return;
+                }
+            }
+            """;
 
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
 
@@ -1097,141 +1083,145 @@ class OtherType
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task TestFixAllOccurrences_CodeFix_ContainingType()
     {
-        var markup1 = @"
-partial class Program1
-{
-    static void Main()
-    {
-        $$if (true) if (true) return;
-
-        if (false) if (false) return;
-    }
-
-    void M1()
-    {
-        if (true) if (true) return;
-    }
-}
-
-class OtherType1
-{
-    void OtherMethod()
-    {
-        if (true) if (true) return;
-    }
-}
-
-partial class Program1
-{
-    void M2()
-    {
-        if (true) if (true) return;
-    }
-}";
-        var expectedText1 = @"
-partial class Program1
-{
-    static void Main()
-    {
-        if (true)
-        {
-            if (true)
+        var markup1 = """
+            partial class Program1
             {
-                return;
-            }
-        }
+                static void Main()
+                {
+                    $$if (true) if (true) return;
 
-        if (false)
-        {
-            if (false)
+                    if (false) if (false) return;
+                }
+
+                void M1()
+                {
+                    if (true) if (true) return;
+                }
+            }
+
+            class OtherType1
             {
-                return;
+                void OtherMethod()
+                {
+                    if (true) if (true) return;
+                }
             }
-        }
-    }
 
-    void M1()
-    {
-        if (true)
-        {
-            if (true)
+            partial class Program1
             {
-                return;
+                void M2()
+                {
+                    if (true) if (true) return;
+                }
             }
-        }
-    }
-}
-
-class OtherType1
-{
-    void OtherMethod()
-    {
-        if (true) if (true) return;
-    }
-}
-
-partial class Program1
-{
-    void M2()
-    {
-        if (true)
-        {
-            if (true)
+            """;
+        var expectedText1 = """
+            partial class Program1
             {
-                return;
+                static void Main()
+                {
+                    if (true)
+                    {
+                        if (true)
+                        {
+                            return;
+                        }
+                    }
+
+                    if (false)
+                    {
+                        if (false)
+                        {
+                            return;
+                        }
+                    }
+                }
+
+                void M1()
+                {
+                    if (true)
+                    {
+                        if (true)
+                        {
+                            return;
+                        }
+                    }
+                }
             }
-        }
-    }
-}";
 
-        var markup2 = @"
-partial class Program1
-{
-    void OtherFileMethod()
-    {
-        if (true) if (true) return;
-
-        if (false) if (false) return;
-    }
-}
-
-class OtherType2
-{
-    void OtherMethod()
-    {
-        if (true) if (true) return;
-    }
-}";
-        var expectedText2 = @"
-partial class Program1
-{
-    void OtherFileMethod()
-    {
-        if (true)
-        {
-            if (true)
+            class OtherType1
             {
-                return;
+                void OtherMethod()
+                {
+                    if (true) if (true) return;
+                }
             }
-        }
 
-        if (false)
-        {
-            if (false)
+            partial class Program1
             {
-                return;
+                void M2()
+                {
+                    if (true)
+                    {
+                        if (true)
+                        {
+                            return;
+                        }
+                    }
+                }
             }
-        }
-    }
-}
+            """;
 
-class OtherType2
-{
-    void OtherMethod()
-    {
-        if (true) if (true) return;
-    }
-}";
+        var markup2 = """
+            partial class Program1
+            {
+                void OtherFileMethod()
+                {
+                    if (true) if (true) return;
+
+                    if (false) if (false) return;
+                }
+            }
+
+            class OtherType2
+            {
+                void OtherMethod()
+                {
+                    if (true) if (true) return;
+                }
+            }
+            """;
+        var expectedText2 = """
+            partial class Program1
+            {
+                void OtherFileMethod()
+                {
+                    if (true)
+                    {
+                        if (true)
+                        {
+                            return;
+                        }
+                    }
+
+                    if (false)
+                    {
+                        if (false)
+                        {
+                            return;
+                        }
+                    }
+                }
+            }
+
+            class OtherType2
+            {
+                void OtherMethod()
+                {
+                    if (true) if (true) return;
+                }
+            }
+            """;
 
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", markup2, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
@@ -1264,54 +1254,56 @@ class OtherType2
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task TestFixAllOccurrences_CodeRefactoring_ContainingMember()
     {
-        var markup = @"
-class C1
-{
-    void M()
-    {
-        var singleLine1 = $$""a"";
-        var singleLine2 = @""goo""""bar"";
-    }
+        var markup = """
+            class C1
+            {
+                void M()
+                {
+                    var singleLine1 = $$"a";
+                    var singleLine2 = @"goo""bar";
+                }
 
-    void M2()
-    {
-        var singleLine1 = ""a"";
-        var singleLine2 = @""goo""""bar"";
-    }
-}
+                void M2()
+                {
+                    var singleLine1 = "a";
+                    var singleLine2 = @"goo""bar";
+                }
+            }
 
-class C2
-{
-    void M3()
-    {
-        var singleLine1 = ""a"";
-        var singleLine2 = @""goo""""bar"";
-    }
-}";
-        var expectedText = @"
-class C1
-{
-    void M()
-    {
-        var singleLine1 = """"""a"""""";
-        var singleLine2 = """"""goo""bar"""""";
-    }
+            class C2
+            {
+                void M3()
+                {
+                    var singleLine1 = "a";
+                    var singleLine2 = @"goo""bar";
+                }
+            }
+            """;
+        var expectedText = """"
+            class C1
+            {
+                void M()
+                {
+                    var singleLine1 = """a""";
+                    var singleLine2 = """goo"bar""";
+                }
 
-    void M2()
-    {
-        var singleLine1 = ""a"";
-        var singleLine2 = @""goo""""bar"";
-    }
-}
+                void M2()
+                {
+                    var singleLine1 = "a";
+                    var singleLine2 = @"goo""bar";
+                }
+            }
 
-class C2
-{
-    void M3()
-    {
-        var singleLine1 = ""a"";
-        var singleLine2 = @""goo""""bar"";
-    }
-}";
+            class C2
+            {
+                void M3()
+                {
+                    var singleLine1 = "a";
+                    var singleLine2 = @"goo""bar";
+                }
+            }
+            """";
 
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
 
@@ -1341,109 +1333,113 @@ class C2
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task TestFixAllOccurrences_CodeRefactoring_ContainingType()
     {
-        var markup1 = @"
-partial class C1
-{
-    void M()
-    {
-        var singleLine1 = $$""a"";
-        var singleLine2 = @""goo""""bar"";
-    }
+        var markup1 = """
+            partial class C1
+            {
+                void M()
+                {
+                    var singleLine1 = $$"a";
+                    var singleLine2 = @"goo""bar";
+                }
 
-    void M2()
-    {
-        var singleLine1 = ""a"";
-        var singleLine2 = @""goo""""bar"";
-    }
-}
+                void M2()
+                {
+                    var singleLine1 = "a";
+                    var singleLine2 = @"goo""bar";
+                }
+            }
 
-class C2
-{
-    void M3()
-    {
-        var singleLine1 = ""a"";
-        var singleLine2 = @""goo""""bar"";
-    }
-}
+            class C2
+            {
+                void M3()
+                {
+                    var singleLine1 = "a";
+                    var singleLine2 = @"goo""bar";
+                }
+            }
 
-partial class C1
-{
-    void M4()
-    {
-        var singleLine1 = ""a"";
-        var singleLine2 = @""goo""""bar"";
-    }
-}";
-        var expectedText1 = @"
-partial class C1
-{
-    void M()
-    {
-        var singleLine1 = """"""a"""""";
-        var singleLine2 = """"""goo""bar"""""";
-    }
+            partial class C1
+            {
+                void M4()
+                {
+                    var singleLine1 = "a";
+                    var singleLine2 = @"goo""bar";
+                }
+            }
+            """;
+        var expectedText1 = """"
+            partial class C1
+            {
+                void M()
+                {
+                    var singleLine1 = """a""";
+                    var singleLine2 = """goo"bar""";
+                }
 
-    void M2()
-    {
-        var singleLine1 = """"""a"""""";
-        var singleLine2 = """"""goo""bar"""""";
-    }
-}
+                void M2()
+                {
+                    var singleLine1 = """a""";
+                    var singleLine2 = """goo"bar""";
+                }
+            }
 
-class C2
-{
-    void M3()
-    {
-        var singleLine1 = ""a"";
-        var singleLine2 = @""goo""""bar"";
-    }
-}
+            class C2
+            {
+                void M3()
+                {
+                    var singleLine1 = "a";
+                    var singleLine2 = @"goo""bar";
+                }
+            }
 
-partial class C1
-{
-    void M4()
-    {
-        var singleLine1 = """"""a"""""";
-        var singleLine2 = """"""goo""bar"""""";
-    }
-}";
+            partial class C1
+            {
+                void M4()
+                {
+                    var singleLine1 = """a""";
+                    var singleLine2 = """goo"bar""";
+                }
+            }
+            """";
 
-        var markup2 = @"
-partial class C1
-{
-    void M5()
-    {
-        var singleLine1 = ""a"";
-        var singleLine2 = @""goo""""bar"";
-    }
-}
+        var markup2 = """
+            partial class C1
+            {
+                void M5()
+                {
+                    var singleLine1 = "a";
+                    var singleLine2 = @"goo""bar";
+                }
+            }
 
-class C2
-{
-    void M6()
-    {
-        var singleLine1 = ""a"";
-        var singleLine2 = @""goo""""bar"";
-    }
-}";
-        var expectedText2 = @"
-partial class C1
-{
-    void M5()
-    {
-        var singleLine1 = """"""a"""""";
-        var singleLine2 = """"""goo""bar"""""";
-    }
-}
+            class C2
+            {
+                void M6()
+                {
+                    var singleLine1 = "a";
+                    var singleLine2 = @"goo""bar";
+                }
+            }
+            """;
+        var expectedText2 = """"
+            partial class C1
+            {
+                void M5()
+                {
+                    var singleLine1 = """a""";
+                    var singleLine2 = """goo"bar""";
+                }
+            }
 
-class C2
-{
-    void M6()
-    {
-        var singleLine1 = ""a"";
-        var singleLine2 = @""goo""""bar"";
-    }
-}";
+            class C2
+            {
+                void M6()
+                {
+                    var singleLine1 = "a";
+                    var singleLine2 = @"goo""bar";
+                }
+            }
+            """";
 
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Class2.cs", markup2, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
@@ -1476,15 +1472,15 @@ class C2
     [WorkItem("https://github.com/dotnet/roslyn/issues/61334")]
     public async Task UseExpressionBodyBeforeExtractBaseClass()
     {
-        await SetUpEditorAsync(@"
-public class Program
-{
-    $$public void M()
-    {
-        System.Console.WriteLine(0);
-    }
-}
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            public class Program
+            {
+                $$public void M()
+                {
+                    System.Console.WriteLine(0);
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
             [
@@ -1517,8 +1513,10 @@ public class Program
     public async Task TestNonSourceDocumentRefactoring()
     {
         var markup = @"$$# Editorconfig File";
-        var expectedText = @"# Editorconfig File
-# Refactored";
+        var expectedText = """
+            # Editorconfig File
+            # Refactored
+            """;
 
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddAnalyzerReferenceAsync(ProjectName, typeof(NonSourceFileRefactoring).Assembly.Location, HangMitigatingCancellationToken);
@@ -1548,14 +1546,15 @@ public class Program
     [IdeFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
     public async Task TestRefactoringsAreSortedByPriority()
     {
-        var codeFormat = @"
-#pragma warning disable IDE0060 // Remove unused parameter
-class C
-{ 
-    public C(int x1, int x2, int x3)
-    {
-    }
-};";
+        var codeFormat = """
+            #pragma warning disable IDE0060 // Remove unused parameter
+            class C
+            { 
+                public C(int x1, int x2, int x3)
+                {
+                }
+            };
+            """;
         for (var i = 1; i <= 3; i++)
         {
             var code = codeFormat.Replace($"x{i}", $"$$x{i}");

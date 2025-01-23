@@ -4873,6 +4873,7 @@ literal:Literal");
             var code = @"
 CultureInfoNormalizer.Normalize();
 C.M(" + expression + @");
+CultureInfoNormalizer.Reset();
 class C
 {
     public static void M(CustomHandler b)
@@ -4896,7 +4897,7 @@ literal:Literal");
 
             verifier.VerifyIL(@"<top-level-statements-entry-point>", @"
 {
-  // Code size       55 (0x37)
+  // Code size       60 (0x3c)
   .maxstack  4
   .locals init (CustomHandler V_0)
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
@@ -4919,7 +4920,8 @@ literal:Literal");
   IL_002f:  pop
   IL_0030:  ldloc.0
   IL_0031:  call       ""void C.M(CustomHandler)""
-  IL_0036:  ret
+  IL_0036:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_003b:  ret
 }
 ");
 
@@ -4928,7 +4930,7 @@ literal:Literal");
 
             verifier.VerifyIL(@"<top-level-statements-entry-point>", expression.Contains('+') ? @"
 {
-  // Code size       37 (0x25)
+  // Code size       42 (0x2a)
   .maxstack  2
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
   IL_0005:  ldstr      ""{0,2:f}""
@@ -4938,12 +4940,13 @@ literal:Literal");
   IL_0015:  ldstr      ""Literal""
   IL_001a:  call       ""string string.Concat(string, string)""
   IL_001f:  call       ""void C.M(string)""
-  IL_0024:  ret
+  IL_0024:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_0029:  ret
 }
 "
 : @"
 {
-  // Code size       27 (0x1b)
+  // Code size       32 (0x20)
   .maxstack  2
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
   IL_0005:  ldstr      ""{0,2:f}Literal""
@@ -4951,7 +4954,8 @@ literal:Literal");
   IL_000b:  box        ""int""
   IL_0010:  call       ""string string.Format(string, object)""
   IL_0015:  call       ""void C.M(string)""
-  IL_001a:  ret
+  IL_001a:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_001f:  ret
 }
 ");
         }
@@ -5422,6 +5426,7 @@ literal:Literal");
 using System;
 CultureInfoNormalizer.Normalize();
 C.M(() => " + expression + @");
+CultureInfoNormalizer.Reset();
 
 class C
 {
@@ -5669,6 +5674,7 @@ C.M(b =>
         if (b) return default(CustomHandler);
         else return " + expression + @";
     });
+CultureInfoNormalizer.Reset();
 
 static class C
 {
@@ -5922,6 +5928,7 @@ using System;
 CultureInfoNormalizer.Normalize();
 var x = (bool)(object)false ? default(CustomHandler) : " + expression + @";
 Console.WriteLine(x);
+CultureInfoNormalizer.Reset();
 
 public partial struct CustomHandler
 {
@@ -5934,7 +5941,7 @@ public partial struct CustomHandler
 
             verifier.VerifyIL("<top-level-statements-entry-point>", !expression.Contains('+') ? @"
 {
-  // Code size       56 (0x38)
+  // Code size       61 (0x3d)
   .maxstack  2
   .locals init (CustomHandler V_0)
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
@@ -5952,12 +5959,13 @@ public partial struct CustomHandler
   IL_002c:  ldloc.0
   IL_002d:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
   IL_0032:  call       ""void System.Console.WriteLine(string)""
-  IL_0037:  ret
+  IL_0037:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_003c:  ret
 }
 "
 : @"
 {
-  // Code size       66 (0x42)
+  // Code size       71 (0x47)
   .maxstack  2
   .locals init (CustomHandler V_0)
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
@@ -5977,7 +5985,8 @@ public partial struct CustomHandler
   IL_0036:  ldloc.0
   IL_0037:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
   IL_003c:  call       ""void System.Console.WriteLine(string)""
-  IL_0041:  ret
+  IL_0041:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_0046:  ret
 }
 ");
         }
@@ -6190,6 +6199,7 @@ using System;
 CultureInfoNormalizer.Normalize();
 var x = (bool)(object)false switch { true => default(CustomHandler), false => " + expression + @" };
 Console.WriteLine(x);
+CultureInfoNormalizer.Reset();
 
 public partial struct CustomHandler
 {
@@ -6202,7 +6212,7 @@ public partial struct CustomHandler
 
             verifier.VerifyIL("<top-level-statements-entry-point>", !expression.Contains('+') ? @"
 {
-  // Code size       59 (0x3b)
+  // Code size       64 (0x40)
   .maxstack  2
   .locals init (string V_0,
                 CustomHandler V_1)
@@ -6224,12 +6234,13 @@ public partial struct CustomHandler
   IL_0033:  stloc.0
   IL_0034:  ldloc.0
   IL_0035:  call       ""void System.Console.WriteLine(string)""
-  IL_003a:  ret
+  IL_003a:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_003f:  ret
 }
 "
 : @"
 {
-  // Code size       69 (0x45)
+  // Code size       74 (0x4a)
   .maxstack  2
   .locals init (string V_0,
                 CustomHandler V_1)
@@ -6253,7 +6264,8 @@ public partial struct CustomHandler
   IL_003d:  stloc.0
   IL_003e:  ldloc.0
   IL_003f:  call       ""void System.Console.WriteLine(string)""
-  IL_0044:  ret
+  IL_0044:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_0049:  ret
 }
 ");
         }
@@ -19030,6 +19042,185 @@ literal:literal
                 // [Obsolete($"{Test2}")]
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Test2").WithArguments("Test2", "type").WithLocation(3, 14)
                 );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76444")]
+        public void UnconvertedNestedTargetTypedScenario_01()
+        {
+            var source = """
+                int a = 1;
+
+                var b = true ? $"{a.}"='a'
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (3,21): error CS1001: Identifier expected
+                // var b = true ? $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 21),
+                // (3,27): error CS1003: Syntax error, ':' expected
+                // var b = true ? $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(3, 27),
+                // (3,27): error CS1733: Expected expression
+                // var b = true ? $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(3, 27),
+                // (3,27): error CS1002: ; expected
+                // var b = true ? $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 27)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var incompleteDeclaration = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+
+            VerifyOperationTree(comp, model.GetOperation(incompleteDeclaration), """
+                IVariableDeclaratorOperation (Symbol: ? b) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'b = true ? $"{a.}"='a'')
+                  Initializer:
+                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= true ? $"{a.}"='a'')
+                      IConditionalOperation (OperationKind.Conditional, Type: ?, IsInvalid) (Syntax: 'true ? $"{a.}"='a'')
+                          Condition:
+                          ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                          WhenTrue:
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: '$"{a.}"='a'')
+                              Left:
+                              IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{a.}"')
+                                  Parts(1):
+                                      IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{a.}')
+                                      Expression:
+                                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'a.')
+                                          Children(1):
+                                              ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
+                                      Alignment:
+                                          null
+                                      FormatString:
+                                          null
+                              Right:
+                              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: ''a'')
+                                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  Operand:
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a, IsInvalid) (Syntax: ''a'')
+                          WhenFalse:
+                          IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                              Children(0)
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76444")]
+        public void UnconvertedNestedTargetTypedScenario_02()
+        {
+            var source = """
+                int a = 1;
+
+                $"{a.}"='a'
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (3,6): error CS1001: Identifier expected
+                // $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 6),
+                // (3,12): error CS1002: ; expected
+                // $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 12)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var incompleteAssignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            VerifyOperationTree(comp, model.GetOperation(incompleteAssignment), """
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: '$"{a.}"='a'')
+                  Left:
+                      IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{a.}"')
+                      Parts(1):
+                          IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{a.}')
+                              Expression:
+                              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'a.')
+                                  Children(1):
+                                      ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
+                              Alignment:
+                              null
+                              FormatString:
+                              null
+                  Right:
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: ''a'')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                          ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a, IsInvalid) (Syntax: ''a'')
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76444")]
+        public void UnconvertedNestedTargetTypedScenario_03()
+        {
+            var source = """
+                int a = 1;
+
+                _ = new C()
+                {
+                    $"{a.}"='a'
+                }
+
+                a switch { 1 => null } = 1;
+
+                class C
+                {
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (5,5): error CS0747: Invalid initializer member declarator
+                //     $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"$""{a.}""='a'").WithLocation(5, 5),
+                // (5,10): error CS1001: Identifier expected
+                //     $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(5, 10),
+                // (6,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 2),
+                // (8,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // a switch { 1 => null } = 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "a switch { 1 => null }").WithLocation(8, 1),
+                // (8,3): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered.
+                // a switch { 1 => null } = 1;
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("0").WithLocation(8, 3)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var incompleteAssignment = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+
+            VerifyOperationTree(comp, model.GetOperation(incompleteAssignment), """
+                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C() ... }')
+                    Arguments(0)
+                    Initializer:
+                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ ... }')
+                        Initializers(1):
+                            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '$"{a.}"='a'')
+                            Children(1):
+                                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: '$"{a.}"='a'')
+                                    Left:
+                                    IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{a.}"')
+                                        Parts(1):
+                                            IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{a.}')
+                                            Expression:
+                                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'a.')
+                                                Children(1):
+                                                    ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
+                                            Alignment:
+                                                null
+                                            FormatString:
+                                                null
+                                    Right:
+                                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: ''a'')
+                                        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        Operand:
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a, IsInvalid) (Syntax: ''a'')
+                """);
         }
     }
 }

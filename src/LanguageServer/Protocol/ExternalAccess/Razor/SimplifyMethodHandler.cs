@@ -69,6 +69,6 @@ internal class SimplifyMethodHandler : ILspServiceDocumentRequestHandler<Simplif
         var options = simplificationService.GetSimplifierOptions(configOptions);
         var newDocument = await Simplifier.ReduceAsync(annotatedDocument, options, cancellationToken).ConfigureAwait(false);
         var changes = await newDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
-        return changes.Select(change => ProtocolConversions.TextChangeToTextEdit(change, originalSourceText)).ToArray();
+        return [.. changes.Select(change => ProtocolConversions.TextChangeToTextEdit(change, originalSourceText))];
     }
 }

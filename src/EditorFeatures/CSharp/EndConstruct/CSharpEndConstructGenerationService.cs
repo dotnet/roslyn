@@ -6,29 +6,21 @@ using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EndConstructGeneration;
 
 [ExportLanguageService(typeof(IEndConstructGenerationService), LanguageNames.CSharp), Shared]
 [ExcludeFromCodeCoverage]
-internal class CSharpEndConstructGenerationService : IEndConstructGenerationService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpEndConstructGenerationService() : IEndConstructGenerationService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpEndConstructGenerationService()
-    {
-    }
-
-    public bool TryDo(
-        ITextView textView,
-        ITextBuffer subjectBuffer,
-        char typedChar,
-        CancellationToken cancellationToken)
-    {
-        return false;
-    }
+    public Task<bool> TryDoAsync(ITextView textView, ITextBuffer subjectBuffer, char typedChar, CancellationToken cancellationToken)
+        => SpecializedTasks.False;
 }

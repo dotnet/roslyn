@@ -792,11 +792,6 @@
         <target state="translated">重新命名作業未正確完成。部分檔案可能尚未更新。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">將 '{0}' 重新命名為 '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Preview_Warning">
         <source>Preview Warning</source>
         <target state="translated">預覽警告</target>

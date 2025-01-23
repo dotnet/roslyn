@@ -15,7 +15,7 @@ public class ExceptionInRegisterMethodAsync : CodeFixProvider
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds
     {
-        get { return ImmutableArray.Create(CodeFixServiceTests.MockFixer.Id); }
+        get { return [CodeFixServiceTests.MockFixer.Id]; }
     }
 
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
