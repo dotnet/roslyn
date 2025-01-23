@@ -5199,6 +5199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 
+            // Report any 'with(...)' elements not in the first element location.
             for (int i = 1, n = syntax.Elements.Count - 1; i < n; i++)
             {
                 var element = syntax.Elements[i];
