@@ -19,12 +19,12 @@
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
-        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <target state="translated">No se puede usar "OverloadResolutionPriorityAttribute" en este miembro.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
-        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <target state="translated">No se puede usar "OverloadResolutionPriorityAttribute" en un miembro de reemplazo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
         <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</source>
-        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</target>
+        <target state="translated">El tipo 'Microsoft.CodeAnalysis.EmbeddedAttribute' debe ser no genérico, Friend, NotInheritable, tener un constructor sin parámetros Public, heredar de System.Attribute y poder aplicarse a cualquier tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -179,7 +179,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_OverloadResolutionPriority">
         <source>overload resolution priority</source>
-        <target state="new">overload resolution priority</target>
+        <target state="translated">prioridad de resolución de sobrecarga</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -680,12 +680,12 @@
       </trans-unit>
       <trans-unit id="WRN_ExperimentalWithMessage">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</source>
-        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</target>
+        <target state="translated">''{0}'' es solo para fines de evaluación y está sujeto a cambios o eliminaciones en futuras actualizaciones: ''{1}''.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExperimentalWithMessage_Title">
         <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates.</target>
+        <target state="translated">Este tipo se incluye solo con fines de evaluación y está sujeto a cambios o a que se elimine en próximas actualizaciones.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
@@ -9353,7 +9353,7 @@
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</target>
+        <target state="translated">"{0}" se incluye con fines de evaluación y está sujeto a cambios o a que se elimine en próximas actualizaciones.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

@@ -337,7 +337,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
         <source>Cannot determine valid range of statements to extract</source>
-        <target state="new">Cannot determine valid range of statements to extract</target>
+        <target state="translated">无法确定要提取的语句的有效范围</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_include_class_0_in_character_range">
@@ -532,7 +532,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
-        <target state="new">Conflict(s) detected.</target>
+        <target state="translated">检测到冲突。</target>
         <note />
       </trans-unit>
       <trans-unit id="Constructors_not_allowed">
@@ -847,7 +847,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_constructor_from_members">
         <source>Generate constructor from members...</source>
-        <target state="new">Generate constructor from members...</target>
+        <target state="translated">从成员生成构造函数...</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -1192,7 +1192,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Move_declaration_near_reference_may_change_semantics">
         <source>Move declaration near reference (may change semantics)</source>
-        <target state="new">Move declaration near reference (may change semantics)</target>
+        <target state="translated">在引用 (附近移动声明可能会更改语义)</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -1267,12 +1267,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="No_valid_statement_range_to_extract">
         <source>No valid statement range to extract</source>
-        <target state="new">No valid statement range to extract</target>
+        <target state="translated">没有可供提取的有效语句范围</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
-        <target state="new">Not all code paths return</target>
+        <target state="translated">未返回所有代码路径</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2612,12 +2612,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Simplify_member_access_0">
         <source>Simplify member access '{0}'</source>
-        <target state="new">Simplify member access '{0}'</target>
+        <target state="translated">简化成员访问“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
-        <target state="new">Simplify name '{0}'</target>
+        <target state="translated">简化名称“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_Imports_or_usings">
@@ -2762,7 +2762,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Unable_to_create_0">
         <source>Unable to create '{0}'</source>
-        <target state="new">Unable to create '{0}'</target>
+        <target state="translated">无法创建“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
@@ -3473,7 +3473,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="new">&lt;class name&gt;</target>
+        <target state="translated">&lt;class name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
@@ -3659,7 +3659,7 @@ The "f" standard format specifier represents a combination of the long date ("D"
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="new">&lt;interface name&gt;</target>
+        <target state="translated">&lt;interface name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
@@ -3782,7 +3782,7 @@ If the "M" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
-        <target state="new">&lt;namespace name&gt;</target>
+        <target state="translated">&lt;namespace name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">

@@ -1994,7 +1994,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
         <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</target>
+        <target state="translated">'Microsoft.CodeAnalysis.EmbeddedAttribute' 형식은 제네릭이 아니고, 내부, sealed, static이 아니어야 하고, 매개 변수가 없는 생성자를 포함하고, System.Attribute에서 상속하며, 모든 형식에 적용할 수 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2509,7 +2509,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureOverloadResolutionPriority">
         <source>overload resolution priority</source>
-        <target state="new">overload resolution priority</target>
+        <target state="translated">오버로드 해결 우선 순위</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
@@ -2959,12 +2959,12 @@
       </trans-unit>
       <trans-unit id="WRN_ExperimentalWithMessage">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</source>
-        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</target>
+        <target state="translated">'{0}'은(는) 평가 목적으로 제공되며, 이후 업데이트에서 변경되거나 제거될 수 있습니다. '{1}'. 계속하려면 이 진단을 표시하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExperimentalWithMessage_Title">
         <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
+        <target state="translated">형식은 평가 목적으로 제공되며, 이후 업데이트에서 변경되거나 제거될 수 있습니다. 계속하려면 이 진단을 표시하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous">
@@ -3039,12 +3039,12 @@
       </trans-unit>
       <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature">
         <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
-        <target state="new">'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</target>
+        <target state="translated">'InterceptsLocationAttribute(string, int, int)'는 지원되지 않습니다. 대신 이러한 특성의 'InterceptableLocation' 기반 생성으로 이동합니다. (https://github.com/dotnet/roslyn/issues/72133)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature_Title">
         <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
-        <target state="new">'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</target>
+        <target state="translated">'InterceptsLocationAttribute(string, int, int)'는 지원되지 않습니다. 대신 이러한 특성의 'InterceptableLocation' 기반 생성으로 이동합니다. (https://github.com/dotnet/roslyn/issues/72133)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
@@ -5385,12 +5385,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
-        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
+        <target state="translated">UnscopedRefAttribute는 C# 11 이상 또는 net7.0 이상을 대상으로 하는 경우에만 유효합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules_Title">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
-        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
+        <target state="translated">UnscopedRefAttribute는 C# 11 이상 또는 net7.0 이상을 대상으로 하는 경우에만 유효합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -12711,7 +12711,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
         <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
-        <target state="needs-review-translation">프로그램에서 사용하는 사용자 문자열의 결합된 길이가 허용 한도를 초과합니다. 문자열 리터럴의 사용을 줄여 보세요.</target>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
@@ -13006,7 +13006,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
+        <target state="translated">'{0}'은(는) 평가 목적으로 제공되며, 이후 업데이트에서 변경되거나 제거될 수 있습니다. 계속하려면 이 진단을 표시하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

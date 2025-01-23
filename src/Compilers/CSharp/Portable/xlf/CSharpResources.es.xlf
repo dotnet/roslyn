@@ -1994,7 +1994,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
         <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</target>
+        <target state="translated">El tipo "Microsoft.CodeAnalysis.EmbeddedAttribute" debe ser no genérico, interno, sellado, no estático, tener un constructor sin parámetros, heredar de System.Attribute y poder aplicarse a cualquier tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2509,7 +2509,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureOverloadResolutionPriority">
         <source>overload resolution priority</source>
-        <target state="new">overload resolution priority</target>
+        <target state="translated">prioridad de resolución de sobrecarga</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
@@ -2959,12 +2959,12 @@
       </trans-unit>
       <trans-unit id="WRN_ExperimentalWithMessage">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</source>
-        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</target>
+        <target state="translated">''{0}'' es solo para fines de evaluación y está sujeto a cambios o eliminaciones en futuras actualizaciones: ''{1}''. Suprima este diagnóstico para continuar.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExperimentalWithMessage_Title">
         <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
+        <target state="translated">Este tipo se incluye solo con fines de evaluación y está sujeto a cambios o a que se elimine en próximas actualizaciones. Suprima este diagnóstico para continuar.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous">
@@ -3039,12 +3039,12 @@
       </trans-unit>
       <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature">
         <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
-        <target state="new">'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</target>
+        <target state="translated">No se admite 'InterceptsLocationAttribute(string, int, int)'. En su lugar, vaya a la generación basada en "InterceptableLocation" de estos atributos. (https://github.com/dotnet/roslyn/issues/72133)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature_Title">
         <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
-        <target state="new">'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</target>
+        <target state="translated">No se admite 'InterceptsLocationAttribute(string, int, int)'. En su lugar, vaya a la generación basada en "InterceptableLocation" de estos atributos. (https://github.com/dotnet/roslyn/issues/72133)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
@@ -5385,12 +5385,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
-        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
+        <target state="translated">UnscopedRefAttribute solo es válido en C# 11 o posterior o cuando el destino es net7.0 o posterior.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules_Title">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
-        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
+        <target state="translated">UnscopedRefAttribute solo es válido en C# 11 o posterior o cuando el destino es net7.0 o posterior.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -12711,7 +12711,7 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
         <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
-        <target state="needs-review-translation">La longitud combinada de las cadenas de usuario que el programa utiliza supera el límite permitido. Intente disminuir el uso de literales de cadena.</target>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
@@ -13006,7 +13006,7 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
+        <target state="translated">"{0}" se incluye con fines de evaluación y está sujeto a cambios o a que se elimine en próximas actualizaciones. Suprima este diagnóstico para continuar.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
