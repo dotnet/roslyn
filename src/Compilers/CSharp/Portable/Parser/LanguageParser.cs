@@ -1130,12 +1130,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ref openBracket,
                 SyntaxKind.CloseBracketToken,
                 static @this => @this.IsPossibleAttribute(),
-                static (@this, arg) => @this.ParseAttribute(),
+                static @this => @this.ParseAttribute(),
                 skipBadAttributeListTokens,
                 allowTrailingSeparator: true,
                 requireOneElement: true,
-                allowSemicolonAsSeparator: false,
-                parseElementArg: (object?)null);
+                allowSemicolonAsSeparator: false);
 
             var closeBracket = this.EatToken(SyntaxKind.CloseBracketToken);
             if (inExpressionContext && shouldParseAsCollectionExpression())
@@ -1214,13 +1213,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ref openParen,
                 SyntaxKind.CloseParenToken,
                 static @this => @this.IsPossibleAttributeArgument(),
-                static (@this, arg) => @this.ParseAttributeArgument(),
+                static @this => @this.ParseAttributeArgument(),
                 immediatelyAbort,
                 skipBadAttributeArgumentTokens,
                 allowTrailingSeparator: false,
                 requireOneElement: false,
-                allowSemicolonAsSeparator: false,
-                parseElementArg: (object?)null);
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.AttributeArgumentList(
                 openParen,
@@ -4642,16 +4640,20 @@ parse_member_name:;
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfParameterList;
 
+            Func<LanguageParser, ParameterSyntax> parseElement =
+                allowOptionalIdentifier
+                    ? static @this => @this.ParseParameter(allowOptionalIdentifier: true)
+                    : static @this => @this.ParseParameter(allowOptionalIdentifier: false);
+
             var parameters = ParseCommaSeparatedSyntaxList(
                 ref open,
                 closeKind,
                 static @this => @this.IsPossibleParameter(),
-                static (@this, allowOptionalIdentifier) => @this.ParseParameter(allowOptionalIdentifier),
+                parseElement,
                 skipBadParameterListTokens,
                 allowTrailingSeparator: false,
                 requireOneElement: allowOptionalIdentifier,
-                allowSemicolonAsSeparator: false,
-                parseElementArg: allowOptionalIdentifier);
+                allowSemicolonAsSeparator: false);
 
             _termState = saveTerm;
             close = this.EatToken(closeKind);
@@ -5643,12 +5645,11 @@ parse_member_name:;
                         ref openBrace,
                         SyntaxKind.CloseBraceToken,
                         static @this => @this.IsPossibleEnumMemberDeclaration(),
-                        static (@this, arg) => @this.ParseEnumMemberDeclaration(),
+                        static @this => @this.ParseEnumMemberDeclaration(),
                         skipBadEnumMemberListTokens,
                         allowTrailingSeparator: true,
                         requireOneElement: false,
-                        allowSemicolonAsSeparator: true,
-                        parseElementArg: (object)null);
+                        allowSemicolonAsSeparator: true);
                 }
 
                 closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
@@ -5856,12 +5857,11 @@ parse_member_name:;
                 ref open,
                 SyntaxKind.GreaterThanToken,
                 static @this => @this.IsStartOfTypeParameter(),
-                static (@this, arg) => @this.ParseTypeParameter(),
+                static @this => @this.ParseTypeParameter(),
                 skipBadTypeParameterListTokens,
                 allowTrailingSeparator: false,
                 requireOneElement: true,
-                allowSemicolonAsSeparator: false,
-                parseElementArg: (object)null);
+                allowSemicolonAsSeparator: false);
 
             _termState = saveTerm;
 
@@ -9357,12 +9357,11 @@ done:
                     ref startToken,
                     SyntaxKind.CloseParenToken,
                     static @this => @this.IsPossibleExpression(),
-                    static (@this, arg) => @this.ParseExpressionCore(),
+                    static @this => @this.ParseExpressionCore(),
                     skipBadForStatementExpressionListTokens,
                     allowTrailingSeparator: false,
                     requireOneElement: false,
-                    allowSemicolonAsSeparator,
-                    parseElementArg: (object)null);
+                    allowSemicolonAsSeparator);
 
             static PostSkipAction skipBadForStatementExpressionListTokens(
                 LanguageParser @this, ref SyntaxToken startToken, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expectedKind, SyntaxKind closeKind)
@@ -12044,12 +12043,11 @@ done:
                         ref openToken,
                         SyntaxKind.CloseBracketToken,
                         static @this => @this.IsPossibleArgumentExpression(),
-                        static (@this, arg) => @this.ParseArgumentExpression(isIndexer: true),
+                        static @this => @this.ParseArgumentExpression(isIndexer: true),
                         skipBadArgumentListTokens,
                         allowTrailingSeparator: false,
                         requireOneElement: false,
-                        allowSemicolonAsSeparator: false,
-                        parseElementArg: (object)null);
+                        allowSemicolonAsSeparator: false);
                 }
                 else
                 {
@@ -12057,12 +12055,11 @@ done:
                         ref openToken,
                         SyntaxKind.CloseParenToken,
                         static @this => @this.IsPossibleArgumentExpression(),
-                        static (@this, arg) => @this.ParseArgumentExpression(isIndexer: false),
+                        static @this => @this.ParseArgumentExpression(isIndexer: false),
                         skipBadArgumentListTokens,
                         allowTrailingSeparator: false,
                         requireOneElement: false,
-                        allowSemicolonAsSeparator: false,
-                        parseElementArg: (object)null);
+                        allowSemicolonAsSeparator: false);
                 }
             }
             else if (isIndexer && this.CurrentToken.Kind == closeKind)
@@ -12788,12 +12785,11 @@ done:
                 ref openBracket,
                 SyntaxKind.CloseBracketToken,
                 static @this => @this.IsPossibleCollectionElement(),
-                static (@this, arg) => @this.ParseCollectionElement(),
+                static @this => @this.ParseCollectionElement(),
                 skipBadCollectionElementTokens,
                 allowTrailingSeparator: true,
                 requireOneElement: false,
-                allowSemicolonAsSeparator: false,
-                parseElementArg: (object)null);
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.CollectionExpression(
                 openBracket,
@@ -12839,12 +12835,11 @@ done:
                 ref openBrace,
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleExpression(),
-                static (@this, arg) => @this.ParseAnonymousTypeMemberInitializer(),
+                static @this => @this.ParseAnonymousTypeMemberInitializer(),
                 SkipBadInitializerListTokens,
                 allowTrailingSeparator: true,
                 requireOneElement: false,
-                allowSemicolonAsSeparator: false,
-                parseElementArg: (object)null);
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.AnonymousObjectCreationExpression(
                 @new,
@@ -12965,12 +12960,11 @@ done:
                 ref openBrace,
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleExpression(),
-                static (@this, arg) => @this.ParseExpressionCore(),
+                static @this => @this.ParseExpressionCore(),
                 SkipBadInitializerListTokens,
                 allowTrailingSeparator: true,
                 requireOneElement: false,
-                allowSemicolonAsSeparator: false,
-                parseElementArg: (object?)null);
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.WithExpression(
                 receiverExpression,
@@ -12992,12 +12986,11 @@ done:
                 ref openBrace,
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsInitializerMember(),
-                static (@this, arg) => @this.ParseObjectOrCollectionInitializerMember(),
+                static @this => @this.ParseObjectOrCollectionInitializerMember(),
                 SkipBadInitializerListTokens,
                 allowTrailingSeparator: true,
                 requireOneElement: false,
-                allowSemicolonAsSeparator: true,
-                parseElementArg: (object)null);
+                allowSemicolonAsSeparator: true);
 
             var kind = isObjectInitializer(initializers) ? SyntaxKind.ObjectInitializerExpression : SyntaxKind.CollectionInitializerExpression;
 
@@ -13100,12 +13093,11 @@ done:
                 ref openBrace,
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleExpression(),
-                static (@this, arg) => @this.ParseExpressionCore(),
+                static @this => @this.ParseExpressionCore(),
                 SkipBadInitializerListTokens,
                 allowTrailingSeparator: false,
                 requireOneElement: false,
-                allowSemicolonAsSeparator: false,
-                parseElementArg: (object)null);
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.InitializerExpression(
                 SyntaxKind.ComplexElementInitializerExpression,
@@ -13167,12 +13159,11 @@ done:
                 ref openBrace,
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleVariableInitializer(),
-                static (@this, arg) => @this.ParseVariableInitializer(),
+                static @this => @this.ParseVariableInitializer(),
                 skipBadArrayInitializerTokens,
                 allowTrailingSeparator: true,
                 requireOneElement: false,
-                allowSemicolonAsSeparator: false,
-                parseElementArg: (object)null);
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.InitializerExpression(
                 SyntaxKind.ArrayInitializerExpression,
@@ -13338,8 +13329,7 @@ done:
                     return true;
                 case var kind:
                     return IsPredefinedType(kind);
-            }
-            ;
+            };
         }
 
         /// <summary>
@@ -13440,12 +13430,11 @@ done:
                 ref openParen,
                 SyntaxKind.CloseParenToken,
                 static @this => @this.IsPossibleLambdaParameter(),
-                static (@this, arg) => @this.ParseLambdaParameter(),
+                static @this => @this.ParseLambdaParameter(),
                 skipBadLambdaParameterListTokens,
                 allowTrailingSeparator: false,
                 requireOneElement: false,
-                allowSemicolonAsSeparator: false,
-                parseElementArg: (object)null);
+                allowSemicolonAsSeparator: false);
 
             _termState = saveTerm;
 
@@ -13949,7 +13938,6 @@ done:
         /// Parses a comma separated list of nodes.
         /// </summary>
         /// <typeparam name="TNode">The type of node to return back in the <see cref="SeparatedSyntaxList{TNode}"/>.</typeparam>
-        /// <typeparam name="TArg">The type of the argument to be passed to <paramref name="parseElement"/>.</typeparam>
         /// <param name="openToken">The token preceding the separated elements.  Used to attach skipped tokens to if no
         /// elements have been parsed out yet, and the error recovery algorithm chooses to continue parsing, versus
         /// aborting the list parsing.</param>
@@ -13969,21 +13957,19 @@ done:
         /// <param name="allowSemicolonAsSeparator">Whether or not an errant semicolon found in a location where a comma
         /// is expected should just be treated as a comma (still with an error reported).  Useful for constructs where users
         /// often forget which separator is needed and use the wrong one.</param>
-        /// <param name="parseElementArg">Any arguments to be passed to <paramref name="parseElement"/>.</param>
         /// <remarks>
         /// All the callbacks should passed as static lambdas or static methods to prevent unnecessary delegate
         /// allocations.
         /// </remarks>
-        private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode, TArg>(
+        private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
             ref SyntaxToken openToken,
             SyntaxKind closeTokenKind,
             Func<LanguageParser, bool> isPossibleElement,
-            Func<LanguageParser, TArg, TNode> parseElement,
+            Func<LanguageParser, TNode> parseElement,
             SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator,
             bool requireOneElement,
-            bool allowSemicolonAsSeparator,
-            TArg parseElementArg) where TNode : GreenNode
+            bool allowSemicolonAsSeparator) where TNode : GreenNode
         {
             return ParseCommaSeparatedSyntaxList(
                 ref openToken,
@@ -13994,21 +13980,19 @@ done:
                 skipBadTokens,
                 allowTrailingSeparator,
                 requireOneElement,
-                allowSemicolonAsSeparator,
-                parseElementArg);
+                allowSemicolonAsSeparator);
         }
 
-        private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode, TArg>(
+        private SeparatedSyntaxList<TNode> ParseCommaSeparatedSyntaxList<TNode>(
             ref SyntaxToken openToken,
             SyntaxKind closeTokenKind,
             Func<LanguageParser, bool> isPossibleElement,
-            Func<LanguageParser, TArg, TNode> parseElement,
+            Func<LanguageParser, TNode> parseElement,
             Func<TNode, bool>? immediatelyAbort,
             SkipBadTokens<TNode> skipBadTokens,
             bool allowTrailingSeparator,
             bool requireOneElement,
-            bool allowSemicolonAsSeparator,
-            TArg parseElementArg) where TNode : GreenNode
+            bool allowSemicolonAsSeparator) where TNode : GreenNode
         {
             // If we ever want this function to parse out separated lists with a different separator, we can
             // parameterize this method on this value.
@@ -14021,7 +14005,7 @@ tryAgain:
                 if (requireOneElement || shouldParseSeparatorOrElement())
                 {
                     // first argument
-                    var node = parseElement(this, parseElementArg);
+                    var node = parseElement(this);
                     nodes.Add(node);
 
                     // now that we've gotten one element, we don't require any more.
@@ -14056,7 +14040,7 @@ tryAgain:
                                 }
                             }
 
-                            node = parseElement(this, parseElementArg);
+                            node = parseElement(this);
                             nodes.Add(node);
                             continue;
                         }

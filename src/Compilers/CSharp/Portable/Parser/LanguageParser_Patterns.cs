@@ -291,12 +291,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     ref openParenToken,
                     SyntaxKind.CloseParenToken,
                     static @this => @this.IsPossibleSubpatternElement(),
-                    static (@this, arg) => @this.ParseSubpatternElement(),
+                    static @this => @this.ParseSubpatternElement(),
                     SkipBadPatternListTokens,
                     allowTrailingSeparator: false,
                     requireOneElement: false,
-                    allowSemicolonAsSeparator: false,
-                    parseElementArg: (object?)null);
+                    allowSemicolonAsSeparator: false);
                 var closeParenToken = this.EatToken(SyntaxKind.CloseParenToken);
 
                 parsePropertyPatternClause(out PropertyPatternClauseSyntax? propertyPatternClause0);
@@ -489,12 +488,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ref openBraceToken,
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleSubpatternElement(),
-                static (@this, arg) => @this.ParseSubpatternElement(),
+                static @this => @this.ParseSubpatternElement(),
                 SkipBadPatternListTokens,
                 allowTrailingSeparator: true,
                 requireOneElement: false,
-                allowSemicolonAsSeparator: false,
-                parseElementArg: (object?)null);
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.PropertyPatternClause(
                 openBraceToken,
@@ -641,12 +639,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ref openBracket,
                 SyntaxKind.CloseBracketToken,
                 static @this => @this.IsPossibleSubpatternElement(),
-                static (@this, arg) => @this.ParsePattern(Precedence.Conditional),
+                static @this => @this.ParsePattern(Precedence.Conditional),
                 SkipBadPatternListTokens,
                 allowTrailingSeparator: true,
                 requireOneElement: false,
-                allowSemicolonAsSeparator: false,
-                parseElementArg: (object?)null);
+                allowSemicolonAsSeparator: false);
 
             return _syntaxFactory.ListPattern(
                 openBracket,
