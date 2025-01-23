@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 {
     internal sealed class ArgsTaskItem : ITaskItem
     {
-        // This list is taken from src/Shared/Modifiers.cs in the dotnet/msbuild repo.
+        // This list is taken from https://github.com/dotnet/msbuild/blob/291a8108761ed347562228f2f8f25477996a5a93/src/Shared/Modifiers.cs#L36-L70
         private static readonly string[] WellKnownItemSpecMetadataNames =
-        {
+        [
             "FullPath",
             "RootDir",
             "Filename",
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             "DefiningProjectDirectory",
             "DefiningProjectName",
             "DefiningProjectExtension",
-        };
+        ];
 
         private readonly Dictionary<string, string> _metadata = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -56,9 +56,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public void CopyMetadataTo(ITaskItem destinationItem)
         {
             // Implementation notes that we should not overwrite existing metadata on the destination.
-            var sourceMetadataNames = MetadataNames.OfType<string>();
             var destinationMetadataNames = destinationItem.MetadataNames.OfType<string>();
-            var metadataNamesToCopy = sourceMetadataNames.Except(destinationMetadataNames, StringComparer.OrdinalIgnoreCase).ToArray();
+            var metadataNamesToCopy = _metadata.Keys.Except(destinationMetadataNames, StringComparer.OrdinalIgnoreCase).ToArray();
 
             foreach (var metadataName in metadataNamesToCopy)
             {
