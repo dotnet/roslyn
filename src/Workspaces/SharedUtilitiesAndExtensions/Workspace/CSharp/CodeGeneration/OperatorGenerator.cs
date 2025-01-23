@@ -89,6 +89,7 @@ internal static class OperatorGenerator
             ? CheckedKeyword
             : default;
 
+        var isExplicit = method.ExplicitInterfaceImplementations.Length > 0;
         var operatorDecl = OperatorDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info),
             modifiers: GenerateModifiers(method, destination, hasNoBody),
@@ -97,7 +98,7 @@ internal static class OperatorGenerator
             operatorKeyword: OperatorKeyword,
             checkedKeyword: checkedToken,
             operatorToken: operatorToken,
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, info: info),
+            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: isExplicit, info: info),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
             semicolonToken: hasNoBody ? SemicolonToken : new SyntaxToken());

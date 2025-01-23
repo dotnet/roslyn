@@ -24,7 +24,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
     /// update the version stamp but not the content (for example, forking LSP text).
     /// </summary>
-    private sealed class DiagnosticsPullCache(string uniqueKey) : VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum), DiagnosticsRequestState, DiagnosticData>(uniqueKey)
+    private sealed class DiagnosticsPullCache(string uniqueKey) : VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum), DiagnosticsRequestState, ImmutableArray<DiagnosticData>>(uniqueKey)
     {
         public override async Task<(int globalStateVersion, VersionStamp? dependentVersion)> ComputeCheapVersionAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
         {

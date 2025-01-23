@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.InlineTemporary;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,19 +25,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
 
+using static SyntaxFactory;
+
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InlineTemporary), Shared]
-internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider()
     : AbstractInlineTemporaryCodeRefactoringProvider<IdentifierNameSyntax, VariableDeclaratorSyntax>
 {
     private static readonly SyntaxAnnotation DefinitionAnnotation = new();
     private static readonly SyntaxAnnotation ReferenceAnnotation = new();
     private static readonly SyntaxAnnotation ExpressionAnnotation = new();
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpInlineTemporaryCodeRefactoringProvider()
-    {
-    }
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -93,7 +92,7 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
         context.RegisterRefactoring(
             CodeAction.Create(
                 FeaturesResources.Inline_temporary_variable,
-                c => InlineTemporaryAsync(document, variableDeclarator, c),
+                cancellationToken => InlineTemporaryAsync(document, variableDeclarator, cancellationToken),
                 nameof(FeaturesResources.Inline_temporary_variable)),
             variableDeclarator.Span);
     }
@@ -132,7 +131,7 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
     }
 
     private static SyntaxAnnotation CreateConflictAnnotation()
-        => ConflictAnnotation.Create(CSharpFeaturesResources.Conflict_s_detected);
+        => ConflictAnnotation.Create(FeaturesResources.Conflict_s_detected);
 
     private static async Task<Document> InlineTemporaryAsync(Document document, VariableDeclaratorSyntax declarator, CancellationToken cancellationToken)
     {
@@ -163,11 +162,11 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
 
         // Checks to see if inlining the temporary variable may change the code's meaning. This can only apply if the variable has two or more
         // references. We later use this heuristic to determine whether or not to display a warning message to the user.
-        var mayContainSideEffects = allReferences.Count() > 1 &&
+        var mayContainSideEffects = allReferences.Length > 1 &&
             MayContainSideEffects(declarator.Initializer.Value);
 
         var scope = GetScope(declarator);
-        var newScope = ReferenceRewriter.Visit(scope, conflictReferences, nonConflictReferences, expressionToInline, cancellationToken);
+        var newScope = RewriteScope(scope);
 
         document = await document.ReplaceNodeAsync(scope, newScope, cancellationToken).ConfigureAwait(false);
 
@@ -191,12 +190,12 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         // Make each topmost parenting statement or Equals Clause Expressions semantically explicit.
-        document = await document.ReplaceNodesAsync(topmostParentingExpressions, (o, n) =>
+        document = await document.ReplaceNodesAsync(topmostParentingExpressions, (original, current) =>
         {
             // warn when inlining into a conditional expression, as the inlined expression will not be executed.
-            if (semanticModel.GetSymbolInfo(o, cancellationToken).Symbol is IMethodSymbol { IsConditional: true })
+            if (semanticModel.GetSymbolInfo(original, cancellationToken).Symbol is IMethodSymbol { IsConditional: true })
             {
-                n = n.WithAdditionalAnnotations(
+                current = current.WithAdditionalAnnotations(
                     WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_into_conditional_method_call));
             }
 
@@ -204,15 +203,81 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
             // on the first inlined location.
             if (mayContainSideEffects)
             {
-                n = n.WithAdditionalAnnotations(
+                current = current.WithAdditionalAnnotations(
                     WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_variable_may_change_code_meaning));
                 mayContainSideEffects = false;
             }
 
-            return n;
+            return current;
         }, cancellationToken).ConfigureAwait(false);
 
         return document;
+
+        SyntaxNode RewriteScope(SyntaxNode scope)
+        {
+            var editor = new SyntaxEditor(scope, document.Project.Solution.Services);
+
+            foreach (var identifier in conflictReferences)
+                editor.ReplaceNode(identifier, identifier.WithAdditionalAnnotations(CreateConflictAnnotation()));
+
+            foreach (var identifier in nonConflictReferences)
+            {
+                if (identifier.Parent is AnonymousObjectMemberDeclaratorSyntax { NameEquals: null } anonymousMember)
+                {
+                    // Special case inlining into anonymous types to ensure that we keep property names:
+                    //
+                    // E.g.
+                    //     int x = 42;
+                    //     var a = new { x; };
+                    //
+                    // Should become:
+                    //     var a = new { x = 42; };
+                    editor.ReplaceNode(
+                        anonymousMember,
+                        anonymousMember.Update(NameEquals(identifier), expressionToInline).WithTriviaFrom(anonymousMember));
+                }
+                else if (identifier.Parent is ArgumentSyntax
+                {
+                    Parent: TupleExpressionSyntax tupleExpression,
+                    NameColon: null,
+                } argument &&
+                    !SyntaxFacts.IsReservedTupleElementName(identifier.Identifier.ValueText) &&
+                    tupleExpression.Arguments.Count(a => nonConflictReferences.Contains(a.Expression)) == 1)
+                {
+                    // Special case inlining into tuples to ensure that we keep property names:
+                    //
+                    // E.g.
+                    //     int x = 42;
+                    //     var a = (x, y);
+                    //
+                    // Should become:
+                    //     var a = (x: 42, y);
+                    editor.ReplaceNode(
+                        argument,
+                        argument.Update(NameColon(identifier), argument.RefKindKeyword, expressionToInline).WithTriviaFrom(argument));
+                }
+                else if (identifier.Parent is SpreadElementSyntax spreadElement &&
+                    declarator.Initializer.Value is CollectionExpressionSyntax collectionToInline)
+                {
+                    // Special case inlining a collection into a spread element.  We can just move the original elements
+                    // into the final collection.
+                    var leadingTrivia = spreadElement.GetLeadingTrivia() is [.., (kind: SyntaxKind.WhitespaceTrivia) space]
+                        ? TriviaList(ElasticMarker, space)
+                        : TriviaList(ElasticMarker);
+
+                    editor.ReplaceNode(
+                        spreadElement,
+                        (_, _) => collectionToInline.Elements.Select(
+                            e => e.WithLeadingTrivia(leadingTrivia)));
+                }
+                else
+                {
+                    editor.ReplaceNode(identifier, expressionToInline.WithTriviaFrom(identifier));
+                }
+            }
+
+            return editor.GetChangedRoot();
+        }
     }
 
     private static bool MayContainSideEffects(SyntaxNode expression)
@@ -264,7 +329,7 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
     private static async Task<ImmutableArray<IdentifierNameSyntax>> FindReferenceAnnotatedNodesAsync(Document document, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        return root.GetAnnotatedNodesAndTokens(ReferenceAnnotation).Select(n => (IdentifierNameSyntax)n.AsNode()).ToImmutableArray();
+        return [.. root.GetAnnotatedNodesAndTokens(ReferenceAnnotation).Select(n => (IdentifierNameSyntax)n.AsNode())];
     }
 
     private static SyntaxNode GetScope(VariableDeclaratorSyntax variableDeclarator)
@@ -412,10 +477,14 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
 
                 return SyntaxFactory.ArrayCreationExpression(arrayType, arrayInitializer);
             }
-            else if (isVar && expression is ObjectCreationExpressionSyntax or ArrayCreationExpressionSyntax or CastExpressionSyntax)
+            else if (isVar && expression is
+                        ObjectCreationExpressionSyntax or
+                        ArrayCreationExpressionSyntax or
+                        CastExpressionSyntax or
+                        InvocationExpressionSyntax)
             {
                 // if we have `var x = new Y();` there's no need to do any casting as the type is indicated
-                // directly in the existing code.  The same holds for `new Y[]` or `(Y)...`
+                // directly in the existing code.  The same holds for `new Y[]` or `(Y)...` or `Y(...)`
                 return expression;
             }
             else

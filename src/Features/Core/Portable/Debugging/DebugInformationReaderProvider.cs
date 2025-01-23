@@ -130,7 +130,7 @@ internal abstract class DebugInformationReaderProvider : IDisposable
 
         if (!stream.CanRead || !stream.CanSeek)
         {
-            throw new ArgumentException(FeaturesResources.StreamMustSupportReadAndSeek, nameof(stream));
+            throw new ArgumentException(CompilerExtensionsResources.StreamMustSupportReadAndSeek, nameof(stream));
         }
 
         var isPortable = stream.ReadByte() == 'B' && stream.ReadByte() == 'S' && stream.ReadByte() == 'J' && stream.ReadByte() == 'B';

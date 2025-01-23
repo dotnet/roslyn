@@ -8,7 +8,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBro
 Imports Microsoft.VisualStudio.ComponentModelHost
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
-    Friend Class ObjectBrowserLibraryManager
+    Friend NotInheritable Class ObjectBrowserLibraryManager
         Inherits AbstractObjectBrowserLibraryManager
 
         Public Sub New(serviceProvider As IServiceProvider, componentModel As IComponentModel, workspace As VisualStudioWorkspace)

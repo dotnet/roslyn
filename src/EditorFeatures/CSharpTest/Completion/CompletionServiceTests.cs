@@ -93,7 +93,7 @@ public class CompletionServiceTests
         public Type Type => typeof(int);
         public object DefaultValue => 0;
         public bool IsPerLanguage => true;
-        public ImmutableArray<OptionStorageLocation> StorageLocations => ImmutableArray<OptionStorageLocation>.Empty;
+        public ImmutableArray<OptionStorageLocation> StorageLocations => [];
     }
 
     /// <summary>

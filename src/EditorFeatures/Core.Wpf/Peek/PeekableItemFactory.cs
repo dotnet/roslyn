@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 throw new ArgumentNullException(nameof(peekResultFactory));
 
             var solution = project.Solution;
-            symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false) ?? symbol;
-            symbol = await GoToDefinitionFeatureHelpers.TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+            symbol = SymbolFinder.FindSourceDefinition(symbol, solution, cancellationToken) ?? symbol;
+            symbol = GoToDefinitionFeatureHelpers.TryGetPreferredSymbol(solution, symbol, cancellationToken);
             if (symbol is null)
-                return ImmutableArray<IPeekableItem>.Empty;
+                return [];
 
             // if we mapped the symbol, then get the new project it is contained in.
             var originatingProject = solution.GetProject(symbol.ContainingAssembly, cancellationToken);

@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
                 Kind = kind,
                 Name = name,
                 Range = location.Range,
-                Children = new LSP.DocumentSymbol[0],
+                Children = [],
                 Detail = detail,
 #pragma warning disable 618 // obsolete member
                 Deprecated = false,

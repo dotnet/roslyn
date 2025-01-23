@@ -335,7 +335,7 @@ End Namespace
                 var actualSnippets = GetActualSnippets(method, reader, sourceLines);
                 var expectedSnippets = _spanExpectations[method].SnippetExpectations;
 
-                AssertEx.Equal(expectedSnippets, actualSnippets, new SnippetComparer(), $"Validation of method {method} failed.");
+                AssertEx.SequenceEqual(expectedSnippets, actualSnippets, new SnippetComparer(), $"Validation of method {method} failed.");
             }
         }
 

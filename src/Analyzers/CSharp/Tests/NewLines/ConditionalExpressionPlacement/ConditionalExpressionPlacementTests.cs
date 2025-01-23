@@ -37,7 +37,6 @@ public class ConditionalExpressionPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -98,7 +97,6 @@ public class ConditionalExpressionPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -122,7 +120,6 @@ public class ConditionalExpressionPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -146,7 +143,6 @@ public class ConditionalExpressionPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -169,7 +165,6 @@ public class ConditionalExpressionPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -192,7 +187,6 @@ public class ConditionalExpressionPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -215,7 +209,6 @@ public class ConditionalExpressionPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -241,7 +234,6 @@ public class ConditionalExpressionPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -267,7 +259,6 @@ public class ConditionalExpressionPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -293,7 +284,6 @@ public class ConditionalExpressionPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -319,7 +309,6 @@ public class ConditionalExpressionPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -345,7 +334,6 @@ public class ConditionalExpressionPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInConditionalExpression, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }

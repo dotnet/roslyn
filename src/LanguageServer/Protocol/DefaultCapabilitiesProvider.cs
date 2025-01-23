@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public ExperimentalCapabilitiesProvider(
             [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
         {
-            _completionProviders = completionProviders
-                .Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)
-                .ToImmutableArray();
+            _completionProviders = [.. completionProviders.Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)];
         }
 
         public void Initialize()
@@ -53,6 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
 
             capabilities.DefinitionProvider = true;
+            capabilities.TypeDefinitionProvider = true;
             capabilities.DocumentHighlightProvider = true;
             capabilities.RenameProvider = new RenameOptions
             {

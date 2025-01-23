@@ -8110,5 +8110,577 @@ class c
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_01()
+        {
+            UsingTree("""
+                if (#if)
+                """,
+                // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
+                // (1,9): error CS1733: Expected expression
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1026: ) expected
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1733: Expected expression
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1002: ; expected
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 9));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_01_WhitespaceBeforeHash()
+        {
+            UsingTree("""
+                if ( #if)
+                """,
+                // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // if ( #if)
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 6),
+                // (1,9): error CS1733: Expected expression
+                // if ( #if)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 10),
+                // (1,9): error CS1026: ) expected
+                // if ( #if)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 10),
+                // (1,9): error CS1733: Expected expression
+                // if ( #if)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 10),
+                // (1,9): error CS1002: ; expected
+                // if ( #if)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 10));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_01_WhitespaceAfterHash()
+        {
+            UsingTree("""
+                if ( # if)
+                """,
+                // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // if ( # if)
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 6),
+                // (1,9): error CS1733: Expected expression
+                // if ( # if)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 11),
+                // (1,9): error CS1026: ) expected
+                // if ( # if)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 11),
+                // (1,9): error CS1733: Expected expression
+                // if ( # if)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 11),
+                // (1,9): error CS1002: ; expected
+                // if ( # if)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_02()
+        {
+            UsingTree("""
+                if (#if false
+                x
+                #else
+                y
+                #endif
+                """,
+                // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // if (#if false
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
+                // (2,2): error CS1026: ) expected
+                // x
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 2),
+                // (3,1): error CS1028: Unexpected preprocessor directive
+                // #else
+                Diagnostic(ErrorCode.ERR_UnexpectedDirective, "#else").WithLocation(3, 1),
+                // (4,2): error CS1002: ; expected
+                // y
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 2),
+                // (5,1): error CS1028: Unexpected preprocessor directive
+                // #endif
+                Diagnostic(ErrorCode.ERR_UnexpectedDirective, "#endif").WithLocation(5, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_03()
+        {
+            UsingTree("""
+                a();
+                #if false 
+                b();
+                /* comment */ #else
+                c();
+                #endif
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_04()
+        {
+            UsingTree("""
+                a();
+                #if true 
+                b();
+                /* comment */ #elif false
+                c();
+                #endif
+                """,
+                // (4,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #elif false
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(4, 15));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_05()
+        {
+            UsingTree("""
+                a();
+                #if true 
+                b();
+                /* comment */ #endif
+                #else
+                c();
+                #endif
+                d();
+                """,
+                // (4,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #endif
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(4, 15));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "d");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_Define()
+        {
+            UsingTree("""
+                /* comment */ #define ABC
+                #if ABC
+                x();
+                #else
+                y();
+                #endif
+                """,
+                // (1,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #define ABC
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 15));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_Undefine()
+        {
+            UsingTree("""
+                #define ABC
+                /* comment */ #undefine ABC
+                #if ABC
+                x();
+                #else
+                y();
+                #endif
+                """,
+                // (2,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #undefine ABC
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(2, 15));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_ErrorWarning()
+        {
+            UsingTree("""
+                /* comment */ #error E1
+                /* comment */ #warning W1
+                #error E2
+                #warning W2
+                """,
+                // (1,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #error E1
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 15),
+                // (2,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #warning W1
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(2, 15),
+                // (3,8): error CS1029: #error: 'E2'
+                // #error E2
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "E2").WithArguments("E2").WithLocation(3, 8),
+                // (4,10): warning CS1030: #warning: 'W2'
+                // #warning W2
+                Diagnostic(ErrorCode.WRN_WarningDirective, "W2").WithArguments("W2").WithLocation(4, 10));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_Line()
+        {
+            UsingTree("""
+                #line 200
+                /* comment */ #line 100
+                #error E1
+                """,
+                // (200,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #line 100
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(200, 15),
+                // (201,8): error CS1029: #error: 'E1'
+                // #error E1
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "E1").WithArguments("E1").WithLocation(201, 8));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_Pragma()
+        {
+            CreateCompilation("""
+                #pragma warning disable 8321
+                /* comment */ #pragma warning restore 8321
+                void f() { }
+                #pragma warning restore 8321
+                void g() { }
+                """).VerifyDiagnostics(
+                // (2,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #pragma warning restore 8321
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(2, 15),
+                // (5,6): warning CS8321: The local function 'g' is declared but never used
+                // void g() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "g").WithArguments("g").WithLocation(5, 6));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_Nullable()
+        {
+            CreateCompilation("""
+                #nullable disable
+                /* comment */ #nullable enable
+                _ = (object)null;
+                #nullable enable
+                _ = (object)null; // 1
+                """).VerifyDiagnostics(
+                // (2,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #nullable enable
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(2, 15),
+                // (5,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // _ = (object)null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)null").WithLocation(5, 5));
+        }
     }
 }

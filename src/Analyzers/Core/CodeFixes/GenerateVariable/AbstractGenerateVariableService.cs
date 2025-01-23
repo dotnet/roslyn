@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -11,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,10 +21,6 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
     where TSimpleNameSyntax : TExpressionSyntax
     where TExpressionSyntax : SyntaxNode
 {
-    protected AbstractGenerateVariableService()
-    {
-    }
-
     protected abstract bool IsExplicitInterfaceGeneration(SyntaxNode node);
     protected abstract bool IsIdentifierNameGeneration(SyntaxNode node);
 
@@ -45,11 +38,9 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
+            var state = State.Generate((TService)this, semanticDocument, node, cancellationToken);
             if (state == null)
-            {
                 return [];
-            }
 
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
 

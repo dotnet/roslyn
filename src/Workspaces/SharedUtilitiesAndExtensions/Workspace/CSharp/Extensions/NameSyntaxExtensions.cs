@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
@@ -23,31 +24,13 @@ internal static class NameSyntaxExtensions
     }
 
     public static SyntaxToken GetNameToken(this NameSyntax nameSyntax)
-    {
-        while (true)
+        => nameSyntax switch
         {
-            if (nameSyntax.Kind() == SyntaxKind.IdentifierName)
-            {
-                return ((IdentifierNameSyntax)nameSyntax).Identifier;
-            }
-            else if (nameSyntax.Kind() == SyntaxKind.QualifiedName)
-            {
-                nameSyntax = ((QualifiedNameSyntax)nameSyntax).Right;
-            }
-            else if (nameSyntax.Kind() == SyntaxKind.GenericName)
-            {
-                return ((GenericNameSyntax)nameSyntax).Identifier;
-            }
-            else if (nameSyntax.Kind() == SyntaxKind.AliasQualifiedName)
-            {
-                nameSyntax = ((AliasQualifiedNameSyntax)nameSyntax).Name;
-            }
-            else
-            {
-                throw new NotSupportedException();
-            }
-        }
-    }
+            SimpleNameSyntax simpleName => simpleName.Identifier,
+            QualifiedNameSyntax qualifiedName => qualifiedName.Right.Identifier,
+            AliasQualifiedNameSyntax aliasName => aliasName.Name.Identifier,
+            _ => throw ExceptionUtilities.Unreachable(),
+        };
 
     public static bool CanBeReplacedWithAnyName(this NameSyntax nameSyntax)
     {

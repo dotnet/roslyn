@@ -40,7 +40,6 @@ public class AddAccessibilityModifiersFixAllTests : AbstractCSharpDiagnosticProv
 
         var expected = """
             Console.WriteLine("Hello, World!");
-
             internal class Program
             {
             }

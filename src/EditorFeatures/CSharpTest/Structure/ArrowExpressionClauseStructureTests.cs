@@ -7,12 +7,13 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNodeStructureTests<ArrowExpressionClauseSyntax>
+public sealed class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNodeStructureTests<ArrowExpressionClauseSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider()
         => new ArrowExpressionClauseStructureProvider();
@@ -22,13 +23,13 @@ public class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNodeStruc
     {
         await VerifyBlockSpansAsync(
             """
-                class C
-                {
-                    {|hintspan:void M(){|textspan: $$=> expression
-                        ? trueCase
-                        : falseCase;|}|};
-                }
-                """,
+            class C
+            {
+                {|hintspan:void M(){|textspan: $$=> expression
+                    ? trueCase
+                    : falseCase;|}|};
+            }
+            """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
@@ -195,5 +196,42 @@ public class ArrowExpressionClauseStructureTests : AbstractCSharpSyntaxNodeStruc
                 }
                 """,
             Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76820")]
+    public async Task TestArrowExpressionClause_DirectiveOutsideOfArrow()
+    {
+        await VerifyBlockSpansAsync(
+            """
+            class C
+            {
+            #if true
+                {|hintspan:int M(){|textspan: $$=>
+                    0;|}|};
+            #else
+                int M() =>
+                    1;
+            #endif
+            }
+            """,
+            Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76820")]
+    public async Task TestArrowExpressionClause_DirectiveInsideOfArrow()
+    {
+        await VerifyBlockSpansAsync(
+            """
+            class C
+            {
+                {|hintspan:int M(){|textspan: $$=>
+            #if true
+                    0;
+            #else
+                    1;
+            #endif|}|}
+            }
+            """,
+            Region("textspan", "hintspan", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }

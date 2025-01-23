@@ -172,7 +172,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var stateChecksums = await project.State.GetStateChecksumsAsync(CancellationToken.None);
 
             var textChecksums = stateChecksums.Documents.TextChecksums;
-            var textChecksumsReversed = new ChecksumCollection(textChecksums.Children.Reverse().ToImmutableArray());
+            var textChecksumsReversed = new ChecksumCollection([.. textChecksums.Children.Reverse()]);
 
             var documents = await service.GetAssetsArrayAsync<SerializableSourceText>(
                 AssetPath.FullLookupForTesting, textChecksums, CancellationToken.None);

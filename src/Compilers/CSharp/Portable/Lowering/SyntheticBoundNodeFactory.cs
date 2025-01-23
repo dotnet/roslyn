@@ -183,6 +183,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public StateMachineFieldSymbol StateMachineFieldForRegularParameter(TypeSymbol type, string name, ParameterSymbol parameter, bool isPublic)
+        {
+            Debug.Assert(CurrentType is { });
+            var result = new StateMachineFieldSymbolForRegularParameter(CurrentType, TypeWithAnnotations.Create(type), name, parameter, isPublic);
+            AddField(CurrentType, result);
+            return result;
+        }
+
         public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, SynthesizedLocalKind synthesizedKind, int slotIndex)
         {
             Debug.Assert(CurrentType is { });

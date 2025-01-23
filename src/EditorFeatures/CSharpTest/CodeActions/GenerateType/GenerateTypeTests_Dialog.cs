@@ -758,7 +758,7 @@ expected: @"namespace A.B
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: ImmutableArray<string>.Empty,
+newFileFolderContainers: [],
 newFileName: "Test2.cs");
     }
 
@@ -797,7 +797,7 @@ checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 newFileName: "Test2.cs");
     }
 
@@ -839,7 +839,7 @@ class Program
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 newFileName: "Test2.cs");
     }
 
@@ -875,7 +875,7 @@ checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 newFileName: "Test2.cs");
     }
 
@@ -918,7 +918,7 @@ class Program
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 newFileName: "Test2.cs");
     }
 
@@ -965,7 +965,7 @@ namespace ConsoleApplication.outer
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: ImmutableArray.Create("outer"),
+newFileFolderContainers: ["outer"],
 newFileName: "Test2.cs");
     }
 
@@ -1014,7 +1014,7 @@ namespace A.B
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: ImmutableArray.Create("outer"),
+newFileFolderContainers: ["outer"],
 newFileName: "Test2.cs");
     }
 
@@ -1070,7 +1070,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 areFoldersValidIdentifiers: false,
-newFileFolderContainers: ImmutableArray.Create("123", "456"),
+newFileFolderContainers: ["123", "456"],
 newFileName: "Test2.cs");
     }
 
@@ -1262,7 +1262,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: ImmutableArray<string>.Empty,
+newFileFolderContainers: [],
 projectName: "Assembly2");
     }
 
@@ -1307,7 +1307,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
     }
 
@@ -1346,7 +1346,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
     }
 
@@ -1392,7 +1392,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
     }
 
@@ -1432,7 +1432,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
     }
     #endregion
@@ -1471,7 +1471,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray<string>.Empty,
+newFileFolderContainers: [],
 projectName: "Assembly2");
     }
 
@@ -1515,7 +1515,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
     }
 
@@ -1553,7 +1553,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
     }
 
@@ -1598,7 +1598,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
     }
 
@@ -1637,7 +1637,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
     }
 
@@ -1682,7 +1682,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test3.vb",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
     }
 
@@ -1719,7 +1719,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray<string>.Empty,
+newFileFolderContainers: [],
 projectName: "Assembly2");
     }
 
@@ -1936,7 +1936,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Module,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray<string>.Empty,
+newFileFolderContainers: [],
 projectName: "Assembly2",
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
     }
@@ -3050,7 +3050,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray<string>.Empty,
+newFileFolderContainers: [],
 projectName: "Assembly2");
     }
 

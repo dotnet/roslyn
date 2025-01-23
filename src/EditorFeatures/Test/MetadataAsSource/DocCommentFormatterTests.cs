@@ -77,7 +77,7 @@ $@"{FeaturesResources.Summary_colon}
         var comment = @"<exception cref=""T:System.NotImplementedException"">throws NotImplementedException</exception>";
 
         var expected =
-$@"{FeaturesResources.Exceptions_colon}
+$@"{WorkspacesResources.Exceptions_colon}
   T:System.NotImplementedException:
     throws NotImplementedException";
 
@@ -92,7 +92,7 @@ $@"{FeaturesResources.Exceptions_colon}
 <exception cref=""T:System.InvalidOperationException"">throws InvalidOperationException</exception>";
 
         var expected =
-$@"{FeaturesResources.Exceptions_colon}
+$@"{WorkspacesResources.Exceptions_colon}
   T:System.NotImplementedException:
     throws NotImplementedException
 
@@ -111,7 +111,7 @@ $@"{FeaturesResources.Exceptions_colon}
 <exception cref=""T:System.NotImplementedException"">also throws NotImplementedException for reason Y</exception>";
 
         var expected =
-$@"{FeaturesResources.Exceptions_colon}
+$@"{WorkspacesResources.Exceptions_colon}
   T:System.NotImplementedException:
     throws NotImplementedException for reason X
 
@@ -236,7 +236,7 @@ $@"{FeaturesResources.Summary_colon}
 {FeaturesResources.Value_colon}
     This has no value.
 
-{FeaturesResources.Exceptions_colon}
+{WorkspacesResources.Exceptions_colon}
   System.GooException:
     Thrown for an unknown reason
 

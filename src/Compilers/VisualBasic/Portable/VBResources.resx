@@ -5543,6 +5543,12 @@
   <data name="WRN_Experimental_Title" xml:space="preserve">
     <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
   </data>
+  <data name="WRN_ExperimentalWithMessage" xml:space="preserve">
+    <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</value>
+  </data>
+  <data name="WRN_ExperimentalWithMessage_Title" xml:space="preserve">
+    <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
+  </data>
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
     <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</value>
   </data>
@@ -5715,5 +5721,17 @@
   </data>
   <data name="ERR_TypeReserved" xml:space="preserve">
     <value>The type name '{0}' is reserved to be used by the compiler.</value>
+  </data>
+  <data name="ERR_CannotApplyOverloadResolutionPriorityToOverride" xml:space="preserve">
+    <value>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</value>
+  </data>
+  <data name="ERR_CannotApplyOverloadResolutionPriorityToMember" xml:space="preserve">
+    <value>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</value>
+  </data>
+  <data name="FEATURE_OverloadResolutionPriority" xml:space="preserve">
+    <value>overload resolution priority</value>
+  </data>
+  <data name="ERR_EmbeddedAttributeMustFollowPattern" xml:space="preserve">
+    <value>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</value>
   </data>
 </root>

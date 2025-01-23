@@ -25,6 +25,7 @@ function Print-Usage() {
   Write-Host "  -configuration            Build configuration ('Debug' or 'Release')"
 }
 
+$docBranch = "main"
 try {
   if ($help) {
     Print-Usage
@@ -34,6 +35,12 @@ try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
   $prepareMachine = $ci
+
+  # If we're running in a PR, we want to use the documentation from the branch that is being 
+  # merged into, not necessarily the documentation in main
+  if (Test-Path env:SYSTEM_PULLREQUEST_TARGETBRANCH) {
+    $docBranch = $env:SYSTEM_PULLREQUEST_TARGETBRANCH
+  }
 
   if ($enableDumps) {
     $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
@@ -75,7 +82,7 @@ catch {
   Write-Host $_
   Write-Host $_.Exception
   Write-Host $_.ScriptStackTrace
-  Write-Host "##vso[task.logissue type=error]How to investigate bootstrap failures: https://github.com/dotnet/roslyn/blob/main/docs/contributing/Bootstrap%20Builds.md#Investigating"
+  Write-Host "##vso[task.logissue type=error]How to investigate bootstrap failures: https://github.com/dotnet/roslyn/blob/$($docBranch)/docs/contributing/bootstrap-builds.md#Investigating"
   ExitWithExitCode 1
 }
 finally {

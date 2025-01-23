@@ -49,7 +49,7 @@ internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
         if (potentialTestMethods.IsEmpty)
         {
             progress.Report(partialResult with { Message = LanguageServerResources.No_test_methods_found_in_requested_range });
-            return ImmutableArray<TestCase>.Empty;
+            return [];
         }
 
         // Next, run the actual vs test discovery on the output dll to figure out what tests actually exist.
@@ -64,7 +64,7 @@ internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
         if (discoveryHandler.IsAborted())
         {
             progress.Report(partialResult with { Message = LanguageServerResources.Test_discovery_aborted });
-            return ImmutableArray<TestCase>.Empty;
+            return [];
         }
 
         var testCases = discoveryHandler.GetTestCases();

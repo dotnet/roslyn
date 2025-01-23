@@ -124,13 +124,13 @@
                         Grid.Column="0"
                         HorizontalAlignment="Right"
                         x:Name="Namespace"
-                        Text="{Binding PrependedNamespace}"
+                        Text="{Binding TypeName_NamespaceOnly}"
                         TextTrimming="CharacterEllipsis"/>
 
                     <vs:LiveTextBlock 
                         Grid.Column="1"
                         x:Name="TypeName"
-                        Text="{Binding DestinationName.TypeName}"/>
+                        Text="{Binding TypeName_NameOnly}"/>
                 </Grid>
             </GroupBox>
         </StackPanel>

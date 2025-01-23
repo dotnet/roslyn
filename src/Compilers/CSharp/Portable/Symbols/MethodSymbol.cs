@@ -1148,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Build and add synthesized return type attributes for this method symbol.
         /// </summary>
-        internal virtual void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal virtual void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             if (this.ReturnsByRefReadonly)
             {
@@ -1192,9 +1192,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Do not call this method from early attribute binding, cycles will occur.
         /// </remarks>
-        internal int OverloadResolutionPriority => CanHaveOverloadResolutionPriority ? (TryGetOverloadResolutionPriority() ?? 0) : 0;
+        internal int OverloadResolutionPriority => CanHaveOverloadResolutionPriority ? TryGetOverloadResolutionPriority() : 0;
 
-        internal abstract int? TryGetOverloadResolutionPriority();
+        internal abstract int TryGetOverloadResolutionPriority();
 
         internal bool CanHaveOverloadResolutionPriority =>
             MethodKind is MethodKind.Ordinary
@@ -1266,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        protected static void AddRequiredMembersMarkerAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes, MethodSymbol methodToAttribute)
+        protected static void AddRequiredMembersMarkerAttributes(ref ArrayBuilder<CSharpAttributeData> attributes, MethodSymbol methodToAttribute)
         {
             if (methodToAttribute.ShouldCheckRequiredMembers() && methodToAttribute.ContainingType.HasAnyRequiredMembers)
             {

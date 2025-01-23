@@ -91,11 +91,11 @@ namespace ResetInteractiveTestsDocument
                 CreateImport,
                 buildSucceeds: buildSucceeds)
             {
-                References = ImmutableArray.CreateRange(GetProjectReferences(workspace, project)),
-                ReferenceSearchPaths = ImmutableArray.Create("rsp1", "rsp2"),
-                SourceSearchPaths = ImmutableArray.Create("ssp1", "ssp2"),
-                ProjectNamespaces = ImmutableArray.Create("System", "ResetInteractiveTestsDocument", "VisualBasicResetInteractiveTestsDocument"),
-                NamespacesToImport = ImmutableArray.Create("System", "ResetInteractiveTestsDocument"),
+                References = [.. GetProjectReferences(workspace, project)],
+                ReferenceSearchPaths = ["rsp1", "rsp2"],
+                SourceSearchPaths = ["ssp1", "ssp2"],
+                ProjectNamespaces = ["System", "ResetInteractiveTestsDocument", "VisualBasicResetInteractiveTestsDocument"],
+                NamespacesToImport = ["System", "ResetInteractiveTestsDocument"],
                 ProjectDirectory = "pj",
                 Platform = InteractiveHostPlatform.Desktop64,
             };

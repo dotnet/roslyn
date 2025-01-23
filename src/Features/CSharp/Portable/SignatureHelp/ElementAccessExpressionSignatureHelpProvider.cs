@@ -107,8 +107,8 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
         var textSpan = GetTextSpan(expression, openBrace);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        return CreateSignatureHelpItems(accessibleIndexers.Select(p =>
-            Convert(p, openBrace, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService)).ToList(),
+        return CreateSignatureHelpItems([.. accessibleIndexers.Select(p =>
+            Convert(p, openBrace, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService))],
             textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItemIndex: null, parameterIndexOverride: -1);
     }
 
@@ -182,9 +182,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
         SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken,
         out ImmutableArray<IPropertySymbol> indexers, out ITypeSymbol? expressionType)
     {
-        indexers = semanticModel.GetMemberGroup(expression, cancellationToken)
-            .OfType<IPropertySymbol>()
-            .ToImmutableArray();
+        indexers = [.. semanticModel.GetMemberGroup(expression, cancellationToken).OfType<IPropertySymbol>()];
 
         if (indexers.Any() && expression is MemberAccessExpressionSyntax memberAccessExpression)
         {
@@ -216,9 +214,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
                 ?? semanticModel.GetSymbolInfo(expression).GetAnySymbol().GetSymbolType();
         }
 
-        indexers = semanticModel.LookupSymbols(position, expressionType, WellKnownMemberNames.Indexer)
-            .OfType<IPropertySymbol>()
-            .ToImmutableArray();
+        indexers = [.. semanticModel.LookupSymbols(position, expressionType, WellKnownMemberNames.Indexer).OfType<IPropertySymbol>()];
         return true;
     }
 
@@ -237,7 +233,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
             GetPreambleParts(indexer, position, semanticModel),
             GetSeparatorParts(),
             GetPostambleParts(),
-            indexer.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
+            [.. indexer.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
         return item;
     }
 

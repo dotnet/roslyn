@@ -142,6 +142,9 @@ internal sealed class BlockSyntaxStructureProvider : AbstractSyntaxNodeStructure
                     type: type));
             }
         }
+
+        // Add any leading comments before the end of the block
+        CSharpStructureHelpers.CollectCommentBlockSpans(node.CloseBraceToken.LeadingTrivia, spans);
     }
 
     private static bool IsNonBlockStatement(SyntaxNode node)

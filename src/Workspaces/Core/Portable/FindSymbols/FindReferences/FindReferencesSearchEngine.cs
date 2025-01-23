@@ -208,7 +208,7 @@ internal sealed partial class FindReferencesSearchEngine(
     {
         var projects = _documents != null
             ? _documents.Select(d => d.Project).ToImmutableHashSet()
-            : _solution.Projects.ToImmutableHashSet();
+            : [.. _solution.Projects];
 
         return DependentProjectsFinder.GetDependentProjectsAsync(_solution, symbols, projects, cancellationToken);
     }

@@ -14,8 +14,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 {
     private sealed partial class State
     {
-        private bool IsInBlockContext(
-            CancellationToken cancellationToken)
+        private bool IsInBlockContext(CancellationToken cancellationToken)
         {
             if (!IsInTypeDeclarationOrValidCompilationUnit())
             {

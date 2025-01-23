@@ -74,7 +74,7 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         // Valid update:
         solution = solution.WithDocumentText(documentIdA, CreateText(source2));
 
-        var result = await hotReload.GetUpdatesAsync(solution, isRunningProject: _ => false, CancellationToken.None);
+        var result = await hotReload.GetUpdatesAsync(solution, runningProjects: [], CancellationToken.None);
         Assert.Empty(result.Diagnostics);
         Assert.Equal(1, result.ProjectUpdates.Length);
         AssertEx.Equal([0x02000002], result.ProjectUpdates[0].UpdatedTypes);
@@ -82,35 +82,35 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         // Rude edit:
         solution = solution.WithDocumentText(documentIdA, CreateText(source3));
 
-        result = await hotReload.GetUpdatesAsync(solution, isRunningProject: _ => true, CancellationToken.None);
+        result = await hotReload.GetUpdatesAsync(solution, runningProjects: solution.ProjectIds.ToImmutableHashSet(), CancellationToken.None);
         AssertEx.Equal(
             ["ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)],
             result.Diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
         Assert.Empty(result.ProjectUpdates);
-        AssertEx.SetEqual(["P"], result.ProjectsToRestart.Select(p => p.Name));
-        AssertEx.SetEqual(["P"], result.ProjectsToRebuild.Select(p => p.Name));
+        AssertEx.SetEqual(["P"], result.ProjectIdsToRestart.Select(p => solution.GetRequiredProject(p).Name));
+        AssertEx.SetEqual(["P"], result.ProjectIdsToRebuild.Select(p => solution.GetRequiredProject(p).Name));
 
         // Syntax error:
         solution = solution.WithDocumentText(documentIdA, CreateText(source4));
 
-        result = await hotReload.GetUpdatesAsync(solution, isRunningProject: _ => true, CancellationToken.None);
+        result = await hotReload.GetUpdatesAsync(solution, runningProjects: solution.ProjectIds.ToImmutableHashSet(), CancellationToken.None);
         AssertEx.Equal(
             ["CS1002: " + CSharpResources.ERR_SemicolonExpected],
             result.Diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
         Assert.Empty(result.ProjectUpdates);
-        Assert.Empty(result.ProjectsToRestart);
-        Assert.Empty(result.ProjectsToRebuild);
+        Assert.Empty(result.ProjectIdsToRestart);
+        Assert.Empty(result.ProjectIdsToRebuild);
 
         // Semantic error:
         solution = solution.WithDocumentText(documentIdA, CreateText(source5));
 
-        result = await hotReload.GetUpdatesAsync(solution, isRunningProject: _ => true, CancellationToken.None);
+        result = await hotReload.GetUpdatesAsync(solution, runningProjects: solution.ProjectIds.ToImmutableHashSet(), CancellationToken.None);
         AssertEx.Equal(
             ["CS0103: " + string.Format(CSharpResources.ERR_NameNotInContext, "Unknown")],
             result.Diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
         Assert.Empty(result.ProjectUpdates);
-        Assert.Empty(result.ProjectsToRestart);
-        Assert.Empty(result.ProjectsToRebuild);
+        Assert.Empty(result.ProjectIdsToRestart);
+        Assert.Empty(result.ProjectIdsToRebuild);
 
         hotReload.EndSession();
     }
@@ -162,7 +162,7 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
 
         solution = solution.WithAdditionalDocumentText(aId, CreateText("updated text"));
 
-        var result = await hotReload.GetUpdatesAsync(solution, isRunningProject: _ => true, CancellationToken.None);
+        var result = await hotReload.GetUpdatesAsync(solution, runningProjects: solution.ProjectIds.ToImmutableHashSet(), CancellationToken.None);
         var diagnostic = result.Diagnostics.Single();
         Assert.Equal("CS8785", diagnostic.Id);
         Assert.Contains("Source generator failed", diagnostic.GetMessage());

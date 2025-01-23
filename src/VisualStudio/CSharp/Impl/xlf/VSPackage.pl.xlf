@@ -439,11 +439,6 @@ Pokaż elementy z niezaimportowanych przestrzeni nazw (funkcja eksperymentalna);
         <target state="translated">Nigdy nie dołączaj fragmentów kodu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>Only add new line on enter after end of fully typed word</source>
-        <target state="translated">Dodaj nowy wiersz tylko po naciśnięciu klawisza Enter na końcu w pełni wpisanego wyrazu</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

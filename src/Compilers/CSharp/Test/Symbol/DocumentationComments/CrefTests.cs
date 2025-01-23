@@ -5564,7 +5564,7 @@ class C<T>
             Assert.IsType<CrefTypeParameterSymbol>(crefTypeParam.GetSymbol());
 
             var sourceTypeParam = referencedType.TypeParameters.Single();
-            Assert.IsType<SourceTypeParameterSymbol>(sourceTypeParam.GetSymbol());
+            Assert.IsType<SourceTypeTypeParameterSymbol>(sourceTypeParam.GetSymbol());
 
             Assert.NotEqual(crefTypeParam, sourceTypeParam);
             Assert.NotEqual(sourceTypeParam, crefTypeParam);
