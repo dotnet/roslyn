@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return (PENamedTypeSymbol)metadataDecoder.GetTypeOfToken(typeHandle);
         }
 
+        /// <exception cref="BadMetadataModuleException">Module wasn't included in the compilation due to bad metadata.</exception>
         internal static PENamedTypeSymbol GetType(this CSharpCompilation compilation, Guid moduleVersionId, int typeToken)
         {
             return GetType(compilation.GetModule(moduleVersionId), (TypeDefinitionHandle)MetadataTokens.Handle(typeToken));
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return method;
         }
 
+        /// <exception cref="BadMetadataModuleException">Module wasn't included in the compilation due to bad metadata.</exception>
         internal static PEMethodSymbol GetMethod(this CSharpCompilation compilation, Guid moduleVersionId, MethodDefinitionHandle methodHandle)
         {
             var module = compilation.GetModule(moduleVersionId);
@@ -59,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return method;
         }
 
+        /// <exception cref="BadMetadataModuleException">Module wasn't included in the compilation due to bad metadata.</exception>
         internal static PEModuleSymbol GetModule(this CSharpCompilation compilation, Guid moduleVersionId)
         {
             foreach (var pair in compilation.GetBoundReferenceManager().GetReferencedAssemblies())
@@ -75,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
 
-            throw new ArgumentException($"No module found with MVID '{moduleVersionId}'", nameof(moduleVersionId));
+            throw new BadMetadataModuleException(moduleVersionId);
         }
 
         internal static CSharpCompilation ToCompilationReferencedModulesOnly(this ImmutableArray<MetadataBlock> metadataBlocks, Guid moduleVersionId)

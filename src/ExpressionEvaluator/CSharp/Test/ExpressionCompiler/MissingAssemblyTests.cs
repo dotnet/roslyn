@@ -663,6 +663,7 @@ class C
                         uSize = (uint)missingModule.MetadataLength;
                         return missingModule.MetadataAddress;
                     },
+                    out _,
                     out errorMessage);
 
                 Assert.Equal(2, numRetries); // Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
@@ -690,7 +691,7 @@ class C
 
                 var shouldSucceed = false;
                 string errorMessage;
-                var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                     runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
                     context,
                     (_, diagnostics) =>
@@ -711,6 +712,7 @@ class C
                         uSize = (uint)missingModule.MetadataLength;
                         return missingModule.MetadataAddress;
                     },
+                    out var compileResult,
                     out errorMessage);
 
                 Assert.Same(TestCompileResult.Instance, compileResult);

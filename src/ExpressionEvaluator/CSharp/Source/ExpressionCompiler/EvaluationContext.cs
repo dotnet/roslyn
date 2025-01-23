@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// <remarks>
         /// No locals since locals are associated with methods, not types.
         /// </remarks>
+        /// <exception cref="BadMetadataModuleException">Module wasn't included in the compilation due to bad metadata.</exception>
         internal static EvaluationContext CreateTypeContext(
             CSharpCompilation compilation,
             Guid moduleVersionId,

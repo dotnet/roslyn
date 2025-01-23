@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal delegate MetadataContext<CSharpMetadataContext> GetMetadataContextDelegate<TAppDomain>(TAppDomain appDomain);
         internal delegate void SetMetadataContextDelegate<TAppDomain>(TAppDomain appDomain, MetadataContext<CSharpMetadataContext> metadataContext, bool report);
 
+        /// <exception cref="BadMetadataModuleException">Module wasn't included in the compilation due to bad metadata.</exception>
         internal override EvaluationContextBase CreateTypeContext(
             DkmClrAppDomain appDomain,
             ImmutableArray<MetadataBlock> metadataBlocks,
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 GetMakeAssemblyReferencesKind(useReferencedModulesOnly));
         }
 
+        /// <exception cref="BadMetadataModuleException">Module wasn't included in the compilation due to bad metadata.</exception>
         internal static EvaluationContext CreateTypeContext<TAppDomain>(
             TAppDomain appDomain,
             GetMetadataContextDelegate<TAppDomain> getMetadataContext,

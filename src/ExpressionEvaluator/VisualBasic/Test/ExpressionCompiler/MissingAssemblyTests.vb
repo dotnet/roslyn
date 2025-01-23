@@ -521,6 +521,7 @@ End Class
 
                     Dim numRetries = 0
                     Dim errorMessage As String = Nothing
+                    Dim compileResult As CompileResult = Nothing
                     ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                         runtime.Modules.Select(Function(m) m.MetadataBlock).ToImmutableArray(),
                         context,
@@ -534,6 +535,7 @@ End Class
                             uSize = CUInt(missingModule.MetadataLength)
                             Return missingModule.MetadataAddress
                         End Function,
+                        compileResult,
                         errorMessage)
 
                     Assert.Equal(2, numRetries) ' Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.

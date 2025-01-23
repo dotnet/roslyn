@@ -217,17 +217,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return clrModule.GetSymUnmanagedReader();
         }
 
-        internal static DkmCompiledClrInspectionQuery? ToQueryResult(
-            this CompileResult? compResult,
+        internal static DkmCompiledClrInspectionQuery ToQueryResult(
+            this CompileResult compResult,
             DkmCompilerId languageId,
             ResultProperties resultProperties,
             DkmClrRuntimeInstance runtimeInstance)
         {
-            if (compResult == null)
-            {
-                return null;
-            }
-
             Debug.Assert(compResult.Assembly != null);
 
             ReadOnlyCollection<byte>? customTypeInfo;

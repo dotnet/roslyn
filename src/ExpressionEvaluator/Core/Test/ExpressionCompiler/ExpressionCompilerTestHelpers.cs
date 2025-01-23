@@ -241,19 +241,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return result;
         }
 
-        internal static CompileResult CompileExpressionWithRetry(
+        internal static bool CompileExpressionWithRetry(
             ImmutableArray<MetadataBlock> metadataBlocks,
             EvaluationContextBase context,
             ExpressionCompiler.CompileDelegate<CompileResult> compile,
             DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtr,
+            out CompileResult compileResult,
             out string errorMessage)
         {
-            return ExpressionCompiler.CompileWithRetry(
+            return ExpressionCompiler.TryCompileWithRetry(
                 metadataBlocks,
                 DebuggerDiagnosticFormatter.Instance,
                 (blocks, useReferencedModulesOnly) => context,
                 compile,
                 getMetaDataBytesPtr,
+                out compileResult,
                 out errorMessage);
         }
 
@@ -266,7 +268,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             out string errorMessage,
             out CompilationTestData testData)
         {
-            var r = ExpressionCompiler.CompileWithRetry(
+            ExpressionCompiler.TryCompileWithRetry(
                 metadataBlocks,
                 DebuggerDiagnosticFormatter.Instance,
                 createContext,
@@ -284,6 +286,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                     return new CompileExpressionResult(compileResult, td);
                 },
                 getMetaDataBytesPtr,
+                out var r,
                 out errorMessage);
             testData = r.TestData;
             return r.CompileResult;
