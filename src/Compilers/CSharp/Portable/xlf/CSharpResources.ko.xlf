@@ -2393,8 +2393,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressionArguments">
-        <source>collection expression construction arguments</source>
-        <target state="new">collection expression construction arguments</target>
+        <source>collection expression arguments</source>
+        <target state="new">collection expression arguments</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
