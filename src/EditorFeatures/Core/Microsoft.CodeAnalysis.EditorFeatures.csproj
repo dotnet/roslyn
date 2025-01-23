@@ -36,6 +36,8 @@
   <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
     <Compile Include="..\..\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\BrokeredServices\ServiceBrokerProvider.cs" Link="BrokeredServices\ServiceBrokerProvider.cs" />
+    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Services\EditAndContinue\EditAndContinueLogReporter.cs" Link="EditAndContinue\EditAndContinueLogReporter.cs" />
+    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Services\EditAndContinue\HotReloadLoggerProxy.cs" Link="EditAndContinue\HotReloadLoggerProxy.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
