@@ -316,7 +316,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns true if this method should be processed with runtime async handling instead
         /// of compiler async state machine generation.
         /// </summary>
+#pragma warning disable IDE0060 // Remove unused parameter
         internal bool IsRuntimeAsyncEnabledIn(MethodSymbol method)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             if (!Assembly.RuntimeSupportsAsync)
             {
