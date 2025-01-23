@@ -19763,7 +19763,6 @@ class C
     {
         UsingExpression("[with(), ..a]");
 
-
         N(SyntaxKind.CollectionExpression);
         {
             N(SyntaxKind.OpenBracketToken);
