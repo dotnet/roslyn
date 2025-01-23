@@ -34,9 +34,9 @@ public static class RuntimeHelpers
 {
     // These methods are used to await things that cannot use the Await helpers below
     [MethodImpl(MethodImplOptions.Async)]
-    public static Task AwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion;
+    public static void AwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion;
     [MethodImpl(MethodImplOptions.Async)]
-    public static Task UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion;
+    public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion;
 
     // These methods are used to directly await method calls
     // TODO: Do we only use these when directly awaiting a method call, or do we always use these when a `Task` is awaited, even if that task is a local?
