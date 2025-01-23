@@ -199,8 +199,10 @@ class Test
 
             void verify(ModuleSymbol module)
             {
-                var f = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("F");
+                var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var f = test.GetMethod("F");
                 Assert.Equal((MethodImplAttributes)1024, f.ImplementationAttributes);
+                AssertEx.Equal(["<>c"], test.GetTypeMembers().SelectAsArray(t => t.Name));
             }
         }
 
