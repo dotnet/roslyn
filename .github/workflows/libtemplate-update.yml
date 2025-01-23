@@ -45,7 +45,7 @@ jobs:
 
         # Pushing commits that add or change files under .github/workflows will cause our workflow to fail.
         # But it usually isn't necessary because the target branch already has (or doesn't have) these changes.
-        # So if the merged doesn't bring in any changes to these files, try the merge locally and push that
+        # So if the merge doesn't bring in any changes to these files, try the merge locally and push that
         # to keep github happy.
         if ((git rev-list FETCH_HEAD ^HEAD --count -- .github/workflows) -eq 0) {
           # Indeed there are no changes in that area. So merge locally to try to appease GitHub.
