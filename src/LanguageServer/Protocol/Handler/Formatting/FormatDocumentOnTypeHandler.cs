@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (document is null)
                 return null;
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-
-            if (string.IsNullOrEmpty(request.Character) || SyntaxFacts.IsNewLine(request.Character[0]))
+            if (string.IsNullOrEmpty(request.Character))
             {
                 return [];
             }
+
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var formattingService = document.Project.Services.GetRequiredService<ISyntaxFormattingService>();
             var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
@@ -70,6 +70,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (textChanges.IsEmpty)
             {
                 return [];
+            }
+
+            if (SyntaxFacts.IsNewLine(request.Character[0]))
+            {
+                // When formatting after a newline is pressed, the cursor line will be blank and we do
+                // not want to remove the whitespace indentation from it. 
+                textChanges = textChanges.WhereAsArray(change => !change.Span.Contains(position));
             }
 
             return [.. textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, documentSyntax.Text))];
