@@ -5234,26 +5234,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 
-            // Report any 'with(...)' elements not in the first element location.
-            for (int i = 1, n = syntax.Elements.Count; i < n; i++)
-            {
-                var element = syntax.Elements[i];
-                if (element is WithElementSyntax withElement)
-                    Error(diagnostics, ErrorCode.ERR_WithElementMustBeFirst, withElement.WithKeyword.GetLocation());
-            }
-
-            foreach (var element in syntax.Elements)
-            {
-                if (element is WithElementSyntax withElement)
-                {
-                    MessageID.IDS_FeatureCollectionExpressionArguments.CheckFeatureAvailability(diagnostics, syntax, withElement.WithKeyword.GetLocation());
-
-                    // PROTOTYPE: Error for now.  Flesh this out when we do the binding for `with(...)` arguments.
-                    Error(diagnostics, ErrorCode.ERR_SyntaxError, withElement.WithKeyword, ",");
-                    return new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [], CreateErrorType());
-                }
-            }
-
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {

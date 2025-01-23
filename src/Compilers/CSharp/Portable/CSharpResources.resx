@@ -6844,9 +6844,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureDictionaryExpressions" xml:space="preserve">
     <value>dictionary expressions</value>
   </data>
-  <data name="IDS_FeatureCollectionExpressionArguments" xml:space="preserve">
-    <value>collection expression arguments</value>
-  </data>
   <data name="ERR_CollectionExpressionTargetTypeNotConstructible" xml:space="preserve">
     <value>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</value>
   </data>
@@ -8040,9 +8037,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_IteratorRefLikeElementType" xml:space="preserve">
     <value>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</value>
-  </data>
-  <data name="ERR_WithElementMustBeFirst" xml:space="preserve">
-    <value>'with(...)' element must be first element in collection expression</value>
   </data>
   <data name="IDS_FeatureSimpleLambdaParameterModifiers" xml:space="preserve">
     <value>simple lambda parameter modifiers</value>
