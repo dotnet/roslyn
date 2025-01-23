@@ -214,13 +214,14 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 
                     ShowQuotaExceededResult();
                 }
-
-                SetResultText(EditorFeaturesResources.An_error_occurred_while_generating_documentation_for_this_code);
-                Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Error_Displayed, KeyValueLogMessage.Create(m =>
+                else
                 {
-                    m["ElapsedTime"] = copilotRequestTime;
-                }, LogLevel.Information));
-
+                    SetResultText(EditorFeaturesResources.An_error_occurred_while_generating_documentation_for_this_code);
+                    Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Error_Displayed, KeyValueLogMessage.Create(m =>
+                    {
+                        m["ElapsedTime"] = copilotRequestTime;
+                    }, LogLevel.Information));
+                }
                 CurrentState = OnTheFlyDocsState.Finished;
 
             }
@@ -305,7 +306,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
             new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement(this.quotaExceededContent))
         };
 
-        _responseControl.Content = this.ToUIElement(new ContainerElement(ContainerElementStyle.Stacked, elements));
+        _responseControl.Content = ToUIElement(new ContainerElement(ContainerElementStyle.Stacked, elements));
     }
 
     private void OnPropertyChanged<T>(ref T member, T value, [CallerMemberName] string? name = null)
