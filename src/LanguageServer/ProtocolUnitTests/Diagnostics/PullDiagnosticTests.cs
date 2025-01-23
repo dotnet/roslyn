@@ -664,7 +664,7 @@ class B {";
     }
 
     [Theory, CombinatorialData]
-    public async Task TestDocumentDiagnosticsIncludesSourceGeneratorDiagnostics(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    public async Task TestDocumentDiagnosticsDoesNotIncludesSourceGeneratorDiagnostics(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var markup = "// Hello, World";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
@@ -686,8 +686,7 @@ class B {";
         var results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(), useVSDiagnostics);
 
-        var diagnostic = AssertEx.Single(results.Single().Diagnostics);
-        Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, diagnostic.Code);
+        AssertEx.Empty(results.Single().Diagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -1020,20 +1019,28 @@ class C
         await using var testLspServer = await CreateTestLspServerAsync(["class C {}"], mutatingLspWorkspace,
             GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, enableDiagnosticsInSourceGeneratedFiles: enableDiagnosticsInSourceGeneratedFiles));
 
-        var generator = new Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator()
+        var generatorCalled = false;
+        var generator = new TestSourceGenerator()
         {
-            ExecuteImpl = context => throw new InvalidOperationException("Source generator failed")
+            ExecuteImpl = context =>
+            {
+                generatorCalled = true;
+                throw new InvalidOperationException("Source generator failed");
+            }
         };
 
         var solution = testLspServer.TestWorkspace.CurrentSolution;
         solution = solution.AddAnalyzerReference(solution.ProjectIds.Single(), new TestGeneratorReference(generator));
         Assert.True(testLspServer.TestWorkspace.TryApplyChanges(solution));
 
+        Assert.False(generatorCalled);
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
+        // Generator will run, but any errors from it are not expected to come through diagnostics.
+        Assert.True(generatorCalled);
         Assert.Equal(2, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
-        Assert.True(results[1].Diagnostics.Single().Message.Contains("Source generator failed"));
+        AssertEx.Empty(results[1].Diagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -1313,7 +1320,7 @@ class A {
     }
 
     [Theory, CombinatorialData]
-    public async Task TestWorkspaceDiagnosticsIncludesSourceGeneratorDiagnosticsClosedFSAOn(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    public async Task TestWorkspaceDiagnosticsDoesNotIncludeSourceGeneratorDiagnosticsClosedFSAOn(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var markup = "// Hello, World";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
@@ -1329,7 +1336,7 @@ class A {
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, results[0].Diagnostics.Single().Code);
+        AssertEx.Empty(results[0].Diagnostics);
         AssertEx.Empty(results[1].Diagnostics);
     }
 
