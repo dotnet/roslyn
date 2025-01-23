@@ -18117,17 +18117,16 @@ internal sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
     internal readonly SyntaxToken keyword;
     internal readonly TypeParameterListSyntax? typeParameterList;
     internal readonly ParameterListSyntax? parameterList;
-    internal readonly BaseListSyntax? baseList;
     internal readonly GreenNode? constraintClauses;
     internal readonly SyntaxToken? openBraceToken;
     internal readonly GreenNode? members;
     internal readonly SyntaxToken? closeBraceToken;
     internal readonly SyntaxToken? semicolonToken;
 
-    internal ExtensionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+    internal ExtensionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
       : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 11;
+        this.SlotCount = 10;
         if (attributeLists != null)
         {
             this.AdjustFlagsAndWidth(attributeLists);
@@ -18149,11 +18148,6 @@ internal sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
         {
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
-        }
-        if (baseList != null)
-        {
-            this.AdjustFlagsAndWidth(baseList);
-            this.baseList = baseList;
         }
         if (constraintClauses != null)
         {
@@ -18182,11 +18176,11 @@ internal sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
         }
     }
 
-    internal ExtensionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
+    internal ExtensionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken, SyntaxFactoryContext context)
       : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 11;
+        this.SlotCount = 10;
         if (attributeLists != null)
         {
             this.AdjustFlagsAndWidth(attributeLists);
@@ -18208,11 +18202,6 @@ internal sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
         {
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
-        }
-        if (baseList != null)
-        {
-            this.AdjustFlagsAndWidth(baseList);
-            this.baseList = baseList;
         }
         if (constraintClauses != null)
         {
@@ -18241,10 +18230,10 @@ internal sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
         }
     }
 
-    internal ExtensionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+    internal ExtensionDeclarationSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, GreenNode? constraintClauses, SyntaxToken? openBraceToken, GreenNode? members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
       : base(kind)
     {
-        this.SlotCount = 11;
+        this.SlotCount = 10;
         if (attributeLists != null)
         {
             this.AdjustFlagsAndWidth(attributeLists);
@@ -18266,11 +18255,6 @@ internal sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
         {
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
-        }
-        if (baseList != null)
-        {
-            this.AdjustFlagsAndWidth(baseList);
-            this.baseList = baseList;
         }
         if (constraintClauses != null)
         {
@@ -18304,7 +18288,6 @@ internal sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
     public override SyntaxToken Keyword => this.keyword;
     public override TypeParameterListSyntax? TypeParameterList => this.typeParameterList;
     public override ParameterListSyntax? ParameterList => this.parameterList;
-    public override BaseListSyntax? BaseList => this.baseList;
     public override CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses => new CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax>(this.constraintClauses);
     public override SyntaxToken? OpenBraceToken => this.openBraceToken;
     public override CoreSyntax.SyntaxList<MemberDeclarationSyntax> Members => new CoreSyntax.SyntaxList<MemberDeclarationSyntax>(this.members);
@@ -18319,12 +18302,11 @@ internal sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
             2 => this.keyword,
             3 => this.typeParameterList,
             4 => this.parameterList,
-            5 => this.baseList,
-            6 => this.constraintClauses,
-            7 => this.openBraceToken,
-            8 => this.members,
-            9 => this.closeBraceToken,
-            10 => this.semicolonToken,
+            5 => this.constraintClauses,
+            6 => this.openBraceToken,
+            7 => this.members,
+            8 => this.closeBraceToken,
+            9 => this.semicolonToken,
             _ => null,
         };
 
@@ -18333,11 +18315,11 @@ internal sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExtensionDeclaration(this);
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExtensionDeclaration(this);
 
-    public ExtensionDeclarationSyntax Update(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, BaseListSyntax baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+    public ExtensionDeclarationSyntax Update(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
     {
-        if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, keyword, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+            var newNode = SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, keyword, typeParameterList, parameterList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
             var diags = GetDiagnostics();
             if (diags?.Length > 0)
                 newNode = newNode.WithDiagnosticsGreen(diags);
@@ -18351,10 +18333,10 @@ internal sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-        => new ExtensionDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.typeParameterList, this.parameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
+        => new ExtensionDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.typeParameterList, this.parameterList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-        => new ExtensionDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.typeParameterList, this.parameterList, this.baseList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
+        => new ExtensionDeclarationSyntax(this.Kind, this.attributeLists, this.modifiers, this.keyword, this.typeParameterList, this.parameterList, this.constraintClauses, this.openBraceToken, this.members, this.closeBraceToken, this.semicolonToken, GetDiagnostics(), annotations);
 }
 
 /// <summary>Base list syntax.</summary>
@@ -27750,7 +27732,7 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
         => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Identifier), (EqualsValueClauseSyntax)Visit(node.EqualsValue));
 
     public override CSharpSyntaxNode VisitExtensionDeclaration(ExtensionDeclarationSyntax node)
-        => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
+        => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (SyntaxToken)Visit(node.Keyword), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), VisitList(node.ConstraintClauses), (SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Members), (SyntaxToken)Visit(node.CloseBraceToken), (SyntaxToken)Visit(node.SemicolonToken));
 
     public override CSharpSyntaxNode VisitBaseList(BaseListSyntax node)
         => node.Update((SyntaxToken)Visit(node.ColonToken), VisitList(node.Types));
@@ -31678,7 +31660,7 @@ internal partial class ContextAwareSyntax
         return new EnumMemberDeclarationSyntax(SyntaxKind.EnumMemberDeclaration, attributeLists.Node, modifiers.Node, identifier, equalsValue, this.context);
     }
 
-    public ExtensionDeclarationSyntax ExtensionDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+    public ExtensionDeclarationSyntax ExtensionDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
     {
 #if DEBUG
         if (keyword == null) throw new ArgumentNullException(nameof(keyword));
@@ -31711,7 +31693,7 @@ internal partial class ContextAwareSyntax
         }
 #endif
 
-        return new ExtensionDeclarationSyntax(SyntaxKind.ExtensionDeclaration, attributeLists.Node, modifiers.Node, keyword, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
+        return new ExtensionDeclarationSyntax(SyntaxKind.ExtensionDeclaration, attributeLists.Node, modifiers.Node, keyword, typeParameterList, parameterList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken, this.context);
     }
 
     public BaseListSyntax BaseList(SyntaxToken colonToken, CoreSyntax.SeparatedSyntaxList<BaseTypeSyntax> types)
@@ -36985,7 +36967,7 @@ internal static partial class SyntaxFactory
         return new EnumMemberDeclarationSyntax(SyntaxKind.EnumMemberDeclaration, attributeLists.Node, modifiers.Node, identifier, equalsValue);
     }
 
-    public static ExtensionDeclarationSyntax ExtensionDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
+    public static ExtensionDeclarationSyntax ExtensionDeclaration(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, CoreSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, CoreSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken? openBraceToken, CoreSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken? closeBraceToken, SyntaxToken? semicolonToken)
     {
 #if DEBUG
         if (keyword == null) throw new ArgumentNullException(nameof(keyword));
@@ -37018,7 +37000,7 @@ internal static partial class SyntaxFactory
         }
 #endif
 
-        return new ExtensionDeclarationSyntax(SyntaxKind.ExtensionDeclaration, attributeLists.Node, modifiers.Node, keyword, typeParameterList, parameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
+        return new ExtensionDeclarationSyntax(SyntaxKind.ExtensionDeclaration, attributeLists.Node, modifiers.Node, keyword, typeParameterList, parameterList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
     }
 
     public static BaseListSyntax BaseList(SyntaxToken colonToken, CoreSyntax.SeparatedSyntaxList<BaseTypeSyntax> types)

@@ -757,6 +757,11 @@
         <target state="translated">Un albero delle espressioni non può contenere un'espressione with.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsName">
+        <source>Extension declarations may not have a name.</source>
+        <target state="new">Extension declarations may not have a name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">'{0}': l'evento extern non può avere inizializzatori</target>
@@ -8912,7 +8917,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) può rilevare eccezi
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, interface, or extension member declaration</source>
+        <source>Invalid token '{0}' in a member declaration</source>
         <target state="needs-review-translation">Il token '{0}' nella dichiarazione del membro di classe, record, struct o interfaccia non è valido</target>
         <note />
       </trans-unit>

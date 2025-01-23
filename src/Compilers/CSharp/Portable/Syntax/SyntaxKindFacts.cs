@@ -244,7 +244,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UnderscoreToken:
                 case SyntaxKind.MultiLineRawStringLiteralToken:
                 case SyntaxKind.SingleLineRawStringLiteralToken:
-                case SyntaxKind.ExtensionKeyword:
                     return true;
                 default:
                     return false;

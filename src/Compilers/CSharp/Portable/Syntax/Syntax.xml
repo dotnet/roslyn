@@ -3629,7 +3629,6 @@
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
     <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" Override="true" />
-    <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true" Optional="true">
       <Kind Name="OpenBraceToken"/>

@@ -757,6 +757,11 @@
         <target state="translated">Uma árvore de expressão não pode conter uma expressão with.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsName">
+        <source>Extension declarations may not have a name.</source>
+        <target state="new">Extension declarations may not have a name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">'{0}': o evento externo não pode ter inicializador</target>
@@ -8912,7 +8917,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, interface, or extension member declaration</source>
+        <source>Invalid token '{0}' in a member declaration</source>
         <target state="needs-review-translation">Token inválido '{0}' na declaração de membro de classe, de registro, de struct ou de interface</target>
         <note />
       </trans-unit>

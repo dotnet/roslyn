@@ -122,8 +122,8 @@ class C
         EOF();
     }
 
-    [Fact]
-    public void LangVer14()
+    [Theory, CombinatorialData]
+    public void LangVer14(bool useCSharp14)
     {
         UsingTree("""
 class C
@@ -131,7 +131,7 @@ class C
     extension<T>(object o) where T : struct { }
 }
 """,
-            TestOptions.RegularNext);
+            useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -197,7 +197,7 @@ class C
     extension<T1, T2>(object o) where T1 : struct where T2 : class { }
 }
 """,
-            TestOptions.RegularNext);
+            TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -281,7 +281,7 @@ class C
     extension<T1, T2>(object o) where T1 where T2 : class { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,42): error CS1003: Syntax error, ':' expected
             //     extension<T1, T2>(object o) where T1 where T2 : class { }
             Diagnostic(ErrorCode.ERR_SyntaxError, "where").WithArguments(":").WithLocation(3, 42),
@@ -368,17 +368,16 @@ class C
     [Fact]
     public void WithName()
     {
-        var src = """
+        UsingTree("""
 class C
 {
     extension Name(Type) { }
 }
-""";
-        // PROTOTYPE should be a semantic error
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
-        comp.VerifyDiagnostics();
-
-        UsingTree(src, TestOptions.RegularNext);
+""",
+            TestOptions.RegularPreview,
+            // (3,15): error CS9500: Extension declarations may not have a name.
+            //     extension Name(Type) { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "Name").WithLocation(3, 15));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -390,7 +389,6 @@ class C
                 N(SyntaxKind.ExtensionDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
-                    N(SyntaxKind.IdentifierToken, "Name");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -416,17 +414,16 @@ class C
     [Fact]
     public void WithName_02()
     {
-        var src = """
+        UsingTree("""
 class C
 {
     extension Name<T>(Type) { }
 }
-""";
-        // PROTOTYPE should be a semantic error
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
-        comp.VerifyDiagnostics();
-
-        UsingTree(src, TestOptions.RegularNext);
+""",
+            TestOptions.RegularPreview,
+            // (3,15): error CS9500: Extension declarations may not have a name.
+            //     extension Name<T>(Type) { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "Name").WithLocation(3, 15));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -438,7 +435,6 @@ class C
                 N(SyntaxKind.ExtensionDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
-                    N(SyntaxKind.IdentifierToken, "Name");
                     N(SyntaxKind.TypeParameterList);
                     {
                         N(SyntaxKind.LessThanToken);
@@ -476,14 +472,14 @@ class C
         var src = """
 class C
 {
-    extension Name(Type x = null) { }
+    extension(Type x = null) { }
 }
 """;
         // PROTOTYPE should be a semantic error
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        UsingTree(src, TestOptions.RegularNext);
+        UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -495,7 +491,6 @@ class C
                 N(SyntaxKind.ExtensionDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
-                    N(SyntaxKind.IdentifierToken, "Name");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -533,14 +528,14 @@ class C
         var src = """
 class C
 {
-    extension Name(Type = null) { }
+    extension(Type = null) { }
 }
 """;
         // PROTOTYPE should be a semantic error
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        UsingTree(src, TestOptions.RegularNext);
+        UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -552,7 +547,6 @@ class C
                 N(SyntaxKind.ExtensionDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
-                    N(SyntaxKind.IdentifierToken, "Name");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -584,19 +578,18 @@ class C
     }
 
     [Fact]
-    public void WithBaseList()
+    public void WithDefaultParameterValue_03()
     {
         var src = """
 class C
 {
-    extension Name(Type) : Type2() { }
+    extension(Type =) { }
 }
 """;
-        // PROTOTYPE should be a semantic error
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
-        comp.VerifyDiagnostics();
-
-        UsingTree(src, TestOptions.RegularNext);
+        UsingTree(src, TestOptions.RegularPreview,
+            // (3,21): error CS1525: Invalid expression term ')'
+            //     extension(Type =) { }
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(3, 21));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -608,7 +601,6 @@ class C
                 N(SyntaxKind.ExtensionDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
-                    N(SyntaxKind.IdentifierToken, "Name");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -618,24 +610,16 @@ class C
                             {
                                 N(SyntaxKind.IdentifierToken, "Type");
                             }
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
                         }
                         N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.BaseList);
-                    {
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.PrimaryConstructorBaseType);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Type2");
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
                     }
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
@@ -648,7 +632,76 @@ class C
     }
 
     [Fact]
-    public void TypeNamedExtension()
+    public void WithBaseList()
+    {
+        var src = """
+class C
+{
+    extension Name(Type) : Type2() { }
+}
+""";
+        UsingTree(src, TestOptions.RegularPreview,
+            // (3,15): error CS9500: Extension declarations may not have a name.
+            //     extension Name(Type) : Type2() { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "Name").WithLocation(3, 15),
+            // (3,26): error CS1514: { expected
+            //     extension Name(Type) : Type2() { }
+            Diagnostic(ErrorCode.ERR_LbraceExpected, ":").WithLocation(3, 26),
+            // (3,26): error CS1513: } expected
+            //     extension Name(Type) : Type2() { }
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(3, 26),
+            // (3,26): error CS1519: Invalid token ':' in a member declaration
+            //     extension Name(Type) : Type2() { }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ":").WithArguments(":").WithLocation(3, 26));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierToken, "Type2");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void TypeNamedExtension(bool useCSharp14)
     {
         UsingTree("""
 class extension
@@ -701,7 +754,7 @@ class extension
     extension(Type constructorParameter) { }
 }
 """,
-        TestOptions.RegularNext);
+        useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -741,7 +794,7 @@ class extension
     @extension(Type constructorParameter) { }
 }
 """,
-        TestOptions.RegularNext);
+        useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -780,7 +833,7 @@ class extension
     }
 
     [Fact]
-    public void NoReceiverParameterName()
+    public void ReceiverParameter_NoName()
     {
         UsingTree("""
 class C
@@ -788,7 +841,7 @@ class C
     extension(Type) { }
 }
 """,
-            TestOptions.RegularNext);
+            TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -823,7 +876,7 @@ class C
     }
 
     [Fact]
-    public void NoReceiverParameterName_02()
+    public void ReceiverParameter_NoName_02()
     {
         UsingTree("""
 class C
@@ -831,7 +884,7 @@ class C
     extension(object) { }
 }
 """,
-            TestOptions.RegularNext);
+            TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -866,7 +919,7 @@ class C
     }
 
     [Fact]
-    public void MultipleReceiverParameters()
+    public void ReceiverParameter_Multiple()
     {
         var src = """
 class C
@@ -875,10 +928,10 @@ class C
 }
 """;
         // PROTOTYPE should be a semantic error
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        UsingTree(src, TestOptions.RegularNext);
+        UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -923,7 +976,7 @@ class C
     }
 
     [Fact]
-    public void MultipleReceiverParameters_02()
+    public void ReceiverParameter_Multiple_02()
     {
         var src = """
 class C
@@ -932,10 +985,10 @@ class C
 }
 """;
         // PROTOTYPE should be a semantic error
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        UsingTree(src, TestOptions.RegularNext);
+        UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -978,6 +1031,354 @@ class C
     }
 
     [Fact]
+    public void ReceiverParameter_Multiple_03()
+    {
+        var src = """
+class C
+{
+    extension(object object) { }
+}
+""";
+        UsingTree(src, TestOptions.RegularPreview,
+            // (3,22): error CS1003: Syntax error, ',' expected
+            //     extension(object object) { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "object").WithArguments(",").WithLocation(3, 22));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ReceiverParameter_Multiple_04()
+    {
+        var src = """
+class C
+{
+    extension(Type, object object) { }
+}
+""";
+
+        UsingTree(src, TestOptions.RegularPreview,
+            // (3,28): error CS1003: Syntax error, ',' expected
+            //     extension(Type, object object) { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, "object").WithArguments(",").WithLocation(3, 28));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ReceiverParameter_Multiple_05()
+    {
+        var src = """
+class C
+{
+    extension(Type, object =) { }
+}
+""";
+        UsingTree(src, TestOptions.RegularPreview,
+            // (3,29): error CS1525: Invalid expression term ')'
+            //     extension(Type, object =) { }
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(3, 29));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ReceiverParameter_Multiple_06()
+    {
+        var src = """
+class C
+{
+    extension(Type, object { }
+}
+""";
+        UsingTree(src, TestOptions.RegularPreview,
+            // (3,28): error CS1026: ) expected
+            //     extension(Type, object { }
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(3, 28));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ReceiverParameter_Multiple_07()
+    {
+        var src = """
+class C
+{
+    extension(Type, params object[]) { }
+}
+""";
+        // PROTOTYPE should be a semantic error
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        UsingTree(src, TestOptions.RegularPreview);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.ParamsKeyword);
+                            N(SyntaxKind.ArrayType);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.ObjectKeyword);
+                                }
+                                N(SyntaxKind.ArrayRankSpecifier);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    {
+                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ReceiverParameter_MissingClosingParen()
+    {
+        var src = """
+class C
+{
+    extension(object { }
+}
+""";
+
+        UsingTree(src, TestOptions.RegularPreview,
+            // (3,22): error CS1026: ) expected
+            //     extension(object { }
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(3, 22));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
     public void NoClosingBrace()
     {
         UsingTree("""
@@ -986,7 +1387,7 @@ class C
     extension(Type) { void M() { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (4,2): error CS1513: } expected
             // }
             Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 2));
@@ -1048,10 +1449,10 @@ class C
 extension(Type) { }
 """;
         // PROTOTYPE should be a semantic error
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        UsingTree(src, TestOptions.RegularNext);
+        UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1091,9 +1492,9 @@ class C
 }
 """;
         // PROTOTYPE should be a semantic error
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        UsingTree(src, TestOptions.RegularNext);
+        UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1147,10 +1548,10 @@ class C
 }
 """;
         // PROTOTYPE should be a semantic error
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        UsingTree(src, TestOptions.RegularNext);
+        UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1213,7 +1614,7 @@ class C
     extension(Type) { }
 }
 """,
-            TestOptions.RegularNext);
+            TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1268,7 +1669,7 @@ class C
     partial extension(Type) { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,27): error CS1001: Identifier expected
             //     partial extension(Type) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(3, 27));
@@ -1322,7 +1723,7 @@ class C
     scoped extension(Type) { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,26): error CS1001: Identifier expected
             //     scoped extension(Type) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(3, 26));
@@ -1376,7 +1777,7 @@ class C
     async extension(Type) { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,25): error CS1001: Identifier expected
             //     async extension(Type) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(3, 25));
@@ -1430,7 +1831,7 @@ class C
     const extension(Type) { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,20): error CS1001: Identifier expected
             //     const extension(Type) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(3, 20),
@@ -1504,7 +1905,7 @@ class C
     fixed extension(Type) { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,20): error CS1001: Identifier expected
             //     fixed extension(Type) { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(3, 20),
@@ -1578,14 +1979,14 @@ class C
     ref extension(Type) { }
 }
 """,
-            TestOptions.RegularNext,
-            // (3,18): error CS1519: Invalid token '(' in class, record, struct, interface, or extension member declaration
+            TestOptions.RegularPreview,
+            // (3,18): error CS1519: Invalid token '(' in a member declaration
             //     ref extension(Type) { }
             Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(3, 18),
             // (3,23): error CS8124: Tuple must contain at least two elements.
             //     ref extension(Type) { }
             Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 23),
-            // (3,25): error CS1519: Invalid token '{' in class, record, struct, interface, or extension member declaration
+            // (3,25): error CS1519: Invalid token '{' in a member declaration
             //     ref extension(Type) { }
             Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 25),
             // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
@@ -1665,9 +2066,9 @@ class C
 }
 """;
         // PROTOTYPE should be a semantic error
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
-        UsingTree(src, TestOptions.RegularNext);
+        UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1703,9 +2104,9 @@ class C
     }
 
     [Fact]
-    public void ConstMember()
+    public void Member_Const()
     {
-        UsingTree("""
+        var src = """
 class C
 {
     extension(Type)
@@ -1713,8 +2114,12 @@ class C
         const int i = 0;
     }
 }
-""",
-            TestOptions.RegularNext);
+""";
+        // PROTOTYPE should be a semantic error
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1773,9 +2178,9 @@ class C
     }
 
     [Fact]
-    public void FixedFieldMember()
+    public void Member_FixedField()
     {
-        UsingTree("""
+        var src = """
 class C
 {
     extension(Type)
@@ -1783,8 +2188,12 @@ class C
         fixed int field[10];
     }
 }
-""",
-            TestOptions.RegularNext);
+""";
+        // PROTOTYPE should be a semantic error
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1847,9 +2256,9 @@ class C
     }
 
     [Fact]
-    public void EventFieldMember()
+    public void Member_EventField()
     {
-        UsingTree("""
+        var src = """
 class C
 {
     extension(Type)
@@ -1857,8 +2266,12 @@ class C
         event EventHandler eventField;
     }
 }
-""",
-            TestOptions.RegularNext);
+""";
+        // PROTOTYPE should be a semantic error
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1909,7 +2322,81 @@ class C
     }
 
     [Fact]
-    public void MiscMembers()
+    public void Member_Event()
+    {
+        var src = """
+class C
+{
+    extension(Type)
+    {
+        event EventHandler Event { add; remove; }
+    }
+}
+""";
+        // PROTOTYPE should be a semantic error
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        UsingTree(src, TestOptions.RegularPreview);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EventDeclaration);
+                    {
+                        N(SyntaxKind.EventKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "EventHandler");
+                        }
+                        N(SyntaxKind.IdentifierToken, "Event");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.AddAccessorDeclaration);
+                            {
+                                N(SyntaxKind.AddKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.RemoveAccessorDeclaration);
+                            {
+                                N(SyntaxKind.RemoveKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Member_MethodAndProperty()
     {
         UsingTree("""
 class C
@@ -1918,11 +2405,10 @@ class C
     {
         void M() { }
         int Property { get; set; }
-        class D { }
     }
 }
 """,
-            TestOptions.RegularNext);
+            TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1988,12 +2474,584 @@ class C
                             N(SyntaxKind.CloseBraceToken);
                         }
                     }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Member_Nested()
+    {
+        var src = """
+class C
+{
+    extension(Type)
+    {
+        class Nested { }
+    }
+}
+""";
+        // PROTOTYPE should be a semantic error
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        UsingTree(src, TestOptions.RegularPreview);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.ClassDeclaration);
                     {
                         N(SyntaxKind.ClassKeyword);
-                        N(SyntaxKind.IdentifierToken, "D");
+                        N(SyntaxKind.IdentifierToken, "Nested");
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Member_Constructor()
+    {
+        var src = """
+class C
+{
+    extension(Type)
+    {
+        Constructor() { }
+    }
+}
+""";
+        // PROTOTYPE should be a semantic error
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        UsingTree(src, TestOptions.RegularPreview);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Constructor");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Member_StaticConstructor()
+    {
+        var src = """
+class C
+{
+    extension(Type)
+    {
+        static Constructor() { }
+    }
+}
+""";
+        // PROTOTYPE should be a semantic error
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        UsingTree(src, TestOptions.RegularPreview);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.IdentifierToken, "Constructor");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Member_Finalizer()
+    {
+        var src = """
+class C
+{
+    extension(Type)
+    {
+        ~Finalizer() { }
+    }
+}
+""";
+        // PROTOTYPE should be a semantic error
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        UsingTree(src, TestOptions.RegularPreview);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.DestructorDeclaration);
+                    {
+                        N(SyntaxKind.TildeToken);
+                        N(SyntaxKind.IdentifierToken, "Finalizer");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Member_Field()
+    {
+        var src = """
+class C
+{
+    extension(Type)
+    {
+        int field;
+    }
+}
+""";
+        // PROTOTYPE should be a semantic error
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        UsingTree(src, TestOptions.RegularPreview);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "field");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Member_Indexer()
+    {
+        var src = """
+class C
+{
+    extension(Type)
+    {
+        int this[int i] { get => 0; set { } }
+    }
+}
+""";
+
+        UsingTree(src, TestOptions.RegularPreview);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IndexerDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.ThisKeyword);
+                        N(SyntaxKind.BracketedParameterList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "i");
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.ArrowExpressionClause);
+                                {
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.SetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.SetKeyword);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Member_Operator()
+    {
+        var src = """
+class C
+{
+    extension(Type)
+    {
+        public static Type operator  +(Type a, Type b) => a;
+    }
+}
+""";
+
+        UsingTree(src, TestOptions.RegularPreview);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Type");
+                        }
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Member_ConversionOperator()
+    {
+        var src = """
+class C
+{
+    extension(Type)
+    {
+        static implicit operator int(Type t) => 0;
+    }
+}
+""";
+
+        UsingTree(src, TestOptions.RegularPreview);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ExtensionDeclaration);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ConversionOperatorDeclaration);
+                    {
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.ImplicitKeyword);
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                                N(SyntaxKind.IdentifierToken, "t");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -2013,7 +3071,7 @@ class C
     ref extension(Type) { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,18): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
             //     ref extension(Type) { }
             Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(3, 18),
@@ -2083,7 +3141,7 @@ class C
     extension([MyAttribute] Type) { }
 }
 """,
-            TestOptions.RegularNext);
+            TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2138,7 +3196,7 @@ class C
     extension(ref Type) { }
 }
 """,
-            TestOptions.RegularNext);
+            TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2182,7 +3240,7 @@ class C
     extension(scoped Type x) { }
 }
 """,
-            TestOptions.RegularNext);
+            TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2227,7 +3285,7 @@ class C
     extension(scoped ref Type x) { }
 }
 """,
-            TestOptions.RegularNext);
+            TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2277,7 +3335,7 @@ class C
     extension(Type {{identifier}}) { }
 }
 """,
-            TestOptions.RegularNext);
+            TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2322,8 +3380,8 @@ class C
     class D { }
 }
 """,
-            TestOptions.RegularNext,
-            // (3,23): error CS1519: Invalid token ';' in class, record, struct, interface, or extension member declaration
+            TestOptions.RegularPreview,
+            // (3,23): error CS1519: Invalid token ';' in a member declaration
             //     extension(Type) { ;
             Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23),
             // (5,2): error CS1513: } expected
@@ -2378,8 +3436,8 @@ class C
     extension(Type) { ;
 }
 """,
-            TestOptions.RegularNext,
-            // (3,23): error CS1519: Invalid token ';' in class, record, struct, interface, or extension member declaration
+            TestOptions.RegularPreview,
+            // (3,23): error CS1519: Invalid token ';' in a member declaration
             //     extension(Type) { ;
             Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 23),
             // (4,2): error CS1513: } expected
@@ -2428,7 +3486,7 @@ class C
     class D { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,17): error CS1003: Syntax error, '>' expected
             //     extension<T ;
             Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">").WithLocation(3, 17),
@@ -2499,7 +3557,7 @@ class C
     class D { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,15): error CS1003: Syntax error, '(' expected
             //     extension ;
             Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(").WithLocation(3, 15),
@@ -2558,7 +3616,7 @@ class C
     class D { }
 }
 """,
-            TestOptions.RegularNext);
+            TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2629,8 +3687,8 @@ class C
     extension(Type) { {
 }
 """,
-            TestOptions.RegularNext,
-            // (3,23): error CS1519: Invalid token '{' in class, record, struct, interface, or extension member declaration
+            TestOptions.RegularPreview,
+            // (3,23): error CS1519: Invalid token '{' in a member declaration
             //     extension(Type) { {
             Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(3, 23),
             // (4,2): error CS1513: } expected
@@ -2678,7 +3736,7 @@ class C
     extension<T>(Type) where { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,30): error CS1001: Identifier expected
             //     extension<T>(Type) where { }
             Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 30),
@@ -2756,7 +3814,7 @@ class C
     class D { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,32): error CS1003: Syntax error, ':' expected
             //     extension<T>(Type) where T { }
             Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(":").WithLocation(3, 32),
@@ -2837,7 +3895,7 @@ class C
     extension<T>(Type) where T : { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,34): error CS1031: Type expected
             //     extension<T>(Type) where T : { }
             Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(3, 34));
@@ -2905,13 +3963,13 @@ class C
         UsingTree("""
 class C
 {
-    extension<T>(Type) where T : stuct, { }
+    extension<T>(Type) where T : struct, { }
 }
 """,
-            TestOptions.RegularNext,
-            // (3,41): error CS1031: Type expected
-            //     extension<T>(Type) where T : stuct, { }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(3, 41));
+            TestOptions.RegularPreview,
+            // (3,42): error CS1031: Type expected
+            //     extension<T>(Type) where T : struct, { }
+            Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(3, 42));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -2952,12 +4010,9 @@ class C
                             N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.TypeConstraint);
+                        N(SyntaxKind.StructConstraint);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "stuct");
-                            }
+                            N(SyntaxKind.StructKeyword);
                         }
                         N(SyntaxKind.CommaToken);
                         M(SyntaxKind.TypeConstraint);
@@ -2988,7 +4043,7 @@ class C
     class D { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,17): error CS1003: Syntax error, '>' expected
             //     extension<T {
             Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(">").WithLocation(3, 17),
@@ -3063,7 +4118,7 @@ class C
     void M() { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,20): error CS1514: { expected
             //     extension(Type)
             Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(3, 20),
@@ -3130,7 +4185,7 @@ class C
     extension() { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,15): error CS1031: Type expected
             //     extension() { }
             Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(3, 15));
@@ -3176,7 +4231,7 @@ class C
     extension(ref) { }
 }
 """,
-            TestOptions.RegularNext,
+            TestOptions.RegularPreview,
             // (3,18): error CS1031: Type expected
             //     extension(ref) { }
             Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(3, 18));
@@ -3214,8 +4269,8 @@ class C
         EOF();
     }
 
-    [Fact]
-    public void MethodReturningExtension()
+    [Theory, CombinatorialData]
+    public void MethodReturningExtension(bool useCSharp14)
     {
         var src = """
 class C
@@ -3257,15 +4312,10 @@ class C
         EOF();
 
         // Note: break from C# 13
-        // PROTOTYPE should have a semantic error (name disallowed)
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
-        comp.VerifyDiagnostics(
-            // (3,17): error CS1031: Type expected
+        UsingTree(src, useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview,
+            // (3,15): error CS9500: Extension declarations may not have a name.
             //     extension M() { }
-            Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(3, 17));
-
-        UsingTree(src,
-            TestOptions.RegularNext,
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "M").WithLocation(3, 15),
             // (3,17): error CS1031: Type expected
             //     extension M() { }
             Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(3, 17));
@@ -3280,7 +4330,6 @@ class C
                 N(SyntaxKind.ExtensionDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
-                    N(SyntaxKind.IdentifierToken, "M");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3308,7 +4357,7 @@ class C
     @extension M() { }
 }
 """,
-            TestOptions.RegularNext);
+            useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3342,8 +4391,8 @@ class C
         EOF();
     }
 
-    [Fact]
-    public void MethodReturningExtension_02()
+    [Theory, CombinatorialData]
+    public void MethodReturningExtension_02(bool useCSharp14)
     {
         var src = """
 class C
@@ -3393,11 +4442,10 @@ class C
         EOF();
 
         // Note: break from C# 13
-        // PROTOTYPE should have a semantic error (name disallowed)
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
-        comp.VerifyDiagnostics();
-
-        UsingTree(src, TestOptions.RegularNext);
+        UsingTree(src, useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview,
+            // (3,15): error CS9500: Extension declarations may not have a name.
+            //     extension M(Type x) { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "M").WithLocation(3, 15));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3409,7 +4457,6 @@ class C
                 N(SyntaxKind.ExtensionDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
-                    N(SyntaxKind.IdentifierToken, "M");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3438,7 +4485,7 @@ class C
     @extension M(Type x) { }
 }
 """,
-            TestOptions.RegularNext);
+            useCSharp14 ? TestOptions.RegularNext : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3493,7 +4540,7 @@ class C
     }
 }
 """,
-            TestOptions.RegularNext);
+            TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3594,10 +4641,10 @@ class C
 }
 """;
         // PROTOTYPE should be a semantic error
-        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        var comp = CreateCompilation(src);
         comp.VerifyDiagnostics();
 
-        UsingTree(src, TestOptions.RegularNext);
+        UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -3637,10 +4684,7 @@ class C
     extension(object where T :
 }
 """,
-        TestOptions.RegularNext,
-        // (3,22): error CS1001: Identifier expected
-        //     extension(object where T :
-        Diagnostic(ErrorCode.ERR_IdentifierExpected, "where").WithLocation(3, 22),
+        TestOptions.RegularPreview,
         // (3,22): error CS1026: ) expected
         //     extension(object where T :
         Diagnostic(ErrorCode.ERR_CloseParenExpected, "where").WithLocation(3, 22),
@@ -3673,7 +4717,6 @@ class C
                             {
                                 N(SyntaxKind.ObjectKeyword);
                             }
-                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.CloseParenToken);
                     }
@@ -3712,7 +4755,7 @@ class C
     extension(object) { };
 }
 """,
-        TestOptions.RegularNext);
+        TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {

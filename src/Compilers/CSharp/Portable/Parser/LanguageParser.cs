@@ -1735,8 +1735,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
 
-            // For extension declarations, we parse a name if one is found but an error will be reported later.
-            SyntaxToken? name = isExtension ? null : this.ParseIdentifierToken();
+            SyntaxToken? name;
+            if (isExtension)
+            {
+                name = null;
+                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                {
+                    keyword = AddTrailingSkippedSyntax(keyword, this.AddError(this.EatToken(), ErrorCode.ERR_ExtensionDisallowsName));
+                }
+            }
+            else
+            {
+                name = (SyntaxToken?)this.ParseIdentifierToken();
+            }
 
             var typeParameters = this.ParseTypeParameterList();
 
@@ -1744,7 +1755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken || isExtension
                 ? ParseParenthesizedParameterList(forExtension: isExtension) : null;
 
-            var baseList = this.ParseBaseList();
+            var baseList = isExtension ? null : this.ParseBaseList();
             _termState = saveTerm;
 
             // Parse class body
@@ -1886,7 +1897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             static TypeDeclarationSyntax constructTypeDeclaration(ContextAwareSyntax syntaxFactory, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, SyntaxToken keyword, SyntaxToken? recordModifier,
-                SyntaxToken? name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, BaseListSyntax baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
+                SyntaxToken? name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, BaseListSyntax? baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
                 SyntaxToken? openBrace, SyntaxListBuilder<MemberDeclarationSyntax> members, SyntaxToken? closeBrace, SyntaxToken semicolon)
             {
                 var modifiersList = (SyntaxList<SyntaxToken>)modifiers.ToList();
@@ -1966,13 +1977,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     case SyntaxKind.ExtensionKeyword:
                         Debug.Assert(name is null);
+                        Debug.Assert(baseList is null);
                         return syntaxFactory.ExtensionDeclaration(
                             attributes,
                             modifiers.ToList(),
                             keyword,
                             typeParameters,
                             paramList,
-                            baseList,
                             constraints,
                             openBrace,
                             members,
@@ -4642,8 +4653,9 @@ parse_member_name:;
                 parseElement,
                 skipBadParameterListTokens,
                 allowTrailingSeparator: false,
-                requireOneElement: forExtension, // For extension declarations, we require one receiver parameter
+                requireOneElement: forExtension, // For extension declarations, we require at least one receiver parameter
                 allowSemicolonAsSeparator: false);
+            // PROTOTYPE consider suppressing parsing diagnostics on extension parameters beyond the first one
 
             _termState = saveTerm;
             close = this.EatToken(closeKind);
@@ -4752,7 +4764,7 @@ parse_member_name:;
             SyntaxToken? identifier;
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && IsCurrentTokenWhereOfConstraintClause())
             {
-                identifier = this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected);
+                identifier = allowOptionalIdentifier ? null : this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected);
             }
             else
             {

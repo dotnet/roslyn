@@ -2360,6 +2360,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitlyTypedParamsParameter = 9272,
         ERR_VariableDeclarationNamedField = 9273,
 
+        // PROTOTYPE compact error codes
+        ERR_ExtensionDisallowsName = 9500,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
 

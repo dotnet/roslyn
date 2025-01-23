@@ -757,6 +757,11 @@
         <target state="translated">Strom výrazů nesmí obsahovat výraz with.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsName">
+        <source>Extension declarations may not have a name.</source>
+        <target state="new">Extension declarations may not have a name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">{0}: Externí událost nemůže mít inicializátor.</target>
@@ -8912,7 +8917,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, interface, or extension member declaration</source>
+        <source>Invalid token '{0}' in a member declaration</source>
         <target state="needs-review-translation">Neplatný token {0} v deklaraci člena rozhraní, třídy, záznamu nebo struktury</target>
         <note />
       </trans-unit>

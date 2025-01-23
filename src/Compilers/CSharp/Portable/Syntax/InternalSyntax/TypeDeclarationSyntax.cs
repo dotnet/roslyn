@@ -176,13 +176,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 throw ExceptionUtilities.Unreachable();
             }
 
+            if (baseList is not null)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
             return this.Update(
                 attributeLists,
                 modifiers,
                 keyword,
                 typeParameterList,
                 parameterList,
-                baseList,
                 constraintClauses,
                 openBraceToken,
                 members,
@@ -191,5 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         public override SyntaxToken Identifier => null;
+        public override BaseListSyntax BaseList => null;
     }
 }

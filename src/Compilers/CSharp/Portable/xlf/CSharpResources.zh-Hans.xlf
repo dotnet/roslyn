@@ -757,6 +757,11 @@
         <target state="translated">表达式树不能包含 with 表达式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsName">
+        <source>Extension declarations may not have a name.</source>
+        <target state="new">Extension declarations may not have a name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">“{0}”: 外部事件不能有初始值设定项</target>
@@ -8912,7 +8917,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, interface, or extension member declaration</source>
+        <source>Invalid token '{0}' in a member declaration</source>
         <target state="needs-review-translation">类、记录、结构或接口成员声明中的标记“{0}”无效</target>
         <note />
       </trans-unit>
