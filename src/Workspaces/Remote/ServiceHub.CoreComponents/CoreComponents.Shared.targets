@@ -194,7 +194,7 @@
         Always include BCL in the vsix for non-official build to avoid breakage. Since VS used on CI machines
         as well as by external contributors usually lags behind our insertion target.
       -->
-      <_ExcludeRuntimeLibraries Condition="'$(OfficialBuild)' == 'true'">true</_ExcludeRuntimeLibraries>
+      <_ExcludeRuntimeLibraries Condition="'$(OfficialBuild)' == 'true'">false</_ExcludeRuntimeLibraries>
     </PropertyGroup>
 
     <ItemGroup>
