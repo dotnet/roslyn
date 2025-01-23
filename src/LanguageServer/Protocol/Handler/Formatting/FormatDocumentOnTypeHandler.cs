@@ -80,21 +80,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // Take the following example of pressing enter after an opening brace.
                 //
                 // ```
-                // public void M() {||}
+                //    public void M() {||}
                 // ```
                 //
                 // The editor moves the cursor to the next line and uses it's languageconfig to add
                 // the appropriate level of indentation.
                 //
                 // ```
-                // public void M() {
-                //     ||
-                // }
+                //     public void M() {
+                //         ||
+                //     }
                 // ```
                 //
                 // At this point `formatOnType` is called. The formatting service will generate two
-                // text changes. The first moves the opening brace to the following line with proper
-                // indentation. The second removes the whitespace from the cursor line.
+                // text changes. The first moves the opening brace to a new line with proper
+                // indentation. The second removes the whitespace from the cursor line and rewrites
+                // the indentation prior to the closing brace.
                 // 
                 // Letting the second change go through would be a bad experience for the user as they
                 // will now be responsible for adding back the proper indentation.
