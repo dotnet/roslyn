@@ -5212,15 +5212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in syntax.Elements)
             {
-                if (element is KeyValuePairElementSyntax keyValuePairElement)
-                {
-                    MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax, keyValuePairElement.ColonToken.GetLocation());
-
-                    // PROTOTYPE: Error for now.  Flesh this out when we do the binding for kvp elements.
-                    Error(diagnostics, ErrorCode.ERR_SyntaxError, keyValuePairElement.ColonToken, ",");
-                    return new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [], CreateErrorType());
-                }
-                else if (element is WithElementSyntax withElement)
+                if (element is WithElementSyntax withElement)
                 {
                     MessageID.IDS_FeatureCollectionExpressionArguments.CheckFeatureAvailability(diagnostics, syntax, withElement.WithKeyword.GetLocation());
 
