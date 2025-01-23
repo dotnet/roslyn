@@ -6776,7 +6776,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     {
         internal Action<SyntaxNode>? FaultInjector
         {
-            get => analyzer._testFaultInjector = FaultInjector;
+            get => analyzer._testFaultInjector;
             set => analyzer._testFaultInjector = value;
         }
 
