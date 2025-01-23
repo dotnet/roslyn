@@ -118,21 +118,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             int tabSize = 4)
         {
             var documentText = await testLspServer.GetDocumentTextAsync(locationTyped.Uri);
-            var results = await RunFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped, insertSpaces, tabSize);
+            var results = await testLspServer.ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(
+                LSP.Methods.TextDocumentOnTypeFormattingName,
+                CreateDocumentOnTypeFormattingParams(characterTyped, locationTyped, insertSpaces, tabSize),
+                CancellationToken.None);
             var actualText = ApplyTextEdits(results, documentText);
             Assert.Equal(expectedText, actualText);
-        }
-
-        private static async Task<LSP.TextEdit[]?> RunFormatDocumentOnTypeAsync(
-            TestLspServer testLspServer,
-            string characterTyped,
-            LSP.Location locationTyped,
-            bool insertSpaces = true,
-            int tabSize = 4)
-        {
-            return await testLspServer.ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentOnTypeFormattingName,
-                CreateDocumentOnTypeFormattingParams(
-                    characterTyped, locationTyped, insertSpaces, tabSize), CancellationToken.None);
         }
 
         private static LSP.DocumentOnTypeFormattingParams CreateDocumentOnTypeFormattingParams(

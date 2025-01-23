@@ -74,9 +74,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             if (SyntaxFacts.IsNewLine(request.Character[0]))
             {
-                // When formatting after a newline is pressed, the cursor line will be blank and we do
-                // not want to remove the whitespace indentation from it. 
-                textChanges = textChanges.WhereAsArray(change => !change.Span.Contains(position));
+                // When formatting after a newline is pressed, the cursor line will be all whitespace
+                // and we do not want to remove the indentation from it.
+                //
+                // Take the following example of pressing enter after an opening brace.
+                //
+                // ```
+                // public void M() {||}
+                // ```
+                //
+                // The editor moves the cursor to the next line and uses it's languageconfig to add
+                // the appropriate level of indentation.
+                //
+                // ```
+                // public void M() {
+                //     ||
+                // }
+                // ```
+                //
+                // At this point `formatOnType` is called. The formatting service will generate two
+                // text changes. The first moves the opening brace to the following line with proper
+                // indentation. The second removes the whitespace from the cursor line.
+                // 
+                // Letting the second change go through would be a bad experience for the user as they
+                // will now be responsible for adding back the proper indentation.
+
+                textChanges = textChanges.WhereAsArray(static (change, position) => !change.Span.Contains(position), position);
             }
 
             return [.. textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, documentSyntax.Text))];
