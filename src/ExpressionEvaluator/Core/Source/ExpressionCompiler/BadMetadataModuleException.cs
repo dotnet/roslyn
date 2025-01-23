@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
 /// <summary>
 /// Thrown when trying to evaluate within a module that was not loaded due to bad metadata.
 /// </summary>
-internal sealed class BadMetadataModuleException(Guid moduleVersionId)
-    : Exception($"Unable to evaluate within module '{moduleVersionId}' ")
+internal sealed class BadMetadataModuleException(ModuleId moduleId)
+    : Exception($"Unable to evaluate within module '{moduleId.DisplayName}' ({moduleId.Id}): the module metadata is invalid.")
 {
-    public Guid ModuleVersionId { get; } = moduleVersionId;
+    public ModuleId ModuleId { get; } = moduleId;
 }

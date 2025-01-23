@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     internal readonly struct MetadataBlock : IEquatable<MetadataBlock>
     {
         /// <summary>
-        /// Module version id.
+        /// Module id.
         /// </summary>
-        internal readonly Guid ModuleVersionId;
+        internal readonly ModuleId ModuleId;
 
         /// <summary>
         /// Module generation id.
@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// </summary>
         internal readonly int Size;
 
-        internal MetadataBlock(Guid moduleVersionId, Guid generationId, IntPtr pointer, int size)
+        internal MetadataBlock(ModuleId moduleId, Guid generationId, IntPtr pointer, int size)
         {
-            ModuleVersionId = moduleVersionId;
+            ModuleId = moduleId;
             GenerationId = generationId;
             Pointer = pointer;
             Size = size;
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             return Pointer == other.Pointer &&
                    Size == other.Size &&
-                   ModuleVersionId == other.ModuleVersionId &&
+                   ModuleId.Id == other.ModuleId.Id &&
                    GenerationId == other.GenerationId;
         }
 
@@ -63,12 +63,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             return Hash.Combine(
                 Hash.Combine(Pointer.GetHashCode(), Size),
-                Hash.Combine(ModuleVersionId.GetHashCode(), GenerationId.GetHashCode()));
+                Hash.Combine(ModuleId.GetHashCode(), GenerationId.GetHashCode()));
         }
 
         private string GetDebuggerDisplay()
         {
-            return string.Format("MetadataBlock {{ Mvid = {{{0}}}, Address = {1}, Size = {2} }}", ModuleVersionId, Pointer, Size);
+            return string.Format("MetadataBlock {{ Mvid = {{{0}}}, Address = {1}, Size = {2} }}", ModuleId, Pointer, Size);
         }
     }
 }

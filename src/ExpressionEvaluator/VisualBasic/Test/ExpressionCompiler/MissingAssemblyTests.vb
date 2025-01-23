@@ -677,12 +677,12 @@ End Class"
                 WithRuntimeInstance(comp, {Net461.References.mscorlib, ValueTupleLegacyRef},
                     Sub(runtime)
                         Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
-                        Dim moduleVersionId As Guid = Nothing
+                        Dim moduleId As ModuleId = Nothing
                         Dim symReader As ISymUnmanagedReader = Nothing
                         Dim typeToken = 0
                         Dim methodToken = 0
                         Dim localSignatureToken = 0
-                        GetContextState(runtime, "C.M", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                        GetContextState(runtime, "C.M", methodBlocks, moduleId, symReader, methodToken, localSignatureToken)
                         Dim errorMessage As String = Nothing
                         Dim testData As CompilationTestData = Nothing
                         Dim retryCount = 0
@@ -690,7 +690,7 @@ End Class"
                             runtime.Modules.Select(Function(m) m.MetadataBlock).ToImmutableArray(),
                             expression,
                             ImmutableArray(Of [Alias]).Empty,
-                            Function(b, u) EvaluationContext.CreateMethodContext(b.ToCompilation(), MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion:=1, ilOffset:=0, localSignatureToken:=localSignatureToken),
+                            Function(b, u) EvaluationContext.CreateMethodContext(b.ToCompilation(), MakeDummyLazyAssemblyReaders(), symReader, moduleId, methodToken, methodVersion:=1, ilOffset:=0, localSignatureToken:=localSignatureToken),
                             Function(assemblyIdentity As AssemblyIdentity, ByRef uSize As UInteger)
                                 retryCount += 1
                                 Assert.Equal("System.Runtime", assemblyIdentity.Name)

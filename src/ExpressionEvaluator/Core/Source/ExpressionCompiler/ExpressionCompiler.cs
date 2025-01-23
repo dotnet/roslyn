@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 if (TryCompileWithRetry(
                     appDomain,
                     runtimeInstance,
-                    createContext: (blocks, useReferencedModulesOnly) => CreateTypeContext(appDomain, blocks, moduleInstance.Mvid, token, useReferencedModulesOnly),
+                    createContext: (blocks, useReferencedModulesOnly) => CreateTypeContext(appDomain, blocks, moduleInstance.GetModuleId(), token, useReferencedModulesOnly),
                     compile: (context, diagnostics) =>
                     {
                         return context.CompileExpression(
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract EvaluationContextBase CreateTypeContext(
             DkmClrAppDomain appDomain,
             ImmutableArray<MetadataBlock> metadataBlocks,
-            Guid moduleVersionId,
+            ModuleId moduleId,
             int typeToken,
             bool useReferencedModulesOnly);
 
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ImmutableArray<MetadataBlock> metadataBlocks,
             Lazy<ImmutableArray<AssemblyReaders>> lazyAssemblyReaders,
             object? symReader,
-            Guid moduleVersionId,
+            ModuleId moduleId,
             int methodToken,
             int methodVersion,
             uint ilOffset,
@@ -378,9 +378,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return CreateMethodContext(
                 moduleInstance.AppDomain,
                 metadataBlocks,
-                new Lazy<ImmutableArray<AssemblyReaders>>(() => instructionAddress.MakeAssemblyReaders(), LazyThreadSafetyMode.None),
+                new Lazy<ImmutableArray<AssemblyReaders>>(instructionAddress.MakeAssemblyReaders, LazyThreadSafetyMode.None),
                 symReader: moduleInstance.GetSymReader(),
-                moduleVersionId: moduleInstance.Mvid,
+                moduleId: moduleInstance.GetModuleId(),
                 methodToken: methodToken,
                 methodVersion: (int)instructionAddress.MethodId.Version,
                 ilOffset: instructionAddress.ILOffset,

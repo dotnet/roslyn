@@ -557,12 +557,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 #endif
         }
 
-        internal static void VerifyAppDomainMetadataContext<TAssemblyContext>(MetadataContext<TAssemblyContext> metadataContext, Guid[] moduleVersionIds)
+        internal static void VerifyAppDomainMetadataContext<TAssemblyContext>(MetadataContext<TAssemblyContext> metadataContext, ModuleId[] moduleIds)
             where TAssemblyContext : struct
         {
             var actualIds = metadataContext.AssemblyContexts.Keys.Select(key => key.ModuleVersionId.ToString()).ToArray();
             Array.Sort(actualIds);
-            var expectedIds = moduleVersionIds.Select(mvid => mvid.ToString()).ToArray();
+            var expectedIds = moduleIds.Select(mvid => mvid.Id.ToString()).ToArray();
             Array.Sort(expectedIds);
             AssertEx.Equal(expectedIds, actualIds);
         }
