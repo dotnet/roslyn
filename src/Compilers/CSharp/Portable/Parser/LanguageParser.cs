@@ -4714,7 +4714,9 @@ parse_member_name:;
                 }
             }
 
-            // cannot reuse parameters without identifiers (found in extension declarations) as they are parsed with different rules
+            // cannot reuse parameters without identifiers (found in extension declarations) as they are parsed with different rules.
+            // The reverse is fine though.  Normal parameters (from non extensions) can be re-used into an extension declaration
+            // as all normal parameters are legal extension parameters.
             if (parameter.Identifier.Kind() == SyntaxKind.None)
             {
                 return false;
