@@ -728,8 +728,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         static data =>
                         {
                             data.action(data.context);
-                            data.blockEndActions?.AddAll(data.scope.CodeBlockEndActions);
-                            data.syntaxNodeActions?.AddRange(data.scope.SyntaxNodeActions);
+                            data.blockEndActions.AddAll(data.scope.CodeBlockEndActions);
+                            data.syntaxNodeActions.AddRange(data.scope.SyntaxNodeActions);
                         },
                         (action: startAction.Action, context: blockStartContext, scope: codeBlockScope, blockEndActions: codeBlockEndActions, syntaxNodeActions),
                         new AnalysisContextInfo(@this.Compilation, declaredSymbol, declaredNode),
@@ -804,8 +804,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         static data =>
                         {
                             data.action(data.context);
-                            data.blockEndActions?.AddAll(data.scope.OperationBlockEndActions);
-                            data.operationActions?.AddRange(data.scope.OperationActions);
+                            data.blockEndActions.AddAll(data.scope.OperationBlockEndActions);
+                            data.operationActions.AddRange(data.scope.OperationActions);
                         },
                         (action: startAction.Action, context: operationStartContext, scope: operationBlockScope, blockEndActions: operationBlockEndActions, operationActions),
                         new AnalysisContextInfo(@this.Compilation, declaredSymbol),
@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             TextSpan? filterSpan,
             bool isGeneratedCode,
             ArrayBuilder<TNodeAction> executableNodeActions,
-            Action<TBlockStartAction, PooledHashSet<TBlockAction>, ArrayBuilder<TNodeAction>, TArgs, CancellationToken> addActions,
+            Action<TBlockStartAction, HashSet<TBlockAction>, ArrayBuilder<TNodeAction>, TArgs, CancellationToken> addActions,
             Action<ArrayBuilder<TNodeAction>, AnalyzerDiagnosticReporter, Func<Diagnostic, CancellationToken, bool>, TArgs, CancellationToken> executeActions,
             TArgs args,
             CancellationToken cancellationToken)
