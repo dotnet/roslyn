@@ -1691,6 +1691,8 @@ public sealed partial class UseAutoPropertyTests
             }
             """,
             """
+            using System;
+
             class C
             {
                 public event Action<string> OnChanged;

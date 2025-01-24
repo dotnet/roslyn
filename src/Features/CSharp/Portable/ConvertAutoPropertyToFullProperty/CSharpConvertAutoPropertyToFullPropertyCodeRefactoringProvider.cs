@@ -86,14 +86,14 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
             if (accessor.Body != null || accessor.ExpressionBody != null)
                 return ReplaceFieldExpression(accessor);
 
-            var newAccessor = AddStatement(accessor, statement);
-            var accessorDeclarationSyntax = (AccessorDeclarationSyntax)newAccessor;
+            var accessorDeclarationSyntax = accessor.WithBody(Block(
+                OpenBraceToken.WithLeadingTrivia(ElasticCarriageReturnLineFeed),
+                [statement],
+                CloseBraceToken.WithTrailingTrivia(accessor.SemicolonToken.TrailingTrivia)));
 
             var preference = info.Options.PreferExpressionBodiedAccessors.Value;
             if (preference == ExpressionBodyPreference.Never)
-            {
                 return accessorDeclarationSyntax.WithSemicolonToken(default);
-            }
 
             if (!accessorDeclarationSyntax.Body.TryConvertToArrowExpressionBody(
                     accessorDeclarationSyntax.Kind(), info.LanguageVersion, preference, cancellationToken,
@@ -121,14 +121,6 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
         GetExistingAccessors(AccessorListSyntax accessorListSyntax)
         => (accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)),
             accessorListSyntax.Accessors.FirstOrDefault(a => a.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration));
-
-    internal static SyntaxNode AddStatement(AccessorDeclarationSyntax accessor, StatementSyntax statement)
-    {
-        return accessor.WithBody(Block(
-            OpenBraceToken.WithLeadingTrivia(ElasticCarriageReturnLineFeed),
-            [statement],
-            CloseBraceToken.WithTrailingTrivia(accessor.SemicolonToken.TrailingTrivia)));
-    }
 
     protected override SyntaxNode ConvertPropertyToExpressionBodyIfDesired(
         CSharpCodeGenerationContextInfo info, SyntaxNode property)
