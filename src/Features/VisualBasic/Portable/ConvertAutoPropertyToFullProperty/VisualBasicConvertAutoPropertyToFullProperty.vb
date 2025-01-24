@@ -7,13 +7,12 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertAutoPropertyToFullProperty), [Shared]>
-    Friend Class VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider
+    Friend NotInheritable Class VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider
         Inherits AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider(Of PropertyStatementSyntax, TypeBlockSyntax, VisualBasicCodeGenerationContextInfo)
 
         Private Const Underscore As String = "_"
@@ -71,12 +70,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
             Return False
         End Function
 
-        Protected Overrides Function GetPropertyWithoutInitializer(propertyNode As SyntaxNode) As SyntaxNode
-            Return DirectCast(propertyNode, PropertyStatementSyntax).WithInitializer(Nothing)
+        Protected Overrides Function GetPropertyWithoutInitializer(propertyNode As PropertyStatementSyntax) As PropertyStatementSyntax
+            Return propertyNode.WithInitializer(Nothing)
         End Function
 
-        Protected Overrides Function GetInitializerValue(propertyNode As SyntaxNode) As SyntaxNode
-            Return DirectCast(propertyNode, PropertyStatementSyntax).Initializer?.Value
+        Protected Overrides Function GetInitializerValue(propertyNode As PropertyStatementSyntax) As SyntaxNode
+            Return propertyNode.Initializer?.Value
         End Function
 
         Protected Overrides Function ConvertPropertyToExpressionBodyIfDesired(info As VisualBasicCodeGenerationContextInfo, propertyNode As SyntaxNode) As SyntaxNode

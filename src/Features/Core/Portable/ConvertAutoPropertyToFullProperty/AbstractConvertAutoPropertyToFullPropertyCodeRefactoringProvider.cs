@@ -25,8 +25,8 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
     protected abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken);
     protected abstract (SyntaxNode newGetAccessor, SyntaxNode? newSetAccessor) GetNewAccessors(
         TCodeGenerationContextInfo info, TPropertyDeclarationNode property, string fieldName, CancellationToken cancellationToken);
-    protected abstract SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property);
-    protected abstract SyntaxNode GetInitializerValue(SyntaxNode property);
+    protected abstract TPropertyDeclarationNode GetPropertyWithoutInitializer(TPropertyDeclarationNode property);
+    protected abstract SyntaxNode GetInitializerValue(TPropertyDeclarationNode property);
     protected abstract SyntaxNode ConvertPropertyToExpressionBodyIfDesired(TCodeGenerationContextInfo info, SyntaxNode fullProperty);
     protected abstract SyntaxNode GetTypeBlock(SyntaxNode syntaxNode);
     protected abstract Task<Document> ExpandToFieldPropertyAsync(Document document, TPropertyDeclarationNode property, CancellationToken cancellationToken);
