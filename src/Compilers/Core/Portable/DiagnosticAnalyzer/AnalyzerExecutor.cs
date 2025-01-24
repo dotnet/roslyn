@@ -725,13 +725,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Catch Exception from the start action.
                     @this.ExecuteAndCatchIfThrows(
                         startAction.Analyzer,
-                        static data =>
+                        static args =>
                         {
-                            data.startAction.Action(data.blockStartContext);
-                            data.codeBlockEndActions.AddAll(data.codeBlockScope.CodeBlockEndActions);
-                            data.syntaxNodeActions.AddRange(data.codeBlockScope.SyntaxNodeActions);
+                            var (startAction, blockStartContext, codeBlockScope, codeBlockEndActions, syntaxNodeActions) = args;
+                            startAction.Action(blockStartContext);
+                            codeBlockEndActions.AddAll(codeBlockScope.CodeBlockEndActions);
+                            syntaxNodeActions.AddRange(codeBlockScope.SyntaxNodeActions);
                         },
-                        (startAction, blockStartContext, codeBlockScope, codeBlockEndActions, syntaxNodeActions),
+                        argument: (startAction, blockStartContext, codeBlockScope, codeBlockEndActions, syntaxNodeActions),
                         new AnalysisContextInfo(@this.Compilation, declaredSymbol, declaredNode),
                         cancellationToken);
                 },
@@ -753,7 +754,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     @this.ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: codeBlockStartActions.Any(), cancellationToken);
                 },
-                args: (@this: this, codeBlockStartActions, analyzer, declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind, filterSpan, isGeneratedCode),
+                argument: (@this: this, codeBlockStartActions, analyzer, declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind, filterSpan, isGeneratedCode),
                 cancellationToken);
             executableNodeActions.Free();
         }
@@ -801,13 +802,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Catch Exception from the start action.
                     @this.ExecuteAndCatchIfThrows(
                         startAction.Analyzer,
-                        static data =>
+                        static args =>
                         {
-                            data.startAction.Action(data.operationStartContext);
-                            data.operationBlockEndActions.AddAll(data.operationBlockScope.OperationBlockEndActions);
-                            data.operationActions.AddRange(data.operationBlockScope.OperationActions);
+                            var (startAction, operationStartContext, operationBlockScope, operationBlockEndActions, operationActions) = args;
+                            startAction.Action(operationStartContext);
+                            operationBlockEndActions.AddAll(operationBlockScope.OperationBlockEndActions);
+                            operationActions.AddRange(operationBlockScope.OperationActions);
                         },
-                        (startAction, operationStartContext, operationBlockScope, operationBlockEndActions, operationActions),
+                        argument: (startAction, operationStartContext, operationBlockScope, operationBlockEndActions, operationActions),
                         new AnalysisContextInfo(@this.Compilation, declaredSymbol),
                         cancellationToken);
                 },
@@ -818,7 +820,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var operationsToAnalyze = operations;
                     @this.ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: operationBlockStartActions.Any(), cancellationToken);
                 },
-                args: (@this: this, operationBlockStartActions, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode),
+                argument: (@this: this, operationBlockStartActions, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode),
                 cancellationToken);
             executableNodeActions.Free();
         }
@@ -837,7 +839,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ArrayBuilder<TNodeAction> executableNodeActions,
             Action<TBlockStartAction, HashSet<TBlockAction>, ArrayBuilder<TNodeAction>, TArgs, CancellationToken> addActions,
             Action<ArrayBuilder<TNodeAction>, AnalyzerDiagnosticReporter, Func<Diagnostic, CancellationToken, bool>, TArgs, CancellationToken> executeActions,
-            TArgs args,
+            TArgs argument,
             CancellationToken cancellationToken)
             where TBlockStartAction : AnalyzerAction
             where TBlockAction : AnalyzerAction
@@ -870,13 +872,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Include the stateful actions.
             foreach (var startAction in startActions)
-                addActions(startAction, blockEndActions, executableNodeActions, args, cancellationToken);
+                addActions(startAction, blockEndActions, executableNodeActions, argument, cancellationToken);
 
             using var _ = PooledDelegates.GetPooledFunction((d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct), (self: this, analyzer), out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
             // Execute stateful executable node analyzers, if any.
             if (executableNodeActions.Any())
-                executeActions(executableNodeActions, diagReporter, isSupportedDiagnostic, args, cancellationToken);
+                executeActions(executableNodeActions, diagReporter, isSupportedDiagnostic, argument, cancellationToken);
 
             ExecuteBlockActions(blockActions, declaredNode, declaredSymbol, analyzer, semanticModel, operationBlocks, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
             ExecuteBlockActions(blockEndActions, declaredNode, declaredSymbol, analyzer, semanticModel, operationBlocks, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
