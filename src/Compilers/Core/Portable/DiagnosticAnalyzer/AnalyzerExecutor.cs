@@ -708,7 +708,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzer,
                 declaredNode,
                 declaredSymbol,
-                executableCodeBlocks,
+                operationBlocks: ImmutableArray<IOperation>.Empty,
                 semanticModel,
                 filterSpan,
                 isGeneratedCode,
@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            DiagnosticAnalyzer analyzer,
            SyntaxNode declaredNode,
            ISymbol declaredSymbol,
-           ImmutableArray<TNode> executableBlocks,
+           ImmutableArray<IOperation> operationBlocks,
            SemanticModel semanticModel,
            TextSpan? filterSpan,
            bool isGeneratedCode,
@@ -829,7 +829,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(declaredSymbol != null);
             Debug.Assert(CanHaveExecutableCodeBlock(declaredSymbol));
             Debug.Assert(startActions.Any() || endActions.Any() || actions.Any());
-            Debug.Assert(!executableBlocks.IsEmpty);
 
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
                 IsAnalyzerSuppressedForTree(analyzer, declaredNode.SyntaxTree, cancellationToken))
@@ -842,7 +841,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var blockEndActions = PooledHashSet<TBlockAction>.GetInstance();
             var blockActions = PooledHashSet<TBlockAction>.GetInstance();
             var executableNodeActions = ArrayBuilder<TNodeAction>.GetInstance();
-            ImmutableArray<IOperation> operationBlocks = executableBlocks[0] is IOperation ? (ImmutableArray<IOperation>)(object)executableBlocks : ImmutableArray<IOperation>.Empty;
 
             // Include the code block actions.
             blockActions.AddAll(actions);
