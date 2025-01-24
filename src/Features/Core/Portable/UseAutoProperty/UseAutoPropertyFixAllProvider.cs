@@ -67,14 +67,11 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
                     // After we finish this context, report the changed documents to the consumeItems callback to process.
                     // This also lets us release all the forked solution info we created above.
-                    foreach (var projectChanges in currentSolution.GetChanges(originalSolution).GetProjectChanges())
+                    foreach (var changedDocumentId in originalSolution.GetChangedDocuments(currentSolution))
                     {
-                        foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
-                        {
-                            var changedDocument = currentSolution.GetRequiredDocument(changedDocumentId);
-                            var changedRoot = await changedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                            callback((changedDocumentId, changedRoot));
-                        }
+                        var changedDocument = currentSolution.GetRequiredDocument(changedDocumentId);
+                        var changedRoot = await changedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        callback((changedDocumentId, changedRoot));
                     }
                 },
                 consumeItems: async static (documentsIdsAndNewRoots, args, cancellationToken) =>
