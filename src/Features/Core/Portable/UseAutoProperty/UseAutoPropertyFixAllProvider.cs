@@ -44,7 +44,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
             // Add a progress item for each context we need to process.
             originalContext.Progress.AddItems(contexts.Length);
 
-            var finalSolution = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+            return await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
                 contexts,
                 produceItems: async static (currentContext, callback, args, cancellationToken) =>
                 {
@@ -93,7 +93,6 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                 args: (originalContext, provider),
                 cancellationToken).ConfigureAwait(false);
 
-            return finalSolution;
         }
     }
 }
