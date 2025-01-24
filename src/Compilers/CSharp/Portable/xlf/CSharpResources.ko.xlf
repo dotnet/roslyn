@@ -448,8 +448,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
-        <source>Collection arguments must be the first element.</source>
-        <target state="new">Collection arguments must be the first element.</target>
+        <source>Collection argument element must be the first element.</source>
+        <target state="new">Collection argument element must be the first element.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">

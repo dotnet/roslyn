@@ -62,13 +62,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (2,19): error CS9275: Collection arguments must be the first element.
+                    // (2,19): error CS9275: Collection argument element must be the first element.
                     // List<int> l = [1, with(), 3, with(capacity: 4)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 19),
                     // (2,19): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     // List<int> l = [1, with(), 3, with(capacity: 4)];
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 19),
-                    // (2,30): error CS9275: Collection arguments must be the first element.
+                    // (2,30): error CS9275: Collection argument element must be the first element.
                     // List<int> l = [1, with(), 3, with(capacity: 4)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 30),
                     // (2,30): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -78,10 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (2,19): error CS9275: Collection arguments must be the first element.
+                    // (2,19): error CS9275: Collection argument element must be the first element.
                     // List<int> l = [1, with(), 3, with(capacity: 4)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 19),
-                    // (2,30): error CS9275: Collection arguments must be the first element.
+                    // (2,30): error CS9275: Collection argument element must be the first element.
                     // List<int> l = [1, with(), 3, with(capacity: 4)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 30));
             }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (2,21): error CS1739: The best overload for 'List' does not have a parameter named 'x'
                     // List<int> l = [with(x: 1), with(y: 2)];
                     Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("List", "x").WithLocation(2, 21),
-                    // (2,28): error CS9275: Collection arguments must be the first element.
+                    // (2,28): error CS9275: Collection argument element must be the first element.
                     // List<int> l = [with(x: 1), with(y: 2)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 28),
                     // (2,28): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (2,21): error CS1739: The best overload for 'List' does not have a parameter named 'x'
                     // List<int> l = [with(x: 1), with(y: 2)];
                     Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("List", "x").WithLocation(2, 21),
-                    // (2,28): error CS9275: Collection arguments must be the first element.
+                    // (2,28): error CS9275: Collection argument element must be the first element.
                     // List<int> l = [with(x: 1), with(y: 2)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 28),
                     // (2,33): error CS1739: The best overload for 'List' does not have a parameter named 'y'
