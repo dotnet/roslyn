@@ -98,9 +98,10 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
         // we need to remove it and later add it to the backing field
         var fieldName = await GetFieldNameAsync(document, propertySymbol, cancellationToken).ConfigureAwait(false);
         var (newGetAccessor, newSetAccessor) = GetNewAccessors(info, property, fieldName, cancellationToken);
-        var fullProperty = CreateFinalProperty(document, property, info, newGetAccessor, newSetAccessor);
 
-        editor.ReplaceNode(property, fullProperty.WithAdditionalAnnotations(Formatter.Annotation));
+        editor.ReplaceNode(
+            property,
+            CreateFinalProperty(document, property, info, newGetAccessor, newSetAccessor));
 
         // add backing field, plus initializer if it exists 
         var newField = CodeGenerationSymbolFactory.CreateFieldSymbol(
@@ -142,6 +143,6 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
                     : [newGetAccessor, newSetAccessor])
             .WithLeadingTrivia(property.GetLeadingTrivia());
         fullProperty = ConvertPropertyToExpressionBodyIfDesired(info, fullProperty);
-        return fullProperty;
+        return fullProperty.WithAdditionalAnnotations(Formatter.Annotation);
     }
 }

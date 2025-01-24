@@ -51,14 +51,14 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
         string fieldName,
         CancellationToken cancellationToken)
     {
-        return GetNewAccessors(info, property, fieldName.ToIdentifierName(), overwriteExistingBodies: false, cancellationToken);
+        // Replace the bodies with bodies that reference the new field name.
+        return GetNewAccessors(info, property, fieldName.ToIdentifierName(), cancellationToken);
     }
 
     private static (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
         CSharpCodeGenerationContextInfo info,
         PropertyDeclarationSyntax property,
         ExpressionSyntax backingFieldExpression,
-        bool overwriteExistingBodies,
         CancellationToken cancellationToken)
     {
         // C# might have trivia with the accessors that needs to be preserved.  
@@ -83,7 +83,7 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
 
         AccessorDeclarationSyntax GetUpdatedAccessor(AccessorDeclarationSyntax accessor, StatementSyntax statement)
         {
-            if (!overwriteExistingBodies && (accessor.Body != null || accessor.ExpressionBody != null))
+            if (accessor.Body != null || accessor.ExpressionBody != null)
                 return ReplaceFieldExpression(accessor);
 
             var newAccessor = AddStatement(accessor, statement);
@@ -173,8 +173,8 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        // Update the getter/setter to reference 'field'.
-        var (newGetAccessor, newSetAccessor) = GetNewAccessors(info, property, FieldExpression(), overwriteExistingBodies: true, cancellationToken);
+        // Update the getter/setter to reference the 'field' expression instead.
+        var (newGetAccessor, newSetAccessor) = GetNewAccessors(info, property, FieldExpression(), cancellationToken);
 
         var finalProperty = CreateFinalProperty(document, property, info, newGetAccessor, newSetAccessor);
         var finalRoot = root.ReplaceNode(property, finalProperty);

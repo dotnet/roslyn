@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
 [Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
 public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    private static readonly CSharpParseOptions s_preview = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
+    private static readonly CSharpParseOptions CSharp14 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
 
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider();
@@ -764,6 +764,25 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
     }
 
     [Fact]
+    public async Task GetterOnlyExpressionBodies_Field()
+    {
+        var text = """
+            class TestClass
+            {
+                public int G[||]oo { get;}
+            }
+            """;
+        var expected = """
+            class TestClass
+            {
+                public int Goo => field;
+            }
+            """;
+        await TestInRegularAndScriptAsync(
+            text, expected, options: PreferExpressionBodiesOnAccessorsAndMethods, index: 1, parseOptions: CSharp14);
+    }
+
+    [Fact]
     public async Task SetterOnly()
     {
         var text = """
@@ -1393,6 +1412,36 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                 void M(int i) { }
             }
             """,
-            parseOptions: s_preview);
+            parseOptions: CSharp14);
+    }
+
+    [Theory]
+    [InlineData("set"), InlineData("init")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/76899")]
+    public async Task ProduceFieldBackedProperty(string setter)
+    {
+        var text = $$"""
+            class TestClass
+            {
+                public int G[||]oo { get; {{setter}}; }
+            }
+            """;
+        var expected = $$"""
+            class TestClass
+            {
+                public int Goo
+                {
+                    get
+                    {
+                        return field;
+                    }
+                    {{setter}}
+                    {
+                        field = value;
+                    }
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors, index: 1, parseOptions: CSharp14);
     }
 }
