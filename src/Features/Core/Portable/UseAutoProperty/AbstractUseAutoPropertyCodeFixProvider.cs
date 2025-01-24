@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -84,6 +86,19 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
     }
 
     private async Task<Solution> ProcessResultAsync(
+        Solution originalSolution, Solution currentSolution, Diagnostic diagnostic, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await ProcessResultWorkerAsync(originalSolution, currentSolution, diagnostic, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
+        {
+            return currentSolution;
+        }
+    }
+
+    private async Task<Solution> ProcessResultWorkerAsync(
         Solution originalSolution, Solution currentSolution, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
         var (field, property) = await MapDiagnosticToCurrentSolutionAsync(
