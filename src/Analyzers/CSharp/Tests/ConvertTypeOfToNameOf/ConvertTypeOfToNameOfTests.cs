@@ -272,18 +272,6 @@ public partial class ConvertTypeOfToNameOfTests
                     }
                 }
                 """,
-            FixedCode = """
-                class Test
-                {
-                    class Goo<T> 
-                    { 
-                        void M() 
-                        {
-                            _ = nameof(Goo<>);
-                        }
-                    }
-                }
-                """,
             LanguageVersion = CSharp14,
         }.RunAsync();
     }
@@ -322,18 +310,6 @@ public partial class ConvertTypeOfToNameOfTests
                         void M() 
                         {
                             _ = [|typeof(Goo<>).Name|];
-                        }
-                    }
-                }
-                """,
-            FixedCode = """
-                class Test
-                {
-                    class Goo<T> 
-                    { 
-                        void M() 
-                        {
-                            _ = nameof(Goo<>);
                         }
                     }
                 }
