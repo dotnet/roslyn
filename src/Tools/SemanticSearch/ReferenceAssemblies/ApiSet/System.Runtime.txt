@@ -10,7 +10,6 @@
 +M:System.Environment.get_NewLine
 -T:System.EnvironmentVariableTarget
 -T:System.GC*
--T:System.IntPtr
 -T:System.LoaderOptimization*
 -T:System.MarshalByRefObject
 -T:System.ModuleHandle

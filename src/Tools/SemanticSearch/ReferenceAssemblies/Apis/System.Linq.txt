@@ -1,5 +1,7 @@
 # Generated, do not update manually
 System.Linq.Enumerable
+System.Linq.Enumerable.AggregateBy``3(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1},System.Func{``1,``2},System.Func{``2,``0,``2},System.Collections.Generic.IEqualityComparer{``1})
+System.Linq.Enumerable.AggregateBy``3(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1},``2,System.Func{``2,``0,``2},System.Collections.Generic.IEqualityComparer{``1})
 System.Linq.Enumerable.Aggregate``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``0,``0})
 System.Linq.Enumerable.Aggregate``2(System.Collections.Generic.IEnumerable{``0},``1,System.Func{``1,``0,``1})
 System.Linq.Enumerable.Aggregate``3(System.Collections.Generic.IEnumerable{``0},``1,System.Func{``1,``0,``1},System.Func{``1,``2})
@@ -33,6 +35,7 @@ System.Linq.Enumerable.Chunk``1(System.Collections.Generic.IEnumerable{``0},Syst
 System.Linq.Enumerable.Concat``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0})
 System.Linq.Enumerable.Contains``1(System.Collections.Generic.IEnumerable{``0},``0)
 System.Linq.Enumerable.Contains``1(System.Collections.Generic.IEnumerable{``0},``0,System.Collections.Generic.IEqualityComparer{``0})
+System.Linq.Enumerable.CountBy``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1},System.Collections.Generic.IEqualityComparer{``1})
 System.Linq.Enumerable.Count``1(System.Collections.Generic.IEnumerable{``0})
 System.Linq.Enumerable.Count``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Boolean})
 System.Linq.Enumerable.DefaultIfEmpty``1(System.Collections.Generic.IEnumerable{``0})
@@ -66,6 +69,7 @@ System.Linq.Enumerable.GroupBy``4(System.Collections.Generic.IEnumerable{``0},Sy
 System.Linq.Enumerable.GroupBy``4(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1},System.Func{``0,``2},System.Func{``1,System.Collections.Generic.IEnumerable{``2},``3},System.Collections.Generic.IEqualityComparer{``1})
 System.Linq.Enumerable.GroupJoin``4(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``1},System.Func{``0,``2},System.Func{``1,``2},System.Func{``0,System.Collections.Generic.IEnumerable{``1},``3})
 System.Linq.Enumerable.GroupJoin``4(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``1},System.Func{``0,``2},System.Func{``1,``2},System.Func{``0,System.Collections.Generic.IEnumerable{``1},``3},System.Collections.Generic.IEqualityComparer{``2})
+System.Linq.Enumerable.Index``1(System.Collections.Generic.IEnumerable{``0})
 System.Linq.Enumerable.IntersectBy``2(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``1},System.Func{``0,``1})
 System.Linq.Enumerable.IntersectBy``2(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``1},System.Func{``0,``1},System.Collections.Generic.IEqualityComparer{``1})
 System.Linq.Enumerable.Intersect``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0})
