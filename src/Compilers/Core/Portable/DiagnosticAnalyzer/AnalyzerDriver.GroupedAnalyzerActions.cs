@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -19,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             public static readonly GroupedAnalyzerActions Empty = new GroupedAnalyzerActions(
                 ImmutableArray<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)>.Empty,
-                ImmutableDictionary<TLanguageKindEnum, ImmutableArray<DiagnosticAnalyzer>>.Empty,
+                ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<DiagnosticAnalyzer>>.Empty,
                 AnalyzerActions.Empty);
 
             private GroupedAnalyzerActions(
                 ImmutableArray<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)> groupedActionsAndAnalyzers,
-                ImmutableDictionary<TLanguageKindEnum, ImmutableArray<DiagnosticAnalyzer>> analyzersByKind,
+                ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<DiagnosticAnalyzer>> analyzersByKind,
                 in AnalyzerActions analyzerActions)
             {
                 GroupedActionsByAnalyzer = groupedActionsAndAnalyzers;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public ImmutableArray<(DiagnosticAnalyzer analyzer, GroupedAnalyzerActionsForAnalyzer groupedActions)> GroupedActionsByAnalyzer { get; }
 
-            public ImmutableDictionary<TLanguageKindEnum, ImmutableArray<DiagnosticAnalyzer>> AnalyzersByKind { get; }
+            public ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<DiagnosticAnalyzer>> AnalyzersByKind { get; }
 
             public AnalyzerActions AnalyzerActions { get; }
 
@@ -89,31 +90,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return new GroupedAnalyzerActions(newGroupedActions, analyzersByKind, newAnalyzerActions);
             }
 
-            private static ImmutableDictionary<TLanguageKindEnum, ImmutableArray<DiagnosticAnalyzer>> CreateAnalyzersByKind(ImmutableArray<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)> groupedActionsAndAnalyzers)
+            private static ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<DiagnosticAnalyzer>> CreateAnalyzersByKind(ImmutableArray<(DiagnosticAnalyzer, GroupedAnalyzerActionsForAnalyzer)> groupedActionsAndAnalyzers)
             {
                 var analyzersByKind = PooledDictionary<TLanguageKindEnum, ArrayBuilder<DiagnosticAnalyzer>>.GetInstance();
                 foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActionsAndAnalyzers)
                 {
                     foreach (var (kind, _) in groupedActionsForAnalyzer.NodeActionsByAnalyzerAndKind)
                     {
-                        if (!analyzersByKind.TryGetValue(kind, out var builder))
-                        {
-                            builder = ArrayBuilder<DiagnosticAnalyzer>.GetInstance();
-                            analyzersByKind.Add(kind, builder);
-                        }
-                        builder.Add(analyzer);
+                        analyzersByKind.AddPooled(kind, analyzer);
                     }
                 }
 
-                // Essentially an inline of PooledBuilderExtensions.ToImmutableMultiDictionaryAndFree
-                var result = ImmutableDictionary.CreateBuilder<TLanguageKindEnum, ImmutableArray<DiagnosticAnalyzer>>();
-                foreach (var (key, items) in analyzersByKind)
-                {
-                    result.Add(key, items.ToImmutableAndFree());
-                }
-
+                var result = analyzersByKind.ToImmutableSegmentedDictionaryAndFree();
                 analyzersByKind.Free();
-                return result.ToImmutable();
+
+                return result;
             }
         }
     }
