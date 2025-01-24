@@ -53,6 +53,7 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
                 nameof(FeaturesResources.Convert_to_full_property)),
             property.Span);
 
+        // If supported, offer to convert auto-prop to use 'field' instead.
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         if (syntaxFacts.SupportsFieldExpression(semanticModel.SyntaxTree.Options) &&
             !property.DescendantNodes().Any(syntaxFacts.IsFieldExpression))
@@ -91,7 +92,6 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);
-        var generator = editor.Generator;
         var info = (TCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
 
         // Create full property. If the auto property had an initial value
