@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -2103,7 +2104,7 @@ class C
         EOF();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE enable IOperation
     public void Member_Const()
     {
         var src = """
@@ -2540,7 +2541,7 @@ class C
         EOF();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE enable IOperation
     public void Member_Constructor()
     {
         var src = """
@@ -2604,7 +2605,7 @@ class C
         EOF();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE enable IOperation
     public void Member_StaticConstructor()
     {
         var src = """
@@ -2669,7 +2670,7 @@ class C
         EOF();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE enable IOperation
     public void Member_Finalizer()
     {
         var src = """
