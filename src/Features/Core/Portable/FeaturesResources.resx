@@ -3203,5 +3203,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Convert_to_field_property" xml:space="preserve">
     <value>Convert to 'field' property</value>
+    <comment>{Locked="field"} "field" is C# keyword and should not be localized.</comment>
   </data>
 </root>
