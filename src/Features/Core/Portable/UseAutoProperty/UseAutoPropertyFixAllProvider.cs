@@ -30,8 +30,6 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
         private async Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalContext, ImmutableArray<FixAllContext> contexts)
         {
-            var cancellationToken = ;
-
             // Very slow approach, but the only way we know how to do this correctly and without colliding edits. We
             // effectively apply each fix one at a time, moving the solution forward each time.  As we process each
             // diagnostic, we attempt to re-recover the field/property it was referring to in the original solution to
@@ -39,7 +37,6 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
             //
             // Note: we can process each project in parallel.  That's because all changes to a field/prop only impact
             // the project they are in, and nothing beyond that.
-            var originalSolution = originalContext.Solution;
 
             // Add a progress item for each context we need to process.
             originalContext.Progress.AddItems(contexts.Length);
@@ -59,7 +56,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                     var currentSolution = originalSolution;
 
                     var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(currentContext).ConfigureAwait(false);
-                    foreach (var (document, diagnostics) in documentToDiagnostics)
+                    foreach (var (_, diagnostics) in documentToDiagnostics)
                     {
                         foreach (var diagnostic in diagnostics)
                         {
@@ -82,9 +79,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                 },
                 consumeItems: async static (documentsIdsAndNewRoots, args, cancellationToken) =>
                 {
-                    var (originalContext, provider) = args;
-                    var originalSolution = originalContext.Solution;
-                    var currentSolution = originalSolution;
+                    var currentSolution = args.originalContext.Solution;
 
                     // Take all the changed documents and update the final solution with them.
                     await foreach (var (documentId, newRoot) in documentsIdsAndNewRoots)
