@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,6 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class CollectionExpressionArgumentTests : CSharpTestBase
     {
+        private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
+
         private const string s_collectionExtensions = CollectionExpressionTests.s_collectionExtensions;
 
         // PROTOTYPE: Test [with()] and [with(arg)] with each of the target type kinds.
@@ -182,7 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(
                 [source, s_collectionExtensions],
                 targetFramework: TargetFramework.Net90,
-                expectedOutput: "[], [], ");
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[], [], "));
             verifier.VerifyDiagnostics();
             string expectedIL = """
                 {
@@ -215,7 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(
                 [source, s_collectionExtensions],
                 targetFramework: TargetFramework.Net90,
-                expectedOutput: "[1, 2], [3, 4], ");
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 2], [3, 4], "));
             verifier.VerifyDiagnostics();
             string expectedIL = """
                 {
