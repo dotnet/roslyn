@@ -1113,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression BindCollectionArguments(
+        private BoundExpression? BindCollectionArguments(
             TypeSymbol targetType,
             CollectionExpressionTypeKind collectionTypeKind,
             BoundUnconvertedCollectionArguments collectionArguments,
