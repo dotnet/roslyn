@@ -12,34 +12,32 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// Module metadata block
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal readonly struct MetadataBlock : IEquatable<MetadataBlock>
+    internal readonly struct MetadataBlock(ModuleId moduleId, Guid generationId, IntPtr pointer, int size) : IEquatable<MetadataBlock>
     {
         /// <summary>
         /// Module id.
         /// </summary>
-        internal readonly ModuleId ModuleId;
+        internal readonly ModuleId ModuleId = moduleId;
 
         /// <summary>
         /// Module generation id.
         /// </summary>
-        internal readonly Guid GenerationId;
+        internal readonly Guid GenerationId = generationId;
 
         /// <summary>
         /// Pointer to memory block managed by the caller.
         /// </summary>
-        internal readonly IntPtr Pointer;
+        internal readonly IntPtr Pointer = pointer;
 
         /// <summary>
         /// Size of memory block.
         /// </summary>
-        internal readonly int Size;
+        internal readonly int Size = size;
 
-        internal MetadataBlock(ModuleId moduleId, Guid generationId, IntPtr pointer, int size)
+        // Used by VS debugger (/src/debugger/ProductionDebug/CodeAnalysis/CodeAnalysis/ExpressionEvaluator.cs)
+        internal MetadataBlock(Guid moduleId, Guid generationId, IntPtr pointer, int size)
+            : this(new ModuleId(moduleId, "<unknown>"), generationId, pointer, size)
         {
-            ModuleId = moduleId;
-            GenerationId = generationId;
-            Pointer = pointer;
-            Size = size;
         }
 
         public bool Equals(MetadataBlock other)
