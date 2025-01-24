@@ -59,7 +59,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                     var currentSolution = originalSolution;
 
                     var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(currentContext).ConfigureAwait(false);
-                    foreach (var (document, diagnostics) in documentToDiagnostics)
+                    foreach (var (_, diagnostics) in documentToDiagnostics)
                     {
                         foreach (var diagnostic in diagnostics)
                         {
