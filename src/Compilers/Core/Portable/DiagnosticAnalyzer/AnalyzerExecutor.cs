@@ -727,11 +727,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         startAction.Analyzer,
                         static data =>
                         {
-                            data.action(data.blockStartContext);
+                            data.startAction.Action(data.blockStartContext);
                             data.codeBlockEndActions.AddAll(data.codeBlockScope.CodeBlockEndActions);
                             data.syntaxNodeActions.AddRange(data.codeBlockScope.SyntaxNodeActions);
                         },
-                        (action: startAction.Action, blockStartContext, codeBlockScope, codeBlockEndActions, syntaxNodeActions),
+                        (startAction, blockStartContext, codeBlockScope, codeBlockEndActions, syntaxNodeActions),
                         new AnalysisContextInfo(@this.Compilation, declaredSymbol, declaredNode),
                         cancellationToken);
                 },
@@ -803,11 +803,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         startAction.Analyzer,
                         static data =>
                         {
-                            data.action(data.operationStartContext);
+                            data.startAction.Action(data.operationStartContext);
                             data.operationBlockEndActions.AddAll(data.operationBlockScope.OperationBlockEndActions);
                             data.operationActions.AddRange(data.operationBlockScope.OperationActions);
                         },
-                        (action: startAction.Action, operationStartContext, operationBlockScope, operationBlockEndActions, operationActions),
+                        (startAction, operationStartContext, operationBlockScope, operationBlockEndActions, operationActions),
                         new AnalysisContextInfo(@this.Compilation, declaredSymbol),
                         cancellationToken);
                 },
