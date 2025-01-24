@@ -91,18 +91,19 @@ internal interface ISyntaxFacts
 
     ISyntaxKinds SyntaxKinds { get; }
 
+    bool SupportsCollectionExpressionNaturalType(ParseOptions options);
+    bool SupportsConstantInterpolatedStrings(ParseOptions options);
+    bool SupportsFieldExpression(ParseOptions options);
+    bool SupportsImplicitImplementationOfNonPublicInterfaceMembers(ParseOptions options);
     bool SupportsIndexingInitializer(ParseOptions options);
+    bool SupportsIsNotTypeExpression(ParseOptions options);
     bool SupportsLocalFunctionDeclaration(ParseOptions options);
     bool SupportsNotPattern(ParseOptions options);
     bool SupportsRecord(ParseOptions options);
     bool SupportsRecordStruct(ParseOptions options);
-    bool SupportsThrowExpression(ParseOptions options);
     bool SupportsTargetTypedConditionalExpression(ParseOptions options);
-    bool SupportsIsNotTypeExpression(ParseOptions options);
-    bool SupportsConstantInterpolatedStrings(ParseOptions options);
+    bool SupportsThrowExpression(ParseOptions options);
     bool SupportsTupleDeconstruction(ParseOptions options);
-    bool SupportsCollectionExpressionNaturalType(ParseOptions options);
-    bool SupportsImplicitImplementationOfNonPublicInterfaceMembers(ParseOptions options);
 
     SyntaxToken ParseToken(string text);
     SyntaxTriviaList ParseLeadingTrivia(string text);

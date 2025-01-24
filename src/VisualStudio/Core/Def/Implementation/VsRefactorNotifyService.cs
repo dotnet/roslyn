@@ -158,16 +158,8 @@ internal sealed class VsRefactorNotifyService : IRefactorNotifyService
 
     private static bool TryGetRenamingRQNameForSymbol(ISymbol symbol, out string rqname)
     {
-        if (symbol.Kind == SymbolKind.Method)
-        {
-            var methodSymbol = symbol as IMethodSymbol;
-
-            if (methodSymbol.MethodKind is MethodKind.Constructor or
-                MethodKind.Destructor)
-            {
-                symbol = symbol.ContainingType;
-            }
-        }
+        if (symbol is IMethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.Destructor })
+            symbol = symbol.ContainingType;
 
         rqname = LanguageServices.RQName.From(symbol);
         return rqname != null;

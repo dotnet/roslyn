@@ -20,15 +20,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Guid solutionTelemetryId = default,
             bool disablePartialSolutions = true,
             bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
-            WorkspaceConfigurationOptions? configurationOptions = null,
-            bool supportsLspMutation = false)
+            WorkspaceConfigurationOptions? configurationOptions = null)
             : base(composition,
                    workspaceKind,
                    solutionTelemetryId,
                    disablePartialSolutions,
                    ignoreUnchangeableDocumentsWhenApplyingChanges,
-                   configurationOptions,
-                   supportsLspMutation)
+                   configurationOptions)
         {
         }
 

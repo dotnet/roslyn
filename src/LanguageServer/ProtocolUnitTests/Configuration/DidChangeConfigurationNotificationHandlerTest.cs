@@ -147,10 +147,13 @@ public class A { }";
                 "auto_insert.dotnet_enable_auto_insert",
                 "projects.dotnet_binary_log_path",
                 "projects.dotnet_enable_automatic_restore",
-                "navigation.dotnet_navigate_to_source_link_and_embedded_sources"
+                "navigation.dotnet_navigate_to_source_link_and_embedded_sources",
+                "formatting.dotnet_organize_imports_on_format",
             };
 
-            AssertEx.SetEqual(expectedNames, actualNames);
+            AssertEx.EqualOrDiff(
+                string.Join(Environment.NewLine, expectedNames),
+                string.Join(Environment.NewLine, actualNames));
         }
 
         private static void VerifyValuesInServer(EditorTestWorkspace workspace, List<string> expectedValues)

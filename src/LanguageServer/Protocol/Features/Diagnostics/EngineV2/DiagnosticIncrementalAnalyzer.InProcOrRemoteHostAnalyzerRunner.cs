@@ -142,8 +142,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var map = await analysisResult.ToResultBuilderMapAsync(
                     additionalPragmaSuppressionDiagnostics, documentAnalysisScope, project, version,
-                    projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo,
-                    compilationWithAnalyzers.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                    projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo, cancellationToken).ConfigureAwait(false);
                 builderMap = builderMap.AddRange(map);
             }
 
@@ -218,7 +217,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var argument = new DiagnosticArguments(
-                compilationWithAnalyzers.ReportSuppressedDiagnostics,
                 logPerformanceInfo,
                 getTelemetryInfo,
                 documentAnalysisScope?.TextDocument.Id,

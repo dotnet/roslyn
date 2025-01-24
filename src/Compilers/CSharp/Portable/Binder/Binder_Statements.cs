@@ -561,6 +561,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var hasErrors = localSymbol.ScopeBinder
                 .ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
+            ReportFieldContextualKeywordConflictIfAny(localSymbol, node, node.Identifier, diagnostics);
+
             BoundBlock blockBody = null;
             BoundBlock expressionBody = null;
             if (node.Body != null)
@@ -957,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(declarator != null);
 
-            return BindVariableDeclaration(LocateDeclaredVariableSymbol(declarator, typeSyntax, kind),
+            return BindVariableDeclaration(LocateDeclaredVariableSymbol(declarator, typeSyntax, kind, diagnostics),
                                            kind,
                                            isVar,
                                            declarator,
@@ -1191,15 +1193,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return arguments;
         }
 
-        private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax, LocalDeclarationKind outerKind)
+        private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax, LocalDeclarationKind outerKind, BindingDiagnosticBag diagnostics)
         {
             LocalDeclarationKind kind = outerKind == LocalDeclarationKind.UsingVariable ? LocalDeclarationKind.UsingVariable : LocalDeclarationKind.RegularVariable;
-            return LocateDeclaredVariableSymbol(declarator.Identifier, typeSyntax, declarator.Initializer, kind);
-        }
-
-        private SourceLocalSymbol LocateDeclaredVariableSymbol(SyntaxToken identifier, TypeSyntax typeSyntax, EqualsValueClauseSyntax equalsValue, LocalDeclarationKind kind)
-        {
+            SyntaxToken identifier = declarator.Identifier;
             SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
+
+            ReportFieldContextualKeywordConflictIfAny(localSymbol, declarator, identifier, diagnostics);
 
             // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
             // This occurs through the semantic model.  In that case concoct a plausible result.
@@ -1213,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeSyntax,
                     identifier,
                     kind,
-                    equalsValue);
+                    declarator.Initializer);
             }
 
             return localSymbol;
@@ -3059,7 +3059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasErrors)
             {
-                return new BoundReturnStatement(syntax, refKind, BindToTypeForErrorRecovery(arg), @checked: CheckOverflowAtRuntime, hasErrors: true);
+                diagnostics = BindingDiagnosticBag.Discarded;
             }
 
             // The return type could be null; we might be attempting to infer the return type either
@@ -3350,6 +3350,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (local?.DeclarationKind == LocalDeclarationKind.CatchVariable)
             {
                 Debug.Assert(local.Type.IsErrorType() || (TypeSymbol.Equals(local.Type, type, TypeCompareKind.ConsiderEverything2)));
+
+                ReportFieldContextualKeywordConflictIfAny(local, declaration, declaration.Identifier, diagnostics);
 
                 // Check for local variable conflicts in the *enclosing* binder, not the *current* binder;
                 // obviously we will find a local of the given name in the current binder.

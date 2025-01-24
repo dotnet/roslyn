@@ -4629,7 +4629,7 @@ public class C : A {
 
             var syntaxTrees = GetSyntaxTrees();
 
-            Assert.Equal(documentIds.Count(), syntaxTrees.Count());
+            Assert.Equal(documentIds.Length, syntaxTrees.Length);
 
             Assert.Equal("test5.cs", syntaxTrees[0].FilePath, StringComparer.OrdinalIgnoreCase);
             Assert.Equal("test4.cs", syntaxTrees[1].FilePath, StringComparer.OrdinalIgnoreCase);
