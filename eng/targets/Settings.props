@@ -14,12 +14,13 @@
     <NoWarn>$(NoWarn);VSIXCompatibility1001</NoWarn>
 
     <!-- TODO: https://github.com/dotnet/roslyn/issues/71667 -->
-    <NoWarn>$(NoWarn);NU1507</NoWarn>
+    <NoWarn>$(NoWarn);NU1507;IDE0055;IDE0051</NoWarn>
 
     <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
     <LanguageServicesExtensionInstallationFolder>Microsoft\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
 
     <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+    <RestoreEnablePackagePruning>true</RestoreEnablePackagePruning>
 
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
