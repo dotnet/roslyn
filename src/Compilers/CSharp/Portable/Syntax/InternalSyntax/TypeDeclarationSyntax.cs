@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Roslyn.Utilities;
 using CoreSyntax = Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -170,11 +171,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxToken closeBraceToken,
             SyntaxToken semicolonToken)
         {
+            if (identifier is not null)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
             return this.Update(
                 attributeLists,
                 modifiers,
                 keyword,
-                identifier,
                 typeParameterList,
                 parameterList,
                 baseList,
@@ -184,5 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 closeBraceToken,
                 semicolonToken);
         }
+
+        public override SyntaxToken Identifier => null;
     }
 }

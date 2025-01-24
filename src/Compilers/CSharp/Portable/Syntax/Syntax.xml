@@ -3627,9 +3627,6 @@
     <Field Name="Keyword" Type="SyntaxToken" Override="true">
       <ContextualKind Name="ExtensionKeyword"/>
     </Field>
-    <Field Name="Identifier" Type="SyntaxToken" Optional="true" Override="true">
-      <Kind Name="IdentifierToken"/>
-    </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
     <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" Override="true" />
     <Field Name="BaseList" Type="BaseListSyntax" Optional="true" Override="true"/>

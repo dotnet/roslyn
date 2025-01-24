@@ -1736,7 +1736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
 
             // For extension declarations, we parse a name if one is found but an error will be reported later.
-            SyntaxToken? name = (isExtension && this.CurrentToken.Kind != SyntaxKind.IdentifierToken) ? null : this.ParseIdentifierToken();
+            SyntaxToken? name = isExtension ? null : this.ParseIdentifierToken();
 
             var typeParameters = this.ParseTypeParameterList();
 
@@ -1965,11 +1965,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.ExtensionKeyword:
+                        Debug.Assert(name is null);
                         return syntaxFactory.ExtensionDeclaration(
                             attributes,
                             modifiers.ToList(),
                             keyword,
-                            name,
                             typeParameters,
                             paramList,
                             baseList,
