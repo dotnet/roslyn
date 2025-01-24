@@ -5249,7 +5249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ExpressionElementSyntax expressionElementSyntax => @this.BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
                     KeyValuePairElementSyntax kvpElementSyntax => @this.BindKeyValuePair(kvpElementSyntax, diagnostics),
                     SpreadElementSyntax spreadElementSyntax => @this.BindSpreadElement(spreadElementSyntax, diagnostics),
-                    CollectionArgumentsSyntax collectionArgumentsSyntax => @this.BindCollectionArguments(collectionArgumentsSyntax, diagnostics),
+                    WithElementSyntax collectionArgumentsSyntax => @this.BindCollectionArguments(collectionArgumentsSyntax, diagnostics),
                     _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
                 };
             }
@@ -5312,7 +5312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Similar to BindImplicitObjectCreationExpression.
-        private BoundNode BindCollectionArguments(CollectionArgumentsSyntax syntax, BindingDiagnosticBag diagnostics)
+        private BoundNode BindCollectionArguments(WithElementSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureCollectionExpressionArguments.CheckFeatureAvailability(diagnostics, syntax.WithKeyword);
             var arguments = AnalyzedArguments.GetInstance();

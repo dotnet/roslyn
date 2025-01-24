@@ -6767,12 +6767,12 @@ internal sealed partial class KeyValuePairElementSyntax : CollectionElementSynta
         => new KeyValuePairElementSyntax(this.Kind, this.keyExpression, this.colonToken, this.valueExpression, GetDiagnostics(), annotations);
 }
 
-internal sealed partial class CollectionArgumentsSyntax : CollectionElementSyntax
+internal sealed partial class WithElementSyntax : CollectionElementSyntax
 {
     internal readonly SyntaxToken withKeyword;
     internal readonly ArgumentListSyntax argumentList;
 
-    internal CollectionArgumentsSyntax(SyntaxKind kind, SyntaxToken withKeyword, ArgumentListSyntax argumentList, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+    internal WithElementSyntax(SyntaxKind kind, SyntaxToken withKeyword, ArgumentListSyntax argumentList, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
       : base(kind, diagnostics, annotations)
     {
         this.SlotCount = 2;
@@ -6782,7 +6782,7 @@ internal sealed partial class CollectionArgumentsSyntax : CollectionElementSynta
         this.argumentList = argumentList;
     }
 
-    internal CollectionArgumentsSyntax(SyntaxKind kind, SyntaxToken withKeyword, ArgumentListSyntax argumentList, SyntaxFactoryContext context)
+    internal WithElementSyntax(SyntaxKind kind, SyntaxToken withKeyword, ArgumentListSyntax argumentList, SyntaxFactoryContext context)
       : base(kind)
     {
         this.SetFactoryContext(context);
@@ -6793,7 +6793,7 @@ internal sealed partial class CollectionArgumentsSyntax : CollectionElementSynta
         this.argumentList = argumentList;
     }
 
-    internal CollectionArgumentsSyntax(SyntaxKind kind, SyntaxToken withKeyword, ArgumentListSyntax argumentList)
+    internal WithElementSyntax(SyntaxKind kind, SyntaxToken withKeyword, ArgumentListSyntax argumentList)
       : base(kind)
     {
         this.SlotCount = 2;
@@ -6814,16 +6814,16 @@ internal sealed partial class CollectionArgumentsSyntax : CollectionElementSynta
             _ => null,
         };
 
-    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.CollectionArgumentsSyntax(this, parent, position);
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.WithElementSyntax(this, parent, position);
 
-    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCollectionArguments(this);
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCollectionArguments(this);
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWithElement(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWithElement(this);
 
-    public CollectionArgumentsSyntax Update(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
+    public WithElementSyntax Update(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
     {
         if (withKeyword != this.WithKeyword || argumentList != this.ArgumentList)
         {
-            var newNode = SyntaxFactory.CollectionArguments(withKeyword, argumentList);
+            var newNode = SyntaxFactory.WithElement(withKeyword, argumentList);
             var diags = GetDiagnostics();
             if (diags?.Length > 0)
                 newNode = newNode.WithDiagnosticsGreen(diags);
@@ -6837,10 +6837,10 @@ internal sealed partial class CollectionArgumentsSyntax : CollectionElementSynta
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-        => new CollectionArgumentsSyntax(this.Kind, this.withKeyword, this.argumentList, diagnostics, GetAnnotations());
+        => new WithElementSyntax(this.Kind, this.withKeyword, this.argumentList, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-        => new CollectionArgumentsSyntax(this.Kind, this.withKeyword, this.argumentList, GetDiagnostics(), annotations);
+        => new WithElementSyntax(this.Kind, this.withKeyword, this.argumentList, GetDiagnostics(), annotations);
 }
 
 internal abstract partial class QueryClauseSyntax : CSharpSyntaxNode
@@ -26717,7 +26717,7 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitExpressionElement(ExpressionElementSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
-    public virtual TResult VisitCollectionArguments(CollectionArgumentsSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitWithElement(WithElementSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitFromClause(FromClauseSyntax node) => this.DefaultVisit(node);
@@ -26967,7 +26967,7 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitExpressionElement(ExpressionElementSyntax node) => this.DefaultVisit(node);
     public virtual void VisitSpreadElement(SpreadElementSyntax node) => this.DefaultVisit(node);
     public virtual void VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
-    public virtual void VisitCollectionArguments(CollectionArgumentsSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitWithElement(WithElementSyntax node) => this.DefaultVisit(node);
     public virtual void VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
     public virtual void VisitFromClause(FromClauseSyntax node) => this.DefaultVisit(node);
@@ -27361,7 +27361,7 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
     public override CSharpSyntaxNode VisitKeyValuePairElement(KeyValuePairElementSyntax node)
         => node.Update((ExpressionSyntax)Visit(node.KeyExpression), (SyntaxToken)Visit(node.ColonToken), (ExpressionSyntax)Visit(node.ValueExpression));
 
-    public override CSharpSyntaxNode VisitCollectionArguments(CollectionArgumentsSyntax node)
+    public override CSharpSyntaxNode VisitWithElement(WithElementSyntax node)
         => node.Update((SyntaxToken)Visit(node.WithKeyword), (ArgumentListSyntax)Visit(node.ArgumentList));
 
     public override CSharpSyntaxNode VisitQueryExpression(QueryExpressionSyntax node)
@@ -29516,7 +29516,7 @@ internal partial class ContextAwareSyntax
         return result;
     }
 
-    public CollectionArgumentsSyntax CollectionArguments(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
+    public WithElementSyntax WithElement(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
     {
 #if DEBUG
         if (withKeyword == null) throw new ArgumentNullException(nameof(withKeyword));
@@ -29525,10 +29525,10 @@ internal partial class ContextAwareSyntax
 #endif
 
         int hash;
-        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.CollectionArguments, withKeyword, argumentList, this.context, out hash);
-        if (cached != null) return (CollectionArgumentsSyntax)cached;
+        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.WithElement, withKeyword, argumentList, this.context, out hash);
+        if (cached != null) return (WithElementSyntax)cached;
 
-        var result = new CollectionArgumentsSyntax(SyntaxKind.CollectionArguments, withKeyword, argumentList, this.context);
+        var result = new WithElementSyntax(SyntaxKind.WithElement, withKeyword, argumentList, this.context);
         if (hash >= 0)
         {
             SyntaxNodeCache.AddNode(result, hash);
@@ -34827,7 +34827,7 @@ internal static partial class SyntaxFactory
         return result;
     }
 
-    public static CollectionArgumentsSyntax CollectionArguments(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
+    public static WithElementSyntax WithElement(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
     {
 #if DEBUG
         if (withKeyword == null) throw new ArgumentNullException(nameof(withKeyword));
@@ -34836,10 +34836,10 @@ internal static partial class SyntaxFactory
 #endif
 
         int hash;
-        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CollectionArguments, withKeyword, argumentList, out hash);
-        if (cached != null) return (CollectionArgumentsSyntax)cached;
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.WithElement, withKeyword, argumentList, out hash);
+        if (cached != null) return (WithElementSyntax)cached;
 
-        var result = new CollectionArgumentsSyntax(SyntaxKind.CollectionArguments, withKeyword, argumentList);
+        var result = new WithElementSyntax(SyntaxKind.WithElement, withKeyword, argumentList);
         if (hash >= 0)
         {
             SyntaxNodeCache.AddNode(result, hash);

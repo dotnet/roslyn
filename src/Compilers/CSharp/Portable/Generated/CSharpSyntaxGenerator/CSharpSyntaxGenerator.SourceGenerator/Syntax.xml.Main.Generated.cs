@@ -231,8 +231,8 @@ public partial class CSharpSyntaxVisitor<TResult>
     /// <summary>Called when the visitor visits a KeyValuePairElementSyntax node.</summary>
     public virtual TResult? VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
 
-    /// <summary>Called when the visitor visits a CollectionArgumentsSyntax node.</summary>
-    public virtual TResult? VisitCollectionArguments(CollectionArgumentsSyntax node) => this.DefaultVisit(node);
+    /// <summary>Called when the visitor visits a WithElementSyntax node.</summary>
+    public virtual TResult? VisitWithElement(WithElementSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
     public virtual TResult? VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
@@ -972,8 +972,8 @@ public partial class CSharpSyntaxVisitor
     /// <summary>Called when the visitor visits a KeyValuePairElementSyntax node.</summary>
     public virtual void VisitKeyValuePairElement(KeyValuePairElementSyntax node) => this.DefaultVisit(node);
 
-    /// <summary>Called when the visitor visits a CollectionArgumentsSyntax node.</summary>
-    public virtual void VisitCollectionArguments(CollectionArgumentsSyntax node) => this.DefaultVisit(node);
+    /// <summary>Called when the visitor visits a WithElementSyntax node.</summary>
+    public virtual void VisitWithElement(WithElementSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
     public virtual void VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
@@ -1713,7 +1713,7 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
     public override SyntaxNode? VisitKeyValuePairElement(KeyValuePairElementSyntax node)
         => node.Update((ExpressionSyntax?)Visit(node.KeyExpression) ?? throw new ArgumentNullException("keyExpression"), VisitToken(node.ColonToken), (ExpressionSyntax?)Visit(node.ValueExpression) ?? throw new ArgumentNullException("valueExpression"));
 
-    public override SyntaxNode? VisitCollectionArguments(CollectionArgumentsSyntax node)
+    public override SyntaxNode? VisitWithElement(WithElementSyntax node)
         => node.Update(VisitToken(node.WithKeyword), (ArgumentListSyntax?)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"));
 
     public override SyntaxNode? VisitQueryExpression(QueryExpressionSyntax node)
@@ -3448,17 +3448,19 @@ public static partial class SyntaxFactory
     public static KeyValuePairElementSyntax KeyValuePairElement(ExpressionSyntax keyExpression, ExpressionSyntax valueExpression)
         => SyntaxFactory.KeyValuePairElement(keyExpression, SyntaxFactory.Token(SyntaxKind.ColonToken), valueExpression);
 
-    /// <summary>Creates a new CollectionArgumentsSyntax instance.</summary>
-    public static CollectionArgumentsSyntax CollectionArguments(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
+    /// <summary>Creates a new WithElementSyntax instance.</summary>
+    public static WithElementSyntax WithElement(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
     {
         if (withKeyword.Kind() != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
         if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
-        return (CollectionArgumentsSyntax)Syntax.InternalSyntax.SyntaxFactory.CollectionArguments((Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
+        return (WithElementSyntax)Syntax.InternalSyntax.SyntaxFactory.WithElement((Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
     }
 
-    /// <summary>Creates a new CollectionArgumentsSyntax instance.</summary>
-    public static CollectionArgumentsSyntax CollectionArguments(ArgumentListSyntax? argumentList = default)
-        => SyntaxFactory.CollectionArguments(SyntaxFactory.Token(SyntaxKind.WithKeyword), argumentList ?? SyntaxFactory.ArgumentList());
+#pragma warning disable RS0027
+    /// <summary>Creates a new WithElementSyntax instance.</summary>
+    public static WithElementSyntax WithElement(ArgumentListSyntax? argumentList = default)
+        => SyntaxFactory.WithElement(SyntaxFactory.Token(SyntaxKind.WithKeyword), argumentList ?? SyntaxFactory.ArgumentList());
+#pragma warning restore RS0027
 
     /// <summary>Creates a new QueryExpressionSyntax instance.</summary>
     public static QueryExpressionSyntax QueryExpression(FromClauseSyntax fromClause, QueryBodySyntax body)

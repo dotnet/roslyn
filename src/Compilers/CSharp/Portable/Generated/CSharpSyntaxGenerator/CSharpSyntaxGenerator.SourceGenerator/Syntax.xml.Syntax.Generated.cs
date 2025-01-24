@@ -4334,19 +4334,19 @@ public sealed partial class KeyValuePairElementSyntax : CollectionElementSyntax
 /// <remarks>
 /// <para>This node is associated with the following syntax kinds:</para>
 /// <list type="bullet">
-/// <item><description><see cref="SyntaxKind.CollectionArguments"/></description></item>
+/// <item><description><see cref="SyntaxKind.WithElement"/></description></item>
 /// </list>
 /// </remarks>
-public sealed partial class CollectionArgumentsSyntax : CollectionElementSyntax
+public sealed partial class WithElementSyntax : CollectionElementSyntax
 {
     private ArgumentListSyntax? argumentList;
 
-    internal CollectionArgumentsSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+    internal WithElementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
       : base(green, parent, position)
     {
     }
 
-    public SyntaxToken WithKeyword => new SyntaxToken(this, ((InternalSyntax.CollectionArgumentsSyntax)this.Green).withKeyword, Position, 0);
+    public SyntaxToken WithKeyword => new SyntaxToken(this, ((InternalSyntax.WithElementSyntax)this.Green).withKeyword, Position, 0);
 
     public ArgumentListSyntax ArgumentList => GetRed(ref this.argumentList, 1)!;
 
@@ -4354,14 +4354,14 @@ public sealed partial class CollectionArgumentsSyntax : CollectionElementSyntax
 
     internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.argumentList : null;
 
-    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCollectionArguments(this);
-    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCollectionArguments(this);
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWithElement(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWithElement(this);
 
-    public CollectionArgumentsSyntax Update(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
+    public WithElementSyntax Update(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
     {
         if (withKeyword != this.WithKeyword || argumentList != this.ArgumentList)
         {
-            var newNode = SyntaxFactory.CollectionArguments(withKeyword, argumentList);
+            var newNode = SyntaxFactory.WithElement(withKeyword, argumentList);
             var annotations = GetAnnotations();
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
@@ -4369,10 +4369,10 @@ public sealed partial class CollectionArgumentsSyntax : CollectionElementSyntax
         return this;
     }
 
-    public CollectionArgumentsSyntax WithWithKeyword(SyntaxToken withKeyword) => Update(withKeyword, this.ArgumentList);
-    public CollectionArgumentsSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.WithKeyword, argumentList);
+    public WithElementSyntax WithWithKeyword(SyntaxToken withKeyword) => Update(withKeyword, this.ArgumentList);
+    public WithElementSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.WithKeyword, argumentList);
 
-    public CollectionArgumentsSyntax AddArgumentListArguments(params ArgumentSyntax[] items) => WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
+    public WithElementSyntax AddArgumentListArguments(params ArgumentSyntax[] items) => WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
 }
 
 public abstract partial class QueryClauseSyntax : CSharpSyntaxNode

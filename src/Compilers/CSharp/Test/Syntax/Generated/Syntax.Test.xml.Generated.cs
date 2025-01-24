@@ -226,8 +226,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.KeyValuePairElementSyntax GenerateKeyValuePairElement()
             => InternalSyntaxFactory.KeyValuePairElement(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.ColonToken), GenerateIdentifierName());
 
-        private static Syntax.InternalSyntax.CollectionArgumentsSyntax GenerateCollectionArguments()
-            => InternalSyntaxFactory.CollectionArguments(InternalSyntaxFactory.Token(SyntaxKind.WithKeyword), GenerateArgumentList());
+        private static Syntax.InternalSyntax.WithElementSyntax GenerateWithElement()
+            => InternalSyntaxFactory.WithElement(InternalSyntaxFactory.Token(SyntaxKind.WithKeyword), GenerateArgumentList());
 
         private static Syntax.InternalSyntax.QueryExpressionSyntax GenerateQueryExpression()
             => InternalSyntaxFactory.QueryExpression(GenerateFromClause(), GenerateQueryBody());
@@ -1601,9 +1601,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCollectionArgumentsFactoryAndProperties()
+        public void TestWithElementFactoryAndProperties()
         {
-            var node = GenerateCollectionArguments();
+            var node = GenerateWithElement();
 
             Assert.Equal(SyntaxKind.WithKeyword, node.WithKeyword.Kind);
             Assert.NotNull(node.ArgumentList);
@@ -5779,9 +5779,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCollectionArgumentsTokenDeleteRewriter()
+        public void TestWithElementTokenDeleteRewriter()
         {
-            var oldNode = GenerateCollectionArguments();
+            var oldNode = GenerateWithElement();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -5795,9 +5795,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCollectionArgumentsIdentityRewriter()
+        public void TestWithElementIdentityRewriter()
         {
-            var oldNode = GenerateCollectionArguments();
+            var oldNode = GenerateWithElement();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -10523,8 +10523,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static KeyValuePairElementSyntax GenerateKeyValuePairElement()
             => SyntaxFactory.KeyValuePairElement(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.ColonToken), GenerateIdentifierName());
 
-        private static CollectionArgumentsSyntax GenerateCollectionArguments()
-            => SyntaxFactory.CollectionArguments(SyntaxFactory.Token(SyntaxKind.WithKeyword), GenerateArgumentList());
+        private static WithElementSyntax GenerateWithElement()
+            => SyntaxFactory.WithElement(SyntaxFactory.Token(SyntaxKind.WithKeyword), GenerateArgumentList());
 
         private static QueryExpressionSyntax GenerateQueryExpression()
             => SyntaxFactory.QueryExpression(GenerateFromClause(), GenerateQueryBody());
@@ -11898,9 +11898,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCollectionArgumentsFactoryAndProperties()
+        public void TestWithElementFactoryAndProperties()
         {
-            var node = GenerateCollectionArguments();
+            var node = GenerateWithElement();
 
             Assert.Equal(SyntaxKind.WithKeyword, node.WithKeyword.Kind());
             Assert.NotNull(node.ArgumentList);
@@ -16076,9 +16076,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCollectionArgumentsTokenDeleteRewriter()
+        public void TestWithElementTokenDeleteRewriter()
         {
-            var oldNode = GenerateCollectionArguments();
+            var oldNode = GenerateWithElement();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -16092,9 +16092,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestCollectionArgumentsIdentityRewriter()
+        public void TestWithElementIdentityRewriter()
         {
-            var oldNode = GenerateCollectionArguments();
+            var oldNode = GenerateWithElement();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

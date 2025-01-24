@@ -926,6 +926,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExpressionElement = 9077,
         SpreadElement = 9078,
         KeyValuePairElement = 9079,
-        CollectionArguments = 9080,
+        WithElement = 9080,
     }
 }

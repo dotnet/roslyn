@@ -1847,8 +1847,8 @@
     </Field>
     <Field Name="ValueExpression" Type="ExpressionSyntax" />
   </Node>
-  <Node Name="CollectionArgumentsSyntax" Base="CollectionElementSyntax">
-    <Kind Name="CollectionArguments"/>
+  <Node Name="WithElementSyntax" Base="CollectionElementSyntax">
+    <Kind Name="WithElement"/>
     <Field Name="WithKeyword" Type="SyntaxToken">
       <Kind Name="WithKeyword"/>
     </Field>
