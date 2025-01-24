@@ -686,9 +686,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Execute code block actions for the given analyzer for the given declaration.
         /// </summary>
         public void ExecuteCodeBlockActions<TLanguageKindEnum>(
-            IEnumerable<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> codeBlockStartActions,
-            IEnumerable<CodeBlockAnalyzerAction> codeBlockActions,
-            IEnumerable<CodeBlockAnalyzerAction> codeBlockEndActions,
+            ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> codeBlockStartActions,
+            ImmutableArray<CodeBlockAnalyzerAction> codeBlockActions,
+            ImmutableArray<CodeBlockAnalyzerAction> codeBlockEndActions,
             DiagnosticAnalyzer analyzer,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
@@ -762,9 +762,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Execute operation block actions for the given analyzer for the given declaration.
         /// </summary>
         public void ExecuteOperationBlockActions(
-            IEnumerable<OperationBlockStartAnalyzerAction> operationBlockStartActions,
-            IEnumerable<OperationBlockAnalyzerAction> operationBlockActions,
-            IEnumerable<OperationBlockAnalyzerAction> operationBlockEndActions,
+            ImmutableArray<OperationBlockStartAnalyzerAction> operationBlockStartActions,
+            ImmutableArray<OperationBlockAnalyzerAction> operationBlockActions,
+            ImmutableArray<OperationBlockAnalyzerAction> operationBlockEndActions,
             DiagnosticAnalyzer analyzer,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
@@ -824,9 +824,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private void ExecuteBlockActionsCore<TBlockStartAction, TBlockAction, TNodeAction, TArgs>(
-           IEnumerable<TBlockStartAction> startActions,
-           IEnumerable<TBlockAction> actions,
-           IEnumerable<TBlockAction> endActions,
+           ImmutableArray<TBlockStartAction> startActions,
+           ImmutableArray<TBlockAction> actions,
+           ImmutableArray<TBlockAction> endActions,
            DiagnosticAnalyzer analyzer,
            SyntaxNode declaredNode,
            ISymbol declaredSymbol,
