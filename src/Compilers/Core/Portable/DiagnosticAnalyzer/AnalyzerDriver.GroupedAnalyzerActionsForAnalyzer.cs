@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public AnalyzerActions AnalyzerActions { get; }
 
             [Conditional("DEBUG")]
-            private static void VerifyActions<TAnalyzerAction>(in ArrayBuilder<TAnalyzerAction> actions, DiagnosticAnalyzer analyzer)
+            private static void VerifyActions<TAnalyzerAction>(ArrayBuilder<TAnalyzerAction> actions, DiagnosticAnalyzer analyzer)
                 where TAnalyzerAction : AnalyzerAction
             {
                 foreach (var action in actions)
