@@ -1030,7 +1030,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> GetOperationActionsByKind(IEnumerable<OperationAnalyzerAction> operationActions)
+        internal static ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> GetOperationActionsByKind(
+            ArrayBuilder<OperationAnalyzerAction> operationActions)
         {
             Debug.Assert(operationActions.Any());
 
