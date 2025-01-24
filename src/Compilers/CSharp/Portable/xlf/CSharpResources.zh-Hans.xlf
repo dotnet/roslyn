@@ -447,6 +447,11 @@
         <target state="translated">“{0}”不实现接口成员“{1}”。“{2}”无法实现“{1}”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
+        <source>Collection arguments must be the first element.</source>
+        <target state="new">Collection arguments must be the first element.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">CollectionBuilderAttribute 方法名称无效。</target>

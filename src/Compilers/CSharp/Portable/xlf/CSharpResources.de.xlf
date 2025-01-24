@@ -447,6 +447,11 @@
         <target state="translated">Der Schnittstellenmember "{1}" wird von "{0}" nicht implementiert. "{1}" kann von "{2}" nicht implementiert werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
+        <source>Collection arguments must be the first element.</source>
+        <target state="new">Collection arguments must be the first element.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">Der Name der CollectionBuilderAttribute-Methode ist ungültig.</target>

@@ -447,6 +447,11 @@
         <target state="translated">'{0}'은(는) 인터페이스 멤버 '{1}'을(를) 구현하지 않습니다. '{2}'은(는) '{1}'을(를) 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
+        <source>Collection arguments must be the first element.</source>
+        <target state="new">Collection arguments must be the first element.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">CollectionBuilderAttribute 메서드 이름이 잘못되었습니다.</target>

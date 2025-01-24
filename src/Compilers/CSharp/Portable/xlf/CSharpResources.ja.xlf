@@ -447,6 +447,11 @@
         <target state="translated">'{0}' は、インターフェイス メンバー '{1}' を実装していません。'{2}' は '{1}' を実装できません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
+        <source>Collection arguments must be the first element.</source>
+        <target state="new">Collection arguments must be the first element.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">CollectionBuilderAttribute メソッド名が無効です。</target>

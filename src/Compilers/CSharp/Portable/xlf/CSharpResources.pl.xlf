@@ -447,6 +447,11 @@
         <target state="translated">Element „{0}” nie implementuje składowej interfejsu „{1}”. Element „{2}” nie może implementować elementu „{1}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
+        <source>Collection arguments must be the first element.</source>
+        <target state="new">Collection arguments must be the first element.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">Nazwa metody CollectionBuilderAttribute jest nieprawidłowa.</target>

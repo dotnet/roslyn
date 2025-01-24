@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // PROTOTYPE: Test [with(args1), with(args2)] where one or both of args1 and args2 may be empty.
         // PROTOTYPE: Test [with()] with generic type parameter target type.
         // PROTOTYPE: Test .ctor or factory method with generic constraints that are/are not satisfied by arguments.
-        // PROTOTYPE: Test binding within later args: eg. [with(), with(too, many, args)].
-        // PROTOTYPE: Test unrecognized parameter name.
         // PROTOTYPE: Test reordered parameters.
         // PROTOTYPE: Test order of evaluation, including with reordered parameters.
         // PROTOTYPE: Test params.
@@ -36,31 +34,99 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void LanguageVersion_01(LanguageVersion languageVersion)
         {
             string source = """
-                using System.Collections.Generic;
-                List<int> l;
-                l = [with()];
-                l = [with(capacity: 3), 1, 2, 3];
-                l = [4, with()];
+                int[] a = [with()];
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            // PROTOTYPE: Should report error for with() following an element
-            // in [4, with()], and regardless of language version.
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,6): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    // l = [with()];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(3, 6),
-                    // (4,6): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    // l = [with(capacity: 3), 1, 2, 3];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(4, 6),
-                    // (5,9): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    // l = [4, with()];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(5, 9));
+                    // (1,12): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // int[] a = [with()];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(1, 12));
             }
             else
             {
                 comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(LanguageVersions))]
+        public void LanguageVersion_02(LanguageVersion languageVersion)
+        {
+            string source = """
+                using System.Collections.Generic;
+                List<int> l = [1, with(), 3, with(capacity: 4)];
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (2,19): error CS9275: Collection arguments must be the first element.
+                    // List<int> l = [1, with(), 3, with(capacity: 4)];
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 19),
+                    // (2,19): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // List<int> l = [1, with(), 3, with(capacity: 4)];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 19),
+                    // (2,30): error CS9275: Collection arguments must be the first element.
+                    // List<int> l = [1, with(), 3, with(capacity: 4)];
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 30),
+                    // (2,30): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // List<int> l = [1, with(), 3, with(capacity: 4)];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 30));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (2,19): error CS9275: Collection arguments must be the first element.
+                    // List<int> l = [1, with(), 3, with(capacity: 4)];
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 19),
+                    // (2,30): error CS9275: Collection arguments must be the first element.
+                    // List<int> l = [1, with(), 3, with(capacity: 4)];
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 30));
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(LanguageVersions))]
+        public void LanguageVersion_03(LanguageVersion languageVersion)
+        {
+            string source = """
+                using System.Collections.Generic;
+                List<int> l = [with(x: 1), with(y: 2)];
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (2,16): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // List<int> l = [with(x: 1), with(y: 2)];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 16),
+                    // (2,21): error CS1739: The best overload for 'List' does not have a parameter named 'x'
+                    // List<int> l = [with(x: 1), with(y: 2)];
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("List", "x").WithLocation(2, 21),
+                    // (2,28): error CS9275: Collection arguments must be the first element.
+                    // List<int> l = [with(x: 1), with(y: 2)];
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 28),
+                    // (2,28): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // List<int> l = [with(x: 1), with(y: 2)];
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 28),
+                    // (2,33): error CS1739: The best overload for 'List' does not have a parameter named 'y'
+                    // List<int> l = [with(x: 1), with(y: 2)];
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "y").WithArguments("List", "y").WithLocation(2, 33));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (2,21): error CS1739: The best overload for 'List' does not have a parameter named 'x'
+                    // List<int> l = [with(x: 1), with(y: 2)];
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("List", "x").WithLocation(2, 21),
+                    // (2,28): error CS9275: Collection arguments must be the first element.
+                    // List<int> l = [with(x: 1), with(y: 2)];
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 28),
+                    // (2,33): error CS1739: The best overload for 'List' does not have a parameter named 'y'
+                    // List<int> l = [with(x: 1), with(y: 2)];
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "y").WithArguments("List", "y").WithLocation(2, 33));
             }
         }
 
