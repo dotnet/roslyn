@@ -92,7 +92,6 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                 },
                 args: (originalContext, provider),
                 cancellationToken).ConfigureAwait(false);
-
         }
     }
 }
