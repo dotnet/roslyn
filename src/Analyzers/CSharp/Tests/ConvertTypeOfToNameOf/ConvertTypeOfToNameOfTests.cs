@@ -267,7 +267,7 @@ public partial class ConvertTypeOfToNameOfTests
                     { 
                         void M() 
                         {
-                            _ = [|typeof(Goo<int>).Name|];
+                            _ = typeof(Goo<int>).Name;
                         }
                     }
                 }
@@ -309,7 +309,7 @@ public partial class ConvertTypeOfToNameOfTests
                     { 
                         void M() 
                         {
-                            _ = [|typeof(Goo<>).Name|];
+                            _ = typeof(Goo<>).Name;
                         }
                     }
                 }
