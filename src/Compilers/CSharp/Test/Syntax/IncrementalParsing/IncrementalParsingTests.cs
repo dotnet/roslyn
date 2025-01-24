@@ -983,7 +983,10 @@ class C
 ";
             var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
             var newTree = oldTree.WithReplaceFirst("extension", "class");
-            oldTree.GetDiagnostics().Verify();
+            oldTree.GetDiagnostics().Verify(
+                // (4,15): error CS9500: Extension declarations may not have a name.
+                //     extension E(object x) { }
+                Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "E").WithLocation(4, 15));
             newTree.GetDiagnostics().Verify();
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
@@ -1158,7 +1161,10 @@ class C
             var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
             var newTree = oldTree.WithReplaceFirst("struct", "extension");
             oldTree.GetDiagnostics().Verify();
-            newTree.GetDiagnostics().Verify();
+            newTree.GetDiagnostics().Verify(
+                // (4,15): error CS9500: Extension declarations may not have a name.
+                //     extension D(object x) { }
+                Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "D").WithLocation(4, 15));
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
@@ -1167,7 +1173,10 @@ class C
                             SyntaxKind.ExtensionDeclaration,
                             SyntaxKind.ExtensionKeyword);
 
-            UsingTree(newTree);
+            UsingTree(newTree,
+                // (4,15): error CS9500: Extension declarations may not have a name.
+                //     extension D(object x) { }
+                Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "D").WithLocation(4, 15));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1179,7 +1188,6 @@ class C
                     N(SyntaxKind.ExtensionDeclaration);
                     {
                         N(SyntaxKind.ExtensionKeyword);
-                        N(SyntaxKind.IdentifierToken, "D");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
