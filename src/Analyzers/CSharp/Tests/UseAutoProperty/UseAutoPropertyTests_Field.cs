@@ -1602,4 +1602,109 @@ public sealed partial class UseAutoPropertyTests
             }
             """, new TestParameters(parseOptions: CSharp14));
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
+    public async Task TestReadAndWrite()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private int [|_g|];
+
+                public int CustomGetter
+                {
+                    get => _g < 0 ? 0 : _g; // Synthesized return value
+                    set => _g = value;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public int CustomGetter
+                {
+                    get => field < 0 ? 0 : field; // Synthesized return value
+                    set;
+                }
+            }
+            """, new TestParameters(parseOptions: CSharp14));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
+    public async Task TestContractCall()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private int [|_s|];
+
+                public int CustomSetter
+                {
+                    get => _s;
+                    set
+                    {
+                        Assumes.True(value >= 0); // Validation
+                        _s = value;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public int CustomSetter
+                {
+                    get;
+                    set
+                    {
+                        Assumes.True(value >= 0); // Validation
+                        field = value;
+                    }
+                }
+            }
+            """, new TestParameters(parseOptions: CSharp14));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
+    public async Task TestDelegateInvoke()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                private int [|_s|];
+                public event Action<string> OnChanged;
+
+                public int ObservableProp
+                {
+                    get => _s;
+                    set
+                    {
+                        _s = value;
+                        OnChanged.Invoke(nameof(ObservableProp));
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public event Action<string> OnChanged;
+            
+                public int ObservableProp
+                {
+                    get;
+                    set
+                    {
+                        field = value;
+                        OnChanged.Invoke(nameof(ObservableProp));
+                    }
+                }
+            }
+            """, new TestParameters(parseOptions: CSharp14));
+    }
 }
