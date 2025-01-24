@@ -2358,6 +2358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_EmbeddedAttributeMustFollowPattern = 9271,
         ERR_ImplicitlyTypedParamsParameter = 9272,
+        ERR_VariableDeclarationNamedField = 9273,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

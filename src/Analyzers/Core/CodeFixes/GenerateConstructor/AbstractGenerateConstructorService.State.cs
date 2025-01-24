@@ -366,9 +366,8 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
         private static bool IsValidAttributeParameterType(ITypeSymbol type)
         {
-            if (type.Kind == SymbolKind.ArrayType)
+            if (type is IArrayTypeSymbol arrayType)
             {
-                var arrayType = (IArrayTypeSymbol)type;
                 if (arrayType.Rank != 1)
                 {
                     return false;

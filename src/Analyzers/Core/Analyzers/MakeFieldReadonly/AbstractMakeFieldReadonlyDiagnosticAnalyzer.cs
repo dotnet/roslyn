@@ -25,7 +25,7 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TSyntaxKind,
     where TThisExpression : SyntaxNode
 {
     protected abstract ISyntaxKinds SyntaxKinds { get; }
-    protected abstract bool IsWrittenTo(SemanticModel semanticModel, TThisExpression expression, CancellationToken cancellationToken);
+    protected abstract ISemanticFacts SemanticFacts { get; }
 
     public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
@@ -68,7 +68,7 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TSyntaxKind,
                 var writesToThis = false;
                 context.RegisterSyntaxNodeAction(context =>
                 {
-                    writesToThis = writesToThis || IsWrittenTo(context.SemanticModel, (TThisExpression)context.Node, context.CancellationToken);
+                    writesToThis = writesToThis || this.SemanticFacts.IsWrittenTo(context.SemanticModel, context.Node, context.CancellationToken);
                 }, SyntaxKinds.Convert<TSyntaxKind>(SyntaxKinds.ThisExpression));
 
                 context.RegisterSymbolEndAction(context =>
@@ -105,7 +105,10 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TSyntaxKind,
                 if (!IsFieldWrite(fieldReference, operationContext.ContainingSymbol))
                     return;
 
-                UpdateFieldStateOnWrite(fieldReference.Field);
+                var field = fieldReference.Field;
+                Debug.Assert(fieldStateMap.ContainsKey(field.OriginalDefinition));
+
+                fieldStateMap[field.OriginalDefinition] = (isCandidate: true, written: true);
             }
 
             void OnSymbolEnd(SymbolAnalysisContext symbolEndContext)
@@ -192,15 +195,6 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TSyntaxKind,
 
                 return symbol.HasAttribute(dataMemberAttribute)
                     && symbol.ContainingType.HasAttribute(dataContractAttribute);
-            }
-
-            // Method to update the field state for a candidate field written outside constructor and field initializer.
-            void UpdateFieldStateOnWrite(IFieldSymbol field)
-            {
-                Debug.Assert(IsCandidateField(field));
-                Debug.Assert(fieldStateMap.ContainsKey(field.OriginalDefinition));
-
-                fieldStateMap[field.OriginalDefinition] = (isCandidate: true, written: true);
             }
 
             // Method to get or initialize the field state.

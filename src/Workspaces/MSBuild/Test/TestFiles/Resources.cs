@@ -64,10 +64,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
         public static byte[] GetBytes(string name) => GetOrLoadValue(name, s_bytesLoader, ref s_bytesCache);
         public static string GetText(string name) => GetOrLoadValue(name, s_textLoader, ref s_textCache);
 
-        public static string Directory_Build_props => GetText("Directory.Build.props");
-        public static string Directory_Build_targets => GetText("Directory.Build.targets");
         public static byte[] Key_snk => GetBytes("key.snk");
-        public static string NuGet_Config => GetText("NuGet.Config");
 
         public static class SolutionFilters
         {

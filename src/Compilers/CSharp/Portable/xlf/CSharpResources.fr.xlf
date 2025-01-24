@@ -2352,6 +2352,11 @@
         <target state="translated">Impossible d’utiliser l’objet 'this' avant l’affectation de tous ses champs. Envisagez de mettre à jour vers la version de langage '{0}' pour définir automatiquement les champs non attribués par défaut.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VariableDeclarationNamedField">
+        <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
+        <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Un type de retour de type tâche générique est attendu, mais le type « {0} » trouvé dans l’attribut ’AsyncMethodBuilder’ n’était pas approprié. Il doit s’agir d’un type générique indépendant d’arité One, et son type conteneur (le cas échéant) doit être non générique.</target>
@@ -2665,11 +2670,6 @@
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">aiguille</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
-        <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
-        <target state="translated">L’identificateur est un mot clé contextuel, avec une signification spécifique, dans une version de langage ultérieure.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -171,19 +172,10 @@ namespace Roslyn.Test.Utilities
             return compareLine != 0 ? compareLine : compareChar;
         }
 
-        private protected static string ApplyTextEdits(LSP.TextEdit[] edits, SourceText originalMarkup)
+        private protected static string ApplyTextEdits(LSP.TextEdit[]? edits, SourceText originalMarkup)
         {
-            var text = originalMarkup;
-            foreach (var edit in edits)
-            {
-                var lines = text.Lines;
-                var startPosition = ProtocolConversions.PositionToLinePosition(edit.Range.Start);
-                var endPosition = ProtocolConversions.PositionToLinePosition(edit.Range.End);
-                var textSpan = lines.GetTextSpan(new LinePositionSpan(startPosition, endPosition));
-                text = text.Replace(textSpan, edit.NewText);
-            }
-
-            return text.ToString();
+            var changes = Array.ConvertAll(edits ?? [], edit => ProtocolConversions.TextEditToTextChange(edit, originalMarkup));
+            return originalMarkup.WithChanges(changes).ToString();
         }
 
         internal static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, Glyph glyph, string? containerName = null)
@@ -309,13 +301,13 @@ namespace Roslyn.Test.Utilities
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, string[] codeActionPath, IEnumerable<string>? customTags = null)
             => new(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri), fixAllFlavors: null, nestedCodeActions: null, codeActionPath: codeActionPath);
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
+        private protected Task<TestLspServer> CreateTestLspServerAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, bool mutatingLspWorkspace, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
             => CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized });
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, TestComposition? composition = null)
+        private protected Task<TestLspServer> CreateTestLspServerAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, TestComposition? composition = null)
             => CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace, initializationOptions, composition);
 
-        private protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, TestComposition? composition = null)
+        private protected Task<TestLspServer> CreateTestLspServerAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string[] markups, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, TestComposition? composition = null)
             => CreateTestLspServerAsync(markups, LanguageNames.CSharp, mutatingLspWorkspace, initializationOptions, composition);
 
         private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null, TestComposition? composition = null)

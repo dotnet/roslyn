@@ -68,9 +68,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None)
+                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, DiagnosticKind.All, CancellationToken.None)
 
-                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Length)
 
                 ' Verify available codefix with a global fixer
                 Dim fixes = Await codefixService.GetFixesAsync(
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CancellationToken.None)
 
-                Assert.Equal(0, fixes.Count())
+                Assert.Empty(fixes)
 
                 ' Verify available codefix with a global fixer + a project fixer
                 ' We will use this assembly as a project fixer provider.
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CancellationToken.None)
-                Assert.Equal(1, fixes.Count())
+                Assert.Equal(1, fixes.Length)
 
                 ' Remove a project analyzer
                 project = project.RemoveAnalyzerReference(projectAnalyzerReference)
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CancellationToken.None)
 
-                Assert.Equal(0, fixes.Count())
+                Assert.Empty(fixes)
             End Using
         End Function
 
@@ -140,9 +140,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None)
+                    range:=(Await document.GetSyntaxRootAsync()).FullSpan, DiagnosticKind.All, CancellationToken.None)
 
-                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Length)
 
                 ' Verify no codefix with a global fixer
                 Dim fixes = Await codefixService.GetFixesAsync(
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CancellationToken.None)
 
-                Assert.Equal(0, fixes.Count())
+                Assert.Empty(fixes)
 
                 ' Verify no codefix with a global fixer + a project fixer
                 ' We will use this assembly as a project fixer provider.
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CancellationToken.None)
 
-                Assert.Equal(0, fixes.Count())
+                Assert.Empty(fixes)
             End Using
         End Function
 
@@ -351,8 +351,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.CompletedTask
             End Function
 
-            Public Function GetOnTheFlyDocsAsync(symbolSignature As String, declarationCode As ImmutableArray(Of String), language As String, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsAsync
-                Return Task.FromResult("")
+            Public Function GetOnTheFlyDocsAsync(symbolSignature As String, declarationCode As ImmutableArray(Of String), language As String, cancellationToken As CancellationToken) As Task(Of (responseString As String, isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsAsync
+                Return Task.FromResult(("", False))
             End Function
 
             Public Function IsFileExcludedAsync(filePath As String, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsFileExcludedAsync

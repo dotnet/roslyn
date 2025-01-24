@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End Function
 
             Private Shared Function ContainsNamespaceCandidateSymbols(symbolInfo As SymbolInfo) As Boolean
-                Return symbolInfo.CandidateSymbols.Any() AndAlso symbolInfo.CandidateSymbols.All(Function(s) s.IsNamespace())
+                Return symbolInfo.CandidateSymbols.Any() AndAlso symbolInfo.CandidateSymbols.All(Function(s) TypeOf s Is INamespaceSymbol)
             End Function
 
             ''' <summary>

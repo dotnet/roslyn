@@ -237,9 +237,7 @@ internal sealed partial class RenameTrackingTaggerProvider
             // Get the source symbol if possible
             var sourceSymbol = SymbolFinder.FindSourceDefinition(symbol, document.Project.Solution, _cancellationToken) ?? symbol;
 
-            if (sourceSymbol.Kind == SymbolKind.Field &&
-                ((IFieldSymbol)sourceSymbol).ContainingType.IsTupleType &&
-                sourceSymbol.IsImplicitlyDeclared)
+            if (sourceSymbol is IFieldSymbol { ContainingType.IsTupleType: true, IsImplicitlyDeclared: true })
             {
                 // should not rename Item1, Item2...
                 // when user did not declare them in source.
