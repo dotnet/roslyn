@@ -65,8 +65,6 @@ internal sealed class RoslynPackage : AbstractPackage
     private ColorSchemeApplier? _colorSchemeApplier;
     private IDisposable? _solutionEventMonitor;
 
-    private BackgroundAnalysisScope? _analysisScope;
-
     public RoslynPackage()
     {
         // We need to register an option in order for OnLoadOptions/OnSaveOptions to be called
@@ -75,17 +73,14 @@ internal sealed class RoslynPackage : AbstractPackage
 
     public BackgroundAnalysisScope? AnalysisScope
     {
-        get
-        {
-            return _analysisScope;
-        }
+        get;
 
         set
         {
-            if (_analysisScope == value)
+            if (field == value)
                 return;
 
-            _analysisScope = value;
+            field = value;
             AnalysisScopeChanged?.Invoke(this, EventArgs.Empty);
         }
     }

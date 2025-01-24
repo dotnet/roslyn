@@ -547,19 +547,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return GlobalAssemblyCacheLocation.RootLocations.Any(static (gloc, filePath) => PathUtilities.IsChildPath(gloc, filePath), filePath);
         }
 
-        private static string? s_frameworkRoot;
         private static string FrameworkRoot
         {
             get
             {
-                if (RoslynString.IsNullOrEmpty(s_frameworkRoot))
+                if (RoslynString.IsNullOrEmpty(field))
                 {
                     var runtimeDir = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
-                    s_frameworkRoot = Path.GetDirectoryName(runtimeDir); // back out one directory level to be root path of all framework versions
+                    field = Path.GetDirectoryName(runtimeDir); // back out one directory level to be root path of all framework versions
                 }
 
-                return s_frameworkRoot ?? throw new InvalidOperationException($"Unable to get {nameof(FrameworkRoot)}");
+                return field ?? throw new InvalidOperationException($"Unable to get {nameof(FrameworkRoot)}");
             }
+
+            set;
         }
 
         private static bool IsFrameworkReferenceAssembly(string filePath)

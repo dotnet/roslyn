@@ -17,19 +17,17 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 internal readonly partial struct SymbolKeyResolution
 {
-    private readonly ImmutableArray<ISymbol> _candidateSymbols;
-
     internal SymbolKeyResolution(ISymbol? symbol)
     {
         Symbol = symbol;
-        _candidateSymbols = default;
+        CandidateSymbols = default;
         CandidateReason = CandidateReason.None;
     }
 
     internal SymbolKeyResolution(ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
     {
         Symbol = null;
-        _candidateSymbols = candidateSymbols;
+        CandidateSymbols = candidateSymbols;
         CandidateReason = candidateReason;
     }
 
@@ -37,7 +35,7 @@ internal readonly partial struct SymbolKeyResolution
 
     public ISymbol? Symbol { get; }
     public CandidateReason CandidateReason { get; }
-    public ImmutableArray<ISymbol> CandidateSymbols => _candidateSymbols.NullToEmpty();
+    public ImmutableArray<ISymbol> CandidateSymbols => field.NullToEmpty();
 
     public Enumerator<ISymbol> GetEnumerator()
         => new(this);

@@ -30,13 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             references: [NetFramework.mscorlib, NetFramework.System]);
 
         private Workspace _workspace;
-        private SyntaxGenerator _generator;
 
         private Workspace Workspace
             => _workspace ??= new AdhocWorkspace();
 
-        private SyntaxGenerator Generator
-            => _generator ??= SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
+        private SyntaxGenerator Generator { get => field ??= SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp); set; }
 
         public static Compilation Compile(string code)
         {

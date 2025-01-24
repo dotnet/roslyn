@@ -54,19 +54,7 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    // Mutable state.  Should only update on UI thread.
-
-    private Visibility _visibility_doNotAccessDirectly = Visibility.Visible;
-    private SortOption _sortOption_doNotAccessDirectly = SortOption.Location;
-    private string _searchText_doNotAccessDirectly = "";
-    private ImmutableArray<DocumentSymbolDataViewModel> _documentSymbolViewModelItems_doNotAccessDirectly = [];
     private DocumentOutlineViewState _lastPresentedViewState_doNotAccessDirectly;
-
-    /// <summary>
-    /// Use to prevent reeentrancy on navigation/selection.
-    /// </summary>
-    private bool _isNavigating_doNotAccessDirectly;
-
     private bool _isDisposed;
 
     public DocumentOutlineViewModel(
@@ -136,14 +124,14 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
         get
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            return _isNavigating_doNotAccessDirectly;
+            return field;
         }
 
         set
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            Debug.Assert(_isNavigating_doNotAccessDirectly != value);
-            _isNavigating_doNotAccessDirectly = value;
+            Debug.Assert(field != value);
+            field = value;
         }
     }
 
@@ -174,15 +162,15 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
         get
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            return _visibility_doNotAccessDirectly;
+            return field;
         }
 
         set
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            _visibility_doNotAccessDirectly = value;
+            field = value;
         }
-    }
+    } = Visibility.Visible;
 
     /// <remarks>This property is bound to the UI.  However, it is only read/written by the UI.  We only act as
     /// storage for the value.  When the value changes, the sorting is actually handled by
@@ -192,15 +180,15 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
         get
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            return _sortOption_doNotAccessDirectly;
+            return field;
         }
 
         set
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            _sortOption_doNotAccessDirectly = value;
+            field = value;
         }
-    }
+    } = SortOption.Location;
 
     /// <remarks>This property is bound to the UI.  However, it is read/written by the UI, and also read by us when
     /// computing the model to know what to filter it down to.</remarks>
@@ -209,7 +197,7 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
         get
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            return _searchText_doNotAccessDirectly;
+            return field;
         }
 
         set
@@ -217,11 +205,11 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
             // Called from WPF.  When this changes, kick off the work to actually filter down our models.
 
             _threadingContext.ThrowIfNotOnUIThread();
-            _searchText_doNotAccessDirectly = value;
+            field = value;
 
             _workQueue.AddWork(cancelExistingWork: true);
         }
-    }
+    } = "";
 
     /// <remarks>This property is bound to the UI.  It is only read by the UI, but can be read/written by us.</remarks>
     public ImmutableArray<DocumentSymbolDataViewModel> DocumentSymbolViewModelItems
@@ -229,20 +217,20 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
         get
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            return _documentSymbolViewModelItems_doNotAccessDirectly;
+            return field;
         }
 
         // Setting this only happens from within this type once we've computed new items or filtered down the existing set.
         private set
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            if (_documentSymbolViewModelItems_doNotAccessDirectly == value)
+            if (field == value)
                 return;
 
-            _documentSymbolViewModelItems_doNotAccessDirectly = value;
+            field = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DocumentSymbolViewModelItems)));
         }
-    }
+    } = [];
 
     public void ExpandOrCollapseAll(bool shouldExpand)
     {

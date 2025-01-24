@@ -60,7 +60,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private readonly CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement> _codeElementTable;
 
         // These are used during batching.
-        private bool _batchMode;
         private List<AbstractKeyedCodeElement>? _batchElements;
         private Document? _batchDocument;
 
@@ -88,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>(state.ThreadingContext);
 
-            _batchMode = false;
+            IsBatchOpen = false;
             _batchDocument = null;
             _lastSyntaxTree = GetSyntaxTree();
         }
@@ -661,7 +660,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 if (_editCount == 1)
                 {
-                    _batchMode = true;
+                    IsBatchOpen = true;
                     _batchElements = [];
                 }
 
@@ -730,7 +729,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         }
                     }
 
-                    _batchMode = false;
+                    IsBatchOpen = false;
                     _batchElements = null;
                 }
 
@@ -763,8 +762,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             get
             {
-                return _batchMode && _editCount > 0;
+                return field && _editCount > 0;
             }
+
+            private set;
         }
 
         public EnvDTE.CodeElement ElementFromID(string id)
