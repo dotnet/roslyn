@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty;
 
 using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAutoPropertyToFullProperty), Shared]
 [method: ImportingConstructor]
@@ -44,14 +45,19 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
     }
 
     protected override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
-        CSharpCodeGenerationContextInfo info, PropertyDeclarationSyntax property,
-        string fieldName, SyntaxGenerator generator, CancellationToken cancellationToken)
+        CSharpCodeGenerationContextInfo info,
+        PropertyDeclarationSyntax property,
+        string fieldName,
+        CancellationToken cancellationToken)
     {
+        return GetNewAccessors(info, property, fieldName.ToIdentifierName(), overwriteExistingBodies: false, cancellationToken);
+#if false
         // C# might have trivia with the accessors that needs to be preserved.  
         // so we will update the existing accessors instead of creating new ones
         var accessorListSyntax = property.AccessorList;
         var (getAccessor, setAccessor) = GetExistingAccessors(accessorListSyntax);
 
+        var generator = CSharpSyntaxGenerator.Instance;
         var fieldIdentifier = generator.IdentifierName(fieldName);
         var getAccessorStatement = generator.ReturnStatement(fieldIdentifier);
         var newGetter = GetUpdatedAccessor(getAccessor, getAccessorStatement);
@@ -101,6 +107,70 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
                 accessor.DescendantNodes().OfType<FieldExpressionSyntax>(),
                 (oldNode, _) => fieldIdentifier.WithTriviaFrom(oldNode));
         }
+#endif
+    }
+
+    private (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
+        CSharpCodeGenerationContextInfo info,
+        PropertyDeclarationSyntax property,
+        ExpressionSyntax backingFieldExpression,
+        bool overwriteExistingBodies,
+        CancellationToken cancellationToken)
+    {
+        // C# might have trivia with the accessors that needs to be preserved.  
+        // so we will update the existing accessors instead of creating new ones
+        var accessorListSyntax = property.AccessorList;
+        var (getAccessor, setAccessor) = GetExistingAccessors(accessorListSyntax);
+
+        var getAccessorStatement = ReturnStatement(backingFieldExpression);
+        var newGetter = GetUpdatedAccessor(getAccessor, getAccessorStatement);
+
+        var newSetter = setAccessor;
+        if (newSetter != null)
+        {
+            var setAccessorStatement = ExpressionStatement(AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression,
+                backingFieldExpression,
+                IdentifierName("value")));
+            newSetter = GetUpdatedAccessor(setAccessor, setAccessorStatement);
+        }
+
+        return (newGetter, newSetter);
+
+        AccessorDeclarationSyntax GetUpdatedAccessor(AccessorDeclarationSyntax accessor, StatementSyntax statement)
+        {
+            if (!overwriteExistingBodies && (accessor.Body != null || accessor.ExpressionBody != null))
+                return ReplaceFieldExpression(accessor);
+
+            var newAccessor = AddStatement(accessor, statement);
+            var accessorDeclarationSyntax = (AccessorDeclarationSyntax)newAccessor;
+
+            var preference = info.Options.PreferExpressionBodiedAccessors.Value;
+            if (preference == ExpressionBodyPreference.Never)
+            {
+                return accessorDeclarationSyntax.WithSemicolonToken(default);
+            }
+
+            if (!accessorDeclarationSyntax.Body.TryConvertToArrowExpressionBody(
+                    accessorDeclarationSyntax.Kind(), info.LanguageVersion, preference, cancellationToken,
+                    out var arrowExpression, out _))
+            {
+                return accessorDeclarationSyntax.WithSemicolonToken(default);
+            }
+
+            return accessorDeclarationSyntax
+                .WithExpressionBody(arrowExpression)
+                .WithBody(null)
+                .WithSemicolonToken(accessorDeclarationSyntax.SemicolonToken)
+                .WithAdditionalAnnotations(Formatter.Annotation);
+        }
+
+        AccessorDeclarationSyntax ReplaceFieldExpression(AccessorDeclarationSyntax accessor)
+        {
+            return accessor.ReplaceNodes(
+                accessor.DescendantNodes().OfType<FieldExpressionSyntax>(),
+                (oldNode, _) => backingFieldExpression.WithTriviaFrom(oldNode));
+        }
     }
 
     private static (AccessorDeclarationSyntax getAccessor, AccessorDeclarationSyntax setAccessor)
@@ -108,15 +178,12 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
         => (accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)),
             accessorListSyntax.Accessors.FirstOrDefault(a => a.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration));
 
-    internal static SyntaxNode AddStatement(SyntaxNode accessor, SyntaxNode statement)
+    internal static SyntaxNode AddStatement(AccessorDeclarationSyntax accessor, StatementSyntax statement)
     {
-        var blockSyntax = SyntaxFactory.Block(
-            OpenBraceToken.WithLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
-            new SyntaxList<StatementSyntax>((StatementSyntax)statement),
-            CloseBraceToken
-                .WithTrailingTrivia(((AccessorDeclarationSyntax)accessor).SemicolonToken.TrailingTrivia));
-
-        return ((AccessorDeclarationSyntax)accessor).WithBody(blockSyntax);
+        return accessor.WithBody(Block(
+            OpenBraceToken.WithLeadingTrivia(ElasticCarriageReturnLineFeed),
+            [statement],
+            CloseBraceToken.WithTrailingTrivia(accessor.SemicolonToken.TrailingTrivia)));
     }
 
     protected override SyntaxNode ConvertPropertyToExpressionBodyIfDesired(

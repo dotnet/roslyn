@@ -36,9 +36,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
                 info As VisualBasicCodeGenerationContextInfo,
                 propertySyntax As PropertyStatementSyntax,
                 fieldName As String,
-                generator As SyntaxGenerator,
                 cancellationToken As CancellationToken) As (newGetAccessor As SyntaxNode, newSetAccessor As SyntaxNode)
 
+            Dim generator = VisualBasicSyntaxGenerator.Instance
             Dim returnStatement = New SyntaxList(Of StatementSyntax)(DirectCast(generator.ReturnStatement(
                 generator.IdentifierName(fieldName)), StatementSyntax))
             Dim getAccessor As SyntaxNode = SyntaxFactory.GetAccessorBlock(
