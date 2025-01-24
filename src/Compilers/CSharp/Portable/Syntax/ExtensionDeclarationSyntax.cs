@@ -6,12 +6,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class ExtensionDeclarationSyntax
     {
-        public override SyntaxToken Identifier => default;
+        public override SyntaxToken Identifier
+            => throw new System.NotImplementedException();
 
         internal override BaseTypeDeclarationSyntax WithIdentifierCore(SyntaxToken identifier)
             => throw new System.NotImplementedException();
 
-        public override BaseListSyntax? BaseList => null;
+        public override BaseListSyntax? BaseList
+            => throw new System.NotImplementedException();
 
         internal override BaseTypeDeclarationSyntax AddBaseListTypesCore(params BaseTypeSyntax[] items)
             => throw new System.NotImplementedException();
