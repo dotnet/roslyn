@@ -2611,6 +2611,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             void executeNodeActionsByKind(ArrayBuilder<SyntaxNode> nodesToAnalyze, GroupedAnalyzerActions groupedActions, bool arePerSymbolActions)
             {
+                if (groupedActions.GroupedActionsByAnalyzer.Length == 0)
+                {
+                    return;
+                }
+
                 var analyzersForNodes = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
                 foreach (var node in nodesToAnalyze)
                 {
