@@ -740,18 +740,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var (@this, startActions, analyzer, declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind, filterSpan, isGeneratedCode, ephemeralActions) = args;
                     if (ephemeralActions.Any())
                     {
-                        Debug.Assert(getKind != null);
                         var executableNodeActionsByKind = GetNodeActionsByKind(ephemeralActions);
-                        var syntaxNodesToAnalyze = executableCodeBlocks.SelectMany(cb =>
-                        {
-                            var filter = semanticModel.GetSyntaxNodesToAnalyzeFilter(cb, declaredSymbol);
+                        var syntaxNodesToAnalyze = ArrayBuilder<SyntaxNode>.GetInstance();
 
-                            return filter is not null
-                                ? cb.DescendantNodesAndSelf(descendIntoChildren: filter).Where(filter)
-                                : cb.DescendantNodesAndSelf();
-                        });
+                        foreach (var block in executableCodeBlocks)
+                        {
+                            var filter = semanticModel.GetSyntaxNodesToAnalyzeFilter(block, declaredSymbol);
+                            if (filter is not null)
+                            {
+                                foreach (var descendantNode in block.DescendantNodesAndSelf(descendIntoChildren: filter))
+                                {
+                                    if (filter(descendantNode))
+                                        syntaxNodesToAnalyze.Add(descendantNode);
+                                }
+                            }
+                            else
+                            {
+                                syntaxNodesToAnalyze.AddRange(block.DescendantNodesAndSelf());
+                            }
+                        }
 
                         @this.ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
+                        syntaxNodesToAnalyze.Free();
                     }
                 },
                 argument: (@this: this, startActions, analyzer, declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind, filterSpan, isGeneratedCode, ephemeralActions),
@@ -991,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
-            IEnumerable<SyntaxNode> nodesToAnalyze,
+            ArrayBuilder<SyntaxNode> nodesToAnalyze,
             ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
             DiagnosticAnalyzer analyzer,
             ISymbol containingSymbol,
