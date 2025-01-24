@@ -4554,7 +4554,7 @@ parse_member_name:;
 
         internal ParameterListSyntax ParseParenthesizedParameterList(bool forExtension)
         {
-            if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameterList(this.CurrentNode as CSharp.Syntax.ParameterListSyntax))
+            if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameterList(this.CurrentNode as CSharp.Syntax.ParameterListSyntax, allowOptionalIdentifier: forExtension))
             {
                 return (ParameterListSyntax)this.EatNode();
             }
@@ -4574,7 +4574,7 @@ parse_member_name:;
             return _syntaxFactory.BracketedParameterList(open, parameters, close);
         }
 
-        private static bool CanReuseParameterList(CSharp.Syntax.ParameterListSyntax list)
+        private static bool CanReuseParameterList(Syntax.ParameterListSyntax list, bool allowOptionalIdentifier)
         {
             if (list == null)
             {
@@ -4593,7 +4593,7 @@ parse_member_name:;
 
             foreach (var parameter in list.Parameters)
             {
-                if (!CanReuseParameter(parameter))
+                if (!CanReuseParameter(parameter, allowOptionalIdentifier))
                 {
                     return false;
                 }
@@ -4602,7 +4602,7 @@ parse_member_name:;
             return true;
         }
 
-        private static bool CanReuseBracketedParameterList(CSharp.Syntax.BracketedParameterListSyntax list)
+        private static bool CanReuseBracketedParameterList(Syntax.BracketedParameterListSyntax list)
         {
             if (list == null)
             {
@@ -4621,7 +4621,7 @@ parse_member_name:;
 
             foreach (var parameter in list.Parameters)
             {
-                if (!CanReuseParameter(parameter))
+                if (!CanReuseParameter(parameter, allowOptionalIdentifier: false))
                 {
                     return false;
                 }
@@ -4695,7 +4695,7 @@ parse_member_name:;
             }
         }
 
-        private static bool CanReuseParameter(CSharp.Syntax.ParameterSyntax parameter)
+        private static bool CanReuseParameter(CSharp.Syntax.ParameterSyntax parameter, bool allowOptionalIdentifier)
         {
             if (parameter == null)
             {
@@ -4726,10 +4726,10 @@ parse_member_name:;
                 }
             }
 
-            // cannot reuse parameters without identifiers (found in extension declarations) as they are parsed with different rules.
+            // We can only reuse parameters without identifiers (found in extension declarations) in context that allow optional identifiers.
             // The reverse is fine though.  Normal parameters (from non extensions) can be re-used into an extension declaration
             // as all normal parameters are legal extension parameters.
-            if (parameter.Identifier.Kind() == SyntaxKind.None)
+            if (!allowOptionalIdentifier && parameter.Identifier.Kind() == SyntaxKind.None)
             {
                 return false;
             }
@@ -4741,7 +4741,7 @@ parse_member_name:;
 
         private ParameterSyntax ParseParameter(bool allowOptionalIdentifier)
         {
-            if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameter(this.CurrentNode as CSharp.Syntax.ParameterSyntax))
+            if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameter(this.CurrentNode as Syntax.ParameterSyntax, allowOptionalIdentifier))
             {
                 return (ParameterSyntax)this.EatNode();
             }
