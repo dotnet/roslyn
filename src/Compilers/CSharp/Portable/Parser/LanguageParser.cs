@@ -1746,7 +1746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                name = (SyntaxToken?)this.ParseIdentifierToken();
+                name = this.ParseIdentifierToken();
             }
 
             var typeParameters = this.ParseTypeParameterList();

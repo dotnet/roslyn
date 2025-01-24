@@ -4684,19 +4684,19 @@ class C
     extension(object where T :
 }
 """,
-        TestOptions.RegularPreview,
-        // (3,22): error CS1026: ) expected
-        //     extension(object where T :
-        Diagnostic(ErrorCode.ERR_CloseParenExpected, "where").WithLocation(3, 22),
-        // (3,31): error CS1031: Type expected
-        //     extension(object where T :
-        Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 31),
-        // (3,31): error CS1514: { expected
-        //     extension(object where T :
-        Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(3, 31),
-        // (3,31): error CS1513: } expected
-        //     extension(object where T :
-        Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 31));
+            TestOptions.RegularPreview,
+            // (3,22): error CS1026: ) expected
+            //     extension(object where T :
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "where").WithLocation(3, 22),
+            // (3,31): error CS1031: Type expected
+            //     extension(object where T :
+            Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(3, 31),
+            // (3,31): error CS1514: { expected
+            //     extension(object where T :
+            Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(3, 31),
+            // (3,31): error CS1513: } expected
+            //     extension(object where T :
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 31));
 
         N(SyntaxKind.CompilationUnit);
         {
