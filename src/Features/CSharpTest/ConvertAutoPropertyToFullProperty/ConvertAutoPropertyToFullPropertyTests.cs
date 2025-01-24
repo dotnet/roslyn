@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFullProperty;
 
 [Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
-public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest_NoEditor
 {
     private static readonly CSharpParseOptions s_preview = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
 
@@ -1384,8 +1384,8 @@ public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCode
                     get => p;
                     set
                     {
-                        M(field);
-                        field = value;
+                        M(p);
+                        p = value;
                     }
                 }
             

@@ -67,11 +67,10 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
 
         return (newGetter, newSetter);
 
-        AccessorDeclarationSyntax GetUpdatedAccessor(
-            AccessorDeclarationSyntax accessor, SyntaxNode statement)
+        AccessorDeclarationSyntax GetUpdatedAccessor(AccessorDeclarationSyntax accessor, SyntaxNode statement)
         {
             if (accessor.Body != null || accessor.ExpressionBody != null)
-                return accessor;
+                return ReplaceFieldExpression(accessor);
 
             var newAccessor = AddStatement(accessor, statement);
             var accessorDeclarationSyntax = (AccessorDeclarationSyntax)newAccessor;
@@ -94,6 +93,13 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
                 .WithBody(null)
                 .WithSemicolonToken(accessorDeclarationSyntax.SemicolonToken)
                 .WithAdditionalAnnotations(Formatter.Annotation);
+        }
+
+        AccessorDeclarationSyntax ReplaceFieldExpression(AccessorDeclarationSyntax accessor)
+        {
+            return accessor.ReplaceNodes(
+                accessor.DescendantNodes().OfType<FieldExpressionSyntax>(),
+                (oldNode, _) => fieldIdentifier.WithTriviaFrom(oldNode));
         }
     }
 
