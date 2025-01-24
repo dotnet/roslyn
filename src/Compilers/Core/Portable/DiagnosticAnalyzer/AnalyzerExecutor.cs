@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal static ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> GetNodeActionsByKind<TLanguageKindEnum>(
-            IEnumerable<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> nodeActions)
+            ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> nodeActions)
             where TLanguageKindEnum : struct
         {
             Debug.Assert(nodeActions != null && nodeActions.Any());

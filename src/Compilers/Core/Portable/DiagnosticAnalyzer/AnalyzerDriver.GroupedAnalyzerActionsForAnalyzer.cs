@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -46,6 +47,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
+            [Conditional("DEBUG")]
+            private static void VerifyActions<TAnalyzerAction>(in ArrayBuilder<TAnalyzerAction> actions, DiagnosticAnalyzer analyzer)
+                where TAnalyzerAction : AnalyzerAction
+            {
+                foreach (var action in actions)
+                {
+                    Debug.Assert(action.Analyzer == analyzer);
+                }
+            }
+
             private ImmutableArray<TAnalyzerAction> GetFilteredActions<TAnalyzerAction>(in ImmutableArray<TAnalyzerAction> actions)
                 where TAnalyzerAction : AnalyzerAction
                 => GetFilteredActions(actions, _analyzer, _analyzerActionsNeedFiltering);
@@ -70,13 +81,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (_lazyNodeActionsByKind == null)
                     {
-                        var nodeActions = _analyzerActionsNeedFiltering ?
-                            AnalyzerActions.GetSyntaxNodeActions<TLanguageKindEnum>(_analyzer) :
-                            AnalyzerActions.GetSyntaxNodeActions<TLanguageKindEnum>();
+                        var nodeActions = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance();
+                        if (_analyzerActionsNeedFiltering)
+                            AnalyzerActions.AddSyntaxNodeActions(_analyzer, nodeActions);
+                        else
+                            AnalyzerActions.AddSyntaxNodeActions(nodeActions);
+
                         VerifyActions(nodeActions, _analyzer);
-                        var analyzerActionsByKind = !nodeActions.IsEmpty ?
-                            AnalyzerExecutor.GetNodeActionsByKind(nodeActions) :
-                            ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.Empty;
+                        var analyzerActionsByKind = !nodeActions.IsEmpty
+                            ? AnalyzerExecutor.GetNodeActionsByKind(nodeActions)
+                            : ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.Empty;
                         RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyNodeActionsByKind, analyzerActionsByKind);
                     }
 
