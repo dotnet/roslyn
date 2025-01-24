@@ -803,11 +803,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         startAction.Analyzer,
                         static data =>
                         {
-                            data.action(data.context);
-                            data.blockEndActions.AddAll(data.scope.OperationBlockEndActions);
-                            data.operationActions.AddRange(data.scope.OperationActions);
+                            data.action(data.operationStartContext);
+                            data.operationBlockEndActions.AddAll(data.operationBlockScope.OperationBlockEndActions);
+                            data.operationActions.AddRange(data.operationBlockScope.OperationActions);
                         },
-                        (action: startAction.Action, context: operationStartContext, scope: operationBlockScope, blockEndActions: operationBlockEndActions, operationActions),
+                        (action: startAction.Action, operationStartContext, operationBlockScope, operationBlockEndActions, operationActions),
                         new AnalysisContextInfo(@this.Compilation, declaredSymbol),
                         cancellationToken);
                 },
