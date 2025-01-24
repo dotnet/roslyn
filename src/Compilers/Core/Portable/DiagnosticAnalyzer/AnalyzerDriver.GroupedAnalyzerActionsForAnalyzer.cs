@@ -38,16 +38,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public AnalyzerActions AnalyzerActions { get; }
 
             [Conditional("DEBUG")]
-            private static void VerifyActions<TAnalyzerAction>(in ImmutableArray<TAnalyzerAction> actions, DiagnosticAnalyzer analyzer)
-                where TAnalyzerAction : AnalyzerAction
-            {
-                foreach (var action in actions)
-                {
-                    Debug.Assert(action.Analyzer == analyzer);
-                }
-            }
-
-            [Conditional("DEBUG")]
             private static void VerifyActions<TAnalyzerAction>(in ArrayBuilder<TAnalyzerAction> actions, DiagnosticAnalyzer analyzer)
                 where TAnalyzerAction : AnalyzerAction
             {
@@ -137,9 +127,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (_lazyCodeBlockStartActions.IsDefault)
                     {
-                        var codeBlockActions = GetFilteredActions(AnalyzerActions.GetCodeBlockStartActions<TLanguageKindEnum>());
+                        var codeBlockActions = ArrayBuilder<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>.GetInstance();
+                        AddFilteredActions(AnalyzerActions.GetCodeBlockStartActions<TLanguageKindEnum>(), codeBlockActions);
                         VerifyActions(codeBlockActions, _analyzer);
-                        ImmutableInterlocked.InterlockedInitialize(ref _lazyCodeBlockStartActions, codeBlockActions);
+                        ImmutableInterlocked.InterlockedInitialize(ref _lazyCodeBlockStartActions, codeBlockActions.ToImmutableAndFree());
                     }
 
                     return _lazyCodeBlockStartActions;
