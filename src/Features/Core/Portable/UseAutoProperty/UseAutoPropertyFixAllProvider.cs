@@ -30,7 +30,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
 
         private async Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalContext, ImmutableArray<FixAllContext> contexts)
         {
-            var cancellationToken = originalContext.CancellationToken;
+            var cancellationToken = ;
 
             // Very slow approach, but the only way we know how to do this correctly and without colliding edits. We
             // effectively apply each fix one at a time, moving the solution forward each time.  As we process each
@@ -44,7 +44,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
             // Add a progress item for each context we need to process.
             originalContext.Progress.AddItems(contexts.Length);
 
-            var finalSolution = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+            return await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
                 contexts,
                 produceItems: async static (currentContext, callback, args, cancellationToken) =>
                 {
@@ -93,9 +93,7 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                     return currentSolution;
                 },
                 args: (originalContext, provider),
-                cancellationToken).ConfigureAwait(false);
-
-            return finalSolution;
+                originalContext.CancellationToken).ConfigureAwait(false);
         }
     }
 }
