@@ -3667,7 +3667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.DeclaringCompilation.GetBinder(syntaxNode);
         }
 
-        private void MergePartialMembers(
+        private static void MergePartialMembers(
             Dictionary<ReadOnlyMemory<char>, object> membersByName,
             ArrayBuilder<Symbol> nonTypeMembers,
             BindingDiagnosticBag diagnostics)
@@ -3779,7 +3779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void mergePartialMethods(ArrayBuilder<Symbol> nonTypeMembers, SourceOrdinaryMethodSymbol currentMethod, SourceOrdinaryMethodSymbol prevMethod, BindingDiagnosticBag diagnostics)
+            static void mergePartialMethods(ArrayBuilder<Symbol> nonTypeMembers, SourceOrdinaryMethodSymbol currentMethod, SourceOrdinaryMethodSymbol prevMethod, BindingDiagnosticBag diagnostics)
             {
                 if (currentMethod.IsPartialImplementation &&
                     (prevMethod.IsPartialImplementation || (prevMethod.OtherPartOfPartial is MethodSymbol otherImplementation && (object)otherImplementation != currentMethod)))
@@ -3799,7 +3799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void mergePartialProperties(ArrayBuilder<Symbol> nonTypeMembers, SourcePropertySymbol currentProperty, SourcePropertySymbol prevProperty, BindingDiagnosticBag diagnostics)
+            static void mergePartialProperties(ArrayBuilder<Symbol> nonTypeMembers, SourcePropertySymbol currentProperty, SourcePropertySymbol prevProperty, BindingDiagnosticBag diagnostics)
             {
                 if (currentProperty.IsPartialImplementation &&
                     (prevProperty.IsPartialImplementation || (prevProperty.OtherPartOfPartial is SourcePropertySymbol otherImplementation && (object)otherImplementation != currentProperty)))
