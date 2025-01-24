@@ -10588,35 +10588,5 @@ class C(string p)
                 //         [A(p)] void F() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(13, 21));
         }
-
-        [Fact]
-        public void ReturningPartialType_InMethod()
-        {
-            var source = """
-                class @partial
-                {
-                    static void Main()
-                    {
-                        System.Console.Write(F().GetType().Name);
-
-                        partial F() => new();
-                    }
-                }
-                """;
-            CompileAndVerify(source, expectedOutput: "partial").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void ReturningPartialType_TopLevel()
-        {
-            var source = """
-                System.Console.Write(F().GetType().Name);
-
-                partial F() => new();
-
-                class @partial;
-                """;
-            CompileAndVerify(source, expectedOutput: "partial").VerifyDiagnostics();
-        }
     }
 }

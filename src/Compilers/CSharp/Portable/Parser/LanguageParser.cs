@@ -1379,9 +1379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     case DeclarationModifiers.Partial:
                         var nextToken = PeekToken(1);
-                        // Partial constructors aren't allowed in top-level statements to avoid breaking valid method declarations like
-                        //   partial M() => new partial(...); // 'partial' is a type here
-                        if (this.IsPartialType() || this.IsPartialMember(allowPartialCtor: !forTopLevelStatements))
+                        if (this.IsPartialType() || this.IsPartialMember())
                         {
                             // Standard legal cases.
                             modTok = ConvertToKeyword(this.EatToken());
@@ -1634,7 +1632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return false;
         }
 
-        private bool IsPartialMember(bool allowPartialCtor)
+        private bool IsPartialMember()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
 
@@ -1647,10 +1645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Check for constructor:
             //   partial Identifier(
-            // Partial constructors aren't allowed in top-level statements to avoid breaking valid method declarations like
-            //   partial M() => new partial(...); // 'partial' is a type here
-            if (allowPartialCtor &&
-                this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
+            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
                 this.PeekToken(2).Kind == SyntaxKind.OpenParenToken)
             {
                 return true;
@@ -5764,10 +5759,7 @@ parse_member_name:;
         {
             if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
             {
-                // Partial constructors aren't allowed in top-level statements to avoid breaking valid method declarations like
-                //   partial M() => new partial(...); // 'partial' is a type here
-                // We might be in a top-level context here, so we disallow partial constructors.
-                if (this.IsPartialType() || this.IsPartialMember(allowPartialCtor: false))
+                if (this.IsPartialType() || this.IsPartialMember())
                 {
                     return true;
                 }
