@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -28,6 +29,7 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
     protected abstract SyntaxNode GetInitializerValue(SyntaxNode property);
     protected abstract SyntaxNode ConvertPropertyToExpressionBodyIfDesired(TCodeGenerationContextInfo info, SyntaxNode fullProperty);
     protected abstract SyntaxNode GetTypeBlock(SyntaxNode syntaxNode);
+    protected abstract Task<Document> ExpandToFieldPropertyAsync(Document document, TPropertyDeclarationNode property, CancellationToken cancellationToken);
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -45,12 +47,22 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
         if (!IsValidAutoProperty(propertySymbol))
             return;
 
-        context.RegisterRefactoring(
-            CodeAction.Create(
+        context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Convert_to_full_property,
-                cancellationToken => ExpandToFullPropertyAsync(document, property, propertySymbol, root, cancellationToken),
+                cancellationToken => ExpandToFullPropertyAsync(document, property, propertySymbol, cancellationToken),
                 nameof(FeaturesResources.Convert_to_full_property)),
             property.Span);
+
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        if (syntaxFacts.SupportsFieldExpression(semanticModel.SyntaxTree.Options) &&
+            !property.DescendantNodes().Any(syntaxFacts.IsFieldExpression))
+        {
+            context.RegisterRefactoring(CodeAction.Create(
+                    FeaturesResources.Convert_to_field_property,
+                    cancellationToken => ExpandToFieldPropertyAsync(document, property, cancellationToken),
+                    nameof(FeaturesResources.Convert_to_field_property)),
+                property.Span);
+        }
     }
 
     internal static bool IsValidAutoProperty(IPropertySymbol propertySymbol)
@@ -73,11 +85,11 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
         Document document,
         TPropertyDeclarationNode property,
         IPropertySymbol propertySymbol,
-        SyntaxNode root,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(document.DocumentState.ParseOptions);
 
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);
         var generator = editor.Generator;
         var info = (TCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);

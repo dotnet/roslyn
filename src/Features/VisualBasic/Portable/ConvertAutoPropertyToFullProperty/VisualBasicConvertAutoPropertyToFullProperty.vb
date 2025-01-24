@@ -86,5 +86,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
         Protected Overrides Function GetTypeBlock(syntaxNode As SyntaxNode) As SyntaxNode
             Return DirectCast(syntaxNode, TypeStatementSyntax).Parent
         End Function
+
+        Protected Overrides Function ExpandToFieldPropertyAsync(document As Document, [property] As PropertyStatementSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+            Throw ExceptionUtilities.Unreachable()
+        End Function
     End Class
 End Namespace

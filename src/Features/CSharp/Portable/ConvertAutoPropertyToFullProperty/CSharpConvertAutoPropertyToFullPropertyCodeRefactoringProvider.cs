@@ -154,4 +154,11 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
 
     protected override SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property)
         => ((PropertyDeclarationSyntax)property).WithInitializer(null);
+
+    protected override async Task<Document> ExpandToFieldPropertyAsync(
+        Document document, PropertyDeclarationSyntax property, CancellationToken cancellationToken)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+    }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
 [Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
 public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    private static readonly CSharpParseOptions s_preview = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+    private static readonly CSharpParseOptions s_preview = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
 
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider();
