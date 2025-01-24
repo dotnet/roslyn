@@ -755,6 +755,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 },
                 args: (@this: this, codeBlockStartActions, analyzer, declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind, filterSpan, isGeneratedCode),
                 cancellationToken);
+            executableNodeActions.Free();
         }
 
         /// <summary>
