@@ -91,6 +91,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 methodDebugInfo: MethodDebugInfo<TypeSymbol, LocalSymbol>.None);
         }
 
+        // Used by VS debugger (/src/debugger/ProductionDebug/CodeAnalysis/CodeAnalysis/ExpressionEvaluator.cs)
+        internal static EvaluationContext CreateMethodContext(
+            ImmutableArray<MetadataBlock> metadataBlocks,
+            object symReader,
+            Guid moduleId,
+            int methodToken,
+            int methodVersion,
+            uint ilOffset,
+            int localSignatureToken)
+            => CreateMethodContext(metadataBlocks, symReader, new ModuleId(moduleId, "<unknown>"), methodToken, methodVersion, ilOffset, localSignatureToken);
+
         /// <summary>
         /// Create a context for evaluating expressions within a method scope.
         /// </summary>
