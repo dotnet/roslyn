@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -75,6 +76,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
     public bool SupportsImplicitImplementationOfNonPublicInterfaceMembers(ParseOptions options)
         => options.LanguageVersion() >= LanguageVersion.CSharp10;
+
+    public bool SupportsFieldExpression(ParseOptions options)
+        => options.LanguageVersion() >= LanguageVersionExtensions.CSharpNext;
 
     public SyntaxToken ParseToken(string text)
         => SyntaxFactory.ParseToken(text);
