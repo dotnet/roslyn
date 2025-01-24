@@ -52,54 +52,55 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
         var accessorListSyntax = property.AccessorList;
         var (getAccessor, setAccessor) = GetExistingAccessors(accessorListSyntax);
 
-        var getAccessorStatement = generator.ReturnStatement(generator.IdentifierName(fieldName));
-        var newGetter = GetUpdatedAccessor(info, getAccessor, getAccessorStatement, cancellationToken);
+        var fieldIdentifier = generator.IdentifierName(fieldName);
+        var getAccessorStatement = generator.ReturnStatement(fieldIdentifier);
+        var newGetter = GetUpdatedAccessor(getAccessor, getAccessorStatement);
 
         var newSetter = setAccessor;
         if (newSetter != null)
         {
             var setAccessorStatement = generator.ExpressionStatement(generator.AssignmentStatement(
-                generator.IdentifierName(fieldName),
+                fieldIdentifier,
                 generator.IdentifierName("value")));
-            newSetter = GetUpdatedAccessor(info, setAccessor, setAccessorStatement, cancellationToken);
+            newSetter = GetUpdatedAccessor(setAccessor, setAccessorStatement);
         }
 
         return (newGetter, newSetter);
+
+        AccessorDeclarationSyntax GetUpdatedAccessor(
+            AccessorDeclarationSyntax accessor, SyntaxNode statement)
+        {
+            if (accessor.Body != null || accessor.ExpressionBody != null)
+                return accessor;
+
+            var newAccessor = AddStatement(accessor, statement);
+            var accessorDeclarationSyntax = (AccessorDeclarationSyntax)newAccessor;
+
+            var preference = info.Options.PreferExpressionBodiedAccessors.Value;
+            if (preference == ExpressionBodyPreference.Never)
+            {
+                return accessorDeclarationSyntax.WithSemicolonToken(default);
+            }
+
+            if (!accessorDeclarationSyntax.Body.TryConvertToArrowExpressionBody(
+                    accessorDeclarationSyntax.Kind(), info.LanguageVersion, preference, cancellationToken,
+                    out var arrowExpression, out _))
+            {
+                return accessorDeclarationSyntax.WithSemicolonToken(default);
+            }
+
+            return accessorDeclarationSyntax
+                .WithExpressionBody(arrowExpression)
+                .WithBody(null)
+                .WithSemicolonToken(accessorDeclarationSyntax.SemicolonToken)
+                .WithAdditionalAnnotations(Formatter.Annotation);
+        }
     }
 
     private static (AccessorDeclarationSyntax getAccessor, AccessorDeclarationSyntax setAccessor)
         GetExistingAccessors(AccessorListSyntax accessorListSyntax)
         => (accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)),
             accessorListSyntax.Accessors.FirstOrDefault(a => a.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration));
-
-    private static AccessorDeclarationSyntax GetUpdatedAccessor(CSharpCodeGenerationContextInfo info,
-        AccessorDeclarationSyntax accessor, SyntaxNode statement, CancellationToken cancellationToken)
-    {
-        if (accessor.Body != null || accessor.ExpressionBody != null)
-            return accessor;
-
-        var newAccessor = AddStatement(accessor, statement);
-        var accessorDeclarationSyntax = (AccessorDeclarationSyntax)newAccessor;
-
-        var preference = info.Options.PreferExpressionBodiedAccessors.Value;
-        if (preference == ExpressionBodyPreference.Never)
-        {
-            return accessorDeclarationSyntax.WithSemicolonToken(default);
-        }
-
-        if (!accessorDeclarationSyntax.Body.TryConvertToArrowExpressionBody(
-                accessorDeclarationSyntax.Kind(), info.LanguageVersion, preference, cancellationToken,
-                out var arrowExpression, out _))
-        {
-            return accessorDeclarationSyntax.WithSemicolonToken(default);
-        }
-
-        return accessorDeclarationSyntax
-            .WithExpressionBody(arrowExpression)
-            .WithBody(null)
-            .WithSemicolonToken(accessorDeclarationSyntax.SemicolonToken)
-            .WithAdditionalAnnotations(Formatter.Annotation);
-    }
 
     internal static SyntaxNode AddStatement(SyntaxNode accessor, SyntaxNode statement)
     {
