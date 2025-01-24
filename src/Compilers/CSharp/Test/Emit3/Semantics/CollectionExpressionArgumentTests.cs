@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                   // Code size       14 (0xe)
                   .maxstack  3
-                  IL_0000:  ldc.i4.1
+                  IL_0000:  ldc.i4.2
                   IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
                   IL_0006:  dup
                   IL_0007:  ldarg.0
