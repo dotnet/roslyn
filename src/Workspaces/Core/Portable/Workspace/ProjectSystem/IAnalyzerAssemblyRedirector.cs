@@ -7,6 +7,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 /// <summary>
 /// Any MEF component implementing this interface will be used to redirect analyzer assemblies.
 /// </summary>
+/// <remarks>
+/// The redirected path is passed to the compiler where it is processed in the standard way,
+/// e.g., the redirected assembly is shadow copied before it's loaded
+/// (this could be improved in the future since shadow copying redirected assemblies is usually unnecessary).
+/// </remarks>
 internal interface IAnalyzerAssemblyRedirector
 {
     /// <param name="fullPath">
