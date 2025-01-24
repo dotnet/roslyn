@@ -701,6 +701,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             where TLanguageKindEnum : struct
         {
             Debug.Assert(!executableCodeBlocks.IsEmpty);
+
+            // The actions we discover in 'addActions' and then execute in 'executeActions'.
             var ephemeralActions = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance();
             ExecuteBlockActionsCore(
                 startActions,
@@ -788,6 +790,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(!operationBlocks.IsEmpty);
 
+            // The actions we discover in 'addActions' and then execute in 'executeActions'.
             var ephemeralActions = ArrayBuilder<OperationAnalyzerAction>.GetInstance();
             ExecuteBlockActionsCore(
                 startActions,
