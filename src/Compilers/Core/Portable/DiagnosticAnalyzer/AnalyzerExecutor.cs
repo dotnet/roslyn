@@ -700,6 +700,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CancellationToken cancellationToken)
             where TLanguageKindEnum : struct
         {
+            Debug.Assert(!executableCodeBlocks.IsEmpty);
             ExecuteBlockActionsCore<CodeBlockStartAnalyzerAction<TLanguageKindEnum>, CodeBlockAnalyzerAction, SyntaxNodeAnalyzerAction<TLanguageKindEnum>, SyntaxNode, TLanguageKindEnum>(
                 codeBlockStartActions,
                 codeBlockActions,
@@ -771,6 +772,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(!operationBlocks.IsEmpty);
             ExecuteBlockActionsCore<OperationBlockStartAnalyzerAction, OperationBlockAnalyzerAction, OperationAnalyzerAction, IOperation, int>(
                 operationBlockStartActions, operationBlockActions, operationBlockEndActions, analyzer,
                 declaredNode, declaredSymbol, operationBlocks, semanticModel,
