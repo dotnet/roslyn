@@ -727,11 +727,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         startAction.Analyzer,
                         static data =>
                         {
-                            data.action(data.context);
-                            data.blockEndActions.AddAll(data.scope.CodeBlockEndActions);
-                            data.syntaxNodeActions.AddRange(data.scope.SyntaxNodeActions);
+                            data.action(data.blockStartContext);
+                            data.codeBlockEndActions.AddAll(data.codeBlockScope.CodeBlockEndActions);
+                            data.syntaxNodeActions.AddRange(data.codeBlockScope.SyntaxNodeActions);
                         },
-                        (action: startAction.Action, context: blockStartContext, scope: codeBlockScope, blockEndActions: codeBlockEndActions, syntaxNodeActions),
+                        (action: startAction.Action, blockStartContext, codeBlockScope, codeBlockEndActions, syntaxNodeActions),
                         new AnalysisContextInfo(@this.Compilation, declaredSymbol, declaredNode),
                         cancellationToken);
                 },
