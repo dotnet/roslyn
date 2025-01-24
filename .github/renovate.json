@@ -16,6 +16,10 @@
 			"matchDatasources": ["dotnet-version", "docker"],
 			"matchDepNames": ["dotnet-sdk", "mcr.microsoft.com/dotnet/sdk"],
 			"groupName": "Dockerfile and global.json updates"
+		},
+		{
+			"matchPackageNames": ["Microsoft.VisualStudio.Internal.MicroBuild*"],
+			"groupName": "microbuild"
 		}
 	]
 }
