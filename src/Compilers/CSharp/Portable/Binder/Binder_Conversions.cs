@@ -1119,9 +1119,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundUnconvertedCollectionArguments collectionArguments,
             BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(collectionTypeKind is CollectionExpressionTypeKind.DictionaryInterface); // PROTOTYPE: Handle other collection type kinds.
+            var syntax = (WithElementSyntax)collectionArguments.Syntax;
 
-            var syntax = collectionArguments.Syntax;
+            // PROTOTYPE: Are we currently getting here for dictionary interfaces?
+            if (collectionTypeKind != CollectionExpressionTypeKind.DictionaryInterface)
+            {
+                diagnostics.Add(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, syntax.WithKeyword, targetType);
+                return null;
+            }
+
             var type = GetWellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV, diagnostics, syntax).
                                     Construct(((NamedTypeSymbol)targetType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
             var analyzedArguments = AnalyzedArguments.GetInstance();
@@ -1882,6 +1888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         keyValuePairElement.Update(
                             BindToNaturalType(keyValuePairElement.Key, diagnostics, reportNoTargetType),
                             BindToNaturalType(keyValuePairElement.Value, diagnostics, reportNoTargetType)),
+                    BoundUnconvertedCollectionArguments collectionArguments => bindToNaturalType(collectionArguments, diagnostics, reportNoTargetType), // PROTOTYPE: Seems incorrect to add an "unconverted" node into the returned "converted" collection.
                     _ => BindToNaturalType((BoundExpression)element, diagnostics, reportNoTargetType)
                 };
                 builder.Add(result);
@@ -1900,6 +1907,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetType,
                 hasErrors: true)
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
+
+            BoundUnconvertedCollectionArguments bindToNaturalType(BoundUnconvertedCollectionArguments collectionArguments, BindingDiagnosticBag diagnostics, bool reportNoTargetType)
+            {
+                var arguments = collectionArguments.Arguments;
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
+                foreach (var argument in arguments)
+                {
+                    builder.Add(BindToNaturalType(argument, diagnostics, reportNoTargetType));
+                }
+                return collectionArguments.Update(
+                    builder.ToImmutableAndFree(),
+                    collectionArguments.ArgumentNamesOpt,
+                    collectionArguments.ArgumentRefKindsOpt,
+                    collectionArguments.Binder);
+            }
         }
 
         internal void GenerateImplicitConversionErrorForCollectionExpression(
@@ -1956,6 +1978,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (element)
                     {
+                        case BoundUnconvertedCollectionArguments:
+                            // Collection arguments do not affect convertibility.
+                            break;
                         case BoundCollectionExpressionSpreadElement spreadElement:
                             {
                                 var enumeratorInfo = spreadElement.EnumeratorInfoOpt;
@@ -1987,9 +2012,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 reportedErrors = true;
                             }
                             break;
-                        case BoundUnconvertedCollectionArguments collectionArguments:
-                            // PROTOYTPE: Handle.
-                            throw ExceptionUtilities.UnexpectedValue(element);
                         default:
                             generateImplicitConversionError(diagnostics, (BoundExpression)element, elementType, ref useSiteInfo, ref reportedErrors);
                             break;

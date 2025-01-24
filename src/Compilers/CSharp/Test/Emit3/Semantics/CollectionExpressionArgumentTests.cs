@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // - no factory method that takes no arguments
         // - factory method that has optional parameters
         // - factory method that has params parameter
+        // PROTOTYPE: Test collection arguments do not affect convertibility. Test with with(default) for types that don't support collection arguments for instance.
 
         public static readonly TheoryData<LanguageVersion> LanguageVersions = new([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
 
@@ -261,6 +262,64 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         // PROTOTYPE: Test with each of the target type kinds.
         [Fact]
+        public void Arguments_Array()
+        {
+            string source = """
+                class Program
+                {
+                    static void F<T>(T t)
+                    {
+                        T[] a;
+                        a = [with(default), t];
+                        a = [t, with(default)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,14): error CS9276: Collection arguments are not supported for type 'T[]'.
+                //         a = [with(default), t];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("T[]").WithLocation(6, 14),
+                // (7,17): error CS9275: Collection argument element must be the first element.
+                //         a = [t, with(default)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(7, 17),
+                // (7,17): error CS9276: Collection arguments are not supported for type 'T[]'.
+                //         a = [t, with(default)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("T[]").WithLocation(7, 17));
+        }
+
+        [Theory]
+        [InlineData("ReadOnlySpan")]
+        [InlineData("Span")]
+        public void Arguments_Span(string spanType)
+        {
+            string source = $$"""
+                using System;
+                class Program
+                {
+                    static void F<T>(T t)
+                    {
+                        {{spanType}}<T> x =
+                            [with(default), t];
+                        {{spanType}}<T> y =
+                            [t, with(default)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (7,14): error CS9276: Collection arguments are not supported for type 'ReadOnlySpan<T>'.
+                //             [with(default), t];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.{spanType}<T>").WithLocation(7, 14),
+                // (9,17): error CS9275: Collection argument element must be the first element.
+                //             [t, with(default)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(9, 17),
+                // (9,17): error CS9276: Collection arguments are not supported for type 'ReadOnlySpan<T>'.
+                //             [t, with(default)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.{spanType}<T>").WithLocation(9, 17));
+        }
+
+        [Fact]
         public void Arguments_List()
         {
             string source = """
@@ -293,6 +352,108 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_000d:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void CollectionInitializer()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public readonly T Arg;
+                    public MyCollection(T arg = default) { Arg = arg; }
+                    public void Add(T t) { }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        Console.WriteLine((EmptyArgs<int>().Arg, NonEmptyArgs(2).Arg));
+                    }
+                    static MyCollection<T> EmptyArgs<T>() => [with()];
+                    static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t)];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                source,
+                expectedOutput: "(0, 2)");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.EmptyArgs<T>()", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  1
+                  .locals init (T V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "T"
+                  IL_0008:  ldloc.0
+                  IL_0009:  newobj     "MyCollection<T>..ctor(T)"
+                  IL_000e:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.NonEmptyArgs<T>(T)", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  newobj     "MyCollection<T>..ctor(T)"
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void NoParameterlessConstructor()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public readonly T Arg;
+                    public MyCollection(T arg) { Arg = arg; }
+                    public void Add(T t) { }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                class Program
+                {
+                    static MyCollection<T> EmptyArgs<T>() => [with()];
+                    static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t)];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (13,46): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+                //     static MyCollection<T> EmptyArgs<T>() => [with()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with()]").WithLocation(13, 46),
+                // (14,52): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+                //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t)];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with(t)]").WithLocation(14, 52));
+        }
+
+        [Fact]
+        public void UnrecognizedType()
+        {
+            string source = """
+                class Program
+                {
+                    static A EmptyArgs() => [with()];
+                    static B NonEmptyArgs() => [with(default)];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //     static A EmptyArgs() => [with()];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(3, 12),
+                // (4,12): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                //     static B NonEmptyArgs() => [with(default)];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(4, 12));
         }
     }
 }

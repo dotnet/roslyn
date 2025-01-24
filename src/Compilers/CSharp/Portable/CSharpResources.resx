@@ -6886,6 +6886,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CollectionArgumentsMustBeFirst" xml:space="preserve">
     <value>Collection argument element must be the first element.</value>
   </data>
+  <data name="ERR_CollectionArgumentsNotSupportedForType" xml:space="preserve">
+    <value>Collection arguments are not supported for type '{0}'.</value>
+  </data>
   <data name="INF_TooManyBoundLambdas" xml:space="preserve">
     <value>Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
   </data>

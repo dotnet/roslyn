@@ -452,6 +452,11 @@
         <target state="new">Collection argument element must be the first element.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsNotSupportedForType">
+        <source>Collection arguments are not supported for type '{0}'.</source>
+        <target state="new">Collection arguments are not supported for type '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
         <source>The CollectionBuilderAttribute method name is invalid.</source>
         <target state="translated">CollectionBuilderAttribute 메서드 이름이 잘못되었습니다.</target>
