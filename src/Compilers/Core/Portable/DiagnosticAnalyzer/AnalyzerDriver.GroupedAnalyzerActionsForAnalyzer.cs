@@ -89,9 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             AnalyzerActions.AddSyntaxNodeActions(nodeActions);
 
                         VerifyActions(nodeActions, _analyzer);
-                        var analyzerActionsByKind = !nodeActions.IsEmpty
-                            ? AnalyzerExecutor.GetNodeActionsByKind(nodeActions)
-                            : ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.Empty;
+                        var analyzerActionsByKind = AnalyzerExecutor.GetNodeActionsByKind(nodeActions);
                         RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyNodeActionsByKind, analyzerActionsByKind);
 
                         nodeActions.Free();
@@ -110,9 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var operationActions = ArrayBuilder<OperationAnalyzerAction>.GetInstance();
                         AddFilteredActions(AnalyzerActions.OperationActions, operationActions);
                         VerifyActions(operationActions, _analyzer);
-                        var analyzerActionsByKind = operationActions.Any()
-                            ? AnalyzerExecutor.GetOperationActionsByKind(operationActions)
-                            : ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>.Empty;
+                        var analyzerActionsByKind = AnalyzerExecutor.GetOperationActionsByKind(operationActions);
                         RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyOperationActionsByKind, analyzerActionsByKind);
                         operationActions.Free();
                     }

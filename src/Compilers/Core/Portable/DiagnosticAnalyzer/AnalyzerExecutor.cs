@@ -738,20 +738,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 executeActions: static (diagReporter, isSupportedDiagnostic, args, cancellationToken) =>
                 {
                     var (@this, startActions, analyzer, declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind, filterSpan, isGeneratedCode, ephemeralActions) = args;
-
-                    Debug.Assert(getKind != null);
-
-                    var executableNodeActionsByKind = GetNodeActionsByKind(ephemeralActions);
-                    var syntaxNodesToAnalyze = executableCodeBlocks.SelectMany(cb =>
+                    if (ephemeralActions.Any())
                     {
-                        var filter = semanticModel.GetSyntaxNodesToAnalyzeFilter(cb, declaredSymbol);
+                        Debug.Assert(getKind != null);
+                        var executableNodeActionsByKind = GetNodeActionsByKind(ephemeralActions);
+                        var syntaxNodesToAnalyze = executableCodeBlocks.SelectMany(cb =>
+                        {
+                            var filter = semanticModel.GetSyntaxNodesToAnalyzeFilter(cb, declaredSymbol);
 
-                        return filter is not null
-                            ? cb.DescendantNodesAndSelf(descendIntoChildren: filter).Where(filter)
-                            : cb.DescendantNodesAndSelf();
-                    });
+                            return filter is not null
+                                ? cb.DescendantNodesAndSelf(descendIntoChildren: filter).Where(filter)
+                                : cb.DescendantNodesAndSelf();
+                        });
 
-                    @this.ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
+                        @this.ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
+                    }
                 },
                 argument: (@this: this, startActions, analyzer, declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind, filterSpan, isGeneratedCode, ephemeralActions),
                 cancellationToken);
@@ -814,9 +815,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 executeActions: static (diagReporter, isSupportedDiagnostic, args, cancellationToken) =>
                 {
                     var (@this, startActions, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode, ephemeralActions) = args;
-                    var operationActionsByKind = GetOperationActionsByKind(ephemeralActions);
-                    var operationsToAnalyze = operations;
-                    @this.ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
+                    if (ephemeralActions.Any())
+                    {
+                        var operationActionsByKind = GetOperationActionsByKind(ephemeralActions);
+                        var operationsToAnalyze = operations;
+                        @this.ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
+                    }
                 },
                 argument: (@this: this, startActions, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode, ephemeralActions),
                 cancellationToken);
@@ -933,7 +937,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> nodeActions)
             where TLanguageKindEnum : struct
         {
-            Debug.Assert(nodeActions != null && nodeActions.Any());
+            if (nodeActions.IsEmpty)
+                return ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.Empty;
 
             var nodeActionsByKind = PooledDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.GetInstance();
             foreach (var nodeAction in nodeActions)
@@ -1033,7 +1038,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal static ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> GetOperationActionsByKind(
             ArrayBuilder<OperationAnalyzerAction> operationActions)
         {
-            Debug.Assert(operationActions.Any());
+            if (operationActions.IsEmpty)
+                return ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>.Empty;
 
             var operationActionsByKind = PooledDictionary<OperationKind, ArrayBuilder<OperationAnalyzerAction>>.GetInstance();
             foreach (var operationAction in operationActions)
