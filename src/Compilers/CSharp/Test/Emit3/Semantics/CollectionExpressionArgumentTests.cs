@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -15,12 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private const string s_collectionExtensions = CollectionExpressionTests.s_collectionExtensions;
 
-        // PROTOTYPE: Test [with()] and [with(arg)] with each of the target type kinds.
-        // PROTOTYPE: Test [x, with()].
-        // PROTOTYPE: Test [with(args1), with(args2)] where one or both of args1 and args2 may be empty.
-        // PROTOTYPE: Test [with()] with generic type parameter target type.
         // PROTOTYPE: Test .ctor or factory method with generic constraints that are/are not satisfied by arguments.
-        // PROTOTYPE: Test reordered parameters.
         // PROTOTYPE: Test order of evaluation, including with reordered parameters.
         // PROTOTYPE: Test params.
         // PROTOTYPE: Test dynamic arguments.
