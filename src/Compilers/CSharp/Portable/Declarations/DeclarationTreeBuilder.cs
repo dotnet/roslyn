@@ -680,6 +680,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitTypeDeclaration(node, declarationKind);
         }
 
+        public override SingleNamespaceOrTypeDeclaration VisitExtensionDeclaration(ExtensionDeclarationSyntax node)
+        {
+            return VisitTypeDeclaration(node, DeclarationKind.Extension);
+        }
+
         private SingleTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
             var declFlags = node.AttributeLists.Any()
@@ -766,14 +771,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            bool isExtension = kind == DeclarationKind.Extension;
             return new SingleTypeDeclaration(
                 kind: kind,
-                name: node.Identifier.ValueText,
+                name: isExtension ? "" : node.Identifier.ValueText,
                 arity: node.Arity,
                 modifiers: modifiers,
                 declFlags: declFlags,
                 syntaxReference: _syntaxTree.GetReference(node),
-                nameLocation: new SourceLocation(node.Identifier),
+                nameLocation: new SourceLocation(isExtension ? node.Keyword : node.Identifier),
                 memberNames: memberNames,
                 children: VisitTypeChildren(node),
                 diagnostics: diagnostics.ToReadOnlyAndFree(),
@@ -1089,6 +1095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.ExtensionDeclaration:
                     return (((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists).Any();
 
                 case SyntaxKind.DelegateDeclaration:

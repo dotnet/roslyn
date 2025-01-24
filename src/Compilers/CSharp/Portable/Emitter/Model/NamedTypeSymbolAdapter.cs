@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(((Cci.ITypeReference)this).AsTypeDefinition(context) != null);
             NamedTypeSymbol baseType = AdaptedNamedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
 
-            if (AdaptedNamedTypeSymbol.IsScriptClass)
+            if (AdaptedNamedTypeSymbol.IsScriptClass || AdaptedNamedTypeSymbol.IsExtension)
             {
                 // although submission and scripts semantically doesn't have a base we need to emit one into metadata:
                 Debug.Assert((object)baseType == null);
@@ -779,6 +779,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (AdaptedNamedTypeSymbol.IsExtension)
+                {
+                    return AdaptedNamedTypeSymbol.ExtensionName;
+                }
+
                 string unsuffixedName = AdaptedNamedTypeSymbol.Name;
 
                 // CLR generally allows names with dots, however some APIs like IMetaDataImport
@@ -1043,6 +1048,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        internal virtual string ExtensionName
+            => throw ExceptionUtilities.Unreachable();
     }
 
 #if DEBUG

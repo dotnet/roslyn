@@ -135,11 +135,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var builder = ArrayBuilder<TParameterSymbol>.GetInstance();
 
+            bool inExtension = owner is NamedTypeSymbol { IsExtension: true };
             foreach (var parameterSyntax in parametersList)
             {
                 if (parameterIndex > lastIndex) break;
 
-                CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer, parsingLambdaParams: false, parsingAnonymousMethodParams: false);
+                if (inExtension && parameterIndex > 0)
+                {
+                    // We don't report detailed diagnostics on extension parameters beyond the first
+                    diagnostics.Add(ErrorCode.ERR_ReceiverParameterOnlyOne, parameterSyntax.GetLocation());
+                    diagnostics = BindingDiagnosticBag.Discarded;
+                }
+
+                CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer, parsingLambdaParams: false, parsingAnonymousMethodParams: false, extensionReceiverParameter: inExtension && parameterIndex == 0);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out ScopedKind scope);
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
@@ -156,13 +164,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // the somewhat more informative "arglist not valid" error.
                         if (paramsKeyword.Kind() != SyntaxKind.None
                             || refnessKeyword.Kind() != SyntaxKind.None
-                            || thisKeyword.Kind() != SyntaxKind.None)
+                            || thisKeyword.Kind() != SyntaxKind.None
+                            || inExtension)
                         {
                             // CS1669: __arglist is not valid in this context
                             diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
                         }
 
-                        if (parameterIndex != lastIndex)
+                        if (parameterIndex != lastIndex && !inExtension)
                         {
                             // CS0257: An __arglist parameter must be the last parameter in a parameter list
                             diagnostics.Add(ErrorCode.ERR_VarargsLast, concreteParam.GetLocation());
@@ -193,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(parameter is SourceComplexParameterSymbolBase || !parameter.IsParams); // Only SourceComplexParameterSymbolBase validates 'params' type.
                 Debug.Assert(parameter is SourceComplexParameterSymbolBase || parameter is not SourceParameterSymbol s || s.DeclaredScope == ScopedKind.None); // Only SourceComplexParameterSymbolBase validates 'scope'.
                 ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, lastParameterIndex: lastIndex, parameter.IsParams, parameter.TypeWithAnnotations,
-                                      parameter.RefKind, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, diagnostics);
+                                      parameter.RefKind, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, isNamed: parameter.Name != "", diagnostics);
 
                 builder.Add(parameter);
                 ++parameterIndex;
@@ -421,7 +430,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             bool parsingFunctionPointerParams,
             bool parsingLambdaParams,
-            bool parsingAnonymousMethodParams)
+            bool parsingAnonymousMethodParams,
+            bool extensionReceiverParameter)
         {
             Debug.Assert(!parsingLambdaParams || !parsingAnonymousMethodParams);
 
@@ -446,6 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             Binder.CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
                         }
 
+                        // `this` on extension parameters was already reported elsewhere
                         if (parsingLambdaParams || parsingAnonymousMethodParams)
                         {
                             diagnostics.Add(ErrorCode.ERR_ThisInBadContext, modifier.GetLocation());
@@ -505,6 +516,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             addERR_BadParameterModifiers(diagnostics, modifier, SyntaxKind.ThisKeyword);
                         }
+                        else if (extensionReceiverParameter)
+                        {
+                            addERR_BadParameterModifiers(diagnostics, modifier, SyntaxKind.ExtensionKeyword);
+                        }
                         else if (seenParams)
                         {
                             addERR_ParamsCantBeWithModifier(diagnostics, modifier, SyntaxKind.OutKeyword);
@@ -524,6 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.ParamsKeyword when !parsingFunctionPointerParams:
+                        // `params` on extension parameters was already reported elsewhere
                         if (parsingAnonymousMethodParams)
                         {
                             diagnostics.Add(ErrorCode.ERR_IllegalParams, modifier.GetLocation());
@@ -662,10 +678,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken thisKeyword,
             SyntaxToken paramsKeyword,
             int firstDefault,
+            bool isNamed,
             BindingDiagnosticBag diagnostics)
         {
             int parameterIndex = ordinal;
             bool isDefault = syntax is ParameterSyntax { Default: { } };
+            bool inExtension = owner is NamedTypeSymbol { IsExtension: true };
 
             if (thisKeyword.Kind() == SyntaxKind.ThisKeyword && parameterIndex != 0)
             {
@@ -675,19 +693,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS1100: Method '{0}' has a parameter modifier 'this' which is not on the first parameter
                 diagnostics.Add(ErrorCode.ERR_BadThisParam, thisKeyword.GetLocation(), owner?.Name ?? "");
             }
-            else if (isParams && owner is { } && owner.IsOperator())
+            else if (isParams && owner is { } && (owner.IsOperator() || inExtension))
             {
                 // error CS1670: params is not valid in this context
                 diagnostics.Add(ErrorCode.ERR_IllegalParams, paramsKeyword.GetLocation());
             }
             else if (!typeWithAnnotations.IsDefault && typeWithAnnotations.IsStatic)
             {
-                Debug.Assert(containingSymbol is null || (containingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null }));
-                // error CS0721: '{0}': static types cannot be used as parameters
-                diagnostics.Add(
-                    ErrorFacts.GetStaticClassParameterCode(containingSymbol?.ContainingType?.IsInterfaceType() ?? false),
-                    syntax.Type?.Location ?? syntax.GetLocation(),
-                    typeWithAnnotations.Type);
+                Debug.Assert(containingSymbol is null || (containingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null }) || inExtension);
+
+                if (!inExtension || isNamed)
+                {
+                    // error CS0721: '{0}': static types cannot be used as parameters
+                    diagnostics.Add(
+                        ErrorFacts.GetStaticClassParameterCode(containingSymbol?.ContainingType?.IsInterfaceType() ?? false),
+                        syntax.Type?.Location ?? syntax.GetLocation(),
+                        typeWithAnnotations.Type);
+                }
             }
             else if (firstDefault != -1 && parameterIndex > firstDefault && !isDefault && !isParams)
             {
@@ -703,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, syntax.Location, typeWithAnnotations.Type);
             }
 
-            if (isParams && ordinal != lastParameterIndex)
+            if (isParams && ordinal != lastParameterIndex && !inExtension)
             {
                 // error CS0231: A params parameter must be the last parameter in a parameter list
                 diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
@@ -739,6 +761,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Even if the expression is thoroughly illegal, we still want to bind it and 
             // stick it in the parameter because we want to be able to analyze it for
             // IntelliSense purposes.
+
+            if (parameter.ContainingSymbol is NamedTypeSymbol { IsExtension: true })
+            {
+                diagnostics.Add(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, parameterSyntax.GetLocation());
+                return true;
+            }
 
             TypeSymbol parameterType = parameter.Type;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);

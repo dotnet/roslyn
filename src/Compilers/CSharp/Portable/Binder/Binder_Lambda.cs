@@ -182,11 +182,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false,
                         parsingLambdaParams: !isAnonymousMethod,
-                        parsingAnonymousMethodParams: isAnonymousMethod);
+                        parsingAnonymousMethodParams: isAnonymousMethod,
+                        extensionReceiverParameter: false);
 
                     ParameterHelpers.ReportParameterErrors(
                         owner: null, p, ordinal: i, lastParameterIndex: n - 1, isParams: isParams, typeOpt,
-                        refKind, containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
+                        refKind, containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, isNamed: p.Identifier.Kind() != SyntaxKind.None, diagnostics);
 
                     if (parameterCount == parameterSyntaxList.Count &&
                         paramsKeyword.Kind() != SyntaxKind.None &&

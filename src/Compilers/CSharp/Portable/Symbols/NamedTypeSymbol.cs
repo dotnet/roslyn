@@ -433,6 +433,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsExtension
+            => TypeKind == TypeKind.Extension;
+
         internal SynthesizedInstanceConstructor GetScriptConstructor()
         {
             Debug.Assert(IsScriptClass);

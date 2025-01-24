@@ -6,7 +6,6 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -471,14 +470,16 @@ class C
     public void WithDefaultParameterValue()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type x = null) { }
+    extension(object x = null) { }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS9503: The receiver parameter of an extension cannot have a default value
+            //     extension(object x = null) { }
+            Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "object x = null").WithLocation(3, 15));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -486,6 +487,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -497,9 +499,9 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
                             N(SyntaxKind.IdentifierToken, "x");
                             N(SyntaxKind.EqualsValueClause);
@@ -527,14 +529,16 @@ class C
     public void WithDefaultParameterValue_02()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type = null) { }
+    extension(object = null) { }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS9503: The receiver parameter of an extension cannot have a default value
+            //     extension(object = null) { }
+            Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "object = null").WithLocation(3, 15));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -542,6 +546,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -553,9 +558,9 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
                             N(SyntaxKind.EqualsValueClause);
                             {
@@ -923,14 +928,16 @@ class C
     public void ReceiverParameter_Multiple()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type x1, Type x2) { }
+    extension(object x1, string x2) { }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (3,26): error CS9504: An extension container can only have one receiver parameter
+            //     extension(object x1, string x2) { }
+            Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "string x2").WithLocation(3, 26));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -938,6 +945,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -949,18 +957,18 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
                             N(SyntaxKind.IdentifierToken, "x1");
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.StringKeyword);
                             }
                             N(SyntaxKind.IdentifierToken, "x2");
                         }
@@ -980,14 +988,16 @@ class C
     public void ReceiverParameter_Multiple_02()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type, Type) { }
+    extension(object, string) { }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (3,23): error CS9504: An extension container can only have one receiver parameter
+            //     extension(object, string) { }
+            Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "string").WithLocation(3, 23));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -995,6 +1005,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -1006,17 +1017,17 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.StringKeyword);
                             }
                         }
                         N(SyntaxKind.CloseParenToken);
@@ -1268,14 +1279,16 @@ class C
     public void ReceiverParameter_Multiple_07()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type, params object[]) { }
+    extension(object, params object[]) { }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (3,23): error CS9504: An extension container can only have one receiver parameter
+            //     extension(object, params object[]) { }
+            Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "params object[]").WithLocation(3, 23));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -1283,6 +1296,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -1294,9 +1308,9 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
                         }
                         N(SyntaxKind.CommaToken);
@@ -1447,11 +1461,13 @@ class C
     public void TopLevel()
     {
         var src = """
-extension(Type) { }
+extension(object) { }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // extension(Type) { }
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(1, 1));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -1465,9 +1481,9 @@ extension(Type) { }
                     N(SyntaxKind.OpenParenToken);
                     N(SyntaxKind.Parameter);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.IdentifierToken, "Type");
+                            N(SyntaxKind.ObjectKeyword);
                         }
                     }
                     N(SyntaxKind.CloseParenToken);
@@ -1484,23 +1500,26 @@ extension(Type) { }
     public void InNestedType()
     {
         var src = """
-class C
+static class C
 {
     class Nested
     {
-        extension(Type) { }
+        extension(object) { }
     }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            //         extension(object) { }
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(5, 9));
         UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -1517,9 +1536,9 @@ class C
                             N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.Parameter);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "Type");
+                                    N(SyntaxKind.ObjectKeyword);
                                 }
                             }
                             N(SyntaxKind.CloseParenToken);
@@ -1540,17 +1559,19 @@ class C
     public void InExtension()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type1)
+    extension(object)
     {
-        extension(Type2) { }
+        extension(string) { }
     }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS9501: Extension declarations can only include methods or properties
+            //         extension(Type2) { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(5, 9));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -1558,6 +1579,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -1569,9 +1591,9 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type1");
+                                N(SyntaxKind.ObjectKeyword);
                             }
                         }
                         N(SyntaxKind.CloseParenToken);
@@ -1585,9 +1607,9 @@ class C
                             N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.Parameter);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "Type2");
+                                    N(SyntaxKind.StringKeyword);
                                 }
                             }
                             N(SyntaxKind.CloseParenToken);
@@ -1607,7 +1629,6 @@ class C
     [Fact]
     public void WithAttributes()
     {
-        // PROTOTYPE should be a semantic error
         UsingTree("""
 class C
 {
@@ -2061,20 +2082,23 @@ class C
     public void WithModifiers_Misc(string modifier, SyntaxKind expected)
     {
         var src = $$"""
-class C
+static class C
 {
-    {{modifier}} extension(Type) { }
+    {{modifier}} extension(object) { }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (3,14): error CS0106: The modifier 'abstract' is not valid for this item
+            //     abstract extension(object) { }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "extension").WithArguments(modifier));
         UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -2087,9 +2111,9 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
                         }
                         N(SyntaxKind.CloseParenToken);
@@ -2104,21 +2128,23 @@ class C
         EOF();
     }
 
-    [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE enable IOperation
+    [Fact]
     public void Member_Const()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type)
+    extension(object)
     {
         const int i = 0;
     }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (5,19): error CS9501: Extension declarations can only include methods or properties
+            //         const int i = 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "i").WithLocation(5, 19));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -2126,6 +2152,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -2137,9 +2164,9 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
                         }
                         N(SyntaxKind.CloseParenToken);
@@ -2182,17 +2209,25 @@ class C
     public void Member_FixedField()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type)
+    extension(object o)
     {
         fixed int field[10];
     }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (5,19): error CS1642: Fixed size buffer fields may only be members of structs
+            //         fixed int field[10];
+            Diagnostic(ErrorCode.ERR_FixedNotInStruct, "field").WithLocation(5, 19),
+            // (5,19): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed int field[10];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "field[10]").WithLocation(5, 19),
+            // (5,19): error CS9501: Extension declarations can only include methods or properties
+            //         fixed int field[10];
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "field").WithLocation(5, 19));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -2200,6 +2235,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -2211,10 +2247,11 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
+                            N(SyntaxKind.IdentifierToken, "o");
                         }
                         N(SyntaxKind.CloseParenToken);
                     }
@@ -2260,17 +2297,28 @@ class C
     public void Member_EventField()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type)
+    extension(object o)
     {
-        event EventHandler eventField;
+        event System.EventHandler eventField;
     }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (5,35): error CS9501: Extension declarations can only include methods or properties
+            //         event System.EventHandler eventField;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "eventField").WithLocation(5, 35),
+            // (5,35): error CS9501: Extension declarations can only include methods or properties
+            //         event System.EventHandler eventField;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "eventField").WithLocation(5, 35),
+            // (5,35): error CS9501: Extension declarations can only include methods or properties
+            //         event System.EventHandler eventField;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "eventField").WithLocation(5, 35),
+            // (5,35): warning CS0067: The event 'C.extension.eventField' is never used
+            //         event System.EventHandler eventField;
+            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "eventField").WithArguments("C.extension.eventField").WithLocation(5, 35)); // PROTOTYPE the symbol display should include receiver parameter
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -2278,6 +2326,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -2289,10 +2338,11 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
+                            N(SyntaxKind.IdentifierToken, "o");
                         }
                         N(SyntaxKind.CloseParenToken);
                     }
@@ -2302,9 +2352,17 @@ class C
                         N(SyntaxKind.EventKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.QualifiedName);
                             {
-                                N(SyntaxKind.IdentifierToken, "EventHandler");
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "System");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "EventHandler");
+                                }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
@@ -2326,17 +2384,25 @@ class C
     public void Member_Event()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type)
+    extension(object o)
     {
-        event EventHandler Event { add; remove; }
+        event System.EventHandler Event { add { } remove { } }
     }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (5,35): error CS9501: Extension declarations can only include methods or properties
+            //         event System.EventHandler Event { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Event").WithLocation(5, 35),
+            // (5,43): error CS9501: Extension declarations can only include methods or properties
+            //         event System.EventHandler Event { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "add").WithLocation(5, 43),
+            // (5,51): error CS9501: Extension declarations can only include methods or properties
+            //         event System.EventHandler Event { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "remove").WithLocation(5, 51));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -2344,6 +2410,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -2355,10 +2422,11 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
+                            N(SyntaxKind.IdentifierToken, "o");
                         }
                         N(SyntaxKind.CloseParenToken);
                     }
@@ -2366,9 +2434,17 @@ class C
                     N(SyntaxKind.EventDeclaration);
                     {
                         N(SyntaxKind.EventKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.QualifiedName);
                         {
-                            N(SyntaxKind.IdentifierToken, "EventHandler");
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "EventHandler");
+                            }
                         }
                         N(SyntaxKind.IdentifierToken, "Event");
                         N(SyntaxKind.AccessorList);
@@ -2377,12 +2453,20 @@ class C
                             N(SyntaxKind.AddAccessorDeclaration);
                             {
                                 N(SyntaxKind.AddKeyword);
-                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
                             }
                             N(SyntaxKind.RemoveAccessorDeclaration);
                             {
                                 N(SyntaxKind.RemoveKeyword);
-                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
                             }
                             N(SyntaxKind.CloseBraceToken);
                         }
@@ -2485,20 +2569,22 @@ class C
     }
 
     [Fact]
-    public void Member_Nested()
+    public void Member_NestedType()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type)
+    extension(object)
     {
         class Nested { }
     }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (5,15): error CS9501: Extension declarations can only include methods or properties
+            //         class Nested { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(5, 15));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -2506,6 +2592,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -2517,9 +2604,9 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
                         }
                         N(SyntaxKind.CloseParenToken);
@@ -2541,21 +2628,26 @@ class C
         EOF();
     }
 
-    [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE enable IOperation
+    [Fact]
     public void Member_Constructor()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type)
+    extension(object o)
     {
         Constructor() { }
     }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS1520: Method must have a return type
+            //         Constructor() { }
+            Diagnostic(ErrorCode.ERR_MemberNeedsType, "Constructor").WithLocation(5, 9),
+            // (5,9): error CS9501: Extension declarations can only include methods or properties
+            //         Constructor() { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Constructor").WithLocation(5, 9));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -2563,6 +2655,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -2574,10 +2667,11 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
+                            N(SyntaxKind.IdentifierToken, "o");
                         }
                         N(SyntaxKind.CloseParenToken);
                     }
@@ -2605,21 +2699,26 @@ class C
         EOF();
     }
 
-    [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE enable IOperation
+    [Fact]
     public void Member_StaticConstructor()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type)
+    extension(object)
     {
         static Constructor() { }
     }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (5,16): error CS1520: Method must have a return type
+            //         static Constructor() { }
+            Diagnostic(ErrorCode.ERR_MemberNeedsType, "Constructor").WithLocation(5, 16),
+            // (5,16): error CS9501: Extension declarations can only include methods or properties
+            //         static Constructor() { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Constructor").WithLocation(5, 16));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -2627,6 +2726,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -2638,9 +2738,9 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
                         }
                         N(SyntaxKind.CloseParenToken);
@@ -2670,21 +2770,23 @@ class C
         EOF();
     }
 
-    [ConditionalFact(typeof(NoIOperationValidation))] // PROTOTYPE enable IOperation
+    [Fact]
     public void Member_Finalizer()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type)
+    extension(object o)
     {
         ~Finalizer() { }
     }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (5,10): error CS9501: Extension declarations can only include methods or properties
+            //         ~Finalizer() { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Finalizer").WithLocation(5, 10));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -2692,6 +2794,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -2703,10 +2806,11 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
+                            N(SyntaxKind.IdentifierToken, "o");
                         }
                         N(SyntaxKind.CloseParenToken);
                     }
@@ -2739,17 +2843,22 @@ class C
     public void Member_Field()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type)
+    extension(object o)
     {
         int field;
     }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS9501: Extension declarations can only include methods or properties
+            //         int field;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "field").WithLocation(5, 13),
+            // (5,13): warning CS0169: The field 'C.extension.field' is never used
+            //         int field;
+            Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C.extension.field").WithLocation(5, 13)); // PROTOTYPE the symbol display should include receiver parameter
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -2757,6 +2866,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -2768,10 +2878,11 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
+                            N(SyntaxKind.IdentifierToken, "o");
                         }
                         N(SyntaxKind.CloseParenToken);
                     }
@@ -2899,21 +3010,29 @@ class C
     public void Member_Operator()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type)
+    extension(object)
     {
-        public static Type operator  +(Type a, Type b) => a;
+        public static object operator +(object a, object b) => a;
     }
 }
 """;
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,39): error CS0563: One of the parameters of a binary operator must be the containing type
+            //         public static object operator +(object a, object b) => a;
+            Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(5, 39),
+            // (5,39): error CS9501: Extension declarations can only include methods or properties
+            //         public static object operator +(object a, object b) => a;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "+").WithLocation(5, 39));
 
         UsingTree(src, TestOptions.RegularPreview);
-
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -2925,9 +3044,9 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
                         }
                         N(SyntaxKind.CloseParenToken);
@@ -2937,9 +3056,9 @@ class C
                     {
                         N(SyntaxKind.PublicKeyword);
                         N(SyntaxKind.StaticKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.IdentifierToken, "Type");
+                            N(SyntaxKind.ObjectKeyword);
                         }
                         N(SyntaxKind.OperatorKeyword);
                         N(SyntaxKind.PlusToken);
@@ -2948,18 +3067,18 @@ class C
                             N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.Parameter);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "Type");
+                                    N(SyntaxKind.ObjectKeyword);
                                 }
                                 N(SyntaxKind.IdentifierToken, "a");
                             }
                             N(SyntaxKind.CommaToken);
                             N(SyntaxKind.Parameter);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "Type");
+                                    N(SyntaxKind.ObjectKeyword);
                                 }
                                 N(SyntaxKind.IdentifierToken, "b");
                             }
@@ -2988,14 +3107,22 @@ class C
     public void Member_ConversionOperator()
     {
         var src = """
-class C
+static class C
 {
-    extension(Type)
+    extension(object)
     {
-        static implicit operator int(Type t) => 0;
+        public static implicit operator int(object t) => 0;
     }
 }
 """;
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,41): error CS0556: User-defined conversion must convert to or from the enclosing type
+            //         public static implicit operator int(object t) => 0;
+            Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(5, 41),
+            // (5,41): error CS9501: Extension declarations can only include methods or properties
+            //         public static implicit operator int(object t) => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "int").WithLocation(5, 41));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -3003,6 +3130,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -3014,9 +3142,9 @@ class C
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.IdentifierToken, "Type");
+                                N(SyntaxKind.ObjectKeyword);
                             }
                         }
                         N(SyntaxKind.CloseParenToken);
@@ -3024,6 +3152,7 @@ class C
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.ConversionOperatorDeclaration);
                     {
+                        N(SyntaxKind.PublicKeyword);
                         N(SyntaxKind.StaticKeyword);
                         N(SyntaxKind.ImplicitKeyword);
                         N(SyntaxKind.OperatorKeyword);
@@ -3036,9 +3165,9 @@ class C
                             N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.Parameter);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.PredefinedType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "Type");
+                                    N(SyntaxKind.ObjectKeyword);
                                 }
                                 N(SyntaxKind.IdentifierToken, "t");
                             }
@@ -4636,14 +4765,16 @@ class C
     public void ArgListParameter()
     {
         var src = """
-class C
+static class C
 {
     extension(__arglist) { }
 }
 """;
-        // PROTOTYPE should be a semantic error
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS1669: __arglist is not valid in this context
+            //     extension(__arglist) { }
+            Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -4651,6 +4782,7 @@ class C
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);

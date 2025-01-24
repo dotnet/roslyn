@@ -851,6 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
+                    case TypeKind.Extension:
 
                         if (current.IsAnonymousType)
                         {

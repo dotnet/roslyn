@@ -47,6 +47,8 @@ internal abstract class CodeGenerationTypeSymbol(
 
     public bool IsNativeIntegerType => false;
 
+    public bool IsExtension => false;
+
     public static ImmutableArray<ITypeSymbol> TupleElementTypes => default;
 
     public static ImmutableArray<string> TupleElementNames => default;

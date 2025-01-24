@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
+                    case SyntaxKind.ExtensionDeclaration:
                         attributesSyntaxList = ((TypeDeclarationSyntax)typeDecl).AttributeLists;
                         break;
 
@@ -253,7 +254,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal string GetDebuggerDisplay()
         {
-            return $"{nameof(MergedTypeDeclaration)} {Name}";
+            string identifier = (Kind is DeclarationKind.Extension) ? "extension" : Name;
+            return $"{nameof(MergedTypeDeclaration)} {identifier}";
         }
     }
 }

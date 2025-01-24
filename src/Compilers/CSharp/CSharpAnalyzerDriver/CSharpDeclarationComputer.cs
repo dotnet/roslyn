@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                    // PROTOTYPE likely needs work for semantic model
                     {
                         if (associatedSymbol is IMethodSymbol ctor)
                         {

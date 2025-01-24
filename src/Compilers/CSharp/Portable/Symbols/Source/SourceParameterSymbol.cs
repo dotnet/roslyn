@@ -46,9 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var name = identifier.ValueText;
             var location = new SourceLocation(identifier);
 
-            if (hasParamsModifier && parameterType.IsSZArray())
+            if (hasParamsModifier && parameterType.IsSZArray() && !identifier.IsKind(SyntaxKind.None))
             {
                 // touch the constructor in order to generate proper use-site diagnostics
+                // Note: params is disallowed in scenarios where the parameter lacks an identifier
                 Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(context.Compilation,
                     WellKnownMember.System_ParamArrayAttribute__ctor,
                     declarationDiagnostics,
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location)
             : base(owner, ordinal)
         {
-            Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property));
+            Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property) || owner is NamedTypeSymbol { IsExtension: true });
             _refKind = refKind;
             _scope = scope;
             _name = name;

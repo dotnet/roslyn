@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return recordDecl;
                 case ClassDeclarationSyntax classDecl:
                     return classDecl;
+                case ExtensionDeclarationSyntax extensionDecl:
+                    return extensionDecl;
                 default:
                     return null;
             }

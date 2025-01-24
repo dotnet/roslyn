@@ -1537,13 +1537,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var diagnostics = BindingDiagnosticBag.GetInstance();
 
-                if (IsParams && ParameterSyntax?.Modifiers.Any(SyntaxKind.ParamsKeyword) == true)
+                bool inExtension = this.ContainingSymbol is NamedTypeSymbol { IsExtension: true };
+                // An error is already reported for `params` in extensions
+                if (IsParams && ParameterSyntax?.Modifiers.Any(SyntaxKind.ParamsKeyword) == true && !inExtension)
                 {
                     validateParamsType(diagnostics);
                 }
 
-                if (DeclaredScope == ScopedKind.ScopedValue && !Type.IsErrorOrRefLikeOrAllowsRefLikeType())
+                if (DeclaredScope == ScopedKind.ScopedValue && !Type.IsErrorOrRefLikeOrAllowsRefLikeType() && (!inExtension || this.Ordinal == 0))
                 {
+                    // An error is already reported for extensions for parameters beyond the first
                     Debug.Assert(ParameterSyntax is not null);
                     diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, ParameterSyntax);
                 }

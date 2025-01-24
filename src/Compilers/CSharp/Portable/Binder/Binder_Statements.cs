@@ -3855,7 +3855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (containingType.IsStructType() || containingType.IsEnumType())
+            if (containingType.IsStructType() || containingType.IsEnumType() || containingType.IsExtension)
             {
                 return null;
             }

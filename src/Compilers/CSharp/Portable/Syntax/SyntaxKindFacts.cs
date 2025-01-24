@@ -383,6 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.ExtensionDeclaration:
                     return true;
 
                 default:
@@ -828,6 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return kind == SyntaxKind.EnumKeyword ? SyntaxKind.EnumDeclaration : GetTypeDeclarationKind(kind);
         }
 
+        // PROTOTYPE decide what we want for extension declaration
         public static SyntaxKind GetTypeDeclarationKind(SyntaxKind kind)
         {
             switch (kind)

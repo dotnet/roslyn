@@ -196,6 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Array:
                 case TypeKind.Dynamic:
                 case TypeKind.Submission:
+                case TypeKind.Extension:
                     this.LookupMembersInClass(result, type, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
                     break;
 
