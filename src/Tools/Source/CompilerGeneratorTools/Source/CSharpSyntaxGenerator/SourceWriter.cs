@@ -1688,8 +1688,8 @@ namespace CSharpSyntaxGenerator
 
             var hasOptional = minimalFactoryfields.Any(f => !IsRequiredFactoryField(nd, f));
             var hasAttributeOrModifiersList = nd.Fields.Any(f => IsAttributeOrModifiersList(f));
-
-            if (hasOptional && hasAttributeOrModifiersList)
+            var writePragma = hasOptional && (hasAttributeOrModifiersList || nd.Name == "WithElementSyntax");
+            if (writePragma)
             {
                 WriteLineWithoutIndent("#pragma warning disable RS0027");
             }
@@ -1748,7 +1748,7 @@ namespace CSharpSyntaxGenerator
 
             WriteLine(");");
 
-            if (hasOptional && hasAttributeOrModifiersList)
+            if (writePragma)
             {
                 WriteLineWithoutIndent("#pragma warning restore RS0027");
             }
