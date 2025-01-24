@@ -902,34 +902,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var blockAction in blockActions)
             {
-                var codeBlockAction = blockAction as CodeBlockAnalyzerAction;
-                if (codeBlockAction != null)
+                if (blockAction is CodeBlockAnalyzerAction codeBlockAction)
                 {
                     var context = new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel,
                         AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
 
                     ExecuteAndCatchIfThrows(
                         codeBlockAction.Analyzer,
-                        data => data.action(data.context),
-                        (action: codeBlockAction.Action, context: context),
+                        static data => data.action(data.context),
+                        argument: (action: codeBlockAction.Action, context),
                         new AnalysisContextInfo(Compilation, declaredSymbol, declaredNode),
                         cancellationToken);
                 }
-                else
+                else if (blockAction is OperationBlockAnalyzerAction operationBlockAction)
                 {
-                    var operationBlockAction = blockAction as OperationBlockAnalyzerAction;
-                    if (operationBlockAction != null)
-                    {
-                        var context = new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, semanticModel.Compilation,
-                            AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
+                    var context = new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, semanticModel.Compilation,
+                        AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
 
-                        ExecuteAndCatchIfThrows(
-                            operationBlockAction.Analyzer,
-                            data => data.action(data.context),
-                            (action: operationBlockAction.Action, context),
-                            new AnalysisContextInfo(Compilation, declaredSymbol),
-                            cancellationToken);
-                    }
+                    ExecuteAndCatchIfThrows(
+                        operationBlockAction.Analyzer,
+                        static data => data.action(data.context),
+                        argument: (action: operationBlockAction.Action, context),
+                        new AnalysisContextInfo(Compilation, declaredSymbol),
+                        cancellationToken);
                 }
             }
         }
