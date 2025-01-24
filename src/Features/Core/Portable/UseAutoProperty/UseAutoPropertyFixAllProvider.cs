@@ -76,11 +76,8 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<
                 consumeItems: async static (documentsIdsAndNewRoots, args, cancellationToken) =>
                 {
                     // Now take all the changed documents and produce the final solution with all of them combined.
-                    var currentSolution = args.originalContext.Solution;
-                    await foreach (var (documentId, newRoot) in documentsIdsAndNewRoots)
-                        currentSolution = currentSolution.WithDocumentSyntaxRoot(documentId, newRoot);
-
-                    return currentSolution;
+                    return args.originalContext.Solution.WithDocumentSyntaxRoots(
+                        await documentsIdsAndNewRoots.ToImmutableArrayAsync(cancellationToken).ConfigureAwait(false));
                 },
                 args: (originalContext, provider),
                 originalContext.CancellationToken).ConfigureAwait(false);
