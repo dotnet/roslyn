@@ -773,19 +773,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CancellationToken cancellationToken)
         {
             Debug.Assert(!operationBlocks.IsEmpty);
-            ExecuteBlockActionsCore<OperationBlockStartAnalyzerAction, OperationBlockAnalyzerAction, OperationAnalyzerAction, IOperation, int>(
+            ExecuteBlockActionsCore(
                 operationBlockStartActions, operationBlockActions, operationBlockEndActions, analyzer,
                 declaredNode, declaredSymbol, operationBlocks, semanticModel,
                 filterSpan, isGeneratedCode,
-                addActions: (startAction, operationBlockEndActions, operationActions) =>
+                addActions: static (startAction, operationBlockEndActions, operationActions, args, cancellationToken) =>
                 {
+                    var (@this, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode) = args;
                     var operationBlockScope = new HostOperationBlockStartAnalysisScope(startAction.Analyzer);
                     var operationStartContext = new AnalyzerOperationBlockStartAnalysisContext(
-                        operationBlockScope, operationBlocks, declaredSymbol, semanticModel.Compilation, AnalyzerOptions,
-                        GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
+                        operationBlockScope, operationBlocks, declaredSymbol, semanticModel.Compilation, @this.AnalyzerOptions,
+                        @this.GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
 
                     // Catch Exception from the start action.
-                    ExecuteAndCatchIfThrows(
+                    @this.ExecuteAndCatchIfThrows(
                         startAction.Analyzer,
                         static data =>
                         {
@@ -794,19 +795,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             data.operationActions?.AddRange(data.scope.OperationActions);
                         },
                         (action: startAction.Action, context: operationStartContext, scope: operationBlockScope, blockEndActions: operationBlockEndActions, operationActions),
-                        new AnalysisContextInfo(Compilation, declaredSymbol),
+                        new AnalysisContextInfo(@this.Compilation, declaredSymbol),
                         cancellationToken);
                 },
-                executeActions: (operationActions, diagReporter, isSupportedDiagnostic) =>
+                executeActions: static (operationActions, diagReporter, isSupportedDiagnostic, args, cancellationToken) =>
                 {
-                    var operationActionsByKind = GetOperationActionsByKind(operationActions);
+                    var (@this, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode) = args;
+                    var operationActionsByKind = @this.GetOperationActionsByKind(operationActions);
                     var operationsToAnalyze = operations;
-                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: operationBlockStartActions.Any(), cancellationToken);
+                    @this.ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: operationBlockStartActions.Any(), cancellationToken);
                 },
+                args: (@this: this, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode),
                 cancellationToken);
         }
 
-        private void ExecuteBlockActionsCore<TBlockStartAction, TBlockAction, TNodeAction, TNode, TLanguageKindEnum>(
+        private void ExecuteBlockActionsCore<TBlockStartAction, TBlockAction, TNodeAction, TNode, TArgs>(
            IEnumerable<TBlockStartAction> startActions,
            IEnumerable<TBlockAction> actions,
            IEnumerable<TBlockAction> endActions,
@@ -817,13 +820,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            SemanticModel semanticModel,
            TextSpan? filterSpan,
            bool isGeneratedCode,
-           Action<TBlockStartAction, PooledHashSet<TBlockAction>, ArrayBuilder<TNodeAction>> addActions,
-           Action<ArrayBuilder<TNodeAction>, AnalyzerDiagnosticReporter, Func<Diagnostic, CancellationToken, bool>> executeActions,
+           Action<TBlockStartAction, PooledHashSet<TBlockAction>, ArrayBuilder<TNodeAction>, TArgs, CancellationToken> addActions,
+           Action<ArrayBuilder<TNodeAction>, AnalyzerDiagnosticReporter, Func<Diagnostic, CancellationToken, bool>, TArgs, CancellationToken> executeActions,
+           TArgs args,
            CancellationToken cancellationToken)
-           where TLanguageKindEnum : struct
-           where TBlockStartAction : AnalyzerAction
-           where TBlockAction : AnalyzerAction
-           where TNodeAction : AnalyzerAction
+            where TBlockStartAction : AnalyzerAction
+            where TBlockAction : AnalyzerAction
+            where TNodeAction : AnalyzerAction
+            where TArgs : struct
         {
             Debug.Assert(declaredNode != null);
             Debug.Assert(declaredSymbol != null);
@@ -852,13 +856,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Include the stateful actions.
             foreach (var startAction in startActions)
-                addActions(startAction, blockEndActions, executableNodeActions);
+                addActions(startAction, blockEndActions, executableNodeActions, args, cancellationToken);
 
             using var _ = PooledDelegates.GetPooledFunction((d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct), (self: this, analyzer), out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
             // Execute stateful executable node analyzers, if any.
             if (executableNodeActions.Any())
-                executeActions(executableNodeActions, diagReporter, isSupportedDiagnostic);
+                executeActions(executableNodeActions, diagReporter, isSupportedDiagnostic, args, cancellationToken);
 
             executableNodeActions.Free();
 
