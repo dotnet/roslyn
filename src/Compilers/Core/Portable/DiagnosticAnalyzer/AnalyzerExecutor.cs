@@ -882,10 +882,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ExecuteBlockActions(blockEndActions, declaredNode, declaredSymbol, analyzer, semanticModel, operationBlocks, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
 
             diagReporter.Free();
+            blockActions.Free();
+            blockEndActions.Free();
         }
 
         private void ExecuteBlockActions<TBlockAction>(
-            PooledHashSet<TBlockAction> blockActions,
+            HashSet<TBlockAction> blockActions,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
             DiagnosticAnalyzer analyzer,
@@ -933,8 +935,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
             }
-
-            blockActions.Free();
         }
 
         internal static ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> GetNodeActionsByKind<TLanguageKindEnum>(
