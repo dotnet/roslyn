@@ -824,21 +824,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private void ExecuteBlockActionsCore<TBlockStartAction, TBlockAction, TNodeAction, TArgs>(
-           ImmutableArray<TBlockStartAction> startActions,
-           ImmutableArray<TBlockAction> actions,
-           ImmutableArray<TBlockAction> endActions,
-           DiagnosticAnalyzer analyzer,
-           SyntaxNode declaredNode,
-           ISymbol declaredSymbol,
-           ImmutableArray<IOperation> operationBlocks,
-           SemanticModel semanticModel,
-           TextSpan? filterSpan,
-           bool isGeneratedCode,
-           ArrayBuilder<TNodeAction> executableNodeActions,
-           Action<TBlockStartAction, PooledHashSet<TBlockAction>, ArrayBuilder<TNodeAction>, TArgs, CancellationToken> addActions,
-           Action<ArrayBuilder<TNodeAction>, AnalyzerDiagnosticReporter, Func<Diagnostic, CancellationToken, bool>, TArgs, CancellationToken> executeActions,
-           TArgs args,
-           CancellationToken cancellationToken)
+            ImmutableArray<TBlockStartAction> startActions,
+            ImmutableArray<TBlockAction> actions,
+            ImmutableArray<TBlockAction> endActions,
+            DiagnosticAnalyzer analyzer,
+            SyntaxNode declaredNode,
+            ISymbol declaredSymbol,
+            ImmutableArray<IOperation> operationBlocks,
+            SemanticModel semanticModel,
+            TextSpan? filterSpan,
+            bool isGeneratedCode,
+            ArrayBuilder<TNodeAction> executableNodeActions,
+            Action<TBlockStartAction, PooledHashSet<TBlockAction>, ArrayBuilder<TNodeAction>, TArgs, CancellationToken> addActions,
+            Action<ArrayBuilder<TNodeAction>, AnalyzerDiagnosticReporter, Func<Diagnostic, CancellationToken, bool>, TArgs, CancellationToken> executeActions,
+            TArgs args,
+            CancellationToken cancellationToken)
             where TBlockStartAction : AnalyzerAction
             where TBlockAction : AnalyzerAction
             where TNodeAction : AnalyzerAction
