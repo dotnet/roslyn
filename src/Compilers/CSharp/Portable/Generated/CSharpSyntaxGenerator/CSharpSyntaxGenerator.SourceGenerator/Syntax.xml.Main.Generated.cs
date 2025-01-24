@@ -5150,6 +5150,7 @@ public static partial class SyntaxFactory
     /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
     public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
     {
+        if (keyword.Kind() != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(keyword));
         switch (openBraceToken.Kind())
         {
             case SyntaxKind.OpenBraceToken:
@@ -5172,12 +5173,12 @@ public static partial class SyntaxFactory
     }
 
     /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
-    public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
-        => SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, keyword, typeParameterList, parameterList, constraintClauses, default, members, default, default);
+    public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+        => SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), typeParameterList, parameterList, constraintClauses, default, members, default, default);
 
     /// <summary>Creates a new ExtensionDeclarationSyntax instance.</summary>
-    public static ExtensionDeclarationSyntax ExtensionDeclaration(SyntaxToken keyword)
-        => SyntaxFactory.ExtensionDeclaration(default, default(SyntaxTokenList), keyword, default, default, default, default, default, default, default);
+    public static ExtensionDeclarationSyntax ExtensionDeclaration()
+        => SyntaxFactory.ExtensionDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), default, default, default, default, default, default, default);
 
     /// <summary>Creates a new BaseListSyntax instance.</summary>
     public static BaseListSyntax BaseList(SyntaxToken colonToken, SeparatedSyntaxList<BaseTypeSyntax> types)

@@ -1692,13 +1692,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.ClassKeyword:
-                    return this.ParseClassOrStructOrInterfaceOrExtensionDeclaration(attributes, modifiers);
+                    return this.ParseMainTypeDeclaration(attributes, modifiers);
 
                 case SyntaxKind.StructKeyword:
-                    return this.ParseClassOrStructOrInterfaceOrExtensionDeclaration(attributes, modifiers);
+                    return this.ParseMainTypeDeclaration(attributes, modifiers);
 
                 case SyntaxKind.InterfaceKeyword:
-                    return this.ParseClassOrStructOrInterfaceOrExtensionDeclaration(attributes, modifiers);
+                    return this.ParseMainTypeDeclaration(attributes, modifiers);
 
                 case SyntaxKind.DelegateKeyword:
                     return this.ParseDelegateDeclaration(attributes, modifiers);
@@ -1708,14 +1708,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case SyntaxKind.IdentifierToken:
                     Debug.Assert(CurrentToken.ContextualKind is SyntaxKind.RecordKeyword or SyntaxKind.ExtensionKeyword);
-                    return ParseClassOrStructOrInterfaceOrExtensionDeclaration(attributes, modifiers);
+                    return ParseMainTypeDeclaration(attributes, modifiers);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this.CurrentToken.Kind);
             }
         }
 
-        private TypeDeclarationSyntax ParseClassOrStructOrInterfaceOrExtensionDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private TypeDeclarationSyntax ParseMainTypeDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
                 this.CurrentToken.ContextualKind is SyntaxKind.RecordKeyword or SyntaxKind.ExtensionKeyword);
@@ -2087,7 +2087,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private BaseListSyntax ParseBaseList()
         {
-            // We are only called from ParseClassOrStructOrInterfaceDeclaration which unilaterally sets this.
+            // We are only called from ParseMainTypeDeclaration which unilaterally sets this.
             Debug.Assert((_termState & TerminatorState.IsEndOfTypeSignature) != 0);
 
             var colon = this.TryEatToken(SyntaxKind.ColonToken);
@@ -3106,7 +3106,7 @@ parse_member_name:;
 
                 if (IsExtensionContainerStart())
                 {
-                    return this.ParseClassOrStructOrInterfaceOrExtensionDeclaration(attributes, modifiers);
+                    return this.ParseMainTypeDeclaration(attributes, modifiers);
                 }
 
                 // Check for constructor form

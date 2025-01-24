@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.EnumMemberDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Identifier("Identifier"), null);
 
         private static Syntax.InternalSyntax.ExtensionDeclarationSyntax GenerateExtensionDeclaration()
-            => InternalSyntaxFactory.ExtensionDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Identifier("Keyword"), null, null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), null, null);
+            => InternalSyntaxFactory.ExtensionDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.ExtensionKeyword), null, null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), null, null);
 
         private static Syntax.InternalSyntax.BaseListSyntax GenerateBaseList()
             => InternalSyntaxFactory.BaseList(InternalSyntaxFactory.Token(SyntaxKind.ColonToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.BaseTypeSyntax>());
@@ -2901,7 +2901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(default, node.AttributeLists);
             Assert.Equal(default, node.Modifiers);
-            Assert.Equal(SyntaxKind.IdentifierToken, node.Keyword.Kind);
+            Assert.Equal(SyntaxKind.ExtensionKeyword, node.Keyword.Kind);
             Assert.Null(node.TypeParameterList);
             Assert.Null(node.ParameterList);
             Assert.Equal(default, node.ConstraintClauses);
@@ -10785,7 +10785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.EnumMemberDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Identifier("Identifier"), default(EqualsValueClauseSyntax));
 
         private static ExtensionDeclarationSyntax GenerateExtensionDeclaration()
-            => SyntaxFactory.ExtensionDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Identifier("Keyword"), default(TypeParameterListSyntax), default(ParameterListSyntax), new SyntaxList<TypeParameterConstraintClauseSyntax>(), default(SyntaxToken), new SyntaxList<MemberDeclarationSyntax>(), default(SyntaxToken), default(SyntaxToken));
+            => SyntaxFactory.ExtensionDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), default(TypeParameterListSyntax), default(ParameterListSyntax), new SyntaxList<TypeParameterConstraintClauseSyntax>(), default(SyntaxToken), new SyntaxList<MemberDeclarationSyntax>(), default(SyntaxToken), default(SyntaxToken));
 
         private static BaseListSyntax GenerateBaseList()
             => SyntaxFactory.BaseList(SyntaxFactory.Token(SyntaxKind.ColonToken), new SeparatedSyntaxList<BaseTypeSyntax>());
@@ -13165,7 +13165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(default, node.AttributeLists);
             Assert.Equal(default, node.Modifiers);
-            Assert.Equal(SyntaxKind.IdentifierToken, node.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ExtensionKeyword, node.Keyword.Kind());
             Assert.Null(node.TypeParameterList);
             Assert.Null(node.ParameterList);
             Assert.Equal(default, node.ConstraintClauses);

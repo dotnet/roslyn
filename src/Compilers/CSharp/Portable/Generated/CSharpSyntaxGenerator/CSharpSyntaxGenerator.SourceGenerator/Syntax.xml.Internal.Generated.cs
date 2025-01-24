@@ -31664,6 +31664,7 @@ internal partial class ContextAwareSyntax
     {
 #if DEBUG
         if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+        if (keyword.Kind != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(keyword));
         if (openBraceToken != null)
         {
             switch (openBraceToken.Kind)
@@ -36971,6 +36972,7 @@ internal static partial class SyntaxFactory
     {
 #if DEBUG
         if (keyword == null) throw new ArgumentNullException(nameof(keyword));
+        if (keyword.Kind != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(keyword));
         if (openBraceToken != null)
         {
             switch (openBraceToken.Kind)
