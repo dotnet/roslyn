@@ -35,7 +35,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         TempRoot.Dispose();
     }
 
-    protected sealed class TestLspServer : IAsyncDisposable
+    protected sealed class TestLspServer : ILspClient, IAsyncDisposable
     {
         private readonly Task _languageServerHostCompletionTask;
         private readonly JsonRpc _clientRpc;
@@ -91,9 +91,24 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             return result;
         }
 
+        public Task ExecuteNotificationAsync<RequestType>(string methodName, RequestType request) where RequestType : class
+        {
+            return _clientRpc.NotifyWithParameterObjectAsync(methodName, request);
+        }
+
+        public Task ExecuteNotification0Async(string methodName)
+        {
+            return _clientRpc.NotifyWithParameterObjectAsync(methodName);
+        }
+
         public void AddClientLocalRpcTarget(object target)
         {
             _clientRpc.AddLocalRpcTarget(target);
+        }
+
+        public void AddClientLocalRpcTarget(string methodName, Delegate handler)
+        {
+            _clientRpc.AddLocalRpcMethod(methodName, handler);
         }
 
         public async ValueTask DisposeAsync()
