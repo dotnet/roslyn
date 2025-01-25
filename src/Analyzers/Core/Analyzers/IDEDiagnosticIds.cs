@@ -231,5 +231,6 @@ internal static class IDEDiagnosticIds
     public const string ConditionalExpressionPlacementDiagnosticId = "IDE2005";
     public const string ArrowExpressionClausePlacementDiagnosticId = "IDE2006";
 
-    public const string ImplementNotImplementedExceptionDiagnosticAnalyzer = "IDE2007";
+    // 3000 range for copilot features.
+    public const string CopilotImplementNotImplementedExceptionDiagnosticId = "IDE3000";
 }
