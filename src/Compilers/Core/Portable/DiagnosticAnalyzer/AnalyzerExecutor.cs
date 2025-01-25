@@ -682,6 +682,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken);
         }
 
+        private readonly record struct ExecutionData(
+            DiagnosticAnalyzer Analyzer,
+            SyntaxNode DeclaredNode,
+            ISymbol DeclaredSymbol,
+            SemanticModel SemanticModel,
+            TextSpan? filterSpan,
+            bool isGeneratedCode);
+
         /// <summary>
         /// Execute code block actions for the given analyzer for the given declaration.
         /// </summary>
