@@ -1209,6 +1209,74 @@ class C
             EOF();
         }
 
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void UpdateExtension_ChangeParameterList()
+        {
+            var text = """
+class C
+{
+    extension(object, Type z1) { }
+}
+""";
+            var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
+            var newTree = oldTree.WithReplaceFirst("z1", "z2");
+            oldTree.GetDiagnostics().Verify();
+            newTree.GetDiagnostics().Verify();
+
+            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            TestDiffsInOrder(diffs,
+                SyntaxKind.CompilationUnit,
+                SyntaxKind.ClassDeclaration,
+                SyntaxKind.ExtensionDeclaration,
+                SyntaxKind.ExtensionKeyword,
+                SyntaxKind.ParameterList,
+                SyntaxKind.Parameter,
+                SyntaxKind.Parameter,
+                SyntaxKind.IdentifierToken);
+
+            UsingTree(newTree);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ExtensionDeclaration);
+                    {
+                        N(SyntaxKind.ExtensionKeyword);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.ObjectKeyword);
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                                N(SyntaxKind.IdentifierToken, "z2");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         #region "Regression"
 
 #if false
