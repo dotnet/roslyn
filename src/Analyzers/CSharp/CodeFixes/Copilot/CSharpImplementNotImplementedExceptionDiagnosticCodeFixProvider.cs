@@ -34,7 +34,7 @@ internal sealed partial class CSharpImplementNotImplementedExceptionCodeFixProvi
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
-            await FixOneAsync(editor, diagnostic, cancellationToken);
+            await FixOneAsync(editor, diagnostic, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task FixOneAsync(
