@@ -1605,6 +1605,7 @@ class C { int Y => 2; }
     public async Task HasChanges_Documents(DocumentKind documentKind)
     {
         using var _ = CreateWorkspace(out var solution, out var service);
+        var log = new TraceLog("Test");
 
         var pathX = Path.Combine(TempRoot.Root, "X.cs");
         var pathA = Path.Combine(TempRoot.Root, "A.cs");
@@ -1677,10 +1678,10 @@ class C { int Y => 2; }
         Assert.Equal(0, generatorExecutionCount);
 
         AssertEx.Equal([generatedDocumentId],
-            await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+            await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
         var diagnostics = new ArrayBuilder<ProjectDiagnostics>();
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
         AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
 
@@ -1707,9 +1708,9 @@ class C { int Y => 2; }
 
         // source generator infrastructure compares content and reuses state if it matches (SourceGeneratedDocumentState.WithUpdatedGeneratedContent):
         AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId } : [],
-            await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+            await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
         Assert.Empty(changedOrAddedDocuments);
 
@@ -1732,9 +1733,9 @@ class C { int Y => 2; }
         Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
 
         AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId],
-            await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+            await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
         AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
 
@@ -1759,9 +1760,9 @@ class C { int Y => 2; }
         Assert.Equal(0, generatorExecutionCount);
 
         AssertEx.Equal([generatedDocumentId],
-            await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+            await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
         AssertEx.Equal([generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
 
@@ -1772,6 +1773,8 @@ class C { int Y => 2; }
     public async Task HasChanges_SourceGeneratorFailure()
     {
         using var _ = CreateWorkspace(out var solution, out var service);
+
+        var log = new TraceLog("Test");
 
         var pathA = Path.Combine(TempRoot.Root, "A.txt");
 
@@ -1829,10 +1832,10 @@ class C { int Y => 2; }
         Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
 
         // No changed source documents since the generator failed:
-        AssertEx.Empty(await EditSession.GetChangedDocumentsAsync(oldProject, project, CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+        AssertEx.Empty(await EditSession.GetChangedDocumentsAsync(log, oldProject, project, CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
         var diagnostics = new ArrayBuilder<ProjectDiagnostics>();
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldProject, project, changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldProject, project, changedOrAddedDocuments, diagnostics, CancellationToken.None);
         Assert.Contains("System.InvalidOperationException: Source generator failed", diagnostics.Single().Diagnostics.Single().GetMessage());
         AssertEx.Empty(changedOrAddedDocuments);
 

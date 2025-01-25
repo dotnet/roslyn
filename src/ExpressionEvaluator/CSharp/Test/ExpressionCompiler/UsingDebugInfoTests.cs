@@ -405,11 +405,11 @@ namespace D
 
             importStrings = CustomDebugInfoReader.GetCSharpGroupedImportStrings(methodToken2, 0, getMethodCustomDebugInfo, getMethodImportStrings, out externAliasStrings);
             Assert.Equal(importString, importStrings.Single().Single());
-            Assert.Equal(0, externAliasStrings.Length);
+            Assert.Empty(externAliasStrings);
 
             importStrings = CustomDebugInfoReader.GetCSharpGroupedImportStrings(methodToken2, 0, getMethodCustomDebugInfo, getMethodImportStrings, out externAliasStrings);
             Assert.Equal(importString, importStrings.Single().Single());
-            Assert.Equal(0, externAliasStrings.Length);
+            Assert.Empty(externAliasStrings);
         }
 
         [Fact]

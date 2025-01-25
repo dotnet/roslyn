@@ -183,7 +183,6 @@ internal static partial class SymbolUsageAnalysis
             /// <summary>
             /// 
             /// </summary>
-            /// <returns></returns>
             private static ImmutableHashSet<ILocalSymbol> GetCapturedLocals(ControlFlowGraph cfg)
             {
                 using var _ = PooledHashSet<ILocalSymbol>.GetInstance(out var builder);

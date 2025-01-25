@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 }
 
                 var fixes = fixer.GetFixesAsync(document, diagnostic.Location.SourceSpan, [diagnostic], CancellationToken.None).GetAwaiter().GetResult();
-                if (fixes == null || fixes.Count() <= 0)
+                if (fixes == null || fixes.Length <= 0)
                 {
                     continue;
                 }

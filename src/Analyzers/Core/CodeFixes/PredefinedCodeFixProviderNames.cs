@@ -68,6 +68,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string GenerateVariable = nameof(GenerateVariable);
     public const string ImplementAbstractClass = nameof(ImplementAbstractClass);
     public const string ImplementInterface = nameof(ImplementInterface);
+    public const string ImplementNotImplementedException = nameof(ImplementNotImplementedException);
     public const string InlineDeclaration = nameof(InlineDeclaration);
     public const string InvokeDelegateWithConditionalAccess = nameof(InvokeDelegateWithConditionalAccess);
     public const string JsonDetection = nameof(JsonDetection);
@@ -154,6 +155,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseExpressionBody = nameof(UseExpressionBody);
     public const string UseExpressionBodyForLambda = nameof(UseExpressionBodyForLambda);
     public const string UseImplicitObjectCreation = nameof(UseImplicitObjectCreation);
+    public const string UseImplicitlyTypedLambdaExpression = nameof(UseImplicitlyTypedLambdaExpression);
     public const string UseImplicitType = nameof(UseImplicitType);
     public const string UseIndexOperator = nameof(UseIndexOperator);
     public const string UseInferredMemberName = nameof(UseInferredMemberName);
@@ -182,5 +184,4 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseTupleSwap = nameof(UseTupleSwap);
     public const string UseUnboundGenericTypeInNameOf = nameof(UseUnboundGenericTypeInNameOf);
     public const string UseUtf8StringLiteral = nameof(UseUtf8StringLiteral);
-    public const string ReimplementThrowNewNotImplementedException = nameof(ReimplementThrowNewNotImplementedException);
 }

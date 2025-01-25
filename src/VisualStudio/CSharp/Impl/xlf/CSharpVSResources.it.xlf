@@ -142,6 +142,11 @@
         <target state="translated">Preferisci la creazione implicita di oggetti quando il tipo è apparente</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_implicitly_typed_lambda_expression">
+        <source>Prefer implicitly typed lambda expression</source>
+        <target state="new">Prefer implicitly typed lambda expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
         <target state="translated">Preferisci i criteri di ricerca</target>

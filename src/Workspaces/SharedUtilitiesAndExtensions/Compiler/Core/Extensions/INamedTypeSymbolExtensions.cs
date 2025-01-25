@@ -86,9 +86,9 @@ internal static partial class INamedTypeSymbolExtensions
     {
         if (member.ContainingType.TypeKind == TypeKind.Interface)
         {
-            if (member.Kind == SymbolKind.Property)
+            if (member is IPropertySymbol property)
             {
-                return IsInterfacePropertyImplemented(classOrStructType, (IPropertySymbol)member);
+                return IsInterfacePropertyImplemented(classOrStructType, property);
             }
             else
             {
@@ -98,9 +98,9 @@ internal static partial class INamedTypeSymbolExtensions
 
         if (member.IsAbstract)
         {
-            if (member.Kind == SymbolKind.Property)
+            if (member is IPropertySymbol property)
             {
-                return IsAbstractPropertyImplemented(classOrStructType, (IPropertySymbol)member);
+                return IsAbstractPropertyImplemented(classOrStructType, property);
             }
             else
             {
