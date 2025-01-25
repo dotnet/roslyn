@@ -1,21 +1,20 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Authentication;
 using Microsoft.RoslynTools.Products;
-using Microsoft.RoslynTools.PRTagger;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.RoslynTools.VS;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Newtonsoft.Json.Linq;
-using System.Collections.Immutable;
-using System.Net;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 namespace Microsoft.RoslynTools.CreateReleaseTags;
 
@@ -78,7 +77,7 @@ internal static class CreateReleaseTags
                         {
                             logger.LogInformation($"Tagging {build.CommitSha} as '{tagName}'.");
 
-                            string message = $"Build Branch: {build.SourceBranch}\r\nInternal ID: {build.BuildId}\r\nInternal VS ID: {visualStudioRelease.BuildId}";
+                            var message = $"Build Branch: {build.SourceBranch}\r\nInternal ID: {build.BuildId}\r\nInternal VS ID: {visualStudioRelease.BuildId}";
 
                             try
                             {
@@ -255,7 +254,7 @@ internal static class CreateReleaseTags
 
     private static async Task<ImmutableArray<VisualStudioVersion>> GetVisualStudioReleasesAsync(GitHttpClient gitClient)
     {
-        GitRepository vsRepository = await GetVSRepositoryAsync(gitClient);
+        var vsRepository = await GetVSRepositoryAsync(gitClient);
         var tags = await gitClient.GetRefsAsync(vsRepository.Id, filterContains: "release/vs", peelTags: true);
 
         var builder = ImmutableArray.CreateBuilder<VisualStudioVersion>();
@@ -269,7 +268,7 @@ internal static class CreateReleaseTags
                 continue;
             }
 
-            string[] parts = tag.Name.Substring(tagPrefix.Length).Split('-');
+            var parts = tag.Name.Substring(tagPrefix.Length).Split('-');
 
             if (parts.Length != 1 && parts.Length != 2)
             {
@@ -308,7 +307,7 @@ internal static class CreateReleaseTags
             }
 
             // It's not entirely clear to me how this format was chosen, but for consistency with old tags, we'll keep it
-            string buildId = $"{buildInformation["Branch"]?.ToString().Replace("/", ".")}-{buildInformation["BuildNumber"]}";
+            var buildId = $"{buildInformation["Branch"]?.ToString().Replace("/", ".")}-{buildInformation["BuildNumber"]}";
 
             if (parts.Length == 2)
             {
@@ -319,7 +318,7 @@ internal static class CreateReleaseTags
                     continue;
                 }
 
-                string possiblePreviewVersion = parts[1].Substring(previewPrefix.Length);
+                var possiblePreviewVersion = parts[1].Substring(previewPrefix.Length);
 
                 if (!isDottedVersionRegex.IsMatch(possiblePreviewVersion))
                 {
@@ -344,7 +343,7 @@ internal static class CreateReleaseTags
 
     private static string? TryGetTagName(VisualStudioVersion release)
     {
-        string tag = "Visual-Studio-";
+        var tag = "Visual-Studio-";
 
         if (release.MainVersion.StartsWith("16."))
         {

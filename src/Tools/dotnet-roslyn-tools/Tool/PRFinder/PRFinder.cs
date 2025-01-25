@@ -1,13 +1,13 @@
-// Licensed to the.NET Foundation under one or more agreements.
+﻿// Licensed to the.NET Foundation under one or more agreements.
 // The.NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
 namespace Microsoft.RoslynTools.PRFinder;
 
-using LibGit2Sharp;
-using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using LibGit2Sharp;
+using Microsoft.Extensions.Logging;
 
 internal class PRFinder
 {
@@ -70,7 +70,7 @@ internal class PRFinder
             return 1;
         }
 
-        string repoUrl = string.Empty;
+        var repoUrl = string.Empty;
         if (remote.Url.StartsWith("https://")) // https://github.com/dotnet/roslyn.git
         {
             repoUrl = remote.Url.EndsWith(".git")

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -20,9 +20,9 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
         [JsonIgnore]
         public IList<Line> Contents { get; set; }
 
-        public IList<Line> OnClose(string path)
+        public static IList<Line> OnClose(string path)
         {
-            string[] updatedFileContents = File.ReadAllLines(path);
+            var updatedFileContents = File.ReadAllLines(path);
             return GetContentValues(updatedFileContents);
         }
 
@@ -32,7 +32,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
         {
             List<Line> values = [];
 
-            foreach (string content in contents)
+            foreach (var content in contents)
             {
                 if (!content.TrimStart().StartsWith("#") && !string.IsNullOrEmpty(content))
                 {
@@ -73,7 +73,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
         /// </returns>
         protected static string ParseSetting(string inputSetting, string originalSetting, bool isSecret)
         {
-            string trimmedSetting = inputSetting.Trim();
+            var trimmedSetting = inputSetting.Trim();
             if (trimmedSetting.StartsWith('<') && trimmedSetting.EndsWith('>'))
             {
                 return string.Empty;

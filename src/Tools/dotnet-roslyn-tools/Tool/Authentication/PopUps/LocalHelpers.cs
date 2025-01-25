@@ -1,10 +1,10 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.RoslynTools.Authentication.PopUps
 {
@@ -12,7 +12,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
     {
         public static string GetEditorPath(string gitLocation, ILogger logger)
         {
-            string editor = ExecuteCommand(gitLocation, "config --get core.editor", logger);
+            var editor = ExecuteCommand(gitLocation, "config --get core.editor", logger);
 
             // If there is nothing set in core.editor we try to default it to code
             if (string.IsNullOrEmpty(editor))
@@ -42,7 +42,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
             }
 
             // Split this by newline in case where are multiple paths;
-            int newlineIndex = editor.IndexOf(System.Environment.NewLine);
+            var newlineIndex = editor.IndexOf(System.Environment.NewLine);
             if (newlineIndex != -1)
             {
                 editor = editor[..newlineIndex];
@@ -53,7 +53,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
 
         public static string GetRootDir(string gitLocation, ILogger logger)
         {
-            string dir = ExecuteCommand(gitLocation, "rev-parse --show-toplevel", logger);
+            var dir = ExecuteCommand(gitLocation, "rev-parse --show-toplevel", logger);
 
             if (string.IsNullOrEmpty(dir))
             {
@@ -70,7 +70,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
         /// <returns></returns>
         public static string GetGitCommit(string gitLocation, ILogger logger)
         {
-            string commit = ExecuteCommand(gitLocation, "rev-parse HEAD", logger);
+            var commit = ExecuteCommand(gitLocation, "rev-parse HEAD", logger);
 
             if (string.IsNullOrEmpty(commit))
             {
@@ -82,7 +82,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
 
         public static string GitShow(string gitLocation, string repoFolderPath, string commit, string fileName, ILogger logger)
         {
-            string fileContents = ExecuteCommand(gitLocation, $"show {commit}:{fileName}", logger, repoFolderPath);
+            var fileContents = ExecuteCommand(gitLocation, $"show {commit}:{fileName}", logger, repoFolderPath);
 
             if (string.IsNullOrEmpty(fileContents))
             {
@@ -102,9 +102,9 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
         /// <returns></returns>
         public static string GetRepoPathFromFolder(string gitLocation, string sourceFolder, string commit, ILogger logger)
         {
-            foreach (string directory in Directory.GetDirectories(sourceFolder))
+            foreach (var directory in Directory.GetDirectories(sourceFolder))
             {
-                string containsCommand = ExecuteCommand(gitLocation, $"branch --contains {commit}", logger, directory);
+                var containsCommand = ExecuteCommand(gitLocation, $"branch --contains {commit}", logger, directory);
 
                 if (!string.IsNullOrEmpty(containsCommand))
                 {
@@ -123,7 +123,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
         /// <param name="logger">The logger</param>
         public static void CheckGitInstallation(string gitLocation, ILogger logger)
         {
-            string versionInfo = ExecuteCommand(gitLocation, "version --build-options", logger);
+            var versionInfo = ExecuteCommand(gitLocation, "version --build-options", logger);
 
             if (!versionInfo.StartsWith("git version") || !versionInfo.Contains("cpu:"))
             {
@@ -138,7 +138,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
                 throw new ArgumentException("Executable command must be non-empty");
             }
 
-            string output = string.Empty;
+            var output = string.Empty;
 
             try
             {

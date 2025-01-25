@@ -1,11 +1,11 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Extensions.Logging;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.RoslynTools.Authentication.PopUps
 {
@@ -34,8 +34,8 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
             try
             {
                 // File to write from stdin to, which will be processed by the popup closing handler
-                string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), popUp.Path);
-                string dirPath = Path.GetDirectoryName(path)!;
+                var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), popUp.Path);
+                var dirPath = Path.GetDirectoryName(path)!;
 
                 Directory.CreateDirectory(dirPath);
                 using (var streamWriter = new StreamWriter(path))
@@ -48,7 +48,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
                 }
 
                 // Now run the closed event and process the contents
-                IList<Line> contents = popUp.OnClose(path);
+                var contents = EditorPopUp.OnClose(path);
                 result = popUp.ProcessContents(contents);
                 Directory.Delete(dirPath, true);
                 if (result != Constants.SuccessCode)
@@ -80,15 +80,15 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
                 return Constants.ErrorCode;
             }
 
-            int result = Constants.ErrorCode;
-            int tries = Constants.MaxPopupTries;
+            var result = Constants.ErrorCode;
+            var tries = Constants.MaxPopupTries;
 
-            ParsedCommand parsedCommand = GetParsedCommand(_editorPath);
+            var parsedCommand = GetParsedCommand(_editorPath);
 
             try
             {
-                string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), popUp.Path);
-                string dirPath = Path.GetDirectoryName(path)!;
+                var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName(), popUp.Path);
+                var dirPath = Path.GetDirectoryName(path)!;
 
                 Directory.CreateDirectory(dirPath);
                 File.WriteAllLines(path, popUp.Contents.Select(l => l.Text));
@@ -101,7 +101,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
                     process.EnableRaisingEvents = true;
                     process.Exited += (sender, e) =>
                     {
-                        IList<Line> contents = popUp.OnClose(path);
+                        var contents = EditorPopUp.OnClose(path);
 
                         result = popUp.ProcessContents(contents);
 
@@ -128,7 +128,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
                     process.StartInfo.Arguments = $"{parsedCommand.Arguments} {path}";
                     process.Start();
 
-                    int waitForMilliseconds = 100;
+                    var waitForMilliseconds = 100;
                     while (!_popUpClosed)
                     {
                         Thread.Sleep(waitForMilliseconds);
@@ -152,15 +152,15 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
         public static ParsedCommand GetParsedCommand(string command)
         {
             string fileName;
-            string arguments = string.Empty;
+            var arguments = string.Empty;
 
             // If it's quoted then find the end of the quoted string.
             // If non quoted find a space or the end of the string.
             command = command.Trim();
             if (command.StartsWith("'") || command.StartsWith("\""))
             {
-                int start = 1;
-                int end = command.IndexOf("'", start);
+                var start = 1;
+                var end = command.IndexOf("'", start);
                 if (end == -1)
                 {
                     end = command.IndexOf("\"", start);
@@ -179,7 +179,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
             {
                 // Find a space after the command name, if there are args, then parse them out,
                 // otherwise just return the whole string as the filename.
-                int fileNameEnd = command.IndexOf(" ");
+                var fileNameEnd = command.IndexOf(" ");
                 if (fileNameEnd != -1)
                 {
                     fileName = command[..fileNameEnd];

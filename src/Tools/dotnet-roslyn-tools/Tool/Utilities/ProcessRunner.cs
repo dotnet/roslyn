@@ -1,4 +1,4 @@
-// Licensed to the.NET Foundation under one or more agreements.
+﻿// Licensed to the.NET Foundation under one or more agreements.
 // The.NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
@@ -66,8 +66,8 @@ public static class ProcessRunner
         bool displayWindow = false,
         Dictionary<string, string>? environmentVariables = null,
         Action<Process>? onProcessStartHandler = null,
-        CancellationToken cancellationToken = default) =>
-        CreateProcess(
+        CancellationToken cancellationToken = default)
+        => CreateProcess(
             CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables),
             lowPriority: lowPriority,
             onProcessStartHandler: onProcessStartHandler,

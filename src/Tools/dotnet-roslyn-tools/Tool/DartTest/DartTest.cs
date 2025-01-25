@@ -1,27 +1,16 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
-using LibGit2Sharp;
 using Microsoft.Azure.Pipelines.WebApi;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.RoslynTools.VS;
-using Microsoft.TeamFoundation.Common;
-using Microsoft.TeamFoundation.SourceControl.WebApi;
-using static System.Net.WebRequestMethods;
 
 namespace Microsoft.RoslynTools.DartTest;
 
@@ -111,7 +100,8 @@ internal static class DartTest
     private static async Task PushPRToInternalAsync(IProduct product, int prNumber, string azureBranchName, ILogger logger, string sha, string targetDirectory, CancellationToken cancellationToken)
     {
         var initCommand = $"init";
-        await RunGitCommandAsync(initCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false); ;
+        await RunGitCommandAsync(initCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+        ;
 
         var addGithubRemoteCommand = $"remote add {product.Name.ToLower()} {product.RepoHttpBaseUrl}.git";
         await RunGitCommandAsync(addGithubRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
@@ -206,13 +196,13 @@ internal static class DartTest
             var files = Directory.GetFiles(directory);
             var dirs = Directory.GetDirectories(directory);
 
-            foreach (string file in files)
+            foreach (var file in files)
             {
                 System.IO.File.SetAttributes(file, FileAttributes.Normal);
                 System.IO.File.Delete(file);
             }
 
-            foreach (string dir in dirs)
+            foreach (var dir in dirs)
             {
                 CleanupDirectory(dir, logger);
             }
