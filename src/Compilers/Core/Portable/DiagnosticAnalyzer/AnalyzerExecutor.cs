@@ -719,21 +719,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var (@this, startActions, analyzer, declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind, filterSpan, isGeneratedCode, ephemeralActions) = args;
 
-                    var codeBlockScope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>(startAction.Analyzer);
-                    var blockStartContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(
-                        codeBlockScope, declaredNode, declaredSymbol, semanticModel, @this.AnalyzerOptions, filterSpan, isGeneratedCode, cancellationToken);
+                    var scope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>(startAction.Analyzer);
+                    var startContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(
+                        scope, declaredNode, declaredSymbol, semanticModel, @this.AnalyzerOptions, filterSpan, isGeneratedCode, cancellationToken);
 
                     // Catch Exception from the start action.
                     @this.ExecuteAndCatchIfThrows(
                         startAction.Analyzer,
                         static args =>
                         {
-                            var (startAction, blockStartContext, codeBlockScope, endActions, syntaxNodeActions) = args;
-                            startAction.Action(blockStartContext);
-                            endActions.AddAll(codeBlockScope.CodeBlockEndActions);
-                            syntaxNodeActions.AddRange(codeBlockScope.SyntaxNodeActions);
+                            var (startAction, startContext, scope, endActions, syntaxNodeActions) = args;
+                            startAction.Action(startContext);
+                            endActions.AddAll(scope.CodeBlockEndActions);
+                            syntaxNodeActions.AddRange(scope.SyntaxNodeActions);
                         },
-                        argument: (startAction, blockStartContext, codeBlockScope, endActions, ephemeralActions),
+                        argument: (startAction, startContext, scope, endActions, ephemeralActions),
                         new AnalysisContextInfo(@this.Compilation, declaredSymbol, declaredNode),
                         cancellationToken);
                 },
@@ -762,7 +762,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             }
                         }
 
-                        @this.ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
+                        @this.ExecuteSyntaxNodeActions(
+                            syntaxNodesToAnalyze, executableNodeActionsByKind,
+                            analyzer, declaredSymbol, semanticModel, getKind, diagReporter,
+                            isSupportedDiagnostic, filterSpan, isGeneratedCode,
+                            hasCodeBlockStartOrSymbolStartActions: startActions.Any(),
+                            cancellationToken);
                         syntaxNodesToAnalyze.Free();
                     }
                 },
@@ -806,9 +811,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 addActions: static (startAction, endActions, args, cancellationToken) =>
                 {
                     var (@this, startActions, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode, ephemeralActions) = args;
-                    var operationBlockScope = new HostOperationBlockStartAnalysisScope(startAction.Analyzer);
-                    var operationStartContext = new AnalyzerOperationBlockStartAnalysisContext(
-                        operationBlockScope, operationBlocks, declaredSymbol, semanticModel.Compilation, @this.AnalyzerOptions,
+                    var scope = new HostOperationBlockStartAnalysisScope(startAction.Analyzer);
+                    var startContext = new AnalyzerOperationBlockStartAnalysisContext(
+                        scope, operationBlocks, declaredSymbol, semanticModel.Compilation, @this.AnalyzerOptions,
                         @this.GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
 
                     // Catch Exception from the start action.
@@ -816,12 +821,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         startAction.Analyzer,
                         static args =>
                         {
-                            var (startAction, operationStartContext, operationBlockScope, endActions, ephemeralActions) = args;
-                            startAction.Action(operationStartContext);
-                            endActions.AddAll(operationBlockScope.OperationBlockEndActions);
-                            ephemeralActions.AddRange(operationBlockScope.OperationActions);
+                            var (startAction, startContext, scope, endActions, ephemeralActions) = args;
+                            startAction.Action(startContext);
+                            endActions.AddAll(scope.OperationBlockEndActions);
+                            ephemeralActions.AddRange(scope.OperationActions);
                         },
-                        argument: (startAction, operationStartContext, operationBlockScope, endActions, ephemeralActions),
+                        argument: (startAction, startContext, scope, endActions, ephemeralActions),
                         new AnalysisContextInfo(@this.Compilation, declaredSymbol),
                         cancellationToken);
                 },
@@ -830,9 +835,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var (@this, startActions, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode, ephemeralActions) = args;
                     if (ephemeralActions.Any())
                     {
-                        var operationActionsByKind = GetOperationActionsByKind(ephemeralActions);
-                        var operationsToAnalyze = operations;
-                        @this.ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
+                        @this.ExecuteOperationActions(
+                            operations, GetOperationActionsByKind(ephemeralActions),
+                            analyzer, declaredSymbol, semanticModel, diagReporter,
+                            isSupportedDiagnostic, filterSpan, isGeneratedCode,
+                            hasOperationBlockStartOrSymbolStartActions: startActions.Any(),
+                            cancellationToken);
                     }
                 },
                 argument: (@this: this, startActions, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode, ephemeralActions),
