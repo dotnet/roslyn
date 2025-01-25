@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class ImplementNotImplementedExceptionDiagnosticAnalyzer()
+internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
     : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
         IDEDiagnosticIds.CopilotImplementNotImplementedExceptionDiagnosticId,
         EnforceOnBuildValues.CopilotImplementNotImplementedException,
