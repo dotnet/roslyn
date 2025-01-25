@@ -18,7 +18,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.RoslynTools.CreateReleaseTags;
 
-internal static class CreateReleaseTags
+internal static partial class CreateReleaseTags
 {
     public static async Task<int> CreateReleaseTagsAsync(string productName, RoslynToolsSettings settings, ILogger logger)
     {
@@ -275,9 +275,7 @@ internal static class CreateReleaseTags
                 continue;
             }
 
-            var isDottedVersionRegex = new Regex("^[0-9]+(\\.[0-9]+)*$");
-
-            if (!isDottedVersionRegex.IsMatch(parts[0]))
+            if (!IsDottedVersion().IsMatch(parts[0]))
             {
                 continue;
             }
@@ -320,7 +318,7 @@ internal static class CreateReleaseTags
 
                 var possiblePreviewVersion = parts[1].Substring(previewPrefix.Length);
 
-                if (!isDottedVersionRegex.IsMatch(possiblePreviewVersion))
+                if (!IsDottedVersion().IsMatch(possiblePreviewVersion))
                 {
                     continue;
                 }
@@ -368,4 +366,7 @@ internal static class CreateReleaseTags
 
         return tag;
     }
+
+    [GeneratedRegex("^[0-9]+(\\.[0-9]+)*$")]
+    private static partial Regex IsDottedVersion();
 }

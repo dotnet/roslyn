@@ -13,7 +13,7 @@ using NuGetLogger = NuGet.Common.NullLogger;
 
 namespace Microsoft.RoslynTools.NuGet;
 
-internal static class NuGetDependencyFinder
+internal static partial class NuGetDependencyFinder
 {
     internal enum DependencyResult
     {
@@ -31,9 +31,9 @@ internal static class NuGetDependencyFinder
 
         var packages = (from file in Directory.EnumerateFiles(packageFolder, "*.nupkg")
                         let fileName = Path.GetFileName(file)
-                        let regex = Regex.Match(fileName, @"^(.*?)\.((?:\.?[0-9]+){3,}(?:[-a-z0-9]+)?)(\.final)?\.nupkg$")
-                        where regex.Success
-                        select regex.Groups[1].Value).ToImmutableHashSet();
+                        let packageVersion = PackageVersion().Match(fileName)
+                        where packageVersion.Success
+                        select packageVersion.Groups[1].Value).ToImmutableHashSet();
 
         var nugetOrg = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
         var nugetOrgFinder = await nugetOrg.GetResourceAsync<FindPackageByIdResource>().ConfigureAwait(false);
@@ -170,4 +170,7 @@ internal static class NuGetDependencyFinder
             }
         }
     }
+
+    [GeneratedRegex(@"^(.*?)\.((?:\.?[0-9]+){3,}(?:[-a-z0-9]+)?)(\.final)?\.nupkg$")]
+    private static partial Regex PackageVersion();
 }

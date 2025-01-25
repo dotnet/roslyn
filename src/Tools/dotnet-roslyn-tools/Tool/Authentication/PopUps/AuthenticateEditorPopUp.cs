@@ -59,7 +59,7 @@ internal class AuthenticateEditorPopUp : EditorPopUp
     {
         foreach (var line in contents)
         {
-            var keyValue = line.Text.Split("=");
+            var keyValue = line.Text.Split('=');
 
             switch (keyValue[0])
             {

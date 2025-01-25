@@ -11,11 +11,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.RoslynTools.PRFinder.Hosts;
 
-public class GitHub : IRepositoryHost
+public partial class GitHub : IRepositoryHost
 {
-    internal static readonly Regex IsGitHubReleaseFlowCommit = new(@"^Merge pull request #\d+ from dotnet/merges/");
-    internal static readonly Regex IsGitHubMergePRCommit = new(@"^Merge pull request #(\d+) from");
-    internal static readonly Regex IsGitHubSquashedPRCommit = new(@"\(#(\d+)\)(?:\n|$)");
     private readonly string _repoUrl;
 
     private readonly HttpClient _httpClient;
@@ -65,7 +62,7 @@ public class GitHub : IRepositoryHost
         }
 
         // Exclude merge commits from auto code-flow PRs (e.g. merges/main-to-main-vs-deps)
-        if (IsGitHubReleaseFlowCommit.Match(commit.MessageShort).Success)
+        if (IsGitHubReleaseFlowCommit().Match(commit.MessageShort).Success)
         {
             mergePRFound = true;
             return true;
@@ -76,7 +73,7 @@ public class GitHub : IRepositoryHost
 
     public async Task<MergeInfo?> TryParseMergeInfoAsync(Commit commit)
     {
-        var match = IsGitHubMergePRCommit.Match(commit.MessageShort);
+        var match = IsGitHubMergePRCommit().Match(commit.MessageShort);
         if (match.Success)
         {
             var prNumber = match.Groups[1].Value;
@@ -99,7 +96,7 @@ public class GitHub : IRepositoryHost
         }
         else
         {
-            match = IsGitHubSquashedPRCommit.Match(commit.MessageShort);
+            match = IsGitHubSquashedPRCommit().Match(commit.MessageShort);
             if (match.Success)
             {
                 var prNumber = match.Groups[1].Value;
@@ -169,4 +166,11 @@ public class GitHub : IRepositoryHost
             return response;
         }
     }
+
+    [GeneratedRegex(@"^Merge pull request #\d+ from dotnet/merges/")]
+    private static partial Regex IsGitHubReleaseFlowCommit();
+    [GeneratedRegex(@"^Merge pull request #(\d+) from")]
+    private static partial Regex IsGitHubMergePRCommit();
+    [GeneratedRegex(@"\(#(\d+)\)(?:\n|$)")]
+    private static partial Regex IsGitHubSquashedPRCommit();
 }
