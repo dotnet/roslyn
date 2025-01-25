@@ -5,30 +5,29 @@
 using Maestro.Common;
 using Maestro.Common.AzureDevOpsTokens;
 
-namespace Microsoft.RoslynTools.Authentication
+namespace Microsoft.RoslynTools.Authentication;
+
+internal class RoslynToolsSettings
 {
-    internal class RoslynToolsSettings
+    public string GitHubToken { get; set; } = string.Empty;
+    public string DevDivAzureDevOpsToken { get; set; } = string.Empty;
+    public string DncEngAzureDevOpsToken { get; set; } = string.Empty;
+    public bool IsCI { get; set; }
+
+    public IRemoteTokenProvider GetGitHubTokenProvider() => new ResolvedTokenProvider(GitHubToken);
+    public IAzureDevOpsTokenProvider GetDevDivAzDOTokenProvider() => GetAzdoTokenProvider(DevDivAzureDevOpsToken);
+    public IAzureDevOpsTokenProvider GetDncEngAzDOTokenProvider() => GetAzdoTokenProvider(DncEngAzureDevOpsToken);
+
+    private IAzureDevOpsTokenProvider GetAzdoTokenProvider(string token)
     {
-        public string GitHubToken { get; set; } = string.Empty;
-        public string DevDivAzureDevOpsToken { get; set; } = string.Empty;
-        public string DncEngAzureDevOpsToken { get; set; } = string.Empty;
-        public bool IsCI { get; set; }
-
-        public IRemoteTokenProvider GetGitHubTokenProvider() => new ResolvedTokenProvider(GitHubToken);
-        public IAzureDevOpsTokenProvider GetDevDivAzDOTokenProvider() => GetAzdoTokenProvider(DevDivAzureDevOpsToken);
-        public IAzureDevOpsTokenProvider GetDncEngAzDOTokenProvider() => GetAzdoTokenProvider(DncEngAzureDevOpsToken);
-
-        private IAzureDevOpsTokenProvider GetAzdoTokenProvider(string token)
+        var azdoOptions = new AzureDevOpsTokenProviderOptions
         {
-            var azdoOptions = new AzureDevOpsTokenProviderOptions
+            ["default"] = new AzureDevOpsCredentialResolverOptions
             {
-                ["default"] = new AzureDevOpsCredentialResolverOptions
-                {
-                    Token = token,
-                    DisableInteractiveAuth = IsCI,
-                }
-            };
-            return AzureDevOpsTokenProvider.FromStaticOptions(azdoOptions);
-        }
+                Token = token,
+                DisableInteractiveAuth = IsCI,
+            }
+        };
+        return AzureDevOpsTokenProvider.FromStaticOptions(azdoOptions);
     }
 }
