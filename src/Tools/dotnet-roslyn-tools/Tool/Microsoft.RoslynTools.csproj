@@ -27,11 +27,11 @@
     <PackageReference Include="LibGit2Sharp" Version="0.30.0" />
     <PackageReference Include="Microsoft.DotNet.DarcLib" Version="1.1.0-beta.24416.2" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
     <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="19.240.0-preview" />
     <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="19.240.0-preview" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="NuGet.Protocol" Version="6.10.1" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta2.21615.1" />
-    <PackageReference Include="System.CommandLine.Rendering" Version="0.4.0-alpha.21615.1" />
   </ItemGroup>
 </Project>

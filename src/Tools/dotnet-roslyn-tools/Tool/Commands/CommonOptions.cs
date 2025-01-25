@@ -3,8 +3,8 @@
 // See the License.txt file in the project root for more information.
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using Microsoft.RoslynTools.Authentication;
-using Microsoft.RoslynTools.Logging;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
@@ -56,9 +56,12 @@ internal static class CommonOptions
         };
     }
 
-    public static ILogger SetupLogging(this InvocationContext context)
+    public static ILogger<Program> SetupLogging(this InvocationContext context)
     {
         var minimalLogLevel = context.ParseResult.ParseVerbosity();
-        return new SimpleConsoleLogger(context.Console, minimalLogLevel, minimalErrorLevel: LogLevel.Warning);
+        using var loggerFactory = LoggerFactory
+            .Create(builder => builder.AddSimpleConsole(c => c.ColorBehavior = LoggerColorBehavior.Default)
+            .SetMinimumLevel(minimalLogLevel));
+        return loggerFactory.CreateLogger<Program>();
     }
 }
