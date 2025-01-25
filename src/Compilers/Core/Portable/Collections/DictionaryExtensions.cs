@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
         }
 #endif
 
-        public static void AddPooled<K, V>(this IDictionary<K, ArrayBuilder<V>> dictionary, K key, V value)
+        public static void AddPooled<K, V>(this Dictionary<K, ArrayBuilder<V>> dictionary, K key, V value)
             where K : notnull
         {
             if (!dictionary.TryGetValue(key, out var values))
