@@ -977,6 +977,11 @@
         <target state="translated">O parâmetro lambda '{0}' digitado implicitamente não pode ter um valor padrão.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
+        <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Os argumentos com o modificador 'in' não podem ser usados em expressões vinculadas dinamicamente.</target>
@@ -2347,6 +2352,11 @@
         <target state="translated">O objeto 'this' não pode ser usado antes que todos os seus campos serem atribuídos. Considere atualizar para a versão de linguagem '{0}' para auto-padrão dos campos não atribuídos.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VariableDeclarationNamedField">
+        <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
+        <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Um tipo de retorno semelhante à tarefa genérica era esperado, mas o tipo '{0}' encontrado no atributo 'AsyncMethodBuilder' não era adequado. Ele deve ser um tipo genérico não associado de arity um e seu tipo recipiente (se houver) deve ser não genérico.</target>
@@ -2577,6 +2587,11 @@
         <target state="translated">ToString selado no registro</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
+        <source>simple lambda parameter modifiers</source>
+        <target state="new">simple lambda parameter modifiers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
         <source>string escape character</source>
         <target state="translated">cadeia de caracteres de escape</target>
@@ -2655,11 +2670,6 @@
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">ponteiro</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
-        <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
-        <target state="translated">Identificador é uma palavra-chave contextual, com um significado específico, em uma versão de linguagem posterior.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
@@ -12710,8 +12720,8 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
-        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</source>
-        <target state="translated">O comprimento combinado de cadeias do usuários usadas pelo programa excede o limite permitido. Tente diminuir o uso de literais de cadeia.</target>
+        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
+        <target state="needs-review-translation">O comprimento combinado de cadeias do usuários usadas pelo programa excede o limite permitido. Tente diminuir o uso de literais de cadeia.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">

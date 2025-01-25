@@ -44,8 +44,6 @@ internal sealed class CompilationWithAnalyzersPair
 
     public CompilationWithAnalyzers? HostCompilationWithAnalyzers => _hostCompilationWithAnalyzers;
 
-    public bool ReportSuppressedDiagnostics => _projectCompilationWithAnalyzers?.AnalysisOptions.ReportSuppressedDiagnostics ?? _hostCompilationWithAnalyzers!.AnalysisOptions.ReportSuppressedDiagnostics;
-
     public bool ConcurrentAnalysis => _projectCompilationWithAnalyzers?.AnalysisOptions.ConcurrentAnalysis ?? _hostCompilationWithAnalyzers!.AnalysisOptions.ConcurrentAnalysis;
 
     public bool HasAnalyzers => ProjectAnalyzers.Any() || HostAnalyzers.Any();

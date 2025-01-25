@@ -161,7 +161,7 @@ public class FileSystemCompletionHelperTests
             searchPaths: [],
             baseDirectoryOpt: null,
             allowableExtensions: [".cs"],
-            drives: Array.Empty<string>(),
+            drives: [],
             directories: new[]
             {
                 @"\\server\share",
@@ -191,7 +191,7 @@ public class FileSystemCompletionHelperTests
             searchPaths: [@"/A", @"/B"],
             baseDirectoryOpt: @"/C",
             allowableExtensions: [".abc", ".def"],
-            drives: Array.Empty<string>(),
+            drives: [],
             directories: new[]
             {
                 @"/A",

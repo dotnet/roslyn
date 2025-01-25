@@ -427,4 +427,21 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
                 ""
                 """));
     }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/76709")]
+    public async Task TestEscapeCharacter2(TestHost testHost)
+    {
+        await TestAsync("""""
+            class C
+            {
+                string x1 = "\x0003e";
+                string x2 = "\0F";
+                string x3 = "\0failed";
+            }
+            """"", testHost,
+            Escape("\\x0003"),
+            Escape("\\0"),
+            Escape("\\0"));
+    }
 }

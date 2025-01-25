@@ -17,7 +17,6 @@ internal interface IChangeSignatureOptionsService : IWorkspaceService
     /// parameters)</param>
     /// <param name="symbol">the symbol for changing the signature</param>
     /// <param name="parameters">existing parameters of the symbol</param>
-    /// <returns></returns>
     ChangeSignatureOptionsResult? GetChangeSignatureOptions(
         SemanticDocument document,
         int positionForTypeBinding,

@@ -345,35 +345,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int p = 0; p < unboundLambda.ParameterCount; ++p)
             {
+                var refKind = unboundLambda.RefKind(p);
+                var scope = unboundLambda.DeclaredScope(p);
+                var paramSyntax = unboundLambda.ParameterSyntax(p);
+
                 // If there are no types given in the lambda then use the delegate type.
                 // If the lambda is typed then the types probably match the delegate types;
                 // if they do not, use the lambda types for binding. Either way, if we 
                 // can, then we use the lambda types. (Whatever you do, do not use the names 
                 // in the delegate parameters; they are not in scope!)
-
-                TypeWithAnnotations type;
-                RefKind refKind;
-                ScopedKind scope;
-                ParameterSyntax? paramSyntax = null;
-                if (hasExplicitlyTypedParameterList)
-                {
-                    type = unboundLambda.ParameterTypeWithAnnotations(p);
-                    refKind = unboundLambda.RefKind(p);
-                    scope = unboundLambda.DeclaredScope(p);
-                    paramSyntax = unboundLambda.ParameterSyntax(p);
-                }
-                else if (p < numDelegateParameters)
-                {
-                    type = parameterTypes[p];
-                    refKind = RefKind.None;
-                    scope = ScopedKind.None;
-                }
-                else
-                {
-                    type = TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
-                    refKind = RefKind.None;
-                    scope = ScopedKind.None;
-                }
+                var type = hasExplicitlyTypedParameterList
+                    ? unboundLambda.ParameterTypeWithAnnotations(p)
+                    : p < numDelegateParameters
+                        ? parameterTypes[p]
+                        : TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
 
                 var attributeLists = unboundLambda.ParameterAttributes(p);
                 var name = unboundLambda.ParameterName(p);
