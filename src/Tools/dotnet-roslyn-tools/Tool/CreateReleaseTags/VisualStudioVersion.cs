@@ -4,7 +4,7 @@
 
 namespace Microsoft.RoslynTools.CreateReleaseTags;
 
-public struct VisualStudioVersion(string mainVersion, string? previewVersion, string commitSha, DateTime creationTime, string buildId)
+public readonly struct VisualStudioVersion(string mainVersion, string? previewVersion, string commitSha, DateTime creationTime, string buildId)
 {
     public readonly string MainVersion = mainVersion;
     public readonly string? PreviewVersion = previewVersion;

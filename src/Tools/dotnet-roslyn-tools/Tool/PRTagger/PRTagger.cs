@@ -171,33 +171,6 @@ internal static class PRTagger
         return await TryCreateIssueAsync(remoteConnections.GitHubClient, issueTitle, gitHubRepoName, prDescription.ToString(), logger).ConfigureAwait(false);
     }
 
-    private static async Task<(string vsBuild, string vsCommit, string previousVsCommitSha)> GetVsBuildAndCommitAsync(
-        AzDOConnection devdivConnection,
-        ILogger logger,
-        string? vsbuild,
-        CancellationToken cancellationToken)
-    {
-        var builds = await devdivConnection.TryGetBuildsAsync(
-            "DD-CB-TestSignVS",
-            buildNumber: vsbuild,
-            logger: logger,
-            resultsFilter: BuildResult.Succeeded,
-            buildQueryOrder: BuildQueryOrder.FinishTimeDescending).ConfigureAwait(false);
-        if (builds is { Count: not 1 })
-        {
-            var build = builds.Single();
-            var vsRepository = await GetVSRepositoryAsync(devdivConnection.GitClient);
-            var vsCommit = await devdivConnection.GitClient.GetCommitAsync(
-                build.SourceVersion, vsRepository.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var previousVsCommitSha = vsCommit.Parents.First();
-            return (build.BuildNumber, build.SourceVersion, previousVsCommitSha);
-        }
-        else
-        {
-            throw new ArgumentException($"Can't find {vsbuild} number in pipeline.");
-        }
-    }
-
     private static async Task<ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)>> GetVsBuildCommitShaAsync(
         AzDOConnection devdivConnection,
         ImmutableArray<Build> builds,
@@ -312,15 +285,15 @@ internal static class PRTagger
         HttpClient client,
         string title,
         string gitHubRepoName,
-        string issueBody,
+        string body,
         ILogger logger)
     {
         // https://docs.github.com/en/rest/issues/issues#create-an-issue
         var response = await client.PostAsyncAsJson($"repos/dotnet/{gitHubRepoName}/issues", JsonConvert.SerializeObject(
             new
             {
-                title = title,
-                body = issueBody,
+                title,
+                body,
                 labels = new string[] { InsertionLabel }
             }));
 

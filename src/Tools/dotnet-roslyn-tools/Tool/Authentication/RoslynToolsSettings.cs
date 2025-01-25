@@ -18,7 +18,7 @@ internal class RoslynToolsSettings
     public IAzureDevOpsTokenProvider GetDevDivAzDOTokenProvider() => GetAzdoTokenProvider(DevDivAzureDevOpsToken);
     public IAzureDevOpsTokenProvider GetDncEngAzDOTokenProvider() => GetAzdoTokenProvider(DncEngAzureDevOpsToken);
 
-    private IAzureDevOpsTokenProvider GetAzdoTokenProvider(string token)
+    private AzureDevOpsTokenProvider GetAzdoTokenProvider(string token)
     {
         var azdoOptions = new AzureDevOpsTokenProviderOptions
         {

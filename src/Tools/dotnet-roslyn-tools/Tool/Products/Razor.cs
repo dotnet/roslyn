@@ -21,7 +21,7 @@ internal class Razor : IProduct
     public string? PackagePropsFileName => null;
     public string? DartLabPipelineName => null;
     public string? ArtifactsFolderName => null;
-    public string[] ArtifactsSubFolderNames => Array.Empty<string>();
+    public string[] ArtifactsSubFolderNames => [];
 
     public string? GetBuildPipelineName(string buildProjectName)
         => buildProjectName switch

@@ -142,7 +142,7 @@ internal class NuGetPublish
                 return false;
             }
 
-            version = Path.GetFileNameWithoutExtension(packageFileName).Substring(32);
+            version = Path.GetFileNameWithoutExtension(packageFileName)[32..];
             return true;
         }
 
@@ -155,7 +155,7 @@ internal class NuGetPublish
                 return false;
             }
 
-            version = Path.GetFileNameWithoutExtension(packageFileName).Substring(40);
+            version = Path.GetFileNameWithoutExtension(packageFileName)[40..];
             return true;
         }
 

@@ -184,7 +184,7 @@ internal static partial class CreateReleaseTags
             }
 
             var urlSegments = new Uri(parts[0]).Segments;
-            var branchName = string.Join("", urlSegments.SkipWhile(segment => !segment.EndsWith("roslyn/")).Skip(1).TakeWhile(segment => segment.EndsWith("/"))).TrimEnd('/');
+            var branchName = string.Join("", urlSegments.SkipWhile(segment => !segment.EndsWith("roslyn/")).Skip(1).TakeWhile(segment => segment.EndsWith('/'))).TrimEnd('/');
 
             return branchName;
         }
@@ -268,7 +268,7 @@ internal static partial class CreateReleaseTags
                 continue;
             }
 
-            var parts = tag.Name.Substring(TagPrefix.Length).Split('-');
+            var parts = tag.Name[TagPrefix.Length..].Split('-');
 
             if (parts.Length != 1 && parts.Length != 2)
             {
@@ -309,14 +309,14 @@ internal static partial class CreateReleaseTags
 
             if (parts.Length == 2)
             {
-                const string previewPrefix = "preview.";
+                const string PreviewPrefix = "preview.";
 
-                if (!parts[1].StartsWith(previewPrefix))
+                if (!parts[1].StartsWith(PreviewPrefix))
                 {
                     continue;
                 }
 
-                var possiblePreviewVersion = parts[1].Substring(previewPrefix.Length);
+                var possiblePreviewVersion = parts[1][PreviewPrefix.Length..];
 
                 if (!IsDottedVersion().IsMatch(possiblePreviewVersion))
                 {

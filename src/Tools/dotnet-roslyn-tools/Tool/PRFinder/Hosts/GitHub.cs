@@ -139,7 +139,7 @@ public partial class GitHub : IRepositoryHost
 
     private class LoggingHandler(ILogger logger) : DelegatingHandler(new HttpClientHandler())
     {
-        private ILogger _logger = logger;
+        private readonly ILogger _logger = logger;
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -147,7 +147,7 @@ public partial class GitHub : IRepositoryHost
             _logger.LogTrace("{Request}", request.RequestUri?.ToString() ?? request.ToString());
             if (request.Content != null)
             {
-                _logger.LogTrace("{Content}", await request.Content.ReadAsStringAsync());
+                _logger.LogTrace("{Content}", await request.Content.ReadAsStringAsync(cancellationToken));
             }
 
             _logger.LogTrace("");
@@ -158,7 +158,7 @@ public partial class GitHub : IRepositoryHost
             _logger.LogTrace("{Repsonse}", response.ToString());
             if (response.Content != null)
             {
-                _logger.LogTrace("{Content}", await response.Content.ReadAsStringAsync());
+                _logger.LogTrace("{Content}", await response.Content.ReadAsStringAsync(cancellationToken));
             }
 
             _logger.LogTrace("");

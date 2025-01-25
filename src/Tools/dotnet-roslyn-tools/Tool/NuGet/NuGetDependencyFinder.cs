@@ -77,12 +77,8 @@ internal static partial class NuGetDependencyFinder
                         : DependencyResult.ReleasePackageAvailable;
                 }
 
-                var list = dependencies.ContainsKey(result)
-                    ? dependencies[result]
-                    : [];
-
+                var list = dependencies.TryGetValue(result, out var value) ? value : [];
                 list.Add((dependency, desiredVersion));
-
                 dependencies[result] = list;
             }
 

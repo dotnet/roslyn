@@ -11,7 +11,7 @@ internal class NuGetPrepare
 {
     private const string NotPublishedDirectoryName = "NotPublished";
 
-    private static readonly string[] RoslynPackageIds =
+    internal static readonly string[] RoslynPackageIds =
         [
             "Microsoft.CodeAnalysis",
             "Microsoft.CodeAnalysis.Common",
@@ -93,7 +93,7 @@ internal class NuGetPrepare
                 return false;
             }
 
-            version = Path.GetFileNameWithoutExtension(packageFileName).Substring(32);
+            version = Path.GetFileNameWithoutExtension(packageFileName)[32..];
             return true;
         }
 

@@ -57,30 +57,25 @@ internal static class VisualStudioRepository
 
         var defaultConfig = XDocument.Parse(fileContents);
 
-        var packageVersion = defaultConfig.Root?.Descendants("package").Where(p => p.Attribute("id")?.Value == packageName).Select(p => p.Attribute("version")?.Value).FirstOrDefault();
+        var packageVersion = defaultConfig.Root?.Descendants("package")
+            .Where(p => p.Attribute("id")?.Value == packageName)
+            .Select(p => p.Attribute("version")?.Value)
+            .FirstOrDefault();
 
-        if (packageVersion is null)
-        {
-            throw new Exception($"Couldn't find the {packageName} package for branch: {gitVersion}");
-        }
-
-        return packageVersion;
+        return packageVersion is not null
+            ? packageVersion
+            : throw new Exception($"Couldn't find the {packageName} package for branch: {gitVersion}");
     }
 
     public static async Task<string> GetPackageVersionFromRoslynPropsAsync(string gitVersion, GitVersionType versionType, AzDOConnection devdiv, string packageName, string propsFileName)
     {
         var fileContents = await GetFileContentsAsync(gitVersion, versionType, devdiv, propsFileName);
-
         var defaultConfig = XDocument.Parse(fileContents);
-
         var packageVersion = defaultConfig.Root?.Descendants("RoslynVersion").SingleOrDefault()?.Value;
 
-        if (packageVersion is null)
-        {
-            throw new Exception($"Couldn't find the {packageName} package for branch: {gitVersion}");
-        }
-
-        return packageVersion;
+        return packageVersion is not null
+            ? packageVersion
+            : throw new Exception($"Couldn't find the {packageName} package for branch: {gitVersion}");
     }
 
     public static async Task<string> GetFileContentsAsync(string gitVersion, GitVersionType versionType, AzDOConnection devdiv, string jsonFile)

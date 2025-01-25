@@ -173,7 +173,7 @@ internal class PRFinder
                 }
 
                 var fullSHA = commit.Sha;
-                var shortSHA = fullSHA.Substring(0, 7);
+                var shortSHA = fullSHA[..7];
 
                 prLink = formatter.FormatCommitListItem(commit.MessageShort, shortSHA, host.GetCommitUrl(fullSHA));
             }
