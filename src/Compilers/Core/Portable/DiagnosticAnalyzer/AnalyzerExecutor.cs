@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzer,
                 declaredNode,
                 declaredSymbol,
-                operationBlocks: ImmutableArray<IOperation>.Empty,
+                operationBlocks: [],
                 semanticModel,
                 filterSpan,
                 isGeneratedCode,
