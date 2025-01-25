@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed class ImplementNotImplementedExceptionDiagnosticAnalyzer()
     : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
-        IDEDiagnosticIds.ImplementNotImplementedExceptionDiagnosticAnalyzer,
-        EnforceOnBuildValues.ImplementNotImplementedException,
+        IDEDiagnosticIds.CopilotImplementNotImplementedExceptionDiagnosticId,
+        EnforceOnBuildValues.CopilotImplementNotImplementedException,
         option: null,
         new LocalizableResourceString(
             nameof(CSharpAnalyzersResources.Implement_with_Copilot), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
