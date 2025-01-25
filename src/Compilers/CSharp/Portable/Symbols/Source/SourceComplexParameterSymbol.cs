@@ -1605,24 +1605,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            MethodSymbol? reportAsLessVisible = null;
-
-                            foreach (var addMethod in addMethods)
+                            if (!anyAtLeastAsVisible(syntax, binder, addMethods, diagnostics))
                             {
-                                if (isAtLeastAsVisible(syntax, binder, addMethod, diagnostics))
-                                {
-                                    reportAsLessVisible = null;
-                                    break;
-                                }
-                                else
-                                {
-                                    reportAsLessVisible ??= addMethod;
-                                }
-                            }
-
-                            if (reportAsLessVisible is not null)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, syntax, reportAsLessVisible, ContainingSymbol);
+                                diagnostics.Add(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, syntax, addMethods[0], ContainingSymbol);
                             }
                         }
                         break;
@@ -1660,6 +1645,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, ParameterSyntax);
                 }
+            }
+
+            bool anyAtLeastAsVisible(ParameterSyntax syntax, Binder binder, ImmutableArray<MethodSymbol> methods, BindingDiagnosticBag diagnostics)
+            {
+                foreach (var method in methods)
+                {
+                    if (isAtLeastAsVisible(syntax, binder, method, diagnostics))
+                    {
+                        return true;
+                    }
+                }
+                return false;
             }
 
             bool isAtLeastAsVisible(ParameterSyntax syntax, Binder binder, MethodSymbol method, BindingDiagnosticBag diagnostics)

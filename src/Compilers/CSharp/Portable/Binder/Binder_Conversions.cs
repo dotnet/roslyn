@@ -834,7 +834,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax, targetType);
             }
 
-            MethodSymbol? collectionBuilderMethod = null;
+            var elements = node.Elements;
+            ImmutableArray<MethodSymbol> collectionBuilderCandidates;
             BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
             BoundExpression? collectionBuilderInvocationConversion = null;
 
@@ -854,10 +855,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var namedType = (NamedTypeSymbol)targetType;
 
-                        collectionBuilderMethod = GetAndValidateCollectionBuilderMethod(syntax, namedType, diagnostics, out var updatedElementType);
-                        if (collectionBuilderMethod is null)
+                        if (!GetAndValidateCollectionBuilderMethod(syntax, namedType, diagnostics, out var updatedElementType, out collectionBuilderCandidates))
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
+                        }
+
+                        // Bind any collection arguments.
+                        BoundExpression? collectionWithArgumentsCreation = null;
+                        foreach (var element in elements)
+                        {
+                            if (element is BoundUnconvertedCollectionArguments collectionArguments)
+                            {
+                                var analyzedArguments = AnalyzedArguments.GetInstance();
+                                collectionArguments.GetArguments(analyzedArguments);
+                                var withArguments = BindCollectionExpressionConstructor(syntax, targetType, constructor: null, analyzedArguments, diagnostics);
+                                analyzedArguments.Free();
+                                collectionWithArgumentsCreation ??= withArguments;
+                            }
+                        }
+
+                        if (collectionWithArgumentsCreation is null)
+                        {
+
                         }
 
                         elementType = updatedElementType;
@@ -879,7 +898,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            var elements = node.Elements;
             var builder = ArrayBuilder<BoundNode>.GetInstance(elements.Length);
             BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
@@ -1188,11 +1206,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal MethodSymbol? GetAndValidateCollectionBuilderMethod(
+        internal bool GetAndValidateCollectionBuilderMethods(
             SyntaxNode syntax,
             NamedTypeSymbol namedType,
             BindingDiagnosticBag diagnostics,
-            out TypeSymbol? elementType)
+            out TypeSymbol? elementType,
+            out ImmutableArray<MethodSymbol> candidates)
         {
             MethodSymbol? collectionBuilderMethod;
             bool result = namedType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
@@ -1203,17 +1222,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(result);
 
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            Conversion collectionBuilderReturnTypeConversion;
-            collectionBuilderMethod = GetCollectionBuilderMethod(namedType, elementTypeOriginalDefinition.Type, builderType, methodName, ref useSiteInfo, out collectionBuilderReturnTypeConversion);
+            collectionBuilderMethod = GetCollectionBuilderMethod(namedType, elementTypeOriginalDefinition.Type, builderType, methodName, ref useSiteInfo);
             diagnostics.Add(syntax, useSiteInfo);
             if (collectionBuilderMethod is null)
             {
                 diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition, targetTypeOriginalDefinition);
                 elementType = null;
-                return null;
+                candidates = [];
+                return false;
             }
-
-            Debug.Assert(collectionBuilderReturnTypeConversion.Exists);
 
             ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
 
@@ -1229,7 +1246,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
 
-            return collectionBuilderMethod;
+            candidates = [collectionBuilderMethod];
+            return true;
         }
 
         internal BoundExpression BindCollectionExpressionConstructor(
@@ -2048,11 +2066,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol elementTypeOriginalDefinition,
             TypeSymbol? builderType,
             string? methodName,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            out Conversion returnTypeConversion)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            returnTypeConversion = default;
-
             if (!SourceNamedTypeSymbol.IsValidCollectionBuilderType(builderType))
             {
                 return null;
@@ -2112,6 +2127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
+                // PROTOTYPE: Should the return type check be made after overload resolution, rather than as part of the conversion?
                 conversion = Conversions.ClassifyImplicitConversionFromType(methodWithTargetTypeParameters.ReturnType, targetType.OriginalDefinition, ref candidateUseSiteInfo);
                 switch (conversion.Kind)
                 {
@@ -2124,7 +2140,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 useSiteInfo.AddDiagnostics(candidateUseSiteInfo.Diagnostics);
-                returnTypeConversion = conversion;
                 return method;
             }
 
