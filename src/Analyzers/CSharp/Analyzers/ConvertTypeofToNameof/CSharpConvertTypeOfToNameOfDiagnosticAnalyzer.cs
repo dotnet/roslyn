@@ -19,9 +19,6 @@ internal sealed class CSharpConvertTypeOfToNameOfDiagnosticAnalyzer()
 {
     private static readonly string s_title = CSharpAnalyzersResources.typeof_can_be_converted_to_nameof;
 
-    protected override bool SupportsUnboundGenerics(ParseOptions options)
-        => options.LanguageVersion().IsCSharp14OrAbove();
-
     protected override bool IsValidTypeofAction(OperationAnalysisContext context)
     {
         var node = context.Operation.Syntax;

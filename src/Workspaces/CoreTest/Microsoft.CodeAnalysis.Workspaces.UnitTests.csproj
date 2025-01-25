@@ -3,7 +3,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
+    <!-- Test our primary scenarios: VS OOP, VS Code, devenv -->
+    <TargetFrameworks>$(NetVSShared);net472</TargetFrameworks>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
