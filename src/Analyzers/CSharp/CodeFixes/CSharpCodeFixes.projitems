@@ -66,6 +66,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\CSharpImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\CSharpImplementInterfaceCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\CSharpImplementInterfaceService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)implementnotimplementedexceptiondiagnostic\CSharpImplementNotImplementedExceptionDiagnosticCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\CSharpAddYieldCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\CSharpChangeToIEnumerableCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeAnonymousFunctionStatic\CSharpMakeAnonymousFunctionStaticCodeFixProvider.cs" />
@@ -186,6 +187,7 @@
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)ImplementNotImplementedExceptionDiagnostic\" />
     <Folder Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\" />
   </ItemGroup>
 </Project>

@@ -228,4 +228,6 @@ internal static class IDEDiagnosticIds
     public const string ConstructorInitializerPlacementDiagnosticId = "IDE2004";
     public const string ConditionalExpressionPlacementDiagnosticId = "IDE2005";
     public const string ArrowExpressionClausePlacementDiagnosticId = "IDE2006";
+
+    public const string ImplementNotImplementedExceptionDiagnosticAnalyzer = "IDE2007";
 }
