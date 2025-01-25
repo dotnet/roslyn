@@ -1231,7 +1231,6 @@ class C
                 SyntaxKind.ExtensionKeyword,
                 SyntaxKind.ParameterList,
                 SyntaxKind.Parameter,
-                SyntaxKind.Parameter,
                 SyntaxKind.IdentifierToken);
 
             UsingTree(newTree);

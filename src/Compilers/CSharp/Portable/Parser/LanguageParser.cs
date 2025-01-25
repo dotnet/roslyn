@@ -4729,7 +4729,7 @@ parse_member_name:;
             // We can only reuse parameters without identifiers (found in extension declarations) in context that allow optional identifiers.
             // The reverse is fine though.  Normal parameters (from non extensions) can be re-used into an extension declaration
             // as all normal parameters are legal extension parameters.
-            if (parameter.Identifier.Kind() == SyntaxKind.None)
+            if (!allowOptionalIdentifier && parameter.Identifier.Kind() == SyntaxKind.None)
             {
                 return false;
             }
