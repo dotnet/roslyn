@@ -9,17 +9,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.RoslynTools.Authentication.PopUps;
 
-internal class UxManager
+internal class UxManager(string gitLocation, ILogger logger)
 {
-    private readonly string _editorPath;
-    private readonly ILogger _logger;
+    private readonly string _editorPath = LocalHelpers.GetEditorPath(gitLocation, logger);
+    private readonly ILogger _logger = logger;
     private bool _popUpClosed = false;
-
-    public UxManager(string gitLocation, ILogger logger)
-    {
-        _editorPath = LocalHelpers.GetEditorPath(gitLocation, logger);
-        _logger = logger;
-    }
 
     /// <summary>
     ///     Rather than popping up the window, read the result of the popup from

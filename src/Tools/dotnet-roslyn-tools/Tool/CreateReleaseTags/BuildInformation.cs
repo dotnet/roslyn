@@ -4,16 +4,9 @@
 
 namespace Microsoft.RoslynTools.CreateReleaseTags;
 
-internal sealed class BuildInformation
+internal sealed class BuildInformation(string commitSha, string sourceBranch, string buildId)
 {
-    public readonly string CommitSha;
-    public readonly string SourceBranch;
-    public readonly string BuildId;
-
-    public BuildInformation(string commitSha, string sourceBranch, string buildId)
-    {
-        CommitSha = commitSha;
-        SourceBranch = sourceBranch;
-        BuildId = buildId;
-    }
+    public readonly string CommitSha = commitSha;
+    public readonly string SourceBranch = sourceBranch;
+    public readonly string BuildId = buildId;
 }

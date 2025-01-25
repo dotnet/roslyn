@@ -140,15 +140,9 @@ public class GitHub : IRepositoryHost
         public string Body { get; set; } = "";
     }
 
-    private class LoggingHandler : DelegatingHandler
+    private class LoggingHandler(ILogger logger) : DelegatingHandler(new HttpClientHandler())
     {
-        private ILogger _logger;
-
-        public LoggingHandler(ILogger logger)
-            : base(new HttpClientHandler())
-        {
-            _logger = logger;
-        }
+        private ILogger _logger = logger;
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {

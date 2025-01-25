@@ -6,19 +6,13 @@ using Newtonsoft.Json;
 
 namespace Microsoft.RoslynTools.Authentication.PopUps;
 
-internal abstract class EditorPopUp
+internal abstract class EditorPopUp(string path, IList<Line>? contents = null)
 {
-    public EditorPopUp(string path, IList<Line>? contents = null)
-    {
-        Path = path;
-        Contents = contents ?? [];
-    }
+    [JsonIgnore]
+    public string Path { get; set; } = path;
 
     [JsonIgnore]
-    public string Path { get; set; }
-
-    [JsonIgnore]
-    public IList<Line> Contents { get; set; }
+    public IList<Line> Contents { get; set; } = contents ?? [];
 
     public static IList<Line> OnClose(string path)
     {

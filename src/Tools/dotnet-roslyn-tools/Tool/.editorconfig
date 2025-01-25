@@ -240,6 +240,9 @@ csharp_space_between_square_brackets = false
 csharp_style_namespace_declarations = file_scoped
 dotnet_diagnostic.IDE0161.severity = warning
 
+csharp_style_prefer_primary_constructors = true
+dotnet_diagnostic.IDE0290.severity = warning
+
 # IDE0011: Add braces
 csharp_prefer_braces = when_multiline:warning
 # NOTE: We need the below severity entry for Add Braces due to https://github.com/dotnet/roslyn/issues/44201
