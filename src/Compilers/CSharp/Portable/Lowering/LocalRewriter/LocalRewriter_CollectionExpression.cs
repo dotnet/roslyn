@@ -489,31 +489,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_factory.ModuleBuilderOpt is { });
             Debug.Assert(_diagnostics.DiagnosticBag is { });
             Debug.Assert(node.Type is NamedTypeSymbol);
+            Debug.Assert(node.CollectionCreation is null);
             Debug.Assert(node.Placeholder is null);
 
-            var targetType = (NamedTypeSymbol)node.Type;
+            var collectionType = (NamedTypeSymbol)node.Type;
+            var typeArguments = collectionType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             var elements = node.Elements;
-
-            BoundExpression rewrittenReceiver;
-            if (node.CollectionCreation is { } receiver)
-            {
-                rewrittenReceiver = VisitExpression(receiver);
-            }
-            else
-            {
-                // PROTOTYPE: Should we always use overload resolution in binding to generate the
-                // object creation expression, rather than only when 'with()' is supplied?
-
-                // Dictionary<K, V> dictionary = new();
-                var typeArguments = targetType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-                var collectionType = _factory.WellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV).Construct(typeArguments);
-                var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor)).AsMember(collectionType);
-                rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
-            }
-
             // PROTOTYPE: Create a custom interface implementation for IReadOnlyDictionary<K, V> to enforce immutability?
-            var collection = CreateAndPopulateDictionary(node, rewrittenReceiver, elements);
-            return _factory.Convert(targetType, collection);
+            var collection = CreateAndPopulateDictionary(node, typeArguments, elements);
+            return _factory.Convert(collectionType, collection);
         }
 
         private BoundExpression VisitCollectionBuilderCollectionExpression(BoundCollectionExpression node)
@@ -1256,16 +1240,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Create and populate a dictionary from a collection expression.
         /// The collection may or may not have a known length.
         /// </summary>
-        private BoundExpression CreateAndPopulateDictionary(
-            BoundCollectionExpression node,
-            BoundExpression rewrittenReceiver,
-            ImmutableArray<BoundNode> elements)
+        private BoundExpression CreateAndPopulateDictionary(BoundCollectionExpression node, ImmutableArray<TypeWithAnnotations> typeArguments, ImmutableArray<BoundNode> elements)
         {
             Debug.Assert(!_inExpressionLambda);
-            Debug.Assert(rewrittenReceiver.Type is { });
+
+            var collectionType = _factory.WellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV).Construct(typeArguments);
 
             var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
+
+            // Dictionary<K, V> dictionary = new();
+            var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor)).AsMember(collectionType);
+            BoundObjectCreationExpression rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
 
             // Create a temp for the dictionary.
             BoundAssignmentOperator assignmentToTemp;
@@ -1273,7 +1259,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             localsBuilder.Add(dictionaryTemp);
             sideEffects.Add(assignmentToTemp);
 
-            var collectionType = (NamedTypeSymbol)rewrittenReceiver.Type;
             var setItemMethod = _factory.WellKnownMethod(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item).AsMember(collectionType);
             for (int i = 0; i < elements.Length; i++)
             {

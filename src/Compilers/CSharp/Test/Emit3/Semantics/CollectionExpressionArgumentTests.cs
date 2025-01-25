@@ -539,17 +539,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Remove support for dictionary interfaces for now.
             comp.VerifyEmitDiagnostics(
-                // (7,14): error CS0121: The call is ambiguous between the following methods or properties: 'Dictionary<TKey, TValue>.Dictionary(IDictionary<TKey, TValue>)' and 'Dictionary<TKey, TValue>.Dictionary(IEqualityComparer<TKey>)'
+                // (7,14): error CS9276: Collection arguments are not supported for type 'IDictionary<K, V>'.
                 //         i = [with(default), k:v];
-                Diagnostic(ErrorCode.ERR_AmbigCall, "with(default)").WithArguments("System.Collections.Generic.Dictionary<TKey, TValue>.Dictionary(System.Collections.Generic.IDictionary<TKey, TValue>)", "System.Collections.Generic.Dictionary<TKey, TValue>.Dictionary(System.Collections.Generic.IEqualityComparer<TKey>)").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<K, V>").WithLocation(7, 14),
                 // (8,19): error CS9275: Collection argument element must be the first element.
                 //         i = [k:v, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 19),
-                // (8,19): error CS0121: The call is ambiguous between the following methods or properties: 'Dictionary<TKey, TValue>.Dictionary(IDictionary<TKey, TValue>)' and 'Dictionary<TKey, TValue>.Dictionary(IEqualityComparer<TKey>)'
+                // (8,19): error CS9276: Collection arguments are not supported for type 'IDictionary<K, V>'.
                 //         i = [k:v, with(default)];
-                Diagnostic(ErrorCode.ERR_AmbigCall, "with(default)").WithArguments("System.Collections.Generic.Dictionary<TKey, TValue>.Dictionary(System.Collections.Generic.IDictionary<TKey, TValue>)", "System.Collections.Generic.Dictionary<TKey, TValue>.Dictionary(System.Collections.Generic.IEqualityComparer<TKey>)").WithLocation(8, 19));
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<K, V>").WithLocation(8, 19));
         }
 
         [Fact]

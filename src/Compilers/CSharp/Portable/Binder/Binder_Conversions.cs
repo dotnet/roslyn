@@ -1010,8 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundUnconvertedCollectionArguments collectionArguments:
                             if (collectionArguments.Arguments.Length > 0)
                             {
-                                var creationExpression = BindCollectionArguments(targetType, collectionTypeKind, collectionArguments, diagnostics);
-                                collectionCreation ??= creationExpression;
+                                diagnostics.Add(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, ((WithElementSyntax)collectionArguments.Syntax).WithKeyword, targetType);
                             }
                             continue;
                         case BoundCollectionExpressionSpreadElement spreadElement:
@@ -1111,63 +1110,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics);
                 return element.Update(convertedKey, convertedValue);
             }
-        }
-
-        private BoundExpression? BindCollectionArguments(
-            TypeSymbol targetType,
-            CollectionExpressionTypeKind collectionTypeKind,
-            BoundUnconvertedCollectionArguments collectionArguments,
-            BindingDiagnosticBag diagnostics)
-        {
-            var syntax = (WithElementSyntax)collectionArguments.Syntax;
-
-            // PROTOTYPE: Are we currently getting here for dictionary interfaces?
-            if (collectionTypeKind != CollectionExpressionTypeKind.DictionaryInterface)
-            {
-                diagnostics.Add(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, syntax.WithKeyword, targetType);
-                return null;
-            }
-
-            var type = GetWellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV, diagnostics, syntax).
-                                    Construct(((NamedTypeSymbol)targetType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
-            var analyzedArguments = AnalyzedArguments.GetInstance();
-
-            try
-            {
-                collectionArguments.GetArguments(analyzedArguments);
-
-                if (TryPerformConstructorOverloadResolution(
-                        type,
-                        analyzedArguments,
-                        errorName: null, // PROTOTYPE: What is errorName?
-                        syntax.Location,
-                        suppressResultDiagnostics: false,
-                        diagnostics,
-                        out MemberResolutionResult<MethodSymbol> memberResolutionResult,
-                        out ImmutableArray<MethodSymbol> candidateConstructors,
-                        allowProtectedConstructorsOfBaseType: false,
-                        out CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo) &&
-                    !type.IsAbstract)
-                {
-                    return BindClassCreationExpressionContinued(
-                        syntax,
-                        typeNode: syntax,
-                        type, analyzedArguments,
-                        initializerSyntaxOpt: null,
-                        initializerTypeOpt: null,
-                        wasTargetTyped: true,
-                        memberResolutionResult,
-                        candidateConstructors,
-                        in overloadResolutionUseSiteInfo,
-                        diagnostics);
-                }
-            }
-            finally
-            {
-                analyzedArguments.Free();
-            }
-
-            return null; // PROTOTYPE: What does BindClassCreationExpression() return when overload resolution fails?
         }
 
         private bool HasCollectionInitializerTypeInProgress(SyntaxNode syntax, TypeSymbol targetType)
