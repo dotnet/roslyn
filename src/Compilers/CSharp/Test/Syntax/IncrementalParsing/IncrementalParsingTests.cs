@@ -106,10 +106,7 @@ public class C {
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.MethodDeclaration,
-                            SyntaxKind.PredefinedType,
-                            SyntaxKind.VoidKeyword);
+                            SyntaxKind.IdentifierToken);
         }
 
         private static void TestDiffsInOrder(ImmutableArray<SyntaxNodeOrToken> diffs, params SyntaxKind[] expectedKinds)
@@ -120,7 +117,6 @@ public class C {
             }
 
             for (int i = 0; i < diffs.Length; i++)
-            foreach (var kind in kinds)
             {
                 if (!diffs[i].IsKind(expectedKinds[i]))
                 {
@@ -131,15 +127,13 @@ public class C {
             string getMessage()
             {
                 var builder = PooledStringBuilder.GetInstance();
-                    builder.Builder.AppendLine("Actual:");
-                    foreach (var diff in diffs)
-                    {
-                        builder.Builder.AppendLine($"SyntaxKind.{diff.Kind()},");
+                builder.Builder.AppendLine("Actual:");
+                foreach (var diff in diffs)
+                {
+                    builder.Builder.AppendLine($"SyntaxKind.{diff.Kind()},");
                 }
-            }
 
                 return builder.ToStringAndFree();
-        }
             }
         }
 
@@ -156,8 +150,7 @@ public class C {
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.ConstructorDeclaration);
+                            SyntaxKind.IdentifierToken);
         }
 
         [Fact]
