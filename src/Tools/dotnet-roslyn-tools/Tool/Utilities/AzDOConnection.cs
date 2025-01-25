@@ -60,7 +60,7 @@ internal sealed class AzDOConnection : IDisposable
         }
         catch (VssUnauthorizedException ex)
         {
-            logger?.LogError($"Authorization exception while retrieving builds: {ex}");
+            logger?.LogError(ex, "Authorization exception while retrieving builds: {Message}", ex.Message);
             return null;
         }
         catch
@@ -78,11 +78,11 @@ internal sealed class AzDOConnection : IDisposable
             var repositoryField = runPipelineParams.Resources.GetType().GetField("m_repositories", BindingFlags.NonPublic | BindingFlags.Instance);
             repositoryField?.SetValue(runPipelineParams.Resources, repositoryParams);
             var run = await PipelinesHttpClient.RunPipelineAsync(runPipelineParams, BuildProjectName, buildDefinition.Id);
-            logger.LogInformation($"Pipeline running at: {((ReferenceLink)run.Links.Links["web"]).Href}");
+            logger.LogInformation("Pipeline running at: {Href}", ((ReferenceLink)run.Links.Links["web"]).Href);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error running pipeline: {ex.Message}");
+            logger.LogError(ex, "Error running pipeline: {Message}", ex.Message);
         }
     }
 

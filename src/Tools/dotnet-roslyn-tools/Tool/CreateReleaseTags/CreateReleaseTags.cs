@@ -32,7 +32,7 @@ internal static partial class CreateReleaseTags
 
             var connections = new[] { dncengConnection, devdivConnection };
 
-            logger.LogInformation($"Opening {product.Name} repo and gathering tags...");
+            logger.LogInformation("Opening {ProductName} repo and gathering tags...", product.Name);
 
             var repository = new Repository(Environment.CurrentDirectory);
             var existingTags = repository.Tags.ToImmutableArray();
@@ -42,7 +42,7 @@ internal static partial class CreateReleaseTags
                     r.Url.Equals(product.RepoSshBaseUrl, StringComparison.OrdinalIgnoreCase) ||
                     r.Url.Equals(product.RepoHttpBaseUrl + ".git", StringComparison.OrdinalIgnoreCase)))
             {
-                logger.LogError($"Repo does not appear to be the {product.Name} repo. Please fetch tags if tags are not already fetched and try again.");
+                logger.LogError("Repo does not appear to be the {ProductName} repo. Please fetch tags if tags are not already fetched and try again.", product.Name);
                 return 1;
             }
 
@@ -60,7 +60,7 @@ internal static partial class CreateReleaseTags
                 {
                     if (!existingTags.Any(t => t.FriendlyName == tagName))
                     {
-                        logger.LogInformation($"Tag '{tagName}' is missing.");
+                        logger.LogInformation("Tag '{TagName}' is missing.", tagName);
 
                         BuildInformation? build = null;
                         foreach (var connection in connections)
@@ -75,7 +75,7 @@ internal static partial class CreateReleaseTags
 
                         if (build is not null)
                         {
-                            logger.LogInformation($"Tagging {build.CommitSha} as '{tagName}'.");
+                            logger.LogInformation("Tagging {CommitSha} as '{TagName}'.", build.CommitSha, tagName);
 
                             var message = $"Build Branch: {build.SourceBranch}\r\nInternal ID: {build.BuildId}\r\nInternal VS ID: {visualStudioRelease.BuildId}";
 
@@ -85,17 +85,17 @@ internal static partial class CreateReleaseTags
                             }
                             catch (Exception ex)
                             {
-                                logger.LogWarning(ex, $"Unable to tag the commit '{build.CommitSha}' with '{tagName}'.");
+                                logger.LogWarning(ex, "Unable to tag the commit '{CommitSha}' with '{TagName}'.", build.CommitSha, tagName);
                             }
                         }
                         else
                         {
-                            logger.LogWarning($"Unable to find the build for '{tagName}'.");
+                            logger.LogWarning("Unable to find the build for '{TagName}'.", tagName);
                         }
                     }
                     else
                     {
-                        logger.LogInformation($"Tag '{tagName}' already exists.");
+                        logger.LogInformation("Tag '{TagName}' already exists.", tagName);
                     }
                 }
             }

@@ -142,7 +142,7 @@ internal static partial class NuGetDependencyFinder
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
+            logger.LogError(ex, "{Message}", ex.Message);
             return 1;
         }
 

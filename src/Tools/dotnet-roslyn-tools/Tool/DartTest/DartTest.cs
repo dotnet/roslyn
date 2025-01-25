@@ -67,7 +67,7 @@ internal static class DartTest
         }
         catch (Exception e)
         {
-            logger.LogError(e, e.Message);
+            logger.LogError(e, "{Message}", e.Message);
             return -1;
         }
         finally
@@ -90,7 +90,7 @@ internal static class DartTest
         }
         else
         {
-            logger.LogError($"Failed to retrieve PR data from GitHub. Status code: {response.StatusCode}");
+            logger.LogError("Failed to retrieve PR data from GitHub. Status code: {StatusCode}", response.StatusCode);
         }
 
         return null;
@@ -124,7 +124,7 @@ internal static class DartTest
 
     private static async Task RunGitCommandAsync(string command, ILogger logger, string workingDirectory, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Running command: {command}");
+        logger.LogInformation("Running command: {Command}", command);
         var processStartInfo = new ProcessStartInfo
         {
             FileName = "git",
@@ -159,13 +159,13 @@ internal static class DartTest
 
         if (process.ExitCode == 0)
         {
-            logger.LogInformation($"Command succeeded!");
-            logger.LogInformation(output);
+            logger.LogInformation("Command succeeded!");
+            logger.LogInformation("{Output}", output);
         }
         else
         {
-            logger.LogError($"Command failed!");
-            logger.LogError(error);
+            logger.LogError("Command failed!");
+            logger.LogError("{Error}", error);
         }
     }
 
@@ -210,7 +210,7 @@ internal static class DartTest
         }
         catch (Exception e)
         {
-            logger.LogError(e, e.Message);
+            logger.LogError(e, "{Message}", e.Message);
         }
     }
 }

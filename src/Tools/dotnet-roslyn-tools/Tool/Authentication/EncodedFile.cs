@@ -22,7 +22,7 @@ public static class EncodedFile
         }
         catch (Exception exc)
         {
-            logger.LogError(exc.Message);
+            logger.LogError(exc, "{Message}", exc.Message);
             return Constants.ErrorCode;
         }
     }

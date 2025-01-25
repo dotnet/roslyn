@@ -48,7 +48,7 @@ internal class NuGetPrepare
                 return 1;
             }
 
-            logger.LogInformation($"Moving {version} packages...");
+            logger.LogInformation("Moving {Version} packages...", version);
 
             var publishedPackages = RoslynPackageIds
                 .Select(packageId => $"{packageId}.{version}.nupkg")
@@ -78,7 +78,7 @@ internal class NuGetPrepare
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
+            logger.LogError(ex, "{Message}", ex.Message);
             return 1;
         }
 

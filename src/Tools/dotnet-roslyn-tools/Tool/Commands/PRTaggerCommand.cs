@@ -54,12 +54,12 @@ The checking build list is created:
             }
 
             var maxFetchingVSBuildNumber = context.ParseResult.GetValueForOption(MaxVsBuildCheckNumber);
-            logger.LogInformation($"Check {maxFetchingVSBuildNumber} VS Builds");
+            logger.LogInformation("Check {MaxFetchingVSBuildNumber} VS Builds", maxFetchingVSBuildNumber);
 
             var vsBuild = context.ParseResult.GetValueForOption(VSBuild);
             if (!string.IsNullOrEmpty(vsBuild))
             {
-                logger.LogInformation($"Check VS Build: {vsBuild}");
+                logger.LogInformation("Check VS Build: {VsBuild}", vsBuild);
             }
 
             using var remoteConnections = new RemoteConnections(settings);

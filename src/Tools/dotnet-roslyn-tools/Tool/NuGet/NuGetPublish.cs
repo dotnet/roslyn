@@ -99,7 +99,7 @@ internal class NuGetPublish
                 ? RoslynPackageIds
                 : RoslynSdkPackageIds;
 
-            logger.LogInformation($"Publishing {version} packages...");
+            logger.LogInformation("Publishing {version} packages...", version);
 
             var skipDuplicateFlag = skipDuplicate ? "--skip-duplicate" : "";
 
@@ -108,18 +108,18 @@ internal class NuGetPublish
                 var result = await PublishPackageAsync(packageId, version, skipDuplicateFlag);
                 if (result.ExitCode != 0)
                 {
-                    logger.LogError($"Failed to publish '{packageId}'");
+                    logger.LogError("Failed to publish '{PackageId}'", packageId);
                     throw new InvalidOperationException(result.Output);
                 }
                 else
                 {
-                    logger.LogInformation($"Package '{packageId}' published.");
+                    logger.LogInformation("Package '{PackageId}' published.", packageId);
                 }
 
                 if (unlisted)
                 {
                     await UnlistPackageAsync(packageId, version);
-                    logger.LogInformation($"Package '{packageId}' unlisted.");
+                    logger.LogInformation("Package '{PackageId}' unlisted.", packageId);
                 }
             }
 
@@ -127,7 +127,7 @@ internal class NuGetPublish
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
+            logger.LogError("{Message}", ex.Message);
             return 1;
         }
 

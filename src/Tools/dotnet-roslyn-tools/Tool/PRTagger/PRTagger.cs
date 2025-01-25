@@ -61,7 +61,7 @@ internal static class PRTagger
             // We currently only support creating issues for GitHub repos
             if (!product.IsGitHubRepo())
             {
-                logger.LogWarning($"Only GitHub repos are supported. Skipped repo: {product.Name}");
+                logger.LogWarning("Only GitHub repos are supported. Skipped repo: {ProductName}", product.Name);
                 continue;
             }
 
@@ -89,13 +89,13 @@ internal static class PRTagger
         IProduct product, string gitHubRepoName, ILogger logger, string vsCommitSha, string vsBuild, string previousVsCommitSha, RemoteConnections remoteConnections)
     {
         var connections = new[] { remoteConnections.DevDivConnection, remoteConnections.DncEngConnection };
-        logger.LogInformation($"GitHub repo: {gitHubRepoName}");
+        logger.LogInformation("GitHub repo: {GitHubRepoName}", gitHubRepoName);
 
         var issueTitle = $"[Automated] PRs inserted in VS build {vsBuild}";
         var hasIssueAlreadyCreated = await HasIssueAlreadyCreatedAsync(remoteConnections.GitHubClient, gitHubRepoName, issueTitle, logger).ConfigureAwait(false);
         if (hasIssueAlreadyCreated)
         {
-            logger.LogInformation($"Issue with name: {issueTitle} exists in repo: {gitHubRepoName}. Skip creation.");
+            logger.LogInformation("Issue with name: {IssueTitle} exists in repo: {GitHubRepoName}. Skip creation.", issueTitle, gitHubRepoName);
             return TagResult.IssueAlreadyCreated;
         }
 
@@ -105,20 +105,20 @@ internal static class PRTagger
 
         if (currentBuild is null)
         {
-            logger.LogError($"{gitHubRepoName} build not found for VS commit SHA {currentBuild}.");
+            logger.LogError("{GitHubRepoName} build not found for VS commit SHA {CurrentBuild}.", gitHubRepoName, currentBuild);
             return TagResult.Failed;
         }
 
         if (previousBuild is null)
         {
-            logger.LogError($"{gitHubRepoName} build not found for VS commit SHA {previousBuild}.");
+            logger.LogError("{GitHubRepoName} build not found for VS commit SHA {PreviousBuild}.", gitHubRepoName, previousBuild);
             return TagResult.Failed;
         }
 
         // If builds are the same, there are no PRs to tag
         if (currentBuild.Equals(previousBuild))
         {
-            logger.LogInformation($"No PRs found to tag; {gitHubRepoName} build numbers are equal: {currentBuild}.");
+            logger.LogInformation("No PRs found to tag; {GitHubRepoName} build numbers are equal: {CurrentBuild}.", gitHubRepoName, currentBuild);
             return TagResult.NoChangeBetweenVSBuilds;
         }
 
@@ -128,11 +128,11 @@ internal static class PRTagger
 
         if (previousProductCommitSha is null || currentProductCommitSha is null)
         {
-            logger.LogError($"Error retrieving {gitHubRepoName} commit SHAs.");
+            logger.LogError("Error retrieving {GitHubRepoName} commit SHAs.", gitHubRepoName);
             return TagResult.Failed;
         }
 
-        logger.LogInformation($"Finding PRs between {gitHubRepoName} commit SHAs {previousProductCommitSha} and {currentProductCommitSha}.");
+        logger.LogInformation("Finding PRs between {GitHubRepoName} commit SHAs {PreviousProductCommitSha} and {CurrentProductCommitSha}.", gitHubRepoName, previousProductCommitSha, currentProductCommitSha);
 
         // Retrieve GitHub repo
         string? gitHubRepoPath;
@@ -146,12 +146,12 @@ internal static class PRTagger
             }
             else
             {
-                logger.LogInformation($"Repo already exists at {gitHubRepoPath}");
+                logger.LogInformation("Repo already exists at {GitHubRepoPath}", gitHubRepoPath);
             }
         }
         catch (Exception ex)
         {
-            logger.LogError($"Exception while cloning repo: " + ex);
+            logger.LogError(ex, "Exception while cloning repo: {Message}", ex.Message);
             return TagResult.Failed;
         }
 
@@ -165,7 +165,7 @@ internal static class PRTagger
         }
 
 
-        logger.LogInformation($"Creating issue...");
+        logger.LogInformation("Creating issue...");
 
         // Create issue
         return await TryCreateIssueAsync(remoteConnections.GitHubClient, issueTitle, gitHubRepoName, prDescription.ToString(), logger).ConfigureAwait(false);
@@ -226,11 +226,11 @@ internal static class PRTagger
         var lastVsBuildNumberReported = await FindTheLastReportedVSBuildAsync(gitHubClient, repoName, logger).ConfigureAwait(false);
         if (lastVsBuildNumberReported is not null)
         {
-            logger.LogInformation($"Last reported VS build number: {lastVsBuildNumberReported}.");
+            logger.LogInformation("Last reported VS build number: {LastVsBuildNumberReported}.", lastVsBuildNumberReported);
         }
         else
         {
-            logger.LogInformation($"Can't find the last reported VS Build info in {repoName}.");
+            logger.LogInformation("Can't find the last reported VS Build info in {RepoName}.", repoName);
         }
 
         var buildAndCommitShaList = buildsAndCommitSha.ToList();
@@ -240,7 +240,7 @@ internal static class PRTagger
             var lastReportedBuildIndex = buildAndCommitShaList.FindIndex(buildAndCommitSha => buildAndCommitSha.vsBuild == lastVsBuildNumberReported);
             if (lastReportedBuildIndex == -1)
             {
-                logger.LogWarning($"VS build: {lastVsBuildNumberReported} can't be found in the build list.");
+                logger.LogWarning("VS build: {LastVsBuildNumberReported} can't be found in the build list.", lastVsBuildNumberReported);
             }
             else
             {
@@ -267,19 +267,19 @@ internal static class PRTagger
             vsCommitSha, GitVersionType.Commit, vsConnection, componentJsonFileName, componentName);
         if (url is null)
         {
-            logger.LogError($"Could not retrieve URL from component JSON file.");
+            logger.LogError("Could not retrieve URL from component JSON file.");
             return null;
         }
 
         try
         {
             var buildNumber = VisualStudioRepository.GetBuildNumberFromUrl(url);
-            logger.LogInformation($"Retrieved build number from URL: {buildNumber}");
+            logger.LogInformation("Retrieved build number from URL: {BuildNumber}", buildNumber);
             return buildNumber;
         }
         catch (Exception ex)
         {
-            logger.LogError($"Error retrieving build number from URL: {ex}");
+            logger.LogError(ex, "Error retrieving build number from URL: {Message}", ex.Message);
             return null;
         }
     }
@@ -293,13 +293,13 @@ internal static class PRTagger
         foreach (var connection in connections)
         {
             var buildPipelineName = product.GetBuildPipelineName(connection.BuildProjectName);
-            logger.LogInformation($"Build pipeline name: {buildPipelineName}");
+            logger.LogInformation("Build pipeline name: {BuildPipelineName}", buildPipelineName);
             if (buildPipelineName is not null)
             {
                 var build = (await connection.TryGetBuildsAsync(buildPipelineName, buildNumber, logger))?.SingleOrDefault();
                 if (build is not null)
                 {
-                    logger.LogInformation($"Build source version: {build.SourceVersion}");
+                    logger.LogInformation("Build source version: {SourceVersion}", build.SourceVersion);
                     return build.SourceVersion;
                 }
             }
@@ -326,7 +326,7 @@ internal static class PRTagger
 
         if (!response.IsSuccessStatusCode)
         {
-            logger.LogError($"Issue creation failed with status code: {response.StatusCode}");
+            logger.LogError("Issue creation failed with status code: {StatusCode}", response.StatusCode);
             return TagResult.Failed;
         }
 
@@ -359,7 +359,7 @@ internal static class PRTagger
         var totalCountNumber = TotalCountNumber(jsonResponse);
         if (totalCountNumber == 0)
         {
-            logger.LogInformation($"No existing issue has been found for repo: {repoName}.");
+            logger.LogInformation("No existing issue has been found for repo: {repoName}.", repoName);
             return null;
         }
 
@@ -410,11 +410,11 @@ internal static class PRTagger
         queryBuilder.Append($"is:issue+repo:dotnet/{repoName}");
         var query = queryBuilder.ToString();
 
-        logger.LogInformation($"Searching query is {query}.");
+        logger.LogInformation("Searching query is {Query}.", query);
         var response = await client.GetAsync(query).ConfigureAwait(false);
         var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         var jsonResponseContent = JsonObject.Parse(content)!;
-        logger.LogInformation($"Response object is {jsonResponseContent.ToJsonString()}.");
+        logger.LogInformation("Response object is {JsonString}.", jsonResponseContent.ToJsonString());
         return jsonResponseContent;
     }
 }

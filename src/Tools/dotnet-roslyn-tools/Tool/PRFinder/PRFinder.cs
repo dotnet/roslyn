@@ -46,13 +46,13 @@ internal class PRFinder
 
         if (endCommit is null)
         {
-            logger.LogError($"Starting ref '{startRef}' does not exist. Please fetch and try again.");
+            logger.LogError("Starting ref '{StartRef}' does not exist. Please fetch and try again.", startRef);
             return -1;
         }
 
         if (startCommit is null)
         {
-            logger.LogError($"Ending ref '{endRef}' does not exist. Please fetch and try again.");
+            logger.LogError("Ending ref '{EndRef}' does not exist. Please fetch and try again.", endRef);
             return -1;
         }
 
@@ -85,7 +85,7 @@ internal class PRFinder
         }
         else
         {
-            logger.LogError($"Remote '{remote.Name}' has an unsupported Url format '{remote.Url}'.");
+            logger.LogError("Remote '{RemoteName}' has an unsupported Url format '{RemoteUrl}'.", remote.Name, remote.Url);
             return 1;
         }
 
@@ -93,7 +93,7 @@ internal class PRFinder
         var isAzure = repoUrl.Contains("azure.com");
         if (!isGitHub && !isAzure)
         {
-            logger.LogError($"Remote '{remote.Name}' has an unsupported URL host '{remote.Url}'.");
+            logger.LogError("Remote '{RemoteName}' has an unsupported URL host '{RemoteUrl}'.", remote.Name, remote.Url);
             return 1;
         }
 
@@ -121,7 +121,7 @@ internal class PRFinder
             : null;
         var commitLog = repo.Commits.QueryBy(commitFilter);
 
-        logger.LogDebug(formatter.FormatChangesHeader(startRef, host.GetCommitUrl(startRef), endRef, host.GetCommitUrl(endRef), path));
+        logger.LogDebug("{Header}", formatter.FormatChangesHeader(startRef, host.GetCommitUrl(startRef), endRef, host.GetCommitUrl(endRef), path));
 
         RecordLine(formatter.FormatDiffHeader(host.GetDiffUrl(startRef, endRef)), logger, builder);
 
@@ -186,7 +186,7 @@ internal class PRFinder
 
     private static void RecordLine(string line, ILogger logger, StringBuilder? builder)
     {
-        logger.LogInformation(line);
+        logger.LogInformation("{Line}", line);
         builder?.AppendLine(line);
     }
 

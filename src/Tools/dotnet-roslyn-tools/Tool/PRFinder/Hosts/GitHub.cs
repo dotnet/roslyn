@@ -22,7 +22,7 @@ public partial class GitHub : IRepositoryHost
     {
         _repoUrl = repoUrl;
         _logger = logger;
-        _logger.LogTrace($"Creating GitHub repository host with base url: {repoUrl}");
+        _logger.LogTrace("Creating GitHub repository host with base url: {RepoUrl}", repoUrl);
 
         var split = _repoUrl.Split('/', StringSplitOptions.RemoveEmptyEntries);
         var owner = split[^2];
@@ -116,14 +116,14 @@ public partial class GitHub : IRepositoryHost
         try
         {
             var relativeUrl = $"{prNumber}";
-            _logger.LogTrace($"Attempting to fetch PR Title for {prNumber} at {_httpClient.BaseAddress}{relativeUrl}");
+            _logger.LogTrace("Attempting to fetch PR Title for {PrNumber} at {BaseAddress}{RelativeUrl}", prNumber, _httpClient.BaseAddress, relativeUrl);
             var response = await _httpClient.GetFromJsonAsync<PullRequestResponse>(relativeUrl);
 
             return response?.Title;
         }
         catch (Exception e)
         {
-            _logger.LogError(e, e.Message);
+            _logger.LogError(e, "{Message}", e.Message);
             return null;
         }
     }
@@ -144,10 +144,10 @@ public partial class GitHub : IRepositoryHost
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             _logger.LogTrace("Request:");
-            _logger.LogTrace(request.RequestUri?.ToString() ?? request.ToString());
+            _logger.LogTrace("{Request}", request.RequestUri?.ToString() ?? request.ToString());
             if (request.Content != null)
             {
-                _logger.LogTrace(await request.Content.ReadAsStringAsync());
+                _logger.LogTrace("{Content}", await request.Content.ReadAsStringAsync());
             }
 
             _logger.LogTrace("");
@@ -155,10 +155,10 @@ public partial class GitHub : IRepositoryHost
             var response = await base.SendAsync(request, cancellationToken);
 
             _logger.LogTrace("Response:");
-            _logger.LogTrace(response.ToString());
+            _logger.LogTrace("{Repsonse}", response.ToString());
             if (response.Content != null)
             {
-                _logger.LogTrace(await response.Content.ReadAsStringAsync());
+                _logger.LogTrace("{Content}", await response.Content.ReadAsStringAsync());
             }
 
             _logger.LogTrace("");
