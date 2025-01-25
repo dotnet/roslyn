@@ -103,7 +103,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var result = analyzersByKind.ToImmutableSegmentedDictionaryAndFree();
                 analyzersByKind.Free();
-
                 return result;
             }
         }
