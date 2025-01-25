@@ -931,20 +931,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var nodeAction in nodeActions)
             {
                 foreach (var kind in nodeAction.Kinds)
-                {
-                    if (!nodeActionsByKind.TryGetValue(kind, out var actionsForKind))
-                    {
-                        nodeActionsByKind.Add(kind, actionsForKind = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance());
-                    }
-
-                    actionsForKind.Add(nodeAction);
-                }
+                    nodeActionsByKind.AddPooled(kind, nodeAction);
             }
 
-            var tuples = nodeActionsByKind.Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
-            var map = ImmutableSegmentedDictionary.CreateRange(tuples);
-            nodeActionsByKind.Free();
-            return map;
+            return nodeActionsByKind.ToImmutableSegmentedDictionaryAndFree();
         }
 
         /// <summary>
@@ -1030,20 +1020,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var operationAction in operationActions)
             {
                 foreach (var kind in operationAction.Kinds)
-                {
-                    if (!operationActionsByKind.TryGetValue(kind, out var actionsForKind))
-                    {
-                        operationActionsByKind.Add(kind, actionsForKind = ArrayBuilder<OperationAnalyzerAction>.GetInstance());
-                    }
-
-                    actionsForKind.Add(operationAction);
-                }
+                    operationActionsByKind.AddPooled(kind, operationAction);
             }
 
-            var tuples = operationActionsByKind.Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
-            var map = ImmutableSegmentedDictionary.CreateRange(tuples);
-            operationActionsByKind.Free();
-            return map;
+            return operationActionsByKind.ToImmutableSegmentedDictionaryAndFree();
         }
 
         /// <summary>

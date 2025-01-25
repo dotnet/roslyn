@@ -96,15 +96,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActionsAndAnalyzers)
                 {
                     foreach (var (kind, _) in groupedActionsForAnalyzer.NodeActionsByAnalyzerAndKind)
-                    {
                         analyzersByKind.AddPooled(kind, analyzer);
-                    }
                 }
 
-                var result = analyzersByKind.ToImmutableSegmentedDictionaryAndFree();
-                analyzersByKind.Free();
-
-                return result;
+                return analyzersByKind.ToImmutableSegmentedDictionaryAndFree();
             }
         }
     }
