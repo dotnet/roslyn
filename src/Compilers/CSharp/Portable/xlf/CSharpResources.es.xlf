@@ -12711,7 +12711,7 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
         <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</target>
+        <target state="translated">La longitud combinada de las cadenas de usuario que el programa utiliza supera el límite permitido. Intente reducir el uso de literales de cadena o pruebe la marca de característica EXPERIMENTAL "experimental-data-section-string-literals".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
