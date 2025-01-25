@@ -12711,7 +12711,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
         <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</target>
+        <target state="translated">该程序所使用的用户字符串的合并后长度超出所允许的限制。请尝试减少字符串文本的使用，或试用 EXPERIMENTAL 功能标志 ‘experimental-data-section-string-literals’。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">

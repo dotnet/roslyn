@@ -12711,7 +12711,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
         <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</target>
+        <target state="translated">Całkowita długość ciągów użytkownika używanych przez program przekracza dozwolony limit. Spróbuj zmniejszyć użycie literałów ciągów lub spróbuj użyć flagi funkcji EXPERIMENTAL „experimental-data-section-string-literals”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">

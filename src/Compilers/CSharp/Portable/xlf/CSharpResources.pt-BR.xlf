@@ -12711,7 +12711,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
         <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</target>
+        <target state="translated">O comprimento combinado de cadeias de caracteres de usuário usado pelo programa excede o limite permitido. Tente diminuir o uso de literais de cadeia de caracteres ou experimente o sinalizador de recurso EXPERIMENTAL 'experimental-data-section-string-literals'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
