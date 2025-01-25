@@ -20,7 +20,7 @@ internal class VSBranchInfoCommand
     internal static readonly Option<string> BranchOption = new(["--branch", "-b"], () => "main", "Which VS branch to show information for (eg main, rel/d17.1)");
     internal static readonly Option<string?> TagOption = new(["--tag", "-t"], "Which VS tag to show information for (eg release/vs/17.8-preview.3). This overrides \"branch\" option if provided");
     internal static readonly Option<string> ProductOption = new Option<string>(["--product", "-p"], () => "roslyn", "Which product to get info for").FromAmong(s_allProductNames);
-    internal static readonly Option ShowArtifacts = new(["--show-artifacts", "-a"], "Whether to show artifact download links for the packages product by the build (if available)");
+    internal static readonly Option<bool> ShowArtifacts = new(["--show-artifacts", "-a"], "Whether to show artifact download links for the packages product by the build (if available)");
 
     public static Symbol GetCommand()
     {
@@ -49,7 +49,7 @@ internal class VSBranchInfoCommand
             var branch = context.ParseResult.GetValueForOption(BranchOption)!;
             var tag = context.ParseResult.GetValueForOption(TagOption);
             var product = context.ParseResult.GetValueForOption(ProductOption)!;
-            var showArtifacts = context.ParseResult.WasOptionUsed([.. ShowArtifacts.Aliases]);
+            var showArtifacts = context.ParseResult.GetValueForOption(ShowArtifacts);
 
             // tag option overrides branch option
             var (gitVersionType, gitVersion) = tag is null ? (GitVersionType.Branch, branch) : (GitVersionType.Tag, tag);

@@ -15,9 +15,9 @@ internal static class DartTestCommand
     private static readonly string[] s_allProductNames = [.. VSBranchInfo.AllProducts.Where(p => p.DartLabPipelineName != null).Select(p => p.Name.ToLower())];
 
     private static readonly DartTestCommandDefaultHandler s_dartTestCommandHandler = new();
-    private static readonly Option<int> prNumber = new(["--prNumber", "-n"], "PR number") { IsRequired = true };
-    private static readonly Option<string> sha = new(["--sha", "-s"], "Relevant SHA") { IsRequired = false };
-    private static readonly Option<string> productOption = new Option<string>(["--product", "-p"], () => "roslyn", "Which product to get info for").FromAmong(s_allProductNames);
+    internal static readonly Option<int> PrNumberOption = new(["--prNumber", "-n"], "PR number") { IsRequired = true };
+    internal static readonly Option<string> ShaOption = new(["--sha", "-s"], "Relevant SHA") { IsRequired = false };
+    internal static readonly Option<string> ProductOption = new Option<string>(["--product", "-p"], () => "roslyn", "Which product to get info for").FromAmong(s_allProductNames);
 
     public static Symbol GetCommand()
     {
@@ -25,9 +25,9 @@ internal static class DartTestCommand
             @"Runs the dartlab pipeline for a given PR number and SHA.
 It works by cloning the PR into the internal mirror and then running the dartlab pipeline from it.")
         {
-            prNumber,
-            sha,
-            productOption,
+            PrNumberOption,
+            ShaOption,
+            ProductOption,
             CommonOptions.GitHubTokenOption,
             CommonOptions.DevDivAzDOTokenOption,
             CommonOptions.DncEngAzDOTokenOption,
@@ -53,15 +53,15 @@ It works by cloning the PR into the internal mirror and then running the dartlab
                 return -1;
             }
 
-            var pr = context.ParseResult.GetValueForOption(prNumber);
-            var shaFromPR = context.ParseResult.GetValueForOption(sha);
+            var pr = context.ParseResult.GetValueForOption(PrNumberOption);
+            var shaFromPR = context.ParseResult.GetValueForOption(ShaOption);
 
             if (shaFromPR is null)
             {
                 logger.LogInformation("Using most recent SHA");
             }
 
-            var product = context.ParseResult.GetValueForOption(productOption)!;
+            var product = context.ParseResult.GetValueForOption(ProductOption)!;
 
             using var remoteConnections = new RemoteConnections(settings);
 

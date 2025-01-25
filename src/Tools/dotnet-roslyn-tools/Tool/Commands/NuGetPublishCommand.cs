@@ -18,10 +18,10 @@ internal class NuGetPublishCommand
 
     internal static readonly Argument<string> RepoNameArgument = new Argument<string>("repo-name", () => NuGetPublish.RoslynRepo, "The name of the repo whose packages are being publishing.").FromAmong(SupportedRepos);
 
-    internal static readonly Option<string> SourceOption = new Option<string>(["--source", "-s"], () => "https://www.nuget.org", "Package source (URL, UNC/folder path or package source name) to use.");
-    internal static readonly Option<string> ApiKeyOption = new Option<string>(["--api-key", "-k"], "The API key for the server.") { IsRequired = true };
-    internal static readonly Option<bool> UnlistedOption = new Option<bool>(["--unlisted", "-u"], "Whether to publish the packages as unlisted.");
-    internal static readonly Option<bool> SkipDuplicateOption = new Option<bool>(["--skip-duplicate"], "Whether to skip packages that have already been published.");
+    internal static readonly Option<string> SourceOption = new(["--source", "-s"], () => "https://www.nuget.org", "Package source (URL, UNC/folder path or package source name) to use.");
+    internal static readonly Option<string> ApiKeyOption = new(["--api-key", "-k"], "The API key for the server.") { IsRequired = true };
+    internal static readonly Option<bool> UnlistedOption = new(["--unlisted", "-u"], "Whether to publish the packages as unlisted.");
+    internal static readonly Option<bool> SkipDuplicateOption = new(["--skip-duplicate"], "Whether to skip packages that have already been published.");
 
     public static Symbol GetCommand()
     {
