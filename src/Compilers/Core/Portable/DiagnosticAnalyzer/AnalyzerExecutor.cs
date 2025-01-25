@@ -726,16 +726,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Catch Exception from the start action.
                     @this.ExecuteAndCatchIfThrows(
                         startAction.Analyzer,
-                        static args =>
-                        {
-                            var (startAction, startContext, scope, endActions, syntaxNodeActions) = args;
-                            startAction.Action(startContext);
-                            endActions.AddAll(scope.CodeBlockEndActions);
-                            syntaxNodeActions.AddRange(scope.SyntaxNodeActions);
-                        },
-                        argument: (startAction, startContext, scope, endActions, ephemeralActions),
+                        static args => args.startAction.Action(args.startContext),
+                        argument: (startAction, startContext),
                         new AnalysisContextInfo(@this.Compilation, declaredSymbol, declaredNode),
                         cancellationToken);
+
+                    endActions.AddAll(scope.CodeBlockEndActions);
+                    ephemeralActions.AddRange(scope.SyntaxNodeActions);
                 },
                 executeActions: static (diagReporter, isSupportedDiagnostic, args, cancellationToken) =>
                 {
@@ -819,16 +816,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // Catch Exception from the start action.
                     @this.ExecuteAndCatchIfThrows(
                         startAction.Analyzer,
-                        static args =>
-                        {
-                            var (startAction, startContext, scope, endActions, ephemeralActions) = args;
-                            startAction.Action(startContext);
-                            endActions.AddAll(scope.OperationBlockEndActions);
-                            ephemeralActions.AddRange(scope.OperationActions);
-                        },
-                        argument: (startAction, startContext, scope, endActions, ephemeralActions),
+                        static args => args.startAction.Action(args.startContext),
+                        argument: (startAction, startContext),
                         new AnalysisContextInfo(@this.Compilation, declaredSymbol),
                         cancellationToken);
+
+                    endActions.AddAll(scope.OperationBlockEndActions);
+                    ephemeralActions.AddRange(scope.OperationActions);
                 },
                 executeActions: static (diagReporter, isSupportedDiagnostic, args, cancellationToken) =>
                 {
