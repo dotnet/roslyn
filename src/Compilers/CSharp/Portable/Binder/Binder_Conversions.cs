@@ -834,8 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax, targetType);
             }
 
-            var elements = node.Elements;
-            ImmutableArray<MethodSymbol> collectionBuilderCandidates;
+            MethodSymbol? collectionBuilderMethod = null;
             BoundValuePlaceholder? collectionBuilderInvocationPlaceholder = null;
             BoundExpression? collectionBuilderInvocationConversion = null;
 
@@ -855,28 +854,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var namedType = (NamedTypeSymbol)targetType;
 
-                        if (!GetAndValidateCollectionBuilderMethod(syntax, namedType, diagnostics, out var updatedElementType, out collectionBuilderCandidates))
+                        collectionBuilderMethod = GetAndValidateCollectionBuilderMethod(syntax, namedType, diagnostics, out var updatedElementType);
+                        if (collectionBuilderMethod is null)
                         {
                             return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
-                        }
-
-                        // Bind any collection arguments.
-                        BoundExpression? collectionWithArgumentsCreation = null;
-                        foreach (var element in elements)
-                        {
-                            if (element is BoundUnconvertedCollectionArguments collectionArguments)
-                            {
-                                var analyzedArguments = AnalyzedArguments.GetInstance();
-                                collectionArguments.GetArguments(analyzedArguments);
-                                var withArguments = BindCollectionExpressionConstructor(syntax, targetType, constructor: null, analyzedArguments, diagnostics);
-                                analyzedArguments.Free();
-                                collectionWithArgumentsCreation ??= withArguments;
-                            }
-                        }
-
-                        if (collectionWithArgumentsCreation is null)
-                        {
-
                         }
 
                         elementType = updatedElementType;
@@ -898,6 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
+            var elements = node.Elements;
             var builder = ArrayBuilder<BoundNode>.GetInstance(elements.Length);
             BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
@@ -1206,12 +1188,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal bool GetAndValidateCollectionBuilderMethods(
+        internal MethodSymbol? GetAndValidateCollectionBuilderMethod(
             SyntaxNode syntax,
             NamedTypeSymbol namedType,
             BindingDiagnosticBag diagnostics,
-            out TypeSymbol? elementType,
-            out ImmutableArray<MethodSymbol> candidates)
+            out TypeSymbol? elementType)
         {
             MethodSymbol? collectionBuilderMethod;
             bool result = namedType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
@@ -1228,8 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition, targetTypeOriginalDefinition);
                 elementType = null;
-                candidates = [];
-                return false;
+                return null;
             }
 
             ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
@@ -1246,8 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
 
-            candidates = [collectionBuilderMethod];
-            return true;
+            return collectionBuilderMethod;
         }
 
         internal BoundExpression BindCollectionExpressionConstructor(
@@ -2127,7 +2106,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                // PROTOTYPE: Should the return type check be made after overload resolution, rather than as part of the conversion?
                 conversion = Conversions.ClassifyImplicitConversionFromType(methodWithTargetTypeParameters.ReturnType, targetType.OriginalDefinition, ref candidateUseSiteInfo);
                 switch (conversion.Kind)
                 {

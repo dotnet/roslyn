@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // - factory method that has params parameter
         // PROTOTYPE: Test collection arguments do not affect convertibility. Test with with(default) for types that don't support collection arguments for instance.
         // PROTOTYPE: CollectionBuilder type where the create method and underlying type have a generic parameter for arg that is not part of elements, and therefore the builder method cannot be used.
-        // PROTOTYPE: Test params collection where collection type has a collection builder method with optional parameters.
 
         public static readonly TheoryData<LanguageVersion> LanguageVersions = new([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
 
@@ -648,38 +647,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
                 }
                 """;
-            var verifier = CompileAndVerify(
+            // PROTOTYPE: When collection arguments are supported for collection builder
+            // types, use CompileAndVerify() and check expectedOutput and the code
+            // generated for Program.EmptyArgs<T>(T) and Program.NonEmptyArgs<T>(T)
+            var comp = CreateCompilation(
                 [sourceA, sourceB, s_collectionExtensions],
-                targetFramework: TargetFramework.Net80,
-                expectedOutput: "0, [1], 2, [2], ");
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program.EmptyArgs<T>(T)", """
-                {
-                  // Code size       15 (0xf)
-                  .maxstack  1
-                  .locals init (T V_0)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_0
-                  IL_0004:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
-                  IL_0009:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>)"
-                  IL_000e:  ret
-                }
-                """);
-            // PROTOTYPE: Should use T arg overload.
-            verifier.VerifyIL("Program.NonEmptyArgs<T>(T)", """
-                {
-                  // Code size       15 (0xf)
-                  .maxstack  1
-                  .locals init (T V_0)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_0
-                  IL_0004:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
-                  IL_0009:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>)"
-                  IL_000e:  ret
-                }
-                """);
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (15,53): error CS9276: Collection arguments are not supported for type 'MyCollection<T>'.
+                //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<T>").WithLocation(15, 53));
         }
 
         [Fact]
