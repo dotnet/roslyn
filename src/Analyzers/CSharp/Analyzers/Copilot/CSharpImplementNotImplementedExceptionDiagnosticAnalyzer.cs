@@ -35,9 +35,15 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
     private void AnalyzeThrow(OperationAnalysisContext context, INamedTypeSymbol notImplementedExceptionType)
     {
         var throwOperation = (IThrowOperation)context.Operation;
-        if (throwOperation is IObjectCreationOperation
+        if (throwOperation is
             {
-                Constructor.ContainingType: INamedTypeSymbol constructedType,
+                Exception: IConversionOperation
+                {
+                    Operand: IObjectCreationOperation
+                    {
+                        Constructor.ContainingType: INamedTypeSymbol constructedType,
+                    },
+                },
                 Syntax: ThrowExpressionSyntax or ThrowStatementSyntax,
             } &&
             notImplementedExceptionType.Equals(constructedType))
