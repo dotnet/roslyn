@@ -968,9 +968,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     nodeActionsByKind.AddPooled(kind, nodeAction);
             }
 
-            var map = nodeActionsByKind.ToImmutableSegmentedDictionaryAndFree();
-            nodeActionsByKind.Free();
-            return map;
+            return nodeActionsByKind.ToImmutableSegmentedDictionaryAndFree();
         }
 
         /// <summary>
@@ -1061,9 +1059,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     operationActionsByKind.AddPooled(kind, operationAction);
             }
 
-            var map = operationActionsByKind.ToImmutableSegmentedDictionaryAndFree();
-            operationActionsByKind.Free();
-            return map;
+            return operationActionsByKind.ToImmutableSegmentedDictionaryAndFree();
         }
 
         /// <summary>
