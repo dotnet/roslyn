@@ -305,5 +305,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Protected Overrides Function IsVisualBasicComment(trivia As SyntaxTrivia) As Boolean
             Return trivia.Kind = SyntaxKind.CommentTrivia
         End Function
+
+        Protected Overrides Function IsComment(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.CommentTrivia
+        End Function
     End Class
 End Namespace
