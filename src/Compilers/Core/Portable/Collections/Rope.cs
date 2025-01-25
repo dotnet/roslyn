@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis
         public abstract override string ToString();
         public abstract string ToString(int maxLength);
         public abstract int Length { get; }
+        public abstract bool IsEmpty { get; }
         protected abstract IEnumerable<char> GetChars();
         private Rope() { }
 
@@ -106,6 +107,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override int Length => _value.Length;
+            public override bool IsEmpty => _value == "";
             protected override IEnumerable<char> GetChars() => _value;
         }
 
@@ -116,6 +118,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly Rope _left, _right;
             public override int Length { get; }
+            public override bool IsEmpty => _left.IsEmpty && _right.IsEmpty;
 
             public ConcatRope(Rope left, Rope right)
             {
