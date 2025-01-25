@@ -15,13 +15,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ReimplementThrowNewNotImplementedException), Shared]
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ImplementNotImplementedException), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class CSharpImplementNotImplementedExceptionCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
-        = [IDEDiagnosticIds.ImplementNotImplementedExceptionDiagnosticAnalyzer];
+        = [IDEDiagnosticIds.CopilotImplementNotImplementedExceptionDiagnosticId];
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
