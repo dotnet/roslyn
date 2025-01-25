@@ -96,7 +96,6 @@ internal static class DartTest
         return null;
     }
 
-
     private static async Task PushPRToInternalAsync(IProduct product, int prNumber, string azureBranchName, ILogger logger, string sha, string targetDirectory, CancellationToken cancellationToken)
     {
         var initCommand = $"init";
@@ -198,8 +197,8 @@ internal static class DartTest
 
             foreach (var file in files)
             {
-                System.IO.File.SetAttributes(file, FileAttributes.Normal);
-                System.IO.File.Delete(file);
+                File.SetAttributes(file, FileAttributes.Normal);
+                File.Delete(file);
             }
 
             foreach (var dir in dirs)

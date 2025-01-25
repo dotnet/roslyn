@@ -23,7 +23,6 @@ internal class PRFinder
     /// <param name="logger">Logger where result will be output.</param>
     /// <param name="repoPath">Optional path to product repo. Current directory will be used otherwise.</param>
     /// <param name="builder">Optional if the caller wants result as a string.</param>
-    /// <returns></returns>
     public static async Task<int> FindPRsAsync(
         string startRef,
         string endRef,
@@ -102,7 +101,7 @@ internal class PRFinder
             ? new Hosts.GitHub(repoUrl, logger)
             : new Hosts.Azure(repoUrl);
 
-        IPRLogFormatter formatter = format switch
+        var formatter = format switch
         {
             DefaultFormat => new Formatters.DefaultFormatter(),
             OmniSharpFormat => new Formatters.OmniSharpFormatter(),

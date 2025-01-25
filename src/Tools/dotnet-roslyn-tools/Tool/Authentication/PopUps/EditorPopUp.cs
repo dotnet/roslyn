@@ -28,7 +28,7 @@ internal abstract class EditorPopUp(string path, IList<Line>? contents = null)
 
         foreach (var content in contents)
         {
-            if (!content.TrimStart().StartsWith("#") && !string.IsNullOrEmpty(content))
+            if (!content.TrimStart().StartsWith('#') && !string.IsNullOrEmpty(content))
             {
                 values.Add(new Line(content));
             }
@@ -61,9 +61,9 @@ internal abstract class EditorPopUp(string path, IList<Line>? contents = null)
     /// </summary>
     /// <param name="inputSetting">Input string from the file</param>
     /// <returns>
-    ///     - Original setting if the setting is secret and value is still all ***
-    ///     - Empty string if the setting starts+ends with <>
-    ///     - New value if anything else.
+    /// - Original setting if the setting is secret and value is still all ***
+    /// - Empty string if the setting starts+ends with <>
+    /// - New value if anything else.
     /// </returns>
     protected static string ParseSetting(string inputSetting, string originalSetting, bool isSecret)
     {

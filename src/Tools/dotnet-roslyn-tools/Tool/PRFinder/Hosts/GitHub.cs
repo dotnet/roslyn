@@ -13,9 +13,9 @@ namespace Microsoft.RoslynTools.PRFinder.Hosts;
 
 public class GitHub : IRepositoryHost
 {
-    private static readonly Regex IsGitHubReleaseFlowCommit = new(@"^Merge pull request #\d+ from dotnet/merges/");
-    private static readonly Regex IsGitHubMergePRCommit = new(@"^Merge pull request #(\d+) from");
-    private static readonly Regex IsGitHubSquashedPRCommit = new(@"\(#(\d+)\)(?:\n|$)");
+    internal static readonly Regex IsGitHubReleaseFlowCommit = new(@"^Merge pull request #\d+ from dotnet/merges/");
+    internal static readonly Regex IsGitHubMergePRCommit = new(@"^Merge pull request #(\d+) from");
+    internal static readonly Regex IsGitHubSquashedPRCommit = new(@"\(#(\d+)\)(?:\n|$)");
     private readonly string _repoUrl;
 
     private readonly HttpClient _httpClient;

@@ -40,9 +40,7 @@ internal class NuGetPrepare
     {
         try
         {
-            string? version;
-
-            var determinedVersion = TryDetermineRoslynPackageVersion(out version);
+            var determinedVersion = TryDetermineRoslynPackageVersion(out var version);
 
             if (!determinedVersion)
             {

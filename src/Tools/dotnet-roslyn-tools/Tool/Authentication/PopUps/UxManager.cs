@@ -16,8 +16,8 @@ internal class UxManager(string gitLocation, ILogger logger)
     private bool _popUpClosed = false;
 
     /// <summary>
-    ///     Rather than popping up the window, read the result of the popup from
-    ///     stdin and process the contents.  This is primarily used for testing purposes.
+    /// Rather than popping up the window, read the result of the popup from
+    /// stdin and process the contents.  This is primarily used for testing purposes.
     /// </summary>
     /// <param name="popUp">Popup to run</param>
     /// <returns>Success or error code</returns>
@@ -62,7 +62,7 @@ internal class UxManager(string gitLocation, ILogger logger)
     }
 
     /// <summary>
-    ///     Pop up the editor and allow the user to edit the contents.
+    /// Pop up the editor and allow the user to edit the contents.
     /// </summary>
     /// <param name="popUp">Popup to run</param>
     /// <returns>Success or error code</returns>
@@ -151,13 +151,13 @@ internal class UxManager(string gitLocation, ILogger logger)
         // If it's quoted then find the end of the quoted string.
         // If non quoted find a space or the end of the string.
         command = command.Trim();
-        if (command.StartsWith("'") || command.StartsWith("\""))
+        if (command.StartsWith('\'') || command.StartsWith('"'))
         {
             var start = 1;
-            var end = command.IndexOf("'", start);
+            var end = command.IndexOf('\'', start);
             if (end == -1)
             {
-                end = command.IndexOf("\"", start);
+                end = command.IndexOf('"', start);
                 if (end == -1)
                 {
                     // Unterminated quoted string.  Use full command as file name
@@ -173,7 +173,7 @@ internal class UxManager(string gitLocation, ILogger logger)
         {
             // Find a space after the command name, if there are args, then parse them out,
             // otherwise just return the whole string as the filename.
-            var fileNameEnd = command.IndexOf(" ");
+            var fileNameEnd = command.IndexOf(' ');
             if (fileNameEnd != -1)
             {
                 fileName = command[..fileNameEnd];

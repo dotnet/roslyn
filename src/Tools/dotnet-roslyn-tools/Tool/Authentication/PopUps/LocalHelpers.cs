@@ -42,7 +42,7 @@ internal static class LocalHelpers
         }
 
         // Split this by newline in case where are multiple paths;
-        var newlineIndex = editor.IndexOf(System.Environment.NewLine);
+        var newlineIndex = editor.IndexOf(Environment.NewLine);
         if (newlineIndex != -1)
         {
             editor = editor[..newlineIndex];
@@ -64,10 +64,8 @@ internal static class LocalHelpers
     }
 
     /// <summary>
-    ///     Get the current git commit sha.
+    /// Get the current git commit sha.
     /// </summary>
-    /// <param name="logger"></param>
-    /// <returns></returns>
     public static string GetGitCommit(string gitLocation, ILogger logger)
     {
         var commit = ExecuteCommand(gitLocation, "rev-parse HEAD", logger);
@@ -99,7 +97,6 @@ internal static class LocalHelpers
     /// <param name="sourceFolder">The main source folder.</param>
     /// <param name="commit">The commit to search for in a repo folder.</param>
     /// <param name="logger">The logger.</param>
-    /// <returns></returns>
     public static string GetRepoPathFromFolder(string gitLocation, string sourceFolder, string commit, ILogger logger)
     {
         foreach (var directory in Directory.GetDirectories(sourceFolder))

@@ -9,8 +9,8 @@ namespace Microsoft.RoslynTools.PRFinder.Hosts;
 
 public class Azure(string repoUrl) : IRepositoryHost
 {
-    private static readonly Regex IsAzDOReleaseFlowCommit = new Regex(@"^Merged PR \d+: Merging .* to ");
-    private static readonly Regex IsAzDOMergePRCommit = new Regex(@"^Merged PR (\d+):");
+    internal static readonly Regex IsAzDOReleaseFlowCommit = new Regex(@"^Merged PR \d+: Merging .* to ");
+    internal static readonly Regex IsAzDOMergePRCommit = new Regex(@"^Merged PR (\d+):");
     private readonly string _repoUrl = repoUrl;
 
     public string GetCommitUrl(string commitSha)

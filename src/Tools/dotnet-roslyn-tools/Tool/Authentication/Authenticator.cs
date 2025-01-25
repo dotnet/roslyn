@@ -21,7 +21,6 @@ internal class Authenticator
         else
         {
             var initEditorPopUp = new AuthenticateEditorPopUp("authenticate-settings/authenticate-todo", logger);
-
             var uxManager = new UxManager("git", logger);
             return Task.FromResult(uxManager.PopUp(initEditorPopUp));
         }

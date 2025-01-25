@@ -261,14 +261,14 @@ internal static class CreateReleaseTags
 
         foreach (var tag in tags)
         {
-            const string tagPrefix = "refs/tags/release/vs/";
+            const string TagPrefix = "refs/tags/release/vs/";
 
-            if (!tag.Name.StartsWith(tagPrefix))
+            if (!tag.Name.StartsWith(TagPrefix))
             {
                 continue;
             }
 
-            var parts = tag.Name.Substring(tagPrefix.Length).Split('-');
+            var parts = tag.Name.Substring(TagPrefix.Length).Split('-');
 
             if (parts.Length != 1 && parts.Length != 2)
             {

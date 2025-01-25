@@ -36,7 +36,6 @@ internal class NuGetPublishCommand
         };
         command.Handler = s_nuGetPublishCommandHandler;
         return command;
-
     }
 
     private class NuGetPublishCommandDefaultHandler : ICommandHandler

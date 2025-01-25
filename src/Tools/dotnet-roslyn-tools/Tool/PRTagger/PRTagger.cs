@@ -382,12 +382,6 @@ internal static class PRTagger
     /// Search issues by using <param name="title"/> and <param name="label"/> in <param name="repoName"/>
     /// By default this is ordered from new to old. See https://docs.github.com/en/rest/search/search?apiVersion=2022-11-28#ranking-search-results
     /// </summary>
-    /// <param name="client"></param>
-    /// <param name="repoName"></param>
-    /// <param name="logger"></param>
-    /// <param name="title"></param>
-    /// <param name="label"></param>
-    /// <returns></returns>
     private static async Task<JsonNode> SearchIssuesOnGitHubAsync(
         HttpClient client,
         string repoName,

@@ -14,8 +14,8 @@ using static CommonOptions;
 internal static class PRTaggerCommand
 {
     private static readonly PRTaggerCommandDefaultHandler s_prTaggerCommandHandler = new();
-    private static readonly Option<int> maxVsBuildCheckNumber = new(["--vsBuildCheckNumber"], () => 50, "Maximum number of VS build to check. Tagger would compare each VS build and its parent commit to find the inserted payload.");
-    private static readonly Option<string> VSBuild = new(["--build", "-b"], "VS build number");
+    internal static readonly Option<int> MaxVsBuildCheckNumber = new(["--vsBuildCheckNumber"], () => 50, "Maximum number of VS build to check. Tagger would compare each VS build and its parent commit to find the inserted payload.");
+    internal static readonly Option<string> VSBuild = new(["--build", "-b"], "VS build number");
 
     public static Symbol GetCommand()
     {
@@ -27,7 +27,7 @@ The checking build list is created:
 2. If --build is not specified, it will use the latest VS build as the head. The tail would be the last reported VSBuild in each product repo. Use --vsBuildCheckNumber to control the max number of build to check in each run.")
         {
             VSBuild,
-            maxVsBuildCheckNumber,
+            MaxVsBuildCheckNumber,
             GitHubTokenOption,
             DevDivAzDOTokenOption,
             DncEngAzDOTokenOption,
@@ -53,7 +53,7 @@ The checking build list is created:
                 return -1;
             }
 
-            var maxFetchingVSBuildNumber = context.ParseResult.GetValueForOption(maxVsBuildCheckNumber);
+            var maxFetchingVSBuildNumber = context.ParseResult.GetValueForOption(MaxVsBuildCheckNumber);
             logger.LogInformation($"Check {maxFetchingVSBuildNumber} VS Builds");
 
             var vsBuild = context.ParseResult.GetValueForOption(VSBuild);

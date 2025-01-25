@@ -8,7 +8,7 @@ internal class ChangelogFormatter : DefaultFormatter
 {
     public override string FormatPRListItem(string comment, string prNumber, string prUrl)
     {
-        prNumber = prNumber.StartsWith("#")
+        prNumber = prNumber.StartsWith('#')
             ? prNumber
             : $"#{prNumber}";
 

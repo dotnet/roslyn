@@ -11,9 +11,9 @@ internal class AuthenticateEditorPopUp : EditorPopUp
 {
     private readonly ILogger _logger;
 
-    private const string githubTokenElement = "github_token";
-    private const string devdivAzureDevOpsTokenElement = "devdiv_azdo_token";
-    private const string dncengAzureDevOpsTokenElement = "dnceng_azdo_token";
+    private const string GithubTokenElement = "github_token";
+    private const string DevdivAzureDevOpsTokenElement = "devdiv_azdo_token";
+    private const string DncengAzureDevOpsTokenElement = "dnceng_azdo_token";
 
     public AuthenticateEditorPopUp(string path, ILogger logger)
         : base(path)
@@ -36,18 +36,18 @@ internal class AuthenticateEditorPopUp : EditorPopUp
         Contents = new ReadOnlyCollection<Line>(
         [
             new("Create new GitHub personal access tokens at https://github.com/settings/tokens (repo_public scopes needed)", isComment: true),
-            new($"{githubTokenElement}={GetCurrentSettingForDisplay(Settings.GitHubToken, string.Empty, isSecret: true)}"),
+            new($"{GithubTokenElement}={GetCurrentSettingForDisplay(Settings.GitHubToken, string.Empty, isSecret: true)}"),
             new(string.Empty),
             new("[OPTIONAL]", isComment: true),
             new("Set Azure DevOps tokens (or leave empty to use local credentials)", isComment: true),
             new(string.Empty),
             new("Use the PatGeneratorTool https://dev.azure.com/dnceng/public/_artifacts/feed/dotnet-eng/NuGet/Microsoft.DncEng.PatGeneratorTool", isComment: true),
             new("with the `dotnet pat-generator --scopes build_execute code_full release_execute packaging --organizations devdiv --expires-in 7` command", isComment: true),
-            new($"{devdivAzureDevOpsTokenElement}={GetCurrentSettingForDisplay(Settings.DevDivAzureDevOpsToken, string.Empty, true)}"),
+            new($"{DevdivAzureDevOpsTokenElement}={GetCurrentSettingForDisplay(Settings.DevDivAzureDevOpsToken, string.Empty, true)}"),
             new(string.Empty),
             new("Use the PatGeneratorTool https://dev.azure.com/dnceng/public/_artifacts/feed/dotnet-eng/NuGet/Microsoft.DncEng.PatGeneratorTool", isComment: true),
             new("with the `dotnet pat-generator --scopes build_execute code_full release_execute packaging --organizations dnceng --expires-in 7` command", isComment: true),
-            new($"{dncengAzureDevOpsTokenElement}={GetCurrentSettingForDisplay(Settings.DncEngAzureDevOpsToken, string.Empty, true)}"),
+            new($"{DncengAzureDevOpsTokenElement}={GetCurrentSettingForDisplay(Settings.DncEngAzureDevOpsToken, string.Empty, true)}"),
             new(string.Empty),
             new("Set elements above before saving.", isComment: true),
         ]);
@@ -63,13 +63,13 @@ internal class AuthenticateEditorPopUp : EditorPopUp
 
             switch (keyValue[0])
             {
-                case githubTokenElement:
+                case GithubTokenElement:
                     Settings.GitHubToken = ParseSetting(keyValue[1], Settings.GitHubToken, isSecret: true);
                     break;
-                case devdivAzureDevOpsTokenElement:
+                case DevdivAzureDevOpsTokenElement:
                     Settings.DevDivAzureDevOpsToken = ParseSetting(keyValue[1], Settings.DevDivAzureDevOpsToken, isSecret: true);
                     break;
-                case dncengAzureDevOpsTokenElement:
+                case DncengAzureDevOpsTokenElement:
                     Settings.DncEngAzureDevOpsToken = ParseSetting(keyValue[1], Settings.DncEngAzureDevOpsToken, isSecret: true);
                     break;
                 default:
