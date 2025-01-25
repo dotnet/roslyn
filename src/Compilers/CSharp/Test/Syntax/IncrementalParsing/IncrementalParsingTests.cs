@@ -114,15 +114,23 @@ public class C {
 
         private static void TestDiffsInOrder(ImmutableArray<SyntaxNodeOrToken> diffs, params SyntaxKind[] expectedKinds)
         {
-            Assert.InRange(diffs.Length, 0, expectedKinds.Length);
+            if (diffs.Length != expectedKinds.Length)
+            {
+                Assert.Fail(getMessage());
+            }
 
             for (int i = 0; i < diffs.Length; i++)
             foreach (var kind in kinds)
             {
                 if (!diffs[i].IsKind(expectedKinds[i]))
                 {
-                    PooledStringBuilder builder = PooledStringBuilder.GetInstance();
-                    builder.Builder.AppendLine($"Expected {expectedKinds[i]} but got {diffs[i].Kind()} at index {i}");
+                    Assert.Fail(getMessage());
+                }
+            }
+
+            string getMessage()
+            {
+                var builder = PooledStringBuilder.GetInstance();
                     builder.Builder.AppendLine("Actual:");
                     foreach (var diff in diffs)
                     {
@@ -130,7 +138,7 @@ public class C {
                 }
             }
 
-                    Assert.Fail(builder.ToStringAndFree());
+                return builder.ToStringAndFree();
         }
             }
         }
