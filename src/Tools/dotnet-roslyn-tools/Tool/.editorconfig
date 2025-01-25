@@ -1,39 +1,8 @@
 # EditorConfig is awesome: https://EditorConfig.org
 
-# top-most EditorConfig file
-root = true
-
-# Don't use tabs for indentation.
-[*]
-indent_style = space
-# (Please don't specify an indent_size here; that has too many unintended consequences.)
-
 # Code files
 [*.{cs,csx,vb,vbx}]
-indent_size = 4
-insert_final_newline = true
 charset = utf-8-bom
-
-# XML project files
-[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}]
-indent_size = 2
-
-# XML config files
-[*.{props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}]
-indent_size = 2
-
-# JSON files
-[*.json]
-indent_size = 2
-
-# Powershell files
-[*.ps1]
-indent_size = 2
-
-# Shell script files
-[*.sh]
-end_of_line = lf
-indent_size = 2
 
 # Dotnet code style settings:
 [*.{cs,vb}]
@@ -141,8 +110,6 @@ dotnet_naming_symbols.all_members.applicable_kinds = *
 
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
-file_header_template = Licensed to the .NET Foundation under one or more agreements.\nThe .NET Foundation licenses this file to you under the MIT license.\nSee the LICENSE file in the project root for more information.
-
 # IDE0055: Fix formatting
 # Workaround for https://github.com/dotnet/roslyn/issues/70570
 dotnet_diagnostic.IDE0055.severity = warning
@@ -238,10 +205,9 @@ csharp_space_between_square_brackets = false
 
 # Namespace preferences
 csharp_style_namespace_declarations = file_scoped
-dotnet_diagnostic.IDE0161.severity = warning
 
+# Constructor preferences
 csharp_style_prefer_primary_constructors = true
-dotnet_diagnostic.IDE0290.severity = warning
 
 # IDE0011: Add braces
 csharp_prefer_braces = when_multiline:warning
