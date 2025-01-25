@@ -12711,7 +12711,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
         <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</target>
+        <target state="translated">Program tarafından kullanılan kullanıcı dizelerinin toplam uzunluğu, izin verilen sınırı aşıyor. Dize değişmezlerini daha az kullanmayı deneyin veya 'experimental-data-section-string-literals' EXPERIMENTAL özellik bayrağını deneyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
