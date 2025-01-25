@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
                 result.Add(key, values.ToImmutableAndFree());
             }
 
-            dictionary.Free()
+            dictionary.Free();
             return result.ToImmutable();
         }
     }
