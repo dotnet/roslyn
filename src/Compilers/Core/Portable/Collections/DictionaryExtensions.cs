@@ -88,18 +88,6 @@ namespace Microsoft.CodeAnalysis
             values.Add(value);
         }
 
-        public static ImmutableSegmentedDictionary<K, ImmutableArray<V>> ToImmutableSegmentedDictionaryAndFree<K, V>(this IReadOnlyDictionary<K, ArrayBuilder<V>> builder)
-            where K : notnull
-        {
-            var result = ImmutableSegmentedDictionary.CreateBuilder<K, ImmutableArray<V>>();
-            foreach (var (key, values) in builder)
-            {
-                result.Add(key, values.ToImmutableAndFree());
-            }
-
-            return result.ToImmutable();
-        }
-
         public static ImmutableSegmentedDictionary<K, ImmutableArray<V>> ToImmutableSegmentedDictionaryAndFree<K, V>(this Dictionary<K, ArrayBuilder<V>> builder)
             where K : notnull
         {
