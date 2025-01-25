@@ -43,11 +43,11 @@ internal sealed partial class CSharpImplementNotImplementedExceptionCodeFixProvi
         // Find the throw statement node
         var throwExpressionOrStatement = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-        // Create a replacement node (a simple comment in this case)
-        var commentTrivia = SyntaxFactory.Comment("// TODO: Implement this method");
-        var commentStatement = SyntaxFactory.ExpressionStatement(SyntaxFactory.IdentifierName(commentTrivia.ToString()));
+        //// Create a replacement node (a simple comment in this case)
+        //var commentTrivia = SyntaxFactory.Comment("// TODO: Implement this method");
+        //var commentStatement = SyntaxFactory.ExpressionStatement(SyntaxFactory.IdentifierName(commentTrivia.ToString()));
 
-        // Replace the throw statement with the comment
-        editor.ReplaceNode(throwExpressionOrStatement, commentStatement);
+        //// Replace the throw statement with the comment
+        //editor.ReplaceNode(throwExpressionOrStatement, commentStatement);
     }
 }
