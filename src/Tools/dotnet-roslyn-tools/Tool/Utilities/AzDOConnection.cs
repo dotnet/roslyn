@@ -51,7 +51,7 @@ internal sealed class AzDOConnection : IDisposable
             var buildDefinition = (await BuildClient.GetDefinitionsAsync(BuildProjectName, name: pipelineName)).Single();
             var builds = await BuildClient.GetBuildsAsync(
                 buildDefinition.Project.Id,
-                definitions: new[] { buildDefinition.Id },
+                definitions: [buildDefinition.Id],
                 buildNumber: buildNumber,
                 resultFilter: resultsFilter,
                 queryOrder: buildQueryOrder,

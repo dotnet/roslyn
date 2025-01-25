@@ -16,13 +16,13 @@ namespace Microsoft.RoslynTools.VS;
 
 internal static class VSBranchInfo
 {
-    public static IProduct[] AllProducts = new IProduct[]
-    {
+    public static IProduct[] AllProducts =
+    [
         new Roslyn(),
         new Razor(),
         new TypeScript(),
         new FSharp(),
-    };
+    ];
 
     public static async Task<int> GetInfoAsync(string gitVersion, GitVersionType gitVersionType, string product, bool showArtifacts, RoslynToolsSettings settings, ILogger logger)
     {

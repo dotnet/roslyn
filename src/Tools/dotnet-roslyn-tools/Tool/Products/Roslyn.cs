@@ -21,7 +21,7 @@ internal class Roslyn : IProduct
     public string? PackagePropsFileName => "src/ConfigData/Packages/roslyn.props";
     public string? DartLabPipelineName => "Roslyn Integration CI DartLab";
     public string? ArtifactsFolderName => "PackageArtifacts";
-    public string[] ArtifactsSubFolderNames => new[] { "PackageArtifacts/PreRelease", "PackageArtifacts/Release" };
+    public string[] ArtifactsSubFolderNames => ["PackageArtifacts/PreRelease", "PackageArtifacts/Release"];
 
     public string? GetBuildPipelineName(string buildProjectName)
         => buildProjectName switch

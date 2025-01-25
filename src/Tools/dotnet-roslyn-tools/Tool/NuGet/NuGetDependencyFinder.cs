@@ -79,7 +79,7 @@ namespace Microsoft.RoslynTools.NuGet
 
                     var list = dependencies.ContainsKey(result)
                         ? dependencies[result]
-                        : new();
+                        : [];
 
                     list.Add((dependency, desiredVersion));
 

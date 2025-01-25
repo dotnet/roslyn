@@ -12,7 +12,7 @@ namespace Microsoft.RoslynTools.NuGet
         private const string NotPublishedDirectoryName = "NotPublished";
 
         private static readonly string[] RoslynPackageIds =
-            {
+            [
                 "Microsoft.CodeAnalysis",
                 "Microsoft.CodeAnalysis.Common",
                 "Microsoft.CodeAnalysis.Compilers",
@@ -34,7 +34,7 @@ namespace Microsoft.RoslynTools.NuGet
                 "Microsoft.Net.Compilers.Toolset",
                 "Microsoft.Net.Compilers.Toolset.Framework",
                 "Microsoft.VisualStudio.LanguageServices"
-            };
+            ];
 
         internal static async Task<int> PrepareAsync(ILogger logger)
         {

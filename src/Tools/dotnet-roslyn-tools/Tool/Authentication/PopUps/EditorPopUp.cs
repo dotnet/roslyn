@@ -11,7 +11,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
         public EditorPopUp(string path, IList<Line>? contents = null)
         {
             Path = path;
-            Contents = contents ?? new List<Line>();
+            Contents = contents ?? [];
         }
 
         [JsonIgnore]
@@ -30,7 +30,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
 
         private static List<Line> GetContentValues(IEnumerable<string> contents)
         {
-            List<Line> values = new();
+            List<Line> values = [];
 
             foreach (string content in contents)
             {

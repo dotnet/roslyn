@@ -48,7 +48,7 @@ internal static class PRTagger
         }
 
         var vsBuildsAndCommitSha =
-            await GetVsBuildCommitShaAsync(remoteConnections.DevDivConnection, builds.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
+            await GetVsBuildCommitShaAsync(remoteConnections.DevDivConnection, [.. builds], cancellationToken).ConfigureAwait(false);
 
         // vsBuildsAndCommitSha is ordered from new to old.
         // For each of the product, check if the product is changed from the newest build, keep creating issues if the product has change.
@@ -214,7 +214,7 @@ internal static class PRTagger
         });
 
         var vsBuildAndCommitSha = await Task.WhenAll(buildInfoTask).ConfigureAwait(false);
-        return vsBuildAndCommitSha.ToImmutableArray();
+        return [.. vsBuildAndCommitSha];
     }
 
     private static async Task<ImmutableArray<(string vsBuild, string vsCommit, string previousVsCommitSha)>> GetVSBuildsAndCommitsAsync(
@@ -244,7 +244,7 @@ internal static class PRTagger
             }
             else
             {
-                builds = buildAndCommitShaList.Take(lastReportedBuildIndex).ToImmutableArray();
+                builds = [.. buildAndCommitShaList.Take(lastReportedBuildIndex)];
             }
         }
 

@@ -17,12 +17,12 @@ namespace Microsoft.RoslynTools.Commands;
 
 internal static class DartTestCommand
 {
-    private static readonly string[] s_allProductNames = VSBranchInfo.AllProducts.Where(p => p.DartLabPipelineName != null).Select(p => p.Name.ToLower()).ToArray();
+    private static readonly string[] s_allProductNames = [.. VSBranchInfo.AllProducts.Where(p => p.DartLabPipelineName != null).Select(p => p.Name.ToLower())];
 
     private static readonly DartTestCommandDefaultHandler s_dartTestCommandHandler = new();
     private static readonly Option<int> prNumber = new(["--prNumber", "-n"], "PR number") { IsRequired = true };
     private static readonly Option<string> sha = new(["--sha", "-s"], "Relevant SHA") { IsRequired = false };
-    private static readonly Option<string> productOption = new Option<string>(new[] { "--product", "-p" }, () => "roslyn", "Which product to get info for").FromAmong(s_allProductNames);
+    private static readonly Option<string> productOption = new Option<string>(["--product", "-p"], () => "roslyn", "Which product to get info for").FromAmong(s_allProductNames);
 
     public static Symbol GetCommand()
     {

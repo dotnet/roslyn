@@ -14,7 +14,7 @@ namespace Microsoft.RoslynTools.NuGet
         public const string RoslynSdkRepo = "roslyn-sdk";
 
         private static readonly string[] RoslynPackageIds =
-            {
+            [
                 "Microsoft.CodeAnalysis",
                 "Microsoft.CodeAnalysis.Common",
                 "Microsoft.CodeAnalysis.Compilers",
@@ -36,10 +36,10 @@ namespace Microsoft.RoslynTools.NuGet
                 "Microsoft.Net.Compilers.Toolset",
                 "Microsoft.Net.Compilers.Toolset.Framework",
                 "Microsoft.VisualStudio.LanguageServices"
-            };
+            ];
 
         private static readonly string[] RoslynSdkPackageIds =
-            {
+            [
                 "Microsoft.CodeAnalysis.Analyzer.Testing",
                 "Microsoft.CodeAnalysis.CodeFix.Testing",
                 "Microsoft.CodeAnalysis.CodeRefactoring.Testing",
@@ -79,7 +79,7 @@ namespace Microsoft.RoslynTools.NuGet
                 "Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.MSTest",
                 "Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.NUnit",
                 "Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.XUnit"
-            };
+            ];
 
         internal static async Task<int> PublishAsync(string repoName, string source, string apiKey, bool unlisted, bool skipDuplicate, ILogger logger)
         {

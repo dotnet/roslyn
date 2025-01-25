@@ -14,8 +14,8 @@ using static CommonOptions;
 internal static class PRTaggerCommand
 {
     private static readonly PRTaggerCommandDefaultHandler s_prTaggerCommandHandler = new();
-    private static readonly Option<int> maxVsBuildCheckNumber = new(new[] { "--vsBuildCheckNumber" }, () => 50, "Maximum number of VS build to check. Tagger would compare each VS build and its parent commit to find the inserted payload.");
-    private static readonly Option<string> VSBuild = new(new[] { "--build", "-b" }, "VS build number");
+    private static readonly Option<int> maxVsBuildCheckNumber = new(["--vsBuildCheckNumber"], () => 50, "Maximum number of VS build to check. Tagger would compare each VS build and its parent commit to find the inserted payload.");
+    private static readonly Option<string> VSBuild = new(["--build", "-b"], "VS build number");
 
     public static Symbol GetCommand()
     {

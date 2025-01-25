@@ -14,7 +14,7 @@ internal class AuthenticateCommand
 {
     private static readonly AuthenticateCommandDefaultHandler s_authenticateCommandHandler = new();
 
-    internal static readonly Option ClearOption = new(new[] { "--clear", "-c" }, "Clear any settings to defaults.");
+    internal static readonly Option ClearOption = new(["--clear", "-c"], "Clear any settings to defaults.");
 
     public static Symbol GetCommand()
     {
@@ -33,7 +33,7 @@ internal class AuthenticateCommand
         {
             var logger = context.SetupLogging();
 
-            var clearSettings = context.ParseResult.WasOptionUsed(ClearOption.Aliases.ToArray());
+            var clearSettings = context.ParseResult.WasOptionUsed([.. ClearOption.Aliases]);
 
             return Authenticator.UpdateAsync(clearSettings, logger);
         }

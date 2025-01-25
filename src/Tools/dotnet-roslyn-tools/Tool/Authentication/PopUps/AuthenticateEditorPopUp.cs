@@ -33,8 +33,8 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
             }
 
             // Initialize line contents.
-            Contents = new ReadOnlyCollection<Line>(new List<Line>
-            {
+            Contents = new ReadOnlyCollection<Line>(
+            [
                 new("Create new GitHub personal access tokens at https://github.com/settings/tokens (repo_public scopes needed)", isComment: true),
                 new($"{githubTokenElement}={GetCurrentSettingForDisplay(Settings.GitHubToken, string.Empty, isSecret: true)}"),
                 new(string.Empty),
@@ -50,7 +50,7 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
                 new($"{dncengAzureDevOpsTokenElement}={GetCurrentSettingForDisplay(Settings.DncEngAzureDevOpsToken, string.Empty, true)}"),
                 new(string.Empty),
                 new("Set elements above before saving.", isComment: true),
-            });
+            ]);
         }
 
         public LocalSettings Settings { get; set; }

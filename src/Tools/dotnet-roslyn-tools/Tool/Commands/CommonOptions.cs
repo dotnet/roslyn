@@ -13,13 +13,13 @@ namespace Microsoft.RoslynTools.Commands;
 
 internal static class CommonOptions
 {
-    public static string[] VerbosityLevels => new[] { "q", "quiet", "m", "minimal", "n", "normal", "d", "detailed", "diag", "diagnostic" };
-    public static readonly Option<string> VerbosityOption = new Option<string>(new[] { "--verbosity", "-v" }, "Set the verbosity level. Allowed values are quiet, minimal, normal, detailed, and diagnostic.").FromAmong(VerbosityLevels);
+    public static string[] VerbosityLevels => ["q", "quiet", "m", "minimal", "n", "normal", "d", "detailed", "diag", "diagnostic"];
+    public static readonly Option<string> VerbosityOption = new Option<string>(["--verbosity", "-v"], "Set the verbosity level. Allowed values are quiet, minimal, normal, detailed, and diagnostic.").FromAmong(VerbosityLevels);
 
-    public static readonly Option<string> GitHubTokenOption = new(new[] { "--github-token" }, () => string.Empty, "Token used to authenticate GitHub.");
-    public static readonly Option<string> DevDivAzDOTokenOption = new(new[] { "--devdiv-azdo-token" }, () => string.Empty, "Token used to authenticate to DevDiv Azure DevOps.");
-    public static readonly Option<string> DncEngAzDOTokenOption = new(new[] { "--dnceng-azdo-token" }, () => string.Empty, "Token used to authenticate to DncEng Azure DevOps.");
-    public static readonly Option<bool> IsCIOption = new(new[] { "--ci" }, "Indicate that the command is running in a CI environment.");
+    public static readonly Option<string> GitHubTokenOption = new(["--github-token"], () => string.Empty, "Token used to authenticate GitHub.");
+    public static readonly Option<string> DevDivAzDOTokenOption = new(["--devdiv-azdo-token"], () => string.Empty, "Token used to authenticate to DevDiv Azure DevOps.");
+    public static readonly Option<string> DncEngAzDOTokenOption = new(["--dnceng-azdo-token"], () => string.Empty, "Token used to authenticate to DncEng Azure DevOps.");
+    public static readonly Option<bool> IsCIOption = new(["--ci"], "Indicate that the command is running in a CI environment.");
 
     public static RoslynToolsSettings LoadSettings(this ParseResult parseResult, ILogger logger)
     {

@@ -15,12 +15,12 @@ internal class VSBranchInfoCommand
 {
     private static readonly VSBranchInfoCommandDefaultHandler s_vsBranchInfoCommandHandler = new();
 
-    private static readonly string[] s_allProductNames = VSBranchInfo.AllProducts.Select(p => p.Name.ToLower()).Concat(new[] { "all" }).ToArray();
+    private static readonly string[] s_allProductNames = [.. VSBranchInfo.AllProducts.Select(p => p.Name.ToLower()), .. new[] { "all" }];
 
-    internal static readonly Option<string> BranchOption = new(new[] { "--branch", "-b" }, () => "main", "Which VS branch to show information for (eg main, rel/d17.1)");
-    internal static readonly Option<string?> TagOption = new(new[] { "--tag", "-t" }, "Which VS tag to show information for (eg release/vs/17.8-preview.3). This overrides \"branch\" option if provided");
-    internal static readonly Option<string> ProductOption = new Option<string>(new[] { "--product", "-p" }, () => "roslyn", "Which product to get info for").FromAmong(s_allProductNames);
-    internal static readonly Option ShowArtifacts = new(new[] { "--show-artifacts", "-a" }, "Whether to show artifact download links for the packages product by the build (if available)");
+    internal static readonly Option<string> BranchOption = new(["--branch", "-b"], () => "main", "Which VS branch to show information for (eg main, rel/d17.1)");
+    internal static readonly Option<string?> TagOption = new(["--tag", "-t"], "Which VS tag to show information for (eg release/vs/17.8-preview.3). This overrides \"branch\" option if provided");
+    internal static readonly Option<string> ProductOption = new Option<string>(["--product", "-p"], () => "roslyn", "Which product to get info for").FromAmong(s_allProductNames);
+    internal static readonly Option ShowArtifacts = new(["--show-artifacts", "-a"], "Whether to show artifact download links for the packages product by the build (if available)");
 
     public static Symbol GetCommand()
     {
@@ -49,7 +49,7 @@ internal class VSBranchInfoCommand
             var branch = context.ParseResult.GetValueForOption(BranchOption)!;
             var tag = context.ParseResult.GetValueForOption(TagOption);
             var product = context.ParseResult.GetValueForOption(ProductOption)!;
-            var showArtifacts = context.ParseResult.WasOptionUsed(ShowArtifacts.Aliases.ToArray());
+            var showArtifacts = context.ParseResult.WasOptionUsed([.. ShowArtifacts.Aliases]);
 
             // tag option overrides branch option
             var (gitVersionType, gitVersion) = tag is null ? (GitVersionType.Branch, branch) : (GitVersionType.Tag, tag);
