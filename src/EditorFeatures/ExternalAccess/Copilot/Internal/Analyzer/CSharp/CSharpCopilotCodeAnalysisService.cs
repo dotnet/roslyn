@@ -85,4 +85,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService : AbstractCopilot
 
     protected override Task<string> GetDocumentationCommentCoreAsync(string memberDeclaration, string? symbolName, string tagType, CancellationToken cancellationToken)
         => _lazyExternalCopilotService.Value.GetDocumentationCommentAsync(memberDeclaration, symbolName, tagType, cancellationToken);
+
+    protected override Task<string> GetGenerateMethodHintCoreAsync(string methodDeclaration, CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.GetGenerateMethodHintAsync(methodDeclaration, cancellationToken);
 }

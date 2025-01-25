@@ -79,4 +79,5 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
 
     Task<string> GetDocumentationCommentAsync(string memberDeclaration, string? symbolName, string tagType, CancellationToken cancellationToken);
 
+    Task<string> GetGenerateMethodHintAsync(string methodDeclaration, CancellationToken cancellationToken);
 }

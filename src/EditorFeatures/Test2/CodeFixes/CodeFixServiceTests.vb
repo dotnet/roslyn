@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Reflection
 Imports System.Threading
+Imports ICSharpCode.Decompiler.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Copilot
@@ -364,6 +365,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             End Function
 
             Public Function GetDocumentationCommentAsync(memberDeclaration As String, symbolName As String, tagType As String, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetDocumentationCommentAsync
+                Return Task.FromResult("")
+            End Function
+
+            Public Function GetGenerateMethodHintAsync(methodDeclaration As String, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetGenerateMethodHintAsync
                 Return Task.FromResult("")
             End Function
         End Class

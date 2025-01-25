@@ -21,4 +21,5 @@ internal interface IExternalCSharpCopilotCodeAnalysisService
     Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
     Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken);
     Task<string> GetDocumentationCommentAsync(string memberDeclaration, string? symbolName, string tagType, CancellationToken cancellationToken);
+    Task<string> GetGenerateMethodHintAsync(string methodDeclaration, CancellationToken cancellationToken);
 }
