@@ -3,8 +3,6 @@
 // See the License.txt file in the project root for more information.
 
 using System.CommandLine;
-using System.CommandLine.Invocation;
-using System.CommandLine.Parsing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Microsoft.RoslynTools.Authentication;
@@ -14,33 +12,50 @@ namespace Microsoft.RoslynTools.Commands;
 internal static class CommonOptions
 {
     public static string[] VerbosityLevels => ["q", "quiet", "m", "minimal", "n", "normal", "d", "detailed", "diag", "diagnostic"];
-    public static readonly Option<string> VerbosityOption = new Option<string>(["--verbosity", "-v"], "Set the verbosity level. Allowed values are quiet, minimal, normal, detailed, and diagnostic.").FromAmong(VerbosityLevels);
+    public static readonly Option<string> VerbosityOption = new("--verbosity", "-v")
+    {
+        Description = "Set the verbosity level. Allowed values are quiet, minimal, normal, detailed, and diagnostic.",
+        DefaultValueFactory = _ => "n"
+    };
+    public static readonly Option<string> GitHubTokenOption = new("--github-token")
+    {
+        Description = "Token used to authenticate GitHub.",
+        DefaultValueFactory = _ => string.Empty,
+    };
+    public static readonly Option<string> DevDivAzDOTokenOption = new("--devdiv-azdo-token")
+    {
+        Description = "Token used to authenticate to DevDiv Azure DevOps.",
+        DefaultValueFactory = _ => string.Empty,
+    };
+    public static readonly Option<string> DncEngAzDOTokenOption = new("--dnceng-azdo-token")
+    {
+        Description = "Token used to authenticate to DncEng Azure DevOps.",
+        DefaultValueFactory = _ => string.Empty,
+    };
+    public static readonly Option<bool> IsCIOption = new("--ci")
+    {
+        Description = "Indicate that the command is running in a CI environment.",
+    };
 
-    public static readonly Option<string> GitHubTokenOption = new(["--github-token"], () => string.Empty, "Token used to authenticate GitHub.");
-    public static readonly Option<string> DevDivAzDOTokenOption = new(["--devdiv-azdo-token"], () => string.Empty, "Token used to authenticate to DevDiv Azure DevOps.");
-    public static readonly Option<string> DncEngAzDOTokenOption = new(["--dnceng-azdo-token"], () => string.Empty, "Token used to authenticate to DncEng Azure DevOps.");
-    public static readonly Option<bool> IsCIOption = new(["--ci"], "Indicate that the command is running in a CI environment.");
+    static CommonOptions()
+    {
+        VerbosityOption.AcceptOnlyFromAmong(VerbosityLevels);
+    }
 
     public static RoslynToolsSettings LoadSettings(this ParseResult parseResult, ILogger logger)
     {
         // Both options default to empty string.
-        var githubToken = parseResult.GetValueForOption(GitHubTokenOption) ?? string.Empty;
-        var devdivAzDOToken = parseResult.GetValueForOption(DevDivAzDOTokenOption) ?? string.Empty;
-        var dncengAzDOToken = parseResult.GetValueForOption(DncEngAzDOTokenOption) ?? string.Empty;
-        var isCI = parseResult.GetValueForOption(IsCIOption);
+        var githubToken = parseResult.GetValue(GitHubTokenOption) ?? string.Empty;
+        var devdivAzDOToken = parseResult.GetValue(DevDivAzDOTokenOption) ?? string.Empty;
+        var dncengAzDOToken = parseResult.GetValue(DncEngAzDOTokenOption) ?? string.Empty;
+        var isCI = parseResult.GetValue(IsCIOption);
 
         return LocalSettings.GetRoslynToolsSettings(githubToken, devdivAzDOToken, dncengAzDOToken, isCI, logger);
     }
 
     public static LogLevel ParseVerbosity(this ParseResult parseResult)
     {
-        if (parseResult.HasOption(VerbosityOption) &&
-            parseResult.GetValueForOption(VerbosityOption) is string { Length: > 0 } verbosity)
-        {
-            return GetLogLevel(verbosity);
-        }
-
-        return LogLevel.Information;
+        return GetLogLevel(parseResult.GetValue(VerbosityOption));
     }
 
     public static LogLevel GetLogLevel(string? verbosity)
@@ -56,9 +71,9 @@ internal static class CommonOptions
         };
     }
 
-    public static ILogger<Program> SetupLogging(this InvocationContext context)
+    public static ILogger<Program> SetupLogging(this ParseResult parseResult)
     {
-        var minimalLogLevel = context.ParseResult.ParseVerbosity();
+        var minimalLogLevel = parseResult.ParseVerbosity();
         using var loggerFactory = LoggerFactory
             .Create(builder => builder.AddSimpleConsole(c => c.ColorBehavior = LoggerColorBehavior.Default)
             .SetMinimumLevel(minimalLogLevel));

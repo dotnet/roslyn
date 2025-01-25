@@ -15,11 +15,29 @@ internal static class DartTestCommand
     private static readonly string[] s_allProductNames = [.. VSBranchInfo.AllProducts.Where(p => p.DartLabPipelineName != null).Select(p => p.Name.ToLower())];
 
     private static readonly DartTestCommandDefaultHandler s_dartTestCommandHandler = new();
-    internal static readonly Option<int> PrNumberOption = new(["--prNumber", "-n"], "PR number") { IsRequired = true };
-    internal static readonly Option<string> ShaOption = new(["--sha", "-s"], "Relevant SHA") { IsRequired = false };
-    internal static readonly Option<string> ProductOption = new Option<string>(["--product", "-p"], () => "roslyn", "Which product to get info for").FromAmong(s_allProductNames);
+    internal static readonly Option<int> PrNumberOption = new("--prNumber", "-n")
+    {
+        Description = "PR number",
+        Required = true,
+    };
+    internal static readonly Option<string> ShaOption = new("--sha", "-s")
+    {
+        Description = "Relevant SHA",
+        Required = false,
+    };
+    internal static readonly Option<string> ProductOption = new("--product", "-p")
+    {
+        Description = "Product to get info for",
+        DefaultValueFactory = _ => "roslyn",
+        Required = false,
+    };
 
-    public static Symbol GetCommand()
+    static DartTestCommand()
+    {
+        ProductOption.AcceptOnlyFromAmong(s_allProductNames);
+    }
+
+    public static Command GetCommand()
     {
         var command = new Command("dart-test",
             @"Runs the dartlab pipeline for a given PR number and SHA.
@@ -34,16 +52,16 @@ It works by cloning the PR into the internal mirror and then running the dartlab
             CommonOptions.IsCIOption,
         };
 
-        command.Handler = s_dartTestCommandHandler;
+        command.Action = s_dartTestCommandHandler;
         return command;
     }
 
-    private class DartTestCommandDefaultHandler : ICommandHandler
+    private class DartTestCommandDefaultHandler : AsynchronousCommandLineAction
     {
-        public async Task<int> InvokeAsync(InvocationContext context)
+        public override async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
         {
-            var logger = context.SetupLogging();
-            var settings = context.ParseResult.LoadSettings(logger);
+            var logger = parseResult.SetupLogging();
+            var settings = parseResult.LoadSettings(logger);
 
             var isMissingAzDOToken = string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) || string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken);
             if (string.IsNullOrEmpty(settings.GitHubToken) ||
@@ -53,15 +71,15 @@ It works by cloning the PR into the internal mirror and then running the dartlab
                 return -1;
             }
 
-            var pr = context.ParseResult.GetValueForOption(PrNumberOption);
-            var shaFromPR = context.ParseResult.GetValueForOption(ShaOption);
+            var pr = parseResult.GetValue(PrNumberOption);
+            var shaFromPR = parseResult.GetValue(ShaOption);
 
             if (shaFromPR is null)
             {
                 logger.LogInformation("Using most recent SHA");
             }
 
-            var product = context.ParseResult.GetValueForOption(ProductOption)!;
+            var product = parseResult.GetValue(ProductOption)!;
 
             using var remoteConnections = new RemoteConnections(settings);
 

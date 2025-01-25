@@ -17,9 +17,18 @@ internal class CreateReleaseTagsCommand
     // Filter the product to only those with git credentials, as we need to be able to commit to the repo to add tags
     private static readonly string[] s_allProductNames = [.. VSBranchInfo.AllProducts.Where(p => p.GitUserName.Length > 0).Select(p => p.Name.ToLower())];
 
-    internal static readonly Option<string> ProductOption = new Option<string>(["--product", "-p"], () => "roslyn", "Which product to get info for").FromAmong(s_allProductNames);
+    internal static readonly Option<string> ProductOption = new("--product", "-p")
+    {
+        Description = "Which product to get info for",
+        DefaultValueFactory = _ => "roslyn",
+    };
 
-    public static Symbol GetCommand()
+    static CreateReleaseTagsCommand()
+    {
+        ProductOption.AcceptOnlyFromAmong(s_allProductNames);
+    }
+
+    public static Command GetCommand()
     {
         var command = new Command("create-release-tags", "Generates git tags for VS releases in the repo.")
         {
@@ -29,18 +38,18 @@ internal class CreateReleaseTagsCommand
             DncEngAzDOTokenOption,
             IsCIOption,
         };
-        command.Handler = s_defaultHandler;
+        command.Action = s_defaultHandler;
         return command;
     }
 
-    private class CreateReleaseTagsCommandDefaultHandler : ICommandHandler
+    private class CreateReleaseTagsCommandDefaultHandler : AsynchronousCommandLineAction
     {
-        public async Task<int> InvokeAsync(InvocationContext context)
+        public override async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
         {
-            var logger = context.SetupLogging();
-            var settings = context.ParseResult.LoadSettings(logger);
+            var logger = parseResult.SetupLogging();
+            var settings = parseResult.LoadSettings(logger);
 
-            var product = context.ParseResult.GetValueForOption(ProductOption)!;
+            var product = parseResult.GetValue(ProductOption)!;
 
             return await CreateReleaseTags.CreateReleaseTags.CreateReleaseTagsAsync(product, settings, logger);
         }

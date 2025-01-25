@@ -22,7 +22,6 @@ internal static class RootRoslynCommand
             VSBranchInfoCommand.GetCommand(),
             DartTestCommand.GetCommand(),
         };
-        command.Name = "roslyn-tools";
         command.Description = "The command line tool for performing infrastructure tasks.";
         return command;
     }

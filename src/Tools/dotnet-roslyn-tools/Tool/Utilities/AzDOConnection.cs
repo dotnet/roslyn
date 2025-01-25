@@ -11,6 +11,7 @@ using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.FileContainer.Client;
 using Microsoft.VisualStudio.Services.WebApi;
+using Build = Microsoft.TeamFoundation.Build.WebApi.Build;
 
 namespace Microsoft.RoslynTools.Utilities;
 

@@ -1,4 +1,8 @@
-﻿using System.CommandLine;
+﻿// Licensed to the.NET Foundation under one or more agreements.
+// The.NET Foundation licenses this file to you under the MIT license.
+// See the License.txt file in the project root for more information.
+
 using Microsoft.RoslynTools.Commands;
 
-return await RootRoslynCommand.GetRootCommand().InvokeAsync(args);
+var rootCommand = RootRoslynCommand.GetRootCommand();
+return await rootCommand.Parse(args).InvokeAsync();

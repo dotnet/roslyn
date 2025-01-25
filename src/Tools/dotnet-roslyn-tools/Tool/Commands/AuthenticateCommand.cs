@@ -14,27 +14,30 @@ internal class AuthenticateCommand
 {
     private static readonly AuthenticateCommandDefaultHandler s_authenticateCommandHandler = new();
 
-    internal static readonly Option<bool> ClearOption = new(["--clear", "-c"], "Clear any settings to defaults.");
+    internal static readonly Option<bool> ClearOption = new("--clear", "-c")
+    {
+        Description = "Clear any settings to defaults."
+    };
 
-    public static Symbol GetCommand()
+    public static Command GetCommand()
     {
         var command = new Command("authenticate", "Stores the AzDO and GitHub tokens required for remote operations.")
         {
             ClearOption,
             VerbosityOption
         };
-        command.Handler = s_authenticateCommandHandler;
+        command.Action = s_authenticateCommandHandler;
         return command;
     }
 
-    private class AuthenticateCommandDefaultHandler : ICommandHandler
+    private class AuthenticateCommandDefaultHandler : AsynchronousCommandLineAction
     {
-        public Task<int> InvokeAsync(InvocationContext context)
+        public override async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
         {
-            var logger = context.SetupLogging();
-            var clearSettings = context.ParseResult.GetValueForOption(ClearOption);
+            var logger = parseResult.SetupLogging();
+            var clearSettings = parseResult.GetValue(ClearOption);
 
-            return Authenticator.UpdateAsync(clearSettings, logger);
+            return await Authenticator.UpdateAsync(clearSettings, logger);
         }
     }
 }

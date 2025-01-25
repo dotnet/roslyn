@@ -14,21 +14,21 @@ internal class NuGetPrepareCommand
 {
     private static readonly NuGetPrepareCommandDefaultHandler s_nuGetPrepareCommandHandler = new();
 
-    public static Symbol GetCommand()
+    public static Command GetCommand()
     {
         var command = new Command("nuget-prepare", "Prepares packages built from the Roslyn repo for validation.")
         {
             VerbosityOption
         };
-        command.Handler = s_nuGetPrepareCommandHandler;
+        command.Action = s_nuGetPrepareCommandHandler;
         return command;
     }
 
-    private class NuGetPrepareCommandDefaultHandler : ICommandHandler
+    private class NuGetPrepareCommandDefaultHandler : AsynchronousCommandLineAction
     {
-        public Task<int> InvokeAsync(InvocationContext context)
+        public override Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
         {
-            var logger = context.SetupLogging();
+            var logger = parseResult.SetupLogging();
 
             return NuGetPrepare.PrepareAsync(logger);
         }

@@ -14,21 +14,21 @@ internal class NuGetDependenciesCommand
 {
     private static readonly NuGetDependenciesCommandDefaultHandler s_nuGetDependenciesCommandHandler = new();
 
-    public static Symbol GetCommand()
+    public static Command GetCommand()
     {
         var command = new Command("nuget-dependencies", "Lists dependencies that are missing or out of date for a folder of .nupkg files.")
         {
             VerbosityOption
         };
-        command.Handler = s_nuGetDependenciesCommandHandler;
+        command.Action = s_nuGetDependenciesCommandHandler;
         return command;
     }
 
-    private class NuGetDependenciesCommandDefaultHandler : ICommandHandler
+    private class NuGetDependenciesCommandDefaultHandler : AsynchronousCommandLineAction
     {
-        public Task<int> InvokeAsync(InvocationContext context)
+        public override Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
         {
-            var logger = context.SetupLogging();
+            var logger = parseResult.SetupLogging();
             var packageFolder = Environment.CurrentDirectory;
 
             return NuGetDependencyFinder.FindDependenciesAsync(packageFolder, logger);

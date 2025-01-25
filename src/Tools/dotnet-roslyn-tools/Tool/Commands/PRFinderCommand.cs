@@ -15,13 +15,36 @@ internal static class PRFinderCommand
 
     internal static readonly string[] SupportedFormats = [PRFinder.PRFinder.DefaultFormat, PRFinder.PRFinder.OmniSharpFormat, PRFinder.PRFinder.ChangelogFormat];
 
-    internal static readonly Option<string> StartRefOption = new(["--start", "-s"], "The ref to start looking for PRs from. This value can be a branch name, tag name, or commit SHA.") { IsRequired = true };
-    internal static readonly Option<string> EndRefOption = new(["--end", "-e"], "The ref to stop looking for PRs at. This value can be a branch name, tag name, or commit SHA.") { IsRequired = true };
-    internal static readonly Option<string?> PathOption = new(["--path"], "When set only PRs that touch the specified path will be included in the output.");
-    internal static readonly Option<string> FormatOption = new Option<string>(["--format"], () => PRFinder.PRFinder.DefaultFormat, "The formatting to apply to the PR list.").FromAmong(SupportedFormats);
-    internal static readonly Option<string?> RepoPathOption = new(["--repo"], () => null, "The directory of the repository to look for PRs. If none is provided, the current directory is used");
+    internal static readonly Option<string> StartRefOption = new("--start", "-s")
+    {
+        Description = "The ref to start looking for PRs from. This value can be a branch name, tag name, or commit SHA.",
+        Required = true,
+    };
+    internal static readonly Option<string> EndRefOption = new("--end", "-e")
+    {
+        Description = "The ref to stop looking for PRs at. This value can be a branch name, tag name, or commit SHA.",
+        Required = true,
+    };
+    internal static readonly Option<string?> PathOption = new("--path")
+    {
+        Description = "When set only PRs that touch the specified path will be included in the output.",
+    };
+    internal static readonly Option<string> FormatOption = new("--format")
+    {
+        Description = "The formatting to apply to the PR list.",
+        DefaultValueFactory = _ => PRFinder.PRFinder.DefaultFormat,
+    };
+    internal static readonly Option<string?> RepoPathOption = new("--repo")
+    {
+        Description = "The directory of the repository to look for PRs. If none is provided, the current directory is used",
+    };
 
-    public static Symbol GetCommand()
+    static PRFinderCommand()
+    {
+        FormatOption.AcceptOnlyFromAmong(SupportedFormats);
+    }
+
+    public static Command GetCommand()
     {
         var prFinderCommand = new Command("pr-finder", "Find merged PRs between two commits")
         {
@@ -32,21 +55,21 @@ internal static class PRFinderCommand
             VerbosityOption,
             RepoPathOption
         };
-        prFinderCommand.Handler = s_prFinderCommandHandler;
+        prFinderCommand.Action = s_prFinderCommandHandler;
         return prFinderCommand;
     }
 
-    private class PrFinderCommandDefaultHandler : ICommandHandler
+    private class PrFinderCommandDefaultHandler : AsynchronousCommandLineAction
     {
-        public Task<int> InvokeAsync(InvocationContext context)
+        public override Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
         {
-            var logger = context.SetupLogging();
+            var logger = parseResult.SetupLogging();
 
-            var startRef = context.ParseResult.GetValueForOption(StartRefOption)!;
-            var endRef = context.ParseResult.GetValueForOption(EndRefOption)!;
-            var path = context.ParseResult.GetValueForOption(PathOption);
-            var format = context.ParseResult.GetValueForOption(FormatOption)!;
-            var repoPath = context.ParseResult.GetValueForOption(RepoPathOption);
+            var startRef = parseResult.GetValue(StartRefOption)!;
+            var endRef = parseResult.GetValue(EndRefOption)!;
+            var path = parseResult.GetValue(PathOption);
+            var format = parseResult.GetValue(FormatOption)!;
+            var repoPath = parseResult.GetValue(RepoPathOption);
 
             return PRFinder.PRFinder.FindPRsAsync(startRef, endRef, path, format, logger, repoPath: repoPath);
         }

@@ -17,12 +17,31 @@ internal class VSBranchInfoCommand
 
     private static readonly string[] s_allProductNames = [.. VSBranchInfo.AllProducts.Select(p => p.Name.ToLower()), .. new[] { "all" }];
 
-    internal static readonly Option<string> BranchOption = new(["--branch", "-b"], () => "main", "Which VS branch to show information for (eg main, rel/d17.1)");
-    internal static readonly Option<string?> TagOption = new(["--tag", "-t"], "Which VS tag to show information for (eg release/vs/17.8-preview.3). This overrides \"branch\" option if provided");
-    internal static readonly Option<string> ProductOption = new Option<string>(["--product", "-p"], () => "roslyn", "Which product to get info for").FromAmong(s_allProductNames);
-    internal static readonly Option<bool> ShowArtifacts = new(["--show-artifacts", "-a"], "Whether to show artifact download links for the packages product by the build (if available)");
+    internal static readonly Option<string> BranchOption = new("--branch", "-b")
+    {
+        Description = "Which VS branch to show information for (eg main, rel/d17.1)",
+        DefaultValueFactory = _ => "main",
+    };
+    internal static readonly Option<string?> TagOption = new("--tag", "-t")
+    {
+        Description = "Which VS tag to show information for (eg release/vs/17.8-preview.3). This overrides \"branch\" option if provided",
+    };
+    internal static readonly Option<string> ProductOption = new("--product", "-p")
+    {
+        Description = "Which product to get info for",
+        DefaultValueFactory = _ => "roslyn",
+    };
+    internal static readonly Option<bool> ShowArtifacts = new("--show-artifacts", "-a")
+    {
+        Description = "Whether to show artifact download links for the packages product by the build (if available)",
+    };
 
-    public static Symbol GetCommand()
+    static VSBranchInfoCommand()
+    {
+        ProductOption.AcceptOnlyFromAmong(s_allProductNames);
+    }
+
+    public static Command GetCommand()
     {
         var command = new Command("vsbranchinfo", "Provides information about the state of Roslyn in one or more branches of Visual Studio.")
         {
@@ -35,21 +54,21 @@ internal class VSBranchInfoCommand
             DncEngAzDOTokenOption,
             IsCIOption,
         };
-        command.Handler = s_vsBranchInfoCommandHandler;
+        command.Action = s_vsBranchInfoCommandHandler;
         return command;
     }
 
-    private class VSBranchInfoCommandDefaultHandler : ICommandHandler
+    private class VSBranchInfoCommandDefaultHandler : AsynchronousCommandLineAction
     {
-        public Task<int> InvokeAsync(InvocationContext context)
+        public override Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
         {
-            var logger = context.SetupLogging();
-            var settings = context.ParseResult.LoadSettings(logger);
+            var logger = parseResult.SetupLogging();
+            var settings = parseResult.LoadSettings(logger);
 
-            var branch = context.ParseResult.GetValueForOption(BranchOption)!;
-            var tag = context.ParseResult.GetValueForOption(TagOption);
-            var product = context.ParseResult.GetValueForOption(ProductOption)!;
-            var showArtifacts = context.ParseResult.GetValueForOption(ShowArtifacts);
+            var branch = parseResult.GetValue(BranchOption)!;
+            var tag = parseResult.GetValue(TagOption);
+            var product = parseResult.GetValue(ProductOption)!;
+            var showArtifacts = parseResult.GetValue(ShowArtifacts);
 
             // tag option overrides branch option
             var (gitVersionType, gitVersion) = tag is null ? (GitVersionType.Branch, branch) : (GitVersionType.Tag, tag);

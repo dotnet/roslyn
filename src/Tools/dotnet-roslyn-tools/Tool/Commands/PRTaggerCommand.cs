@@ -14,10 +14,18 @@ using static CommonOptions;
 internal static class PRTaggerCommand
 {
     private static readonly PRTaggerCommandDefaultHandler s_prTaggerCommandHandler = new();
-    internal static readonly Option<int> MaxVsBuildCheckNumber = new(["--vsBuildCheckNumber"], () => 50, "Maximum number of VS build to check. Tagger would compare each VS build and its parent commit to find the inserted payload.");
-    internal static readonly Option<string> VSBuild = new(["--build", "-b"], "VS build number");
+    internal static readonly Option<int> MaxVsBuildCheckNumberOption = new("--vsBuildCheckNumber")
+    {
+        Description = "Maximum number of VS build to check. Tagger would compare each VS build and its parent commit to find the inserted payload.",
+        DefaultValueFactory = _ => 50,
+    };
+    internal static readonly Option<string?> VSBuildOption = new("--build", "-b")
+    {
+        Description = "VS build number to check. If not specified, it will use the latest VS build as the head.",
+        Required = false,
+    };
 
-    public static Symbol GetCommand()
+    public static Command GetCommand()
     {
         var command = new Command("pr-tagger",
             @"Tags PRs inserted in a given VS build.
@@ -26,24 +34,24 @@ The checking build list is created:
 1. If --build is specified, it will just check this VS build to see if insertion has been made. --vsBuildCheckNumber has no effect in this case.
 2. If --build is not specified, it will use the latest VS build as the head. The tail would be the last reported VSBuild in each product repo. Use --vsBuildCheckNumber to control the max number of build to check in each run.")
         {
-            VSBuild,
-            MaxVsBuildCheckNumber,
+            VSBuildOption,
+            MaxVsBuildCheckNumberOption,
             GitHubTokenOption,
             DevDivAzDOTokenOption,
             DncEngAzDOTokenOption,
             IsCIOption,
         };
 
-        command.Handler = s_prTaggerCommandHandler;
+        command.Action = s_prTaggerCommandHandler;
         return command;
     }
 
-    private class PRTaggerCommandDefaultHandler : ICommandHandler
+    private class PRTaggerCommandDefaultHandler : AsynchronousCommandLineAction
     {
-        public async Task<int> InvokeAsync(InvocationContext context)
+        public override async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
         {
-            var logger = context.SetupLogging();
-            var settings = context.ParseResult.LoadSettings(logger);
+            var logger = parseResult.SetupLogging();
+            var settings = parseResult.LoadSettings(logger);
 
             var isMissingAzDOToken = string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) || string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken);
             if (string.IsNullOrEmpty(settings.GitHubToken) ||
@@ -53,10 +61,10 @@ The checking build list is created:
                 return -1;
             }
 
-            var maxFetchingVSBuildNumber = context.ParseResult.GetValueForOption(MaxVsBuildCheckNumber);
+            var maxFetchingVSBuildNumber = parseResult.GetValue(MaxVsBuildCheckNumberOption);
             logger.LogInformation("Check {MaxFetchingVSBuildNumber} VS Builds", maxFetchingVSBuildNumber);
 
-            var vsBuild = context.ParseResult.GetValueForOption(VSBuild);
+            var vsBuild = parseResult.GetValue(VSBuildOption);
             if (!string.IsNullOrEmpty(vsBuild))
             {
                 logger.LogInformation("Check VS Build: {VsBuild}", vsBuild);
