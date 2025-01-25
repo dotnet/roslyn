@@ -5315,7 +5315,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: false);
         }
 
-        // Similar to BindImplicitObjectCreationExpression.
         private BoundNode BindCollectionArguments(WithElementSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureCollectionExpressionArguments.CheckFeatureAvailability(diagnostics, syntax.WithKeyword);

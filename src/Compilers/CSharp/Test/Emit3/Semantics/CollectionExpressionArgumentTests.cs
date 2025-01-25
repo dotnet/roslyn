@@ -552,7 +552,88 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void CollectionInitializer()
+        public void CollectionInitializer_MultipleConstructors()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public readonly T Arg;
+                    public MyCollection() { }
+                    public MyCollection(T arg) { Arg = arg; }
+                    public void Add(T t) { }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            string sourceB = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Console.WriteLine((EmptyArgs<int>().Arg, NonEmptyArgs(2).Arg));
+                    }
+                    static MyCollection<T> EmptyArgs<T>() => [with()];
+                    static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t)];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB],
+                expectedOutput: "(0, 2)");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.EmptyArgs<T>()", """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  newobj     "MyCollection<T>..ctor()"
+                  IL_0005:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.NonEmptyArgs<T>(T)", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  newobj     "MyCollection<T>..ctor(T)"
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void CollectionInitializer_NoParameterlessConstructor()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public readonly T Arg;
+                    public MyCollection(T arg) { Arg = arg; }
+                    public void Add(T t) { }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                class Program
+                {
+                    static MyCollection<T> EmptyArgs<T>() => [with()];
+                    static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t)];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (13,46): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+                //     static MyCollection<T> EmptyArgs<T>() => [with()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with()]").WithLocation(13, 46),
+                // (14,52): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+                //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t)];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with(t)]").WithLocation(14, 52));
+        }
+
+        [Fact]
+        public void CollectionInitializer_OptionalParameter()
         {
             string sourceA = """
                 using System.Collections;
@@ -600,6 +681,93 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   .maxstack  1
                   IL_0000:  ldarg.0
                   IL_0001:  newobj     "MyCollection<T>..ctor(T)"
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void CollectionInitializer_ParamsParameter()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public readonly T[] Args;
+                    public MyCollection(params T[] args) { Args = args; }
+                    public void Add(T t) { }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        EmptyArgs<int>().Args.Report();
+                        OneArg(1).Args.Report();
+                        TwoArgs(2, 3).Args.Report();
+                        MultipleArgs([4, 5]).Args.Report();
+                    }
+                    static MyCollection<T> EmptyArgs<T>() => [with()];
+                    static MyCollection<T> OneArg<T>(T t) => [with(t)];
+                    static MyCollection<T> TwoArgs<T>(T x, T y) => [with(x, y)];
+                    static MyCollection<T> MultipleArgs<T>(T[] args) => [with(args)];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB, s_collectionExtensions],
+                expectedOutput: "[], [1], [2, 3], [4, 5], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.EmptyArgs<T>()", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  call       "T[] System.Array.Empty<T>()"
+                  IL_0005:  newobj     "MyCollection<T>..ctor(params T[])"
+                  IL_000a:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.OneArg<T>(T)", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "T"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldarg.0
+                  IL_0009:  stelem     "T"
+                  IL_000e:  newobj     "MyCollection<T>..ctor(params T[])"
+                  IL_0013:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.TwoArgs<T>(T, T)", """
+                {
+                  // Code size       28 (0x1c)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.2
+                  IL_0001:  newarr     "T"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldarg.0
+                  IL_0009:  stelem     "T"
+                  IL_000e:  dup
+                  IL_000f:  ldc.i4.1
+                  IL_0010:  ldarg.1
+                  IL_0011:  stelem     "T"
+                  IL_0016:  newobj     "MyCollection<T>..ctor(params T[])"
+                  IL_001b:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.MultipleArgs<T>(T[])", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  newobj     "MyCollection<T>..ctor(params T[])"
                   IL_0006:  ret
                 }
                 """);
@@ -801,36 +969,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (15,17): error CS9275: Collection argument element must be the first element.
                 //         y = [t, with(t)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(15, 17));
-        }
-
-        [Fact]
-        public void NoParameterlessConstructor()
-        {
-            string source = """
-                using System.Collections;
-                using System.Collections.Generic;
-                class MyCollection<T> : IEnumerable<T>
-                {
-                    public readonly T Arg;
-                    public MyCollection(T arg) { Arg = arg; }
-                    public void Add(T t) { }
-                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
-                    IEnumerator IEnumerable.GetEnumerator() => null;
-                }
-                class Program
-                {
-                    static MyCollection<T> EmptyArgs<T>() => [with()];
-                    static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t)];
-                }
-                """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (13,46): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
-                //     static MyCollection<T> EmptyArgs<T>() => [with()];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with()]").WithLocation(13, 46),
-                // (14,52): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
-                //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t)];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with(t)]").WithLocation(14, 52));
         }
 
         [Fact]
