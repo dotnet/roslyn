@@ -484,6 +484,8 @@ internal enum FunctionId
     Renamer_FindRenameLocationsAsync = 387,
     Renamer_ResolveConflictsAsync = 388,
 
+    Workspace_EventsImmediate = 389,
+
     ChangeSignature_Data = 400,
 
     AbstractEncapsulateFieldService_EncapsulateFieldsAsync = 410,

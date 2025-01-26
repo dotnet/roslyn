@@ -19,6 +19,7 @@ public abstract partial class Workspace
     private readonly EventMap _eventMap = new();
 
     private const string WorkspaceChangeEventName = "WorkspaceChanged";
+    private const string WorkspaceChangedImmediateEventName = "WorkspaceChangedImmediate";
     private const string WorkspaceFailedEventName = "WorkspaceFailed";
     private const string DocumentOpenedEventName = "DocumentOpened";
     private const string DocumentClosedEventName = "DocumentClosed";
@@ -42,6 +43,23 @@ public abstract partial class Workspace
         }
     }
 
+    /// <summary>
+    /// An event raised *immediately* whenever the current solution is changed. Handlers
+    /// should be written to be very fast.
+    /// </summary>
+    internal event EventHandler<WorkspaceChangeEventArgs> WorkspaceChangedImmediate
+    {
+        add
+        {
+            _eventMap.AddEventHandler(WorkspaceChangedImmediateEventName, value);
+        }
+
+        remove
+        {
+            _eventMap.RemoveEventHandler(WorkspaceChangedImmediateEventName, value);
+        }
+    }
+
     protected Task RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind kind, Solution oldSolution, Solution newSolution, ProjectId projectId = null, DocumentId documentId = null)
     {
         if (newSolution == null)
@@ -59,14 +77,25 @@ public abstract partial class Workspace
             projectId = documentId.ProjectId;
         }
 
-        var ev = GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangeEventName);
+        var ev = GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangedImmediateEventName);
+        WorkspaceChangeEventArgs? args = null;
+        if (ev.HasHandlers)
+        {
+            using (Logger.LogBlock(FunctionId.Workspace_EventsImmediate, (s, p, d, k) => $"{s.Id} - {p} - {d} {kind.ToString()}", newSolution, projectId, documentId, kind, CancellationToken.None))
+            {
+                args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
+                ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
+            }
+        }
+
+        ev = GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangeEventName);
         if (ev.HasHandlers)
         {
             return this.ScheduleTask(() =>
             {
                 using (Logger.LogBlock(FunctionId.Workspace_Events, (s, p, d, k) => $"{s.Id} - {p} - {d} {kind.ToString()}", newSolution, projectId, documentId, kind, CancellationToken.None))
                 {
-                    var args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
+                    args ??= new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
                     ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
                 }
             }, WorkspaceChangeEventName);

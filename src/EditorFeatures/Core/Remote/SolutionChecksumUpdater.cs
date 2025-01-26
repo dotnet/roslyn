@@ -87,6 +87,7 @@ internal sealed class SolutionChecksumUpdater
 
         // start listening workspace change event
         _workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _workspace.WorkspaceChangedImmediate += OnWorkspaceChangedImmediate;
         _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
 
         if (_globalOperationService != null)
@@ -107,6 +108,7 @@ internal sealed class SolutionChecksumUpdater
 
         _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
         _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+        _workspace.WorkspaceChangedImmediate -= OnWorkspaceChangedImmediate;
 
         if (_globalOperationService != null)
         {
@@ -143,20 +145,23 @@ internal sealed class SolutionChecksumUpdater
 
     private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
     {
-        if (e.Kind == WorkspaceChangeKind.DocumentChanged)
-        {
-            var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
-            var newDocument = e.NewSolution.GetDocument(e.DocumentId);
-            if (oldDocument != null && newDocument != null)
-                _textChangeQueue.AddWork((oldDocument, newDocument));
-        }
-
         // Check if we're currently paused.  If so ignore this notification.  We don't want to any work in response
         // to whatever the workspace is doing.
         lock (_gate)
         {
             if (!_isSynchronizeWorkspacePaused)
                 _synchronizeWorkspaceQueue.AddWork();
+        }
+    }
+
+    private void OnWorkspaceChangedImmediate(object? sender, WorkspaceChangeEventArgs e)
+    {
+        if (e.Kind == WorkspaceChangeKind.DocumentChanged)
+        {
+            var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
+            var newDocument = e.NewSolution.GetDocument(e.DocumentId);
+            if (oldDocument != null && newDocument != null)
+                _textChangeQueue.AddWork((oldDocument, newDocument));
         }
     }
 
