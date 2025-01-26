@@ -1028,7 +1028,7 @@
         }
       }
     },
-    // ColorSchemeOptionsStorage.ColorScheme.
+    // ColorSchemeOptionsStorage.ColorScheme
     "textEditor.csharpAndVisualBasic.advanced.editorColorScheme.visualStudioColorSchemeName": {
      "title": "@Editor_Color_Scheme;..\\Microsoft.VisualStudio.LanguageServices.dll",
      "type": "string",

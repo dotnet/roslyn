@@ -14,11 +14,46 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImportOnPaste;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
+using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
+using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
+using Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
+using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
+using Microsoft.CodeAnalysis.Editor.InlineHints;
+using Microsoft.CodeAnalysis.Editor.InlineRename;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.InlineRename;
+using Microsoft.CodeAnalysis.KeywordHighlighting;
+using Microsoft.CodeAnalysis.LineSeparators;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.ReferenceHighlighting;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
+using Microsoft.CodeAnalysis.StringCopyPaste;
+using Microsoft.CodeAnalysis.Structure;
+using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.ValidateFormatString;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 using Xunit;
@@ -46,9 +81,86 @@ public class UnifiedSettingsTests
         Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "textEditor.csharp.intellisense.enableArgumentCompletionSnippets").
         Add(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, "textEditor.csharp.intellisense.showNewSnippetExperience").
         // Advanced page
-        // TODO: add test data
-        Add(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, "textEditor.csharp.advanced.analysis.analyzerDiagnosticsScope")
-        ;
+        Add(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, "textEditor.csharp.advanced.analysis.analyzerDiagnosticsScope").
+        Add(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, "textEditor.csharp.advanced.analysis.compilerDiagnosticsScope").
+        Add(InlineDiagnosticsOptionsStorage.EnableInlineDiagnostics, "textEditor.csharp.advanced.analysis.enableInlineDiagnostics").
+        Add(InlineDiagnosticsOptionsStorage.Location, "textEditor.csharp.advanced.analysis.inlineDiagnosticsLocation").
+        Add(RemoteHostOptionsStorage.OOP64Bit, "textEditor.csharpAndVisualBasic.analysis.codeAnalysisInSeparateProcess").
+        Add(WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferences, "textEditor.csharpAndVisualBasic.analysis.reloadChangedAnalyzerReferences").
+        Add(FeatureOnOffOptions.OfferRemoveUnusedReferences, "textEditor.csharpAndVisualBasic.analysis.offerRemoveUnusedReferences").
+        Add(VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics, "textEditor.csharpAndVisualBasic.analysis.enableFileLoggingForDiagnostics").
+        Add(FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds, "textEditor.csharpAndVisualBasic.analysis.skipAnalyzersForImplicitlyTriggeredBuilds").
+        Add(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, "textEditor.csharpAndVisualBasic.sourceGenerators.skipAnalyzersForImplicitlyTriggeredBuilds").
+        Add(MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources, "textEditor.csharpAndVisualBasic.goToDefinition.skipAnalyzersForImplicitlyTriggeredBuilds").
+        Add(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, "textEditor.csharpAndVisualBasic.goToDefinition.navigateToDecompiledSources").
+        Add(MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers, "textEditor.csharpAndVisualBasic.goToDefinition.alwaysUseDefaultSymbolServer").
+        Add(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, "textEditor.csharpAndVisualBasic.sourceGenerators.sourceGeneratorExecution").
+        Add(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, "textEditor.csharpAndVisualBasic.sourceGenerators.enableDiagnosticsInSourceGeneratedFiles").
+        Add(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, "textEditor.csharpAndVisualBasic.rename.commitRenameAsynchronously").
+        Add(InlineRenameUIOptionsStorage.UseInlineAdornment, "textEditor.csharpAndVisualBasic.rename.useInlineAdornment").
+        Add(GenerationOptions.PlaceSystemNamespaceFirst, "textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst").
+        Add(GenerationOptions.SeparateImportDirectiveGroups, "textEditor.csharp.advanced.usingDirectives.separateImportDirectiveGroups").
+        Add(SymbolSearchOptionsStorage.SearchReferenceAssemblies, "textEditor.csharp.advanced.usingDirectives.searchReferenceAssemblies").
+        Add(SymbolSearchOptionsStorage.SearchNuGetPackages, "textEditor.csharp.advanced.usingDirectives.unsupportedSearchNugetPackages").
+        Add(AddImportOnPasteOptionsStorage.AddImportsOnPaste, "textEditor.csharp.advanced.usingDirectives.addImportsOnPaste").
+        Add(ReferenceHighlightingOptionsStorage.ReferenceHighlighting, "textEditor.csharp.advanced.highlighting.highlightReferences").
+        Add(KeywordHighlightingOptionsStorage.KeywordHighlighting, "textEditor.csharp.advanced.highlighting.highlightKeywords").
+        Add(OutliningOptionsStorage.Outlining, "textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen").
+        Add(BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, "textEditor.csharp.advanced.outlining.collapseRegionsWhenFirstOpened").
+        Add(BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, "textEditor.csharp.advanced.outlining.collapseImportsWhenFirstOpened").
+        Add(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, "textEditor.csharp.advanced.outlining.collapseMetadataImplementationsWhenFirstOpened").
+        Add(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, "textEditor.csharp.advanced.outlining.collapseEmptyMetadataImplementationsWhenFirstOpened").
+        Add(LineSeparatorsOptionsStorage.LineSeparator, "textEditor.csharp.advanced.outlining.displayLineSeparators").
+        Add(BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs, "textEditor.csharp.advanced.outlining.showOutliningForDeclarationLevelConstructs").
+        Add(BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, "textEditor.csharp.advanced.outlining.showOutliningForCodeLevelConstructs").
+        Add(BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions, "textEditor.csharp.advanced.outlining.showOutliningForCommentsAndPreprocessorRegions").
+        Add(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, "textEditor.csharp.advanced.outlining.collapseRegionsWhenCollapsingToDefinitions").
+        Add(BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions, "textEditor.csharp.advanced.outlining.collapseLocalFunctionsWhenCollapsingToDefinitions").
+        Add(FadingOptions.FadeOutUnusedImports, "textEditor.csharp.advanced.fading.fadeOutUnusedImports").
+        Add(FadingOptions.FadeOutUnreachableCode, "textEditor.csharp.advanced.fading.fadeOutUnreachableCode").
+        Add(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, "BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs").
+        Add(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, "textEditor.csharp.advanced.blockStructureGuides.showBlockStructureGuidesForCodeLevelConstructs").
+        Add(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, "textEditor.csharp.advanced.blockStructureGuides.showBlockStructureGuidesForCommentsAndPreprocessorRegions").
+        Add(DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, "textEditor.csharp.advanced.comments.autoXmlDocCommentGeneration").
+        Add(SplitCommentOptionsStorage.Enabled, "textEditor.csharp.advanced.comments.splitComments").
+        Add(BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, "textEditor.csharp.advanced.comments.insertBlockCommentStartString").
+        Add(StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste, "textEditor.csharp.advanced.editorHelp.fixStringContentsOnPaste").
+        Add(SplitStringLiteralOptionsStorage.Enabled, "textEditor.csharp.advanced.editorHelp.splitStringLiteralOnReturn").
+        Add(QuickInfoOptionsStorage.ShowRemarksInQuickInfo, "textEditor.csharp.advanced.editorHelp.showRemarksInQuickInfo").
+        Add(RenameTrackingOptionsStorage.RenameTrackingPreview, "textEditor.csharp.advanced.editorHelp.showPreviewForRenameTracking").
+        Add(FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, "textEditor.csharp.advanced.editorHelp.UnsupportedReportInvalidPlaceholdersInStringDotFormatCalls").
+        Add(ClassificationOptionsStorage.ClassifyReassignedVariables, "textEditor.csharp.advanced.editorHelp.classifyReassignedVariables").
+        Add(ClassificationOptionsStorage.ClassifyObsoleteSymbols, "textEditor.csharp.advanced.editorHelp.classifyObsoleteSymbols").
+        Add(ClassificationOptionsStorage.ColorizeRegexPatterns, "textEditor.csharp.advanced.regularExpression.colorizeRegexPatterns").
+        Add(RegexOptionsStorage.ReportInvalidRegexPatterns, "textEditor.csharp.advanced.regularExpression.unsupportedReportInvalidRegexPatterns").
+        Add(HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor, "textEditor.csharp.advanced.regularExpression.highlightRelatedRegexComponents").
+        Add(CompletionOptionsStorage.ProvideRegexCompletions, "textEditor.csharp.advanced.regularExpression.provideRegexCompletions").
+        Add(ClassificationOptionsStorage.ColorizeJsonPatterns, "textEditor.csharp.advanced.jsonStrings.colorizeJsonPatterns").
+        Add(JsonDetectionOptionsStorage.ReportInvalidJsonPatterns, "textEditor.csharp.advanced.jsonStrings.unsupportedReportInvalidJsonPatterns").
+        Add(HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor, "textEditor.csharp.advanced.jsonStrings.highlightRelatedJsonComponents").
+        Add(ColorSchemeOptionsStorage.ColorScheme, "textEditor.csharpAndVisualBasic.advanced.editorColorScheme.visualStudioColorSchemeName").
+        Add(ImplementTypeOptionsStorage.InsertionBehavior, "textEditor.csharp.advanced.implementInterfaceOrAbstractClass.memberInsertionLocation").
+        Add(ImplementTypeOptionsStorage.PropertyGenerationBehavior, "textEditor.csharp.advanced.implementInterfaceOrAbstractClass.propertyGenerationBehavior").
+        Add(InlineHintsViewOptionsStorage.DisplayAllHintsWhilePressingAltF1, "textEditor.csharpAndVisualBasic.advanced.inlineHints.displayInlineHintsWhilePressingAltF1").
+        Add(InlineHintsViewOptionsStorage.ColorHints, "textEditor.csharp.advanced.inlineHints.colorizeInlineHints").
+        Add(InlineHintsOptionsStorage.EnabledForParameters, "textEditor.csharp.advanced.inlineHints.enableInlayHintsForParameters").
+        Add(InlineHintsOptionsStorage.ForLiteralParameters, "textEditor.csharp.advanced.inlineHints.enableInlayHintsForLiteralParameters").
+        Add(InlineHintsOptionsStorage.ForObjectCreationParameters, "textEditor.csharp.advanced.inlineHints.enableInlayHintsForObjectCreationParameters").
+        Add(InlineHintsOptionsStorage.ForOtherParameters, "textEditor.csharp.advanced.inlineHints.enableInlayHintsForOtherParameters").
+        Add(InlineHintsOptionsStorage.ForIndexerParameters, "textEditor.csharp.advanced.inlineHints.enableInlayHintsForIndexerParameters").
+        Add(InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent, "textEditor.csharp.advanced.inlineHints.suppressInlayHintsForParametersThatMatchMethodIntent").
+        Add(InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix, "textEditor.csharp.advanced.inlineHints.suppressInlayHintsForParametersThatDifferOnlyBySuffix").
+        Add(InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName, "textEditor.csharp.advanced.inlineHints.suppressInlayHintsForParametersThatMatchArgumentName").
+        Add(InlineHintsOptionsStorage.EnabledForTypes, "textEditor.csharp.advanced.inlineHints.enableInlayHintsForTypes").
+        Add(InlineHintsOptionsStorage.ForImplicitVariableTypes, "textEditor.csharp.advanced.inlineHints.enableInlayHintsForImplicitVariableTypes").
+        Add(InlineHintsOptionsStorage.ForLambdaParameterTypes, "textEditor.csharp.advanced.inlineHints.enableInlayHintsForLambdaParameterTypes").
+        Add(InlineHintsOptionsStorage.ForImplicitObjectCreation, "textEditor.csharp.advanced.inlineHints.enableInlayHintsForImplicitObjectCreation").
+        Add(InlineHintsOptionsStorage.ForCollectionExpressions, "textEditor.csharp.advanced.inlineHints.enableInlayHintsForCollectionExpressions").
+        Add(InheritanceMarginOptionsStorage.ShowInheritanceMargin, "textEditor.csharp.advanced.inheritanceMargin.showInheritanceMargin").
+        Add(InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, "textEditor.csharpAndVisualBasic.advanced.inheritanceMargin.combineInheritanceAndIndicatorMargins").
+        Add(InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, "InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports").
+        Add(StackTraceExplorerOptionsStorage.OpenOnFocus, "textEditor.csharp.advanced.stackTraceExplorer.openStackTraceExplorerOnFocus").
+        Add(DocumentOutlineOptionsStorage.EnableDocumentOutline, "textEditor.csharpAndVisualBasic.advanced.documentOutline.enableDocumentOutline");
 
     // TODO: add test data
     private static readonly ImmutableArray<(IOption2, UnifiedSettingBase)> s_csharpAdvancedExpectedSettings = [

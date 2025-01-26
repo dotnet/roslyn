@@ -61,6 +61,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="InlineRename\UI\Dashboard\Images\ErrorIcon.png" />
