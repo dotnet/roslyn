@@ -21,13 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // PROTOTYPE: Test order of evaluation, including with reordered parameters.
         // PROTOTYPE: Test params.
         // PROTOTYPE: Test dynamic arguments.
-        // PROTOTYPE: Test with(arg) for collection initializer target type that does not have a parameterless constructor.
-        // PROTOTYPE: Test no args and empty with() for collection builder type with:
-        // - no factory method that takes no arguments
-        // - factory method that has optional parameters
-        // - factory method that has params parameter
         // PROTOTYPE: Test collection arguments do not affect convertibility. Test with with(default) for types that don't support collection arguments for instance.
-        // PROTOTYPE: CollectionBuilder type where the create method and underlying type have a generic parameter for arg that is not part of elements, and therefore the builder method cannot be used.
 
         public static readonly TheoryData<LanguageVersion> LanguageVersions = new([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
 
