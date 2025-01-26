@@ -78,7 +78,7 @@ public abstract partial class Workspace
         }
 
         var ev = GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangedImmediateEventName);
-        WorkspaceChangeEventArgs? args = null;
+        WorkspaceChangeEventArgs args = null;
         if (ev.HasHandlers)
         {
             using (Logger.LogBlock(FunctionId.Workspace_EventsImmediate, (s, p, d, k) => $"{s.Id} - {p} - {d} {kind.ToString()}", newSolution, projectId, documentId, kind, CancellationToken.None))
