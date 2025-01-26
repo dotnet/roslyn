@@ -90,12 +90,11 @@ public class UnifiedSettingsTests
         Add(FeatureOnOffOptions.OfferRemoveUnusedReferences, "textEditor.csharpAndVisualBasic.analysis.offerRemoveUnusedReferences").
         Add(VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics, "textEditor.csharpAndVisualBasic.analysis.enableFileLoggingForDiagnostics").
         Add(FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds, "textEditor.csharpAndVisualBasic.analysis.skipAnalyzersForImplicitlyTriggeredBuilds").
-        Add(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, "textEditor.csharpAndVisualBasic.sourceGenerators.skipAnalyzersForImplicitlyTriggeredBuilds").
+        Add(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, "textEditor.csharpAndVisualBasic.sourceGenerators.sourceGeneratorExecution").
         Add(MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources, "textEditor.csharpAndVisualBasic.goToDefinition.skipAnalyzersForImplicitlyTriggeredBuilds").
         Add(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, "textEditor.csharpAndVisualBasic.goToDefinition.navigateToDecompiledSources").
         Add(MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers, "textEditor.csharpAndVisualBasic.goToDefinition.alwaysUseDefaultSymbolServer").
-        Add(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, "textEditor.csharpAndVisualBasic.sourceGenerators.sourceGeneratorExecution").
-        Add(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, "textEditor.csharpAndVisualBasic.sourceGenerators.enableDiagnosticsInSourceGeneratedFiles").
+        Add(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, "textEditor.csharpAndVisualBasic.sourceGenerators.enableDiagnosticsInSourceGeneratedFiles").
         Add(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, "textEditor.csharpAndVisualBasic.rename.commitRenameAsynchronously").
         Add(InlineRenameUIOptionsStorage.UseInlineAdornment, "textEditor.csharpAndVisualBasic.rename.useInlineAdornment").
         Add(GenerationOptions.PlaceSystemNamespaceFirst, "textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst").
@@ -157,7 +156,7 @@ public class UnifiedSettingsTests
         Add(InlineHintsOptionsStorage.ForImplicitObjectCreation, "textEditor.csharp.advanced.inlineHints.enableInlayHintsForImplicitObjectCreation").
         Add(InlineHintsOptionsStorage.ForCollectionExpressions, "textEditor.csharp.advanced.inlineHints.enableInlayHintsForCollectionExpressions").
         Add(InheritanceMarginOptionsStorage.ShowInheritanceMargin, "textEditor.csharp.advanced.inheritanceMargin.showInheritanceMargin").
-        Add(InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, "textEditor.csharpAndVisualBasic.advanced.inheritanceMargin.combineInheritanceAndIndicatorMargins").
+        Add(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin, "textEditor.csharpAndVisualBasic.advanced.inheritanceMargin.combineInheritanceAndIndicatorMargins").
         Add(InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, "InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports").
         Add(StackTraceExplorerOptionsStorage.OpenOnFocus, "textEditor.csharp.advanced.stackTraceExplorer.openStackTraceExplorerOnFocus").
         Add(DocumentOutlineOptionsStorage.EnableDocumentOutline, "textEditor.csharpAndVisualBasic.advanced.documentOutline.enableDocumentOutline");

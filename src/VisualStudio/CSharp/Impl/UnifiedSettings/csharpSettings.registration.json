@@ -235,7 +235,7 @@
       }
     },
     // WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution
-    "textEditor.csharpAndVisualBasic.sourceGenerators.skipAnalyzersForImplicitlyTriggeredBuilds": {
+    "textEditor.csharpAndVisualBasic.sourceGenerators.sourceGeneratorExecution": {
       "title": "@Source_generator_execution;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
       "enum": [ "automatic", "balanced" ],
@@ -327,30 +327,6 @@
           "input": {
             "store": "SettingsManager",
             "path": "TextEditor.AlwaysUseDefaultSymbolServers"
-          }
-        }
-      }
-    },
-    // WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution
-    "textEditor.csharpAndVisualBasic.sourceGenerators.sourceGeneratorExecution": {
-      "title": "@Automatic_Run_generators_after_any_change;..\\Microsoft.VisualStudio.LanguageServices.dll",
-      "type": "boolean",
-      "default": "true",
-      "alternateDefault": {
-        // WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag
-        "flagName": "Roslyn.SourceGeneratorExecutionBalanced",
-        "default": "true"
-      },
-      "placements": [
-        {
-          "category": "textEditor.csharp.advanced.sourceGenerators"
-        }
-      ],
-      "migration": {
-        "pass": {
-          "input": {
-            "store": "SettingsManager",
-            "path": "TextEditor.Roslyn.Specific.SourceGeneratorExecution"
           }
         }
       }
