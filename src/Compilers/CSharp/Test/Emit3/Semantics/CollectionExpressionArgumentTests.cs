@@ -17,10 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private const string s_collectionExtensions = CollectionExpressionTests.s_collectionExtensions;
 
-        // PROTOTYPE: Test .ctor or factory method with generic constraints that are/are not satisfied by arguments.
-        // PROTOTYPE: Test order of evaluation, including with reordered parameters.
-        // PROTOTYPE: Test params.
-        // PROTOTYPE: Test dynamic arguments.
         // PROTOTYPE: Test collection arguments do not affect convertibility. Test with with(default) for types that don't support collection arguments for instance.
 
         public static readonly TheoryData<LanguageVersion> LanguageVersions = new([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
@@ -983,6 +979,257 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (4,12): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 //     static B NonEmptyArgs() => [with(default)];
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void EvaluationOrder_01()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public MyCollection(object x = null, object y = null) { Console.WriteLine("MyCollection({0}, {1})", x, y); }
+                    public void Add(T t) { Console.WriteLine("Add({0})", t); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            string sourceB = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = [with(y: Identity(1), x: Identity(2)), Identity(3), Identity(4)];
+                    }
+                    static T Identity<T>(T value)
+                    {
+                        Console.WriteLine(value);
+                        return value;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB],
+                expectedOutput: """
+                    1
+                    2
+                    MyCollection(2, 1)
+                    3
+                    Add(3)
+                    4
+                    Add(4)
+                    """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main()", """
+                {
+                  // Code size       55 (0x37)
+                  .maxstack  3
+                  .locals init (object V_0)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  call       "int Program.Identity<int>(int)"
+                  IL_0006:  box        "int"
+                  IL_000b:  stloc.0
+                  IL_000c:  ldc.i4.2
+                  IL_000d:  call       "int Program.Identity<int>(int)"
+                  IL_0012:  box        "int"
+                  IL_0017:  ldloc.0
+                  IL_0018:  newobj     "MyCollection<int>..ctor(object, object)"
+                  IL_001d:  dup
+                  IL_001e:  ldc.i4.3
+                  IL_001f:  call       "int Program.Identity<int>(int)"
+                  IL_0024:  callvirt   "void MyCollection<int>.Add(int)"
+                  IL_0029:  dup
+                  IL_002a:  ldc.i4.4
+                  IL_002b:  call       "int Program.Identity<int>(int)"
+                  IL_0030:  callvirt   "void MyCollection<int>.Add(int)"
+                  IL_0035:  pop
+                  IL_0036:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void DynamicArguments_01()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        List<object> l;
+                        l = [with(), (dynamic)2];
+                        l = [with(capacity: 1)];
+                        l = [with(capacity: (dynamic)1)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,29): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         l = [with(capacity: (dynamic)1)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)1").WithLocation(9, 29));
+        }
+
+        [Fact]
+        public void DynamicArguments_02()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public MyCollection(object x = null, object y = null) { }
+                    public void Add(T t) { }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = [with(), (dynamic)3];
+                        c = [with(1)];
+                        c = [with(y: "2")];
+                        c = [with(1, "2"), (dynamic)3];
+                        c = [with((dynamic)1)];
+                        c = [with(y: (dynamic)"2")];
+                        c = [with(1, (dynamic)"2")];
+                        c = [with((dynamic)1, (dynamic)"2"), 3];
+                        c = [with(x => { })];
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            comp.VerifyEmitDiagnostics(
+                // (10,19): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         c = [with((dynamic)1)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)1").WithLocation(10, 19),
+                // (11,22): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         c = [with(y: (dynamic)"2")];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, @"(dynamic)""2""").WithLocation(11, 22),
+                // (12,22): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         c = [with(1, (dynamic)"2")];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, @"(dynamic)""2""").WithLocation(12, 22),
+                // (13,19): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         c = [with((dynamic)1, (dynamic)"2"), 3];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)1").WithLocation(13, 19),
+                // (14,21): error CS8917: The delegate type could not be inferred.
+                //         c = [with(x => { })];
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(14, 21));
+        }
+
+        [Theory]
+        [InlineData("ref")]
+        [InlineData("in ")]
+        [InlineData("out")]
+        public void DynamicArguments_03(string refKind)
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public MyCollection() { }
+                    public MyCollection({{refKind}} object obj) { throw null; }
+                    public void Add(T t) { }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        object o = null;
+                        dynamic d = o;
+                        MyCollection<object> c;
+                        c = [with({{refKind}} o)];
+                        c = [with({{refKind}} d)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (19,23): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         c = [with(in  d)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(19, 23));
+        }
+
+        [Fact]
+        public void DynamicArguments_04()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public MyCollection(dynamic d = null) { }
+                    public void Add(T t) { }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        object o = null;
+                        dynamic d = o;
+                        MyCollection<int> c;
+                        c = [with()];
+                        c = [with(null)];
+                        c = [with(default)];
+                        c = [with(0)];
+                        c = [with((dynamic)null)];
+                        c = [with((dynamic)0)];
+                        c = [with(o)];
+                        c = [with(d)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            comp.VerifyEmitDiagnostics(
+                // (12,19): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         c = [with((dynamic)null)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)null").WithLocation(12, 19),
+                // (13,19): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         c = [with((dynamic)0)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)0").WithLocation(13, 19),
+                // (15,19): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         c = [with(d)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(15, 19));
+        }
+
+        [Fact]
+        public void DynamicArguments_05()
+        {
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        A a;
+                        a = [with(null), (dynamic)null];
+                        a = [with((dynamic)null), null];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //         A a;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(5, 9),
+                // (7,19): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         a = [with((dynamic)null), null];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)null").WithLocation(7, 19));
         }
     }
 }

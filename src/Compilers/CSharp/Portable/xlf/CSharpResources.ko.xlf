@@ -447,6 +447,11 @@
         <target state="translated">'{0}'은(는) 인터페이스 멤버 '{1}'을(를) 구현하지 않습니다. '{2}'은(는) '{1}'을(를) 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
+        <source>Collection arguments cannot be dynamic; compile-time binding is required.</source>
+        <target state="new">Collection arguments cannot be dynamic; compile-time binding is required.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
         <source>Collection argument element must be the first element.</source>
         <target state="new">Collection argument element must be the first element.</target>

@@ -2362,6 +2362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionExpressionKeyValuePairNotSupported = 9274,
         ERR_CollectionArgumentsMustBeFirst = 9275,
         ERR_CollectionArgumentsNotSupportedForType = 9276,
+        ERR_CollectionArgumentsDynamicBinding = 9277,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

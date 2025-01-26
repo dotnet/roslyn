@@ -2096,12 +2096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // We only get here if the conversion of the collection expression to the
             // target type failed. In this case, simply visit each argument.
-            foreach (var arg in node.Arguments)
-            {
-                // PROTOTYPE: Is this correct if the argument is an 'out' argument?
-                // How do we handle similar cases for method call arguments?
-                VisitRvalue(arg);
-            }
+            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method: null);
             return null;
         }
 

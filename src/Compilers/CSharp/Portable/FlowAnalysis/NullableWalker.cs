@@ -3761,12 +3761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundUnconvertedCollectionArguments collectionArguments:
                         // We only get here if the conversion of the collection expression to the
                         // target type failed. In this case, simply visit each argument.
-                        foreach (var arg in collectionArguments.Arguments)
-                        {
-                            // PROTOTYPE: Is this correct if the argument is an 'out' argument?
-                            // How do we handle similar cases for method call arguments?
-                            VisitRvalue(arg);
-                        }
+                        VisitArgumentsEvaluate(collectionArguments.Arguments, collectionArguments.ArgumentRefKindsOpt, parameterAnnotationsOpt: default, defaultArguments: default);
                         break;
                     case BoundCollectionElementInitializer initializer:
                         // We don't visit the Add methods

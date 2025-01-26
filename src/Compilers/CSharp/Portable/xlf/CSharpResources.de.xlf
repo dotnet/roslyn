@@ -447,6 +447,11 @@
         <target state="translated">Der Schnittstellenmember "{1}" wird von "{0}" nicht implementiert. "{1}" kann von "{2}" nicht implementiert werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
+        <source>Collection arguments cannot be dynamic; compile-time binding is required.</source>
+        <target state="new">Collection arguments cannot be dynamic; compile-time binding is required.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
         <source>Collection argument element must be the first element.</source>
         <target state="new">Collection argument element must be the first element.</target>

@@ -447,6 +447,11 @@
         <target state="translated">'{0}, '{1}' arabirim üyesini uygulamıyor. '{2}', '{1}' üyesini uygulayamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
+        <source>Collection arguments cannot be dynamic; compile-time binding is required.</source>
+        <target state="new">Collection arguments cannot be dynamic; compile-time binding is required.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
         <source>Collection argument element must be the first element.</source>
         <target state="new">Collection argument element must be the first element.</target>

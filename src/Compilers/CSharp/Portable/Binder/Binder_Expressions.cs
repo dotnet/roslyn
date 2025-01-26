@@ -5318,6 +5318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode BindCollectionArguments(WithElementSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureCollectionExpressionArguments.CheckFeatureAvailability(diagnostics, syntax.WithKeyword);
+
             var arguments = AnalyzedArguments.GetInstance();
             BindArgumentsAndNames(syntax.ArgumentList, diagnostics, arguments, allowArglist: true);
             var result = new BoundUnconvertedCollectionArguments(
@@ -5327,6 +5328,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.RefKinds.ToImmutableOrNull(),
                 binder: this);
             arguments.Free();
+
+            foreach (var arg in result.Arguments)
+            {
+                if (arg.Type is { TypeKind: TypeKind.Dynamic })
+                {
+                    diagnostics.Add(ErrorCode.ERR_CollectionArgumentsDynamicBinding, arg.Syntax);
+                    break;
+                }
+            }
+
             return result;
         }
 

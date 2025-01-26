@@ -447,6 +447,11 @@
         <target state="translated">“{0}”不实现接口成员“{1}”。“{2}”无法实现“{1}”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionArgumentsDynamicBinding">
+        <source>Collection arguments cannot be dynamic; compile-time binding is required.</source>
+        <target state="new">Collection arguments cannot be dynamic; compile-time binding is required.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionArgumentsMustBeFirst">
         <source>Collection argument element must be the first element.</source>
         <target state="new">Collection argument element must be the first element.</target>
