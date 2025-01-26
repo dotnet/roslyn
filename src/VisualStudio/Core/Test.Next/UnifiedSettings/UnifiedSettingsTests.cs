@@ -309,7 +309,7 @@ public class UnifiedSettingsTests
             Assert.True(s_csharpUnifiedSettingsStorage.ContainsKey(option));
         }
 
-        VerifyProperties(jsonDocument!, ["textEditor.csharp.advanced", "textEditor.csharpAndVisualBasic.advanced"], s_csharpIntellisenseExpectedSettings);
+        VerifyProperties(jsonDocument!, ["textEditor.csharp.advanced", "textEditor.csharpAndVisualBasic.advanced"], s_csharpAdvancedExpectedSettings);
         await VerifyTagAsync(jsonDocument!.ToString(), "Roslyn.VisualStudio.Next.UnitTests.csharpPackageRegistration.pkgdef");
     }
 
