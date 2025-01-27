@@ -11,8 +11,9 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Utilities;
 
-namespace Roslyn.Utilities;
+namespace Microsoft.CodeAnalysis.Threading;
 
 /// <summary>
 /// A queue where items can be added to to be processed in batches after some delay has passed. When processing
@@ -254,9 +255,7 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
             var batchResultTask = _processBatchAsync(nextBatch, batchCancellationToken).Preserve();
             await batchResultTask.NoThrowAwaitableInternal(false);
             if (batchResultTask.IsCompletedSuccessfully)
-            {
                 return batchResultTask.Result;
-            }
             else if (batchResultTask.IsCanceled && !_entireQueueCancellationToken.IsCancellationRequested)
             {
                 // Don't bubble up cancellation to the queue for the nested batch cancellation.  Just because we decided
