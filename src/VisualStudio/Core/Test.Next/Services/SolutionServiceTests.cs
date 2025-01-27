@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -1165,7 +1166,8 @@ public class SolutionServiceTests
 
         // By creating a checksum updater, we should notify the remote workspace of the active document.
         var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
+        var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
+        var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, threadingContext, CancellationToken.None);
 
         var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 
@@ -1219,7 +1221,8 @@ public class SolutionServiceTests
         objectReference2_step1.AssertReleased();
 
         var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
+        var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
+        var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, threadingContext, CancellationToken.None);
 
         var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 

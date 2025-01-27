@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,7 +48,10 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
     }
 
     public ValueTask SynchronizeTextChangesAsync(
-        ImmutableArray<(DocumentId documentId, Checksum baseTextChecksum, ImmutableArray<TextChange> textChanges, Checksum newTextChecksum)> changes,
+        DocumentId documentId,
+        Checksum baseTextChecksum,
+        ImmutableArray<TextChange> textChanges,
+        Checksum newTextChecksum,
         CancellationToken cancellationToken)
     {
         return RunServiceAsync(async cancellationToken =>
@@ -58,25 +60,22 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
 
             using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, cancellationToken))
             {
-                foreach (var (documentId, baseTextChecksum, textChanges, newTextChecksum) in changes)
+                // Try to get the text associated with baseTextChecksum
+                var text = await TryGetSourceTextAsync(WorkspaceManager, workspace, documentId, baseTextChecksum, cancellationToken).ConfigureAwait(false);
+                if (text == null)
                 {
-                    // Try to get the text associated with baseTextChecksum
-                    var text = await TryGetSourceTextAsync(WorkspaceManager, workspace, documentId, baseTextChecksum, cancellationToken).ConfigureAwait(false);
-                    if (text == null)
-                    {
-                        // it won't bring in base text if it is not there already.
-                        // text needed will be pulled in when there is request
-                        continue;
-                    }
-
-                    // Now attempt to manually apply the edit, producing the new forked text.  Store that directly in
-                    // the asset cache so that future calls to retrieve it can do so quickly, without synchronizing over
-                    // the entire document.
-                    var newText = text.WithChanges(textChanges);
-                    var newSerializableText = new SerializableSourceText(newText, newTextChecksum);
-
-                    WorkspaceManager.SolutionAssetCache.GetOrAdd(newSerializableText.ContentChecksum, newSerializableText);
+                    // it won't bring in base text if it is not there already.
+                    // text needed will be pulled in when there is request
+                    return;
                 }
+
+                // Now attempt to manually apply the edit, producing the new forked text.  Store that directly in
+                // the asset cache so that future calls to retrieve it can do so quickly, without synchronizing over
+                // the entire document.
+                var newText = text.WithChanges(textChanges);
+                var newSerializableText = new SerializableSourceText(newText, newTextChecksum);
+
+                WorkspaceManager.SolutionAssetCache.GetOrAdd(newSerializableText.ContentChecksum, newSerializableText);
             }
 
             return;

@@ -3,16 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -34,13 +31,6 @@ internal sealed class SolutionChecksumUpdater
     private readonly IDocumentTrackingService _documentTrackingService;
 
     /// <summary>
-    /// Queue to push out text changes in a batched fashion when we hear about them.  Because these should be short
-    /// operations (only syncing text changes) we don't cancel this when we enter the paused state.  We simply don't
-    /// start queuing more requests into this until we become unpaused.
-    /// </summary>
-    private readonly AsyncBatchingWorkQueue<(Document oldDocument, Document newDocument)> _textChangeQueue;
-
-    /// <summary>
     /// Queue for kicking off the work to synchronize the primary workspace's solution.
     /// </summary>
     private readonly AsyncBatchingWorkQueue _synchronizeWorkspaceQueue;
@@ -53,9 +43,13 @@ internal sealed class SolutionChecksumUpdater
     private readonly object _gate = new();
     private bool _isSynchronizeWorkspacePaused;
 
+    private readonly IThreadingContext _threadingContext;
+    private readonly CancellationToken _shutdownToken;
+
     public SolutionChecksumUpdater(
         Workspace workspace,
         IAsynchronousOperationListenerProvider listenerProvider,
+        IThreadingContext threadingContext,
         CancellationToken shutdownToken)
     {
         var listener = listenerProvider.GetListener(FeatureAttribute.SolutionChecksumUpdater);
@@ -65,17 +59,12 @@ internal sealed class SolutionChecksumUpdater
         _workspace = workspace;
         _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
+        _threadingContext = threadingContext;
+        _shutdownToken = shutdownToken;
+
         _synchronizeWorkspaceQueue = new AsyncBatchingWorkQueue(
             DelayTimeSpan.NearImmediate,
             SynchronizePrimaryWorkspaceAsync,
-            listener,
-            shutdownToken);
-
-        // Text changes and active doc info are tiny messages.  So attempt to send them immediately.  Just batching
-        // things up if we get a flurry of notifications.
-        _textChangeQueue = new AsyncBatchingWorkQueue<(Document oldDocument, Document newDocument)>(
-            TimeSpan.Zero,
-            SynchronizeTextChangesAsync,
             listener,
             shutdownToken);
 
@@ -161,7 +150,7 @@ internal sealed class SolutionChecksumUpdater
             var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
             var newDocument = e.NewSolution.GetDocument(e.DocumentId);
             if (oldDocument != null && newDocument != null)
-                _textChangeQueue.AddWork((oldDocument, newDocument));
+                DispatchSynchronizeTextChanges(oldDocument, newDocument);
         }
     }
 
@@ -207,57 +196,51 @@ internal sealed class SolutionChecksumUpdater
             cancellationToken).ConfigureAwait(false);
     }
 
-    private async ValueTask SynchronizeTextChangesAsync(
-        ImmutableSegmentedList<(Document oldDocument, Document newDocument)> values,
-        CancellationToken cancellationToken)
+    private void DispatchSynchronizeTextChanges(
+        Document oldDocument,
+        Document newDocument)
     {
-        var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-        if (client == null)
-            return;
-
-        // this pushes text changes to the remote side if it can. this is purely perf optimization. whether this
-        // pushing text change worked or not doesn't affect feature's functionality.
-        //
-        // this basically see whether it can cheaply find out text changes between 2 snapshots, if it can, it will
-        // send out that text changes to remote side.
-        //
-        // the remote side, once got the text change, will again see whether it can use that text change information
-        // without any high cost and create new snapshot from it.
-        //
-        // otherwise, it will do the normal behavior of getting full text from VS side. this optimization saves
-        // times we need to do full text synchronization for typing scenario.
-        using var _ = ArrayBuilder<(DocumentId id, Checksum textChecksum, ImmutableArray<TextChange> changes, Checksum newTextChecksum)>.GetInstance(out var builder);
-
-        foreach (var (oldDocument, newDocument) in values)
+        _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
         {
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, _shutdownToken).ConfigureAwait(false);
+            if (client == null)
+                return;
+
+            // this pushes text changes to the remote side if it can. this is purely perf optimization. whether this
+            // pushing text change worked or not doesn't affect feature's functionality.
+            //
+            // this basically see whether it can cheaply find out text changes between 2 snapshots, if it can, it will
+            // send out that text changes to remote side.
+            //
+            // the remote side, once got the text change, will again see whether it can use that text change information
+            // without any high cost and create new snapshot from it.
+            //
+            // otherwise, it will do the normal behavior of getting full text from VS side. this optimization saves
+            // times we need to do full text synchronization for typing scenario.
             if (!oldDocument.TryGetText(out var oldText) ||
                 !newDocument.TryGetText(out var newText))
             {
                 // we only support case where text already exist
-                continue;
+                return;
             }
 
             // Avoid allocating text before seeing if we can bail out.
             var changeRanges = newText.GetChangeRanges(oldText).AsImmutable();
             if (changeRanges.Length == 0)
-                continue;
+                return;
 
             // no benefit here. pulling from remote host is more efficient
             if (changeRanges is [{ Span.Length: var singleChangeLength }] && singleChangeLength == oldText.Length)
-                continue;
+                return;
 
-            var state = await oldDocument.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var newState = await newDocument.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            var state = await oldDocument.State.GetStateChecksumsAsync(_shutdownToken).ConfigureAwait(false);
+            var newState = await newDocument.State.GetStateChecksumsAsync(_shutdownToken).ConfigureAwait(false);
 
             var textChanges = newText.GetTextChanges(oldText).AsImmutable();
-            builder.Add((oldDocument.Id, state.Text, textChanges, newState.Text));
-        }
 
-        if (builder.Count == 0)
-            return;
-
-        await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-            (service, cancellationToken) => service.SynchronizeTextChangesAsync(builder.ToImmutableAndClear(), cancellationToken),
-            cancellationToken).ConfigureAwait(false);
+            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+                (service, cancellationToken) => service.SynchronizeTextChangesAsync(oldDocument.Id, state.Text, textChanges, newState.Text, cancellationToken),
+                _shutdownToken).ConfigureAwait(false);
+        });
     }
 }
