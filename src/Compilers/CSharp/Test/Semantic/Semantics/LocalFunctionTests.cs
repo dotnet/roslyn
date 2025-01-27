@@ -10675,5 +10675,39 @@ class C(string p)
             var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics();
         }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [CombinatorialData]
+        public void Repro76528_FieldInitializer_PrimaryConstructor(bool isStatic)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C(string p)
+                {
+                    public static string? field;
+
+                    public Action field2 = () =>
+                    {
+                        init();
+                        Console.WriteLine(field.Length);
+
+                        [MemberNotNull(nameof(field))]
+                        {{(isStatic ? "static " : "")}}void init() => field ??= p;
+                    };
+
+                    string M() => p;
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(isStatic ? [
+                    // (16,41): error CS8421: A static local function cannot contain a reference to 'p'.
+                    //         static void init() => field ??= p;
+                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "p").WithArguments("p").WithLocation(16, 41)
+                ] : []);
+        }
     }
 }
