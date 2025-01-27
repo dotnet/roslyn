@@ -67,7 +67,8 @@ try {
 
   # Semantic Search reference assemblies can't be reconstructed from source.
   # The assemblies are not marked with ReferenceAssemblyAttribute attribute.
-  " --exclude net9.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.dll" +
+  " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.dll" +
+  " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.CSharp.dll" +
 
   " --debugPath `"$ArtifactsDir/BuildValidator`"" +
   " --sourcePath `"$RepoRoot/`"" +
