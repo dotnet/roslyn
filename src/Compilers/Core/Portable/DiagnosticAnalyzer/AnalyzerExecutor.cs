@@ -204,8 +204,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
             ExecuteAndCatchIfThrows(
                 sessionScope.Analyzer,
-                static data => data.analyzer.Initialize(data.context),
-                (analyzer: sessionScope.Analyzer, context),
+                static data => data.sessionScope.Analyzer.Initialize(data.context),
+                (sessionScope, context),
                 contextInfo: null,
                 cancellationToken);
         }
@@ -222,6 +222,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // can use the same instance across all actions.
             var context = new AnalyzerCompilationStartAnalysisContext(compilationScope,
                 Compilation, AnalyzerOptions, _compilationAnalysisValueProviderFactory, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation);
 
             foreach (var startAction in actions)
             {
@@ -229,9 +230,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 ExecuteAndCatchIfThrows(
                     startAction.Analyzer,
-                    static data => data.action(data.context),
-                    (action: startAction.Action, context),
-                    new AnalysisContextInfo(Compilation),
+                    static data => data.startAction.Action(data.context),
+                    (startAction, context),
+                    contextInfo,
                     cancellationToken);
             }
         }
@@ -263,6 +264,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // can use the same instance across all actions.
             var context = new AnalyzerSymbolStartAnalysisContext(symbolScope,
                 symbol, Compilation, AnalyzerOptions, isGeneratedCodeSymbol, filterTree, filterSpan, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation, symbol);
 
             foreach (var startAction in actions)
             {
@@ -271,9 +273,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 ExecuteAndCatchIfThrows(
                     startAction.Analyzer,
-                    static data => data.action(data.context),
-                    (action: startAction.Action, context),
-                    new AnalysisContextInfo(Compilation, symbol),
+                    static data => data.startAction.Action(data.context),
+                    (startAction, context),
+                    contextInfo,
                     cancellationToken);
             }
         }
@@ -297,14 +299,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var supportedSuppressions = _analyzerManager.GetSupportedSuppressionDescriptors(suppressor, this, cancellationToken);
             Func<SuppressionDescriptor, bool> isSupportedSuppression = supportedSuppressions.Contains;
-            Action<SuppressionAnalysisContext> action = suppressor.ReportSuppressions;
+
             var context = new SuppressionAnalysisContext(Compilation, AnalyzerOptions,
                 reportedDiagnostics, _addSuppression, isSupportedSuppression, _getSemanticModel, cancellationToken);
 
             ExecuteAndCatchIfThrows(
                 suppressor,
-                static data => data.action(data.context),
-                (action, context),
+                static data => data.suppressor.ReportSuppressions(data.context),
+                (suppressor, context),
                 new AnalysisContextInfo(Compilation),
                 cancellationToken);
         }
@@ -336,6 +338,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var context = new CompilationAnalysisContext(
                 Compilation, AnalyzerOptions, addDiagnostic,
                 isSupportedDiagnostic, _compilationAnalysisValueProviderFactory, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation);
 
             foreach (var endAction in compilationActions)
             {
@@ -343,9 +346,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 ExecuteAndCatchIfThrows(
                     endAction.Analyzer,
-                    static data => data.action(data.context),
-                    (action: endAction.Action, context),
-                    new AnalysisContextInfo(Compilation),
+                    static data => data.endAction.Action(data.context),
+                    (endAction, context),
+                    contextInfo,
                     cancellationToken);
             }
         }
@@ -392,6 +395,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 symbol, Compilation, AnalyzerOptions, addDiagnostic,
                 isSupportedDiagnostic, isGeneratedCodeSymbol, filterTree,
                 filterSpan, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation, symbol);
 
             foreach (var symbolAction in symbolActions)
             {
@@ -406,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         symbolAction.Analyzer,
                         static data => data.action(data.context),
                         (action, context),
-                        new AnalysisContextInfo(Compilation, symbol),
+                        contextInfo,
                         cancellationToken);
                 }
             }
@@ -502,6 +506,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // can use the same instance across all actions.
             var context = new SymbolAnalysisContext(symbol, Compilation, AnalyzerOptions, addDiagnostic,
                 isSupportedDiagnostic, isGeneratedCode, filterTree, filterSpan, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation, symbol);
 
             foreach (var symbolAction in symbolEndActions)
             {
@@ -513,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     symbolAction.Analyzer,
                     static data => data.action(data.context),
                     (action, context),
-                    new AnalysisContextInfo(Compilation, symbol),
+                    contextInfo,
                     cancellationToken);
             }
 
@@ -555,6 +560,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var context = new SemanticModelAnalysisContext(
                 semanticModel, AnalyzerOptions, diagReporter.AddDiagnosticAction,
                 isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(semanticModel);
 
             foreach (var semanticModelAction in semanticModelActions)
             {
@@ -563,9 +569,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Catch Exception from action.
                 ExecuteAndCatchIfThrows(
                     semanticModelAction.Analyzer,
-                    static data => data.action(data.context),
-                    (action: semanticModelAction.Action, context),
-                    new AnalysisContextInfo(semanticModel),
+                    static data => data.semanticModelAction.Action(data.context),
+                    (semanticModelAction, context),
+                    contextInfo,
                     cancellationToken);
             }
 
@@ -610,6 +616,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var context = new SyntaxTreeAnalysisContext(
                 tree, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic,
                 Compilation, filterSpan, isGeneratedCode, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation, file);
 
             foreach (var syntaxTreeAction in syntaxTreeActions)
             {
@@ -618,9 +625,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Catch Exception from action.
                 ExecuteAndCatchIfThrows(
                     syntaxTreeAction.Analyzer,
-                    static data => data.action(data.context),
-                    (action: syntaxTreeAction.Action, context),
-                    new AnalysisContextInfo(Compilation, file),
+                    static data => data.syntaxTreeAction.Action(data.context),
+                    (syntaxTreeAction, context),
+                    contextInfo,
                     cancellationToken);
             }
 
@@ -657,6 +664,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var context = new AdditionalFileAnalysisContext(
                 additionalFile, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic,
                 Compilation, filterSpan, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation, file);
 
             foreach (var additionalFileAction in additionalFileActions)
             {
@@ -665,9 +673,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Catch Exception from action.
                 ExecuteAndCatchIfThrows(
                     additionalFileAction.Analyzer,
-                    static data => data.action(data.context),
-                    (action: additionalFileAction.Action, context),
-                    new AnalysisContextInfo(Compilation, file),
+                    static data => data.additionalFileAction.Action(data.context),
+                    (additionalFileAction, context),
+                    contextInfo,
                     cancellationToken);
             }
 
@@ -689,13 +697,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(!isGeneratedCode || !_shouldSkipAnalysisOnGeneratedCode(syntaxNodeAction.Analyzer));
             Debug.Assert(!IsAnalyzerSuppressedForTree(syntaxNodeAction.Analyzer, node.SyntaxTree, cancellationToken));
 
-            var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, containingSymbol, semanticModel, AnalyzerOptions, addDiagnostic,
-                    isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
+            var syntaxNodeContext = new SyntaxNodeAnalysisContext(
+                node, containingSymbol, semanticModel, AnalyzerOptions, addDiagnostic,
+                isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
 
             ExecuteAndCatchIfThrows(
                 syntaxNodeAction.Analyzer,
-                static data => data.action(data.context),
-                (action: syntaxNodeAction.Action, context: syntaxNodeContext),
+                static data => data.syntaxNodeAction.Action(data.syntaxNodeContext),
+                (syntaxNodeAction, syntaxNodeContext),
                 new AnalysisContextInfo(Compilation, node),
                 cancellationToken);
         }
@@ -718,10 +727,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 operation, containingSymbol, semanticModel.Compilation,
                 AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph,
                 filterSpan, isGeneratedCode, cancellationToken);
+
             ExecuteAndCatchIfThrows(
                 operationAction.Analyzer,
-                static data => data.action(data.context),
-                (action: operationAction.Action, context: operationContext),
+                static data => data.operationAction.Action(data.operationContext),
+                (operationAction, operationContext),
                 new AnalysisContextInfo(Compilation, operation),
                 cancellationToken);
         }
@@ -939,8 +949,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     ExecuteAndCatchIfThrows(
                         codeBlockAction.Analyzer,
-                        static data => data.action(data.context),
-                        (action: codeBlockAction.Action, context: context),
+                        static data => data.codeBlockAction.Action(data.context),
+                        (codeBlockAction, context),
                         new AnalysisContextInfo(Compilation, declaredSymbol, declaredNode),
                         cancellationToken);
                 }
@@ -955,8 +965,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                         ExecuteAndCatchIfThrows(
                             operationBlockAction.Analyzer,
-                            static data => data.action(data.context),
-                            (action: operationBlockAction.Action, context),
+                            static data => data.operationBlockAction.Action(data.context),
+                            (operationBlockAction, context),
                             new AnalysisContextInfo(Compilation, declaredSymbol),
                             cancellationToken);
                     }
