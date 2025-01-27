@@ -484,8 +484,6 @@ internal enum FunctionId
     Renamer_FindRenameLocationsAsync = 387,
     Renamer_ResolveConflictsAsync = 388,
 
-    Workspace_EventsImmediate = 389,
-
     ChangeSignature_Data = 400,
 
     AbstractEncapsulateFieldService_EncapsulateFieldsAsync = 410,
@@ -641,4 +639,7 @@ internal enum FunctionId
     VSCode_LanguageServer_Started = 860,
     VSCode_Project_Load_Started = 861,
     VSCode_Projects_Load_Completed = 862,
+
+    // 900-999 for items that don't fit into other categories.
+    Workspace_EventsImmediate = 900,
 }
