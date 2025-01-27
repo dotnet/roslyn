@@ -94,16 +94,17 @@ namespace Microsoft.CodeAnalysis
         /// cref="ArrayBuilder{T}.ToImmutableAndFree"/>.  The <paramref name="dictionary"/> will be freed at the end of
         /// this method as well, and should not be used afterwards.
         /// </summary>
-        public static ImmutableSegmentedDictionary<K, ImmutableArray<V>> ToImmutableSegmentedDictionaryAndFree<K, V>(
-            this PooledDictionary<K, ArrayBuilder<V>> dictionary)
+        public static ImmutableSegmentedDictionary<K, ImmutableArray<V>> ToImmutableSegmentedDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> dictionary)
             where K : notnull
         {
-            var builder = ImmutableSegmentedDictionary.CreateBuilder<K, ImmutableArray<V>>();
+            var result = ImmutableSegmentedDictionary.CreateBuilder<K, ImmutableArray<V>>();
             foreach (var (key, values) in dictionary)
-                builder.Add(key, values.ToImmutableAndFree());
+            {
+                result.Add(key, values.ToImmutableAndFree());
+            }
 
             dictionary.Free();
-            return builder.ToImmutable();
+            return result.ToImmutable();
         }
     }
 }
