@@ -2,39 +2,32 @@
 // The.NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
+using Microsoft.RoslynTools.Utilities;
 
 namespace Microsoft.RoslynTools.PRFinder.Hosts;
 
-public partial class GitHub : IRepositoryHost
+internal partial class GitHub : IRepositoryHost
 {
     private readonly string _repoUrl;
-
+    private readonly string _owner;
+    private readonly string _repo;
     private readonly HttpClient _httpClient;
     private readonly ILogger _logger;
 
-    public GitHub(string repoUrl, ILogger logger)
+    public GitHub(string repoUrl, RemoteConnections connections, ILogger logger)
     {
         _repoUrl = repoUrl;
-        _logger = logger;
-        _logger.LogTrace("Creating GitHub repository host with base url: {RepoUrl}", repoUrl);
-
         var split = _repoUrl.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        var owner = split[^2];
-        var repo = split[^1];
-        _httpClient = new HttpClient(new LoggingHandler(logger))
-        {
-            BaseAddress = new Uri($"https://api.github.com/repos/{owner}/{repo}/pulls/"),
-        };
+        _owner = split[^2];
+        _repo = split[^1];
 
-        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.text+json"));
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", "roslyn-pr-finder");
-        _httpClient.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+        _httpClient = connections.GitHubClient;
+        _logger = logger;
     }
 
     public string GetCommitUrl(string commitSha)
@@ -115,17 +108,39 @@ public partial class GitHub : IRepositoryHost
     {
         try
         {
-            var relativeUrl = $"{prNumber}";
-            _logger.LogTrace("Attempting to fetch PR Title for {PrNumber} at {BaseAddress}{RelativeUrl}", prNumber, _httpClient.BaseAddress, relativeUrl);
-            var response = await _httpClient.GetFromJsonAsync<PullRequestResponse>(relativeUrl);
+            _logger.LogTrace("Attempting to fetch PR Title for {PrNumber}", prNumber);
+            var pullRequest = await GetPullRequestAsync(prNumber);
 
-            return response?.Title;
+            return pullRequest?.Title;
         }
         catch (Exception e)
         {
             _logger.LogError(e, "{Message}", e.Message);
             return null;
         }
+    }
+
+    public async Task<bool> HasAnyLabelAsync(string prNumber, string[] labels)
+    {
+        try
+        {
+            _logger.LogTrace("Attempting to fetch PR Labels for {PrNumber}", prNumber);
+            var pullRequest = await GetPullRequestAsync(prNumber);
+
+            return pullRequest?.Labels.Any(label => labels.Contains(label.Name, StringComparer.OrdinalIgnoreCase)) ?? false;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "{Message}", e.Message);
+            return false;
+        }
+    }
+
+    private Task<PullRequestResponse?> GetPullRequestAsync(string prNumber)
+    {
+        var relativeUrl = $"repos/{_owner}/{_repo}/pulls/{prNumber}";
+        _logger.LogTrace("Attempting to fetch PR for {PrNumber} at {BaseAddress}{RelativeUrl}", prNumber, _httpClient.BaseAddress, relativeUrl);
+        return _httpClient.GetFromJsonAsync<PullRequestResponse>(relativeUrl);
     }
 
     private class PullRequestResponse
@@ -135,6 +150,15 @@ public partial class GitHub : IRepositoryHost
 
         [JsonPropertyName("description")]
         public string Body { get; set; } = "";
+
+        [JsonPropertyName("labels")]
+        public PullRequestLabel[] Labels { get; set; } = [];
+    }
+
+    private class PullRequestLabel
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = "";
     }
 
     private class LoggingHandler(ILogger logger) : DelegatingHandler(new HttpClientHandler())

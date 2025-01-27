@@ -63,6 +63,12 @@ public partial class Azure(string repoUrl) : IRepositoryHost
         return Task.FromResult<MergeInfo?>(null);
     }
 
+    public Task<bool> HasAnyLabelAsync(string prNumber, string[] labels)
+    {
+        // Todo: Determine if there is a way to retrieve labels from AzDO
+        return Task.FromResult(true);
+    }
+
     [GeneratedRegex(@"^Merged PR \d+: Merging .* to ")]
     private static partial Regex IsAzDOReleaseFlowCommit();
     [GeneratedRegex(@"^Merged PR (\d+):")]

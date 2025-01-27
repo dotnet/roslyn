@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
+using Microsoft.RoslynTools.Utilities;
 
 internal class PRFinder
 {
@@ -28,6 +29,8 @@ internal class PRFinder
         string endRef,
         string? path,
         string format,
+        string[] labels,
+        RemoteConnections connections,
         ILogger logger,
         string? repoPath = null,
         StringBuilder? builder = null)
@@ -98,7 +101,7 @@ internal class PRFinder
         }
 
         IRepositoryHost host = isGitHub
-            ? new Hosts.GitHub(repoUrl, logger)
+            ? new Hosts.GitHub(repoUrl, connections, logger)
             : new Hosts.Azure(repoUrl);
 
         var formatter = format switch
@@ -161,6 +164,11 @@ internal class PRFinder
                 }
 
                 mergePRFound = true;
+
+                if (labels.Length > 0 && !await host.HasAnyLabelAsync(mergeInfo.PrNumber, labels))
+                {
+                    continue;
+                }
 
                 prLink = formatter.FormatPRListItem(mergeInfo.Comment, mergeInfo.PrNumber, host.GetPullRequestUrl(mergeInfo.PrNumber));
             }

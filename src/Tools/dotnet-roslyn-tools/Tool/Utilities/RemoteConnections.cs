@@ -13,14 +13,21 @@ namespace Microsoft.RoslynTools.Utilities;
 
 internal record RemoteConnections : IDisposable
 {
-    public AzDOConnection DevDivConnection { get; }
-    public AzDOConnection DncEngConnection { get; }
+    private readonly AzDOConnection? _devDivConnection;
+    private readonly AzDOConnection? _dncEngConnection;
+
+    public AzDOConnection DevDivConnection => _devDivConnection is not null ? _devDivConnection : throw new InvalidOperationException("DevDivConnection is not initialized");
+    public AzDOConnection DncEngConnection => _dncEngConnection is not null ? _dncEngConnection : throw new InvalidOperationException("DncEngConnection is not initialized");
+
     public HttpClient GitHubClient { get; }
 
-    public RemoteConnections(RoslynToolsSettings settings)
+    public RemoteConnections(RoslynToolsSettings settings, bool loginToAzureDevOps = true)
     {
-        DevDivConnection = CreateDevDivAzdoConnection(settings.GetDevDivAzDOTokenProvider());
-        DncEngConnection = CreateDncEngAzdoConnection(settings.GetDncEngAzDOTokenProvider());
+        if (loginToAzureDevOps)
+        {
+            _devDivConnection = CreateDevDivAzdoConnection(settings.GetDevDivAzDOTokenProvider());
+            _dncEngConnection = CreateDncEngAzdoConnection(settings.GetDncEngAzDOTokenProvider());
+        }
 
         var gitHubTokenProvider = settings.GetGitHubTokenProvider();
         GitHubClient = CreateGitHubClient(gitHubTokenProvider);
@@ -28,8 +35,8 @@ internal record RemoteConnections : IDisposable
 
     public void Dispose()
     {
-        DevDivConnection.Dispose();
-        DncEngConnection.Dispose();
+        _devDivConnection?.Dispose();
+        _dncEngConnection?.Dispose();
         GitHubClient.Dispose();
     }
 
