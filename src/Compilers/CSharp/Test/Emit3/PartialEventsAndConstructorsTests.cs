@@ -13,15 +13,15 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     public void ReturningPartialType_LocalFunction_InMethod()
     {
         var source = """
-                class @partial
+            class @partial
+            {
+                static void Main()
                 {
-                    static void Main()
-                    {
-                        System.Console.Write(F().GetType().Name);
-                        partial F() => new();
-                    }
+                    System.Console.Write(F().GetType().Name);
+                    partial F() => new();
                 }
-                """;
+            }
+            """;
         CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: "partial").VerifyDiagnostics();
     }
 
@@ -29,10 +29,10 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     public void ReturningPartialType_LocalFunction_TopLevel()
     {
         var source = """
-                System.Console.Write(F().GetType().Name);
-                partial F() => new();
-                class @partial;
-                """;
+            System.Console.Write(F().GetType().Name);
+            partial F() => new();
+            class @partial;
+            """;
         CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: "partial").VerifyDiagnostics();
     }
 
