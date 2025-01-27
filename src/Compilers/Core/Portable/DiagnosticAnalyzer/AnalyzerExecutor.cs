@@ -201,7 +201,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var context = new AnalyzerAnalysisContext(sessionScope, severityFilter);
 
-            // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
             ExecuteAndCatchIfThrows(
                 sessionScope.Analyzer,
                 static data => data.sessionScope.Analyzer.Initialize(data.context),
@@ -226,8 +225,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var startAction in actions)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 ExecuteAndCatchIfThrows(
                     startAction.Analyzer,
                     static data => data.startAction.Action(data.context),
@@ -269,7 +266,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var startAction in actions)
             {
                 Debug.Assert(startAction.Analyzer == symbolScope.Analyzer);
-                cancellationToken.ThrowIfCancellationRequested();
 
                 ExecuteAndCatchIfThrows(
                     startAction.Analyzer,
@@ -342,8 +338,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var endAction in compilationActions)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 ExecuteAndCatchIfThrows(
                     endAction.Analyzer,
                     static data => data.endAction.Action(data.context),
@@ -399,17 +393,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var symbolAction in symbolActions)
             {
-                var action = symbolAction.Action;
-                var kinds = symbolAction.Kinds;
+                cancellationToken.ThrowIfCancellationRequested();
 
-                if (kinds.Contains(symbol.Kind))
+                if (symbolAction.Kinds.Contains(symbol.Kind))
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
                     ExecuteAndCatchIfThrows(
                         symbolAction.Analyzer,
-                        static data => data.action(data.context),
-                        (action, context),
+                        static data => data.symbolAction.Action(data.context),
+                        (symbolAction, context),
                         contextInfo,
                         cancellationToken);
                 }
@@ -510,14 +501,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var symbolAction in symbolEndActions)
             {
-                var action = symbolAction.Action;
-
-                cancellationToken.ThrowIfCancellationRequested();
-
                 ExecuteAndCatchIfThrows(
                     symbolAction.Analyzer,
-                    static data => data.action(data.context),
-                    (action, context),
+                    static data => data.symbolAction.Action(data.context),
+                    (symbolAction, context),
                     contextInfo,
                     cancellationToken);
             }
@@ -564,9 +551,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var semanticModelAction in semanticModelActions)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Catch Exception from action.
                 ExecuteAndCatchIfThrows(
                     semanticModelAction.Analyzer,
                     static data => data.semanticModelAction.Action(data.context),
@@ -620,9 +604,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var syntaxTreeAction in syntaxTreeActions)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Catch Exception from action.
                 ExecuteAndCatchIfThrows(
                     syntaxTreeAction.Analyzer,
                     static data => data.syntaxTreeAction.Action(data.context),
@@ -668,9 +649,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var additionalFileAction in additionalFileActions)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Catch Exception from action.
                 ExecuteAndCatchIfThrows(
                     additionalFileAction.Analyzer,
                     static data => data.additionalFileAction.Action(data.context),
@@ -854,7 +832,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var blockStartContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(
                         codeBlockScope, declaredNode, declaredSymbol, semanticModel, AnalyzerOptions, filterSpan, isGeneratedCode, cancellationToken);
 
-                    // Catch Exception from the start action.
                     ExecuteAndCatchIfThrows(
                         startAction.Analyzer,
                         static data => data.codeBlockStartAction.Action(data.blockStartContext),
@@ -875,7 +852,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             operationBlockScope, operationBlocks, declaredSymbol, semanticModel.Compilation, AnalyzerOptions,
                             GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
 
-                        // Catch Exception from the start action.
                         ExecuteAndCatchIfThrows(
                             startAction.Analyzer,
                             static data => data.operationBlockStartAction.Action(data.operationStartContext),
@@ -1189,6 +1165,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void ExecuteAndCatchIfThrows<TArg>(DiagnosticAnalyzer analyzer, Action<TArg> analyze, TArg argument, AnalysisContextInfo? contextInfo, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             SharedStopwatch timer = default;
             if (_analyzerExecutionTimeMap != null)
             {
