@@ -1258,5 +1258,151 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //         a = [with((dynamic)null), null];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)null").WithLocation(7, 19));
         }
+
+        [Fact]
+        public void ParamsCycle_ParamsConstructorOnly()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public MyCollection(params MyCollection<T> other) { _list = new(other); }
+                    public void Add(T t) { _list.Add(t); }
+                }
+                """;
+            string sourceB = """
+                MyCollection<int> c;
+                c = [];
+                c = [with()];
+                c = [with(null)];
+                c = [with(1)];
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+                // c = [];
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(2, 5),
+                // (3,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+                // c = [with()];
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with()]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(3, 5),
+                // (5,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+                // c = [with(1)];
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with(1)]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(5, 5));
+        }
+
+        [Fact]
+        public void ParamsCycle_MultipleConstructors()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public MyCollection() { _list = new(); }
+                    public MyCollection(params MyCollection<T> other) { _list = new(other); }
+                    public void Add(T t) { _list.Add(t); }
+                }
+                """;
+            string sourceB = """
+                MyCollection<int> c;
+                c = [];
+                c = [with()];
+                c = [with(null)];
+                c = [with(1)];
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            comp.VerifyEmitDiagnostics(
+                // (5,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection()'.
+                // c = [with(1)];
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with(1)]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection()").WithLocation(5, 5));
+        }
+
+        [Fact]
+        public void ParamsCycle_PrivateParameterlessConstructor()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    private MyCollection() { }
+                    public MyCollection(params MyCollection<T> other) { _list = new(other); }
+                    public void Add(T t) { _list.Add(t); }
+                }
+                """;
+            string sourceB = """
+                MyCollection<int> c;
+                c = [];
+                c = [with()];
+                c = [with(null)];
+                c = [with(1)];
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+                // c = [];
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(2, 5),
+                // (3,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+                // c = [with()];
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with()]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(3, 5),
+                // (5,5): error CS9223: Creation of params collection 'MyCollection<int>' results in an infinite chain of invocation of constructor 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+                // c = [with(1)];
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[with(1)]").WithArguments("MyCollection<int>", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(5, 5),
+                // (9,25): error CS9224: Method 'MyCollection<T>.MyCollection()' cannot be less visible than the member with params collection 'MyCollection<T>.MyCollection(params MyCollection<T>)'.
+                //     public MyCollection(params MyCollection<T> other) { _list = new(other); }
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyCollection<T> other").WithArguments("MyCollection<T>.MyCollection()", "MyCollection<T>.MyCollection(params MyCollection<T>)").WithLocation(9, 25));
+        }
+
+        [Fact]
+        public void ParamsCycle_NoParameterlessConstructor()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    public MyCollection(T x, params MyCollection<T> y)
+                    {
+                        _list = new();
+                        _list.Add(x);
+                        _list.AddRange(y);
+                    }
+                    public void Add(T t) { _list.Add(t); }
+                }
+                """;
+            string sourceB = """
+                MyCollection<int> c;
+                c = [];
+                c = [with()];
+                c = [with(1)];
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+                // c = [];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[]").WithLocation(2, 5),
+                // (3,5): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+                // c = [with()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with()]").WithLocation(3, 5),
+                // (4,5): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+                // c = [with(1)];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with(1)]").WithLocation(4, 5),
+                // (8,30): error CS9228: Non-array params collection type must have an applicable constructor that can be called with no arguments.
+                //     public MyCollection(T x, params MyCollection<T> y)
+                Diagnostic(ErrorCode.ERR_ParamsCollectionMissingConstructor, "params MyCollection<T> y").WithLocation(8, 30));
+        }
     }
 }

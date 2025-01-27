@@ -896,35 +896,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
 
-                var analyzedArguments = AnalyzedArguments.GetInstance();
-                collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, analyzedArguments, diagnostics);
-                analyzedArguments.Free();
-                Debug.Assert((collectionCreation is BoundNewT && !isExpanded && constructor is null) ||
-                             (collectionCreation is BoundObjectCreationExpression creation && creation.Expanded == isExpanded && creation.Constructor == constructor));
-
-                if (collectionCreation.HasErrors)
-                {
-                    return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
-                }
-
-                // Bind any collection arguments.
-                BoundExpression? collectionWithArgumentsCreation = null;
+                // Bind collection creation with arguments.
                 foreach (var element in elements)
                 {
                     if (element is BoundUnconvertedCollectionArguments collectionArguments)
                     {
-                        analyzedArguments = AnalyzedArguments.GetInstance();
+                        var analyzedArguments = AnalyzedArguments.GetInstance();
                         collectionArguments.GetArguments(analyzedArguments);
-                        var withArguments = BindCollectionExpressionConstructor(syntax, targetType, constructor: null, analyzedArguments, diagnostics);
+                        var collectionWithArguments = BindCollectionExpressionConstructor(syntax, targetType, constructor, analyzedArguments, diagnostics);
                         analyzedArguments.Free();
-                        collectionWithArgumentsCreation ??= withArguments;
+                        collectionCreation ??= collectionWithArguments;
                     }
                 }
 
-                // Prefer collection creation with arguments over parameterless collection creation.
-                if (collectionWithArgumentsCreation is { })
+                // Bind collection creation with no arguments if necessary.
+                if (collectionCreation is null)
                 {
-                    collectionCreation = collectionWithArgumentsCreation;
+                    var analyzedArguments = AnalyzedArguments.GetInstance();
+                    collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, analyzedArguments, diagnostics);
+                    analyzedArguments.Free();
+                    Debug.Assert((collectionCreation is BoundNewT && !isExpanded && constructor is null) ||
+                                 (collectionCreation is BoundObjectCreationExpression creation && creation.Expanded == isExpanded && creation.Constructor == constructor));
+
+                    if (collectionCreation.HasErrors)
+                    {
+                        return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
+                    }
                 }
 
                 if (!elements.IsDefaultOrEmpty && HasCollectionInitializerTypeInProgress(syntax, targetType))
@@ -1174,7 +1171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression BindCollectionExpressionConstructor(
             SyntaxNode syntax,
             TypeSymbol targetType,
-            MethodSymbol? constructor,
+            MethodSymbol? constructorNoArguments,
             AnalyzedArguments analyzedArguments,
             BindingDiagnosticBag diagnostics)
         {
@@ -1188,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression collectionCreation;
             if (targetType is NamedTypeSymbol namedType)
             {
-                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, constructor); // PROTOTYPE: Are there potential cycles when binding collection args?
+                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, constructorNoArguments);
                 collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
                 collectionCreation.WasCompilerGenerated = true;
             }
