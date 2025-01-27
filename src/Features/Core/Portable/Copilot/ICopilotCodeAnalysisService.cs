@@ -78,6 +78,10 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// </summary>
     Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Method to retrieve the documentation comment for a given <paramref name="proposal"/>
+    /// </summary>
+    /// <param name="proposal"></param>
     Task<string> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
 
 }

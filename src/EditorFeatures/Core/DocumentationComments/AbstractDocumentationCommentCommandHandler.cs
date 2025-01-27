@@ -315,11 +315,38 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                 copilotStatement = exception;
             }
 
-            var proposedEdit = new ProposedEdit(new SnapshotSpan(oldSnapshot, textSpan.Start, textSpan.Length), copilotStatement!);
+            var proposedEdit = new ProposedEdit(new SnapshotSpan(oldSnapshot, textSpan.Start, textSpan.Length), AddNewLinesToCopilotText(copilotStatement!, 120));
             list.Add(proposedEdit);
         }
 
         return list;
+
+        static string AddNewLinesToCopilotText(string copilotText, int characterLimit)
+        {
+            var builder = new StringBuilder();
+            var words = copilotText.Split(' ');
+            var currentLineLength = 0;
+
+            foreach (var word in words)
+            {
+                if (currentLineLength + word.Length >= characterLimit)
+                {
+                    builder.AppendLine();
+                    currentLineLength = 0;
+                }
+
+                if (currentLineLength > 0)
+                {
+                    builder.Append(" ");
+                    currentLineLength++;
+                }
+
+                builder.Append(word);
+                currentLineLength += word.Length;
+            }
+
+            return builder.ToString();
+        }
     }
 
     private async Task<bool> TryDisplaySuggestionAsync(SuggestionSessionBase session, DocumentationCommentSuggestion suggestion, CancellationToken cancellationToken)

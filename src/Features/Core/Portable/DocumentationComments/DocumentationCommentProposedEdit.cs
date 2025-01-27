@@ -7,10 +7,15 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
+/// <summary>
+/// The individual piece of each documentation comment that will eventually be proposed as an edit.
+/// E.g. the summary tag, the param tag, etc.
+/// </summary>
 internal sealed class DocumentationCommentProposedEdit
 {
     public TextSpan SpanToReplace { get; }
 
+    // May be null if the tag is 
     public string? SymbolName { get; }
 
     public DocumentationCommentTagType TagType { get; }

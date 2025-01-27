@@ -8,6 +8,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
+/// <summary>
+/// Represents the set of all edits that will be needed to fill in the documentation comment for a symbol.
+/// </summary>
 internal sealed class DocumentationCommentProposal
 {
     public string SymbolToAnalyze { get; }
