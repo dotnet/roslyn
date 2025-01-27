@@ -1827,7 +1827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         keyValuePairElement.Update(
                             BindToNaturalType(keyValuePairElement.Key, diagnostics, reportNoTargetType),
                             BindToNaturalType(keyValuePairElement.Value, diagnostics, reportNoTargetType)),
-                    BoundUnconvertedCollectionArguments collectionArguments => bindToNaturalType(collectionArguments, diagnostics, reportNoTargetType), // PROTOTYPE: Seems incorrect to add an "unconverted" node into the returned "converted" collection.
+                    BoundUnconvertedCollectionArguments collectionArguments => bindToNaturalType(collectionArguments, diagnostics, reportNoTargetType),
                     _ => BindToNaturalType((BoundExpression)element, diagnostics, reportNoTargetType)
                 };
                 builder.Add(result);

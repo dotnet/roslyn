@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -16,8 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 
         private const string s_collectionExtensions = CollectionExpressionTests.s_collectionExtensions;
-
-        // PROTOTYPE: Test collection arguments do not affect convertibility. Test with with(default) for types that don't support collection arguments for instance.
 
         public static readonly TheoryData<LanguageVersion> LanguageVersions = new([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
 
@@ -178,6 +178,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (7,17): error CS9276: Collection arguments are not supported for type 'T[]'.
                 //         a = [t, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("T[]").WithLocation(7, 17));
+
+            // Collection arguments do not affect convertibility.
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+            Assert.Equal(2, collections.Length);
+            VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: "T[]", ConversionKind.CollectionExpression);
+            VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: "T[]", ConversionKind.CollectionExpression);
+        }
+
+        private static void VerifyTypes(SemanticModel model, ExpressionSyntax expr, string expectedType, string expectedConvertedType, ConversionKind expectedConversionKind)
+        {
+            var typeInfo = model.GetTypeInfo(expr);
+            var conversion = model.GetConversion(expr);
+            Assert.Equal(expectedType, typeInfo.Type?.ToTestDisplayString());
+            Assert.Equal(expectedConvertedType, typeInfo.ConvertedType?.ToTestDisplayString());
+            Assert.Equal(expectedConversionKind, conversion.Kind);
         }
 
         [Theory]
@@ -474,6 +491,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (8,17): error CS9276: Collection arguments are not supported for type 'IEnumerable<T>'.
                 //         i = [t, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<T>").WithLocation(8, 17));
+
+            // Collection arguments do not affect convertibility.
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var collections = tree.GetRoot().DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+            Assert.Equal(2, collections.Length);
+            VerifyTypes(model, collections[0], expectedType: null, expectedConvertedType: $"System.Collections.Generic.{interfaceType}<T>", ConversionKind.CollectionExpression);
+            VerifyTypes(model, collections[1], expectedType: null, expectedConvertedType: $"System.Collections.Generic.{interfaceType}<T>", ConversionKind.CollectionExpression);
         }
 
         [Theory]
@@ -1101,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         c = [with(1, "2"), (dynamic)3];
                         c = [with((dynamic)1)];
                         c = [with(y: (dynamic)"2")];
-                        c = [with(1, (dynamic)"2")];
+                        c = [3, with(1, (dynamic)"2")];
                         c = [with((dynamic)1, (dynamic)"2"), 3];
                         c = [with(x => { })];
                     }
@@ -1115,9 +1140,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (11,22): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
                 //         c = [with(y: (dynamic)"2")];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, @"(dynamic)""2""").WithLocation(11, 22),
-                // (12,22): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
-                //         c = [with(1, (dynamic)"2")];
-                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, @"(dynamic)""2""").WithLocation(12, 22),
+                // (12,17): error CS9275: Collection argument element must be the first element.
+                //         c = [3, with(1, (dynamic)"2")];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(12, 17),
+                // (12,25): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         c = [3, with(1, (dynamic)"2")];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, @"(dynamic)""2""").WithLocation(12, 25),
                 // (13,19): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
                 //         c = [with((dynamic)1, (dynamic)"2"), 3];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)1").WithLocation(13, 19),
@@ -1168,11 +1196,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string sourceA = """
                 using System.Collections;
                 using System.Collections.Generic;
-                class MyCollection<T> : IEnumerable<T>
+                class MyCollection : IEnumerable
                 {
                     public MyCollection(dynamic d = null) { }
-                    public void Add(T t) { }
-                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    public void Add(object o) { }
                     IEnumerator IEnumerable.GetEnumerator() => throw null;
                 }
                 """;
@@ -1183,7 +1210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         object o = null;
                         dynamic d = o;
-                        MyCollection<int> c;
+                        MyCollection c;
                         c = [with()];
                         c = [with(null)];
                         c = [with(default)];
