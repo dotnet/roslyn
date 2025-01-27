@@ -141,10 +141,16 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
 
     public void AddWork(TItem item, bool cancelExistingWork = false)
     {
-        using var _ = ArrayBuilder<TItem>.GetInstance(out var items);
-        items.Add(item);
-
-        AddWork(items, cancelExistingWork);
+        var items = ArrayBuilder<TItem>.GetInstance();
+        try
+        {
+            items.Add(item);
+            AddWork(items, cancelExistingWork);
+        }
+        finally
+        {
+            items.Free();
+        }
     }
 
     public void AddWork(IEnumerable<TItem> items, bool cancelExistingWork = false)
@@ -264,8 +270,11 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
             }
             else
             {
+                Contract.ThrowIfFalse(batchResultTask.IsCompleted);
+
                 // Realize the completed result to force the exception to be thrown.
-                batchResultTask.VerifyCompleted();
+                batchResultTask.GetAwaiter().GetResult();
+
                 throw ExceptionUtilities.Unreachable();
             }
         }
