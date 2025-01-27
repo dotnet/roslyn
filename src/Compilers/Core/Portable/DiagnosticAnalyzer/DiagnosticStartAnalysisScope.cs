@@ -225,14 +225,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly HostSymbolStartAnalysisScope _scope;
 
         internal AnalyzerSymbolStartAnalysisContext(
-            HostSymbolStartAnalysisScope scope,
-            ISymbol owningSymbol,
-            Compilation compilation,
-            AnalyzerOptions options,
-            bool isGeneratedCode,
-            SyntaxTree? filterTree,
-            TextSpan? filterSpan,
-            CancellationToken cancellationToken)
+                                                       HostSymbolStartAnalysisScope scope,
+                                                       ISymbol owningSymbol,
+                                                       Compilation compilation,
+                                                       AnalyzerOptions options,
+                                                       bool isGeneratedCode,
+                                                       SyntaxTree? filterTree,
+                                                       TextSpan? filterSpan,
+                                                       CancellationToken cancellationToken)
             : base(owningSymbol, compilation, options, isGeneratedCode, filterTree, filterSpan, cancellationToken)
         {
             _scope = scope;
