@@ -9,6 +9,10 @@ using ConsoleColors = (string Foreground, string Background);
 
 namespace Microsoft.RoslynTools.Logging;
 
+// The SimpleConsoleLogger that ships in M.E.Logging.Console logs messages with
+// their loglevel prefixed (i.e. "info: "). We are looking to simply output our
+// message as is. This implementation comes from the SimpleConsoleLogger with 
+// options removed and ASCII codes inlined.
 internal sealed class SimplerConsoleFormatter() : ConsoleFormatter("simpler")
 {
     private static readonly Lazy<bool> s_lazyDisableColors = new(()
