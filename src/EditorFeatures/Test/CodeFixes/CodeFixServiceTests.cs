@@ -1078,7 +1078,7 @@ class C
 
         await diagnosticIncrementalAnalyzer.GetDiagnosticsForIdsAsync(
             sourceDocument.Project.Solution, sourceDocument.Project.Id, sourceDocument.Id, diagnosticIds: null, shouldIncludeAnalyzer: null, getDocuments: null,
-            includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+            includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
         await diagnosticIncrementalAnalyzer.GetTestAccessor().TextDocumentOpenAsync(sourceDocument);
 
         var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
@@ -1142,7 +1142,9 @@ class C
         static async Task VerifyCachedDiagnosticsAsync(Document sourceDocument, bool expectedCachedDiagnostic, TextSpan testSpan, DiagnosticIncrementalAnalyzer diagnosticIncrementalAnalyzer)
         {
             var cachedDiagnostics = await diagnosticIncrementalAnalyzer.GetCachedDiagnosticsAsync(sourceDocument.Project.Solution, sourceDocument.Project.Id, sourceDocument.Id,
-                includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+                includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+            cachedDiagnostics = cachedDiagnostics.WhereAsArray(d => !d.IsSuppressed);
+
             if (!expectedCachedDiagnostic)
             {
                 Assert.Empty(cachedDiagnostics);

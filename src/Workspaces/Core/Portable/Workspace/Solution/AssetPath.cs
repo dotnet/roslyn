@@ -95,7 +95,6 @@ internal readonly struct AssetPath
     /// Searches the requested project, and all documents underneath it.  Used only in tests.
     /// </summary>
     /// <param name="projectId"></param>
-    /// <returns></returns>
     public static AssetPath SolutionAndProjectForTesting(ProjectId projectId)
         => new(AssetPathKind.SolutionCompilationState | AssetPathKind.SolutionState | AssetPathKind.Projects, projectId);
 
@@ -103,7 +102,6 @@ internal readonly struct AssetPath
     /// Searches all documents within the specified project.
     /// </summary>
     /// <param name="projectId"></param>
-    /// <returns></returns>
     public static AssetPath DocumentsInProject(ProjectId projectId)
         => new(AssetPathKind.Documents, projectId);
 }

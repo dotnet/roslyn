@@ -506,7 +506,7 @@ internal sealed partial class ProjectSystemProjectFactory
         var distinctProjectsForOutputPath = projectsForOutputPath.Distinct().ToList();
 
         // If we have exactly one, then we're definitely good to convert
-        if (projectsForOutputPath.Count() == 1)
+        if (projectsForOutputPath.Length == 1)
         {
             projectUpdateState = ConvertMetadataReferencesToProjectReferences_NoLock(solutionChanges, projectId, outputPath, projectUpdateState);
         }
@@ -647,7 +647,7 @@ internal sealed partial class ProjectSystemProjectFactory
             projectUpdateState = GetReferenceInformation(projectIdToRetarget, projectUpdateState, out var referenceInfo);
 
             // Update ConvertedProjectReferences in place to avoid duplicate list allocations
-            for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Count(); i++)
+            for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Length; i++)
             {
                 var convertedReference = referenceInfo.ConvertedProjectReferences[i];
 
@@ -697,7 +697,7 @@ internal sealed partial class ProjectSystemProjectFactory
         Solution currentSolution,
         out ProjectReference? projectReference)
     {
-        if (projectUpdateState.ProjectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Count() == 1)
+        if (projectUpdateState.ProjectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Length == 1)
         {
             var projectIdToReference = ids.First();
 

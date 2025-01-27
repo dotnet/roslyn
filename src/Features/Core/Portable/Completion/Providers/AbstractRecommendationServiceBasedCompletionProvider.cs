@@ -79,7 +79,7 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
     private static bool IsValidForTaskLikeTypeOnlyContext(ISymbol symbol, TSyntaxContext context)
     {
         // We want to allow all namespaces as the user may be typing a namespace name to get to a task-like type.
-        if (symbol.IsNamespace())
+        if (symbol is INamespaceSymbol)
             return true;
 
         if (symbol is not INamedTypeSymbol namedType ||
@@ -104,11 +104,8 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
 
     private static bool IsValidForGenericConstraintContext(ISymbol symbol)
     {
-        if (symbol.IsNamespace() ||
-            symbol.IsKind(SymbolKind.TypeParameter))
-        {
+        if (symbol is INamespaceSymbol or ITypeParameterSymbol)
             return true;
-        }
 
         if (symbol is not INamedTypeSymbol namedType ||
             symbol.IsDelegateType() ||

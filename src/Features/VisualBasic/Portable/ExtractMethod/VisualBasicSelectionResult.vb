@@ -43,27 +43,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 MyBase.New(document, selectionType, finalSpan)
             End Sub
 
-            Protected Overrides Function UnderAnonymousOrLocalMethod(token As SyntaxToken, firstToken As SyntaxToken, lastToken As SyntaxToken) As Boolean
-                Dim current = token.Parent
-
-                While current IsNot Nothing
-                    If TypeOf current Is DeclarationStatementSyntax OrElse
-                       TypeOf current Is LambdaExpressionSyntax Then
-                        Exit While
-                    End If
-
-                    current = current.Parent
-                End While
-
-                If current Is Nothing OrElse TypeOf current Is DeclarationStatementSyntax Then
-                    Return False
-                End If
-
-                ' make sure selection contains the lambda
-                Return firstToken.SpanStart <= current.GetFirstToken().SpanStart AndAlso
-                       current.GetLastToken().Span.End <= lastToken.Span.End
-            End Function
-
             Public Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
                 If Me.IsExtractMethodOnExpression Then
                     Dim container = Me.InnermostStatementContainer()
@@ -289,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Throw ExceptionUtilities.Unreachable
             End Function
 
-            Public Overrides Function ContainsNonReturnExitPointsStatements(exitPoints As ImmutableArray(Of SyntaxNode)) As Boolean
+            Public Overrides Function ContainsUnsupportedExitPointsStatements(exitPoints As ImmutableArray(Of SyntaxNode)) As Boolean
                 Dim returnStatement = False
                 Dim exitStatement = False
 

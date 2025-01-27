@@ -15,12 +15,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChanged
 {
     public static NewTypeDestinationSelectionViewModel Default = new(
-        string.Empty,
-        LanguageNames.CSharp,
-        string.Empty,
-        string.Empty,
-        [],
-        null
+        defaultName: string.Empty,
+        languageName: LanguageNames.CSharp,
+        defaultNamespace: string.Empty,
+        generatedNameTypeParameterSuffix: string.Empty,
+        conflictingNames: [],
+        syntaxFactsService: null,
+        canAddDocument: false
     );
 
     private readonly string _fileExtension;
@@ -37,7 +38,8 @@ internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChan
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
         ImmutableArray<string> conflictingNames,
-        ISyntaxFactsService? syntaxFactsService)
+        ISyntaxFactsService? syntaxFactsService,
+        bool canAddDocument)
     {
         _defaultName = defaultName;
         _fileExtension = languageName == LanguageNames.CSharp ? ".cs" : ".vb";
@@ -48,7 +50,11 @@ internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChan
         _typeName = _defaultName;
         _syntaxFactsService = syntaxFactsService;
         _fileName = $"{defaultName}{_fileExtension}";
+        CanAddDocument = canAddDocument;
+        _destination = canAddDocument ? NewTypeDestination.NewFile : NewTypeDestination.CurrentFile;
     }
+
+    public bool CanAddDocument { get; }
 
     private string _typeName;
     public string TypeName
@@ -87,7 +93,7 @@ internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChan
         set { SetProperty(ref _fileName, value); }
     }
 
-    private NewTypeDestination _destination = NewTypeDestination.NewFile;
+    private NewTypeDestination _destination;
     public NewTypeDestination Destination
     {
         get { return _destination; }

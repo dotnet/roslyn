@@ -74,7 +74,6 @@ internal static class AddParameterService
     /// Adds a parameter to a method.
     /// </summary>
     /// <param name="newParameterIndex"><see langword="null"/> to add as the final parameter</param>
-    /// <returns></returns>
     public static async Task<Solution> AddParameterAsync<TExpressionSyntax>(
         Document invocationDocument,
         IMethodSymbol method,

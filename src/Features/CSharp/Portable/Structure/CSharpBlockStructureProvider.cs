@@ -47,6 +47,7 @@ internal sealed class CSharpBlockStructureProvider : AbstractBlockStructureProvi
         builder.Add<RegionDirectiveTriviaSyntax, RegionDirectiveStructureProvider>();
         builder.Add<SimpleLambdaExpressionSyntax, SimpleLambdaExpressionStructureProvider>();
         builder.Add<StructDeclarationSyntax, TypeDeclarationStructureProvider>();
+        builder.Add<SwitchExpressionSyntax, SwitchExpressionStructureProvider>();
         builder.Add<SwitchStatementSyntax, SwitchStatementStructureProvider>();
         builder.Add<LiteralExpressionSyntax, StringLiteralExpressionStructureProvider>();
         builder.Add<InterpolatedStringExpressionSyntax, InterpolatedStringExpressionStructureProvider>();

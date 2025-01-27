@@ -17,7 +17,7 @@ public sealed class CompilerAnalyzerAssemblyResolverTests
         var context = new AssemblyLoadContext(nameof(ExceptionReturnsNull), isCollectible: true);
         var resolver = new AnalyzerAssemblyLoader.CompilerAnalyzerAssemblyResolver(context);
         var name = new AssemblyName("NotARealAssembly");
-        Assert.Null(resolver.ResolveAssembly(name));
+        Assert.Null(resolver.ResolveAssembly(name, directoryName: ""));
         context.Unload();
     }
 }

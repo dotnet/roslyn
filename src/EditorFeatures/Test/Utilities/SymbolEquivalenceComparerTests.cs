@@ -1830,8 +1830,8 @@ End Class
             r2 = MetadataReference.CreateFromImage(bytes);
         }
 
-        var c1 = (Compilation)CS.CSharpCompilation.Create("comp1", Array.Empty<SyntaxTree>(), [NetFramework.mscorlib, r1]);
-        var c2 = (Compilation)CS.CSharpCompilation.Create("comp2", Array.Empty<SyntaxTree>(), [NetFramework.mscorlib, r2]);
+        var c1 = (Compilation)CS.CSharpCompilation.Create("comp1", [], [NetFramework.mscorlib, r1]);
+        var c2 = (Compilation)CS.CSharpCompilation.Create("comp2", [], [NetFramework.mscorlib, r2]);
         var type1 = (ITypeSymbol)c1.GlobalNamespace.GetMembers("C").Single();
         var type2 = (ITypeSymbol)c2.GlobalNamespace.GetMembers("C").Single();
 

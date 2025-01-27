@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis
             return default;
         }
 
-        public static TValue? Single<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
+        public static TValue Single<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
         {
             var hasValue = false;
             TValue? value = default;
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis
                 throw ExceptionUtilities.Unreachable();
             }
 
-            return value;
+            return value!;
         }
 
         /// <summary>

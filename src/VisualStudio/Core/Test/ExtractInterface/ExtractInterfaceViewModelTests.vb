@@ -313,7 +313,8 @@ public class $$MyClass
                     memberViewModels:=memberViewModels.ToImmutableArray(),
                     defaultNamespace:=defaultNamespace,
                     generatedNameTypeParameterSuffix:=generatedNameTypeParameterSuffix,
-                    languageName:=doc.Project.Language)
+                    languageName:=doc.Project.Language,
+                    canAddDocument:=True)
             End Using
         End Function
     End Class

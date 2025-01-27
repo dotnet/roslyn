@@ -52,6 +52,7 @@ internal record class ServerConfiguration(
     string? RazorSourceGenerator,
     string? RazorDesignTimePath,
     string? ServerPipeName,
+    bool UseStdIo,
     string ExtensionLogDirectory);
 
 internal class LogConfiguration

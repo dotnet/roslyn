@@ -1278,7 +1278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool ContainsFunctionPointer(this TypeSymbol type) =>
             type.VisitType((TypeSymbol t, object? _, bool _) => t.IsFunctionPointer(), null) is object;
 
-        internal static bool ContainsPointer(this TypeSymbol type) =>
+        internal static bool ContainsPointerOrFunctionPointer(this TypeSymbol type) =>
             type.VisitType((TypeSymbol t, object? _, bool _) => t.TypeKind is TypeKind.Pointer or TypeKind.FunctionPointer, null) is object;
 
         /// <summary>

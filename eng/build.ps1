@@ -710,14 +710,6 @@ function Setup-IntegrationTestRun() {
   $env:ROSLYN_LSPEDITOR = "$lspEditor"
 }
 
-function Prepare-TempDir() {
-  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\global.json") $TempDir
-  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
-  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
-  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.rsp") $TempDir
-  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\NuGet.Config") $TempDir
-}
-
 function List-Processes() {
   Write-Host "Listing running build processes..."
   Get-Process -Name "msbuild" -ErrorAction SilentlyContinue | Out-Host
@@ -746,7 +738,6 @@ try {
 
   if ($ci) {
     List-Processes
-    Prepare-TempDir
     EnablePreviewSdks
     if ($testVsi) {
       Setup-IntegrationTestRun

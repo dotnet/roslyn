@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml.Linq;
@@ -15,6 +16,8 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
@@ -25,58 +28,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     public partial class CSharpRegexParserTests
     {
         private readonly IVirtualCharService _service = CSharpVirtualCharService.Instance;
-        private const string _statmentPrefix = "var v = ";
+        private const string _statementPrefix = "var v = ";
 
         private static SyntaxToken GetStringToken(string text)
         {
-            var statement = _statmentPrefix + text;
+            var statement = _statementPrefix + text;
             var parsedStatement = SyntaxFactory.ParseStatement(statement);
             var token = parsedStatement.DescendantTokens().ToArray()[3];
-            Assert.True(token.Kind() == SyntaxKind.StringLiteralToken);
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
 
             return token;
         }
 
-        private void Test(string stringText, string expected, RegexOptions options,
-            bool runSubTreeTests = true,
-            bool allowIndexOutOfRange = false,
-            bool allowNullReference = false,
-            bool allowOutOfMemory = false,
-            bool allowDiagnosticsMismatch = false)
+        private void Test(
+            string stringText, string expected, RegexOptions options)
         {
-            var (tree, sourceText) = TryParseTree(stringText, options, conversionFailureOk: false,
-                allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
+            var (tree, sourceText) = TryParseTree(stringText, options, conversionFailureOk: false);
 
-            // Tests are allowed to not run the subtree tests.  This is because some
-            // subtrees can cause the native regex parser to exhibit very bad behavior
-            // (like not ever actually finishing compiling).
-            if (runSubTreeTests)
-            {
-                TryParseSubTrees(stringText, options,
-                    allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
-            }
+            TryParseSubTrees(stringText, options);
 
-            const string DoubleQuoteEscaping = "\"\"";
             var actual = TreeToText(sourceText, tree)
-                .Replace("\"", DoubleQuoteEscaping)
-                .Replace("&quot;", DoubleQuoteEscaping);
-            Assert.Equal(expected.Replace("\"", DoubleQuoteEscaping), actual);
+                .Replace("&quot;", "\"");
+            AssertEx.Equal(expected, actual);
         }
 
-        private void TryParseSubTrees(
-            string stringText, RegexOptions options,
-            bool allowIndexOutOfRange,
-            bool allowNullReference,
-            bool allowOutOfMemory,
-            bool allowDiagnosticsMismatch)
+        private void TryParseSubTrees(string stringText, RegexOptions options)
         {
             // Trim the input from the right and make sure tree invariants hold
             var current = stringText;
             while (current is not "@\"\"" and not "\"\"")
             {
                 current = current[..^2] + "\"";
-                TryParseTree(current, options, conversionFailureOk: true,
-                    allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
+                TryParseTree(current, options, conversionFailureOk: true);
             }
 
             // Trim the input from the left and make sure tree invariants hold
@@ -92,8 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     current = "\"" + current[2..];
                 }
 
-                TryParseTree(current, options, conversionFailureOk: true,
-                    allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
+                TryParseTree(current, options, conversionFailureOk: true);
             }
 
             for (var start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
@@ -101,8 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 TryParseTree(
                     stringText[..start] +
                     stringText[(start + 1)..],
-                    options, conversionFailureOk: true,
-                    allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
+                    options,
+                    conversionFailureOk: true);
             }
         }
 
@@ -122,12 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         private (RegexTree, SourceText) TryParseTree(
-            string stringText, RegexOptions options,
-            bool conversionFailureOk,
-            bool allowIndexOutOfRange,
-            bool allowNullReference,
-            bool allowOutOfMemory,
-            bool allowDiagnosticsMismatch = false)
+            string stringText, RegexOptions options, bool conversionFailureOk)
         {
             var (token, tree, allChars) = JustParseTree(stringText, options, conversionFailureOk);
             if (tree == null)
@@ -145,42 +122,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             {
                 regex = new Regex(token.ValueText, options);
             }
-            catch (IndexOutOfRangeException) when (allowIndexOutOfRange)
-            {
-                // bug with .NET regex parser.  Can happen with patterns like: (?<-0
-                Assert.NotEmpty(tree.Diagnostics);
-                return treeAndText;
-            }
-            catch (NullReferenceException) when (allowNullReference)
-            {
-                // bug with .NET regex parser.  can happen with patterns like: (?(?S))
-                return treeAndText;
-            }
-            catch (OutOfMemoryException) when (allowOutOfMemory)
-            {
-                // bug with .NET regex parser.  can happen with patterns like: a{2147483647,}
-                return treeAndText;
-            }
             catch (ArgumentException ex)
             {
-                if (!allowDiagnosticsMismatch)
-                {
-                    Assert.NotEmpty(tree.Diagnostics);
+                Assert.NotEmpty(tree.Diagnostics);
 
-                    // Ensure the diagnostic we emit is the same as the .NET one. Note: we can only
-                    // do this in en-US as that's the only culture where we control the text exactly
-                    // and can ensure it exactly matches Regex.  We depend on localization to do a
-                    // good enough job here for other languages.
-                    if (Thread.CurrentThread.CurrentCulture.Name == "en-US")
-                    {
-                        Assert.True(tree.Diagnostics.Any(d => ex.Message.Contains(d.Message)));
-                    }
+                // Ensure the diagnostic we emit is the same as the .NET one. Note: we can only
+                // do this in en-US as that's the only culture where we control the text exactly
+                // and can ensure it exactly matches Regex.  We depend on localization to do a
+                // good enough job here for other languages.
+                if (Thread.CurrentThread.CurrentCulture.Name == "en-US")
+                {
+                    var result = tree.Diagnostics.Any(d => ex.Message.Contains(d.Message));
+                    Assert.True(result);
                 }
 
                 return treeAndText;
             }
 
-            if (!tree.Diagnostics.IsEmpty && !allowDiagnosticsMismatch)
+            if (!tree.Diagnostics.IsEmpty)
             {
                 var expectedDiagnostics = CreateDiagnosticsElement(sourceText, tree);
                 Assert.False(true, "Expected diagnostics: \r\n" + expectedDiagnostics.ToString().Replace(@"""", @""""""));
@@ -215,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         private static XElement CreateDiagnosticsElement(SourceText text, RegexTree tree)
-            => new XElement("Diagnostics",
+            => new("Diagnostics",
                 tree.Diagnostics.Select(d =>
                     new XElement("Diagnostic",
                         new XAttribute("Message", d.Message),
@@ -275,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         private static XElement TriviaToElement(RegexTrivia trivia)
-            => new XElement(
+            => new(
                 trivia.Kind.ToString(),
                 trivia.VirtualChars.CreateString());
 
@@ -384,6 +343,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 var (token, _, chars) = JustParseTree($@"@""{text}""", RegexOptions.None, conversionFailureOk: false);
                 Assert.False(token.IsMissing);
                 Assert.False(chars.IsDefaultOrEmpty);
+            }
+        }
+
+        [Fact]
+        public void TestRegexCharClassCharacters()
+        {
+            foreach (var (charClass, _) in RegexCharClass.EscapeCategories)
+            {
+                foreach (var ch in charClass)
+                    Assert.True(RegexLexer.IsEscapeCategoryChar(VirtualChar.Create(new Rune(ch), new TextSpan(0, 1))));
             }
         }
     }

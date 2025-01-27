@@ -173,15 +173,12 @@ internal sealed partial class CSharpExtractMethodService
         protected override AbstractFormattingRule GetCustomFormattingRule(Document document)
             => FormattingRule.Instance;
 
-        protected override SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> methodNames)
-            => methodNames.FirstOrNull(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
-
         protected override SyntaxNode ParseTypeName(string name)
             => SyntaxFactory.ParseTypeName(name);
 
-        protected override async Task<(Document document, SyntaxToken? invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
+        protected override async Task<(Document document, SyntaxToken invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
             Document document,
-            SyntaxToken? invocationNameToken,
+            SyntaxToken invocationNameToken,
             SyntaxNode methodDefinition,
             CancellationToken cancellationToken)
         {
@@ -206,8 +203,7 @@ internal sealed partial class CSharpExtractMethodService
 
                 var newRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                if (invocationNameToken != null)
-                    invocationNameToken = newRoot.FindToken(invocationNameToken.Value.SpanStart);
+                invocationNameToken = newRoot.FindToken(invocationNameToken.SpanStart);
             }
 
             return (document, invocationNameToken);
