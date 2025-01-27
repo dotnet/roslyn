@@ -516,7 +516,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         invokeMethod.Parameters.SequenceEqual(otherInvokeMethod.Parameters,
                             (x, y) => isCorrespondingType(x.TypeWithAnnotations, y.TypeWithAnnotations) &&
                                 x.ExplicitDefaultConstantValue == y.ExplicitDefaultConstantValue &&
-                                x.IsParams == y.IsParams) &&
+                                x.IsParamsArray == y.IsParamsArray &&
+                                x.IsParamsCollection == y.IsParamsCollection) &&
                         isCorrespondingType(invokeMethod.ReturnTypeWithAnnotations, otherInvokeMethod.ReturnTypeWithAnnotations);
                 }
 
@@ -729,6 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // edit. Furthermore, comparing constraint types might lead to a cycle.
                 Debug.Assert(type.HasConstructorConstraint == other.HasConstructorConstraint);
                 Debug.Assert(type.HasValueTypeConstraint == other.HasValueTypeConstraint);
+                Debug.Assert(type.AllowsRefLikeType == other.AllowsRefLikeType);
                 Debug.Assert(type.HasUnmanagedTypeConstraint == other.HasUnmanagedTypeConstraint);
                 Debug.Assert(type.HasReferenceTypeConstraint == other.HasReferenceTypeConstraint);
                 Debug.Assert(type.ConstraintTypesNoUseSiteDiagnostics.Length == other.ConstraintTypesNoUseSiteDiagnostics.Length);

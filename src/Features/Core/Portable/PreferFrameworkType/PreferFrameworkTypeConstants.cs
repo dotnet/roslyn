@@ -6,12 +6,11 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.PreferFrameworkType
+namespace Microsoft.CodeAnalysis.PreferFrameworkType;
+
+internal static class PreferFrameworkTypeConstants
 {
-    internal static class PreferFrameworkTypeConstants
-    {
-        public const string PreferFrameworkType = nameof(PreferFrameworkType);
-        public static readonly ImmutableDictionary<string, string> Properties =
-            ImmutableDictionary<string, string>.Empty.Add(PreferFrameworkType, "");
-    }
+    public const string PreferFrameworkType = nameof(PreferFrameworkType);
+    public static readonly ImmutableDictionary<string, string> Properties =
+        ImmutableDictionary<string, string>.Empty.Add(PreferFrameworkType, "");
 }

@@ -5,12 +5,11 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 
-namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
-{
-    internal interface IConverter<TForEachStatement, TStatement>
-    {
-        ForEachInfo<TForEachStatement, TStatement> ForEachInfo { get; }
+namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery;
 
-        void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken);
-    }
+internal interface IConverter<TForEachStatement, TStatement>
+{
+    ForEachInfo<TForEachStatement, TStatement> ForEachInfo { get; }
+
+    void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken);
 }

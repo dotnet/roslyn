@@ -131,8 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """));
         }
 
-        [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         public async Task TestNotAfterJoinPredefinedType()
         {
             await VerifyAbsenceAsync(
@@ -147,8 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         public async Task TestNotAfterJoinType()
         {
             await VerifyAbsenceAsync(
@@ -306,8 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"var q2 = from x $$ ((IEnumerable)src))"));
         }
 
-        [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         public async Task TestNotAfterFromPredefinedType()
         {
             await VerifyAbsenceAsync(
@@ -321,8 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Fact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544158")]
         public async Task TestNotAfterFromType()
         {
             await VerifyAbsenceAsync(
@@ -531,8 +527,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24079")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24079")]
         public async Task TestInAsParameterModifierInConversionOperators()
         {
             await VerifyKeywordAsync("""
@@ -544,8 +539,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/24079")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24079")]
         public async Task TestInAsParameterModifierInBinaryOperators()
         {
             await VerifyKeywordAsync("""
@@ -672,8 +666,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30339")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30339")]
         public async Task TestExtensionMethods_FirstParameter_AfterThisKeyword()
         {
             await VerifyKeywordAsync(

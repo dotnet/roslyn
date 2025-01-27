@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // -1 signifies optional parameter whose default argument is used, or
                     // an empty params array.
                     Debug.Assert(this.AttributeConstructor.Parameters[parameterIndex].IsOptional ||
-                                 this.AttributeConstructor.Parameters[parameterIndex].IsParams);
+                                 this.AttributeConstructor.Parameters[parameterIndex].IsParamsArray);
                     return attributeSyntax.Name;
                 }
                 else

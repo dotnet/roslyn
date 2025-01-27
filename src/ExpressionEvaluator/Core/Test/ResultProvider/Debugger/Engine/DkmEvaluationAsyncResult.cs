@@ -14,8 +14,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 {
     public struct DkmEvaluationAsyncResult
     {
-        private readonly DkmEvaluationResult _result;
-
         public DkmEvaluationAsyncResult(DkmEvaluationResult Result)
             : this()
         {
@@ -24,12 +22,12 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 throw new ArgumentNullException(nameof(Result));
             }
 
-            _result = Result;
+            this.Result = Result;
         }
 
         public int ErrorCode { get { throw new NotImplementedException(); } }
 
-        public readonly DkmEvaluationResult Result { get { return _result; } }
+        public readonly DkmEvaluationResult Result { get; }
 
         internal Exception Exception { get; set; }
 

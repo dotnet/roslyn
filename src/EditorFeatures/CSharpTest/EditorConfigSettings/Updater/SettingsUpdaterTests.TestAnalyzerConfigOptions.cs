@@ -6,29 +6,28 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests
+namespace Microsoft.CodeAnalysis.Editor.UnitTests;
+
+public partial class SettingsUpdaterTests
 {
-    public partial class SettingsUpdaterTests
+    private class TestAnalyzerConfigOptions : AnalyzerConfigOptions
     {
-        private class TestAnalyzerConfigOptions : AnalyzerConfigOptions
+        public static TestAnalyzerConfigOptions Instance = new();
+        private readonly Func<string, string?>? _lookup = null;
+
+        public TestAnalyzerConfigOptions()
         {
-            public static TestAnalyzerConfigOptions Instance = new();
-            private readonly Func<string, string?>? _lookup = null;
+        }
 
-            public TestAnalyzerConfigOptions()
-            {
-            }
+        public TestAnalyzerConfigOptions(Func<string, string?> lookup)
+        {
+            _lookup = lookup;
+        }
 
-            public TestAnalyzerConfigOptions(Func<string, string?> lookup)
-            {
-                _lookup = lookup;
-            }
-
-            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-            {
-                value = _lookup?.Invoke(key);
-                return value != null;
-            }
+        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+        {
+            value = _lookup?.Invoke(key);
+            return value != null;
         }
     }
 }

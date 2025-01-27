@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Host
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportEventListenerAttribute : ExportAttribute
+    internal sealed class ExportEventListenerAttribute : ExportAttribute
     {
         public string Service { get; }
         public IReadOnlyCollection<string> WorkspaceKinds { get; }
@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis.Host
         {
             if (workspaceKinds?.Length == 0)
             {
-                throw new ArgumentException(nameof(workspaceKinds));
+                throw new ArgumentNullException(nameof(workspaceKinds));
             }
 
-            this.Service = service ?? throw new ArgumentException(nameof(service));
+            this.Service = service ?? throw new ArgumentNullException(nameof(service));
             this.WorkspaceKinds = workspaceKinds;
         }
     }

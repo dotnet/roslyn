@@ -9,50 +9,52 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
+
+internal partial class PreviewUpdater
 {
-    internal partial class PreviewUpdater
+    internal class PreviewTagger : ITagger<HighlightTag>
     {
-        internal class PreviewTagger : ITagger<HighlightTag>
+        private readonly ITextBuffer _textBuffer;
+        private Span _span;
+
+        public PreviewTagger(ITextBuffer textBuffer)
         {
-            private readonly ITextBuffer _textBuffer;
-            private Span _span;
+            _textBuffer = textBuffer;
+        }
 
-            public PreviewTagger(ITextBuffer textBuffer)
+        public Span Span
+        {
+            get
             {
-                _textBuffer = textBuffer;
+                return _span;
             }
 
-            public Span Span
+            set
             {
-                get
-                {
-                    return _span;
-                }
+                _span = value;
 
-                set
-                {
-                    _span = value;
-
-                    TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_textBuffer.CurrentSnapshot.GetFullSpan()));
-                }
+                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_textBuffer.CurrentSnapshot.GetFullSpan()));
             }
+        }
 
-            public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
+        public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
-            public IEnumerable<ITagSpan<HighlightTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+        IEnumerable<ITagSpan<HighlightTag>> ITagger<HighlightTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+            => GetTags();
+
+        public IEnumerable<TagSpan<HighlightTag>> GetTags()
+        {
+            var lines = _textBuffer.CurrentSnapshot.Lines.Where(line => line.Extent.OverlapsWith(_span));
+
+            foreach (var line in lines)
             {
-                var lines = _textBuffer.CurrentSnapshot.Lines.Where(line => line.Extent.OverlapsWith(_span));
+                var firstNonWhitespace = line.GetFirstNonWhitespacePosition();
+                var lastNonWhitespace = line.GetLastNonWhitespacePosition();
 
-                foreach (var line in lines)
+                if (firstNonWhitespace.HasValue && lastNonWhitespace.HasValue)
                 {
-                    var firstNonWhitespace = line.GetFirstNonWhitespacePosition();
-                    var lastNonWhitespace = line.GetLastNonWhitespacePosition();
-
-                    if (firstNonWhitespace.HasValue && lastNonWhitespace.HasValue)
-                    {
-                        yield return new TagSpan<HighlightTag>(new SnapshotSpan(_textBuffer.CurrentSnapshot, Span.FromBounds(firstNonWhitespace.Value, lastNonWhitespace.Value + 1)), new HighlightTag());
-                    }
+                    yield return new TagSpan<HighlightTag>(new SnapshotSpan(_textBuffer.CurrentSnapshot, Span.FromBounds(firstNonWhitespace.Value, lastNonWhitespace.Value + 1)), new HighlightTag());
                 }
             }
         }

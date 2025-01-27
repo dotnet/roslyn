@@ -325,9 +325,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
         public SourceText GetText(Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
-            var builder = new StringBuilder(this.Green.FullWidth);
-            this.WriteTo(new StringWriter(builder));
-            return new StringBuilderText(builder, encoding, checksumAlgorithm);
+            var writer = SourceTextWriter.Create(encoding, checksumAlgorithm, this.Green.FullWidth);
+            this.WriteTo(writer);
+            return writer.ToSourceText();
         }
 
         /// <summary>
@@ -441,6 +441,8 @@ namespace Microsoft.CodeAnalysis
         /// Determines whether this node has any descendant preprocessor directives.
         /// </summary>
         public bool ContainsDirectives => this.Green.ContainsDirectives;
+
+        internal bool ContainsAttributes => this.Green.ContainsAttributes;
 
         /// <summary>
         /// Returns true if this node contains any directives (e.g. <c>#if</c>, <c>#nullable</c>, etc.) within it with a matching kind.

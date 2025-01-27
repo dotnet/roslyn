@@ -5,51 +5,50 @@
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+/// <summary>
+/// it holds onto space and wrapping operation need to run between two tokens.
+/// </summary>
+internal readonly struct TokenPairWithOperations
 {
-    /// <summary>
-    /// it holds onto space and wrapping operation need to run between two tokens.
-    /// </summary>
-    internal readonly struct TokenPairWithOperations
+    public TokenStream TokenStream { get; }
+    public AdjustSpacesOperation? SpaceOperation { get; }
+    public AdjustNewLinesOperation? LineOperation { get; }
+
+    public int PairIndex { get; }
+
+    public TokenPairWithOperations(
+        TokenStream tokenStream,
+        int tokenPairIndex,
+        AdjustSpacesOperation? spaceOperations,
+        AdjustNewLinesOperation? lineOperations)
+        : this()
     {
-        public TokenStream TokenStream { get; }
-        public AdjustSpacesOperation? SpaceOperation { get; }
-        public AdjustNewLinesOperation? LineOperation { get; }
+        Contract.ThrowIfNull(tokenStream);
 
-        public int PairIndex { get; }
+        Contract.ThrowIfFalse(0 <= tokenPairIndex && tokenPairIndex < tokenStream.TokenCount - 1);
 
-        public TokenPairWithOperations(
-            TokenStream tokenStream,
-            int tokenPairIndex,
-            AdjustSpacesOperation? spaceOperations,
-            AdjustNewLinesOperation? lineOperations)
-            : this()
+        this.TokenStream = tokenStream;
+        this.PairIndex = tokenPairIndex;
+
+        SpaceOperation = spaceOperations;
+        LineOperation = lineOperations;
+    }
+
+    public SyntaxToken Token1
+    {
+        get
         {
-            Contract.ThrowIfNull(tokenStream);
-
-            Contract.ThrowIfFalse(0 <= tokenPairIndex && tokenPairIndex < tokenStream.TokenCount - 1);
-
-            this.TokenStream = tokenStream;
-            this.PairIndex = tokenPairIndex;
-
-            SpaceOperation = spaceOperations;
-            LineOperation = lineOperations;
+            return this.TokenStream.GetToken(this.PairIndex);
         }
+    }
 
-        public SyntaxToken Token1
+    public SyntaxToken Token2
+    {
+        get
         {
-            get
-            {
-                return this.TokenStream.GetToken(this.PairIndex);
-            }
-        }
-
-        public SyntaxToken Token2
-        {
-            get
-            {
-                return this.TokenStream.GetToken(this.PairIndex + 1);
-            }
+            return this.TokenStream.GetToken(this.PairIndex + 1);
         }
     }
 }

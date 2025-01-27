@@ -4,35 +4,34 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal partial struct SymbolKey
 {
-    internal partial struct SymbolKey
+    private static class TypeParameterOrdinalSymbolKey
     {
-        private static class TypeParameterOrdinalSymbolKey
+        public static void Create(ITypeParameterSymbol symbol, int methodIndex, SymbolKeyWriter visitor)
         {
-            public static void Create(ITypeParameterSymbol symbol, int methodIndex, SymbolKeyWriter visitor)
+            Contract.ThrowIfFalse(symbol.TypeParameterKind == TypeParameterKind.Method);
+            visitor.WriteInteger(methodIndex);
+            visitor.WriteInteger(symbol.Ordinal);
+        }
+
+        public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+        {
+            var methodIndex = reader.ReadInteger();
+            var ordinal = reader.ReadInteger();
+            var method = reader.ResolveMethod(methodIndex);
+
+            var typeParameter = method?.TypeParameters[ordinal];
+            if (typeParameter == null)
             {
-                Contract.ThrowIfFalse(symbol.TypeParameterKind == TypeParameterKind.Method);
-                visitor.WriteInteger(methodIndex);
-                visitor.WriteInteger(symbol.Ordinal);
+                failureReason = $"({nameof(TypeParameterOrdinalSymbolKey)} failed)";
+                return default;
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
-            {
-                var methodIndex = reader.ReadInteger();
-                var ordinal = reader.ReadInteger();
-                var method = reader.ResolveMethod(methodIndex);
-
-                var typeParameter = method?.TypeParameters[ordinal];
-                if (typeParameter == null)
-                {
-                    failureReason = $"({nameof(TypeParameterOrdinalSymbolKey)} failed)";
-                    return default;
-                }
-
-                failureReason = null;
-                return new SymbolKeyResolution(typeParameter);
-            }
+            failureReason = null;
+            return new SymbolKeyResolution(typeParameter);
         }
     }
 }

@@ -67,9 +67,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private const string CommonReferencesNetCoreAppName = "CommonReferencesNetCoreApp";
         private const string CommonReferencesNet6Name = "CommonReferencesNet6";
         private const string CommonReferencesNet7Name = "CommonReferencesNet7";
+        private const string CommonReferencesNet8Name = "CommonReferencesNet8";
+        private const string CommonReferencesNet9Name = "CommonReferencesNet9";
         private const string CommonReferencesNetStandard20Name = "CommonReferencesNetStandard20";
         private const string CommonReferencesMinCorlibName = "CommonReferencesMinCorlib";
-        private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
         private const string FilePathAttributeName = "FilePath";
         private const string FoldersAttributeName = "Folders";
         private const string KindAttributeName = "Kind";
@@ -126,25 +127,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var assemblyName = GetAssemblyName(projectElement, ref projectId);
 
-            string filePath;
+            string projectFilePath;
 
             var projectName = projectElement.Attribute(ProjectNameAttribute)?.Value ?? assemblyName;
 
             if (projectElement.Attribute(FilePathAttributeName) != null)
             {
-                filePath = projectElement.Attribute(FilePathAttributeName).Value;
-                if (string.Compare(filePath, NullFilePath, StringComparison.Ordinal) == 0)
+                projectFilePath = projectElement.Attribute(FilePathAttributeName).Value;
+                if (string.Compare(projectFilePath, NullFilePath, StringComparison.Ordinal) == 0)
                 {
                     // allow explicit null file path
-                    filePath = null;
+                    projectFilePath = null;
                 }
             }
             else
             {
-                filePath = projectName +
+                projectFilePath = projectName +
                     (language == LanguageNames.CSharp ? ".csproj" :
                      language == LanguageNames.VisualBasic ? ".vbproj" : ("." + language));
             }
+
+            var projectOutputDir = AbstractTestHostProject.GetTestOutputDirectory(projectFilePath);
 
             var languageServices = Services.GetLanguageServices(language);
 
@@ -187,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 MarkupTestFile.GetPositionAndSpans(markupCode,
                     out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
-                var documentFilePath = typeof(SingleFileTestGenerator).Assembly.GetName().Name + '\\' + typeof(SingleFileTestGenerator).FullName + '\\' + name;
+                var documentFilePath = Path.Combine(projectOutputDir, "obj", typeof(SingleFileTestGenerator).Assembly.GetName().Name, typeof(SingleFileTestGenerator).FullName, name);
                 var document = CreateDocument(exportProvider, languageServices, code, name, documentFilePath, cursorPosition, spans, generator: testGenerator);
                 documents.Add(document);
 
@@ -224,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 analyzerConfigDocuments.Add(document);
             }
 
-            return CreateProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, additionalDocuments, analyzerConfigDocuments, filePath: filePath, analyzerReferences: analyzers, defaultNamespace: rootNamespace);
+            return CreateProject(languageServices, compilationOptions, parseOptions, assemblyName, projectName, references, documents, additionalDocuments, analyzerConfigDocuments, filePath: projectFilePath, analyzerReferences: analyzers, defaultNamespace: rootNamespace);
         }
 
         private static ParseOptions GetParseOptions(XElement projectElement, string language, HostLanguageServices languageServices)
@@ -295,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var key = split[0];
                 var value = split.Length == 2 ? split[1] : "true";
 
-                return new KeyValuePair<string, string>(key, value);
+                return KeyValuePairUtil.Create(key, value);
             });
 
             return parseOptions.WithFeatures(features);
@@ -415,8 +418,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (compilationOptionsElement != null)
             {
-                globalImports = compilationOptionsElement.Elements(GlobalImportElementName)
-                                                         .Select(x => GlobalImport.Parse(x.Value)).ToList();
+                globalImports = [.. compilationOptionsElement.Elements(GlobalImportElementName).Select(x => GlobalImport.Parse(x.Value))];
                 var rootNamespaceAttribute = compilationOptionsElement.Attribute(RootNamespaceAttributeName);
                 if (rootNamespaceAttribute != null)
                 {
@@ -710,15 +712,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return null;
             }
 
-            var folderContainers = folderAttribute.Value.Split(new[] { PathUtilities.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
-            return new ReadOnlyCollection<string>(folderContainers.ToList());
+            var folderContainers = folderAttribute.Value.Split([PathUtilities.DirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
+            return new ReadOnlyCollection<string>([.. folderContainers]);
         }
 
         /// <summary>
         /// Takes completely valid code, compiles it, and emits it to a MetadataReference without using
         /// the file system
         /// </summary>
-        private MetadataReference CreateMetadataReferenceFromSource(XElement projectElement, XElement referencedSource)
+        protected virtual (MetadataReference reference, ImmutableArray<byte> peImage) CreateMetadataReferenceFromSource(XElement projectElement, XElement referencedSource)
         {
             var compilation = CreateCompilation(referencedSource);
 
@@ -734,17 +736,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 includeXmlDocComments = true;
             }
 
-            var referencesOnDisk = projectElement.Attribute(ReferencesOnDiskAttributeName) is { } onDiskAttribute
-                && ((bool?)onDiskAttribute).GetValueOrDefault();
-
             var image = compilation.EmitToArray();
             var metadataReference = MetadataReference.CreateFromImage(image, new MetadataReferenceProperties(aliases: aliases), includeXmlDocComments ? new DeferredDocumentationProvider(compilation) : null);
-            if (referencesOnDisk)
-            {
-                AssemblyResolver.TestAccessor.AddInMemoryImage(metadataReference, "unknown", image);
-            }
-
-            return metadataReference;
+            return (metadataReference, image);
         }
 
         private Compilation CreateCompilation(XElement referencedSource)
@@ -811,7 +805,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             foreach (var metadataReferenceFromSource in element.Elements(MetadataReferenceFromSourceElementName))
             {
-                references.Add(CreateMetadataReferenceFromSource(element, metadataReferenceFromSource));
+                references.Add(CreateMetadataReferenceFromSource(element, metadataReferenceFromSource).reference);
             }
 
             return references;
@@ -841,7 +835,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)net45).HasValue &&
                 ((bool?)net45).Value)
             {
-                references = new List<MetadataReference> { TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef_v4_0_30319_17929, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.SystemRuntimeSerializationRef_v4_0_30319_17929 };
+                references = [TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef_v4_0_30319_17929, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.SystemRuntimeSerializationRef_v4_0_30319_17929];
                 if (GetLanguage(element) == LanguageNames.VisualBasic)
                 {
                     references.Add(TestBase.MsvbRef);
@@ -855,7 +849,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)commonReferencesAttribute).HasValue &&
                 ((bool?)commonReferencesAttribute).Value)
             {
-                references = new List<MetadataReference> { TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef };
+                references = [TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef];
                 if (GetLanguage(element) == LanguageNames.VisualBasic)
                 {
                     references.Add(TestBase.MsvbRef_v4_0_30319_17929);
@@ -869,7 +863,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)commonReferencesWithoutValueTupleAttribute).HasValue &&
                 ((bool?)commonReferencesWithoutValueTupleAttribute).Value)
             {
-                references = new List<MetadataReference> { TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46 };
+                references = [TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46];
             }
 
             var winRT = element.Attribute(CommonReferencesWinRTAttributeName);
@@ -901,7 +895,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)netcore30).HasValue &&
                 ((bool?)netcore30).Value)
             {
-                references = NetCoreApp.References.ToList();
+                references = [.. NetCoreApp.References];
             }
 
             var netstandard20 = element.Attribute(CommonReferencesNetStandard20Name);
@@ -909,7 +903,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)netstandard20).HasValue &&
                 ((bool?)netstandard20).Value)
             {
-                references = TargetFrameworkUtil.NetStandard20References.ToList();
+                references = [.. TargetFrameworkUtil.NetStandard20References];
             }
 
             var net6 = element.Attribute(CommonReferencesNet6Name);
@@ -917,7 +911,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)net6).HasValue &&
                 ((bool?)net6).Value)
             {
-                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net60).ToList();
+                references = [.. TargetFrameworkUtil.GetReferences(TargetFramework.Net60)];
             }
 
             var net7 = element.Attribute(CommonReferencesNet7Name);
@@ -925,7 +919,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)net7).HasValue &&
                 ((bool?)net7).Value)
             {
-                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net70).ToList();
+                references = [.. TargetFrameworkUtil.GetReferences(TargetFramework.Net70)];
+            }
+
+            var net8 = element.Attribute(CommonReferencesNet8Name);
+            if (net8 != null &&
+                ((bool?)net8).HasValue &&
+                ((bool?)net8).Value)
+            {
+                references = [.. TargetFrameworkUtil.GetReferences(TargetFramework.Net80)];
+            }
+
+            var net9 = element.Attribute(CommonReferencesNet9Name);
+            if (net9 != null &&
+                ((bool?)net9).HasValue &&
+                ((bool?)net9).Value)
+            {
+                references = [.. TargetFrameworkUtil.GetReferences(TargetFramework.Net90)];
             }
 
             var mincorlib = element.Attribute(CommonReferencesMinCorlibName);
@@ -933,7 +943,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ((bool?)mincorlib).HasValue &&
                 ((bool?)mincorlib).Value)
             {
-                references = new List<MetadataReference> { TestBase.MinCorlibRef };
+                references = [TestBase.MinCorlibRef];
             }
 
             return references;

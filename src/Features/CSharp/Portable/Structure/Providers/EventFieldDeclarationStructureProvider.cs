@@ -4,21 +4,20 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 
-namespace Microsoft.CodeAnalysis.CSharp.Structure
+namespace Microsoft.CodeAnalysis.CSharp.Structure;
+
+internal class EventFieldDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<EventFieldDeclarationSyntax>
 {
-    internal class EventFieldDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<EventFieldDeclarationSyntax>
+    protected override void CollectBlockSpans(
+        SyntaxToken previousToken,
+        EventFieldDeclarationSyntax eventFieldDeclaration,
+        ArrayBuilder<BlockSpan> spans,
+        BlockStructureOptions options,
+        CancellationToken cancellationToken)
     {
-        protected override void CollectBlockSpans(
-            SyntaxToken previousToken,
-            EventFieldDeclarationSyntax eventFieldDeclaration,
-            ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptions options,
-            CancellationToken cancellationToken)
-        {
-            CSharpStructureHelpers.CollectCommentBlockSpans(eventFieldDeclaration, ref spans, options);
-        }
+        CSharpStructureHelpers.CollectCommentBlockSpans(eventFieldDeclaration, spans, options);
     }
 }

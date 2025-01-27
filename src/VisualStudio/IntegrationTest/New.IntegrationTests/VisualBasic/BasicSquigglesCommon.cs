@@ -20,7 +20,7 @@ public abstract class BasicSquigglesCommon : AbstractEditorTest
 
     protected override string LanguageName => LanguageNames.VisualBasic;
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn-project-system/issues/1825")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72428"), WorkItem("https://github.com/dotnet/roslyn-project-system/issues/1825")]
     public async Task VerifySyntaxErrorSquiggles()
     {
         await TestServices.Editor.SetTextAsync("""
@@ -32,7 +32,7 @@ public abstract class BasicSquigglesCommon : AbstractEditorTest
             """, HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.ErrorTagsAsync(
-            [("syntax error", new TextSpan(50, 1), "\r", "BC30201: Expression expected.")],
+            [("syntax error", new TextSpan(48, 0), "", "BC30201: Expression expected.")],
             HangMitigatingCancellationToken);
     }
 

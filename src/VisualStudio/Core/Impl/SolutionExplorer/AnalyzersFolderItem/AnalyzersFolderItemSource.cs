@@ -4,72 +4,30 @@
 
 using System.Collections;
 using System.Collections.ObjectModel;
-using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+internal sealed class AnalyzersFolderItemSource(
+    IThreadingContext threadingContext,
+    Workspace workspace,
+    ProjectId projectId,
+    IVsHierarchyItem projectHierarchyItem,
+    IAnalyzersCommandHandler commandHandler)
+    : IAttachedCollectionSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
+    private readonly ObservableCollection<AnalyzersFolderItem> _folderItems = [new AnalyzersFolderItem(
+        threadingContext,
+        workspace,
+        projectId,
+        projectHierarchyItem,
+        commandHandler.AnalyzerFolderContextMenuController)];
 
-    internal class AnalyzersFolderItemSource : IAttachedCollectionSource
-    {
-        private readonly IVsHierarchyItem _projectHierarchyItem;
-        private readonly Workspace _workspace;
-        private readonly ProjectId _projectId;
-        private readonly ObservableCollection<AnalyzersFolderItem> _folderItems;
-        private readonly IAnalyzersCommandHandler _commandHandler;
+    public bool HasItems => true;
 
-        public AnalyzersFolderItemSource(Workspace workspace, ProjectId projectId, IVsHierarchyItem projectHierarchyItem, IAnalyzersCommandHandler commandHandler)
-        {
-            _workspace = workspace;
-            _projectId = projectId;
-            _projectHierarchyItem = projectHierarchyItem;
-            _commandHandler = commandHandler;
+    public IEnumerable Items => _folderItems;
 
-            _folderItems = new ObservableCollection<AnalyzersFolderItem>();
-
-            Update();
-        }
-
-        public bool HasItems
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        public IEnumerable Items
-        {
-            get
-            {
-                return _folderItems;
-            }
-        }
-
-        public object SourceItem
-        {
-            get
-            {
-                return _projectHierarchyItem;
-            }
-        }
-
-        internal void Update()
-        {
-            // Don't create the item a 2nd time.
-            if (_folderItems.Any())
-            {
-                return;
-            }
-
-            _folderItems.Add(
-                new AnalyzersFolderItem(
-                    _workspace,
-                    _projectId,
-                    _projectHierarchyItem,
-                    _commandHandler.AnalyzerFolderContextMenuController));
-        }
-    }
+    public object SourceItem => projectHierarchyItem;
 }

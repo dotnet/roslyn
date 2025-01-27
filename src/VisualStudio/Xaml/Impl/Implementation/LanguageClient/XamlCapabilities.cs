@@ -5,7 +5,6 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Roslyn.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler;
 using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
@@ -21,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             {
                 ResolveProvider = true,
                 TriggerCharacters = ["<", " ", ":", ".", "=", "\"", "'", "{", ",", "("],
-                AllCommitCharacters = RoslynCompletion.CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray()
+                AllCommitCharacters = [.. RoslynCompletion.CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString())]
             },
             HoverProvider = true,
             FoldingRangeProvider = new FoldingRangeOptions { },

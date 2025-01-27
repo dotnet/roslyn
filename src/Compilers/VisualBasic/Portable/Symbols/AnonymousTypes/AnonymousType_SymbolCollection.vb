@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ReportErrorOnSymbol(System_String, diagnostics, hasErrors)
 
                 ReportErrorOnSpecialMember(System_Object__ToString, SpecialMember.System_Object__ToString, diagnostics, hasErrors, vbEmbedRuntime)
-                ReportErrorOnWellKnownMember(System_String__Format_IFormatProvider, WellKnownMember.System_String__Format_IFormatProvider, diagnostics, hasErrors, vbEmbedRuntime)
+                ReportErrorOnSpecialMember(System_String__Format_IFormatProvider, SpecialMember.System_String__Format_IFormatProvider, diagnostics, hasErrors, vbEmbedRuntime)
 
                 ' Only symbols used if there are Key fields
                 If hasKeys Then
@@ -67,19 +67,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If diagnostics.Add(useSiteInfo, NoLocation.Singleton) Then
                     hasError = True
                 End If
-            End If
-        End Sub
-
-        Private Shared Sub ReportErrorOnWellKnownMember(symbol As Symbol, member As WellKnownMember, diagnostics As BindingDiagnosticBag, ByRef hasError As Boolean, embedVBCore As Boolean)
-            If symbol Is Nothing Then
-                Dim memberDescriptor As MemberDescriptor = WellKnownMembers.GetDescriptor(member)
-                Dim diagInfo = GetDiagnosticForMissingRuntimeHelper(memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name, embedVBCore)
-                diagnostics.Add(diagInfo, NoLocation.Singleton)
-                hasError = True
-
-            Else
-                ReportErrorOnSymbol(symbol, diagnostics, hasError)
-                ReportErrorOnSymbol(symbol.ContainingType, diagnostics, hasError)
             End If
         End Sub
 
@@ -181,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property System_String__Format_IFormatProvider As MethodSymbol
             Get
-                Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Format_IFormatProvider), MethodSymbol)
+                Return DirectCast(Compilation.GetSpecialTypeMember(SpecialMember.System_String__Format_IFormatProvider), MethodSymbol)
             End Get
         End Property
 

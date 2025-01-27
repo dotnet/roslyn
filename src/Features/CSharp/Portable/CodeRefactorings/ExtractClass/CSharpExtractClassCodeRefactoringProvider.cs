@@ -13,36 +13,35 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractClass
+namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractClass;
+
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ExtractClass), Shared]
+[ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ExtractInterface)]
+[ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.UseExpressionBody)]
+internal class CSharpExtractClassCodeRefactoringProvider : AbstractExtractClassRefactoringProvider
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ExtractClass), Shared]
-    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ExtractInterface)]
-    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.UseExpressionBody)]
-    internal class CSharpExtractClassCodeRefactoringProvider : AbstractExtractClassRefactoringProvider
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpExtractClassCodeRefactoringProvider()
+        : base(null)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpExtractClassCodeRefactoringProvider()
-            : base(null)
-        {
-        }
-
-        /// <summary>
-        /// Test purpose only.
-        /// </summary>
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-        internal CSharpExtractClassCodeRefactoringProvider(IExtractClassOptionsService optionsService)
-            : base(optionsService)
-        {
-        }
-
-        protected override async Task<SyntaxNode?> GetSelectedClassDeclarationAsync(CodeRefactoringContext context)
-        {
-            var relaventNodes = await context.GetRelevantNodesAsync<ClassDeclarationSyntax>().ConfigureAwait(false);
-            return relaventNodes.FirstOrDefault();
-        }
-
-        protected override Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context)
-            => NodeSelectionHelpers.GetSelectedDeclarationsOrVariablesAsync(context);
     }
+
+    /// <summary>
+    /// Test purpose only.
+    /// </summary>
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
+    internal CSharpExtractClassCodeRefactoringProvider(IExtractClassOptionsService optionsService)
+        : base(optionsService)
+    {
+    }
+
+    protected override async Task<SyntaxNode?> GetSelectedClassDeclarationAsync(CodeRefactoringContext context)
+    {
+        var relaventNodes = await context.GetRelevantNodesAsync<ClassDeclarationSyntax>().ConfigureAwait(false);
+        return relaventNodes.FirstOrDefault();
+    }
+
+    protected override Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context)
+        => NodeSelectionHelpers.GetSelectedDeclarationsOrVariablesAsync(context);
 }

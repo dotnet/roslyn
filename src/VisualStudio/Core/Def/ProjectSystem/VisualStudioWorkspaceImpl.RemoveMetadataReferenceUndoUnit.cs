@@ -6,48 +6,46 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.OLE.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+
+internal partial class VisualStudioWorkspaceImpl
 {
-    internal partial class VisualStudioWorkspaceImpl
+    private class RemoveMetadataReferenceUndoUnit : AbstractAddRemoveUndoUnit
     {
-        private class RemoveMetadataReferenceUndoUnit : AbstractAddRemoveUndoUnit
+        private readonly string _filePath;
+
+        public RemoveMetadataReferenceUndoUnit(
+            VisualStudioWorkspaceImpl workspace,
+            ProjectId fromProjectId,
+            string filePath)
+            : base(workspace, fromProjectId)
         {
-            private readonly string _filePath;
+            _filePath = filePath;
+        }
 
-            public RemoveMetadataReferenceUndoUnit(
-                VisualStudioWorkspaceImpl workspace,
-                ProjectId fromProjectId,
-                string filePath)
-                : base(workspace, fromProjectId)
+        public override void Do(IOleUndoManager pUndoManager)
+        {
+            var currentSolution = Workspace.CurrentSolution;
+            var fromProject = currentSolution.GetProject(FromProjectId);
+            if (fromProject != null)
             {
-                _filePath = filePath;
-            }
+                var reference = fromProject.MetadataReferences.OfType<PortableExecutableReference>()
+                                           .FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.FilePath!, _filePath));
 
-            public override void Do(IOleUndoManager pUndoManager)
-            {
-                var currentSolution = Workspace.CurrentSolution;
-                var fromProject = currentSolution.GetProject(FromProjectId);
-                if (fromProject != null)
+                if (reference != null)
                 {
-                    var reference = fromProject.MetadataReferences.OfType<PortableExecutableReference>()
-                                               .FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.FilePath!, _filePath));
-
-                    if (reference != null)
-                    {
-                        var updatedProject = fromProject.RemoveMetadataReference(reference);
-                        Workspace.TryApplyChanges(updatedProject.Solution);
-                    }
+                    var updatedProject = fromProject.RemoveMetadataReference(reference);
+                    Workspace.TryApplyChanges(updatedProject.Solution);
                 }
             }
+        }
 
-            public override void GetDescription(out string pBstr)
-            {
-                pBstr = string.Format(FeaturesResources.Remove_reference_to_0,
-                    Path.GetFileName(_filePath));
-            }
+        public override void GetDescription(out string pBstr)
+        {
+            pBstr = string.Format(FeaturesResources.Remove_reference_to_0,
+                Path.GetFileName(_filePath));
         }
     }
 }

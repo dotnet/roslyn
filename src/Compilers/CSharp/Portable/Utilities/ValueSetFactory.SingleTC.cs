@@ -11,8 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private struct SingleTC : FloatingTC<float>, INumericTC<float>
+        private class SingleTC : FloatingTC<float>, INumericTC<float>
         {
+            public static readonly SingleTC Instance = new SingleTC();
+
             float INumericTC<float>.MinValue => float.NegativeInfinity;
 
             float INumericTC<float>.MaxValue => float.PositiveInfinity;

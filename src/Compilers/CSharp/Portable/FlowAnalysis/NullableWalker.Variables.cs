@@ -396,7 +396,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal Variables? GetVariablesForMethodScope(MethodSymbol method)
             {
-                method = method.PartialImplementationPart ?? method;
                 var variables = this;
                 while (true)
                 {

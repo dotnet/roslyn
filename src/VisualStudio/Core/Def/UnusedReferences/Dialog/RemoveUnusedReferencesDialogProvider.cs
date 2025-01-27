@@ -6,20 +6,19 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
+
+[Export(typeof(RemoveUnusedReferencesDialogProvider)), Shared]
+internal class RemoveUnusedReferencesDialogProvider
 {
-    [Export(typeof(RemoveUnusedReferencesDialogProvider)), Shared]
-    internal class RemoveUnusedReferencesDialogProvider
+    private readonly UnusedReferencesTableProvider _tableProvider;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RemoveUnusedReferencesDialogProvider(UnusedReferencesTableProvider tableProvider)
     {
-        private readonly UnusedReferencesTableProvider _tableProvider;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoveUnusedReferencesDialogProvider(UnusedReferencesTableProvider tableProvider)
-        {
-            _tableProvider = tableProvider;
-        }
-
-        public RemoveUnusedReferencesDialog CreateDialog() => new(_tableProvider);
+        _tableProvider = tableProvider;
     }
+
+    public RemoveUnusedReferencesDialog CreateDialog() => new(_tableProvider);
 }

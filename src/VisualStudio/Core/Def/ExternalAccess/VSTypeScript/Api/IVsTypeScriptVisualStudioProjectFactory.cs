@@ -7,13 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
-{
-    internal interface IVsTypeScriptVisualStudioProjectFactory
-    {
-        [Obsolete("Use CreateAndAddToWorkspaceAsync instead")]
-        VSTypeScriptVisualStudioProjectWrapper CreateAndAddToWorkspace(string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid);
+namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 
-        ValueTask<VSTypeScriptVisualStudioProjectWrapper> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid, CancellationToken cancellationToken);
-    }
+internal interface IVsTypeScriptVisualStudioProjectFactory
+{
+    [Obsolete("Use CreateAndAddToWorkspaceAsync instead")]
+    VSTypeScriptVisualStudioProjectWrapper CreateAndAddToWorkspace(string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid);
+
+    ValueTask<VSTypeScriptVisualStudioProjectWrapper> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid, CancellationToken cancellationToken);
 }

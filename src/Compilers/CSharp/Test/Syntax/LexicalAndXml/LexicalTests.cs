@@ -441,6 +441,150 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentToken_RazorRecovery()
+        {
+            var text = "@: More text";
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                TestBase.Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral).WithLocation(1, 1));
+            Assert.Empty(token.LeadingTrivia);
+            Assert.Empty(token.TrailingTrivia);
+        }
+
+        [Fact]
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentTokenEndOfLine_RazorRecovery()
+        {
+            var text = """
+                Identifier @: More text
+                // Regular comment
+                SecondIdentifier
+                """;
+            var tokens = Lex(text).ToList();
+            var token = tokens[0];
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Empty(token.Errors());
+
+            token = tokens[1];
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                TestBase.Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral).WithLocation(1, 1));
+            Assert.Empty(token.LeadingTrivia);
+            Assert.Single(token.TrailingTrivia);
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, token.TrailingTrivia[0].Kind());
+            Assert.Equal("@: More text", token.Text);
+
+            token = tokens[2];
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal("""
+                // Regular comment
+                SecondIdentifier
+                """, token.ToFullString());
+        }
+
+        [Fact]
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentToken_TrailingMultiLine_RazorRecovery()
+        {
+            var text = """
+                @: /*
+                Identifier
+                */
+                """;
+
+            var tokens = Lex(text).ToList();
+            var token = tokens[0];
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
+            Assert.Equal("@: /*", token.ToString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                TestBase.Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral).WithLocation(1, 1));
+            Assert.Empty(token.LeadingTrivia);
+            Assert.Single(token.TrailingTrivia);
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, token.TrailingTrivia[0].Kind());
+
+            token = tokens[1];
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal("Identifier", token.Text);
+        }
+
+        [Fact]
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentToken_PreprocessorDisabled_RazorRecovery()
+        {
+            var text = """
+                #if false
+                @:
+                #endif
+                """;
+
+            var token = LexToken(text);
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify();
+            var trivia = token.GetLeadingTrivia().ToArray();
+            Assert.Equal(3, trivia.Length);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, trivia[0].Kind());
+            Assert.Equal(SyntaxKind.DisabledTextTrivia, trivia[1].Kind());
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, trivia[2].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Razor")]
+        public void TestAtColonTreatedAsBadRazorContentToken_PreprocessorEnabled_RazorRecovery()
+        {
+            var text = """
+                #if true
+                @:
+                #endif
+                """;
+
+            var tokens = Lex(text).ToArray();
+            Assert.Equal(2, tokens.Length);
+            var token = tokens[0];
+
+            Assert.NotEqual(default, token);
+            Assert.Equal(SyntaxKind.RazorContentToken, token.Kind());
+            Assert.Equal("""
+                #if true
+                @:
+
+                """, token.ToFullString());
+            var errors = token.Errors();
+            errors.Verify(
+                // error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                TestBase.Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral).WithLocation(1, 1));
+            Assert.Single(token.GetLeadingTrivia());
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, token.GetLeadingTrivia()[0].Kind());
+
+            token = tokens[1];
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal("#endif", token.ToFullString());
+            Assert.Single(token.GetLeadingTrivia());
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, token.GetLeadingTrivia()[0].Kind());
+            Assert.Empty(token.GetTrailingTrivia());
+        }
+
+        [Fact]
         [Trait("Feature", "Comments")]
         public void TestCommentWithTextWindowSentinel()
         {
@@ -1012,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            AssertEx.EqualOrDiff("error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            AssertEx.EqualOrDiff("error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
             Assert.Equal(value, token.ValueText);
         }
 
@@ -1024,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "\e"
                 """;
             var value = "\u001b";
-            var token = LexToken(text, TestOptions.RegularNext);
+            var token = LexToken(text, TestOptions.Regular13);
 
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
@@ -1193,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            AssertEx.EqualOrDiff("error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            AssertEx.EqualOrDiff("error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
             Assert.Equal(value, token.ValueText);
         }
 
@@ -1203,7 +1347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\u001b";
             var text = "'\\e'";
-            var token = LexToken(text, TestOptions.RegularNext);
+            var token = LexToken(text, TestOptions.Regular13);
 
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());

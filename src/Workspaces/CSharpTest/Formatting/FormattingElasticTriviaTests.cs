@@ -16,6 +16,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
+    using static CSharpSyntaxTokens;
+    using static SyntaxFactory;
+
     [Trait(Traits.Feature, Traits.Features.Formatting)]
     public class FormattingEngineElasticTriviaTests : CSharpFormattingTestBase
     {
@@ -40,40 +43,40 @@ class A
 class B
 {
 }";
-            var compilation = SyntaxFactory.CompilationUnit(
-                externs: [SyntaxFactory.ExternAliasDirective("A1")],
+            var compilation = CompilationUnit(
+                externs: [ExternAliasDirective("A1")],
                 usings: default,
-                attributeLists: [SyntaxFactory.AttributeList(
-                                    SyntaxFactory.Token(
-                                        [SyntaxFactory.Trivia(
-                                            SyntaxFactory.LineDirectiveTrivia(
-                                                SyntaxFactory.Literal("99", 99), false))],
+                attributeLists: [AttributeList(
+                                    Token(
+                                        [Trivia(
+                                            LineDirectiveTrivia(
+                                                Literal("99", 99), false))],
                                         SyntaxKind.OpenBracketToken,
-                                        SyntaxFactory.TriviaList()),
-                                    SyntaxFactory.AttributeTargetSpecifier(
-                                        SyntaxFactory.Identifier("assembly")),
-                                    [SyntaxFactory.Attribute(
-                                        SyntaxFactory.ParseName("My"))],
-                                    SyntaxFactory.Token(
+                                        TriviaList()),
+                                    AttributeTargetSpecifier(
+                                        Identifier("assembly")),
+                                    [Attribute(
+                                        ParseName("My"))],
+                                    Token(
                                         SyntaxKind.CloseBracketToken))],
                 members:
                 [
-                    SyntaxFactory.ClassDeclaration(
+                    ClassDeclaration(
                         default,
                         modifiers: [],
-                        SyntaxFactory.Identifier("My"),
+                        Identifier("My"),
                         null,
-                        SyntaxFactory.BaseList([SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("System.Attribute"))]),
+                        BaseList([SimpleBaseType(ParseTypeName("System.Attribute"))]),
                         default,
                         default),
-                    SyntaxFactory.ClassDeclaration("A"),
-                    SyntaxFactory.ClassDeclaration(
+                    ClassDeclaration("A"),
+                    ClassDeclaration(
                         attributeLists: [
-                            SyntaxFactory.AttributeList([
-                                    SyntaxFactory.Attribute(
-                                        SyntaxFactory.ParseName("My"))])],
+                            AttributeList([
+                                    Attribute(
+                                        ParseName("My"))])],
                         modifiers: [],
-                        identifier: SyntaxFactory.Identifier("B"),
+                        identifier: Identifier("B"),
                         typeParameterList: null,
                         baseList: null,
                         constraintClauses: default,
@@ -104,7 +107,7 @@ public class SomeAttribute : System.Attribute { }
 
             var workspace = new AdhocWorkspace();
             var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
-            var root = SyntaxFactory.ParseCompilationUnit(text);
+            var root = ParseCompilationUnit(text);
             var decl = generator.GetDeclaration(root.DescendantNodes().OfType<VariableDeclaratorSyntax>().First(vd => vd.Identifier.Text == "f2"));
             var newDecl = generator.AddAttributes(decl, generator.Attribute("Some")).WithAdditionalAnnotations(Formatter.Annotation);
             var newRoot = root.ReplaceNode(decl, newDecl);
@@ -142,34 +145,34 @@ public class SomeAttribute : System.Attribute { }
 
     string MyProperty => ""42"";
 }";
-            var property = SyntaxFactory.PropertyDeclaration(
+            var property = PropertyDeclaration(
                 attributeLists: default,
                 modifiers: [],
-                type: SyntaxFactory.PredefinedType(
-                    SyntaxFactory.Token(
+                type: PredefinedType(
+                    Token(
                         SyntaxKind.StringKeyword)),
                 explicitInterfaceSpecifier: null,
-                identifier: SyntaxFactory.Identifier("MyProperty"),
+                identifier: Identifier("MyProperty"),
                 accessorList: null,
                 expressionBody:
-                    SyntaxFactory.ArrowExpressionClause(
-                        SyntaxFactory.LiteralExpression(
+                    ArrowExpressionClause(
+                        LiteralExpression(
                             SyntaxKind.StringLiteralExpression,
-                            SyntaxFactory.Literal("42"))),
+                            Literal("42"))),
                 initializer: null,
-                semicolonToken: SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                semicolonToken: SemicolonToken);
 
-            var compilation = SyntaxFactory.CompilationUnit(
+            var compilation = CompilationUnit(
                 externs: default,
                 usings: default,
                 attributeLists: default,
-                members: SyntaxFactory.List(
+                members: List(
                 new MemberDeclarationSyntax[]
                 {
-                    SyntaxFactory.ClassDeclaration(
+                    ClassDeclaration(
                         attributeLists: default,
                         modifiers: [],
-                        identifier: SyntaxFactory.Identifier("PropertyTest"),
+                        identifier: Identifier("PropertyTest"),
                         typeParameterList: null,
                         baseList: null,
                         constraintClauses: default,

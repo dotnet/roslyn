@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.FindSymbols.Finders
+namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
+
+internal sealed class LocalSymbolReferenceFinder : AbstractMemberScopedReferenceFinder<ILocalSymbol>
 {
-    internal sealed class LocalSymbolReferenceFinder : AbstractMemberScopedReferenceFinder<ILocalSymbol>
-    {
-        protected override bool TokensMatch(FindReferencesDocumentState state, SyntaxToken token, string name)
-            => IdentifiersMatch(state.SyntaxFacts, name, token);
-    }
+    protected override bool TokensMatch(FindReferencesDocumentState state, SyntaxToken token, string name)
+        => IdentifiersMatch(state.SyntaxFacts, name, token);
 }

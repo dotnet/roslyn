@@ -31,7 +31,7 @@ internal abstract class AbstractWrappingCodeRefactoringProvider : CodeRefactorin
         _wrappers = wrappers;
     }
 
-    protected abstract SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options, CodeActionOptions ideOptions);
+    protected abstract SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options);
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -43,8 +43,8 @@ internal abstract class AbstractWrappingCodeRefactoringProvider : CodeRefactorin
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var token = root.FindToken(position);
 
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var options = GetWrappingOptions(configOptions, context.Options.GetOptions(document.Project.Services));
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var options = GetWrappingOptions(configOptions);
 
         foreach (var node in token.GetRequiredParent().AncestorsAndSelf())
         {
@@ -62,7 +62,7 @@ internal abstract class AbstractWrappingCodeRefactoringProvider : CodeRefactorin
                 if (computer == null)
                     continue;
 
-                var actions = await computer.GetTopLevelCodeActionsAsync().ConfigureAwait(false);
+                var actions = await computer.GetTopLevelCodeActionsAsync(cancellationToken).ConfigureAwait(false);
                 if (actions.IsDefaultOrEmpty)
                     continue;
 

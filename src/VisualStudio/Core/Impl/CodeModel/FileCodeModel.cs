@@ -22,7 +22,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collectio
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
@@ -98,9 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             get; set;
         }
-
-        internal IGlobalOptionService GlobalOptions
-            => State.ProjectCodeModelFactory.GlobalOptions;
 
         /// <summary>
         /// Internally, we store the DocumentId for the document that the FileCodeModel represents. If the underlying file
@@ -348,7 +344,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var formatted = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    var formattingOptions = await result.GetSyntaxFormattingOptionsAsync(GlobalOptions, CancellationToken.None).ConfigureAwait(false);
+                    var formattingOptions = await result.GetSyntaxFormattingOptionsAsync(CancellationToken.None).ConfigureAwait(false);
                     var formatted = await Formatter.FormatAsync(result, Formatter.Annotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
                     formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
 
@@ -448,7 +444,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             => State.ThreadingContext.JoinableTaskFactory.Run(() =>
             {
                 return GetDocument()
-                    .GetCodeGenerationOptionsAsync(GlobalOptions, CancellationToken.None).AsTask();
+                    .GetCodeGenerationOptionsAsync(CancellationToken.None).AsTask();
             });
 
         internal Compilation GetCompilation()
@@ -666,7 +662,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 if (_editCount == 1)
                 {
                     _batchMode = true;
-                    _batchElements = new List<AbstractKeyedCodeElement>();
+                    _batchElements = [];
                 }
 
                 return VSConstants.S_OK;
@@ -694,7 +690,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                             var node = element.LookupNode();
                             if (node != null)
                             {
-                                elementAndPaths ??= new List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>>();
+                                elementAndPaths ??= [];
                                 elementAndPaths.Add(ValueTuple.Create(element, new SyntaxPath(node)));
                             }
                         }
@@ -705,7 +701,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         // perform expensive operations at once
                         var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
                         {
-                            var simplifierOptions = await _batchDocument.GetSimplifierOptionsAsync(GlobalOptions, CancellationToken.None).ConfigureAwait(false);
+                            var simplifierOptions = await _batchDocument.GetSimplifierOptionsAsync(CancellationToken.None).ConfigureAwait(false);
                             return await Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, simplifierOptions, CancellationToken.None).ConfigureAwait(false);
                         });
 

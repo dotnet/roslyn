@@ -9,13 +9,12 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 
-namespace Microsoft.CodeAnalysis.Editor.Commanding.Commands
+namespace Microsoft.CodeAnalysis.Editor.Commanding.Commands;
+
+/// <summary>
+/// Arguments for Go To Implementation.
+/// </summary>
+[ExcludeFromCodeCoverage]
+internal sealed class GoToImplementationCommandArgs(ITextView textView, ITextBuffer subjectBuffer) : EditorCommandArgs(textView, subjectBuffer)
 {
-    /// <summary>
-    /// Arguments for Go To Implementation.
-    /// </summary>
-    [ExcludeFromCodeCoverage]
-    internal sealed class GoToImplementationCommandArgs(ITextView textView, ITextBuffer subjectBuffer) : EditorCommandArgs(textView, subjectBuffer)
-    {
-    }
 }

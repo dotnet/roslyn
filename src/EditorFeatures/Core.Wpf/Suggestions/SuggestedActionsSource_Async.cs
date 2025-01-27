@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ImmutableArray<ISuggestedActionSetCollector> collectors,
                 CancellationToken cancellationToken)
             {
-                AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
 
                 // We should only be called with the orderings we exported in order from highest pri to lowest pri.
                 Contract.ThrowIfFalse(Orderings.SequenceEqual(collectors.SelectAsArray(c => c.Priority)));
@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ArrayBuilder<ISuggestedActionSetCollector> completedCollectors,
                 CancellationToken cancellationToken)
             {
-                AssertIsForeground();
-                using var state = SourceState.TryAddReference();
+                _threadingContext.ThrowIfNotOnUIThread();
+                using var state = _state.TryAddReference();
                 if (state is null)
                     return;
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // especially important as we are sending disparate requests for diagnostics, and we do not want the
                     // individual diagnostic requests to redo all the work to run source generators, create skeletons,
                     // etc.
-                    using var _1 = RemoteKeepAliveSession.Create(document.Project.Solution, _listener);
+                    using var _1 = await RemoteKeepAliveSession.CreateAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
 
                     // Keep track of how many actions we've put in the lightbulb at each priority level.  We do
                     // this as each priority level will both sort and inline actions.  However, we don't want to
@@ -111,22 +111,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         // diagnostic engine.  We'll run them once we get around to the low-priority bucket.  We want to
                         // keep track of this *across* calls to each priority. So we create this set outside of the loop and
                         // then pass it continuously from one priority group to the next.
-                        var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
+                        var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
 
-                        using var _2 = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Summary, $"Total");
+                        using var _2 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total");
 
                         // Collectors are in priority order.  So just walk them from highest to lowest.
                         foreach (var collector in collectors)
                         {
                             if (TryGetPriority(collector.Priority) is CodeActionRequestPriority priority)
                             {
-                                using var _3 = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Summary, $"Total.Pri{(int)priority}");
+                                using var _3 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{(int)priority}");
 
                                 var allSets = GetCodeFixesAndRefactoringsAsync(
                                     state, requestedActionCategories, document,
                                     range, selection,
-                                    addOperationScope: _ => null,
-                                    new SuggestedActionPriorityProvider(priority, lowPriorityAnalyzers),
+                                    new SuggestedActionPriorityProvider(priority, lowPriorityAnalyzerData),
                                     currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
                                 await foreach (var set in allSets)
@@ -202,7 +201,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 TextDocument document,
                 SnapshotSpan range,
                 TextSpan? selection,
-                Func<string, IDisposable?> addOperationScope,
                 ICodeActionRequestPriorityProvider priorityProvider,
                 int currentActionCount,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -213,8 +211,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var workspace = document.Project.Solution.Workspace;
                 var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
 
-                var options = GlobalOptions.GetCodeActionOptionsProvider();
-
                 var fixesTask = GetCodeFixesAsync();
                 var refactoringsTask = GetRefactoringsAsync();
 
@@ -224,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var refactorings = await refactoringsTask.ConfigureAwait(false);
 
                 var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection, currentActionCount);
-                var convertedSets = filteredSets.Select(s => ConvertToSuggestedActionSet(s)).WhereNotNull().ToImmutableArray();
+                var convertedSets = filteredSets.Select(s => ConvertToSuggestedActionSet(s, document)).WhereNotNull().ToImmutableArray();
 
                 foreach (var set in convertedSets)
                     yield return set;
@@ -233,54 +229,54 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync()
                 {
-                    using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Summary, $"Total.Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetCodeFixesAsync)}");
+                    using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetCodeFixesAsync)}");
 
                     if (owner._codeFixService == null ||
                         !supportsFeatureService.SupportsCodeFixes(target.SubjectBuffer) ||
                         !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                     {
-                        return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                        return [];
                     }
 
                     return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                         workspace, owner._codeFixService, document, range.Span.ToTextSpan(),
-                        priorityProvider, options, addOperationScope, cancellationToken).ConfigureAwait(false);
+                        priorityProvider, cancellationToken).ConfigureAwait(false);
                 }
 
                 async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync()
                 {
-                    using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Summary, $"Total.Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetRefactoringsAsync)}");
+                    using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetRefactoringsAsync)}");
 
                     if (!selection.HasValue)
                     {
                         // this is here to fail test and see why it is failed.
                         Trace.WriteLine("given range is not current");
-                        return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                        return [];
                     }
 
                     if (!this.GlobalOptions.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
                         owner._codeRefactoringService == null ||
                         !supportsFeatureService.SupportsRefactorings(subjectBuffer))
                     {
-                        return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                        return [];
                     }
 
                     // 'CodeActionRequestPriority.Lowest' is reserved for suppression/configuration code fixes.
                     // No code refactoring should have this request priority.
                     if (priorityProvider.Priority == CodeActionRequestPriority.Lowest)
-                        return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                        return [];
 
                     // If we are computing refactorings outside the 'Refactoring' context, i.e. for example, from the lightbulb under a squiggle or selection,
                     // then we want to filter out refactorings outside the selection span.
                     var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
                     return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                        workspace, owner._codeRefactoringService, document, selection.Value, priorityProvider.Priority, options,
-                        addOperationScope, filterOutsideSelection, cancellationToken).ConfigureAwait(false);
+                        workspace, owner._codeRefactoringService, document, selection.Value, priorityProvider.Priority,
+                        filterOutsideSelection, cancellationToken).ConfigureAwait(false);
                 }
 
                 [return: NotNullIfNotNull(nameof(unifiedSuggestedActionSet))]
-                SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet? unifiedSuggestedActionSet)
+                SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet? unifiedSuggestedActionSet, TextDocument originalDocument)
                 {
                     // May be null in cases involving CodeFixSuggestedActions since FixAllFlavors may be null.
                     if (unifiedSuggestedActionSet == null)
@@ -299,23 +295,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         => unifiedSuggestedAction switch
                         {
                             UnifiedCodeFixSuggestedAction codeFixAction => new CodeFixSuggestedAction(
-                                ThreadingContext, owner, codeFixAction.Workspace, originalSolution, subjectBuffer,
+                                _threadingContext, owner, codeFixAction.Workspace, originalDocument, subjectBuffer,
                                 codeFixAction.CodeFix, codeFixAction.Provider, codeFixAction.OriginalCodeAction,
-                                ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors)),
+                                ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, originalDocument)),
                             UnifiedCodeRefactoringSuggestedAction codeRefactoringAction => new CodeRefactoringSuggestedAction(
-                                ThreadingContext, owner, codeRefactoringAction.Workspace, originalSolution, subjectBuffer,
+                                _threadingContext, owner, codeRefactoringAction.Workspace, originalDocument, subjectBuffer,
                                 codeRefactoringAction.CodeRefactoringProvider, codeRefactoringAction.OriginalCodeAction,
-                                ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors)),
+                                ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, originalDocument)),
                             UnifiedFixAllCodeFixSuggestedAction fixAllAction => new FixAllCodeFixSuggestedAction(
-                                ThreadingContext, owner, fixAllAction.Workspace, originalSolution, subjectBuffer,
+                                _threadingContext, owner, fixAllAction.Workspace, originalSolution, subjectBuffer,
                                 fixAllAction.FixAllState, fixAllAction.Diagnostic, fixAllAction.OriginalCodeAction),
                             UnifiedFixAllCodeRefactoringSuggestedAction fixAllCodeRefactoringAction => new FixAllCodeRefactoringSuggestedAction(
-                                ThreadingContext, owner, fixAllCodeRefactoringAction.Workspace, originalSolution, subjectBuffer,
+                                _threadingContext, owner, fixAllCodeRefactoringAction.Workspace, originalSolution, subjectBuffer,
                                 fixAllCodeRefactoringAction.FixAllState, fixAllCodeRefactoringAction.OriginalCodeAction),
                             UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
-                                ThreadingContext, owner, nestedAction.Workspace, originalSolution, subjectBuffer,
+                                _threadingContext, owner, nestedAction.Workspace, originalSolution, subjectBuffer,
                                 nestedAction.Provider ?? this, nestedAction.OriginalCodeAction,
-                                nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s))),
+                                nestedAction.NestedActionSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, originalDocument))),
                             _ => throw ExceptionUtilities.Unreachable()
                         };
                 }

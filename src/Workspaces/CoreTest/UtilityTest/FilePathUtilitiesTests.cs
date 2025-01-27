@@ -99,5 +99,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(expected: @"..\Beta2\Gamma", actual: result);
         }
+
+        [ConditionalTheory(typeof(WindowsOnly)), WorkItem(72043, "https://github.com/dotnet/roslyn/issues/72043")]
+        [InlineData(@"C:\Alpha", @"C:\", @"..")]
+        [InlineData(@"C:\Alpha\Beta", @"C:\", @"..\..")]
+        [InlineData(@"C:\Alpha\Beta", @"C:\Gamma", @"..\..\Gamma")]
+        public void GetRelativePath_WithFullPathShorterThanBasePath_Windows(string baseDirectory, string fullPath, string expected)
+        {
+            var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
+
+            Assert.Equal(expected, result);
+        }
+
+        [ConditionalTheory(typeof(UnixLikeOnly)), WorkItem(72043, "https://github.com/dotnet/roslyn/issues/72043")]
+        [InlineData("/Alpha", "/", "..")]
+        [InlineData("/Alpha/Beta", "/", "../..")]
+        [InlineData("/Alpha/Beta", "/Gamma", "../../Gamma")]
+        public void GetRelativePath_WithFullPathShorterThanBasePath_Unix(string baseDirectory, string fullPath, string expected)
+        {
+            var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
+
+            Assert.Equal(expected, result);
+        }
     }
 }

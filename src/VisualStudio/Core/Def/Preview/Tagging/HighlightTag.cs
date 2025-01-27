@@ -4,12 +4,11 @@
 
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
+
+internal class HighlightTag : TextMarkerTag
 {
-    internal class HighlightTag : TextMarkerTag
+    public HighlightTag() : base("blue")
     {
-        public HighlightTag() : base("blue")
-        {
-        }
     }
 }

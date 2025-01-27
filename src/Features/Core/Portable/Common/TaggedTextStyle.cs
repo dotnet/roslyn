@@ -4,21 +4,20 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+[Flags]
+internal enum TaggedTextStyle
 {
-    [Flags]
-    internal enum TaggedTextStyle
-    {
-        None = 0,
+    None = 0,
 
-        Strong = 1 << 0,
+    Strong = 1 << 0,
 
-        Emphasis = 1 << 1,
+    Emphasis = 1 << 1,
 
-        Underline = 1 << 2,
+    Underline = 1 << 2,
 
-        Code = 1 << 3,
+    Code = 1 << 3,
 
-        PreserveWhitespace = 1 << 4,
-    }
+    PreserveWhitespace = 1 << 4,
 }

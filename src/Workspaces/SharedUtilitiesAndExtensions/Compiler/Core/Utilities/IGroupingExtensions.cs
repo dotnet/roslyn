@@ -5,15 +5,14 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal static class IGroupingExtensions
 {
-    internal static class IGroupingExtensions
+    public static void Deconstruct<TKey, TElement>(this IGrouping<TKey, TElement> grouping,
+        out TKey key, out IEnumerable<TElement> values)
     {
-        public static void Deconstruct<TKey, TElement>(this IGrouping<TKey, TElement> grouping,
-            out TKey key, out IEnumerable<TElement> values)
-        {
-            key = grouping.Key;
-            values = grouping;
-        }
+        key = grouping.Key;
+        values = grouping;
     }
 }

@@ -13,14 +13,16 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class BatchNode<TInput> : IIncrementalGeneratorNode<ImmutableArray<TInput>>
     {
+        private static readonly string? s_tableType = typeof(ImmutableArray<TInput>).FullName;
+
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
-        private readonly IEqualityComparer<ImmutableArray<TInput>> _comparer;
+        private readonly IEqualityComparer<ImmutableArray<TInput>>? _comparer;
         private readonly string? _name;
 
         public BatchNode(IIncrementalGeneratorNode<TInput> sourceNode, IEqualityComparer<ImmutableArray<TInput>>? comparer = null, string? name = null)
         {
             _sourceNode = sourceNode;
-            _comparer = comparer ?? EqualityComparer<ImmutableArray<TInput>>.Default;
+            _comparer = comparer;
             _name = name;
         }
 
@@ -134,14 +136,14 @@ namespace Microsoft.CodeAnalysis
             }
             else if (!sourceTable.IsCached || !tableBuilder.TryUseCachedEntries(stopwatch.Elapsed, sourceInputs))
             {
-                if (!tableBuilder.TryModifyEntry(sourceValues, _comparer, stopwatch.Elapsed, sourceInputs, EntryState.Modified))
+                if (!tableBuilder.TryModifyEntry(sourceValues, stopwatch.Elapsed, sourceInputs, EntryState.Modified))
                 {
                     tableBuilder.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
                 }
             }
 
             var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(_name, previousTable, newTable, sourceTable);
+            this.LogTables(_name, s_tableType, previousTable, newTable, sourceTable);
             return newTable;
         }
 

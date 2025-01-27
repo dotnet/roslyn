@@ -14,16 +14,13 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
@@ -33,7 +30,7 @@ using RuntimeMetadataReferenceResolver = SCRIPTING::Microsoft.CodeAnalysis.Scrip
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Workspace, ILspWorkspace
+    public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Workspace
         where TDocument : TestHostDocument
         where TProject : TestHostProject<TDocument>
         where TSolution : TestHostSolution<TDocument>
@@ -54,10 +51,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
-        private readonly IMetadataAsSourceFileService? _metadataAsSourceFileService;
-
         private readonly string _workspaceKind;
-        private readonly bool _supportsLspMutation;
 
         internal TestWorkspace(
             TestComposition? composition = null,
@@ -65,8 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Guid solutionTelemetryId = default,
             bool disablePartialSolutions = true,
             bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
-            WorkspaceConfigurationOptions? configurationOptions = null,
-            bool supportsLspMutation = false)
+            WorkspaceConfigurationOptions? configurationOptions = null)
             : base(GetHostServices(ref composition, configurationOptions != null), workspaceKind ?? WorkspaceKind.Host)
         {
             this.Composition = composition;
@@ -79,21 +72,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (configurationOptions != null)
             {
                 var workspaceConfigurationService = GetService<TestWorkspaceConfigurationService>();
-                workspaceConfigurationService.Options = configurationOptions.Value;
+                workspaceConfigurationService.Options = configurationOptions;
             }
 
             SetCurrentSolutionEx(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
 
             _workspaceKind = workspaceKind ?? WorkspaceKind.Host;
-            this.Projects = new List<TProject>();
-            this.Documents = new List<TDocument>();
-            this.AdditionalDocuments = new List<TDocument>();
-            this.AnalyzerConfigDocuments = new List<TDocument>();
-            this.ProjectionDocuments = new List<TDocument>();
+            this.Projects = [];
+            this.Documents = [];
+            this.AdditionalDocuments = [];
+            this.AnalyzerConfigDocuments = [];
+            this.ProjectionDocuments = [];
 
             this.CanApplyChangeDocument = true;
             this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;
-            _supportsLspMutation = supportsLspMutation;
             this.GlobalOptions = GetService<IGlobalOptionService>();
 
             if (Services.GetService<INotificationService>() is INotificationServiceCallback callback)
@@ -115,8 +107,52 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     throw new InvalidOperationException($"{severityText} {fullMessage}");
                 };
             }
+        }
 
-            _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
+        /// <summary>
+        /// Use to set specified editorconfig options as <see cref="Solution.FallbackAnalyzerOptions"/>.
+        /// </summary>
+        public void SetAnalyzerFallbackOptions(string language, params (string name, string value)[] options)
+        {
+            SetCurrentSolution(
+                s => s.WithFallbackAnalyzerOptions(s.FallbackAnalyzerOptions.SetItem(language,
+                    StructuredAnalyzerConfigOptions.Create(
+                        new DictionaryAnalyzerConfigOptions(
+                            options.Select(static o => KeyValuePairUtil.Create(o.name, o.value)).ToImmutableDictionary())))),
+                changeKind: WorkspaceChangeKind.SolutionChanged);
+        }
+
+        /// <summary>
+        /// Use to set specified editorconfig options as <see cref="Solution.FallbackAnalyzerOptions"/>.
+        /// </summary>
+        internal void SetAnalyzerFallbackOptions(OptionsCollection? options)
+        {
+            if (options == null)
+            {
+                return;
+            }
+
+            SetCurrentSolution(
+                s => s.WithFallbackAnalyzerOptions(s.FallbackAnalyzerOptions.SetItem(options.LanguageName, options.ToAnalyzerConfigOptions())),
+                changeKind: WorkspaceChangeKind.SolutionChanged);
+        }
+
+        /// <summary>
+        /// Use to set specified options both as global options and as <see cref="Solution.FallbackAnalyzerOptions"/>.
+        /// Only editorconfig options listed in <paramref name="options"/> will be set to the latter.
+        /// </summary>
+        internal void SetAnalyzerFallbackAndGlobalOptions(OptionsCollection? options)
+        {
+            if (options == null)
+            {
+                return;
+            }
+
+            var configOptions = new OptionsCollection(options.LanguageName);
+            configOptions.AddRange(options.Where(entry => entry.Key.Option.Definition.IsEditorConfigOption));
+            SetAnalyzerFallbackOptions(configOptions);
+
+            options.SetGlobalOptions(GlobalOptions);
         }
 
         private static HostServices GetHostServices([NotNull] ref TestComposition? composition, bool hasWorkspaceConfigurationOptions)
@@ -201,12 +237,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public new void RegisterText(SourceTextContainer text)
             => base.RegisterText(text);
-
-        protected override void Dispose(bool finalize)
-        {
-            _metadataAsSourceFileService?.CleanupGeneratedFiles();
-            base.Dispose(finalize);
-        }
 
         internal void AddTestSolution(TSolution solution)
             => this.OnSolutionAdded(SolutionInfo.Create(solution.Id, solution.Version, solution.FilePath, projects: solution.Projects.Select(p => p.ToProjectInfo())));
@@ -297,18 +327,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public TServiceInterface GetService<TServiceInterface>()
             => ExportProvider.GetExportedValue<TServiceInterface>();
 
-        public TServiceInterface GetService<TServiceInterface>(string contentType)
-        {
-            var values = ExportProvider.GetExports<TServiceInterface, ContentTypeMetadata>();
-            return values.Single(value => value.Metadata.ContentTypes.Contains(contentType)).Value;
-        }
-
-        public TServiceInterface GetService<TServiceInterface>(string contentType, string name)
-        {
-            var values = ExportProvider.GetExports<TServiceInterface, OrderableContentTypeMetadata>();
-            return values.Single(value => value.Metadata.Name == name && value.Metadata.ContentTypes.Contains(contentType)).Value;
-        }
-
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
             switch (feature)
@@ -347,6 +365,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 WorkspaceKind.MiscellaneousFiles => false,
                 WorkspaceKind.Interactive => false,
+                WorkspaceKind.SemanticSearch => false,
                 _ => true
             };
 
@@ -447,8 +466,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         internal override ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(this._supportsLspMutation);
-
             var testDocument = this.GetTestDocument(documentId);
             Contract.ThrowIfNull(testDocument);
             Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
@@ -555,13 +572,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             => true;
 
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
-        {
-            // VisualStudioWorkspace asserts the main thread for this call, so do the same thing here to catch tests
-            // that fail to account for this possibility.
-            var threadingContext = ExportProvider.GetExportedValue<IThreadingContext>();
-            Contract.ThrowIfFalse(threadingContext.HasMainThread && threadingContext.JoinableTaskContext.IsOnMainThread);
-            return true;
-        }
+            => true;
 
         internal void InitializeDocuments(
             string language,
@@ -637,7 +648,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 Documents.Add(submission.Documents.Single());
             }
 
-            var solution = CreateSolution(projectNameToTestHostProject.Values.ToArray());
+            var solution = CreateSolution([.. projectNameToTestHostProject.Values]);
             AddTestSolution(solution);
 
             foreach (var projectElement in workspaceElement.Elements(ProjectElementName))
@@ -730,7 +741,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 var metadataService = Services.GetRequiredService<IMetadataService>();
-                var metadataResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(fileReferenceProvider: metadataService.GetReference);
+                var metadataResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(createFromFileFunc: metadataService.GetReference);
                 var syntaxFactory = languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
                 var compilationFactory = languageServices.GetRequiredService<ICompilationFactoryService>();
                 var compilationOptions = compilationFactory.GetDefaultCompilationOptions()
@@ -755,6 +766,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             return submissions;
+        }
+
+        public override bool TryApplyChanges(Solution newSolution)
+        {
+            var result = base.TryApplyChanges(newSolution);
+
+            // Ensure that any in-memory analyzer references in this test workspace are known by the serializer service
+            // so that we can validate OOP scenarios involving analyzers.
+            foreach (var analyzer in this.CurrentSolution.AnalyzerReferences)
+            {
+                if (analyzer is AnalyzerImageReference analyzerImageReference)
+                {
+#pragma warning disable CA1416 // Validate platform compatibility
+                    SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerImageReference);
+#pragma warning restore CA1416 // Validate platform compatibility
+                }
+            }
+
+            return result;
         }
     }
 }

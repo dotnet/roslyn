@@ -603,7 +603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If sourceValue > &H7000000000000000L Then
                         Dim temporary As Double = (sourceValue - &H7000000000000000L)
 
-                        If temporary < &H7000000000000000L AndAlso UncheckedCLng(temporary) > &H1000000000000000L Then
+                        If temporary < &H7000000000000000L AndAlso UncheckedCLng(temporary) < &H1000000000000000L Then
                             Return False
                         End If
                     Else

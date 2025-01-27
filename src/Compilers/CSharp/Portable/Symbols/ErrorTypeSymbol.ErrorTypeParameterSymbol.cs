@@ -91,6 +91,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            public override bool AllowsRefLikeType
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
             public override bool IsValueTypeFromConstraintTypes
             {
                 get

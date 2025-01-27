@@ -7,22 +7,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Storage;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+internal sealed class NoOpPersistentStorageService : IChecksummedPersistentStorageService
 {
-    internal sealed class NoOpPersistentStorageService : IChecksummedPersistentStorageService
+    private static readonly IChecksummedPersistentStorageService Instance = new NoOpPersistentStorageService();
+
+    private NoOpPersistentStorageService()
     {
-        private static readonly IChecksummedPersistentStorageService Instance = new NoOpPersistentStorageService();
-
-        private NoOpPersistentStorageService()
-        {
-        }
-
-        public static IChecksummedPersistentStorageService GetOrThrow(IPersistentStorageConfiguration configuration)
-            => configuration.ThrowOnFailure
-                ? throw new InvalidOperationException("Database was not supported")
-                : Instance;
-
-        public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
-            => new(NoOpPersistentStorage.GetOrThrow(throwOnFailure: false));
     }
+
+    public static IChecksummedPersistentStorageService GetOrThrow(IPersistentStorageConfiguration configuration)
+        => configuration.ThrowOnFailure
+            ? throw new InvalidOperationException("Database was not supported")
+            : Instance;
+
+    public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
+        => new(NoOpPersistentStorage.GetOrThrow(solutionKey, throwOnFailure: false));
 }

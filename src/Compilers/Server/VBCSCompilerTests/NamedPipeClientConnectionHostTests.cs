@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsOrLinuxOnly), Reason = "https://github.com/dotnet/runtime/issues/40301")]
-        public void EndListenCancelsIncompleteTask()
+        public async Task EndListenCancelsIncompleteTask()
         {
             _host.BeginListening();
             var task = _host.GetNextClientConnectionAsync();
             _host.EndListening();
 
-            Assert.ThrowsAsync<OperationCanceledException>(() => task);
+            await Assert.ThrowsAsync<TaskCanceledException>(async () => await task);
         }
 
         /// <summary>

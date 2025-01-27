@@ -6,10 +6,9 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+public class WorkspaceDiagnosticEventArgs(WorkspaceDiagnostic diagnostic) : EventArgs
 {
-    public class WorkspaceDiagnosticEventArgs(WorkspaceDiagnostic diagnostic) : EventArgs
-    {
-        public WorkspaceDiagnostic Diagnostic { get; } = diagnostic;
-    }
+    public WorkspaceDiagnostic Diagnostic { get; } = diagnostic;
 }

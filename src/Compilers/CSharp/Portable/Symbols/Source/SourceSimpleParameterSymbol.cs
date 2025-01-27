@@ -22,10 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
-            ScopedKind scope,
             string name,
             ImmutableArray<Location> locations)
-            : this(owner, parameterType, ordinal, refKind, scope, name, locations.FirstOrDefault())
+            : this(owner, parameterType, ordinal, refKind, name, locations.FirstOrDefault())
         {
             Debug.Assert(locations.Length <= 1);
         }
@@ -35,10 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
-            ScopedKind scope,
             string name,
             Location? location)
-            : base(owner, ordinal, refKind, scope, name, location)
+            : base(owner, ordinal, refKind, ScopedKind.None, name, location)
         {
             _parameterType = parameterType;
         }
@@ -57,7 +55,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public override bool IsParams
+        protected override bool HasParamsModifier
+        {
+            get { return false; }
+        }
+
+        public override bool IsParamsArray
+        {
+            get { return false; }
+        }
+
+        public override bool IsParamsCollection
         {
             get { return false; }
         }

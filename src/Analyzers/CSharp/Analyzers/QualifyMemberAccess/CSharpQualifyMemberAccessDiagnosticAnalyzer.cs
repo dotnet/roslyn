@@ -11,59 +11,58 @@ using Microsoft.CodeAnalysis.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
-namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
+namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer
+    : AbstractQualifyMemberAccessDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, SimpleNameSyntax>
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer
-        : AbstractQualifyMemberAccessDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, SimpleNameSyntax>
+    protected override ISimplification Simplification
+        => CSharpSimplification.Instance;
+
+    protected override bool IsAlreadyQualifiedMemberAccess(ExpressionSyntax node)
+        => node.IsKind(SyntaxKind.ThisExpression);
+
+    // If the member is already qualified with `base.`,
+    // or member is in object initialization context,
+    // or member in property or field initialization,
+    // or member in constructor initializer, it cannot be qualified.
+    protected override bool CanMemberAccessBeQualified(ISymbol containingSymbol, SyntaxNode node)
     {
-        protected override ISimplification Simplification
-            => CSharpSimplification.Instance;
+        if (node.GetAncestorOrThis<AttributeSyntax>() != null)
+            return false;
 
-        protected override bool IsAlreadyQualifiedMemberAccess(ExpressionSyntax node)
-            => node.IsKind(SyntaxKind.ThisExpression);
+        if (node.GetAncestorOrThis<ConstructorInitializerSyntax>() != null)
+            return false;
 
-        // If the member is already qualified with `base.`,
-        // or member is in object initialization context,
-        // or member in property or field initialization,
-        // or member in constructor initializer, it cannot be qualified.
-        protected override bool CanMemberAccessBeQualified(ISymbol containingSymbol, SyntaxNode node)
+        if (node.IsKind(SyntaxKind.BaseExpression))
+            return false;
+
+        if (IsInPropertyOrFieldInitialization(containingSymbol, node))
+            return false;
+
+        if (node.Parent is AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression), Left: var left } &&
+            left == node)
         {
-            if (node.GetAncestorOrThis<AttributeSyntax>() != null)
-                return false;
-
-            if (node.GetAncestorOrThis<ConstructorInitializerSyntax>() != null)
-                return false;
-
-            if (node.IsKind(SyntaxKind.BaseExpression))
-                return false;
-
-            if (IsInPropertyOrFieldInitialization(containingSymbol, node))
-                return false;
-
-            if (node.Parent is AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression), Left: var left } &&
-                left == node)
-            {
-                return false;
-            }
-
-            return true;
+            return false;
         }
 
-        private static bool IsInPropertyOrFieldInitialization(ISymbol containingSymbol, SyntaxNode node)
-        {
-            return (containingSymbol.Kind is SymbolKind.Field or SymbolKind.Property) &&
-                containingSymbol.DeclaringSyntaxReferences
-                    .Select(declaringSyntaxReferences => declaringSyntaxReferences.GetSyntax())
-                    .Any(declaringSyntax => IsInPropertyInitialization(declaringSyntax, node) || IsInFieldInitialization(declaringSyntax, node));
-        }
-
-        private static bool IsInPropertyInitialization(SyntaxNode declarationSyntax, SyntaxNode node)
-            => declarationSyntax.IsKind(SyntaxKind.PropertyDeclaration) && declarationSyntax.Contains(node);
-
-        private static bool IsInFieldInitialization(SyntaxNode declarationSyntax, SyntaxNode node)
-            => declarationSyntax.GetAncestorsOrThis(n => n.IsKind(SyntaxKind.FieldDeclaration) && n.Contains(node)).Any();
-
-        protected override Location GetLocation(IOperation operation) => operation.Syntax.GetLocation();
+        return true;
     }
+
+    private static bool IsInPropertyOrFieldInitialization(ISymbol containingSymbol, SyntaxNode node)
+    {
+        return (containingSymbol.Kind is SymbolKind.Field or SymbolKind.Property) &&
+            containingSymbol.DeclaringSyntaxReferences
+                .Select(declaringSyntaxReferences => declaringSyntaxReferences.GetSyntax())
+                .Any(declaringSyntax => IsInPropertyInitialization(declaringSyntax, node) || IsInFieldInitialization(declaringSyntax, node));
+    }
+
+    private static bool IsInPropertyInitialization(SyntaxNode declarationSyntax, SyntaxNode node)
+        => declarationSyntax.IsKind(SyntaxKind.PropertyDeclaration) && declarationSyntax.Contains(node);
+
+    private static bool IsInFieldInitialization(SyntaxNode declarationSyntax, SyntaxNode node)
+        => declarationSyntax.GetAncestorsOrThis(n => n.IsKind(SyntaxKind.FieldDeclaration) && n.Contains(node)).Any();
+
+    protected override Location GetLocation(IOperation operation) => operation.Syntax.GetLocation();
 }

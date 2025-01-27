@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
-{
-    using Microsoft.VisualStudio.Text.Classification;
+namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
-    internal interface IClassificationTypeMap
-    {
-        IClassificationType GetClassificationType(string name);
-    }
+using Microsoft.VisualStudio.Text.Classification;
+
+internal interface IClassificationTypeMap
+{
+    IClassificationType GetClassificationType(string name);
 }

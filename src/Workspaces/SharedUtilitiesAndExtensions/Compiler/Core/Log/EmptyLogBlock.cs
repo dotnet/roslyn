@@ -4,17 +4,16 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Internal.Log
-{
-    /// <summary>
-    /// no op log block
-    /// </summary>
-    internal sealed class EmptyLogBlock : IDisposable
-    {
-        public static readonly EmptyLogBlock Instance = new();
+namespace Microsoft.CodeAnalysis.Internal.Log;
 
-        public void Dispose()
-        {
-        }
+/// <summary>
+/// no op log block
+/// </summary>
+internal sealed class EmptyLogBlock : IDisposable
+{
+    public static readonly EmptyLogBlock Instance = new();
+
+    public void Dispose()
+    {
     }
 }

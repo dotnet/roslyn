@@ -5456,7 +5456,7 @@ class Test
             {
                 builder.Append("a[");
                 builder.Append(i);
-                builder.Append("]");
+                builder.Append(']');
                 builder.Append(" & ");
                 builder.Append("f[");
                 builder.Append(i);
@@ -5465,7 +5465,7 @@ class Test
 
             builder.Append("a[");
             builder.Append(i);
-            builder.Append("]");
+            builder.Append(']');
 
             return builder.ToString();
         }
@@ -5620,7 +5620,7 @@ struct S1
             {
                 builder.Append("a[");
                 builder.Append(i);
-                builder.Append("]");
+                builder.Append(']');
                 builder.Append(" && ");
                 builder.Append("f[");
                 builder.Append(i);
@@ -5629,7 +5629,7 @@ struct S1
 
             builder.Append("a[");
             builder.Append(i);
-            builder.Append("]");
+            builder.Append(']');
 
             return builder.ToString();
         }

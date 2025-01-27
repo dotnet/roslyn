@@ -4,39 +4,49 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.Schemas;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
+
+internal sealed class ContainsGraphQuery : IGraphQuery
 {
-    internal sealed class ContainsGraphQuery : IGraphQuery
+    public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
     {
-        public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
+        var nodesToProcess = context.InputNodes;
+
+        for (var depth = 0; depth < context.LinkDepth; depth++)
         {
-            var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
-            var nodesToProcess = context.InputNodes;
+            // This is the list of nodes we created and will process
+            var newNodes = new HashSet<GraphNode>();
 
-            for (var depth = 0; depth < context.LinkDepth; depth++)
+            foreach (var node in nodesToProcess)
             {
-                // This is the list of nodes we created and will process
-                var newNodes = new HashSet<GraphNode>();
+                cancellationToken.ThrowIfCancellationRequested();
 
-                foreach (var node in nodesToProcess)
+                var symbol = graphBuilder.GetSymbol(node, cancellationToken);
+                if (symbol != null)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var symbol = graphBuilder.GetSymbol(node, cancellationToken);
-                    if (symbol != null)
+                    foreach (var newSymbol in SymbolContainment.GetContainedSymbols(symbol))
                     {
-                        foreach (var newSymbol in SymbolContainment.GetContainedSymbols(symbol))
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        var newNode = await graphBuilder.AddNodeAsync(
+                            newSymbol, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                        graphBuilder.AddLink(node, GraphCommonSchema.Contains, newNode, cancellationToken);
+                    }
+                }
+                else if (node.HasCategory(CodeNodeCategories.File))
+                {
+                    var document = graphBuilder.GetContextDocument(node, cancellationToken);
+                    if (document != null)
+                    {
+                        foreach (var newSymbol in await SymbolContainment.GetContainedSymbolsAsync(document, cancellationToken).ConfigureAwait(false))
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
@@ -45,27 +55,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                             graphBuilder.AddLink(node, GraphCommonSchema.Contains, newNode, cancellationToken);
                         }
                     }
-                    else if (node.HasCategory(CodeNodeCategories.File))
-                    {
-                        var document = graphBuilder.GetContextDocument(node, cancellationToken);
-                        if (document != null)
-                        {
-                            foreach (var newSymbol in await SymbolContainment.GetContainedSymbolsAsync(document, cancellationToken).ConfigureAwait(false))
-                            {
-                                cancellationToken.ThrowIfCancellationRequested();
-
-                                var newNode = await graphBuilder.AddNodeAsync(
-                                    newSymbol, relatedNode: node, cancellationToken).ConfigureAwait(false);
-                                graphBuilder.AddLink(node, GraphCommonSchema.Contains, newNode, cancellationToken);
-                            }
-                        }
-                    }
                 }
-
-                nodesToProcess = newNodes;
             }
 
-            return graphBuilder;
+            nodesToProcess = newNodes;
         }
+
+        return graphBuilder;
     }
 }

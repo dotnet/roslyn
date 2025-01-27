@@ -16,7 +16,7 @@ internal abstract class OptionStorageMapping(IOption2 internalOption)
     public IOption2 InternalOption { get; } = internalOption;
 
     /// <summary>
-    /// Converts inernal option value representation to public.
+    /// Converts internal option value representation to public.
     /// </summary>
     public abstract object? ToPublicOptionValue(object? internalValue);
 

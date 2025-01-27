@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 internal readonly struct ManagedHotReloadUpdate(
     Guid module,
     string moduleName,
+    ProjectId projectId,
     ImmutableArray<byte> ilDelta,
     ImmutableArray<byte> metadataDelta,
     ImmutableArray<byte> pdbDelta,
@@ -27,6 +28,9 @@ internal readonly struct ManagedHotReloadUpdate(
 
     [DataMember(Name = "moduleName")]
     public string ModuleName { get; } = moduleName;
+
+    [DataMember(Name = "projectId")]
+    public ProjectId ProjectId { get; } = projectId;
 
     [DataMember(Name = "ilDelta")]
     public ImmutableArray<byte> ILDelta { get; } = ilDelta;

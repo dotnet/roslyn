@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnnecessaryCastCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-public class RemoveUnnecessaryCastTests
+public sealed class RemoveUnnecessaryCastTests
 {
     [Theory, CombinatorialData]
     public void TestStandardProperty(AnalyzerProperty property)
@@ -70,7 +70,6 @@ public class RemoveUnnecessaryCastTests
                 static void Goo(bool a, bool b) { }
             }
             """,
-
             """
             class Program
             {
@@ -102,7 +101,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -132,7 +130,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -480,7 +477,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -504,7 +500,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -530,7 +525,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             class Program
@@ -557,7 +551,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             class Program
@@ -804,7 +797,6 @@ public class RemoveUnnecessaryCastTests
                 public static void M1(int i) { }
             }
             """,
-
             """
             using System;
             class Test
@@ -838,7 +830,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             class Test
@@ -871,7 +862,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Test
             {
@@ -906,7 +896,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Test
             {
@@ -939,7 +928,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System.Collections.Generic;
 
@@ -1061,7 +1049,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             class MyAction
@@ -1139,7 +1126,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -1285,7 +1271,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -1463,7 +1448,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             using System.Collections.Generic;
@@ -1507,7 +1491,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -1874,7 +1857,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -1904,7 +1886,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class X
             {
@@ -1932,7 +1913,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             static class C
             {
@@ -1960,7 +1940,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -2101,7 +2080,6 @@ public class RemoveUnnecessaryCastTests
                 C() : this([|(int)|]1) { }
             }
             """,
-
             """
             class C
             {
@@ -2125,7 +2103,6 @@ public class RemoveUnnecessaryCastTests
                 C() : this([|(IEnumerable)|]"") { }
             }
             """,
-
             """
             using System.Collections;
 
@@ -2177,7 +2154,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             static class C
             {
@@ -3476,7 +3452,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -3510,7 +3485,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -3541,7 +3515,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             using System.Collections.Generic;
@@ -3575,7 +3548,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -3878,7 +3850,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -3907,7 +3878,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -3936,7 +3906,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -3965,7 +3934,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -3994,7 +3962,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -4297,7 +4264,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -4341,7 +4307,6 @@ public class RemoveUnnecessaryCastTests
                 static void Goo(this string x) { }
             }
             """,
-
             """
             using System;
 
@@ -4532,6 +4497,11 @@ public class RemoveUnnecessaryCastTests
                 {
                     return true;
                 }
+                
+                static bool Goo(long x, object y, object z)
+                {
+                    return true;
+                }
             }
             """;
 
@@ -4568,7 +4538,19 @@ public class RemoveUnnecessaryCastTests
                     {
                     }
                 }
-
+                
+                int this[long x, object s, object d]
+                {
+                    get
+                    {
+                        return 0;
+                    }
+                
+                    set
+                    {
+                    }
+                }
+                
                 void Goo(dynamic xx)
                 {
                     var y = this[x: xx, s: "", d: (object)""];
@@ -4678,6 +4660,11 @@ public class RemoveUnnecessaryCastTests
                 }
 
                 static bool Goo(object y, int x, object z)
+                {
+                    return true;
+                }
+                
+                static bool Goo(object y, long x, object z)
                 {
                     return true;
                 }
@@ -5001,7 +4988,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -5219,10 +5205,10 @@ public class RemoveUnnecessaryCastTests
             {
                 public static void Main(string[] args)
                 {
-                    TakesParams([|(string)|]null);
+                    TakesParams([|(Program)|]null);
                 }
 
-                private static void TakesParams({|CS0225:params|} string wrongDefined)
+                private static void TakesParams({|CS0225:params|} Program wrongDefined)
                 {
                 }
             }
@@ -5235,7 +5221,7 @@ public class RemoveUnnecessaryCastTests
                     TakesParams(null);
                 }
 
-                private static void TakesParams({|CS0225:params|} string wrongDefined)
+                private static void TakesParams({|CS0225:params|} Program wrongDefined)
                 {
                 }
             }
@@ -5461,13 +5447,13 @@ public class RemoveUnnecessaryCastTests
             using System;
             sealed class MarkAttribute : Attribute
             {
-                public MarkAttribute(bool otherArg, {|CS0225:params|} string wrongDefined)
+                public MarkAttribute(bool otherArg, {|CS0225:params|} object wrongDefined)
                 {
                 }
                 public int Prop { get; set; }
             }
 
-            [Mark(true, [|(string)|]null, Prop = 1)]
+            [Mark(true, [|(object)|]null, Prop = 1)]
             static class Program
             {
             }
@@ -5476,7 +5462,7 @@ public class RemoveUnnecessaryCastTests
             using System;
             sealed class MarkAttribute : Attribute
             {
-                public MarkAttribute(bool otherArg, {|CS0225:params|} string wrongDefined)
+                public MarkAttribute(bool otherArg, {|CS0225:params|} object wrongDefined)
                 {
                 }
                 public int Prop { get; set; }
@@ -5590,21 +5576,22 @@ public class RemoveUnnecessaryCastTests
     public async Task DoNotRemoveCastOnInvalidUnaryOperatorEnumValue1(string op)
     {
         var source =
-$@"
-enum Sign
-    {{
-        Positive = 1,
-        Negative = -1
-    }}
+            $$"""
+            enum Sign
+                {
+                    Positive = 1,
+                    Negative = -1
+                }
 
-    class T
-    {{
-        void Goo()
-        {{
-            Sign mySign = Sign.Positive;
-            Sign invertedSign = (Sign) ( {op}((int) mySign) );
-        }}
-    }}";
+                class T
+                {
+                    void Goo()
+                    {
+                        Sign mySign = Sign.Positive;
+                        Sign invertedSign = (Sign) ( {{op}}((int) mySign) );
+                    }
+                }
+            """;
 
         await VerifyCS.VerifyCodeFixAsync(source, source);
     }
@@ -5615,21 +5602,22 @@ enum Sign
     public async Task DoNotRemoveCastOnInvalidUnaryOperatorEnumValue2(string op)
     {
         var source =
-$@"
-enum Sign
-    {{
-        Positive = 1,
-        Negative = -1
-    }}
+            $$"""
+            enum Sign
+                {
+                    Positive = 1,
+                    Negative = -1
+                }
 
-    class T
-    {{
-        void Goo()
-        {{
-            Sign mySign = Sign.Positive;
-            Sign invertedSign = (Sign) ( {op}(int) mySign );
-        }}
-    }}";
+                class T
+                {
+                    void Goo()
+                    {
+                        Sign mySign = Sign.Positive;
+                        Sign invertedSign = (Sign) ( {{op}}(int) mySign );
+                    }
+                }
+            """;
 
         await VerifyCS.VerifyCodeFixAsync(source, source);
     }
@@ -5753,7 +5741,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
         }.RunAsync();
     }
 
@@ -5778,7 +5765,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -5804,7 +5790,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -5830,7 +5815,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -5922,7 +5906,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -5948,7 +5931,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -5974,7 +5956,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -6076,7 +6057,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -6098,7 +6078,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -6120,7 +6099,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -6176,7 +6154,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -6200,7 +6177,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -8250,7 +8226,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -8323,7 +8298,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
     }
@@ -8372,7 +8346,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
     }
@@ -8421,7 +8394,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -8521,7 +8493,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
     }
@@ -8570,7 +8541,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
     }
@@ -8619,7 +8589,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
     }
@@ -9671,7 +9640,6 @@ enum Sign
         var test = new VerifyCS.Test()
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9
         };
 
@@ -9723,7 +9691,6 @@ enum Sign
         var test = new VerifyCS.Test()
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9
         };
 
@@ -9745,7 +9712,6 @@ enum Sign
         var test = new VerifyCS.Test()
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9
         };
 
@@ -9831,7 +9797,6 @@ enum Sign
         var test = new VerifyCS.Test()
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9
         };
 
@@ -9855,7 +9820,6 @@ enum Sign
         var test = new VerifyCS.Test()
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9
         };
 
@@ -9879,7 +9843,6 @@ enum Sign
         var test = new VerifyCS.Test()
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9
         };
 
@@ -10016,7 +9979,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -10045,7 +10007,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -10059,8 +10020,8 @@ enum Sign
             using System;
             public class TestClass
             {
-            	public TestClass(object? value) { }
-            	public TestClass(Func<object?> value) { }
+                public TestClass(object? value) { }
+                public TestClass(Func<object?> value) { }
 
                 public TestClass Create1() => new ((object?)null);
             }
@@ -10069,7 +10030,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -10082,7 +10042,7 @@ enum Sign
             using System;
             public class TestClass
             {
-            	unsafe void M(nint** ptr)
+                unsafe void M(nint** ptr)
                 {
                     nint value = (nint)(void*)*ptr;
                 }
@@ -10092,7 +10052,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -10110,7 +10069,6 @@ enum Sign
                 }
             }
             """,
-
             """
             class Program
             {
@@ -10135,7 +10093,6 @@ enum Sign
                 }
             }
             """,
-
             """
             class Program
             {
@@ -10930,7 +10887,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -12134,7 +12090,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = version,
         }.RunAsync();
     }
@@ -12165,7 +12120,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12185,7 +12139,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
         }.RunAsync();
     }
 
@@ -12203,7 +12156,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12228,7 +12180,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12251,7 +12202,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12273,7 +12223,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12295,7 +12244,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12319,7 +12267,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12342,7 +12289,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12359,7 +12305,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12382,7 +12327,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12407,7 +12351,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12427,7 +12370,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12447,7 +12389,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12472,7 +12413,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12496,7 +12436,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12528,7 +12467,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12541,45 +12479,44 @@ enum Sign
 
             namespace WrongRedundantCastWarning
             {
-            	struct Flag
-            	{
-            		public Flag(int value) => this.Value = value;
+                struct Flag
+                {
+                    public Flag(int value) => this.Value = value;
 
-            		public int Value { get; }
+                    public int Value { get; }
 
-            		// This cast is wrongly reported as redundant
-            		public static FlagSet operator ~(Flag flag) => ~(FlagSet)flag;
-            	}
+                    // This cast is wrongly reported as redundant
+                    public static FlagSet operator ~(Flag flag) => ~(FlagSet)flag;
+                }
 
-            	struct FlagSet
-            	{
-            		public FlagSet(int value) => this.Value = value;
+                struct FlagSet
+                {
+                    public FlagSet(int value) => this.Value = value;
 
-            		public int Value { get; }
+                    public int Value { get; }
 
-            		public static implicit operator FlagSet(Flag flag) => new FlagSet(flag.Value);
+                    public static implicit operator FlagSet(Flag flag) => new FlagSet(flag.Value);
 
-            		public static FlagSet operator ~(FlagSet flagSet) => new FlagSet(~flagSet.Value);
-            	}
+                    public static FlagSet operator ~(FlagSet flagSet) => new FlagSet(~flagSet.Value);
+                }
 
-            	class Program
-            	{
-            		static readonly Flag One = new Flag(1);
-            		static readonly Flag Two = new Flag(2);
+                class Program
+                {
+                    static readonly Flag One = new Flag(1);
+                    static readonly Flag Two = new Flag(2);
 
-            		static void Main(string[] args)
-            		{
-            			var flipped = ~Two;
+                    static void Main(string[] args)
+                    {
+                        var flipped = ~Two;
 
-            			Console.WriteLine(flipped.Value);
-            		}
-            	}
+                        Console.WriteLine(flipped.Value);
+                    }
+                }
             }
             """;
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12621,7 +12558,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12649,7 +12585,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12697,7 +12632,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12743,7 +12677,6 @@ enum Sign
                 OutputKind = OutputKind.ConsoleApplication,
             },
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12756,14 +12689,13 @@ enum Sign
             {
                 protected sbyte ExtractInt8(object data)
                 {
-            	    return (data is sbyte value) ? value : (sbyte)0;
+                    return (data is sbyte value) ? value : (sbyte)0;
                 }
             }
             """;
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12969,7 +12901,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12996,7 +12927,6 @@ enum Sign
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -13007,28 +12937,28 @@ enum Sign
     [InlineData("Func<string>")]
     public async Task ConvertingMethodGroupToObject_CastIsUnnecessary(string type)
     {
-        var code = $@"
-using System;
+        var code = $$"""
+            using System;
 
-class C
-{{
-    static {type} M(object o)
-    {{
-        return ({type})[|(object)|]o.ToString;
-    }}
-}}
-";
-        var fixedCode = $@"
-using System;
+            class C
+            {
+                static {{type}} M(object o)
+                {
+                    return ({{type}})[|(object)|]o.ToString;
+                }
+            }
+            """;
+        var fixedCode = $$"""
+            using System;
 
-class C
-{{
-    static {type} M(object o)
-    {{
-        return o.ToString;
-    }}
-}}
-";
+            class C
+            {
+                static {{type}} M(object o)
+                {
+                    return o.ToString;
+                }
+            }
+            """;
         await new VerifyCS.Test
         {
             TestCode = code,
@@ -13142,7 +13072,6 @@ class C
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -13746,6 +13675,507 @@ class C
                     void M2()
                     {
                         ReadOnlySpan<int> r = [1, 2, 3, 4];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71926")]
+    public async Task NecessaryDelegateCast1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var main = (Delegate)Main; // IDE0004: Cast is redundant.
+                        var x = Unsafe.As<Delegate, object>(ref main);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72134")]
+    public async Task NecessaryDelegateCast2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public class MyClass
+                {
+                    static void Main()
+                    {
+                        Goo f = (Action)(() => { }); // IDE0004: Cast is redundant.
+
+                    }
+                }
+
+                public class Goo
+                {
+                    public static implicit operator Goo(Action value)
+                    {
+                        return default!;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72933")]
+    public async Task RemoveCollectionExpressionCastToArray()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void Goo(char[] input)
+                    {
+                    }
+
+                    void Goo(string input)
+                    {
+                    }
+
+                    void X()
+                    {
+                        Goo([|(char[])|]['a']);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(char[] input)
+                    {
+                    }
+
+                    void Goo(string input)
+                    {
+                    }
+
+                    void X()
+                    {
+                        Goo(['a']);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75145")]
+    public async Task UnnecessaryInterpolationCast1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System;
+
+                public class C
+                {
+                    public static void Main()
+                    {
+                        string s = $"{[|(object?)|]null}";
+                        Console.WriteLine(s);
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+
+                using System;
+
+                public class C
+                {
+                    public static void Main()
+                    {
+                        string s = $"{null}";
+                        Console.WriteLine(s);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75145")]
+    public async Task UnnecessaryInterpolationCast2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System.Runtime.CompilerServices;
+
+                public class IssueClass
+                {
+                    public object? Test()
+                    {
+                        return InterpolateMe($"{[|(object?)|]null}");
+                    }
+
+                    public static object? InterpolateMe([InterpolatedStringHandlerArgument] ref TestInterpolatedStringHandler handler)
+                    {
+                        return null;
+                    }
+
+                    [InterpolatedStringHandler]
+                    public ref struct TestInterpolatedStringHandler(int literalLength, int formattedCount)
+                    {
+                        public readonly void AppendLiteral(string s)
+                        {
+                        }
+
+                        public void AppendFormatted<T>(T value)
+                        {
+                        }
+
+                        public void AppendFormatted(object? value)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+
+                using System.Runtime.CompilerServices;
+
+                public class IssueClass
+                {
+                    public object? Test()
+                    {
+                        return InterpolateMe($"{null}");
+                    }
+
+                    public static object? InterpolateMe([InterpolatedStringHandlerArgument] ref TestInterpolatedStringHandler handler)
+                    {
+                        return null;
+                    }
+
+                    [InterpolatedStringHandler]
+                    public ref struct TestInterpolatedStringHandler(int literalLength, int formattedCount)
+                    {
+                        public readonly void AppendLiteral(string s)
+                        {
+                        }
+
+                        public void AppendFormatted<T>(T value)
+                        {
+                        }
+
+                        public void AppendFormatted(object? value)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75145")]
+    public async Task NecessaryInterpolationCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System.Runtime.CompilerServices;
+
+                public class IssueClass
+                {
+                    public object? Test()
+                    {
+                        return InterpolateMe($"{(object?)null}");
+                    }
+
+                    public static object? InterpolateMe([InterpolatedStringHandlerArgument] ref TestInterpolatedStringHandler handler)
+                    {
+                        return null;
+                    }
+
+                    [InterpolatedStringHandler]
+                    public ref struct TestInterpolatedStringHandler(int literalLength, int formattedCount)
+                    {
+                        public readonly void AppendLiteral(string s)
+                        {
+                        }
+
+                        public void AppendFormatted<T>(T value)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75424")]
+    public async Task KeepNecessaryObjectOverrideCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public void M()
+                    {
+                        var x = ((byte)3).GetType();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
+    public async Task TestObjectToDynamic1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public T? M<T>(object? o)
+                    {
+                        return (dynamic?)o;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
+    public async Task TestObjectToDynamic2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public T M<T>(object o)
+                    {
+                        return (dynamic)o;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
+    public async Task TestNumericThroughDynamic()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int M(long o)
+                    {
+                        return (dynamic)o;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
+    public async Task TestNullableThroughDynamic()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public int M(int? o)
+                    {
+                        return (dynamic)o;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
+    public async Task TestEnumThroughDynamic1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public int M(ConsoleColor o)
+                    {
+                        return (dynamic)o;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
+    public async Task TestEnumThroughDynamic2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public ConsoleColor M(int o)
+                    {
+                        return (dynamic)o;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
+    public async Task TestConstantThroughDynamic()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public int M()
+                    {
+                        return (dynamic)0L;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/68307")]
+    [InlineData(nameof(Delegate))]
+    [InlineData(nameof(MulticastDelegate))]
+    public async Task KeepNecessaryCastToDelegateAssignedToObject(string typeName)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+
+                class C
+                {
+                    public void M()
+                    {
+                        object o = ({{typeName}})Console.Clear;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60859")]
+    public async Task UnnecessaryWithinConditionalBranch1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class IssueClass
+                {
+                    double ID;
+
+                    public object ConvertFieldValueForStorage(object value)
+                    {
+                        return value is IssueClass issue ? (decimal)issue.ID : [|(object)|]-1m;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class IssueClass
+                {
+                    double ID;
+                
+                    public object ConvertFieldValueForStorage(object value)
+                    {
+                        return value is IssueClass issue ? (decimal)issue.ID : -1m;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60859")]
+    public async Task UnnecessaryWithinConditionalBranch2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class IssueClass
+                {
+                    double ID;
+
+                    public void ConvertFieldValueForStorage(object value)
+                    {
+                        object o = value is IssueClass issue ? (decimal)issue.ID : [|(object)|]-1m;
+                    }
+                }
+                """,
+            FixedCode = """
+                public class IssueClass
+                {
+                    double ID;
+                
+                    public void ConvertFieldValueForStorage(object value)
+                    {
+                        object o = value is IssueClass issue ? (decimal)issue.ID : -1m;
                     }
                 }
                 """,

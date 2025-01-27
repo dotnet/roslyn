@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.InternalUtilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -16,9 +14,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string SeveritySuffix = "severity";
 
         private const string DotnetAnalyzerDiagnosticSeverityKey = DotnetAnalyzerDiagnosticPrefix + "." + SeveritySuffix;
+        private static readonly ConcurrentLruCache<string, string> s_categoryToSeverityKeyMap = new ConcurrentLruCache<string, string>(50);
 
         private static string GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(string category)
-            => $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{category}.{SeveritySuffix}";
+            => s_categoryToSeverityKeyMap.GetOrAdd(category, category, static category => $"{DotnetAnalyzerDiagnosticPrefix}.{CategoryPrefix}-{category}.{SeveritySuffix}");
 
         /// <summary>
         /// Tries to get configured severity for the given <paramref name="descriptor"/>

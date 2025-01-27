@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -13,12 +11,9 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -28,6 +23,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
@@ -96,30 +92,27 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 textView, span, hint, taggerProvider);
         }
 
-        public async Task<IReadOnlyCollection<object>> CreateDescriptionAsync(CancellationToken cancellationToken)
+        public async Task<ImmutableArray<object>> CreateDescriptionAsync(CancellationToken cancellationToken)
         {
-            var document = _span.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document != null)
+            if (_span.Snapshot.GetOpenDocumentInCurrentContextWithChanges() is not Document document)
             {
-                var taggedText = await _hint.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
-                if (!taggedText.IsDefaultOrEmpty)
-                {
-                    var classificationOptions = _taggerProvider.EditorOptionsService.GlobalOptions.GetClassificationOptions(document.Project.Language);
-                    var lineFormattingOptions = _span.Snapshot.TextBuffer.GetLineFormattingOptions(_taggerProvider.EditorOptionsService, explicitFormat: false);
-
-                    var context = new IntellisenseQuickInfoBuilderContext(
-                        document,
-                        classificationOptions,
-                        lineFormattingOptions,
-                        _taggerProvider.ThreadingContext,
-                        _taggerProvider.OperationExecutor,
-                        _taggerProvider.AsynchronousOperationListener,
-                        _taggerProvider.StreamingFindUsagesPresenter);
-                    return Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(taggedText, context);
-                }
+                return [];
             }
 
-            return Array.Empty<object>();
+            var taggedText = await _hint.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
+            if (taggedText.IsDefaultOrEmpty)
+            {
+                return [];
+            }
+
+            var navigationActionFactory = new NavigationActionFactory(
+                document,
+                _taggerProvider.ThreadingContext,
+                _taggerProvider.OperationExecutor,
+                _taggerProvider.AsynchronousOperationListener,
+                _taggerProvider.StreamingFindUsagesPresenter);
+
+            return taggedText.ToInteractiveVsTextAdornments(navigationActionFactory);
         }
 
         private static FrameworkElement CreateElement(
@@ -266,7 +259,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private async Task StartToolTipServiceAsync(IToolTipPresenter toolTipPresenter)
         {
             var threadingContext = _taggerProvider.ThreadingContext;
-            var uiList = await Task.Run(() => CreateDescriptionAsync(threadingContext.DisposalToken)).ConfigureAwait(false);
+            await TaskScheduler.Default;
+            var uiList = await CreateDescriptionAsync(threadingContext.DisposalToken).ConfigureAwait(false);
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(threadingContext.DisposalToken);
 
             toolTipPresenter.StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);

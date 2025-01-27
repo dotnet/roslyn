@@ -6,12 +6,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var info2 = DocumentInfo.Create(documentId, "doc");
             Assert.True(((ImmutableArray<string>)info2.Folders).IsEmpty);
 
-            var info3 = DocumentInfo.Create(documentId, "doc", folders: new string[0]);
+            var info3 = DocumentInfo.Create(documentId, "doc", folders: []);
             Assert.True(((ImmutableArray<string>)info3.Folders).IsEmpty);
 
             var info4 = DocumentInfo.Create(documentId, "doc", folders: []);

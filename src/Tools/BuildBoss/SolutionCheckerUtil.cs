@@ -109,7 +109,7 @@ namespace BuildBoss
         /// </summary>
         private bool CheckProjectSystemGuid(TextWriter textWriter, IEnumerable<SolutionProjectData> dataList)
         {
-            Guid getExpectedGuid(ProjectData data)
+            static Guid getExpectedGuid(ProjectData data)
             {
                 var util = data.ProjectUtil;
                 switch (ProjectEntryUtil.GetProjectFileType(data.FilePath))

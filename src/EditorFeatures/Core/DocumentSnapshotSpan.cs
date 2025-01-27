@@ -4,25 +4,24 @@
 
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+/// <summary>
+/// Represents an editor <see cref="VisualStudio.Text.SnapshotSpan"/> and the <see cref="CodeAnalysis.Document"/>
+/// the span was produced from.
+/// </summary>
+/// <remarks>
+/// Creates a new <see cref="DocumentSnapshotSpan"/>.
+/// </remarks>
+internal readonly struct DocumentSnapshotSpan(Document? document, SnapshotSpan snapshotSpan)
 {
     /// <summary>
-    /// Represents an editor <see cref="VisualStudio.Text.SnapshotSpan"/> and the <see cref="CodeAnalysis.Document"/>
-    /// the span was produced from.
+    /// The <see cref="CodeAnalysis.Document"/> the span was produced from.
     /// </summary>
-    /// <remarks>
-    /// Creates a new <see cref="DocumentSnapshotSpan"/>.
-    /// </remarks>
-    internal readonly struct DocumentSnapshotSpan(Document? document, SnapshotSpan snapshotSpan)
-    {
-        /// <summary>
-        /// The <see cref="CodeAnalysis.Document"/> the span was produced from.
-        /// </summary>
-        public Document? Document { get; } = document;
+    public Document? Document { get; } = document;
 
-        /// <summary>
-        /// The editor <see cref="VisualStudio.Text.SnapshotSpan"/>.
-        /// </summary>
-        public SnapshotSpan SnapshotSpan { get; } = snapshotSpan;
-    }
+    /// <summary>
+    /// The editor <see cref="VisualStudio.Text.SnapshotSpan"/>.
+    /// </summary>
+    public SnapshotSpan SnapshotSpan { get; } = snapshotSpan;
 }

@@ -42,7 +42,6 @@ public sealed partial class UseCollectionInitializerTests
         var test = new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
         };
 
         if (languageVersion != null)
@@ -1713,5 +1712,118 @@ public sealed partial class UseCollectionInitializerTests
                 }
             }
             """, languageVersion: LanguageVersion.CSharp12);
+    }
+
+    [Fact]
+    public async Task TestDictionaryInitializerAmbiguity1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        var v = [|new|] List<int[]>();
+                        [|v.Add(|][1, 2, 3]);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        var v = new List<int[]>
+                        {
+                            ([1, 2, 3])
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestDictionaryInitializerAmbiguity2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        var v = [|new|] List<int[]>();
+                        // Leading
+                        [|v.Add(|][1, 2, 3]);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M()
+                    {
+                        var v = new List<int[]>
+                        {
+                            // Leading
+                            ([1, 2, 3])
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75214")]
+    public async Task TestComplexForeach()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System.Collections.Generic;
+                using System.Linq;
+
+                class C
+                {
+                    void M(List<int>? list1)
+                    {
+                        foreach (var (value, sort) in (list1 ?? [|new|] List<int>()).Select((val, i) => (val, i)))
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                
+                using System.Collections.Generic;
+                using System.Linq;
+                
+                class C
+                {
+                    void M(List<int>? list1)
+                    {
+                        foreach (var (value, sort) in (list1 ?? []).Select((val, i) => (val, i)))
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
     }
 }

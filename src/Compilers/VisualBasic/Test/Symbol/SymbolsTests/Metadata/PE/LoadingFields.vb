@@ -2,15 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Runtime.CompilerServices
-Imports CompilationCreationTestHelpers
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -22,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                              {
                                 TestResources.SymbolsTests.Fields.CSFields,
                                 TestResources.SymbolsTests.Fields.VBFields,
-                                TestMetadata.ResourcesNet40.mscorlib
+                                Net40.Resources.mscorlib
                              }, importInternals:=True)
 
             Dim module1 = assemblies(0).Modules(0)
@@ -103,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                              {
                                 TestResources.SymbolsTests.Fields.ConstantFields,
-                                TestMetadata.ResourcesNet40.mscorlib
+                                Net40.Resources.mscorlib
                              })
 
             Dim module1 = assemblies(0).Modules(0)
@@ -274,6 +270,19 @@ End Module
 
             CompileAndVerify(compilation, expectedOutput:="Value1
 Value2")
+        End Sub
+
+        <Fact>
+        Public Sub TestLoadFieldsOfReadOnlySpanFromCorlib()
+            Dim comp = CreateCompilation("", targetFramework:=TargetFramework.Net60)
+
+            Dim readOnlySpanType = comp.GetSpecialType(InternalSpecialType.System_ReadOnlySpan_T)
+            Assert.False(readOnlySpanType.IsErrorType())
+            Assert.Equal(SpecialType.None, readOnlySpanType.SpecialType)
+            Assert.Equal(CType(InternalSpecialType.System_ReadOnlySpan_T, ExtendedSpecialType), readOnlySpanType.ExtendedSpecialType)
+
+            Dim fields = readOnlySpanType.GetMembers().OfType(Of FieldSymbol)()
+            Assert.NotEmpty(fields)
         End Sub
 
     End Class

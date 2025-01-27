@@ -10,9 +10,6 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using System;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Formating;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -106,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var ws = new NoChangesAllowedWorkspace();
             var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
 
-            var newSolution = ws.CurrentSolution.WithAnalyzerReferences(new[] { new TestAnalyzerReference() });
+            var newSolution = ws.CurrentSolution.WithAnalyzerReferences([new TestAnalyzerReference()]);
 
             Assert.Equal(WorkspacesResources.Adding_analyzer_references_is_not_supported,
                 Assert.Throws<NotSupportedException>(() => ws.TryApplyChanges(newSolution)).Message);

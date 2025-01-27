@@ -21,7 +21,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 using Microsoft.CodeAnalysis.VisualBasic;
-#if NETCOREAPP
+#if NET
 using Roslyn.Test.Utilities.CoreClr;
 using System.Runtime.Loader;
 #else
@@ -31,11 +31,11 @@ using Roslyn.Test.Utilities.Desktop;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
 
-#if NETCOREAPP
+#if NET
 
     public sealed class InvokeUtil
     {
-        public void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadContext compilerContext, AssemblyLoadTestFixture fixture, AnalyzerTestKind kind, string typeName, string methodName)
+        internal void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadContext compilerContext, AssemblyLoadTestFixture fixture, AnalyzerTestKind kind, string typeName, string methodName, IAnalyzerAssemblyResolver[] externalResolvers, object? state = null)
         {
             // Ensure that the test did not load any of the test fixture assemblies into 
             // the default load context. That should never happen. Assemblies should either 
@@ -46,21 +46,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var compilerContextCount = compilerContext.Assemblies.Count();
 
             using var tempRoot = new TempRoot();
-            AnalyzerAssemblyLoader loader = kind switch
+            using AnalyzerAssemblyLoader loader = kind switch
             {
-                AnalyzerTestKind.LoadDirect => new DefaultAnalyzerAssemblyLoader(compilerContext, AnalyzerLoadOption.LoadFromDisk),
-                AnalyzerTestKind.LoadStream => new DefaultAnalyzerAssemblyLoader(compilerContext, AnalyzerLoadOption.LoadFromStream),
-                AnalyzerTestKind.ShadowLoad => new ShadowCopyAnalyzerAssemblyLoader(compilerContext, tempRoot.CreateDirectory().Path),
+                AnalyzerTestKind.LoadDirect => new DefaultAnalyzerAssemblyLoader(compilerContext, AnalyzerLoadOption.LoadFromDisk, externalResolvers.ToImmutableArray()),
+                AnalyzerTestKind.LoadStream => new DefaultAnalyzerAssemblyLoader(compilerContext, AnalyzerLoadOption.LoadFromStream, externalResolvers.ToImmutableArray()),
+                AnalyzerTestKind.ShadowLoad => new ShadowCopyAnalyzerAssemblyLoader(compilerContext, tempRoot.CreateDirectory().Path, externalResolvers.ToImmutableArray()),
                 _ => throw ExceptionUtilities.Unreachable()
             };
 
             try
             {
-                AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName);
+                AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName, state);
             }
             finally
             {
-                loader.UnloadAll();
                 testOutputHelper.WriteLine($"Test fixture root: {fixture.TempDirectory}");
 
                 foreach (var context in loader.GetDirectoryLoadContextsSnapshot())
@@ -93,19 +92,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public sealed class InvokeUtil : MarshalByRefObject
     {
-        public void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadTestFixture fixture, AnalyzerTestKind kind, string typeName, string methodName)
+        internal void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadTestFixture fixture, AnalyzerTestKind kind, string typeName, string methodName, IAnalyzerAssemblyResolver[] externalResolvers, object? state)
         {
             using var tempRoot = new TempRoot();
             AnalyzerAssemblyLoader loader = kind switch
             {
-                AnalyzerTestKind.LoadDirect => new DefaultAnalyzerAssemblyLoader(),
-                AnalyzerTestKind.ShadowLoad => new ShadowCopyAnalyzerAssemblyLoader(tempRoot.CreateDirectory().Path),
+                AnalyzerTestKind.LoadDirect => new DefaultAnalyzerAssemblyLoader(externalResolvers.ToImmutableArray()),
+                AnalyzerTestKind.ShadowLoad => new ShadowCopyAnalyzerAssemblyLoader(tempRoot.CreateDirectory().Path, externalResolvers.ToImmutableArray()),
                 _ => throw ExceptionUtilities.Unreachable()
             };
 
             try
             {
-                AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName);
+                AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName, state);
             }
             catch (TargetInvocationException ex) when (ex.InnerException is XunitException)
             {

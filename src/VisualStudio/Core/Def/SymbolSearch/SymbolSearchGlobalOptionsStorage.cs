@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.SymbolSearch
+namespace Microsoft.CodeAnalysis.SymbolSearch;
+
+internal sealed class SymbolSearchGlobalOptionsStorage
 {
-    internal sealed class SymbolSearchGlobalOptionsStorage
-    {
-        public static readonly Option2<bool> Enabled = new("visual_studio_enable_symbol_search", defaultValue: true);
-    }
+    public static readonly Option2<bool> Enabled = new("visual_studio_enable_symbol_search", defaultValue: true);
 }

@@ -209,6 +209,11 @@ namespace Roslyn.Utilities
 
         private static readonly char[] s_invalidPathChars = Path.GetInvalidPathChars();
 
+        internal static string GetNormalizedPathOrOriginalPath(string path, string? basePath)
+        {
+            return NormalizeRelativePath(path, basePath, baseDirectory: null) ?? path;
+        }
+
         internal static string? NormalizeRelativePath(string path, string? basePath, string? baseDirectory)
         {
             // Does this look like a URI at all or does it have any invalid path characters? If so, just use it as is.
@@ -268,7 +273,10 @@ namespace Roslyn.Utilities
 
         internal static string? TryNormalizeAbsolutePath(string path)
         {
-            Debug.Assert(PathUtilities.IsAbsolute(path));
+            if (!PathUtilities.IsAbsolute(path))
+            {
+                return null;
+            }
 
             try
             {

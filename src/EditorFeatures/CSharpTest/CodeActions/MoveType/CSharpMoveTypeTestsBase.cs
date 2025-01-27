@@ -7,12 +7,11 @@
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.MoveType;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
-{
-    public abstract class CSharpMoveTypeTestsBase : AbstractMoveTypeTest
-    {
-        protected override ParseOptions GetScriptOptions() => TestOptions.Script;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType;
 
-        protected internal override string GetLanguage() => LanguageNames.CSharp;
-    }
+public abstract class CSharpMoveTypeTestsBase : AbstractMoveTypeTest
+{
+    protected override ParseOptions GetScriptOptions() => TestOptions.Script;
+
+    protected internal override string GetLanguage() => LanguageNames.CSharp;
 }

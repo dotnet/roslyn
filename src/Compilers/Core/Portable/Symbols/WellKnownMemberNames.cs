@@ -398,5 +398,13 @@ namespace Microsoft.CodeAnalysis
         /// The name of a type synthesized for a top-level statements entry point method.
         /// </summary>
         public const string TopLevelStatementsEntryPointTypeName = "Program";
+
+        internal const string LockTypeName = "Lock";
+        internal const string EnterScopeMethodName = "EnterScope";
+        internal const string LockScopeTypeName = "Scope";
+
+        internal const string CastUpMethodName = "CastUp";
+        internal const string MemoryExtensionsTypeFullName = "System.MemoryExtensions";
+        internal const string AsSpanMethodName = "AsSpan";
     }
 }

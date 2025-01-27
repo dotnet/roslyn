@@ -934,6 +934,23 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
+        <Fact>
+        Public Async Function TestDoNotRemoveNecessaryCastPassedToIllegalParamArray() As Task
+            Dim markup =
+<File>
+Module M
+    Sub Main()
+        Goo([|CObj(Nothing)|])
+    End Sub
+    Sub Goo(ParamArray x As Object)
+        Console.WriteLine(x.Length)
+    End Sub
+End Module
+</File>
+
+            Await TestMissingAsync(markup)
+        End Function
+
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
         Public Async Function TestRemoveUnnecessaryCastPassedToParamArray1() As Task
             Dim markup =

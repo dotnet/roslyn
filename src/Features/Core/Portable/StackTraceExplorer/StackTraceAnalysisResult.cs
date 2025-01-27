@@ -2,17 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer;
+
+internal readonly struct StackTraceAnalysisResult(
+    string originalString,
+    ImmutableArray<ParsedFrame> parsedLines)
 {
-    internal readonly struct StackTraceAnalysisResult(
-        string originalString,
-        ImmutableArray<ParsedFrame> parsedLines)
-    {
-        public string OriginalString { get; } = originalString;
-        public ImmutableArray<ParsedFrame> ParsedFrames { get; } = parsedLines;
-    }
+    public string OriginalString { get; } = originalString;
+    public ImmutableArray<ParsedFrame> ParsedFrames { get; } = parsedLines;
 }

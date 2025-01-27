@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitArgument(IArgumentOperation operation)
         {
             Assert.Equal(OperationKind.Argument, operation.Kind);
-            Assert.Contains(operation.ArgumentKind, new[] { ArgumentKind.DefaultValue, ArgumentKind.Explicit, ArgumentKind.ParamArray });
+            Assert.Contains(operation.ArgumentKind, new[] { ArgumentKind.DefaultValue, ArgumentKind.Explicit, ArgumentKind.ParamArray, ArgumentKind.ParamCollection });
             var parameter = operation.Parameter;
 
             Assert.Same(operation.Value, operation.ChildOperations.Single());

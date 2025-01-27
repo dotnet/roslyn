@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly bool _isCompilerGenerated;
         private readonly ImmutableArray<Location> _locations;
         private readonly string _nameOpt;
-        private readonly int _ordinal; // index in locals of containing block
         private readonly bool _isPinned;
         private readonly RefKind _refKind;
         private readonly bool _canScheduleToStack;
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _method = method;
             _locations = locations;
             _nameOpt = nameOpt;
-            _ordinal = ordinal;
+            Ordinal = ordinal;
             _declarationKind = declarationKind;
             _type = type;
             _refKind = refKind;
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap)
         {
             var type = typeMap.SubstituteType(_type);
-            return new EELocalSymbol(method, _locations, _nameOpt, _ordinal, _declarationKind, type, _refKind, _isPinned, _isCompilerGenerated, _canScheduleToStack);
+            return new EELocalSymbol(method, _locations, _nameOpt, Ordinal, _declarationKind, type, _refKind, _isPinned, _isCompilerGenerated, _canScheduleToStack);
         }
 
         internal override LocalDeclarationKind DeclarationKind
@@ -86,10 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _canScheduleToStack; }
         }
 
-        internal int Ordinal
-        {
-            get { return _ordinal; }
-        }
+        internal int Ordinal { get; }
 
         public override string Name
         {

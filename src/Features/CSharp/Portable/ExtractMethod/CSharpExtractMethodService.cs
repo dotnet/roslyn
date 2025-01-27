@@ -15,16 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 [ExportLanguageService(typeof(IExtractMethodService), LanguageNames.CSharp)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class CSharpExtractMethodService() : AbstractExtractMethodService<
-    CSharpSelectionValidator,
-    CSharpMethodExtractor,
-    CSharpSelectionResult,
+internal sealed partial class CSharpExtractMethodService() : AbstractExtractMethodService<
+    StatementSyntax,
     StatementSyntax,
     ExpressionSyntax>
 {
-    protected override CSharpSelectionValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, ExtractMethodOptions options, bool localFunction)
-        => new(document, textSpan, options, localFunction);
+    protected override SelectionValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, bool localFunction)
+        => new CSharpSelectionValidator(document, textSpan, localFunction);
 
-    protected override CSharpMethodExtractor CreateMethodExtractor(CSharpSelectionResult selectionResult, ExtractMethodGenerationOptions options, bool localFunction)
-        => new(selectionResult, options, localFunction);
+    protected override MethodExtractor CreateMethodExtractor(SelectionResult selectionResult, ExtractMethodGenerationOptions options, bool localFunction)
+        => new CSharpMethodExtractor(selectionResult, options, localFunction);
 }

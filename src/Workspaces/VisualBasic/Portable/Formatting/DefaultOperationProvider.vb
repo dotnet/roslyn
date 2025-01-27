@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
@@ -36,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return New DefaultOperationProvider(options)
         End Function
 
-        Public Overrides Sub AddSuppressOperationsSlow(operations As List(Of SuppressOperation), node As SyntaxNode, ByRef nextAction As NextSuppressOperationAction)
+        Public Overrides Sub AddSuppressOperationsSlow(operations As ArrayBuilder(Of SuppressOperation), node As SyntaxNode, ByRef nextAction As NextSuppressOperationAction)
         End Sub
 
         Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation), node As SyntaxNode, ByRef nextAction As NextAnchorIndentationOperationAction)
@@ -182,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             If xmlDeclaration IsNot Nothing AndAlso
                xmlDeclaration.LessThanQuestionToken = currentToken AndAlso
                TypeOf xmlDeclaration.Parent Is XmlDocumentSyntax AndAlso
-               Not TypeOf xmlDeclaration.Parent.Parent Is XmlNodeSyntax Then
+               TypeOf xmlDeclaration.Parent.Parent IsNot XmlNodeSyntax Then
                 Return True
             End If
 
@@ -190,14 +191,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             If startTag IsNot Nothing AndAlso
                startTag.LessThanToken = currentToken AndAlso
                TypeOf startTag.Parent Is XmlElementSyntax AndAlso
-               Not TypeOf startTag.Parent.Parent Is XmlNodeSyntax Then
+               TypeOf startTag.Parent.Parent IsNot XmlNodeSyntax Then
                 Return True
             End If
 
             Dim emptyTag = TryCast(currentToken.Parent, XmlEmptyElementSyntax)
             If emptyTag IsNot Nothing AndAlso
                emptyTag.LessThanToken = currentToken AndAlso
-               Not TypeOf emptyTag.Parent Is XmlNodeSyntax Then
+               TypeOf emptyTag.Parent IsNot XmlNodeSyntax Then
                 Return True
             End If
 

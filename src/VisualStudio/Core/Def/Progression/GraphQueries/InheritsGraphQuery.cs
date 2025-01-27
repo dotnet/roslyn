@@ -4,62 +4,56 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.Schemas;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
+
+internal sealed class InheritsGraphQuery : IGraphQuery
 {
-    internal sealed class InheritsGraphQuery : IGraphQuery
+    public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
     {
-        public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
+        var nodesToProcess = context.InputNodes;
+
+        for (var depth = 0; depth < context.LinkDepth; depth++)
         {
-            var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
-            var nodesToProcess = context.InputNodes;
+            // This is the list of nodes we created and will process
+            var newNodes = new HashSet<GraphNode>();
 
-            for (var depth = 0; depth < context.LinkDepth; depth++)
+            foreach (var node in nodesToProcess)
             {
-                // This is the list of nodes we created and will process
-                var newNodes = new HashSet<GraphNode>();
-
-                foreach (var node in nodesToProcess)
+                var symbol = graphBuilder.GetSymbol(node, cancellationToken);
+                if (symbol is INamedTypeSymbol namedType)
                 {
-                    var symbol = graphBuilder.GetSymbol(node, cancellationToken);
-                    if (symbol is INamedTypeSymbol namedType)
+                    if (namedType.BaseType != null)
                     {
-                        if (namedType.BaseType != null)
+                        var baseTypeNode = await graphBuilder.AddNodeAsync(
+                            namedType.BaseType, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                        newNodes.Add(baseTypeNode);
+                        graphBuilder.AddLink(node, CodeLinkCategories.InheritsFrom, baseTypeNode, cancellationToken);
+                    }
+                    else if (namedType.TypeKind == TypeKind.Interface && !namedType.OriginalDefinition.AllInterfaces.IsEmpty)
+                    {
+                        foreach (var baseNode in namedType.OriginalDefinition.AllInterfaces.Distinct())
                         {
                             var baseTypeNode = await graphBuilder.AddNodeAsync(
-                                namedType.BaseType, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                                baseNode, relatedNode: node, cancellationToken).ConfigureAwait(false);
                             newNodes.Add(baseTypeNode);
                             graphBuilder.AddLink(node, CodeLinkCategories.InheritsFrom, baseTypeNode, cancellationToken);
                         }
-                        else if (namedType.TypeKind == TypeKind.Interface && !namedType.OriginalDefinition.AllInterfaces.IsEmpty)
-                        {
-                            foreach (var baseNode in namedType.OriginalDefinition.AllInterfaces.Distinct())
-                            {
-                                var baseTypeNode = await graphBuilder.AddNodeAsync(
-                                    baseNode, relatedNode: node, cancellationToken).ConfigureAwait(false);
-                                newNodes.Add(baseTypeNode);
-                                graphBuilder.AddLink(node, CodeLinkCategories.InheritsFrom, baseTypeNode, cancellationToken);
-                            }
-                        }
                     }
                 }
-
-                nodesToProcess = newNodes;
             }
 
-            return graphBuilder;
+            nodesToProcess = newNodes;
         }
+
+        return graphBuilder;
     }
 }

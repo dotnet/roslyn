@@ -119,7 +119,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Note: it is possible for any parameter to have the [ParamArray] attribute (for instance, in IL),
         ///     even if it is not the last parameter. So check for that.
         /// </summary>
-        public abstract bool IsParams { get; }
+        public abstract bool IsParamsArray { get; }
+
+        /// <summary>
+        /// Returns true if the parameter was declared as a parameter collection.
+        /// Note: it is possible for any parameter to have the [ParamCollection] attribute (for instance, in IL),
+        ///     even if it is not the last parameter. So check for that.
+        /// </summary>
+        public abstract bool IsParamsCollection { get; }
+
+        internal bool IsParams => IsParamsArray || IsParamsCollection;
 
         /// <summary>
         /// Returns true if the parameter is semantically optional.

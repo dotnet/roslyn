@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
@@ -64,7 +63,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         /// Set of scopes we have.  We always start with one (the one created by the initial call to create the work
         /// indicator). However, the client of the background indicator can add more.
         /// </summary>
-        private ImmutableArray<BackgroundWorkIndicatorScope> _scopes = ImmutableArray<BackgroundWorkIndicatorScope>.Empty;
+        private ImmutableArray<BackgroundWorkIndicatorScope> _scopes = [];
 
         /// <summary>
         /// If we've been dismissed or not.  Once dismissed, we will close the tool-tip showing information.  This
@@ -240,7 +239,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 // Todo: build a richer tool-tip that makes use of things like the progress reported, and perhaps has a
                 // close button.
                 _toolTipPresenter.StartOrUpdate(
-                    _trackingSpan, new[] { string.Format(EditorFeaturesResources._0_Esc_to_cancel, data.description) });
+                    _trackingSpan, [string.Format(EditorFeaturesResources._0_Esc_to_cancel, data.description)]);
             }
         }
 

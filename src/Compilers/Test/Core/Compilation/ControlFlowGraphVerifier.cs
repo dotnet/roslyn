@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             stringBuilder.Append("*2");
                         }
 
-                        stringBuilder.Append("]");
+                        stringBuilder.Append(']');
                     }
 
                     stringBuilder.AppendLine();

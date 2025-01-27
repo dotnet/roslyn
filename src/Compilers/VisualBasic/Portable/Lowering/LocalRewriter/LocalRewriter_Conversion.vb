@@ -371,8 +371,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 Case BoundKind.Call
                     Dim t = DirectCast(node, BoundCall)
-                    Return Not (t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Delegate__CreateDelegate, True) OrElse
-                                t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Delegate__CreateDelegate4, True) OrElse
+                    Return Not (t.Method = F.SpecialMember(SpecialMember.System_Delegate__CreateDelegate, True) OrElse
+                                t.Method = F.SpecialMember(SpecialMember.System_Delegate__CreateDelegate4, True) OrElse
                                 t.Method = F.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, True))
                 Case Else
                     Return True
@@ -589,92 +589,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return operand
-        End Function
-
-        Private Function RewriteNullableReferenceConversion(node As BoundConversion,
-                                           rewrittenOperand As BoundExpression) As BoundExpression
-
-            Dim resultType = node.Type
-            Dim operandType = rewrittenOperand.Type
-
-            If operandType.IsStringType Then
-                ' CType(string, T?) ---> new T?(CType(string, T))
-                Dim innerTargetType = resultType.GetNullableUnderlyingType
-                Dim useSiteInfo = GetNewCompoundUseSiteInfo()
-                Dim convKind = Conversions.ClassifyConversion(operandType, innerTargetType, useSiteInfo).Key
-                Debug.Assert(Conversions.ConversionExists(convKind))
-                _diagnostics.Add(node, useSiteInfo)
-                Return WrapInNullable(
-                            TransformRewrittenConversion(
-                                node.Update(rewrittenOperand,
-                                            convKind,
-                                            node.Checked,
-                                            node.ExplicitCastInCode,
-                                            node.ConstantValueOpt,
-                                            node.ExtendedInfoOpt,
-                                            resultType.GetNullableUnderlyingType)),
-                                resultType)
-            End If
-
-            If resultType.IsStringType Then
-                ' conversion to string is an intrinsic conversion and can be lifted.
-                ' T? --> string   ==>   T.Value -- string
-                ' note that nullable null does not convert to string null, i.e. this conversion
-                ' is not null-propagating
-
-                rewrittenOperand = NullableValue(rewrittenOperand)
-                Dim useSiteInfo = GetNewCompoundUseSiteInfo()
-                Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenOperand.Type, resultType, useSiteInfo)
-                Debug.Assert(Conversions.ConversionExists(convKind))
-                _diagnostics.Add(node, useSiteInfo)
-                Return TransformRewrittenConversion(
-                            node.Update(rewrittenOperand,
-                                        node.ConversionKind And (Not ConversionKind.Nullable),
-                                        node.Checked,
-                                        node.ExplicitCastInCode,
-                                        node.ConstantValueOpt,
-                                        node.ExtendedInfoOpt,
-                                        resultType))
-            End If
-
-            If operandType.IsNullableType Then
-                ' T? --> RefType, this is a boxing conversion (DirectCast)
-                If HasNoValue(rewrittenOperand) Then
-                    ' DirectCast(Nothing, operatorType)
-                    Return New BoundDirectCast(node.Syntax,
-                                               MakeNullLiteral(rewrittenOperand.Syntax, resultType),
-                                               ConversionKind.WideningNothingLiteral,
-                                               resultType)
-                End If
-
-                If HasValue(rewrittenOperand) Then
-                    ' DirectCast(operand.GetValueOrDefault, operatorType)
-                    Dim unwrappedOperand = NullableValueOrDefault(rewrittenOperand)
-                    Dim useSiteInfo = GetNewCompoundUseSiteInfo()
-                    Dim convKind = Conversions.ClassifyDirectCastConversion(unwrappedOperand.Type, resultType, useSiteInfo)
-                    Debug.Assert(Conversions.ConversionExists(convKind))
-                    _diagnostics.Add(node, useSiteInfo)
-                    Return New BoundDirectCast(node.Syntax,
-                                               unwrappedOperand,
-                                               convKind,
-                                               resultType)
-                End If
-            End If
-
-            If resultType.IsNullableType Then
-                ' RefType --> T? , this is just an unboxing conversion.
-                Dim useSiteInfo = GetNewCompoundUseSiteInfo()
-                Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenOperand.Type, resultType, useSiteInfo)
-                Debug.Assert(Conversions.ConversionExists(convKind))
-                _diagnostics.Add(node, useSiteInfo)
-                Return New BoundDirectCast(node.Syntax,
-                                           rewrittenOperand,
-                                           convKind,
-                                           resultType)
-
-            End If
-
-            Throw ExceptionUtilities.Unreachable
         End Function
 
         Private Function RewriteNullableUserDefinedConversion(node As BoundUserDefinedConversion) As BoundNode

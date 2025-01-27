@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingParameter.GetAttributes();
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             _underlyingParameter.AddSynthesizedAttributes(moduleBuilder, ref attributes);
         }
@@ -86,9 +86,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.Ordinal; }
         }
 
-        public override bool IsParams
+        public override bool IsParamsArray
         {
-            get { return _underlyingParameter.IsParams; }
+            get { return _underlyingParameter.IsParamsArray; }
+        }
+
+        public override bool IsParamsCollection
+        {
+            get { return _underlyingParameter.IsParamsCollection; }
         }
 
         internal override bool IsMetadataOptional

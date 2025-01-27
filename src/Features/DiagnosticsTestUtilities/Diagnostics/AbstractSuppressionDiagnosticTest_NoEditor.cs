@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         {
-            return actions.SelectMany(a => a is AbstractConfigurationActionWithNestedActions
+            return [.. actions.SelectMany(a => a is AbstractConfigurationActionWithNestedActions
                 ? a.NestedActions
-                : ImmutableArray.Create(a)).ToImmutableArray();
+                : [a])];
         }
 
         private ImmutableArray<Diagnostic> FilterDiagnostics(IEnumerable<Diagnostic> diagnostics)
@@ -61,14 +61,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 diagnostics = diagnostics.Where(d => d.IsSuppressed);
             }
 
-            return diagnostics.ToImmutableArray();
+            return [.. diagnostics];
         }
 
         internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             var (analyzer, _) = CreateDiagnosticProviderAndFixer(workspace);
-            AddAnalyzerToWorkspace(workspace, analyzer, parameters);
+            AddAnalyzerToWorkspace(workspace, analyzer);
 
             var document = GetDocumentAndSelectSpan(workspace, out var span);
             var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestWorkspace workspace, TestParameters parameters)
         {
             var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
-            AddAnalyzerToWorkspace(workspace, analyzer, parameters);
+            AddAnalyzerToWorkspace(workspace, analyzer);
 
             GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
 

@@ -2,687 +2,725 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceUsingStatement)]
+public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceUsingStatement)]
-    public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_NoEditor
+    private static OptionsCollection DoNotPreferSimpleUsingStatement => new(LanguageNames.CSharp)
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
-            => new CSharpIntroduceUsingStatementCodeRefactoringProvider();
+        { CSharpCodeStyleOptions.PreferSimpleUsingStatement, new CodeStyleOption2<bool>(false, NotificationOption2.Silent) }
+    };
 
-        private Task TestAsync(string initialMarkup, string expectedMarkup, LanguageVersion languageVersion = LanguageVersion.CSharp7)
-            => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion));
+    private static OptionsCollection PreferSimpleUsingStatement => new(LanguageNames.CSharp)
+    {
+        { CSharpCodeStyleOptions.PreferSimpleUsingStatement, new CodeStyleOption2<bool>(true, NotificationOption2.Silent) }
+    };
 
-        [Theory]
-        [InlineData("v[||]ar name = disposable;")]
-        [InlineData("var[||] name = disposable;")]
-        [InlineData("var [||]name = disposable;")]
-        [InlineData("var na[||]me = disposable;")]
-        [InlineData("var name[||] = disposable;")]
-        [InlineData("var name [||]= disposable;")]
-        [InlineData("var name =[||] disposable;")]
-        [InlineData("var name = [||]disposable;")]
-        [InlineData("[|var name = disposable;|]")]
-        [InlineData("var name = disposable[||];")]
-        [InlineData("var name = disposable;[||]")]
-        [InlineData("var name = disposable[||]")]
-        public async Task RefactoringIsAvailableForSelection(string declaration)
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                """ + declaration + """
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        using (var name = disposable)
-                        {
-                        }
-                    }
-                }
-                """);
-        }
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
+        => new CSharpIntroduceUsingStatementCodeRefactoringProvider();
 
-        [Fact]
-        public async Task RefactoringIsAvailableForVerticalSelection()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {                             [|
-                """ + """
-                        var name = disposable;    |]
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        using (var name = disposable)
-                        {
-                        }
-                    }
-                }
-                """);
-        }
+    private Task TestAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        LanguageVersion languageVersion = LanguageVersion.CSharp7,
+        OptionsCollection? options = null)
+        => TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion), options: options);
 
-        [Fact]
-        public async Task RefactoringIsAvailableForSelectionAtStartOfStatementWithPrecedingDeclaration()
-        {
-            await TestAsync(
-                """
-                class C
+    [Theory]
+    [InlineData("v[||]ar name = disposable;")]
+    [InlineData("var[||] name = disposable;")]
+    [InlineData("var [||]name = disposable;")]
+    [InlineData("var na[||]me = disposable;")]
+    [InlineData("var name[||] = disposable;")]
+    [InlineData("var name [||]= disposable;")]
+    [InlineData("var name =[||] disposable;")]
+    [InlineData("var name = [||]disposable;")]
+    [InlineData("[|var name = disposable;|]")]
+    [InlineData("var name = disposable[||];")]
+    [InlineData("var name = disposable;[||]")]
+    [InlineData("var name = disposable[||]")]
+    public async Task RefactoringIsAvailableForSelection(string declaration)
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
+            """ + declaration + """
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    using (var name = disposable)
                     {
-                        var ignore = disposable;
-                        [||]var name = disposable;
                     }
                 }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        var ignore = disposable;
-                        using (var name = disposable)
-                        {
-                        }
-                    }
-                }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task RefactoringIsAvailableForSelectionAtStartOfLineWithPrecedingDeclaration()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task RefactoringIsAvailableForVerticalSelection()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {                             [|
+            """ + """
+                    var name = disposable;    |]
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
+                    using (var name = disposable)
                     {
-                        var ignore = disposable;
-                [||]        var name = disposable;
                     }
                 }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        var ignore = disposable;
-                        using (var name = disposable)
-                        {
-                        }
-                    }
-                }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task RefactoringIsAvailableForSelectionAtEndOfStatementWithFollowingDeclaration()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task RefactoringIsAvailableForSelectionAtStartOfStatementWithPrecedingDeclaration()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
+                    var ignore = disposable;
+                    [||]var name = disposable;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    var ignore = disposable;
+                    using (var name = disposable)
                     {
-                        var name = disposable;[||]
-                        var ignore = disposable;
                     }
                 }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        using (var name = disposable)
-                        {
-                        }
+            }
+            """);
+    }
 
-                        var ignore = disposable;
+    [Fact]
+    public async Task RefactoringIsAvailableForSelectionAtStartOfLineWithPrecedingDeclaration()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    var ignore = disposable;
+            [||]        var name = disposable;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    var ignore = disposable;
+                    using (var name = disposable)
+                    {
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task RefactoringIsAvailableForSelectionAtEndOfLineWithFollowingDeclaration()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task RefactoringIsAvailableForSelectionAtEndOfStatementWithFollowingDeclaration()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
-                    {
-                        var name = disposable;    [||]
-                        var ignore = disposable;
-                    }
+                    var name = disposable;[||]
+                    var ignore = disposable;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
+                    using (var name = disposable)
                     {
-                        using (var name = disposable)
-                        {
-                        }
+                    }
 
-                        var ignore = disposable;
-                    }
+                    var ignore = disposable;
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Theory]
-        [InlineData("var name = d[||]isposable;")]
-        [InlineData("var name = disposabl[||]e;")]
-        [InlineData("var name=[|disposable|];")]
-        public async Task RefactoringIsNotAvailableForSelection(string declaration)
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
+    [Fact]
+    public async Task RefactoringIsAvailableForSelectionAtEndOfLineWithFollowingDeclaration()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
-                    {
-                """ + declaration + """
-                    }
+                    var name = disposable;    [||]
+                    var ignore = disposable;
                 }
-                """);
-        }
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    using (var name = disposable)
+                    {
+                    }
 
-        [Fact]
-        public async Task RefactoringIsNotAvailableForDeclarationMissingInitializerExpression()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        System.IDisposable name =[||]
-                    }
+                    var ignore = disposable;
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task RefactoringIsNotAvailableForUsingStatementDeclaration()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
+    [Theory]
+    [InlineData("var name = d[||]isposable;")]
+    [InlineData("var name = disposabl[||]e;")]
+    [InlineData("var name=[|disposable|];")]
+    public async Task RefactoringIsNotAvailableForSelection(string declaration)
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
-                    {
-                        using ([||]var name = disposable)
-                        {
-                        }
-                    }
+            """ + declaration + """
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Theory]
-        [InlineData("[||]System.IDisposable x = disposable, y = disposable;")]
-        [InlineData("System.IDisposable [||]x = disposable, y = disposable;")]
-        [InlineData("System.IDisposable x = disposable, [||]y = disposable;")]
-        [InlineData("System.IDisposable x = disposable, y = disposable;[||]")]
-        public async Task RefactoringIsNotAvailableForMultiVariableDeclaration(string declaration)
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
+    [Fact]
+    public async Task RefactoringIsNotAvailableForDeclarationMissingInitializerExpression()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
-                    {
-                """ + declaration + """
-                    }
+                    System.IDisposable name =[||]
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task RefactoringIsAvailableForConstrainedGenericTypeParameter()
-        {
-            await TestAsync(
-                """
-                class C<T> where T : System.IDisposable
+    [Fact]
+    public async Task RefactoringIsNotAvailableForUsingStatementDeclaration()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(T disposable)
+                    using ([||]var name = disposable)
                     {
-                        var x = disposable;[||]
                     }
                 }
-                """,
-                """
-                class C<T> where T : System.IDisposable
-                {
-                    void M(T disposable)
-                    {
-                        using (var x = disposable)
-                        {
-                        }
-                    }
-                }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task RefactoringIsNotAvailableForUnconstrainedGenericTypeParameter()
-        {
-            await TestMissingAsync(
-                """
-                class C<T>
+    [Theory]
+    [InlineData("[||]System.IDisposable x = disposable, y = disposable;")]
+    [InlineData("System.IDisposable [||]x = disposable, y = disposable;")]
+    [InlineData("System.IDisposable x = disposable, [||]y = disposable;")]
+    [InlineData("System.IDisposable x = disposable, y = disposable;[||]")]
+    public async Task RefactoringIsNotAvailableForMultiVariableDeclaration(string declaration)
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(T disposable)
-                    {
-                        var x = disposable;[||]
-                    }
+            """ + declaration + """
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task LeadingCommentTriviaIsPlacedOnUsingStatement()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task RefactoringIsAvailableForConstrainedGenericTypeParameter()
+    {
+        await TestAsync(
+            """
+            class C<T> where T : System.IDisposable
+            {
+                void M(T disposable)
                 {
-                    void M(System.IDisposable disposable)
+                    var x = disposable;[||]
+                }
+            }
+            """,
+            """
+            class C<T> where T : System.IDisposable
+            {
+                void M(T disposable)
+                {
+                    using (var x = disposable)
                     {
-                        // Comment
-                        var x = disposable;[||]
                     }
                 }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        // Comment
-                        using (var x = disposable)
-                        {
-                        }
-                    }
-                }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task CommentOnTheSameLineStaysOnTheSameLine()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task RefactoringIsNotAvailableForUnconstrainedGenericTypeParameter()
+    {
+        await TestMissingAsync(
+            """
+            class C<T>
+            {
+                void M(T disposable)
                 {
-                    void M(System.IDisposable disposable)
-                    {
-                        var x = disposable;[||] // Comment
-                    }
+                    var x = disposable;[||]
                 }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        using (var x = disposable) // Comment
-                        {
-                        }
-                    }
-                }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TrailingCommentTriviaOnNextLineGoesAfterBlock()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task LeadingCommentTriviaIsPlacedOnUsingStatement()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
+                    // Comment
+                    var x = disposable;[||]
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    // Comment
+                    using (var x = disposable)
                     {
-                        var x = disposable;[||]
-                        // Comment
                     }
                 }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        using (var x = disposable)
-                        {
-                        }
-                        // Comment
-                    }
-                }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task ValidPreprocessorStaysValid()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task CommentOnTheSameLineStaysOnTheSameLine()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
+                    var x = disposable;[||] // Comment
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    using (var x = disposable) // Comment
                     {
-                #if true
-                        var x = disposable;[||]
-                #endif
                     }
                 }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                #if true
-                        using (var x = disposable)
-                        {
-                        }
-                #endif
-                    }
-                }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task InvalidPreprocessorStaysInvalid()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TrailingCommentTriviaOnNextLineGoesAfterBlock()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
+                    var x = disposable;[||]
+                    // Comment
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    using (var x = disposable)
                     {
-                #if true
-                        var x = disposable;[||]
-                #endif
+                    }
+                    // Comment
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ValidPreprocessorStaysValid()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+            #if true
+                    var x = disposable;[||]
+            #endif
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+            #if true
+                    using (var x = disposable)
+                    {
+                    }
+            #endif
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InvalidPreprocessorStaysInvalid()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+            #if true
+                    var x = disposable;[||]
+            #endif
+                    _ = x;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+            #if true
+                    using (var x = disposable)
+                    {
+            #endif
                         _ = x;
                     }
                 }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                #if true
-                        using (var x = disposable)
-                        {
-                #endif
-                            _ = x;
-                        }
-                    }
-                }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task InvalidPreprocessorStaysInvalid_CSharp8()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task InvalidPreprocessorStaysInvalid_CSharp8()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
-                    {
-                #if true
-                        var x = disposable;[||]
-                #endif
-                        _ = x;
-                    }
+            #if true
+                    var x = disposable;[||]
+            #endif
+                    _ = x;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
-                    {
-                #if true
-                        using var x = disposable;
-                #endif
-                        _ = x;
-                    }
+            #if true
+                    using var x = disposable;
+            #endif
+                    _ = x;
                 }
-                """, LanguageVersion.CSharp8);
-        }
+            }
+            """, LanguageVersion.CSharp8);
+    }
 
-        [Fact]
-        public async Task StatementsAreSurroundedByMinimalScope()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task StatementsAreSurroundedByMinimalScope()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
+                    M(null);
+                    var x = disposable;[||]
+                    M(null);
+                    M(x);
+                    M(null);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    M(null);
+                    using (var x = disposable)
                     {
-                        M(null);
-                        var x = disposable;[||]
                         M(null);
                         M(x);
-                        M(null);
                     }
-                }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        M(null);
-                        using (var x = disposable)
-                        {
-                            M(null);
-                            M(x);
-                        }
 
-                        M(null);
-                    }
+                    M(null);
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task CommentsAreSurroundedExceptLinesFollowingLastUsage()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task CommentsAreSurroundedExceptLinesFollowingLastUsage()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
+                    var x = disposable;[||]
+                    // A
+                    M(x); // B
+                    // C
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    using (var x = disposable)
                     {
-                        var x = disposable;[||]
                         // A
                         M(x); // B
-                        // C
                     }
+                    // C
                 }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        using (var x = disposable)
-                        {
-                            // A
-                            M(x); // B
-                        }
-                        // C
-                    }
-                }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task WorksInSwitchSections()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task WorksInSwitchSections()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
+                    switch (disposable)
                     {
-                        switch (disposable)
-                        {
-                            default:
-                                var x = disposable;[||]
-                                M(x);
-                                break;
-                        }
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        switch (disposable)
-                        {
-                            default:
-                                using (var x = disposable)
-                                {
-                                    M(x);
-                                }
-
-                                break;
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task WorksOnStatementWithInvalidEmbeddingInIf()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        if (disposable != null)
+                        default:
                             var x = disposable;[||]
+                            M(x);
+                            break;
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
+                    switch (disposable)
                     {
-                        if (disposable != null)
+                        default:
                             using (var x = disposable)
                             {
+                                M(x);
                             }
+
+                            break;
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task RefactoringIsNotAvailableOnStatementWithInvalidEmbeddingInLambda()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
+    [Fact]
+    public async Task WorksOnStatementWithInvalidEmbeddingInIf()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
-                    {
-                        new Action(() => var x = disposable[||]);
-                    }
+                    if (disposable != null)
+                        var x = disposable;[||]
                 }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
-        public async Task ExpandsToIncludeSurroundedVariableDeclarations()
-        {
-            await TestAsync(
-                """
-                using System.IO;
-
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M()
+                    if (disposable != null)
+                        using (var x = disposable)
+                        {
+                        }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task RefactoringIsNotAvailableOnStatementWithInvalidEmbeddingInLambda()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    new Action(() => var x = disposable[||]);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
+    public async Task ExpandsToIncludeSurroundedVariableDeclarations()
+    {
+        await TestAsync(
+            """
+            using System.IO;
+
+            class C
+            {
+                void M()
+                {
+                    var reader = new MemoryStream()[||];
+                    var buffer = reader.GetBuffer();
+                    buffer.Clone();
+                    var a = 1;
+                }
+            }
+            """,
+            """
+            using System.IO;
+
+            class C
+            {
+                void M()
+                {
+                    using (var reader = new MemoryStream())
                     {
-                        var reader = new MemoryStream()[||];
                         var buffer = reader.GetBuffer();
                         buffer.Clone();
-                        var a = 1;
                     }
+
+                    var a = 1;
                 }
-                """,
-                """
-                using System.IO;
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
+    public async Task ExpandsToIncludeSurroundedOutVariableDeclarations()
+    {
+        await TestAsync(
+            """
+            using System.IO;
+
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    var reader = new MemoryStream()[||];
+                    var buffer = reader.GetBuffer();
+                    if (!int.TryParse(buffer[0].ToString(), out var number))
                     {
-                        using (var reader = new MemoryStream())
-                        {
-                            var buffer = reader.GetBuffer();
-                            buffer.Clone();
-                        }
-
-                        var a = 1;
+                        return;
                     }
+                    var a = number;
+                    var b = a;
+                    var c = 1;
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System.IO;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
-        public async Task ExpandsToIncludeSurroundedOutVariableDeclarations()
-        {
-            await TestAsync(
-                """
-                using System.IO;
-
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    using (var reader = new MemoryStream())
                     {
-                        var reader = new MemoryStream()[||];
                         var buffer = reader.GetBuffer();
                         if (!int.TryParse(buffer[0].ToString(), out var number))
                         {
@@ -690,46 +728,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
                         }
                         var a = number;
                         var b = a;
-                        var c = 1;
                     }
+
+                    var c = 1;
                 }
-                """,
-                """
-                using System.IO;
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
+    public async Task ExpandsToIncludeSurroundedPatternVariableDeclarations()
+    {
+        await TestAsync(
+            """
+            using System.IO;
+
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    var reader = new MemoryStream()[||];
+                    var buffer = reader.GetBuffer();
+                    if (!(buffer[0] is int number))
                     {
-                        using (var reader = new MemoryStream())
-                        {
-                            var buffer = reader.GetBuffer();
-                            if (!int.TryParse(buffer[0].ToString(), out var number))
-                            {
-                                return;
-                            }
-                            var a = number;
-                            var b = a;
-                        }
-
-                        var c = 1;
+                        return;
                     }
+                    var a = number;
+                    var b = a;
+                    var c = 1;
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System.IO;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
-        public async Task ExpandsToIncludeSurroundedPatternVariableDeclarations()
-        {
-            await TestAsync(
-                """
-                using System.IO;
-
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    using (var reader = new MemoryStream())
                     {
-                        var reader = new MemoryStream()[||];
                         var buffer = reader.GetBuffer();
                         if (!(buffer[0] is int number))
                         {
@@ -737,131 +775,138 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
                         }
                         var a = number;
                         var b = a;
-                        var c = 1;
+                    }
+
+                    var c = 1;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
+    public async Task ExpandsToIncludeSurroundedMultiVariableDeclarations()
+    {
+        await TestAsync(
+            """
+            using System.IO;
+
+            class C
+            {
+                void M()
+                {
+                    var reader = new MemoryStream()[||];
+                    var buffer = reader.GetBuffer();
+                    int a = buffer[0], b = a;
+                    var c = b;
+                    var d = 1;
+                }
+            }
+            """,
+            """
+            using System.IO;
+
+            class C
+            {
+                void M()
+                {
+                    using (var reader = new MemoryStream())
+                    {
+                        var buffer = reader.GetBuffer();
+                        int a = buffer[0], b = a;
+                        var c = b;
+                    }
+
+                    var d = 1;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
+    public async Task ConsumeFollowingTryStatement1()
+    {
+        await TestAsync(
+            """
+            using System.IO;
+
+            class C
+            {
+                void M()
+                {
+                    var reader = new MemoryStream()[||];
+                    try
+                    {
+                        var buffer = reader.GetBuffer();
+                        int a = buffer[0], b = a;
+                        var c = b;
+                        var d = 1;
+                    }
+                    finally
+                    {
+                        reader.Dispose();
                     }
                 }
-                """,
-                """
-                using System.IO;
+            }
+            """,
+            """
+            using System.IO;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    using (var reader = new MemoryStream())
                     {
-                        using (var reader = new MemoryStream())
-                        {
-                            var buffer = reader.GetBuffer();
-                            if (!(buffer[0] is int number))
-                            {
-                                return;
-                            }
-                            var a = number;
-                            var b = a;
-                        }
-
-                        var c = 1;
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35237")]
-        public async Task ExpandsToIncludeSurroundedMultiVariableDeclarations()
-        {
-            await TestAsync(
-                """
-                using System.IO;
-
-                class C
-                {
-                    void M()
-                    {
-                        var reader = new MemoryStream()[||];
                         var buffer = reader.GetBuffer();
                         int a = buffer[0], b = a;
                         var c = b;
                         var d = 1;
                     }
                 }
-                """,
-                """
-                using System.IO;
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
+    public async Task ConsumeFollowingTryStatement2()
+    {
+        await TestAsync(
+            """
+            using System;
+            using System.IO;
+
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    var reader = new MemoryStream()[||];
+                    try
                     {
-                        using (var reader = new MemoryStream())
-                        {
-                            var buffer = reader.GetBuffer();
-                            int a = buffer[0], b = a;
-                            var c = b;
-                        }
-
+                        var buffer = reader.GetBuffer();
+                        int a = buffer[0], b = a;
+                        var c = b;
                         var d = 1;
                     }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-        public async Task ConsumeFollowingTryStatement1()
-        {
-            await TestAsync(
-                """
-                using System.IO;
-
-                class C
-                {
-                    void M()
+                    catch (Exception e)
                     {
-                        var reader = new MemoryStream()[||];
-                        try
-                        {
-                            var buffer = reader.GetBuffer();
-                            int a = buffer[0], b = a;
-                            var c = b;
-                            var d = 1;
-                        }
-                        finally
-                        {
-                            reader.Dispose();
-                        }
+                    }
+                    finally
+                    {
+                        reader.Dispose();
                     }
                 }
-                """,
-                """
-                using System.IO;
+            }
+            """,
+            """
+            using System;
+            using System.IO;
 
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    using (var reader = new MemoryStream())
                     {
-                        using (var reader = new MemoryStream())
-                        {
-                            var buffer = reader.GetBuffer();
-                            int a = buffer[0], b = a;
-                            var c = b;
-                            var d = 1;
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-        public async Task ConsumeFollowingTryStatement2()
-        {
-            await TestAsync(
-                """
-                using System;
-                using System.IO;
-
-                class C
-                {
-                    void M()
-                    {
-                        var reader = new MemoryStream()[||];
                         try
                         {
                             var buffer = reader.GetBuffer();
@@ -878,50 +923,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
                         }
                     }
                 }
-                """,
-                """
-                using System;
-                using System.IO;
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
+    public async Task ConsumeFollowingTryStatement3()
+    {
+        await TestAsync(
+            """
+            using System;
+            using System.IO;
+
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    var reader = new MemoryStream()[||];
+                    try
                     {
-                        using (var reader = new MemoryStream())
-                        {
-                            try
-                            {
-                                var buffer = reader.GetBuffer();
-                                int a = buffer[0], b = a;
-                                var c = b;
-                                var d = 1;
-                            }
-                            catch (Exception e)
-                            {
-                            }
-                            finally
-                            {
-                                reader.Dispose();
-                            }
-                        }
+                        var buffer = reader.GetBuffer();
+                        int a = buffer[0], b = a;
+                        var c = b;
+                        var d = 1;
+                    }
+                    finally
+                    {
                     }
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System;
+            using System.IO;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-        public async Task ConsumeFollowingTryStatement3()
-        {
-            await TestAsync(
-                """
-                using System;
-                using System.IO;
-
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    using (var reader = new MemoryStream())
                     {
-                        var reader = new MemoryStream()[||];
                         try
                         {
                             var buffer = reader.GetBuffer();
@@ -934,46 +975,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
                         }
                     }
                 }
-                """,
-                """
-                using System;
-                using System.IO;
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
+    public async Task ConsumeFollowingTryStatement4()
+    {
+        await TestAsync(
+            """
+            using System;
+            using System.IO;
+
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    var reader = new MemoryStream()[||];
+                    try
                     {
-                        using (var reader = new MemoryStream())
-                        {
-                            try
-                            {
-                                var buffer = reader.GetBuffer();
-                                int a = buffer[0], b = a;
-                                var c = b;
-                                var d = 1;
-                            }
-                            finally
-                            {
-                            }
-                        }
+                        var buffer = reader.GetBuffer();
+                        int a = buffer[0], b = a;
+                        var c = b;
+                        var d = 1;
+                    }
+                    finally
+                    {
+                        return;
                     }
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System;
+            using System.IO;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-        public async Task ConsumeFollowingTryStatement4()
-        {
-            await TestAsync(
-                """
-                using System;
-                using System.IO;
-
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    using (var reader = new MemoryStream())
                     {
-                        var reader = new MemoryStream()[||];
                         try
                         {
                             var buffer = reader.GetBuffer();
@@ -987,47 +1029,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
                         }
                     }
                 }
-                """,
-                """
-                using System;
-                using System.IO;
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
+    public async Task ConsumeFollowingTryStatement5()
+    {
+        await TestAsync(
+            """
+            using System;
+            using System.IO;
+
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    var reader = new MemoryStream()[||];
+                    try
                     {
-                        using (var reader = new MemoryStream())
-                        {
-                            try
-                            {
-                                var buffer = reader.GetBuffer();
-                                int a = buffer[0], b = a;
-                                var c = b;
-                                var d = 1;
-                            }
-                            finally
-                            {
-                                return;
-                            }
-                        }
+                        var buffer = reader.GetBuffer();
+                        int a = buffer[0], b = a;
+                        var c = b;
+                        var d = 1;
+                    }
+                    finally
+                    {
+                        reader = null;
                     }
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System;
+            using System.IO;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-        public async Task ConsumeFollowingTryStatement5()
-        {
-            await TestAsync(
-                """
-                using System;
-                using System.IO;
-
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    using (var reader = new MemoryStream())
                     {
-                        var reader = new MemoryStream()[||];
                         try
                         {
                             var buffer = reader.GetBuffer();
@@ -1041,47 +1083,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
                         }
                     }
                 }
-                """,
-                """
-                using System;
-                using System.IO;
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
+    public async Task ConsumeFollowingTryStatement6()
+    {
+        await TestAsync(
+            """
+            using System;
+            using System.IO;
+
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    var reader = new MemoryStream()[||];
+                    try
                     {
-                        using (var reader = new MemoryStream())
-                        {
-                            try
-                            {
-                                var buffer = reader.GetBuffer();
-                                int a = buffer[0], b = a;
-                                var c = b;
-                                var d = 1;
-                            }
-                            finally
-                            {
-                                reader = null;
-                            }
-                        }
+                        var buffer = reader.GetBuffer();
+                        int a = buffer[0], b = a;
+                        var c = b;
+                        var d = 1;
+                    }
+                    finally
+                    {
+                        Dispose();
                     }
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System;
+            using System.IO;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-        public async Task ConsumeFollowingTryStatement6()
-        {
-            await TestAsync(
-                """
-                using System;
-                using System.IO;
-
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    using (var reader = new MemoryStream())
                     {
-                        var reader = new MemoryStream()[||];
                         try
                         {
                             var buffer = reader.GetBuffer();
@@ -1095,47 +1137,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
                         }
                     }
                 }
-                """,
-                """
-                using System;
-                using System.IO;
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
+    public async Task ConsumeFollowingTryStatement7()
+    {
+        await TestAsync(
+            """
+            using System;
+            using System.IO;
+
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    var reader = new MemoryStream()[||];
+                    try
                     {
-                        using (var reader = new MemoryStream())
-                        {
-                            try
-                            {
-                                var buffer = reader.GetBuffer();
-                                int a = buffer[0], b = a;
-                                var c = b;
-                                var d = 1;
-                            }
-                            finally
-                            {
-                                Dispose();
-                            }
-                        }
+                        var buffer = reader.GetBuffer();
+                        int a = buffer[0], b = a;
+                        var c = b;
+                        var d = 1;
+                    }
+                    finally
+                    {
+                        reader.X();
                     }
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System;
+            using System.IO;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-        public async Task ConsumeFollowingTryStatement7()
-        {
-            await TestAsync(
-                """
-                using System;
-                using System.IO;
-
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    using (var reader = new MemoryStream())
                     {
-                        var reader = new MemoryStream()[||];
                         try
                         {
                             var buffer = reader.GetBuffer();
@@ -1149,47 +1191,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
                         }
                     }
                 }
-                """,
-                """
-                using System;
-                using System.IO;
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
+    public async Task ConsumeFollowingTryStatement8()
+    {
+        await TestAsync(
+            """
+            using System;
+            using System.IO;
+
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    var reader = new MemoryStream()[||];
+                    try
                     {
-                        using (var reader = new MemoryStream())
-                        {
-                            try
-                            {
-                                var buffer = reader.GetBuffer();
-                                int a = buffer[0], b = a;
-                                var c = b;
-                                var d = 1;
-                            }
-                            finally
-                            {
-                                reader.X();
-                            }
-                        }
+                        var buffer = reader.GetBuffer();
+                        int a = buffer[0], b = a;
+                        var c = b;
+                        var d = 1;
+                    }
+                    finally
+                    {
+                        other.Dispose();
                     }
                 }
-                """);
-        }
+            }
+            """,
+            """
+            using System;
+            using System.IO;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43001")]
-        public async Task ConsumeFollowingTryStatement8()
-        {
-            await TestAsync(
-                """
-                using System;
-                using System.IO;
-
-                class C
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    using (var reader = new MemoryStream())
                     {
-                        var reader = new MemoryStream()[||];
                         try
                         {
                             var buffer = reader.GetBuffer();
@@ -1203,219 +1245,300 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
                         }
                     }
                 }
-                """,
-                """
-                using System;
-                using System.IO;
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
+    public async Task StatementsAreSurroundedByMinimalScope1_CSharp8()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M()
-                    {
-                        using (var reader = new MemoryStream())
-                        {
-                            try
-                            {
-                                var buffer = reader.GetBuffer();
-                                int a = buffer[0], b = a;
-                                var c = b;
-                                var d = 1;
-                            }
-                            finally
-                            {
-                                other.Dispose();
-                            }
-                        }
-                    }
+                    M(null);
+                    var x = disposable;[||]
+                    M(null);
+                    M(x);
+                    M(null);
                 }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
-        public async Task StatementsAreSurroundedByMinimalScope1_CSharp8()
-        {
-            await TestAsync(
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
+                    M(null);
+                    using (var x = disposable)
                     {
-                        M(null);
-                        var x = disposable;[||]
                         M(null);
                         M(x);
-                        M(null);
+                    }
+
+                    M(null);
+                }
+            }
+            """, LanguageVersion.CSharp8);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
+    public async Task StatementsAreSurroundedByMinimalScope2_CSharp8()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    M(null);
+                    var x = disposable;[||]
+                    M(null);
+                    M(x);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    M(null);
+                    using var x = disposable;
+                    M(null);
+                    M(x);
+                }
+            }
+            """, LanguageVersion.CSharp8);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
+    public async Task StatementsAreSurroundedByMinimalScope3_CSharp8()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    M(null);
+                    // leading comment
+                    var x = disposable;[||]
+                    M(null);
+                    M(x);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    M(null);
+                    // leading comment
+                    using var x = disposable;
+                    M(null);
+                    M(x);
+                }
+            }
+            """, LanguageVersion.CSharp8);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
+    public async Task StatementsAreSurroundedByMinimalScope4_CSharp8()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    switch (0)
+                    {
+                        case 0:
+                            M(null);
+                            var x = disposable;[||]
+                            M(null);
+                            M(x);
+
+                        case 1:
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
+                    switch (0)
                     {
-                        M(null);
-                        using (var x = disposable)
+                        case 0:
+                            M(null);
+                            using (var x = disposable)
+                            {
+                                M(null);
+                                M(x);
+                            }
+
+                        case 1:
+                    }
+                }
+            }
+            """, LanguageVersion.CSharp8);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
+    public async Task StatementsAreSurroundedByMinimalScope5_CSharp8()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
+                {
+                    switch (0)
+                    {
+                        case 0:
                         {
+                            M(null);
+                            var x = disposable;[||]
                             M(null);
                             M(x);
                         }
 
-                        M(null);
+                        case 1:
                     }
                 }
-                """, LanguageVersion.CSharp8);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
-        public async Task StatementsAreSurroundedByMinimalScope2_CSharp8()
-        {
-            await TestAsync(
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(System.IDisposable disposable)
                 {
-                    void M(System.IDisposable disposable)
+                    switch (0)
                     {
-                        M(null);
-                        var x = disposable;[||]
-                        M(null);
-                        M(x);
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        M(null);
-                        using var x = disposable;
-                        M(null);
-                        M(x);
-                    }
-                }
-                """, LanguageVersion.CSharp8);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
-        public async Task StatementsAreSurroundedByMinimalScope3_CSharp8()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        M(null);
-                        // leading comment
-                        var x = disposable;[||]
-                        M(null);
-                        M(x);
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        M(null);
-                        // leading comment
-                        using var x = disposable;
-                        M(null);
-                        M(x);
-                    }
-                }
-                """, LanguageVersion.CSharp8);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
-        public async Task StatementsAreSurroundedByMinimalScope4_CSharp8()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    void M(System.IDisposable disposable)
-                    {
-                        switch (0)
+                        case 0:
                         {
-                            case 0:
-                                M(null);
-                                var x = disposable;[||]
-                                M(null);
-                                M(x);
-
-                            case 1:
+                            M(null);
+                            using var x = disposable;
+                            M(null);
+                            M(x);
                         }
+
+                        case 1:
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """, LanguageVersion.CSharp8);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37260")]
+    public async Task TestExpressionStatement()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
                 {
-                    void M(System.IDisposable disposable)
-                    {
-                        switch (0)
-                        {
-                            case 0:
-                                M(null);
-                                using (var x = disposable)
-                                {
-                                    M(null);
-                                    M(x);
-                                }
-
-                            case 1:
-                        }
-                    }
+                    [||]MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
                 }
-                """, LanguageVersion.CSharp8);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33699")]
-        public async Task StatementsAreSurroundedByMinimalScope5_CSharp8()
-        {
-            await TestAsync(
-                """
-                class C
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                void M()
                 {
-                    void M(System.IDisposable disposable)
+                    using (MethodThatReturnsDisposableThing())
                     {
-                        switch (0)
-                        {
-                            case 0:
-                            {
-                                M(null);
-                                var x = disposable;[||]
-                                M(null);
-                                M(x);
-                            }
-
-                            case 1:
-                        }
+                        Console.WriteLine();
                     }
                 }
-                """,
-                """
-                class C
+            
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """, options: DoNotPreferSimpleUsingStatement);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37260")]
+    public async Task TestExpressionStatement_PreferSimpleUsingStatement1()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
                 {
-                    void M(System.IDisposable disposable)
-                    {
-                        switch (0)
-                        {
-                            case 0:
-                            {
-                                M(null);
-                                using var x = disposable;
-                                M(null);
-                                M(x);
-                            }
-
-                            case 1:
-                        }
-                    }
+                    [||]MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
                 }
-                """, LanguageVersion.CSharp8);
-        }
+
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                void M()
+                {
+                    using var _ = MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
+                }
+            
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """, options: PreferSimpleUsingStatement);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37260")]
+    public async Task TestExpressionStatement_PreferSimpleUsingStatement2()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    var _ = true;
+                    [||]MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
+                }
+
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """,
+            """
+            using System;
+            
+            class C
+            {
+                void M()
+                {
+                    var _ = true;
+                    using var _1 = MethodThatReturnsDisposableThing();
+                    Console.WriteLine();
+                }
+            
+                IDisposable MethodThatReturnsDisposableThing() => null;
+            }
+            """, options: PreferSimpleUsingStatement);
     }
 }

@@ -455,6 +455,1722 @@ public class SwitchExpressionParsingTests : ParsingTests
         EOF();
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    [InlineData("case")]
+    [InlineData("// leading\r\ncase")]
+    [InlineData("/*leading*/ case")]
+    [InlineData("case // trailing")]
+    [InlineData("case /* trailing */")]
+    [InlineData("case /* trailing\r\n*/")]
+    [InlineData("/*leading*/ case // trailing")]
+    [InlineData("/*leading*/ case /* trailing */")]
+    public void TestErrantCaseInSwitchExpression4(string caseString)
+    {
+        UsingTree($$"""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        {{caseString}}
+                    };
+            }
+            """,
+            // (6,13): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //             case
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case"),
+            // (6,17): error CS8504: Pattern missing
+            //             case
+            Diagnostic(ErrorCode.ERR_MissingPattern, ""),
+            // (6,17): error CS1003: Syntax error, '=>' expected
+            //             case
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>"),
+            // (6,17): error CS1525: Invalid expression term '}'
+            //             case
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}"));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.SwitchExpressionArm);
+                            {
+                                M(SyntaxKind.ConstantPattern);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantCaseInSwitchExpression5()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        case,
+                    };
+            }
+            """,
+            // (6,13): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //             case,
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(6, 13),
+            // (6,17): error CS8504: Pattern missing
+            //             case,
+            Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(6, 17),
+            // (6,17): error CS1003: Syntax error, '=>' expected
+            //             case,
+            Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>").WithLocation(6, 17),
+            // (6,17): error CS1525: Invalid expression term ','
+            //             case,
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(6, 17));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.SwitchExpressionArm);
+                            {
+                                M(SyntaxKind.ConstantPattern);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantCaseInSwitchExpression6()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        case;
+                    };
+            }
+            """,
+            // (6,13): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //             case;
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(6, 13),
+            // (6,17): error CS8504: Pattern missing
+            //             case;
+            Diagnostic(ErrorCode.ERR_MissingPattern, ";").WithLocation(6, 17),
+            // (6,17): error CS1003: Syntax error, '=>' expected
+            //             case;
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("=>").WithLocation(6, 17),
+            // (6,17): error CS1525: Invalid expression term ';'
+            //             case;
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 17),
+            // (6,17): error CS1003: Syntax error, ',' expected
+            //             case;
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 17));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.SwitchExpressionArm);
+                            {
+                                M(SyntaxKind.ConstantPattern);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantCaseInSwitchExpression7()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        case =>
+                    };
+            }
+            """,
+            // (6,13): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //             case =>
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(6, 13),
+            // (6,18): error CS8504: Pattern missing
+            //             case =>
+            Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 18),
+            // (6,20): error CS1525: Invalid expression term '}'
+            //             case =>
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 20));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                M(SyntaxKind.ConstantPattern);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantCaseInSwitchExpression8()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        case when true
+                    };
+            }
+            """,
+            // (6,13): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //             case when true
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(6, 13),
+            // (6,23): error CS1003: Syntax error, '=>' expected
+            //             case when true
+            Diagnostic(ErrorCode.ERR_SyntaxError, "true").WithArguments("=>").WithLocation(6, 23));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantCaseInSwitchExpression9()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        case when true =>
+                    };
+            }
+            """,
+            // (6,13): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //             case when true =>
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(6, 13),
+            // (6,23): error CS1003: Syntax error, '=>' expected
+            //             case when true =>
+            Diagnostic(ErrorCode.ERR_SyntaxError, "true").WithArguments("=>").WithLocation(6, 23),
+            // (6,28): error CS1003: Syntax error, ',' expected
+            //             case when true =>
+            Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 28),
+            // (6,28): error CS8504: Pattern missing
+            //             case when true =>
+            Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 28),
+            // (6,30): error CS1525: Invalid expression term '}'
+            //             case when true =>
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 30));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                M(SyntaxKind.ConstantPattern);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantCaseInSwitchExpression10()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        case true =>
+                    };
+            }
+            """,
+            // (6,13): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //             case true =>
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(6, 13),
+            // (6,25): error CS1525: Invalid expression term '}'
+            //             case true =>
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 25));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.TrueLiteralExpression);
+                                    {
+                                        N(SyntaxKind.TrueKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantCaseInSwitchExpression11()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        case when
+                    };
+            }
+            """,
+            // (6,13): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //             case when
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(6, 13),
+            // (6,22): error CS1003: Syntax error, '=>' expected
+            //             case when
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>").WithLocation(6, 22),
+            // (6,22): error CS1525: Invalid expression term '}'
+            //             case when
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 22));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantCaseInSwitchExpression12()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        case when =>
+                    };
+            }
+            """,
+            // (6,13): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //             case when =>
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(6, 13),
+            // (6,25): error CS1525: Invalid expression term '}'
+            //             case when =>
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 25));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantCaseInSwitchExpression13()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        when case
+                    };
+            }
+            """,
+            // (6,18): error CS1003: Syntax error, '=>' expected
+            //             when case
+            Diagnostic(ErrorCode.ERR_SyntaxError, "case").WithArguments("=>").WithLocation(6, 18),
+            // (6,18): error CS1525: Invalid expression term 'case'
+            //             when case
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "case").WithArguments("case").WithLocation(6, 18),
+            // (6,18): error CS1003: Syntax error, ',' expected
+            //             when case
+            Diagnostic(ErrorCode.ERR_SyntaxError, "case").WithArguments(",").WithLocation(6, 18),
+            // (6,18): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //             when case
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(6, 18),
+            // (6,22): error CS8504: Pattern missing
+            //             when case
+            Diagnostic(ErrorCode.ERR_MissingPattern, "").WithLocation(6, 22),
+            // (6,22): error CS1003: Syntax error, '=>' expected
+            //             when case
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>").WithLocation(6, 22),
+            // (6,22): error CS1525: Invalid expression term '}'
+            //             when case
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 22));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            M(SyntaxKind.SwitchExpressionArm);
+                            {
+                                M(SyntaxKind.ConstantPattern);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantCaseInSwitchExpression14()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        when case 0
+                    };
+            }
+            """,
+            // (6,18): error CS1003: Syntax error, '=>' expected
+            //             when case 0
+            Diagnostic(ErrorCode.ERR_SyntaxError, "case").WithArguments("=>").WithLocation(6, 18),
+            // (6,18): error CS1525: Invalid expression term 'case'
+            //             when case 0
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "case").WithArguments("case").WithLocation(6, 18),
+            // (6,18): error CS1003: Syntax error, ',' expected
+            //             when case 0
+            Diagnostic(ErrorCode.ERR_SyntaxError, "case").WithArguments(",").WithLocation(6, 18),
+            // (6,18): error CS9134: A switch expression arm does not begin with a 'case' keyword.
+            //             when case 0
+            Diagnostic(ErrorCode.ERR_BadCaseInSwitchArm, "case").WithLocation(6, 18),
+            // (6,24): error CS1003: Syntax error, '=>' expected
+            //             when case 0
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>").WithLocation(6, 24),
+            // (6,24): error CS1525: Invalid expression term '}'
+            //             when case 0
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 24));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantWhenInSwitchExpression1()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        when
+                    };
+            }
+            """,
+            // (6,17): error CS1003: Syntax error, '=>' expected
+            //             when
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=>").WithLocation(6, 17),
+            // (6,17): error CS1525: Invalid expression term '}'
+            //             when
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 17));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantWhenInSwitchExpression2()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        when,
+                    };
+            }
+            """,
+            // (6,17): error CS1003: Syntax error, '=>' expected
+            //             when,
+            Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments("=>").WithLocation(6, 17),
+            // (6,17): error CS1525: Invalid expression term ','
+            //             when,
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(6, 17));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantWhenInSwitchExpression3()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        when;
+                    };
+            }
+            """,
+            // (6,17): error CS1003: Syntax error, '=>' expected
+            //             when;
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("=>").WithLocation(6, 17),
+            // (6,17): error CS1525: Invalid expression term ';'
+            //             when;
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 17),
+            // (6,17): error CS1003: Syntax error, ',' expected
+            //             when;
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 17));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantWhenInSwitchExpression4()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        when =>
+                    };
+            }
+            """,
+            // (6,20): error CS1525: Invalid expression term '}'
+            //             when =>
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 20));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantWhenInSwitchExpression5()
+    {
+        // No parse error here.  `when` is a legal `constant pattern`.
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        when => true
+                    };
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantWhenInSwitchExpression6()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        when true
+                    };
+            }
+            """,
+            // (6,18): error CS1003: Syntax error, '=>' expected
+            //             when true
+            Diagnostic(ErrorCode.ERR_SyntaxError, "true").WithArguments("=>").WithLocation(6, 18));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantWhenInSwitchExpression7()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        when true,
+                    };
+            }
+            """,
+            // (6,18): error CS1003: Syntax error, '=>' expected
+            //             when true,
+            Diagnostic(ErrorCode.ERR_SyntaxError, "true").WithArguments("=>").WithLocation(6, 18));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantWhenInSwitchExpression8()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        when true;
+                    };
+            }
+            """,
+            // (6,18): error CS1003: Syntax error, '=>' expected
+            //             when true;
+            Diagnostic(ErrorCode.ERR_SyntaxError, "true").WithArguments("=>").WithLocation(6, 18),
+            // (6,22): error CS1003: Syntax error, ',' expected
+            //             when true;
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 22));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71957")]
+    public void TestErrantWhenInSwitchExpression9()
+    {
+        UsingTree("""
+            class C
+            {
+                public static int X()
+                    => 5 switch
+                    {
+                        when true =>
+                    };
+            }
+            """,
+            // (6,18): error CS1003: Syntax error, '=>' expected
+            //             when true =>
+            Diagnostic(ErrorCode.ERR_SyntaxError, "true").WithArguments("=>").WithLocation(6, 18),
+            // (6,23): error CS1003: Syntax error, ',' expected
+            //             when true =>
+            Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 23),
+            // (6,23): error CS8504: Pattern missing
+            //             when true =>
+            Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 23),
+            // (6,25): error CS1525: Invalid expression term '}'
+            //             when true =>
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 25));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "X");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "when");
+                                    }
+                                }
+                                M(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                M(SyntaxKind.ConstantPattern);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
     [Fact]
     public void TestErrantColonsInSwitchExpression1()
     {
@@ -2512,6 +4228,660 @@ public class SwitchExpressionParsingTests : ParsingTests
             }
             M(SyntaxKind.CommaToken);
             M(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+    public void TestNullableTypeInPattern1()
+    {
+        UsingExpression("""
+            obj switch
+            {
+                Type? => 1
+            }
+            """);
+
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "obj");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.TypePattern);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Type");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+    public void TestNullableTypeInPattern1_Colon()
+    {
+        UsingExpression("""
+            obj switch
+            {
+                Type? : 1
+            }
+            """,
+            // (3,11): error CS1003: Syntax error, '=>' expected
+            //     Type? : 1
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(3, 11));
+
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "obj");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.TypePattern);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Type");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                }
+                M(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+    public void TestNullableTypeInPattern2()
+    {
+        UsingExpression("""
+            obj switch
+            {
+                Type? varName => 1
+            }
+            """,
+            // (3,9): error CS1003: Syntax error, '=>' expected
+            //     Type? varName => 1
+            Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>").WithLocation(3, 9),
+            // (3,9): error CS1525: Invalid expression term '?'
+            //     Type? varName => 1
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(3, 9),
+            // (3,23): error CS1003: Syntax error, ':' expected
+            //     Type? varName => 1
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(3, 23),
+            // (3,23): error CS1525: Invalid expression term '}'
+            //     Type? varName => 1
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(3, 23));
+
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "obj");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Type");
+                    }
+                }
+                M(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.ConditionalExpression);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.SimpleLambdaExpression);
+                    {
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "varName");
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                    M(SyntaxKind.ColonToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+    public void TestNullableTypeInPattern2_Colon()
+    {
+        UsingExpression("""
+            obj switch
+            {
+                Type? varName : 1
+            }
+            """,
+            // (3,9): error CS1003: Syntax error, '=>' expected
+            //     Type? varName : 1
+            Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>").WithLocation(3, 9),
+            // (3,9): error CS1525: Invalid expression term '?'
+            //     Type? varName : 1
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(3, 9));
+
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "obj");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Type");
+                    }
+                }
+                M(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.ConditionalExpression);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "varName");
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+    public void TestNullableTypeInPattern3()
+    {
+        UsingExpression("""
+            obj switch
+            {
+                Type? when x > 0 => 1
+            }
+            """);
+
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "obj");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.TypePattern);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Type");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                }
+                N(SyntaxKind.WhenClause);
+                {
+                    N(SyntaxKind.WhenKeyword);
+                    N(SyntaxKind.GreaterThanExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+    public void TestNullableTypeInPattern3_Colon()
+    {
+        UsingExpression("""
+            obj switch
+            {
+                Type? when x > 0 : 1
+            }
+            """,
+            // (3,22): error CS1003: Syntax error, '=>' expected
+            //     Type? when x > 0 : 1
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(3, 22));
+
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "obj");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.TypePattern);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Type");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                }
+                N(SyntaxKind.WhenClause);
+                {
+                    N(SyntaxKind.WhenKeyword);
+                    N(SyntaxKind.GreaterThanExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+                M(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+    public void TestNullableTypeInPattern4()
+    {
+        UsingExpression("""
+            obj switch
+            {
+                Type? varName when x > 0 => 1
+            }
+            """);
+
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "obj");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.DeclarationPattern);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Type");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.SingleVariableDesignation);
+                    {
+                        N(SyntaxKind.IdentifierToken, "varName");
+                    }
+                }
+                N(SyntaxKind.WhenClause);
+                {
+                    N(SyntaxKind.WhenKeyword);
+                    N(SyntaxKind.GreaterThanExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+    public void TestNullableTypeInPattern4_Colon()
+    {
+        UsingExpression("""
+            obj switch
+            {
+                Type? varName when x > 0 : 1
+            }
+            """,
+            // (3,30): error CS1003: Syntax error, '=>' expected
+            //     Type? varName when x > 0 : 1
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(3, 30));
+
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "obj");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.DeclarationPattern);
+                {
+                    N(SyntaxKind.NullableType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Type");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                    }
+                    N(SyntaxKind.SingleVariableDesignation);
+                    {
+                        N(SyntaxKind.IdentifierToken, "varName");
+                    }
+                }
+                N(SyntaxKind.WhenClause);
+                {
+                    N(SyntaxKind.WhenKeyword);
+                    N(SyntaxKind.GreaterThanExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+                M(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+    public void TestNullableTypeInPattern5()
+    {
+        UsingExpression("""
+            obj switch
+            {
+                (Type? when) when x > 0 => 1
+            }
+            """);
+
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "obj");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.ParenthesizedPattern);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "when");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.WhenClause);
+                {
+                    N(SyntaxKind.WhenKeyword);
+                    N(SyntaxKind.GreaterThanExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+    public void TestNullableTypeInPattern5_Colon()
+    {
+        UsingExpression("""
+            obj switch
+            {
+                (Type? when) when x > 0 : 1
+            }
+            """,
+            // (3,29): error CS1003: Syntax error, '=>' expected
+            //     (Type? when) when x > 0 : 1
+            Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=>").WithLocation(3, 29));
+
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "obj");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.ParenthesizedPattern);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "when");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.WhenClause);
+                {
+                    N(SyntaxKind.WhenKeyword);
+                    N(SyntaxKind.GreaterThanExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+                M(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+    public void TestConditionalExpressionAsPattern()
+    {
+        UsingExpression("""
+            obj switch
+            {
+                (flag ? a : b) => 1
+            }
+            """);
+
+        N(SyntaxKind.SwitchExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "obj");
+            }
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchExpressionArm);
+            {
+                N(SyntaxKind.ConstantPattern);
+                {
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.ConditionalExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "flag");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.ColonToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
     }

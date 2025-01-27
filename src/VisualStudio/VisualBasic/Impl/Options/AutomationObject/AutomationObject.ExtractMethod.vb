@@ -14,14 +14,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 SetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort, value)
             End Set
         End Property
-
-        Public Property ExtractMethod_DoNotPutOutOrRefOnStruct As Boolean
-            Get
-                Return GetBooleanOption(ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct)
-            End Get
-            Set(value As Boolean)
-                SetBooleanOption(ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct, value)
-            End Set
-        End Property
     End Class
 End Namespace

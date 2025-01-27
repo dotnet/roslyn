@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -15,6 +17,8 @@ namespace Microsoft.CodeAnalysis
 {
     public sealed partial class AnalyzerConfig
     {
+        private static readonly ConcurrentDictionary<string, Regex> s_regexMap = [];
+
         internal readonly struct SectionNameMatcher
         {
             private readonly ImmutableArray<(int minValue, int maxValue)> _numberRangePairs;
@@ -108,10 +112,13 @@ namespace Microsoft.CodeAnalysis
                 numberRangePairs.Free();
                 return null;
             }
+
             sb.Append('$');
-            return new SectionNameMatcher(
-                new Regex(sb.ToString(), RegexOptions.Compiled),
-                numberRangePairs.ToImmutableAndFree());
+
+            var pattern = sb.ToString();
+            var regex = s_regexMap.GetOrAdd(pattern, static pattern => new(pattern, RegexOptions.Compiled));
+
+            return new SectionNameMatcher(regex, numberRangePairs.ToImmutableAndFree());
         }
 
         internal static string UnescapeSectionName(string sectionName)
@@ -383,12 +390,12 @@ namespace Microsoft.CodeAnalysis
                 if (lastChar == ',')
                 {
                     // Another option
-                    sb.Append("|");
+                    sb.Append('|');
                 }
                 else if (lastChar == '}')
                 {
                     // Close out the capture group
-                    sb.Append(")");
+                    sb.Append(')');
                     return true;
                 }
                 else

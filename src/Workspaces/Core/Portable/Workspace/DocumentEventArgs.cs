@@ -7,16 +7,15 @@
 using System;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
-{
-    public class DocumentEventArgs : EventArgs
-    {
-        public Document Document { get; }
+namespace Microsoft.CodeAnalysis;
 
-        public DocumentEventArgs(Document document)
-        {
-            Contract.ThrowIfNull(document);
-            this.Document = document;
-        }
+public class DocumentEventArgs : EventArgs
+{
+    public Document Document { get; }
+
+    public DocumentEventArgs(Document document)
+    {
+        Contract.ThrowIfNull(document);
+        this.Document = document;
     }
 }

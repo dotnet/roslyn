@@ -4,17 +4,16 @@
 
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.Simplification
+namespace Microsoft.CodeAnalysis.CSharp.Simplification;
+
+internal partial class CSharpDefaultExpressionReducer : AbstractCSharpReducer
 {
-    internal partial class CSharpDefaultExpressionReducer : AbstractCSharpReducer
+    private static readonly ObjectPool<IReductionRewriter> s_pool = new(static () => new Rewriter(s_pool));
+
+    public CSharpDefaultExpressionReducer() : base(s_pool)
     {
-        private static readonly ObjectPool<IReductionRewriter> s_pool = new(static () => new Rewriter(s_pool));
-
-        public CSharpDefaultExpressionReducer() : base(s_pool)
-        {
-        }
-
-        protected override bool IsApplicable(CSharpSimplifierOptions options)
-           => true;
     }
+
+    protected override bool IsApplicable(CSharpSimplifierOptions options)
+       => true;
 }

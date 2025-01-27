@@ -13,7 +13,9 @@ Friend Class HasValidFonts
         Get
             Try
                 If RuntimeInformation.IsOSPlatform(OSPlatform.Windows) Then
+#Disable Warning CA1416 ' Validate platform compatibility, we don't run tests on Windows < 6.1
                     Dim result = SystemFonts.DefaultFont
+#Enable Warning CA1416 ' Validate platform compatibility
                     Return result Is Nothing
                 Else
                     ' The only tests using fonts are Windows-only.

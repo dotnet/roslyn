@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private SpeculativeSyntaxTreeSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, CSharpSyntaxNode root, Binder rootBinder, int position, SpeculativeBindingOption bindingOption)
-            : base(parentSemanticModel.Compilation, parentSemanticModel.SyntaxTree, root.SyntaxTree, parentSemanticModel.IgnoresAccessibility)
+            : base(parentSemanticModel.Compilation, parentSemanticModel.SyntaxTree, root.SyntaxTree, parentSemanticModel.Options)
         {
             _parentSemanticModel = parentSemanticModel;
             _root = root;

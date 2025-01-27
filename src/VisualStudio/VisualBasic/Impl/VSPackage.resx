@@ -208,10 +208,22 @@ Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</v
     <value>Visual Basic Tools</value>
     <comment>Help &gt; About</comment>
   </data>
-  <data name="Visual_Basic_Script" xml:space="preserve">
-    <value>Visual Basic Script</value>
+  <data name="Always_add_new_line_on_enter" xml:space="preserve">
+    <value>Always add new line on enter</value>
   </data>
-  <data name="An_empty_Visual_Basic_script_file" xml:space="preserve">
-    <value>An empty Visual Basic script file.</value>
+  <data name="Always_include_snippets" xml:space="preserve">
+    <value>Always include snippets</value>
+  </data>
+  <data name="Include_snippets_when_Tab_is_typed_after_an_identifier" xml:space="preserve">
+    <value>Include snippets when ?-Tab is typed after an identifier</value>
+  </data>
+  <data name="Never_add_new_line_on_enter" xml:space="preserve">
+    <value>Never add new line on enter</value>
+  </data>
+  <data name="Never_include_snippets" xml:space="preserve">
+    <value>Never include snippets</value>
+  </data>
+  <data name="Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
+    <value>Only add new line on enter after end of fully typed word</value>
   </data>
 </root>

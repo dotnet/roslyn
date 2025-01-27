@@ -3,14 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections/tests/Generic/List/List.Generic.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/System.Collections/tests/Generic/List/List.Generic.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
@@ -50,8 +49,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         protected override bool IsReadOnly => true;
 
-        protected override bool Enumerator_Current_UndefinedOperation_Throws_On_Empty => RuntimeUtilities.IsCoreClr8OrHigherRuntime;
-
         protected override IList<string> GenericIListFactory(int setLength)
         {
             return GenericListFactory(setLength).AsReadOnly();
@@ -63,6 +60,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
 
         protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations) => new SegmentedList<ModifyEnumerable>();
+
+        protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => RuntimeUtilities.IsCoreClr8OrHigherRuntime;
     }
 
     public class SegmentedList_Generic_Tests_int_ReadOnly : SegmentedList_Generic_Tests<int>
@@ -75,8 +74,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         protected override bool IsReadOnly => true;
 
-        protected override bool Enumerator_Current_UndefinedOperation_Throws_On_Empty => RuntimeUtilities.IsCoreClr8OrHigherRuntime;
-
         protected override IList<int> GenericIListFactory(int setLength)
         {
             return GenericListFactory(setLength).AsReadOnly();
@@ -88,5 +85,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
 
         protected override IEnumerable<ModifyEnumerable> GetModifyEnumerables(ModifyOperation operations) => new SegmentedList<ModifyEnumerable>();
+
+        protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => RuntimeUtilities.IsCoreClr8OrHigherRuntime;
     }
 }

@@ -4,39 +4,37 @@
 
 #nullable disable
 
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+
+internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : IVsLanguageInfo
 {
-    internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : IVsLanguageInfo
+    public int GetCodeWindowManager(IVsCodeWindow pCodeWin, out IVsCodeWindowManager ppCodeWinMgr)
     {
-        public int GetCodeWindowManager(IVsCodeWindow pCodeWin, out IVsCodeWindowManager ppCodeWinMgr)
-        {
-            ppCodeWinMgr = new VsCodeWindowManager((TLanguageService)this, pCodeWin);
+        ppCodeWinMgr = new VsCodeWindowManager((TLanguageService)this, pCodeWin);
 
-            return VSConstants.S_OK;
-        }
+        return VSConstants.S_OK;
+    }
 
-        public int GetColorizer(IVsTextLines pBuffer, out IVsColorizer ppColorizer)
-        {
-            ppColorizer = null;
+    public int GetColorizer(IVsTextLines pBuffer, out IVsColorizer ppColorizer)
+    {
+        ppColorizer = null;
 
-            return VSConstants.E_NOTIMPL;
-        }
+        return VSConstants.E_NOTIMPL;
+    }
 
-        public int GetFileExtensions(out string pbstrExtensions)
-        {
-            pbstrExtensions = null;
+    public int GetFileExtensions(out string pbstrExtensions)
+    {
+        pbstrExtensions = null;
 
-            return VSConstants.E_NOTIMPL;
-        }
+        return VSConstants.E_NOTIMPL;
+    }
 
-        public int GetLanguageName(out string bstrName)
-        {
-            bstrName = LanguageName;
+    public int GetLanguageName(out string bstrName)
+    {
+        bstrName = LanguageName;
 
-            return VSConstants.S_OK;
-        }
+        return VSConstants.S_OK;
     }
 }

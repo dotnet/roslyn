@@ -5,19 +5,18 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
-{
-    internal class UnmanagedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
-    {
-        public UnmanagedKeywordRecommender()
-            : base(SyntaxKind.UnmanagedKeyword)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            return context.SyntaxTree.IsTypeParameterConstraintContext(position, context.LeftToken) ||
-                   context.SyntaxTree.IsFunctionPointerCallingConventionContext(context.TargetToken);
-        }
+internal class UnmanagedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+{
+    public UnmanagedKeywordRecommender()
+        : base(SyntaxKind.UnmanagedKeyword)
+    {
+    }
+
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        return context.SyntaxTree.IsTypeParameterConstraintContext(position, context.LeftToken) ||
+               context.SyntaxTree.IsFunctionPointerCallingConventionContext(context.TargetToken);
     }
 }

@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="it" original="../WorkspaceMSBuildResources.resx">
+    <body>
+      <trans-unit id="Failed_to_load_solution_filter_0">
+        <source>Failed to load solution filter: '{0}'</source>
+        <target state="translated">Non è stato possibile caricare il filtro soluzione: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_project_reference_without_a_matching_metadata_reference_0">
+        <source>Found project reference without a matching metadata reference: {0}</source>
+        <target state="translated">È stato trovato un riferimento al progetto senza un riferimento corrispondente ai metadati: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_0_specified_1">
+        <source>Invalid {0} specified: {1}</source>
+        <target state="translated">{0} non valido specificato: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Msbuild_failed_when_processing_the_file_0">
+        <source>Msbuild failed when processing the file '{0}'</source>
+        <target state="translated">Errore di MSBuild durante l'elaborazione del file '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
+        <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
+        <target state="translated">Errore di MSBuild durante l'elaborazione del file '{0}'. Messaggio: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path_for_additional_document_0_was_null">
+        <source>Path for additional document '{0}' was null}</source>
+        <target state="translated">Il percorso del documento aggiuntivo '{0}' è Null}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path_for_document_0_was_null">
+        <source>Path for document '{0}' was null</source>
+        <target state="translated">Il percorso per il documento '{0}' è null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_already_added">
+        <source>Project already added.</source>
+        <target state="translated">Il progetto è già stato aggiunto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_project_with_the_same_file_path_and_output_path_as_another_project_0">
+        <source>Found project with the same file path and output path as another project: {0}</source>
+        <target state="translated">È stato trovato un progetto con lo stesso percorso file e lo stesso percorso di output di un altro progetto: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Duplicate_project_discovered_and_skipped_0">
+        <source>Duplicate project discovered and skipped: {0}</source>
+        <target state="translated">Un progetto duplicato è stato rilevato e ignorato: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_does_not_have_a_path">
+        <source>Project does not have a path.</source>
+        <target state="translated">Il progetto non dispone di un percorso.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_path_for_0_was_null">
+        <source>Project path for '{0}' was null</source>
+        <target state="translated">Il percorso del progetto per '{0}' è null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_build_host_could_not_be_found_at_0">
+        <source>The build host could not be found at '{0}'</source>
+        <target state="translated">Non è stato possibile trovare l'host di compilazione in '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_add_metadata_reference_0">
+        <source>Unable to add metadata reference '{0}'</source>
+        <target state="translated">Non è possibile aggiungere il riferimento ai metadati '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_find_0">
+        <source>Unable to find '{0}'</source>
+        <target state="translated">Non è possibile trovare '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_find_a_0_for_1">
+        <source>Unable to find a '{0}' for '{1}'</source>
+        <target state="translated">Impossibile trovare un '{0}' per '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_remove_metadata_reference_0">
+        <source>Unable to remove metadata reference '{0}'</source>
+        <target state="translated">Non è possibile rimuovere il riferimento ai metadati '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unresolved_metadata_reference_removed_from_project_0">
+        <source>Unresolved metadata reference removed from project: {0}</source>
+        <target state="translated">Il riferimento a metadati non risolto è stato rimosso dal progetto: {0}</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -11,38 +11,37 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
+namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
+
+internal class CallToOverrideFinder : AbstractCallFinder
 {
-    internal class CallToOverrideFinder : AbstractCallFinder
+    public CallToOverrideFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
+        : base(symbol, projectId, asyncListener, provider)
     {
-        public CallToOverrideFinder(ISymbol symbol, ProjectId projectId, IAsynchronousOperationListener asyncListener, CallHierarchyProvider provider)
-            : base(symbol, projectId, asyncListener, provider)
+    }
+
+    public override string DisplayName => EditorFeaturesResources.Calls_To_Overrides;
+
+    protected override async Task<IEnumerable<SymbolCallerInfo>> GetCallersAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+    {
+        var overrides = await SymbolFinder.FindOverridesAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var callsToOverrides = new List<SymbolCallerInfo>();
+
+        foreach (var @override in overrides)
         {
-        }
+            var calls = await SymbolFinder.FindCallersAsync(@override, project.Solution, documents, cancellationToken).ConfigureAwait(false);
 
-        public override string DisplayName => EditorFeaturesResources.Calls_To_Overrides;
-
-        protected override async Task<IEnumerable<SymbolCallerInfo>> GetCallersAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
-        {
-            var overrides = await SymbolFinder.FindOverridesAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var callsToOverrides = new List<SymbolCallerInfo>();
-
-            foreach (var @override in overrides)
+            foreach (var call in calls)
             {
-                var calls = await SymbolFinder.FindCallersAsync(@override, project.Solution, documents, cancellationToken).ConfigureAwait(false);
-
-                foreach (var call in calls)
+                if (call.IsDirect)
                 {
-                    if (call.IsDirect)
-                    {
-                        callsToOverrides.Add(call);
-                    }
-
-                    cancellationToken.ThrowIfCancellationRequested();
+                    callsToOverrides.Add(call);
                 }
-            }
 
-            return callsToOverrides;
+                cancellationToken.ThrowIfCancellationRequested();
+            }
         }
+
+        return callsToOverrides;
     }
 }

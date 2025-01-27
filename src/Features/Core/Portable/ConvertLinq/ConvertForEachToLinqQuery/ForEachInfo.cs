@@ -6,29 +6,28 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
+namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery;
+
+internal readonly struct ForEachInfo<TForEachStatement, TStatement>(
+    TForEachStatement forEachStatement,
+    SemanticModel semanticModel,
+    ImmutableArray<ExtendedSyntaxNode> convertingExtendedNodes,
+    ImmutableArray<SyntaxToken> identifiers,
+    ImmutableArray<TStatement> statements,
+    ImmutableArray<SyntaxToken> leadingTokens,
+    ImmutableArray<SyntaxToken> trailingTokens)
 {
-    internal readonly struct ForEachInfo<TForEachStatement, TStatement>(
-        TForEachStatement forEachStatement,
-        SemanticModel semanticModel,
-        ImmutableArray<ExtendedSyntaxNode> convertingExtendedNodes,
-        ImmutableArray<SyntaxToken> identifiers,
-        ImmutableArray<TStatement> statements,
-        ImmutableArray<SyntaxToken> leadingTokens,
-        ImmutableArray<SyntaxToken> trailingTokens)
-    {
-        public TForEachStatement ForEachStatement { get; } = forEachStatement;
+    public TForEachStatement ForEachStatement { get; } = forEachStatement;
 
-        public SemanticModel SemanticModel { get; } = semanticModel;
+    public SemanticModel SemanticModel { get; } = semanticModel;
 
-        public ImmutableArray<ExtendedSyntaxNode> ConvertingExtendedNodes { get; } = convertingExtendedNodes;
+    public ImmutableArray<ExtendedSyntaxNode> ConvertingExtendedNodes { get; } = convertingExtendedNodes;
 
-        public ImmutableArray<SyntaxToken> Identifiers { get; } = identifiers;
+    public ImmutableArray<SyntaxToken> Identifiers { get; } = identifiers;
 
-        public ImmutableArray<TStatement> Statements { get; } = statements;
+    public ImmutableArray<TStatement> Statements { get; } = statements;
 
-        public ImmutableArray<SyntaxToken> LeadingTokens { get; } = leadingTokens;
+    public ImmutableArray<SyntaxToken> LeadingTokens { get; } = leadingTokens;
 
-        public ImmutableArray<SyntaxToken> TrailingTokens { get; } = trailingTokens;
-    }
+    public ImmutableArray<SyntaxToken> TrailingTokens { get; } = trailingTokens;
 }

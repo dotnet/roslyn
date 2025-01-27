@@ -19,7 +19,7 @@ namespace Roslyn.Test.Performance.Utilities
         public ScenarioGenerator()
         {
             _fullPath = Path.Combine(TestUtilities.GetCPCDirectoryPath(), "scenarios.xml");
-            _buffer = new List<string>();
+            _buffer = [];
         }
 
         public void AddScenariosFileStart()

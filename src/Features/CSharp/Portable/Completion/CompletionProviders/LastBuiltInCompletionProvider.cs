@@ -8,24 +8,23 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
-{
-    /// <summary>
-    /// Provides a completion provider that always appears after all built-in completion providers. This completion
-    /// provider does not provide any completions.
-    /// </summary>
-    [ExportCompletionProvider(nameof(LastBuiltInCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(ReferenceDirectiveCompletionProvider))]
-    [Shared]
-    internal sealed class LastBuiltInCompletionProvider : CompletionProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LastBuiltInCompletionProvider()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-        public override Task ProvideCompletionsAsync(CompletionContext context)
-            => Task.CompletedTask;
+/// <summary>
+/// Provides a completion provider that always appears after all built-in completion providers. This completion
+/// provider does not provide any completions.
+/// </summary>
+[ExportCompletionProvider(nameof(LastBuiltInCompletionProvider), LanguageNames.CSharp)]
+[ExtensionOrder(After = nameof(ReferenceDirectiveCompletionProvider))]
+[Shared]
+internal sealed class LastBuiltInCompletionProvider : CompletionProvider
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public LastBuiltInCompletionProvider()
+    {
     }
+
+    public override Task ProvideCompletionsAsync(CompletionContext context)
+        => Task.CompletedTask;
 }

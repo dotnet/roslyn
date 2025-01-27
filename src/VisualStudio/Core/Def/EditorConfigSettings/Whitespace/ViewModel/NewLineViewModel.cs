@@ -13,85 +13,84 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
+
+[Export(typeof(IEnumSettingViewModelFactory)), Shared]
+internal class NewLineViewModelFactory : IEnumSettingViewModelFactory
 {
-    [Export(typeof(IEnumSettingViewModelFactory)), Shared]
-    internal class NewLineViewModelFactory : IEnumSettingViewModelFactory
+    private readonly OptionKey2 _key;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public NewLineViewModelFactory()
     {
-        private readonly OptionKey2 _key;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public NewLineViewModelFactory()
-        {
-            _key = new OptionKey2(FormattingOptions2.NewLine, LanguageNames.CSharp);
-        }
-
-        public IEnumSettingViewModel CreateViewModel(Setting setting)
-        {
-            return new NewLineViewModel(setting);
-        }
-
-        public bool IsSupported(OptionKey2 key) => _key == key;
+        _key = new OptionKey2(FormattingOptions2.NewLine, LanguageNames.CSharp);
     }
 
-    internal enum NewLineSetting
+    public IEnumSettingViewModel CreateViewModel(Setting setting)
     {
-        Newline,
-        CarriageReturn,
-        CarriageReturnNewline,
-        NotSet
+        return new NewLineViewModel(setting);
     }
 
-    internal class NewLineViewModel : EnumSettingViewModel<NewLineSetting>
+    public bool IsSupported(OptionKey2 key) => _key == key;
+}
+
+internal enum NewLineSetting
+{
+    Newline,
+    CarriageReturn,
+    CarriageReturnNewline,
+    NotSet
+}
+
+internal class NewLineViewModel : EnumSettingViewModel<NewLineSetting>
+{
+    private readonly Setting _setting;
+
+    public NewLineViewModel(Setting setting)
     {
-        private readonly Setting _setting;
+        _setting = setting;
+    }
 
-        public NewLineViewModel(Setting setting)
+    protected override void ChangePropertyTo(NewLineSetting newValue)
+    {
+        switch (newValue)
         {
-            _setting = setting;
+            case NewLineSetting.Newline:
+                _setting.SetValue("\n");
+                break;
+            case NewLineSetting.CarriageReturn:
+                _setting.SetValue("\r");
+                break;
+            case NewLineSetting.CarriageReturnNewline:
+                _setting.SetValue("\r\n");
+                break;
+            case NewLineSetting.NotSet:
+            default:
+                break;
         }
+    }
 
-        protected override void ChangePropertyTo(NewLineSetting newValue)
+    protected override NewLineSetting GetCurrentValue()
+    {
+        return _setting.GetValue() switch
         {
-            switch (newValue)
-            {
-                case NewLineSetting.Newline:
-                    _setting.SetValue("\n");
-                    break;
-                case NewLineSetting.CarriageReturn:
-                    _setting.SetValue("\r");
-                    break;
-                case NewLineSetting.CarriageReturnNewline:
-                    _setting.SetValue("\r\n");
-                    break;
-                case NewLineSetting.NotSet:
-                default:
-                    break;
-            }
-        }
+            "\n" => NewLineSetting.Newline,
+            "\r" => NewLineSetting.CarriageReturn,
+            "\r\n" => NewLineSetting.CarriageReturnNewline,
+            _ => NewLineSetting.NotSet,
+        };
+    }
 
-        protected override NewLineSetting GetCurrentValue()
+    protected override IReadOnlyDictionary<string, NewLineSetting> GetValuesAndDescriptions()
+    {
+        return EnumerateOptions().ToDictionary(x => x.description, x => x.value);
+
+        static IEnumerable<(string description, NewLineSetting value)> EnumerateOptions()
         {
-            return _setting.GetValue() switch
-            {
-                "\n" => NewLineSetting.Newline,
-                "\r" => NewLineSetting.CarriageReturn,
-                "\r\n" => NewLineSetting.CarriageReturnNewline,
-                _ => NewLineSetting.NotSet,
-            };
-        }
-
-        protected override IReadOnlyDictionary<string, NewLineSetting> GetValuesAndDescriptions()
-        {
-            return EnumerateOptions().ToDictionary(x => x.description, x => x.value);
-
-            static IEnumerable<(string description, NewLineSetting value)> EnumerateOptions()
-            {
-                yield return (ServicesVSResources.Newline_n, NewLineSetting.Newline);
-                yield return (ServicesVSResources.Carriage_Return_r, NewLineSetting.CarriageReturn);
-                yield return (ServicesVSResources.Carriage_Return_Newline_rn, NewLineSetting.CarriageReturnNewline);
-            }
+            yield return (ServicesVSResources.Newline_n, NewLineSetting.Newline);
+            yield return (ServicesVSResources.Carriage_Return_r, NewLineSetting.CarriageReturn);
+            yield return (ServicesVSResources.Carriage_Return_Newline_rn, NewLineSetting.CarriageReturnNewline);
         }
     }
 }

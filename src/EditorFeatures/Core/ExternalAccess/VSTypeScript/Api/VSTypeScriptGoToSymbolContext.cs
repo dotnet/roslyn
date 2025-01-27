@@ -6,29 +6,28 @@ using System.Threading;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal sealed class VSTypeScriptGoToSymbolContext
 {
-    internal sealed class VSTypeScriptGoToSymbolContext
+    internal DefinitionItem? DefinitionItem;
+
+    internal VSTypeScriptGoToSymbolContext(Document document, int position, CancellationToken cancellationToken)
     {
-        internal DefinitionItem? DefinitionItem;
+        Document = document;
+        Position = position;
+        CancellationToken = cancellationToken;
+    }
 
-        internal VSTypeScriptGoToSymbolContext(Document document, int position, CancellationToken cancellationToken)
-        {
-            Document = document;
-            Position = position;
-            CancellationToken = cancellationToken;
-        }
+    public Document Document { get; }
+    public int Position { get; }
+    public CancellationToken CancellationToken { get; }
 
-        public Document Document { get; }
-        public int Position { get; }
-        public CancellationToken CancellationToken { get; }
+    public TextSpan Span { get; set; }
 
-        public TextSpan Span { get; set; }
-
-        public void AddItem(string key, VSTypeScriptDefinitionItem item)
-        {
-            _ = key;
-            this.DefinitionItem = item.UnderlyingObject;
-        }
+    public void AddItem(string key, VSTypeScriptDefinitionItem item)
+    {
+        _ = key;
+        this.DefinitionItem = item.UnderlyingObject;
     }
 }

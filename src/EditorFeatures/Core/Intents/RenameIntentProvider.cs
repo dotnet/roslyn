@@ -54,6 +54,6 @@ internal class RenameIntentProvider : IIntentProvider
         var renameLocationSet = await renameInfo.FindRenameLocationsAsync(options, cancellationToken).ConfigureAwait(false);
         var renameReplacementInfo = await renameLocationSet.GetReplacementsAsync(renameIntentData.NewName, options, cancellationToken).ConfigureAwait(false);
 
-        return [new IntentProcessorResult(renameReplacementInfo.NewSolution, renameReplacementInfo.DocumentIds.ToImmutableArray(), EditorFeaturesResources.Rename, WellKnownIntents.Rename)];
+        return [new IntentProcessorResult(renameReplacementInfo.NewSolution, [.. renameReplacementInfo.DocumentIds], EditorFeaturesResources.Rename, WellKnownIntents.Rename)];
     }
 }

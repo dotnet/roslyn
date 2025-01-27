@@ -13,61 +13,60 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View.ColumnDefinitions
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View.ColumnDefinitions;
+
+using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.NamingStyle;
+
+[Export(typeof(ITableColumnDefinition))]
+[Name(Location)]
+internal class NamingStylesLocationColumnDefinition : TableColumnDefinitionBase
 {
-    using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.NamingStyle;
-
-    [Export(typeof(ITableColumnDefinition))]
-    [Name(Location)]
-    internal class NamingStylesLocationColumnDefinition : TableColumnDefinitionBase
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public NamingStylesLocationColumnDefinition()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public NamingStylesLocationColumnDefinition()
+    }
+
+    public override string Name => Location;
+    public override string DisplayName => ServicesVSResources.Location;
+    public override double MinWidth => 350;
+    public override bool DefaultVisible => true;
+    public override bool IsFilterable => true;
+    public override bool IsSortable => true;
+
+    public override bool TryCreateStringContent(ITableEntryHandle entry, bool truncatedText, bool singleColumnView, out string? content)
+    {
+        if (!entry.TryGetValue(Type, out NamingStyleSetting setting))
         {
+            content = null;
+            return false;
         }
 
-        public override string Name => Location;
-        public override string DisplayName => ServicesVSResources.Location;
-        public override double MinWidth => 350;
-        public override bool DefaultVisible => true;
-        public override bool IsFilterable => true;
-        public override bool IsSortable => true;
+        content = GetLocationString(setting.Location);
+        return true;
 
-        public override bool TryCreateStringContent(ITableEntryHandle entry, bool truncatedText, bool singleColumnView, out string? content)
-        {
-            if (!entry.TryGetValue(Type, out NamingStyleSetting setting))
+        static string GetLocationString(SettingLocation? location)
+            => location?.LocationKind switch
             {
-                content = null;
-                return false;
-            }
+                LocationKind.EditorConfig or LocationKind.GlobalConfig => location.Path!,
+                _ => ServicesVSResources.Visual_Studio_Settings,
+            };
+    }
 
-            content = GetLocationString(setting.Location);
-            return true;
-
-            static string GetLocationString(SettingLocation? location)
-                => location?.LocationKind switch
-                {
-                    LocationKind.EditorConfig or LocationKind.GlobalConfig => location.Path!,
-                    _ => ServicesVSResources.Visual_Studio_Settings,
-                };
-        }
-
-        public override bool TryCreateColumnContent(
-            ITableEntryHandle entry,
-            bool singleColumnView,
-            out FrameworkElement? content)
+    public override bool TryCreateColumnContent(
+        ITableEntryHandle entry,
+        bool singleColumnView,
+        out FrameworkElement? content)
+    {
+        if (!entry.TryGetValue(Location, out NamingStyleSetting setting))
         {
-            if (!entry.TryGetValue(Location, out NamingStyleSetting setting))
-            {
-                content = null;
-                return false;
-            }
-
-            var viewModel = new NamingStylesLocationViewModel(setting);
-            var control = new NamingStylesLocationControl(viewModel);
-            content = control;
-            return true;
+            content = null;
+            return false;
         }
+
+        var viewModel = new NamingStylesLocationViewModel(setting);
+        var control = new NamingStylesLocationControl(viewModel);
+        content = control;
+        return true;
     }
 }

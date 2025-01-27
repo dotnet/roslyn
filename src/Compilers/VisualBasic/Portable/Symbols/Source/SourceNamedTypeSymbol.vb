@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Attributes on type. Set once after construction. IsNull means not set.  
         Protected m_lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
 
-        Private ReadOnly _corTypeId As SpecialType
+        Private ReadOnly _corTypeId As ExtendedSpecialType
 
         Private _lazyDocComment As String
         Private _lazyExpandedDocComment As String
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 emittedName = MetadataHelpers.BuildQualifiedName(emittedName, MetadataName)
                 _corTypeId = SpecialTypes.GetTypeFromMetadataName(emittedName)
             Else
-                _corTypeId = SpecialType.None
+                _corTypeId = Nothing
             End If
 
             If containingSymbol.Kind = SymbolKind.NamedType Then
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Public Overrides ReadOnly Property SpecialType As SpecialType
+        Public Overrides ReadOnly Property ExtendedSpecialType As ExtendedSpecialType
             Get
                 Return _corTypeId
             End Get
@@ -120,6 +120,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             cancellationToken.ThrowIfCancellationRequested()
             CheckInterfacesConstraints()
+
+            cancellationToken.ThrowIfCancellationRequested()
+            CheckEmbeddedAttributeImplementation()
         End Sub
 #End Region
 
@@ -1626,7 +1629,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim location = singleDeclaration.NameLocation
                     diagnostics = BindingDiagnosticBag.GetInstance()
 
-                    localBase.CheckAllConstraints(location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
+                    localBase.CheckAllConstraints(
+                        DeclaringCompilation.LanguageVersion,
+                        location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
 
                     If IsGenericType Then
                         ' Check that generic type does not derive from System.Attribute. 
@@ -1678,21 +1683,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim location = singleDeclaration.NameLocation
                     diagnostics = BindingDiagnosticBag.GetInstance()
                     For Each [interface] In localInterfaces
-                        [interface].CheckAllConstraints(location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
+                        [interface].CheckAllConstraints(
+                            DeclaringCompilation.LanguageVersion,
+                            location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, m_containingModule.ContainingAssembly))
                     Next
                 End If
             End If
 
+            m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState, StateFlags.ReportedInterfacesConstraintsDiagnostics, 0, diagnostics)
+
+            If diagnostics IsNot Nothing Then
+                diagnostics.Free()
+            End If
+        End Sub
+
+        Private Sub CheckEmbeddedAttributeImplementation()
+            If (m_lazyState And StateFlags.ReportedCodeAnalysisEmbeddedAttributeDiagnostics) <> 0 Then
+                Return
+            End If
+
+            Dim diagnostics As BindingDiagnosticBag = Nothing
+            If Me.IsMicrosoftCodeAnalysisEmbeddedAttribute() Then
+                ' This is a user-defined implementation of the special attribute Microsoft.CodeAnalysis.EmbeddedAttribute. It needs to follow specific rules
+                ' 1. It must be Friend
+                ' 2. It must be a Class
+                ' 3. It must be NotInheritable
+                ' 4. It must not be a Module
+                ' 5. It must have a Public parameterless constructor. This is different from C#, because VB requires any attribute to have a Public parameterless constructor.
+                ' 6. It must inherit from System.Attribute
+                ' 7. It must be allowed on any type declaration (Class, Struct, Interface, Enum, or Delegate)
+                ' 8. It must be non-generic. Note that generic attributes are not supported in VB, and won't pass the `IsMicrosoftCodeAnalysisEmbeddedAttribute` check, it's just listed here for completeness.
+
+                Const expectedTargets = AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Interface Or AttributeTargets.Enum Or AttributeTargets.Delegate
+
+                If DeclaredAccessibility <> Accessibility.Friend OrElse
+                        TypeKind <> TypeKind.Class OrElse
+                        (Not IsNotInheritable) OrElse
+                        IsShared OrElse
+                        (Not InstanceConstructors.Any(Function(c) c.ParameterCount = 0 AndAlso c.DeclaredAccessibility = Accessibility.Public)) OrElse
+                        (Not DeclaringCompilation.IsAttributeType(Me)) OrElse
+                        (GetAttributeUsageInfo().ValidTargets And expectedTargets) <> expectedTargets Then
+                    diagnostics = BindingDiagnosticBag.GetInstance()
+                    diagnostics.Add(ERRID.ERR_EmbeddedAttributeMustFollowPattern, TypeDeclaration.Declarations(0).Location)
+                End If
+            End If
+
             If m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
-                                                                   StateFlags.ReportedInterfacesConstraintsDiagnostics,
+                                                                   StateFlags.ReportedCodeAnalysisEmbeddedAttributeDiagnostics,
                                                                    0,
                                                                    diagnostics) Then
                 DeclaringCompilation.SymbolDeclaredEvent(Me)
             End If
 
-            If diagnostics IsNot Nothing Then
-                diagnostics.Free()
-            End If
+            diagnostics?.Free()
         End Sub
 
         ''' <summary>
@@ -1866,7 +1909,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
             Get
                 Dim data As TypeEarlyWellKnownAttributeData = GetEarlyDecodedWellKnownAttributeData()
-                Return data IsNot Nothing AndAlso data.HasCodeAnalysisEmbeddedAttribute
+                ' We synthesize an application of Microsoft.CodeAnalysis.EmbeddedAttribute on Microsoft.CodeAnalysis.EmbeddedAttribute if one wasn't present
+                Return (data IsNot Nothing AndAlso data.HasCodeAnalysisEmbeddedAttribute) OrElse Me.IsMicrosoftCodeAnalysisEmbeddedAttribute()
             End Get
         End Property
 
@@ -1874,6 +1918,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 Dim data As TypeEarlyWellKnownAttributeData = GetEarlyDecodedWellKnownAttributeData()
                 Return data IsNot Nothing AndAlso data.HasVisualBasicEmbeddedAttribute
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
+            Get
+                Dim attributesBag = GetAttributesBag()
+                Dim wellKnownAttributeData = DirectCast(attributesBag.DecodedWellKnownAttributeData, CommonTypeWellKnownAttributeData)
+                Return (wellKnownAttributeData IsNot Nothing) AndAlso wellKnownAttributeData.HasCompilerLoweringPreserveAttribute
             End Get
         End Property
 
@@ -2300,6 +2352,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ElseIf attrData.IsTargetAttribute(AttributeDescription.RequiredAttributeAttribute) Then
                     Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
                     diagnostics.Add(ERRID.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.GetLocation(), Me)
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.CompilerLoweringPreserveAttribute) Then
+                    arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasCompilerLoweringPreserveAttribute = True
                 End If
             End If
 
@@ -2471,7 +2525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of VisualBasicAttributeData))
             MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             Dim compilation = Me.DeclaringCompilation
@@ -2528,6 +2582,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ImmutableArray.Create(
                             New TypedConstant(GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, eventInterfaceName))))
                 End If
+
             End If
 
             Dim baseType As NamedTypeSymbol = Me.BaseTypeNoUseSiteDiagnostics
@@ -2554,6 +2609,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
                         ImmutableArray.Create(New TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, originalType)),
                         isOptionalUse:=True))
+            End If
+
+            If Me.IsMicrosoftCodeAnalysisEmbeddedAttribute() Then
+                Dim earlyAttributeData = GetEarlyDecodedWellKnownAttributeData()
+
+                If earlyAttributeData Is Nothing OrElse Not earlyAttributeData.HasCodeAnalysisEmbeddedAttribute Then
+                    ' Get the parameterless constructor and apply it to the current type. If there wasn't a parameterless constructor, we would have
+                    ' issued a declaration diagnostic
+
+                    Dim parameterlessConstructor = InstanceConstructors.FirstOrDefault(Function(c) c.ParameterCount = 0)
+                    If parameterlessConstructor IsNot Nothing Then
+                        AddSynthesizedAttribute(
+                                attributes,
+                                New SynthesizedAttributeData(
+                                    DeclaringCompilation,
+                                    parameterlessConstructor,
+                                    arguments:=ImmutableArray(Of TypedConstant).Empty,
+                                    namedArgs:=ImmutableArray(Of KeyValuePair(Of String, TypedConstant)).Empty))
+                    End If
+                End If
             End If
         End Sub
 

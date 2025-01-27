@@ -15,12 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Protected ReadOnly _original As String
             Protected ReadOnly _newString As String
 
-            Public Sub New(options As SyntaxFormattingOptions,
+            Public Sub New(options As LineFormattingOptions,
                            original As String,
                            lineBreaks As Integer,
                            indentation As Integer,
                            elastic As Boolean)
-                MyBase.New(options, lineBreaks, indentation, elastic, LanguageNames.VisualBasic)
+                MyBase.New(options, lineBreaks, indentation, elastic)
 
                 Me._original = original
                 Me._newString = CreateStringFromState()

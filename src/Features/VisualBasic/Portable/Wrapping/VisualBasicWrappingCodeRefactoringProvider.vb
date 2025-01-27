@@ -33,8 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping
             MyBase.New(s_wrappers)
         End Sub
 
-        Protected Overrides Function GetWrappingOptions(options As IOptionsReader, ideOptions As CodeActionOptions) As SyntaxWrappingOptions
-            Return VisualBasicSyntaxWrappingOptions.Create(options, ideOptions)
+        Protected Overrides Function GetWrappingOptions(options As IOptionsReader) As SyntaxWrappingOptions
+            Return VisualBasicSyntaxWrappingOptions.Create(options)
         End Function
     End Class
 End Namespace

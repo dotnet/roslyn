@@ -4,10 +4,9 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal static class PredefinedSignatureHelpPresenterNames
 {
-    internal static class PredefinedSignatureHelpPresenterNames
-    {
-        public const string RoslynSignatureHelpPresenter = "Roslyn Signature Help Presenter";
-    }
+    public const string RoslynSignatureHelpPresenter = "Roslyn Signature Help Presenter";
 }

@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Async Function FormatNewDocumentAsync(document As Document, hintDocument As Document, options As CodeCleanupOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements INewDocumentFormattingProvider.FormatNewDocumentAsync
             Dim service = document.GetRequiredLanguageService(Of IOrganizeImportsService)
-            Dim organizeOptions = Await document.GetOrganizeImportsOptionsAsync(options.GetOrganizeImportsOptions(), cancellationToken).ConfigureAwait(False)
+            Dim organizeOptions = Await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(False)
             Return Await service.OrganizeImportsAsync(document, organizeOptions, cancellationToken).ConfigureAwait(False)
         End Function
     End Class

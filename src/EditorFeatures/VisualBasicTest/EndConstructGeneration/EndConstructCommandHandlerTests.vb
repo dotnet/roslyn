@@ -16,35 +16,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         Private ReadOnly _textViewMock As New Mock(Of ITextView)(MockBehavior.Strict)
         Private ReadOnly _textBufferMock As New Mock(Of ITextBuffer)(MockBehavior.Strict)
 
-#If False Then
-        Private ReadOnly _featureOptions As New Mock(Of ILegacyWorkspaceOptionService)(MockBehavior.Strict)
-
-        ' TODO(jasonmal): Figure out how to enable these tests.
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub ServiceNotCompletingShouldCallNextHandler()
-            _endConstructServiceMock.Setup(Function(s) s.TryDo(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of Char))).Returns(False)
-            _featureOptions.Setup(Function(s) s.GetOption(FeatureOnOffOptions.EndConstruct)).Returns(True)
-
-            Dim nextHandlerCalled = False
-            Dim handler As New EndConstructCommandHandler(_featureOptions.Object, _endConstructServiceMock.Object)
-            handler.ExecuteCommand_ReturnKeyCommandHandler(New ReturnKeyCommandArgs(_textViewMock.Object, _textBufferMock.Object), Sub() nextHandlerCalled = True)
-
-            Assert.True(nextHandlerCalled)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Sub ServiceCompletingShouldCallNextHandler()
-            _endConstructServiceMock.Setup(Function(s) s.TryDo(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of Char))).Returns(True)
-            _featureOptions.Setup(Function(s) s.GetOption(FeatureOnOffOptions.EndConstruct)).Returns(True)
-
-            Dim nextHandlerCalled = False
-            Dim handler As New EndConstructCommandHandler(_featureOptions.Object, _endConstructServiceMock.Object)
-            handler.ExecuteCommand_ReturnKeyCommandHandler(New ReturnKeyCommandArgs(_textViewMock.Object, _textBufferMock.Object), Sub() nextHandlerCalled = True)
-
-            Assert.False(nextHandlerCalled)
-        End Sub
-#End If
-
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544556")>
         Public Sub EndConstruct_AfterCodeCleanup()
             Dim code = <code>Class C
@@ -110,14 +81,13 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
             VerifyAppliedAfterReturnUsingCommandHandler(code, {4, -1}, expected, {5, 8})
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628656")>
-        <WpfFact>
-        Public Sub EndConstruct_NotOnLineFollowingToken()
-            VerifyStatementEndConstructNotApplied(
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628656")>
+        Public Async Function EndConstruct_NotOnLineFollowingToken() As Task
+            Await VerifyStatementEndConstructNotAppliedAsync(
                 text:="Class C
 
 ",
                 caret:={2, 0})
-        End Sub
+        End Function
     End Class
 End Namespace

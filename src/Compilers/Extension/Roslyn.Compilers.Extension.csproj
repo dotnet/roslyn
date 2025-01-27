@@ -13,7 +13,7 @@
     <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
     <IncludeCopyLocalReferencesInVSIXContainer>false</IncludeCopyLocalReferencesInVSIXContainer>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
     <PkgDefPackageRegistration Include="{31c0675e-87a4-4061-a0dd-a4e510fccf97}"
@@ -33,6 +33,7 @@
     <PackageReference Include="System.Collections.Immutable" IncludeInVsix="true" />
     <PackageReference Include="System.Memory" IncludeInVsix="true" />
     <PackageReference Include="System.Reflection.Metadata" IncludeInVsix="true" />
+    <PackageReference Include="System.Numerics.Vectors" IncludeInVsix="true" />
     <PackageReference Include="System.Text.Encoding.CodePages" IncludeInVsix="true" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" IncludeInVsix="true" />
     <PackageReference Include="System.Threading.Tasks.Extensions" IncludeInVsix="true" />

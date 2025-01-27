@@ -6,25 +6,24 @@ using System;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Telemetry;
 
-namespace Microsoft.CodeAnalysis.ErrorReporting
+namespace Microsoft.CodeAnalysis.ErrorReporting;
+
+internal interface IErrorReportingService : IWorkspaceService
 {
-    internal interface IErrorReportingService : IWorkspaceService
-    {
-        /// <summary>
-        /// Name of the host to be used in error messages (e.g. "Visual Studio").
-        /// </summary>
-        string HostDisplayName { get; }
+    /// <summary>
+    /// Name of the host to be used in error messages (e.g. "Visual Studio").
+    /// </summary>
+    string HostDisplayName { get; }
 
-        /// <summary>
-        /// Show global error info.
-        ///
-        /// this kind error info should be something that affects whole roslyn such as
-        /// background compilation is disabled due to memory issue and etc
-        /// </summary>
-        void ShowGlobalErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception, params InfoBarUI[] items);
+    /// <summary>
+    /// Show global error info.
+    ///
+    /// this kind error info should be something that affects whole roslyn such as
+    /// background compilation is disabled due to memory issue and etc
+    /// </summary>
+    void ShowGlobalErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception, params InfoBarUI[] items);
 
-        void ShowDetailedErrorInfo(Exception exception);
+    void ShowDetailedErrorInfo(Exception exception);
 
-        void ShowFeatureNotAvailableErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception);
-    }
+    void ShowFeatureNotAvailableErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception);
 }

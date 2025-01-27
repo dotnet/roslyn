@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class SymbolDeclaredCompilationEvent : CompilationEvent
     {
-        private readonly Lazy<ImmutableArray<SyntaxReference>> _lazyCachedDeclaringReferences;
+        private ImmutableArray<SyntaxReference> _lazyCachedDeclaringReferences;
 
         public SymbolDeclaredCompilationEvent(
             Compilation compilation,
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             SymbolInternal = symbolInternal;
             SemanticModelWithCachedBoundNodes = semanticModelWithCachedBoundNodes;
-            _lazyCachedDeclaringReferences = new Lazy<ImmutableArray<SyntaxReference>>(() => Symbol.DeclaringSyntaxReferences);
+            _lazyCachedDeclaringReferences = default(ImmutableArray<SyntaxReference>);
         }
 
         public ISymbol Symbol => SymbolInternal.GetISymbol();
@@ -35,7 +35,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public SemanticModel? SemanticModelWithCachedBoundNodes { get; }
 
         // PERF: We avoid allocations in re-computing syntax references for declared symbol during event processing by caching them directly on this member.
-        public ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => _lazyCachedDeclaringReferences.Value;
+        public ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        {
+            get
+            {
+                return InterlockedOperations.Initialize(
+                    ref _lazyCachedDeclaringReferences,
+                    static self => self.Symbol.DeclaringSyntaxReferences,
+                    this);
+            }
+        }
 
         public override string ToString()
         {

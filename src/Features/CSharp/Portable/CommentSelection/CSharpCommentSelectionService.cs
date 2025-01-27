@@ -9,20 +9,19 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
-{
-    [ExportLanguageService(typeof(ICommentSelectionService), LanguageNames.CSharp), Shared]
-    internal class CSharpCommentSelectionService : AbstractCommentSelectionService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCommentSelectionService()
-        {
-        }
+namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection;
 
-        public override string SingleLineCommentString => "//";
-        public override bool SupportsBlockComment => true;
-        public override string BlockCommentStartString => "/*";
-        public override string BlockCommentEndString => "*/";
+[ExportLanguageService(typeof(ICommentSelectionService), LanguageNames.CSharp), Shared]
+internal class CSharpCommentSelectionService : AbstractCommentSelectionService
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpCommentSelectionService()
+    {
     }
+
+    public override string SingleLineCommentString => "//";
+    public override bool SupportsBlockComment => true;
+    public override string BlockCommentStartString => "/*";
+    public override string BlockCommentEndString => "*/";
 }

@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, int ordinal)
             : base(accessor, ordinal, RefKind.None, ParameterSymbol.ValueParameterName, accessor.TryGetFirstLocation(),
                    syntaxRef: null,
+                   hasParamsModifier: false,
                    isParams: false,
                    isExtensionMethodThis: false,
                    scope: ScopedKind.None)
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return accessor.GetAttributeDeclarations();
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

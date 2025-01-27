@@ -9,28 +9,27 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.MetadataAsSource
+namespace Microsoft.CodeAnalysis.MetadataAsSource;
+
+internal static class DocumentationCommentUtilities
 {
-    internal static class DocumentationCommentUtilities
+    private static readonly ObjectPool<List<string>> s_pool = SharedPools.Default<List<string>>();
+
+    public static string ExtractXMLFragment(string input, string docCommentPrefix)
     {
-        private static readonly ObjectPool<List<string>> s_pool = SharedPools.Default<List<string>>();
-
-        public static string ExtractXMLFragment(string input, string docCommentPrefix)
+        using var reader = new StringReader(input);
+        using var list = s_pool.GetPooledObject();
+        while (reader.ReadLine() is string str)
         {
-            using var reader = new StringReader(input);
-            using var list = s_pool.GetPooledObject();
-            while (reader.ReadLine() is string str)
+            str = str.TrimStart();
+            if (str.StartsWith(docCommentPrefix, StringComparison.Ordinal))
             {
-                str = str.TrimStart();
-                if (str.StartsWith(docCommentPrefix, StringComparison.Ordinal))
-                {
-                    str = str[docCommentPrefix.Length..];
-                }
-
-                list.Object.Add(str);
+                str = str[docCommentPrefix.Length..];
             }
 
-            return string.Join("\r\n", list.Object);
+            list.Object.Add(str);
         }
+
+        return string.Join("\r\n", list.Object);
     }
 }

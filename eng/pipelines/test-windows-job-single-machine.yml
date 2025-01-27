@@ -28,12 +28,12 @@ jobs:
   steps:
     - checkout: none
 
-    # A .NET 7 runtime is needed since our unit tests target net7.0
+    # A .NET 9 runtime is needed since our unit tests target net9.0
     - task: UseDotNet@2
-      displayName: 'Install .NET 7 Runtime'
+      displayName: 'Install .NET 9 Runtime'
       inputs:
         packageType: runtime
-        version: 7.0.0-rc.1.22426.10
+        version: '9.0.0'
         includePreviewVersions: true
         installationPath: '$(Build.SourcesDirectory)/.dotnet'
 

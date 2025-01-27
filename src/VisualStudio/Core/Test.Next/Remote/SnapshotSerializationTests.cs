@@ -34,43 +34,40 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
     [Collection(AssemblyLoadTestFixtureCollection.Name)]
     [UseExportProvider]
-    public class SnapshotSerializationTests
+    public sealed class SnapshotSerializationTests(AssemblyLoadTestFixture testFixture)
     {
-        private readonly AssemblyLoadTestFixture _testFixture;
-        public SnapshotSerializationTests(AssemblyLoadTestFixture testFixture)
-        {
-            _testFixture = testFixture;
-        }
+        private readonly AssemblyLoadTestFixture _testFixture = testFixture;
 
         private static Workspace CreateWorkspace(Type[] additionalParts = null)
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(TestHost.OutOfProcess).GetHostServices());
 
-        internal static Solution CreateFullSolution(Workspace workspace)
+        internal static Solution SetFullSolution(Workspace workspace)
         {
-            var solution = workspace.CurrentSolution;
+            workspace.SetCurrentSolution(solution =>
+            {
+                var csCode = "class A { }";
+                var project1 = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
+                var document1 = project1.AddDocument("Document1", SourceText.From(csCode));
 
-            var csCode = "class A { }";
-            var project1 = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
-            var document1 = project1.AddDocument("Document1", SourceText.From(csCode));
+                var vbCode = "Class B\r\nEnd Class";
+                var project2 = document1.Project.Solution.AddProject("Project2", "Project2.dll", LanguageNames.VisualBasic);
+                var document2 = project2.AddDocument("Document2", SourceText.From(vbCode));
 
-            var vbCode = "Class B\r\nEnd Class";
-            var project2 = document1.Project.Solution.AddProject("Project2", "Project2.dll", LanguageNames.VisualBasic);
-            var document2 = project2.AddDocument("Document2", SourceText.From(vbCode));
+                solution = document2.Project.Solution.GetRequiredProject(project1.Id)
+                    .AddProjectReference(new ProjectReference(project2.Id, ["test"]))
+                    .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
+                    .AddAnalyzerReference(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path1"), new TestAnalyzerAssemblyLoader()))
+                    .AddAdditionalDocument("Additional", SourceText.From("hello"), ["test"], @".\Add").Project.Solution;
 
-            solution = document2.Project.Solution.GetRequiredProject(project1.Id)
-                .AddProjectReference(new ProjectReference(project2.Id, ImmutableArray.Create("test")))
-                .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
-                .AddAnalyzerReference(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path1"), new TestAnalyzerAssemblyLoader()))
-                .AddAdditionalDocument("Additional", SourceText.From("hello"), ImmutableArray.Create("test"), @".\Add").Project.Solution;
-
-            return solution
-                .WithAnalyzerReferences(new[] { new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path2"), new TestAnalyzerAssemblyLoader()) })
-                .AddAnalyzerConfigDocuments(
-                ImmutableArray.Create(
-                    DocumentInfo.Create(
+                return solution
+                    .WithAnalyzerReferences([new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path2"), new TestAnalyzerAssemblyLoader())])
+                    .AddAnalyzerConfigDocuments([DocumentInfo.Create(
                         DocumentId.CreateNewId(project1.Id),
                         ".editorconfig",
-                        loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create())))));
+                        loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create())))]);
+            }, WorkspaceChangeKind.SolutionChanged);
+
+            return workspace.CurrentSolution;
         }
 
         private static async Task<SolutionAsset> GetRequiredAssetAsync(SolutionAssetStorage.Scope scope, Checksum checksum)
@@ -185,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public async Task CreateSolutionSnapshotId_Full()
         {
             using var workspace = CreateWorkspace();
-            var solution = CreateFullSolution(workspace);
+            var solution = SetFullSolution(workspace);
 
             var firstProjectChecksum = await solution.GetProject(solution.ProjectIds[0]).State.GetChecksumAsync(CancellationToken.None);
             var secondProjectChecksum = await solution.GetProject(solution.ProjectIds[1]).State.GetChecksumAsync(CancellationToken.None);
@@ -207,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public async Task CreateSolutionSnapshotId_Full_Serialization()
         {
             using var workspace = CreateWorkspace();
-            var solution = CreateFullSolution(workspace);
+            var solution = SetFullSolution(workspace);
 
             var validator = new SerializationValidator(workspace.Services);
 
@@ -219,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public async Task CreateSolutionSnapshotId_Full_Asset_Serialization()
         {
             using var workspace = CreateWorkspace();
-            var solution = CreateFullSolution(workspace);
+            var solution = SetFullSolution(workspace);
 
             var validator = new SerializationValidator(workspace.Services);
 
@@ -233,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public async Task CreateSolutionSnapshotId_Full_Asset_Serialization_Desktop()
         {
             using var workspace = CreateWorkspace();
-            var solution = CreateFullSolution(workspace);
+            var solution = SetFullSolution(workspace);
 
             var validator = new SerializationValidator(workspace.Services);
 
@@ -247,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public async Task CreateSolutionSnapshotId_Duplicate()
         {
             using var workspace = CreateWorkspace();
-            var solution = CreateFullSolution(workspace);
+            var solution = SetFullSolution(workspace);
 
             // this is just data, one can hold the id outside of using statement. but
             // one can't get asset using checksum from the id.
@@ -295,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public async Task Workspace_RoundTrip_Test()
         {
             using var workspace = CreateWorkspace();
-            var solution = CreateFullSolution(workspace);
+            var solution = SetFullSolution(workspace);
 
             var validator = new SerializationValidator(workspace.Services);
 
@@ -335,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public async Task Workspace_RoundTrip_Test_Desktop()
         {
             using var workspace = CreateWorkspace();
-            var solution = CreateFullSolution(workspace);
+            var solution = SetFullSolution(workspace);
 
             var validator = new SerializationValidator(workspace.Services);
 
@@ -488,13 +485,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var analyzer1 = new AnalyzerFileReference(file1.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
             var analyzer2 = new AnalyzerFileReference(file2.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
 
-            project = project.AddAnalyzerReferences(new[] { analyzer1, analyzer2 });
+            project = project.AddAnalyzerReferences([analyzer1, analyzer2]);
 
             var validator = new SerializationValidator(workspace.Services);
             using var snapshot = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None);
 
             var recovered = await validator.GetSolutionAsync(snapshot);
-            AssertEx.Equal(new[] { file1.Path, file2.Path }, recovered.GetProject(project.Id).AnalyzerReferences.Select(r => r.FullPath));
+            AssertEx.Equal([file1.Path, file2.Path], recovered.GetProject(project.Id).AnalyzerReferences.Select(r => r.FullPath));
         }
 
         [Fact]
@@ -535,7 +532,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var document = CreateWorkspace().CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp).AddDocument("empty", SourceText.From(""));
             var serializer = document.Project.Solution.Services.GetService<ISerializerService>();
 
-            var source = serializer.CreateChecksum(await document.GetTextAsync().ConfigureAwait(false), CancellationToken.None);
+            var text = await document.GetTextAsync().ConfigureAwait(false);
+            var source = new SerializableSourceText(text, text.GetContentHash()).ContentChecksum;
             var metadata = serializer.CreateChecksum(new MissingMetadataReference(), CancellationToken.None);
             var analyzer = serializer.CreateChecksum(new AnalyzerFileReference(Path.Combine(TempRoot.Root, "missing"), new MissingAnalyzerLoader()), CancellationToken.None);
 
@@ -607,40 +605,38 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             // test with right serializable encoding
             var sourceText = SourceText.From("Hello", Encoding.UTF8);
+            var serializableSourceText = new SerializableSourceText(sourceText, sourceText.GetContentHash());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
-                using var context = new SolutionReplicationContext();
-
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(sourceText, objectWriter, context, CancellationToken.None);
+                    serializer.Serialize(serializableSourceText, objectWriter, CancellationToken.None);
                 }
 
                 stream.Position = 0;
 
                 using var objectReader = ObjectReader.TryGetReader(stream);
 
-                var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
-                Assert.Equal(sourceText.ToString(), newText.ToString());
+                var newText = (SerializableSourceText)serializer.Deserialize(serializableSourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                Assert.Equal(sourceText.ToString(), newText.GetText(CancellationToken.None).ToString());
             }
 
             // test with wrong encoding that doesn't support serialization
             sourceText = SourceText.From("Hello", new NotSerializableEncoding());
+            serializableSourceText = new SerializableSourceText(sourceText, sourceText.GetContentHash());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
-                using var context = new SolutionReplicationContext();
-
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(sourceText, objectWriter, context, CancellationToken.None);
+                    serializer.Serialize(serializableSourceText, objectWriter, CancellationToken.None);
                 }
 
                 stream.Position = 0;
 
                 using var objectReader = ObjectReader.TryGetReader(stream);
 
-                var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
-                Assert.Equal(sourceText.ToString(), newText.ToString());
+                var newText = (SerializableSourceText)serializer.Deserialize(serializableSourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                Assert.Equal(sourceText.ToString(), newText.GetText(CancellationToken.None).ToString());
             }
         }
 
@@ -659,16 +655,14 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             void VerifyOptions(CompilationOptions originalOptions)
             {
                 using var stream = SerializableBytes.CreateWritableStream();
-                using var context = new SolutionReplicationContext();
-
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(originalOptions, objectWriter, context, CancellationToken.None);
+                    serializer.Serialize(originalOptions, objectWriter, CancellationToken.None);
                 }
 
                 stream.Position = 0;
                 using var objectReader = ObjectReader.TryGetReader(stream);
-                var recoveredOptions = serializer.Deserialize<CompilationOptions>(originalOptions.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                var recoveredOptions = (CompilationOptions)serializer.Deserialize(originalOptions.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
 
                 var original = serializer.CreateChecksum(originalOptions, CancellationToken.None);
                 var recovered = serializer.CreateChecksum(recoveredOptions, CancellationToken.None);
@@ -680,17 +674,17 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         private static SolutionAsset CloneAsset(ISerializerService serializer, SolutionAsset asset)
         {
             using var stream = SerializableBytes.CreateWritableStream();
-            using var context = new SolutionReplicationContext();
-
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                serializer.Serialize(asset.Value, writer, context, CancellationToken.None);
+                serializer.Serialize(asset.Value, writer, CancellationToken.None);
             }
 
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
-            var recovered = serializer.Deserialize<object>(asset.Kind, reader, CancellationToken.None);
-            var assetFromStorage = new SolutionAsset(serializer.CreateChecksum(recovered, CancellationToken.None), recovered);
+            var recovered = serializer.Deserialize(asset.Kind, reader, CancellationToken.None);
+            var checksum = recovered is SerializableSourceText text ? text.ContentChecksum : serializer.CreateChecksum(recovered, CancellationToken.None);
+
+            var assetFromStorage = new SolutionAsset(checksum, recovered);
 
             Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
             return assetFromStorage;
@@ -707,9 +701,12 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             return new AnalyzerFileReference(original, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(original, shadow.Path)));
         }
 
-        private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
+        private class MissingAnalyzerLoader() : AnalyzerAssemblyLoader([])
         {
-            protected override string PreparePathToLoad(string fullPath, ImmutableHashSet<string> cultureNames)
+            protected override string PreparePathToLoad(string fullPath)
+                => throw new FileNotFoundException(fullPath);
+
+            protected override string PrepareSatelliteAssemblyToLoad(string fullPath, string cultureName)
                 => throw new FileNotFoundException(fullPath);
         }
 

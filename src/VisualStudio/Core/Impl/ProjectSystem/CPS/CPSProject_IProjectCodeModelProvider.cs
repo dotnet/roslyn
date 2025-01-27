@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Threading;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 

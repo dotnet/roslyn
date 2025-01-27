@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
@@ -16,22 +15,13 @@ using InternalContracts = Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-[ExportBrokeredService(MonikerName, ServiceVersion, Audience = ServiceAudience.Local)]
+[ExportBrokeredService(ManagedHotReloadLanguageServiceDescriptor.MonikerName, ManagedHotReloadLanguageServiceDescriptor.ServiceVersion, Audience = ServiceAudience.Local)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalContracts.IManagedHotReloadLanguageService service) : IManagedHotReloadLanguageService, IExportedBrokeredService
+internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalContracts.IManagedHotReloadLanguageService2 service) : IManagedHotReloadLanguageService2, IExportedBrokeredService
 {
-    private const string ServiceName = "ManagedHotReloadLanguageService";
-    private const string ServiceVersion = "0.1";
-    private const string MonikerName = BrokeredServiceDescriptors.LanguageServerComponentNamespace + "." + BrokeredServiceDescriptors.LanguageServerComponentName + "." + ServiceName;
-
-    public static readonly ServiceJsonRpcDescriptor ServiceDescriptor = BrokeredServiceDescriptors.CreateServerServiceDescriptor(ServiceName, new(ServiceVersion));
-
-    static ManagedHotReloadLanguageServiceBridge()
-        => Debug.Assert(ServiceDescriptor.Moniker.Name == MonikerName);
-
     ServiceRpcDescriptor IExportedBrokeredService.Descriptor
-        => ServiceDescriptor;
+        => ManagedHotReloadLanguageServiceDescriptor.Descriptor;
 
     public Task InitializeAsync(CancellationToken cancellationToken)
         => Task.CompletedTask;
@@ -54,8 +44,14 @@ internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalCont
     public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
         => (await service.GetUpdatesAsync(cancellationToken).ConfigureAwait(false)).FromContract();
 
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
+        => (await service.GetUpdatesAsync(runningProjects, cancellationToken).ConfigureAwait(false)).FromContract();
+
     public ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
         => service.CommitUpdatesAsync(cancellationToken);
+
+    public ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
+        => service.UpdateBaselinesAsync(projectPaths, cancellationToken);
 
     public ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
         => service.DiscardUpdatesAsync(cancellationToken);

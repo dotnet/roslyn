@@ -7,67 +7,57 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
+
+internal class MemberListItem : SymbolListItem<ISymbol>
 {
-    internal class MemberListItem : SymbolListItem<ISymbol>
+    internal MemberListItem(ProjectId projectId, ISymbol symbol, string displayText, string fullNameText, string searchText, bool isHidden, bool isInherited)
+        : base(projectId, symbol, displayText, fullNameText, searchText, isHidden)
     {
-        private readonly MemberKind _kind;
-        private readonly bool _isInherited;
+        IsInherited = isInherited;
 
-        internal MemberListItem(ProjectId projectId, ISymbol symbol, string displayText, string fullNameText, string searchText, bool isHidden, bool isInherited)
-            : base(projectId, symbol, displayText, fullNameText, searchText, isHidden)
+        switch (symbol.Kind)
         {
-            _isInherited = isInherited;
+            case SymbolKind.Event:
+                Kind = MemberKind.Event;
+                break;
 
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Event:
-                    _kind = MemberKind.Event;
-                    break;
+            case SymbolKind.Field:
+                var fieldSymbol = (IFieldSymbol)symbol;
+                if (fieldSymbol.ContainingType.TypeKind == TypeKind.Enum)
+                {
+                    Kind = MemberKind.EnumMember;
+                }
+                else
+                {
+                    Kind = fieldSymbol.IsConst
+                        ? MemberKind.Constant
+                        : MemberKind.Field;
+                }
 
-                case SymbolKind.Field:
-                    var fieldSymbol = (IFieldSymbol)symbol;
-                    if (fieldSymbol.ContainingType.TypeKind == TypeKind.Enum)
-                    {
-                        _kind = MemberKind.EnumMember;
-                    }
-                    else
-                    {
-                        _kind = fieldSymbol.IsConst
-                            ? MemberKind.Constant
-                            : MemberKind.Field;
-                    }
+                break;
 
-                    break;
+            case SymbolKind.Method:
+                var methodSymbol = (IMethodSymbol)symbol;
+                Kind = methodSymbol.MethodKind is MethodKind.Conversion or
+                                  MethodKind.UserDefinedOperator
+                    ? MemberKind.Operator
+                    : MemberKind.Method;
 
-                case SymbolKind.Method:
-                    var methodSymbol = (IMethodSymbol)symbol;
-                    _kind = methodSymbol.MethodKind is MethodKind.Conversion or
-                                      MethodKind.UserDefinedOperator
-                        ? MemberKind.Operator
-                        : MemberKind.Method;
+                break;
 
-                    break;
+            case SymbolKind.Property:
+                Kind = MemberKind.Property;
+                break;
 
-                case SymbolKind.Property:
-                    _kind = MemberKind.Property;
-                    break;
-
-                default:
-                    Debug.Fail("Unsupported symbol for member: " + symbol.Kind.ToString());
-                    _kind = MemberKind.None;
-                    break;
-            }
-        }
-
-        public bool IsInherited
-        {
-            get { return _isInherited; }
-        }
-
-        public MemberKind Kind
-        {
-            get { return _kind; }
+            default:
+                Debug.Fail("Unsupported symbol for member: " + symbol.Kind.ToString());
+                Kind = MemberKind.None;
+                break;
         }
     }
+
+    public bool IsInherited { get; }
+
+    public MemberKind Kind { get; }
 }

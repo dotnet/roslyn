@@ -56,7 +56,6 @@ namespace IdeCoreBenchmarks
                 applyChanges: false,
                 useAll: false,
                 iterations: 1,
-                usePersistentStorage: false,
                 fullSolutionAnalysis: true,
                 incrementalAnalyzerNames: ImmutableArray.Create(AnalyzerName));
 

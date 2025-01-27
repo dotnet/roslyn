@@ -309,7 +309,8 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            var diagnostics = comp.GetDiagnostics().Where(d => d is not { Severity: DiagnosticSeverity.Info, Code: (int)ErrorCode.INF_TooManyBoundLambdas });
+            diagnostics.Verify();
         }
 
         /// <summary>
@@ -381,6 +382,73 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedLambdas_MethodBody()
+        {
+            var source = """
+                #pragma warning disable 649
+                using System.Collections.Generic;
+                using System.Linq;
+                class Container
+                {
+                    public IEnumerable<Container> Items;
+                    public int Value;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var list = new List<Container>();
+                        _ = list.Sum(
+                            a => a.Items.Sum(
+                                b => b.Items.Sum(
+                                    c => c.Value)));
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,19): info CS9236: Compiling requires binding the lambda expression at least 100 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //                 b => b.Items.Sum(
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("100").WithLocation(16, 19),
+                // (17,23): info CS9236: Compiling requires binding the lambda expression at least 1300 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //                     c => c.Value)));
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("1300").WithLocation(17, 23));
+        }
+
+        [Fact]
+        public void NestedLambdas_FieldInitializer()
+        {
+            var source = """
+                #pragma warning disable 649
+                using System.Collections.Generic;
+                using System.Linq;
+                class Container
+                {
+                    public IEnumerable<Container> Items;
+                    public int Value;
+                }
+                class Program(List<Container> list)
+                {
+                    int _f = list.Sum(
+                        a => a.Items.Sum(
+                            b => b.Items.Sum(
+                                c => c.Value)));
+                    static void Main()
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,15): info CS9236: Compiling requires binding the lambda expression at least 100 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //             b => b.Items.Sum(
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("100").WithLocation(13, 15),
+                // (14,19): info CS9236: Compiling requires binding the lambda expression at least 1300 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //                 c => c.Value)));
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("1300").WithLocation(14, 19));
         }
 
         [ConditionalFact(typeof(NoIOperationValidation), Reason = "Timeouts")]
@@ -679,7 +747,7 @@ class C
             sourceBuilder.Append("    ");
             for (var i = 0; i < 15; i++)
             {
-                sourceBuilder.Append(")");
+                sourceBuilder.Append(')');
             }
 
             sourceBuilder.Append(source2);
@@ -855,7 +923,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,11): error CS0121: The call is ambiguous between the following methods or properties: 'E0.F(object, C0, Action<C0>)' and 'E1.F(object, C1, Action<C1>)'
                 //         o.F(null, c => o.F(c, null));
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("E0.F(object, C0, System.Action<C0>)", "E1.F(object, C1, System.Action<C1>)").WithLocation(6, 11));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("E0.F(object, C0, System.Action<C0>)", "E1.F(object, C1, System.Action<C1>)").WithLocation(6, 11),
+                // (6,21): info CS9236: Compiling requires binding the lambda expression at least 1000 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //         o.F(null, c => o.F(c, null));
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("1000").WithLocation(6, 21));
         }
 
         [ConditionalFact(typeof(IsRelease))]
@@ -893,6 +964,9 @@ class C
             string source = builder.ToString();
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (7,18): info CS9236: Compiling requires binding the lambda expression at least 1000 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //         o.F(c, c => { o.F( });
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("1000").WithLocation(7, 18),
                 // (7,25): error CS1501: No overload for method 'F' takes 0 arguments
                 //         o.F(c, c => { o.F( });
                 Diagnostic(ErrorCode.ERR_BadArgCount, "F").WithArguments("F", "0").WithLocation(7, 25),

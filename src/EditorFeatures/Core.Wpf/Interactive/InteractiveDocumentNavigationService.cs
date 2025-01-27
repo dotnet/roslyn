@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    internal sealed class InteractiveDocumentNavigationService : IDocumentNavigationService
+    internal sealed class InteractiveDocumentNavigationService : AbstractDocumentNavigationService
     {
         private readonly IThreadingContext _threadingContext;
 
@@ -25,13 +24,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             _threadingContext = threadingContext;
         }
 
-        public Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
+        public override Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
             => SpecializedTasks.True;
 
-        public Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
-            => SpecializedTasks.False;
-
-        public async Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
+        public override async Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             if (workspace is not InteractiveWindowWorkspace interactiveWorkspace)
@@ -82,8 +78,5 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return true;
             });
         }
-
-        public Task<INavigableLocation?> GetLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
-            => SpecializedTasks.Null<INavigableLocation>();
     }
 }

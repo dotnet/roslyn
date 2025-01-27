@@ -5,33 +5,30 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
+namespace Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api;
+
+internal interface IPythiaDeclarationNameRecommenderImplementation
 {
-    internal interface IPythiaDeclarationNameRecommenderImplementation
-    {
-        /// <summary>
-        /// Order of returned recommendation decides the order of those items in completion list
-        /// </summary>
-        public Task<ImmutableArray<string>> ProvideRecommendationsAsync(PythiaDeclarationNameContext context, CancellationToken cancellationToken);
-    }
+    /// <summary>
+    /// Order of returned recommendation decides the order of those items in completion list
+    /// </summary>
+    public Task<ImmutableArray<string>> ProvideRecommendationsAsync(PythiaDeclarationNameContext context, CancellationToken cancellationToken);
+}
 
-    internal readonly struct PythiaDeclarationNameContext(CSharpSyntaxContext context)
-    {
-        private readonly CSharpSyntaxContext _context = context;
+internal readonly struct PythiaDeclarationNameContext(CSharpSyntaxContext context)
+{
+    private readonly CSharpSyntaxContext _context = context;
 
-        public Document Document => _context.Document;
+    public Document Document => _context.Document;
 
-        public int Position => _context.Position;
+    public int Position => _context.Position;
 
-        public SemanticModel SemanticModel => _context.SemanticModel;
+    public SemanticModel SemanticModel => _context.SemanticModel;
 
-        /// <summary>
-        /// The token to the left of <see cref="Position"/>. This token may be touching the position.
-        /// </summary>
-        public SyntaxToken LeftToken => _context.LeftToken;
-    }
+    /// <summary>
+    /// The token to the left of <see cref="Position"/>. This token may be touching the position.
+    /// </summary>
+    public SyntaxToken LeftToken => _context.LeftToken;
 }

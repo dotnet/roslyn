@@ -6,19 +6,18 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.QuickInfo
+namespace Microsoft.CodeAnalysis.QuickInfo;
+
+internal readonly struct CommonQuickInfoContext(
+    SolutionServices services,
+    SemanticModel semanticModel,
+    int position,
+    SymbolDescriptionOptions options,
+    CancellationToken cancellationToken)
 {
-    internal readonly struct CommonQuickInfoContext(
-        SolutionServices services,
-        SemanticModel semanticModel,
-        int position,
-        SymbolDescriptionOptions options,
-        CancellationToken cancellationToken)
-    {
-        public readonly SolutionServices Services = services;
-        public readonly SemanticModel SemanticModel = semanticModel;
-        public readonly int Position = position;
-        public readonly SymbolDescriptionOptions Options = options;
-        public readonly CancellationToken CancellationToken = cancellationToken;
-    }
+    public readonly SolutionServices Services = services;
+    public readonly SemanticModel SemanticModel = semanticModel;
+    public readonly int Position = position;
+    public readonly SymbolDescriptionOptions Options = options;
+    public readonly CancellationToken CancellationToken = cancellationToken;
 }

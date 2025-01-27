@@ -7,37 +7,36 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
+
+internal class TestSourceLinkService : ISourceLinkService
 {
-    internal class TestSourceLinkService : ISourceLinkService
+    private readonly string? _pdbFilePath;
+    private readonly string? _sourceFilePath;
+
+    public TestSourceLinkService(string? pdbFilePath = null, string? sourceFilePath = null)
     {
-        private readonly string? _pdbFilePath;
-        private readonly string? _sourceFilePath;
+        _pdbFilePath = pdbFilePath;
+        _sourceFilePath = sourceFilePath;
+    }
 
-        public TestSourceLinkService(string? pdbFilePath = null, string? sourceFilePath = null)
+    public Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, bool useDefaultSymbolServers, CancellationToken cancellationToken)
+    {
+        if (_pdbFilePath is null)
         {
-            _pdbFilePath = pdbFilePath;
-            _sourceFilePath = sourceFilePath;
+            return Task.FromResult<PdbFilePathResult?>(null);
         }
 
-        public Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, bool useDefaultSymbolServers, CancellationToken cancellationToken)
-        {
-            if (_pdbFilePath is null)
-            {
-                return Task.FromResult<PdbFilePathResult?>(null);
-            }
+        return Task.FromResult<PdbFilePathResult?>(new PdbFilePathResult(_pdbFilePath));
+    }
 
-            return Task.FromResult<PdbFilePathResult?>(new PdbFilePathResult(_pdbFilePath));
+    public Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, CancellationToken cancellationToken)
+    {
+        if (_sourceFilePath is null)
+        {
+            return Task.FromResult<SourceFilePathResult?>(null);
         }
 
-        public Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, CancellationToken cancellationToken)
-        {
-            if (_sourceFilePath is null)
-            {
-                return Task.FromResult<SourceFilePathResult?>(null);
-            }
-
-            return Task.FromResult<SourceFilePathResult?>(new SourceFilePathResult(_sourceFilePath));
-        }
+        return Task.FromResult<SourceFilePathResult?>(new SourceFilePathResult(_sourceFilePath));
     }
 }

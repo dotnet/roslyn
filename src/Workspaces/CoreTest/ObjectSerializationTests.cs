@@ -85,16 +85,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     if (v != null && v.GetType().IsEnum)
                     {
-                        w.WriteInt64(Convert.ToInt64((object)v));
+                        w.WriteInt64(Convert.ToInt64(v));
                     }
                     else
                     {
-                        w.WriteValue(v);
+                        w.WriteScalarValue(v);
                     }
                 },
                 r => value != null && value.GetType().IsEnum
                     ? (T)Enum.ToObject(typeof(T), r.ReadInt64())
-                    : (T)r.ReadValue(), recursive);
+                    : (T)r.ReadScalarValue(), recursive);
         }
 
         private static void TestRoundTripValue<T>(T value, bool recursive)
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
                 else
                 {
-                    writer.WriteValue(_member);
+                    writer.WriteScalarValue(_member);
                 }
             }
 
@@ -222,19 +222,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(ObjectWriter.TypeCode.UInt32_10, ObjectWriter.TypeCode.UInt32_0 + 10);
         }
 
-        private static void TestRoundTripType(Type type)
-        {
-            TestRoundTrip(type, (w, v) => w.WriteType(v), r => r.ReadType());
-        }
-
-        [Fact]
-        public void TestTypes()
-        {
-            TestRoundTripType(typeof(int));
-            TestRoundTripType(typeof(string));
-            TestRoundTripType(typeof(ObjectSerializationTests));
-        }
-
         private static void TestRoundTripCompressedUint(uint value)
         {
             TestRoundTrip(value, (w, v) => ((ObjectWriter)w).WriteCompressedUInt(v), r => ((ObjectReader)r).ReadCompressedUInt());
@@ -259,43 +246,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => TestRoundTripCompressedUint(0xC0000000u)); // both high bits set not allowed
         }
 
-        [Fact]
-        public void TestArraySizes()
-        {
-            TestArrayValues<byte>(1, 2, 3, 4, 5);
-            TestArrayValues<sbyte>(1, 2, 3, 4, 5);
-            TestArrayValues<short>(1, 2, 3, 4, 5);
-            TestArrayValues<ushort>(1, 2, 3, 4, 5);
-            TestArrayValues<int>(1, 2, 3, 4, 5);
-            TestArrayValues<uint>(1, 2, 3, 4, 5);
-            TestArrayValues<long>(1, 2, 3, 4, 5);
-            TestArrayValues<ulong>(1, 2, 3, 4, 5);
-            TestArrayValues<decimal>(1m, 2m, 3m, 4m, 5m);
-            TestArrayValues<float>(1.0f, 2.0f, 3.0f, 4.0f, 5.0f);
-            TestArrayValues<double>(1.0, 2.0, 3.0, 4.0, 5.0);
-            TestArrayValues<char>('1', '2', '3', '4', '5');
-            TestArrayValues<string>("1", "2", "3", "4", "5");
-        }
-
-        private static void TestArrayValues<T>(T v1, T v2, T v3, T v4, T v5)
-        {
-            TestRoundTripValue((T[])null);
-            TestRoundTripValue(new T[] { });
-            TestRoundTripValue(new T[] { v1 });
-            TestRoundTripValue(new T[] { v1, v2 });
-            TestRoundTripValue(new T[] { v1, v2, v3 });
-            TestRoundTripValue(new T[] { v1, v2, v3, v4 });
-            TestRoundTripValue(new T[] { v1, v2, v3, v4, v5 });
-        }
-
-        [Fact]
-        public void TestPrimitiveArrayValues()
-        {
-            TestRoundTrip(w => TestWritingPrimitiveArrays(w), r => TestReadingPrimitiveArrays(r));
-        }
-
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void TestByteSpan([CombinatorialValues(0, 1, 2, 3, 1000, 1000000)] int size)
         {
             var data = new byte[size];
@@ -307,103 +258,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTrip(w => TestWritingByteSpan(data, w), r => TestReadingByteSpan(data, r));
         }
 
-        private static void TestWritingPrimitiveArrays(ObjectWriter writer)
-        {
-            var inputBool = new bool[] { true, false };
-            var inputByte = new byte[] { 1, 2, 3, 4, 5 };
-            var inputChar = new char[] { 'h', 'e', 'l', 'l', 'o' };
-            var inputDecimal = new decimal[] { 1.0M, 2.0M, 3.0M, 4.0M, 5.0M };
-            var inputDouble = new double[] { 1.0, 2.0, 3.0, 4.0, 5.0 };
-            var inputFloat = new float[] { 1.0F, 2.0F, 3.0F, 4.0F, 5.0F };
-            var inputInt = new int[] { -1, -2, -3, -4, -5 };
-            var inputLong = new long[] { 1, 2, 3, 4, 5 };
-            var inputSByte = new sbyte[] { -1, -2, -3, -4, -5 };
-            var inputShort = new short[] { -1, -2, -3, -4, -5 };
-            var inputUInt = new uint[] { 1, 2, 3, 4, 5 };
-            var inputULong = new ulong[] { 1, 2, 3, 4, 5 };
-            var inputUShort = new ushort[] { 1, 2, 3, 4, 5 };
-            var inputString = new string[] { "h", "e", "l", "l", "o" };
-
-            writer.WriteValue(inputBool);
-            writer.WriteValue((object)inputByte);
-            writer.WriteValue(inputChar);
-            writer.WriteValue(inputDecimal);
-            writer.WriteValue(inputDouble);
-            writer.WriteValue(inputFloat);
-            writer.WriteValue(inputInt);
-            writer.WriteValue(inputLong);
-            writer.WriteValue(inputSByte);
-            writer.WriteValue(inputShort);
-            writer.WriteValue(inputUInt);
-            writer.WriteValue(inputULong);
-            writer.WriteValue(inputUShort);
-            writer.WriteValue(inputString);
-        }
-
-        private static void TestReadingPrimitiveArrays(ObjectReader reader)
-        {
-            var inputBool = new bool[] { true, false };
-            var inputByte = new byte[] { 1, 2, 3, 4, 5 };
-            var inputChar = new char[] { 'h', 'e', 'l', 'l', 'o' };
-            var inputDecimal = new decimal[] { 1.0M, 2.0M, 3.0M, 4.0M, 5.0M };
-            var inputDouble = new double[] { 1.0, 2.0, 3.0, 4.0, 5.0 };
-            var inputFloat = new float[] { 1.0F, 2.0F, 3.0F, 4.0F, 5.0F };
-            var inputInt = new int[] { -1, -2, -3, -4, -5 };
-            var inputLong = new long[] { 1, 2, 3, 4, 5 };
-            var inputSByte = new sbyte[] { -1, -2, -3, -4, -5 };
-            var inputShort = new short[] { -1, -2, -3, -4, -5 };
-            var inputUInt = new uint[] { 1, 2, 3, 4, 5 };
-            var inputULong = new ulong[] { 1, 2, 3, 4, 5 };
-            var inputUShort = new ushort[] { 1, 2, 3, 4, 5 };
-            var inputString = new string[] { "h", "e", "l", "l", "o" };
-
-            Assert.True(Enumerable.SequenceEqual(inputBool, (bool[])reader.ReadValue()));
-            Assert.True(Enumerable.SequenceEqual(inputByte, (byte[])reader.ReadValue()));
-            Assert.True(Enumerable.SequenceEqual(inputChar, (char[])reader.ReadValue()));
-            Assert.True(Enumerable.SequenceEqual(inputDecimal, (decimal[])reader.ReadValue()));
-            Assert.True(Enumerable.SequenceEqual(inputDouble, (double[])reader.ReadValue()));
-            Assert.True(Enumerable.SequenceEqual(inputFloat, (float[])reader.ReadValue()));
-            Assert.True(Enumerable.SequenceEqual(inputInt, (int[])reader.ReadValue()));
-            Assert.True(Enumerable.SequenceEqual(inputLong, (long[])reader.ReadValue()));
-            Assert.True(Enumerable.SequenceEqual(inputSByte, (sbyte[])reader.ReadValue()));
-            Assert.True(Enumerable.SequenceEqual(inputShort, (short[])reader.ReadValue()));
-            Assert.True(Enumerable.SequenceEqual(inputUInt, (uint[])reader.ReadValue()));
-            Assert.True(Enumerable.SequenceEqual(inputULong, (ulong[])reader.ReadValue()));
-            Assert.True(Enumerable.SequenceEqual(inputUShort, (ushort[])reader.ReadValue()));
-            Assert.True(Enumerable.SequenceEqual(inputString, (string[])reader.ReadValue()));
-        }
-
         private static void TestWritingByteSpan(byte[] data, ObjectWriter writer)
         {
-            writer.WriteValue(data.AsSpan());
+            writer.WriteSpan(data.AsSpan());
         }
 
         private static void TestReadingByteSpan(byte[] expected, ObjectReader reader)
         {
-            Assert.True(Enumerable.SequenceEqual(expected, (byte[])reader.ReadValue()));
-        }
-
-        [Fact]
-        public void TestBooleanArrays()
-        {
-            for (var i = 0; i < 1000; i++)
-            {
-                var inputBool = new bool[i];
-
-                for (var j = 0; j < i; j++)
-                {
-                    inputBool[j] = j % 2 == 0;
-                }
-
-                TestRoundTripValue(inputBool);
-            }
-        }
-
-        [Fact]
-        public void TestFalseBooleanArray()
-        {
-            var inputBool = Enumerable.Repeat<bool>(false, 1000).ToArray();
-            TestRoundTripValue(inputBool);
+            Assert.True(Enumerable.SequenceEqual(expected, (byte[])reader.ReadByteArray()));
         }
 
         private static readonly DateTime _testNow = DateTime.Now;
@@ -600,32 +462,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static void TestWritingPrimitiveValues(ObjectWriter writer)
         {
-            writer.WriteValue(true);
-            writer.WriteValue(false);
-            writer.WriteValue(Byte.MaxValue);
-            writer.WriteValue(SByte.MaxValue);
-            writer.WriteValue(Int16.MaxValue);
-            writer.WriteValue(Int32.MaxValue);
-            writer.WriteValue((Int32)Byte.MaxValue);
-            writer.WriteValue((Int32)Int16.MaxValue);
-            writer.WriteValue(Int64.MaxValue);
-            writer.WriteValue(UInt16.MaxValue);
-            writer.WriteValue(UInt32.MaxValue);
-            writer.WriteValue(UInt64.MaxValue);
-            writer.WriteValue(Decimal.MaxValue);
-            writer.WriteValue(Double.MaxValue);
-            writer.WriteValue(Single.MaxValue);
-            writer.WriteValue('X');
-
-            writer.WriteValue((object)"YYY");
-
-            writer.WriteValue((object)"\uD800\uDC00"); // valid surrogate pair
-
-            writer.WriteValue((object)"\uDC00\uD800"); // invalid surrogate pair
-
-            writer.WriteValue((object)"\uD800"); // incomplete surrogate pair
-
-            writer.WriteValue((object)null);
+            writer.WriteScalarValue(true);
+            writer.WriteScalarValue(false);
+            writer.WriteScalarValue(Byte.MaxValue);
+            writer.WriteScalarValue(SByte.MaxValue);
+            writer.WriteScalarValue(Int16.MaxValue);
+            writer.WriteScalarValue(Int32.MaxValue);
+            writer.WriteScalarValue((Int32)Byte.MaxValue);
+            writer.WriteScalarValue((Int32)Int16.MaxValue);
+            writer.WriteScalarValue(Int64.MaxValue);
+            writer.WriteScalarValue(UInt16.MaxValue);
+            writer.WriteScalarValue(UInt32.MaxValue);
+            writer.WriteScalarValue(UInt64.MaxValue);
+            writer.WriteScalarValue(Decimal.MaxValue);
+            writer.WriteScalarValue(Double.MaxValue);
+            writer.WriteScalarValue(Single.MaxValue);
+            writer.WriteScalarValue('X');
+            writer.WriteScalarValue((object)"YYY");
+            writer.WriteScalarValue((object)"\uD800\uDC00"); // valid surrogate pair
+            writer.WriteScalarValue((object)"\uDC00\uD800"); // invalid surrogate pair
+            writer.WriteScalarValue((object)"\uD800"); // incomplete surrogate pair
+            writer.WriteScalarValue((object)null);
             unchecked
             {
                 writer.WriteInt64((long)ConsoleColor.Cyan);
@@ -638,32 +495,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 writer.WriteInt64((long)ELong.Value);
                 writer.WriteInt64((long)EULong.Value);
             }
-            writer.WriteValue(_testNow);
+            writer.WriteScalarValue(_testNow);
         }
 
         private static void TestReadingPrimitiveValues(ObjectReader reader)
         {
-            Assert.True((bool)reader.ReadValue());
-            Assert.False((bool)reader.ReadValue());
-            Assert.Equal(Byte.MaxValue, (Byte)reader.ReadValue());
-            Assert.Equal(SByte.MaxValue, (SByte)reader.ReadValue());
-            Assert.Equal(Int16.MaxValue, (Int16)reader.ReadValue());
-            Assert.Equal(Int32.MaxValue, (Int32)reader.ReadValue());
-            Assert.Equal(Byte.MaxValue, (Int32)reader.ReadValue());
-            Assert.Equal(Int16.MaxValue, (Int32)reader.ReadValue());
-            Assert.Equal(Int64.MaxValue, (Int64)reader.ReadValue());
-            Assert.Equal(UInt16.MaxValue, (UInt16)reader.ReadValue());
-            Assert.Equal(UInt32.MaxValue, (UInt32)reader.ReadValue());
-            Assert.Equal(UInt64.MaxValue, (UInt64)reader.ReadValue());
-            Assert.Equal(Decimal.MaxValue, (Decimal)reader.ReadValue());
-            Assert.Equal(Double.MaxValue, (Double)reader.ReadValue());
-            Assert.Equal(Single.MaxValue, (Single)reader.ReadValue());
-            Assert.Equal('X', (Char)reader.ReadValue());
-            Assert.Equal("YYY", (String)reader.ReadValue());
-            Assert.Equal("\uD800\uDC00", (String)reader.ReadValue()); // valid surrogate pair
-            Assert.Equal("\uDC00\uD800", (String)reader.ReadValue()); // invalid surrogate pair
-            Assert.Equal("\uD800", (String)reader.ReadValue()); // incomplete surrogate pair
-            Assert.Null(reader.ReadValue());
+            Assert.True((bool)reader.ReadScalarValue());
+            Assert.False((bool)reader.ReadScalarValue());
+            Assert.Equal(Byte.MaxValue, (Byte)reader.ReadScalarValue());
+            Assert.Equal(SByte.MaxValue, (SByte)reader.ReadScalarValue());
+            Assert.Equal(Int16.MaxValue, (Int16)reader.ReadScalarValue());
+            Assert.Equal(Int32.MaxValue, (Int32)reader.ReadScalarValue());
+            Assert.Equal(Byte.MaxValue, (Int32)reader.ReadScalarValue());
+            Assert.Equal(Int16.MaxValue, (Int32)reader.ReadScalarValue());
+            Assert.Equal(Int64.MaxValue, (Int64)reader.ReadScalarValue());
+            Assert.Equal(UInt16.MaxValue, (UInt16)reader.ReadScalarValue());
+            Assert.Equal(UInt32.MaxValue, (UInt32)reader.ReadScalarValue());
+            Assert.Equal(UInt64.MaxValue, (UInt64)reader.ReadScalarValue());
+            Assert.Equal(Decimal.MaxValue, (Decimal)reader.ReadScalarValue());
+            Assert.Equal(Double.MaxValue, (Double)reader.ReadScalarValue());
+            Assert.Equal(Single.MaxValue, (Single)reader.ReadScalarValue());
+            Assert.Equal('X', (Char)reader.ReadScalarValue());
+            Assert.Equal("YYY", (String)reader.ReadScalarValue());
+            Assert.Equal("\uD800\uDC00", (String)reader.ReadScalarValue()); // valid surrogate pair
+            Assert.Equal("\uDC00\uD800", (String)reader.ReadScalarValue()); // invalid surrogate pair
+            Assert.Equal("\uD800", (String)reader.ReadScalarValue()); // incomplete surrogate pair
+            Assert.Null(reader.ReadScalarValue());
 
             unchecked
             {
@@ -678,7 +535,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal((long)EULong.Value, reader.ReadInt64());
             }
 
-            Assert.Equal(_testNow, (DateTime)reader.ReadValue());
+            Assert.Equal(_testNow, (DateTime)reader.ReadScalarValue());
         }
 
         public enum EByte : byte
@@ -739,7 +596,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestRoundTripGuid()
         {
-            void test(Guid guid)
+            static void test(Guid guid)
             {
                 TestRoundTrip(guid, (w, v) => w.WriteGuid(v), r => r.ReadGuid());
             }
@@ -783,18 +640,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripString(new String((char)code, 1));
         }
 
-        [Fact]
-        public void TestRoundTripArrays()
-        {
-            //TestRoundTripArray(new object[] { });
-            //TestRoundTripArray(new object[] { "hello" });
-            //TestRoundTripArray(new object[] { "hello", "world" });
-            //TestRoundTripArray(new object[] { "hello", "world", "good" });
-            //TestRoundTripArray(new object[] { "hello", "world", "good", "bye" });
-            //TestRoundTripArray(new object[] { "hello", 123, 45m, 99.9, 'c' });
-            TestRoundTripArray(new string[] { "hello", null, "world" });
-        }
-
         private static void TestRoundTripArray<T>(T[] values)
         {
             TestRoundTripValue(values);
@@ -818,8 +663,80 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             using var reader = ObjectReader.TryGetReader(stream);
             Assert.NotNull(reader);
-            var deserialized = (Encoding)reader.ReadValue();
+            var deserialized = reader.ReadEncoding();
             EncodingTestHelpers.AssertEncodingsEqual(original, deserialized);
+        }
+
+        [Fact]
+        public void TestMultipleAssetWritingAndReader()
+        {
+            using var stream = new MemoryStream();
+
+            const string GooString = "Goo";
+            const string BarString = "Bar";
+            var largeString = new string('a', 1024);
+
+            // Write out some initial bytes, to demonstrate the reader not throwing, even if we don't have the right
+            // validation bytes at the start.
+            stream.WriteByte(1);
+            stream.WriteByte(2);
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, writeValidationBytes: false))
+            {
+                writer.WriteValidationBytes();
+                writer.WriteString(GooString);
+                writer.WriteString("Bar");
+                writer.WriteString(largeString);
+
+                // Random data, not going through the writer.
+                stream.WriteByte(3);
+                stream.WriteByte(4);
+
+                // We should be able to write out a new object, using strings we've already seen.
+                writer.WriteValidationBytes();
+                writer.WriteString(largeString);
+                writer.WriteString("Bar");
+                writer.WriteString(GooString);
+            }
+
+            stream.Position = 0;
+
+            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, checkValidationBytes: false);
+
+            Assert.Equal(1, reader.ReadByte());
+            Assert.Equal(2, reader.ReadByte());
+
+            reader.CheckValidationBytes();
+
+            var string1 = reader.ReadString();
+            var string2 = reader.ReadString();
+            var string3 = reader.ReadString();
+            Assert.Equal(GooString, string1);
+            Assert.Equal(BarString, string2);
+            Assert.Equal(largeString, string3);
+            Assert.NotSame(GooString, string1);
+            Assert.NotSame(BarString, string2);
+            Assert.NotSame(largeString, string3);
+
+            Assert.Equal(3, stream.ReadByte());
+            Assert.Equal(4, stream.ReadByte());
+
+            reader.CheckValidationBytes();
+            var string4 = reader.ReadString();
+            var string5 = reader.ReadString();
+            var string6 = reader.ReadString();
+            Assert.Equal(largeString, string4);
+            Assert.Equal(BarString, string5);
+            Assert.Equal(GooString, string6);
+            Assert.NotSame(largeString, string4);
+            Assert.NotSame(BarString, string5);
+            Assert.NotSame(GooString, string6);
+
+            // These should be references to the same strings in the format string and should return the values already
+            // returned.
+            Assert.Same(string1, string6);
+            Assert.Same(string2, string5);
+            Assert.Same(string3, string4);
         }
 
         // keep these around for analyzing perf issues

@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.Editor;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal static class VSTypeScriptPredefinedCommandHandlerNames
 {
-    internal static class VSTypeScriptPredefinedCommandHandlerNames
-    {
-        public const string SignatureHelpAfterCompletion = PredefinedCommandHandlerNames.SignatureHelpAfterCompletion;
-    }
+    public const string SignatureHelpAfterCompletion = PredefinedCommandHandlerNames.SignatureHelpAfterCompletion;
 }

@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -59,7 +58,7 @@ internal sealed class InstallPackageAndAddImportCodeAction : AddImportCodeAction
         result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(
             this.OriginalDocument.Project.Solution, cancellationToken).ConfigureAwait(false));
         result.Add(_installOperation);
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async Task<Solution> GetUpdatedSolutionAsync(CancellationToken cancellationToken)
@@ -89,9 +88,8 @@ internal sealed class InstallPackageAndAddImportCodeAction : AddImportCodeAction
         var oldText = await OriginalDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var newText = await updatedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
-        return ImmutableArray.Create<CodeActionOperation>(
-            new InstallPackageAndAddImportOperation(
-                OriginalDocument.Id, oldText, newText, _installOperation));
+        return [new InstallPackageAndAddImportOperation(
+                OriginalDocument.Id, oldText, newText, _installOperation)];
     }
 
     private sealed class InstallPackageAndAddImportOperation(

@@ -9,51 +9,50 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.EditorConfig;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+
+internal class AnalyzerSetting
 {
-    internal class AnalyzerSetting
+    private readonly DiagnosticDescriptor _descriptor;
+    private readonly AnalyzerSettingsUpdater _settingsUpdater;
+
+    public AnalyzerSetting(DiagnosticDescriptor descriptor,
+                           ReportDiagnostic effectiveSeverity,
+                           AnalyzerSettingsUpdater settingsUpdater,
+                           Language language,
+                           SettingLocation location)
     {
-        private readonly DiagnosticDescriptor _descriptor;
-        private readonly AnalyzerSettingsUpdater _settingsUpdater;
-
-        public AnalyzerSetting(DiagnosticDescriptor descriptor,
-                               ReportDiagnostic effectiveSeverity,
-                               AnalyzerSettingsUpdater settingsUpdater,
-                               Language language,
-                               SettingLocation location)
+        _descriptor = descriptor;
+        _settingsUpdater = settingsUpdater;
+        if (effectiveSeverity == ReportDiagnostic.Default)
         {
-            _descriptor = descriptor;
-            _settingsUpdater = settingsUpdater;
-            if (effectiveSeverity == ReportDiagnostic.Default)
-            {
-                effectiveSeverity = descriptor.DefaultSeverity.ToReportDiagnostic();
-            }
-
-            var enabled = effectiveSeverity != ReportDiagnostic.Suppress;
-            IsEnabled = enabled;
-            Severity = effectiveSeverity;
-            Language = language;
-            IsNotConfigurable = descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.NotConfigurable);
-            Location = location;
+            effectiveSeverity = descriptor.DefaultSeverity.ToReportDiagnostic();
         }
 
-        public string Id => _descriptor.Id;
-        public string Title => _descriptor.Title.ToString(CultureInfo.CurrentUICulture);
-        public string Description => _descriptor.Description.ToString(CultureInfo.CurrentUICulture);
-        public string Category => _descriptor.Category;
-        public ReportDiagnostic Severity { get; private set; }
-        public bool IsEnabled { get; private set; }
-        public Language Language { get; }
-        public bool IsNotConfigurable { get; set; }
-        public SettingLocation Location { get; }
+        var enabled = effectiveSeverity != ReportDiagnostic.Suppress;
+        IsEnabled = enabled;
+        Severity = effectiveSeverity;
+        Language = language;
+        IsNotConfigurable = descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.NotConfigurable);
+        Location = location;
+    }
 
-        internal void ChangeSeverity(ReportDiagnostic severity)
-        {
-            if (severity == Severity)
-                return;
+    public string Id => _descriptor.Id;
+    public string Title => _descriptor.Title.ToString(CultureInfo.CurrentUICulture);
+    public string Description => _descriptor.Description.ToString(CultureInfo.CurrentUICulture);
+    public string Category => _descriptor.Category;
+    public ReportDiagnostic Severity { get; private set; }
+    public bool IsEnabled { get; private set; }
+    public Language Language { get; }
+    public bool IsNotConfigurable { get; set; }
+    public SettingLocation Location { get; }
 
-            Severity = severity;
-            _settingsUpdater.QueueUpdate(this, severity);
-        }
+    internal void ChangeSeverity(ReportDiagnostic severity)
+    {
+        if (severity == Severity)
+            return;
+
+        Severity = severity;
+        _settingsUpdater.QueueUpdate(this, severity);
     }
 }

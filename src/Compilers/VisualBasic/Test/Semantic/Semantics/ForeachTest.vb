@@ -1148,7 +1148,7 @@ Public Class C
     End Sub
 End Class
     </file>
-</compilation>, {MscorlibRefPortable})
+</compilation>, {SystemRuntimePP7Ref})
 
             comp.VerifyDiagnostics()
 
@@ -1158,10 +1158,10 @@ End Class
             Dim loopSyntax = tree.GetRoot().DescendantNodes().OfType(Of ForEachStatementSyntax)().Single()
 
             Dim loopInfo = model.GetForEachStatementInfo(loopSyntax)
-            Assert.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator), loopInfo.GetEnumeratorMethod)
-            Assert.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), loopInfo.CurrentProperty)
-            Assert.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext), loopInfo.MoveNextMethod)
-            Assert.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), loopInfo.DisposeMethod)
+            AssertEx.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator), loopInfo.GetEnumeratorMethod)
+            AssertEx.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), loopInfo.CurrentProperty)
+            AssertEx.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext), loopInfo.MoveNextMethod)
+            AssertEx.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), loopInfo.DisposeMethod)
 
             ' The spec says that the element type is object.
             ' Therefore, we should infer object for "var".
@@ -1188,7 +1188,7 @@ Public Class C
     End Sub
 End Class
     </file>
-</compilation>, {MscorlibRefPortable})
+</compilation>, {SystemRuntimePP7Ref})
 
             comp.VerifyDiagnostics()
 
@@ -1198,10 +1198,10 @@ End Class
             Dim loopSyntax = tree.GetRoot().DescendantNodes().OfType(Of ForEachStatementSyntax)().Single()
 
             Dim loopInfo = model.GetForEachStatementInfo(loopSyntax)
-            Assert.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator), loopInfo.GetEnumeratorMethod)
-            Assert.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), loopInfo.CurrentProperty)
-            Assert.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext), loopInfo.MoveNextMethod)
-            Assert.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), loopInfo.DisposeMethod)
+            AssertEx.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator), loopInfo.GetEnumeratorMethod)
+            AssertEx.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), loopInfo.CurrentProperty)
+            AssertEx.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext), loopInfo.MoveNextMethod)
+            AssertEx.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), loopInfo.DisposeMethod)
 
             ' The spec says that the element type is object.
             ' Therefore, we should infer object for "var".
@@ -1254,15 +1254,15 @@ End Module
 
             Dim loopInfo0 = model.GetForEachStatementInfo(loopSyntaxes(0))
             Assert.Equal(comp.GetSpecialType(SpecialType.System_Array), loopInfo0.GetEnumeratorMethod.ContainingType) ' Unlike C#, the spec doesn't say that arrays use IEnumerable
-            Assert.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), loopInfo0.CurrentProperty)
-            Assert.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext), loopInfo0.MoveNextMethod)
-            Assert.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), loopInfo0.DisposeMethod)
+            AssertEx.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), loopInfo0.CurrentProperty)
+            AssertEx.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext), loopInfo0.MoveNextMethod)
+            AssertEx.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), loopInfo0.DisposeMethod)
             Assert.Equal(SpecialType.System_String, loopInfo0.ElementType.SpecialType)
             Assert.Equal(udc, loopInfo0.ElementConversion.Method)
             Assert.Equal(ConversionKind.NarrowingReference, loopInfo0.CurrentConversion.Kind)
 
             Dim loopInfo1 = model.GetForEachStatementInfo(loopSyntaxes(1))
-            Assert.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator), loopInfo1.GetEnumeratorMethod) ' No longer using System.Array method.
+            AssertEx.Equal(Of ISymbol)(comp.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator), loopInfo1.GetEnumeratorMethod) ' No longer using System.Array method.
             Assert.Equal(loopInfo0.CurrentProperty, loopInfo1.CurrentProperty)
             Assert.Equal(loopInfo0.MoveNextMethod, loopInfo1.MoveNextMethod)
             Assert.Equal(loopInfo0.DisposeMethod, loopInfo1.DisposeMethod)

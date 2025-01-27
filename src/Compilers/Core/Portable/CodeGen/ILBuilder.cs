@@ -71,8 +71,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal ILBuilder(ITokenDeferral module, LocalSlotManager localSlotManager, OptimizationLevel optimizations, bool areLocalsZeroed)
         {
-            Debug.Assert(BitConverter.IsLittleEndian);
-
             this.module = module;
             this.LocalSlotManager = localSlotManager;
             _emitState = default(EmitState);

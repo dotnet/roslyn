@@ -9,23 +9,22 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.Whitespace;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View.ColumnDefnitions
-{
-    [Export(typeof(ITableColumnDefinition))]
-    [Name(Location)]
-    internal class WhitespaceLocationColumnDefinition : TableColumnDefinitionBase
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WhitespaceLocationColumnDefinition()
-        {
-        }
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View.ColumnDefnitions;
 
-        public override string Name => Location;
-        public override string DisplayName => ServicesVSResources.Location;
-        public override double MinWidth => 350;
-        public override bool DefaultVisible => true;
-        public override bool IsFilterable => true;
-        public override bool IsSortable => true;
+[Export(typeof(ITableColumnDefinition))]
+[Name(Location)]
+internal class WhitespaceLocationColumnDefinition : TableColumnDefinitionBase
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public WhitespaceLocationColumnDefinition()
+    {
     }
+
+    public override string Name => Location;
+    public override string DisplayName => ServicesVSResources.Location;
+    public override double MinWidth => 350;
+    public override bool DefaultVisible => true;
+    public override bool IsFilterable => true;
+    public override bool IsSortable => true;
 }

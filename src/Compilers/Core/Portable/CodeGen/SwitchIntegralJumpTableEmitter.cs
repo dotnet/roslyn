@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 //          merge top bucket on stack into newBucket, and pop bucket from stack
                 //      End While
 
-                while (!switchBucketsStack.IsEmpty())
+                while (!switchBucketsStack.IsEmpty)
                 {
                     // get the bucket at top of the stack
                     SwitchBucket prevBucket = switchBucketsStack.Peek();
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 curStartLabelIndex++;
             }
 
-            Debug.Assert(!switchBucketsStack.IsEmpty());
+            Debug.Assert(!switchBucketsStack.IsEmpty);
 
             // crumble leaf buckets into degenerate buckets where possible
             var crumbled = ArrayBuilder<SwitchBucket>.GetInstance();

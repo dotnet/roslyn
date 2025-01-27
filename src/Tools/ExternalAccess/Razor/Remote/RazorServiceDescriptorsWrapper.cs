@@ -5,12 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using MessagePack;
 using MessagePack.Formatters;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Framework;
-using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             => UnderlyingObject = new ServiceDescriptors(componentName, featureDisplayNameProvider, new RemoteSerializationOptions(additionalFormatters, additionalResolvers), interfaces);
 
         /// <summary>
-        /// Creates a service descriptor set for services using JSON serialization.
+        /// Creates a service descriptor set for services using System.Text.Json serialization.
         /// </summary>
         public RazorServiceDescriptorsWrapper(
             string componentName,
@@ -45,10 +46,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public ServiceJsonRpcDescriptor GetDescriptorForServiceFactory(Type serviceInterface)
             => UnderlyingObject.GetServiceDescriptorForServiceFactory(serviceInterface);
 
-        public MessagePackSerializerOptions MessagePackOptions
-            => UnderlyingObject.Options.MessagePackOptions;
-
-        public ImmutableArray<JsonConverter> JsonConverters
-            => UnderlyingObject.Options.JsonConverters;
+        public static ImmutableArray<JsonConverter> GetLspConverters()
+        {
+            var options = new JsonSerializerOptions();
+            ProtocolConversions.AddLspSerializerOptions(options);
+            return options.Converters.ToImmutableArray();
+        }
     }
 }

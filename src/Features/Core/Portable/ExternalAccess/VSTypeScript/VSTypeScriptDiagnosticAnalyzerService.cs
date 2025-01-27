@@ -9,17 +9,16 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
-{
-    [Shared]
-    [Export(typeof(IVSTypeScriptDiagnosticAnalyzerService))]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class VSTypeScriptAnalyzerService(IDiagnosticAnalyzerService service) : IVSTypeScriptDiagnosticAnalyzerService
-    {
-        private readonly IDiagnosticAnalyzerService _service = service;
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-        public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
-            => _service.Reanalyze(workspace, projectIds, documentIds, highPriority);
-    }
+[Shared]
+[Export(typeof(IVSTypeScriptDiagnosticAnalyzerService))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSTypeScriptAnalyzerService(IDiagnosticAnalyzerService service) : IVSTypeScriptDiagnosticAnalyzerService
+{
+    private readonly IDiagnosticAnalyzerService _service = service;
+
+    public void Reanalyze(Workspace? workspace, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
+        => _service.RequestDiagnosticRefresh();
 }

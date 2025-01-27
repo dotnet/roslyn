@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings
+namespace Microsoft.CodeAnalysis.CodeRefactorings;
+
+internal interface ICodeRefactoringHelpersService : IWorkspaceService
 {
-    internal interface ICodeRefactoringHelpersService : IWorkspaceService
-    {
-        bool ActiveInlineRenameSession { get; }
-    }
+    bool ActiveInlineRenameSession { get; }
 }

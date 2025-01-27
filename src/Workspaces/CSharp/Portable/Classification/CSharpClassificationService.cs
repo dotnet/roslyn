@@ -10,21 +10,17 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Classification
+namespace Microsoft.CodeAnalysis.CSharp.Classification;
+
+[ExportLanguageService(typeof(IClassificationService), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpEditorClassificationService(
+    CSharpSyntaxClassificationService syntaxClassificationService) : AbstractClassificationService(syntaxClassificationService)
 {
-    [ExportLanguageService(typeof(IClassificationService), LanguageNames.CSharp), Shared]
-    internal class CSharpEditorClassificationService : AbstractClassificationService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpEditorClassificationService()
-        {
-        }
+    public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
+        => ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken);
 
-        public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
-            => ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken);
-
-        public override ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan)
-            => ClassificationHelpers.AdjustStaleClassification(text, classifiedSpan);
-    }
+    public override ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan)
+        => ClassificationHelpers.AdjustStaleClassification(text, classifiedSpan);
 }

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Inherits AbstractAggregatedFormattingResult
         Implements IFormattingResult
 
-        Public Sub New(node As SyntaxNode, results As IList(Of AbstractFormattingResult), formattingSpans As TextSpanIntervalTree)
+        Public Sub New(node As SyntaxNode, results As IList(Of AbstractFormattingResult), formattingSpans As TextSpanMutableIntervalTree)
             MyBase.New(node, results, formattingSpans)
         End Sub
 

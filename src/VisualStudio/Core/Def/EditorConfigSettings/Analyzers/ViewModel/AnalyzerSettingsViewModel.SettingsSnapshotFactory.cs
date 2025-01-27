@@ -7,19 +7,18 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel
-{
-    internal partial class AnalyzerSettingsViewModel : SettingsViewModelBase<
-        AnalyzerSetting,
-        AnalyzerSettingsViewModel.SettingsSnapshotFactory,
-        AnalyzerSettingsViewModel.SettingsEntriesSnapshot>
-    {
-        internal sealed class SettingsSnapshotFactory : SettingsSnapshotFactoryBase<AnalyzerSetting, SettingsEntriesSnapshot>
-        {
-            public SettingsSnapshotFactory(ISettingsProvider<AnalyzerSetting> data) : base(data) { }
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
 
-            protected override SettingsEntriesSnapshot CreateSnapshot(ImmutableArray<AnalyzerSetting> data, int currentVersionNumber)
-                => new(data, currentVersionNumber);
-        }
+internal partial class AnalyzerSettingsViewModel : SettingsViewModelBase<
+    AnalyzerSetting,
+    AnalyzerSettingsViewModel.SettingsSnapshotFactory,
+    AnalyzerSettingsViewModel.SettingsEntriesSnapshot>
+{
+    internal sealed class SettingsSnapshotFactory : SettingsSnapshotFactoryBase<AnalyzerSetting, SettingsEntriesSnapshot>
+    {
+        public SettingsSnapshotFactory(ISettingsProvider<AnalyzerSetting> data) : base(data) { }
+
+        protected override SettingsEntriesSnapshot CreateSnapshot(ImmutableArray<AnalyzerSetting> data, int currentVersionNumber)
+            => new(data, currentVersionNumber);
     }
 }

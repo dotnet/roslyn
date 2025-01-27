@@ -2,190 +2,171 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+internal abstract partial class AbstractExtractMethodService<
+    TStatementSyntax,
+    TExecutableStatementSyntax,
+    TExpressionSyntax>
 {
-    /// <summary>
-    /// clean up this code when we do selection validator work.
-    /// </summary>
-    internal abstract class SelectionResult<TStatementSyntax>
-        where TStatementSyntax : SyntaxNode
+    internal abstract class SelectionResult(
+        SemanticDocument document,
+        SelectionType selectionType,
+        TextSpan finalSpan)
     {
-        protected SelectionResult(
-            TextSpan originalSpan,
-            TextSpan finalSpan,
-            ExtractMethodOptions options,
-            bool selectionInExpression,
-            SemanticDocument document,
-            SyntaxAnnotation firstTokenAnnotation,
-            SyntaxAnnotation lastTokenAnnotation,
-            bool selectionChanged)
-        {
-            OriginalSpan = originalSpan;
-            FinalSpan = finalSpan;
+        protected static readonly SyntaxAnnotation s_firstTokenAnnotation = new();
+        protected static readonly SyntaxAnnotation s_lastTokenAnnotation = new();
 
-            SelectionInExpression = selectionInExpression;
-            Options = options;
+        private bool? _containsAwaitExpression;
+        private bool? _containsConfigureAwaitFalse;
 
-            FirstTokenAnnotation = firstTokenAnnotation;
-            LastTokenAnnotation = lastTokenAnnotation;
+        public SemanticDocument SemanticDocument { get; private set; } = document;
+        public TextSpan FinalSpan { get; } = finalSpan;
+        public SelectionType SelectionType { get; } = selectionType;
 
-            SemanticDocument = document;
-            SelectionChanged = selectionChanged;
-        }
+        /// <summary>
+        /// Cached data flow analysis result for the selected code.  Valid for both expressions and statements.
+        /// </summary>
+        private DataFlowAnalysis? _dataFlowAnalysis;
 
-        protected abstract ISyntaxFacts SyntaxFacts { get; }
-        protected abstract bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken);
+        /// <summary>
+        /// Cached information about the control flow of the selected code.  Only valid if the selection covers one or
+        /// more statements.
+        /// </summary>
+        private ControlFlowAnalysis? _statementControlFlowAnalysis;
 
-        public abstract TStatementSyntax GetFirstStatementUnderContainer();
-        public abstract TStatementSyntax GetLastStatementUnderContainer();
+        public abstract TExecutableStatementSyntax GetFirstStatementUnderContainer();
+        public abstract TExecutableStatementSyntax GetLastStatementUnderContainer();
 
         public abstract bool ContainingScopeHasAsyncKeyword();
 
         public abstract SyntaxNode GetContainingScope();
         public abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
 
-        public abstract (ITypeSymbol returnType, bool returnsByRef) GetReturnType();
+        protected abstract (ITypeSymbol? returnType, bool returnsByRef) GetReturnTypeInfoWorker(CancellationToken cancellationToken);
 
-        public ITypeSymbol GetContainingScopeType()
+        public abstract ImmutableArray<TExecutableStatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> jumpsOutOfRegion);
+        public abstract bool IsFinalSpanSemanticallyValidSpan(ImmutableArray<TExecutableStatementSyntax> returnStatements, CancellationToken cancellationToken);
+        public abstract bool ContainsUnsupportedExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints);
+
+        protected abstract OperationStatus ValidateLanguageSpecificRules(CancellationToken cancellationToken);
+
+        public (ITypeSymbol returnType, bool returnsByRef) GetReturnTypeInfo(CancellationToken cancellationToken)
         {
-            var (typeSymbol, _) = GetReturnType();
-            return typeSymbol;
+            var (returnType, returnsByRef) = GetReturnTypeInfoWorker(cancellationToken);
+            return (returnType ?? this.SemanticDocument.SemanticModel.Compilation.GetSpecialType(SpecialType.System_Object), returnsByRef);
         }
 
-        public virtual SyntaxNode GetNodeForDataFlowAnalysis() => GetContainingScope();
+        public ITypeSymbol GetReturnType(CancellationToken cancellationToken)
+            => GetReturnTypeInfo(cancellationToken).returnType;
 
-        public TextSpan OriginalSpan { get; }
-        public TextSpan FinalSpan { get; }
-        public ExtractMethodOptions Options { get; }
-        public bool SelectionInExpression { get; }
-        public SemanticDocument SemanticDocument { get; private set; }
-        public SyntaxAnnotation FirstTokenAnnotation { get; }
-        public SyntaxAnnotation LastTokenAnnotation { get; }
-        public bool SelectionChanged { get; }
+        public bool IsExtractMethodOnExpression => this.SelectionType == SelectionType.Expression;
+        public bool IsExtractMethodOnSingleStatement => this.SelectionType == SelectionType.SingleStatement;
+        public bool IsExtractMethodOnMultipleStatements => this.SelectionType == SelectionType.MultipleStatements;
 
-        public SelectionResult<TStatementSyntax> With(SemanticDocument document)
+        protected virtual SyntaxNode GetNodeForDataFlowAnalysis() => GetContainingScope();
+
+        public SelectionResult With(SemanticDocument document)
         {
             if (SemanticDocument == document)
             {
                 return this;
             }
 
-            var clone = (SelectionResult<TStatementSyntax>)MemberwiseClone();
+            var clone = (SelectionResult)MemberwiseClone();
             clone.SemanticDocument = document;
 
             return clone;
         }
 
         public SyntaxToken GetFirstTokenInSelection()
-            => SemanticDocument.GetTokenWithAnnotation(FirstTokenAnnotation);
+            => SemanticDocument.GetTokenWithAnnotation(s_firstTokenAnnotation);
 
         public SyntaxToken GetLastTokenInSelection()
-            => SemanticDocument.GetTokenWithAnnotation(LastTokenAnnotation);
+            => SemanticDocument.GetTokenWithAnnotation(s_lastTokenAnnotation);
 
-        public TNode GetContainingScopeOf<TNode>() where TNode : SyntaxNode
+        public TNode? GetContainingScopeOf<TNode>() where TNode : SyntaxNode
         {
             var containingScope = GetContainingScope();
             return containingScope.GetAncestorOrThis<TNode>();
         }
 
-        public bool IsExtractMethodOnSingleStatement()
+        public TExecutableStatementSyntax GetFirstStatement()
         {
-            var firstStatement = this.GetFirstStatement();
-            var lastStatement = this.GetLastStatement();
-
-            return firstStatement == lastStatement || firstStatement.Span.Contains(lastStatement.Span);
-        }
-
-        public bool IsExtractMethodOnMultipleStatements()
-        {
-            var first = this.GetFirstStatement();
-            var last = this.GetLastStatement();
-
-            if (first != last)
-            {
-                var firstUnderContainer = this.GetFirstStatementUnderContainer();
-                var lastUnderContainer = this.GetLastStatementUnderContainer();
-                Contract.ThrowIfFalse(this.SyntaxFacts.AreStatementsInSameContainer(firstUnderContainer, lastUnderContainer));
-                return true;
-            }
-
-            return false;
-        }
-
-        public TStatementSyntax GetFirstStatement()
-        {
-            Contract.ThrowIfTrue(SelectionInExpression);
+            Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
             var token = GetFirstTokenInSelection();
-            return token.GetAncestor<TStatementSyntax>();
+            return token.GetRequiredAncestor<TExecutableStatementSyntax>();
         }
 
-        public TStatementSyntax GetLastStatement()
+        public TExecutableStatementSyntax GetLastStatement()
         {
-            Contract.ThrowIfTrue(SelectionInExpression);
+            Contract.ThrowIfTrue(IsExtractMethodOnExpression);
 
             var token = GetLastTokenInSelection();
-            return token.GetAncestor<TStatementSyntax>();
+            return token.GetRequiredAncestor<TExecutableStatementSyntax>();
         }
 
-        public bool ShouldPutAsyncModifier()
+        /// <summary>
+        /// Checks all of the nodes within the user's selection to see if any of them satisfy the supplied <paramref
+        /// name="predicate"/>. Will not descend into local functions or lambdas.
+        /// </summary>
+        /// <param name="predicate"></param>
+        private bool CheckNodesInSelection(Func<ISyntaxFacts, SyntaxNode, bool> predicate)
         {
-            var firstToken = GetFirstTokenInSelection();
-            var lastToken = GetLastTokenInSelection();
-            var syntaxFacts = SemanticDocument.Project.Services.GetService<ISyntaxFactsService>();
+            var firstToken = this.GetFirstTokenInSelection();
+            var lastToken = this.GetLastTokenInSelection();
+            var span = TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
 
-            for (var currentToken = firstToken;
-                currentToken.Span.End < lastToken.SpanStart;
-                currentToken = currentToken.GetNextToken())
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+            stack.Push(this.GetContainingScope());
+
+            var syntaxFacts = this.SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            while (stack.TryPop(out var current))
             {
-                // [|
-                //     async () => await ....
-                // |]
-                //
-                // for the case above, even if the selection contains "await", it doesn't belong to the enclosing block
-                // which extract method is applied to
-                if (syntaxFacts.IsAwaitKeyword(currentToken)
-                    && !UnderAnonymousOrLocalMethod(currentToken, firstToken, lastToken))
-                {
+                // Don't dive into lambdas and local functions.  They reset the async/await context.
+                if (syntaxFacts.IsAnonymousOrLocalFunction(current))
+                    continue;
+
+                if (predicate(syntaxFacts, current))
                     return true;
+
+                // Only dive into child nodes within the span being extracted.
+                foreach (var childNode in current.ChildNodes())
+                {
+                    if (childNode.Span.OverlapsWith(span))
+                        stack.Push(childNode);
                 }
             }
 
             return false;
         }
 
-        public bool ShouldCallConfigureAwaitFalse()
+        public bool ContainsAwaitExpression()
         {
-            var syntaxFacts = SemanticDocument.Project.Services.GetService<ISyntaxFactsService>();
+            return _containsAwaitExpression ??= CheckNodesInSelection(
+                static (syntaxFacts, node) => syntaxFacts.IsAwaitExpression(node));
+        }
 
-            var firstToken = GetFirstTokenInSelection();
-            var lastToken = GetLastTokenInSelection();
+        public bool ContainsConfigureAwaitFalse()
+        {
+            return _containsConfigureAwaitFalse ??= CheckNodesInSelection(
+                static (syntaxFacts, node) => IsConfigureAwaitFalse(syntaxFacts, node));
 
-            var span = TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
-
-            foreach (var node in SemanticDocument.Root.DescendantNodesAndSelf())
-            {
-                if (!node.Span.OverlapsWith(span))
-                    continue;
-
-                if (IsConfigureAwaitFalse(node) && !UnderAnonymousOrLocalMethod(node.GetFirstToken(), firstToken, lastToken))
-                    return true;
-            }
-
-            return false;
-
-            bool IsConfigureAwaitFalse(SyntaxNode node)
+            static bool IsConfigureAwaitFalse(ISyntaxFacts syntaxFacts, SyntaxNode node)
             {
                 if (!syntaxFacts.IsInvocationExpression(node))
                     return false;
@@ -205,6 +186,50 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var expression = syntaxFacts.GetExpressionOfArgument(arguments[0]);
                 return syntaxFacts.IsFalseLiteralExpression(expression);
+            }
+        }
+
+        public DataFlowAnalysis GetDataFlowAnalysis()
+        {
+            return _dataFlowAnalysis ??= ComputeDataFlowAnalysis();
+
+            DataFlowAnalysis ComputeDataFlowAnalysis()
+            {
+                var semanticModel = this.SemanticDocument.SemanticModel;
+                if (this.IsExtractMethodOnExpression)
+                    return semanticModel.AnalyzeDataFlow(this.GetNodeForDataFlowAnalysis());
+
+                var (firstStatement, lastStatement) = this.GetFlowAnalysisNodeRange();
+                return semanticModel.AnalyzeDataFlow(firstStatement, lastStatement);
+            }
+        }
+
+        public ControlFlowAnalysis GetStatementControlFlowAnalysis()
+        {
+            Contract.ThrowIfTrue(IsExtractMethodOnExpression);
+            return _statementControlFlowAnalysis ??= ComputeControlFlowAnalysis();
+
+            ControlFlowAnalysis ComputeControlFlowAnalysis()
+            {
+                var (firstStatement, lastStatement) = this.GetFlowAnalysisNodeRange();
+                return this.SemanticDocument.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
+            }
+        }
+
+        /// <summary>f
+        /// convert text span to node range for the flow analysis API
+        /// </summary>
+        private (TExecutableStatementSyntax firstStatement, TExecutableStatementSyntax lastStatement) GetFlowAnalysisNodeRange()
+        {
+            if (this.IsExtractMethodOnSingleStatement)
+            {
+                var first = this.GetFirstStatement();
+                return (first, first);
+            }
+            else
+            {
+                // multiple statement case
+                return (this.GetFirstStatementUnderContainer(), this.GetLastStatementUnderContainer());
             }
         }
 
@@ -232,6 +257,49 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             var tokenMap = pairs.GroupBy(p => p.Item1, p => p.Item2).ToDictionary(g => g.Key, g => g.ToArray());
             return root.ReplaceNodes(tokenMap.Keys, (o, n) => o.WithAdditionalAnnotations(tokenMap[o]));
+        }
+
+        public OperationStatus ValidateSelectionResult(CancellationToken cancellationToken)
+        {
+            if (!this.IsExtractMethodOnExpression)
+            {
+                if (!IsFinalSpanSemanticallyValidSpan(cancellationToken))
+                    return new(succeeded: true, FeaturesResources.Not_all_code_paths_return);
+
+                return ValidateLanguageSpecificRules(cancellationToken);
+            }
+
+            return OperationStatus.SucceededStatus;
+        }
+
+        protected bool IsFinalSpanSemanticallyValidSpan(CancellationToken cancellationToken)
+        {
+            var controlFlowAnalysisData = this.GetStatementControlFlowAnalysis();
+
+            // there must be no control in and out of given span
+            if (controlFlowAnalysisData.EntryPoints.Any())
+                return false;
+
+            // check something like continue, break, yield break, yield return, and etc
+            if (ContainsUnsupportedExitPointsStatements(controlFlowAnalysisData.ExitPoints))
+                return false;
+
+            // okay, there is no branch out, check whether next statement can be executed normally
+            var (firstStatement, lastStatement) = this.GetFlowAnalysisNodeRange();
+            var returnStatements = GetOuterReturnStatements(firstStatement.GetCommonRoot(lastStatement), controlFlowAnalysisData.ExitPoints);
+            if (!returnStatements.Any())
+                return true;
+
+            // okay, only branch was return. make sure we have all return in the selection.
+
+            // check for special case, if end point is not reachable, we don't care the selection
+            // actually contains all return statements. we just let extract method go through
+            // and work like we did in dev10
+            if (!controlFlowAnalysisData.EndPointIsReachable)
+                return true;
+
+            // there is a return statement, and current position is reachable. let's check whether this is a case where that is okay
+            return IsFinalSpanSemanticallyValidSpan(returnStatements, cancellationToken);
         }
     }
 }

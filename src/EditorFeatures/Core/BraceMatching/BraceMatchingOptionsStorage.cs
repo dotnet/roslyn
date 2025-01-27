@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.BraceMatching
+namespace Microsoft.CodeAnalysis.BraceMatching;
+
+internal static class BraceMatchingOptionsStorage
 {
-    internal static class BraceMatchingOptionsStorage
-    {
-        public static readonly Option2<bool> BraceMatching = new("dotnet_enable_brace_matching", defaultValue: true);
-    }
+    public static readonly Option2<bool> BraceMatching = new("dotnet_enable_brace_matching", defaultValue: true);
 }

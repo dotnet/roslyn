@@ -174,7 +174,7 @@ namespace BuildBoss
 
         /// <summary>
         /// It's important that every reference be included in the solution.  MSBuild does not necessarily
-        /// apply all configuration entries to projects which are compiled via referenes but not included
+        /// apply all configuration entries to projects which are compiled via references but not included
         /// in the solution.
         /// </summary>
         private bool CheckProjectReferencesComplete(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
@@ -247,6 +247,7 @@ namespace BuildBoss
                     case "net472":
                     case "netstandard2.0":
                     case "$(NetRoslyn)":
+                    case "$(NetRoslynNext)":
                     case "$(NetRoslynSourceBuild)":
                     case "$(NetRoslynToolset)":
                     case "$(NetRoslynAll)":
@@ -255,6 +256,15 @@ namespace BuildBoss
                     case "$(NetVSCode)":
                     case "$(NetVSShared)":
                         continue;
+
+                    case "$(NetRoslynBuildHostNetCoreVersion)":
+                        {
+                            // This property should only be used in one specific project
+                            if (_data.FileName == "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj")
+                                continue;
+                            else
+                                break;
+                        }
                 }
 
                 textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");

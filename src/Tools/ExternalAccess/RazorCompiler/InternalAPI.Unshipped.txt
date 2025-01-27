@@ -1,0 +1,15 @@
+#nullable enable
+Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.GeneratorExtensions
+Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.HostOutputNode<TInput>
+Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.HostOutputNode<TInput>.AppendOutputs(Microsoft.CodeAnalysis.IncrementalExecutionContext context, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.HostOutputNode<TInput>.HostOutputNode(Microsoft.CodeAnalysis.IIncrementalGeneratorNode<TInput>! source, System.Action<Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.HostProductionContext, TInput, System.Threading.CancellationToken>! action) -> void
+Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.HostOutputNode<TInput>.Kind.get -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
+Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.HostOutputNode<TInput>.UpdateStateTable(Microsoft.CodeAnalysis.DriverStateTable.Builder! graphState, Microsoft.CodeAnalysis.NodeStateTable<System.Collections.Immutable.ImmutableArray<(string!, string!)>>? previousTable, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.NodeStateTable<System.Collections.Immutable.ImmutableArray<(string!, string!)>>!
+Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.HostOutputNode<TInput>.WithTrackingName(string! name) -> Microsoft.CodeAnalysis.IIncrementalGeneratorNode<System.Collections.Immutable.ImmutableArray<(string!, string!)>>!
+Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.HostProductionContext
+Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.HostProductionContext.AddOutput(string! name, string! value) -> void
+Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.HostProductionContext.HostProductionContext() -> void
+Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.HostProductionContext.HostProductionContext(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<(string!, string!)>! outputs) -> void
+readonly Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.HostProductionContext.Outputs -> Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<(string!, string!)>!
+static Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.GeneratorExtensions.GetHostOutputs(this Microsoft.CodeAnalysis.GeneratorRunResult runResult) -> System.Collections.Immutable.ImmutableArray<(string! Key, string! Value)>
+static Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.GeneratorExtensions.RegisterHostOutput<TSource>(this ref Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext this, Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.HostProductionContext, TSource, System.Threading.CancellationToken>! action) -> void

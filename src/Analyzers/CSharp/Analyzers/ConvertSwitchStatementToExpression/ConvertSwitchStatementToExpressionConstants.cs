@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
+namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
+
+internal static class ConvertSwitchStatementToExpressionConstants
 {
-    internal static class ConvertSwitchStatementToExpressionConstants
-    {
-        public const string NodeToGenerateKey = nameof(NodeToGenerateKey);
-        public const string ShouldRemoveNextStatementKey = nameof(ShouldRemoveNextStatementKey);
-    }
+    public const string NodeToGenerateKey = nameof(NodeToGenerateKey);
+    public const string ShouldRemoveNextStatementKey = nameof(ShouldRemoveNextStatementKey);
 }

@@ -14,44 +14,43 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Debugging
+namespace Microsoft.CodeAnalysis.CSharp.Debugging;
+
+[ExportLanguageService(typeof(IBreakpointResolutionService), LanguageNames.CSharp), Shared]
+internal sealed class CSharpBreakpointResolutionService : IBreakpointResolutionService
 {
-    [ExportLanguageService(typeof(IBreakpointResolutionService), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpBreakpointResolutionService : IBreakpointResolutionService
+    [ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    public CSharpBreakpointResolutionService()
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpBreakpointResolutionService()
+    }
+
+    /// <summary>
+    /// Returns null if a breakpoint can't be placed at the specified position.
+    /// </summary>
+    public async Task<BreakpointResolutionResult?> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+    {
+        try
         {
-        }
-
-        /// <summary>
-        /// Returns null if a breakpoint can't be placed at the specified position.
-        /// </summary>
-        public async Task<BreakpointResolutionResult?> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                if (tree == null || !BreakpointSpans.TryGetBreakpointSpan(tree, textSpan.Start, cancellationToken, out var span))
-                {
-                    return null;
-                }
-
-                if (span.Length == 0)
-                {
-                    return BreakpointResolutionResult.CreateLineResult(document);
-                }
-
-                return BreakpointResolutionResult.CreateSpanResult(document, span);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            if (tree == null || !BreakpointSpans.TryGetBreakpointSpan(tree, textSpan.Start, cancellationToken, out var span))
             {
                 return null;
             }
-        }
 
-        public Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken)
-            => new BreakpointResolver(solution, name).DoAsync(cancellationToken);
+            if (span.Length == 0)
+            {
+                return BreakpointResolutionResult.CreateLineResult(document);
+            }
+
+            return BreakpointResolutionResult.CreateSpanResult(document, span);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+        {
+            return null;
+        }
     }
+
+    public Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken)
+        => new BreakpointResolver(solution, name).DoAsync(cancellationToken);
 }

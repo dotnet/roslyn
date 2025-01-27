@@ -20,11 +20,6 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId,
         EnforceOnBuildValues.UseCollectionExpressionForCreate)
 {
-    public const string UnwrapArgument = nameof(UnwrapArgument);
-
-    private static readonly ImmutableDictionary<string, string?> s_unwrapArgumentProperties =
-        ImmutableDictionary<string, string?>.Empty.Add(UnwrapArgument, UnwrapArgument);
-
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
         => context.RegisterSyntaxNodeAction(context => AnalyzeInvocationExpression(context, expressionType), SyntaxKind.InvocationExpression);
 
@@ -40,26 +35,25 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             return;
 
         var invocationExpression = (InvocationExpressionSyntax)context.Node;
-        if (!IsCollectionFactoryCreate(semanticModel, invocationExpression, out var memberAccess, out var unwrapArgument, cancellationToken))
+        if (!IsCollectionFactoryCreate(semanticModel, invocationExpression, out var memberAccess, out var unwrapArgument, out var useSpread, cancellationToken))
             return;
 
         // Make sure we can actually use a collection expression in place of the full invocation.
-        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
+        var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, invocationExpression, expressionType, isSingletonInstance: false, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
+                semanticModel, invocationExpression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
         {
             return;
         }
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
-        var properties = unwrapArgument ? s_unwrapArgumentProperties : ImmutableDictionary<string, string?>.Empty;
-        if (changesSemantics)
-            properties = properties.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
+        var properties = GetDiagnosticProperties(unwrapArgument, useSpread, changesSemantics);
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,
+            context.Options,
             additionalLocations: locations,
             properties));
 
@@ -73,6 +67,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            context.Options,
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations,
             properties));

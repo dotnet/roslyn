@@ -16,63 +16,62 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+[ExportNewDocumentFormattingProvider(LanguageNames.CSharp), Shared]
+internal class CSharpAccessibilityModifiersNewDocumentFormattingProvider : INewDocumentFormattingProvider
 {
-    [ExportNewDocumentFormattingProvider(LanguageNames.CSharp), Shared]
-    internal class CSharpAccessibilityModifiersNewDocumentFormattingProvider : INewDocumentFormattingProvider
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpAccessibilityModifiersNewDocumentFormattingProvider()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpAccessibilityModifiersNewDocumentFormattingProvider()
+    }
+
+    public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
+    {
+        var accessibilityPreferences = options.FormattingOptions.AccessibilityModifiersRequired;
+        if (accessibilityPreferences == AccessibilityModifiersRequired.Never)
         {
+            return document;
         }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsTypeDeclaration(node));
+        var editor = new SyntaxEditor(root, document.Project.Solution.Services);
+
+        var service = document.GetRequiredLanguageService<IAddAccessibilityModifiersService>();
+
+        foreach (var declaration in typeDeclarations)
         {
-            var accessibilityPreferences = options.FormattingOptions.AccessibilityModifiersRequired;
-            if (accessibilityPreferences == AccessibilityModifiersRequired.Never)
-            {
-                return document;
-            }
+            if (!service.ShouldUpdateAccessibilityModifier(CSharpAccessibilityFacts.Instance, declaration, accessibilityPreferences, out _, out _))
+                continue;
 
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsTypeDeclaration(node));
-            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
+            // Since we format each document as they are added to a project we can't assume we know about all
+            // of the files that are coming, so we have to opt out of changing partial classes. This especially
+            // manifests when creating new projects as we format before we have a project at all, so we could get a
+            // situation like this:
+            //
+            // File1.cs:
+            //    partial class C { }
+            // File2.cs:
+            //    public partial class C { }
+            //
+            // When we see File1, we don't know about File2, so would add an internal modifier, which would result in a compile
+            // error.
+            var modifiers = syntaxFacts.GetModifiers(declaration);
+            CSharpAccessibilityFacts.GetAccessibilityAndModifiers(modifiers, out _, out var declarationModifiers, out _);
+            if (declarationModifiers.IsPartial)
+                continue;
 
-            var service = document.GetRequiredLanguageService<IAddAccessibilityModifiersService>();
+            var type = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
+            if (type == null)
+                continue;
 
-            foreach (var declaration in typeDeclarations)
-            {
-                if (!service.ShouldUpdateAccessibilityModifier(CSharpAccessibilityFacts.Instance, declaration, accessibilityPreferences, out _, out _))
-                    continue;
-
-                // Since we format each document as they are added to a project we can't assume we know about all
-                // of the files that are coming, so we have to opt out of changing partial classes. This especially
-                // manifests when creating new projects as we format before we have a project at all, so we could get a
-                // situation like this:
-                //
-                // File1.cs:
-                //    partial class C { }
-                // File2.cs:
-                //    public partial class C { }
-                //
-                // When we see File1, we don't know about File2, so would add an internal modifier, which would result in a compile
-                // error.
-                var modifiers = syntaxFacts.GetModifiers(declaration);
-                CSharpAccessibilityFacts.GetAccessibilityAndModifiers(modifiers, out _, out var declarationModifiers, out _);
-                if (declarationModifiers.IsPartial)
-                    continue;
-
-                var type = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
-                if (type == null)
-                    continue;
-
-                AddAccessibilityModifiersHelpers.UpdateDeclaration(editor, type, declaration);
-            }
-
-            return document.WithSyntaxRoot(editor.GetChangedRoot());
+            AddAccessibilityModifiersHelpers.UpdateDeclaration(editor, type, declaration);
         }
+
+        return document.WithSyntaxRoot(editor.GetChangedRoot());
     }
 }

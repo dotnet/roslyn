@@ -177,7 +177,9 @@
                      ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential,
                      ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName,
                      ERRID.WRN_AnalyzerReferencesNewerCompiler,
-                     ERRID.WRN_DuplicateAnalyzerReference
+                     ERRID.WRN_DuplicateAnalyzerReference,
+                     ERRID.WRN_ConvertingLock,
+                     ERRID.WRN_ExperimentalWithMessage
                     Return True
                 Case Else
                     Return False

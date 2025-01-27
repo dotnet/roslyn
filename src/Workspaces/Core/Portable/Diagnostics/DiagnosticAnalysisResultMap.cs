@@ -6,40 +6,39 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 
-namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
-{
-    /// <summary>
-    /// Basically typed tuple.
-    /// </summary>
-    internal static class DiagnosticAnalysisResultMap
-    {
-        public static DiagnosticAnalysisResultMap<TKey, TValue> Create<TKey, TValue>(
-            ImmutableDictionary<TKey, TValue> analysisResult,
-            ImmutableDictionary<TKey, AnalyzerTelemetryInfo> telemetryInfo)
-            where TKey : notnull
-        {
-            return new DiagnosticAnalysisResultMap<TKey, TValue>(analysisResult, telemetryInfo);
-        }
-    }
+namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 
-    internal readonly struct DiagnosticAnalysisResultMap<TKey, TValue>
+/// <summary>
+/// Basically typed tuple.
+/// </summary>
+internal static class DiagnosticAnalysisResultMap
+{
+    public static DiagnosticAnalysisResultMap<TKey, TValue> Create<TKey, TValue>(
+        ImmutableDictionary<TKey, TValue> analysisResult,
+        ImmutableDictionary<TKey, AnalyzerTelemetryInfo> telemetryInfo)
         where TKey : notnull
     {
-        public static readonly DiagnosticAnalysisResultMap<TKey, TValue> Empty = new(
-            ImmutableDictionary<TKey, TValue>.Empty,
-            ImmutableDictionary<TKey, AnalyzerTelemetryInfo>.Empty);
+        return new DiagnosticAnalysisResultMap<TKey, TValue>(analysisResult, telemetryInfo);
+    }
+}
 
-        public readonly ImmutableDictionary<TKey, TValue> AnalysisResult;
-        public readonly ImmutableDictionary<TKey, AnalyzerTelemetryInfo> TelemetryInfo;
+internal readonly struct DiagnosticAnalysisResultMap<TKey, TValue>
+    where TKey : notnull
+{
+    public static readonly DiagnosticAnalysisResultMap<TKey, TValue> Empty = new(
+        ImmutableDictionary<TKey, TValue>.Empty,
+        ImmutableDictionary<TKey, AnalyzerTelemetryInfo>.Empty);
 
-        public DiagnosticAnalysisResultMap(
-            ImmutableDictionary<TKey, TValue> analysisResult,
-            ImmutableDictionary<TKey, AnalyzerTelemetryInfo> telemetryInfo)
-        {
-            Debug.Assert(telemetryInfo.IsEmpty || telemetryInfo.Count == analysisResult.Count);
+    public readonly ImmutableDictionary<TKey, TValue> AnalysisResult;
+    public readonly ImmutableDictionary<TKey, AnalyzerTelemetryInfo> TelemetryInfo;
 
-            AnalysisResult = analysisResult;
-            TelemetryInfo = telemetryInfo;
-        }
+    public DiagnosticAnalysisResultMap(
+        ImmutableDictionary<TKey, TValue> analysisResult,
+        ImmutableDictionary<TKey, AnalyzerTelemetryInfo> telemetryInfo)
+    {
+        Debug.Assert(telemetryInfo.IsEmpty || telemetryInfo.Count == analysisResult.Count);
+
+        AnalysisResult = analysisResult;
+        TelemetryInfo = telemetryInfo;
     }
 }

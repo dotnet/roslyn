@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal interface IOptionPageService : ILanguageService
 {
-    internal interface IOptionPageService : ILanguageService
-    {
-        void ShowFormattingOptionPage();
-    }
+    void ShowFormattingOptionPage();
 }

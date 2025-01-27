@@ -7,10 +7,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         public string SelectAllButtonText => ServicesVSResources.Select_All;
         public string DeselectAllButtonText => ServicesVSResources.Deselect_All;
         public string OK => ServicesVSResources.OK;
-        public string Cancel => ServicesVSResources.Cancel;
+        public string Cancel => EditorFeaturesResources.Cancel;
 
         private readonly AutomationDelegatingListView symbolKindsListView;
         private readonly AutomationDelegatingListView accessibilitiesListView;

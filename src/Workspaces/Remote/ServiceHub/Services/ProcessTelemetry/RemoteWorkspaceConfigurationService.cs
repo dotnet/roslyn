@@ -9,31 +9,30 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+[ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Host), Shared]
+internal sealed class RemoteWorkspaceConfigurationService : IWorkspaceConfigurationService
 {
-    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Host), Shared]
-    internal sealed class RemoteWorkspaceConfigurationService : IWorkspaceConfigurationService
+    private WorkspaceConfigurationOptions? _options;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RemoteWorkspaceConfigurationService()
     {
-        private WorkspaceConfigurationOptions? _options;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteWorkspaceConfigurationService()
-        {
-        }
+    /// <summary>
+    /// Returns default values until the options are initialized.
+    /// </summary>
+    public WorkspaceConfigurationOptions Options
+        => _options ?? WorkspaceConfigurationOptions.RemoteDefault;
 
-        /// <summary>
-        /// Returns default values until the options are initialized.
-        /// </summary>
-        public WorkspaceConfigurationOptions Options
-            => _options ?? WorkspaceConfigurationOptions.RemoteDefault;
+    public void InitializeOptions(WorkspaceConfigurationOptions options)
+    {
+        // can only be set once:
+        Contract.ThrowIfFalse(_options == null);
 
-        public void InitializeOptions(WorkspaceConfigurationOptions options)
-        {
-            // can only be set once:
-            Contract.ThrowIfFalse(_options == null);
-
-            _options = options;
-        }
+        _options = options;
     }
 }

@@ -7,22 +7,21 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+
+internal static class ITextSelectionExtensions
 {
-    internal static class ITextSelectionExtensions
+    public static NormalizedSnapshotSpanCollection GetSnapshotSpansOnBuffer(this ITextSelection selection, ITextBuffer subjectBuffer)
     {
-        public static NormalizedSnapshotSpanCollection GetSnapshotSpansOnBuffer(this ITextSelection selection, ITextBuffer subjectBuffer)
+        Contract.ThrowIfNull(selection);
+        Contract.ThrowIfNull(subjectBuffer);
+
+        var list = new List<SnapshotSpan>();
+        foreach (var snapshotSpan in selection.SelectedSpans)
         {
-            Contract.ThrowIfNull(selection);
-            Contract.ThrowIfNull(subjectBuffer);
-
-            var list = new List<SnapshotSpan>();
-            foreach (var snapshotSpan in selection.SelectedSpans)
-            {
-                list.AddRange(selection.TextView.BufferGraph.MapDownToBuffer(snapshotSpan, SpanTrackingMode.EdgeExclusive, subjectBuffer));
-            }
-
-            return new NormalizedSnapshotSpanCollection(list);
+            list.AddRange(selection.TextView.BufferGraph.MapDownToBuffer(snapshotSpan, SpanTrackingMode.EdgeExclusive, subjectBuffer));
         }
+
+        return new NormalizedSnapshotSpanCollection(list);
     }
 }

@@ -43,10 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
         {
-            Debug.Assert(this.IsPartial == state.HasComplete(CompletionPart.FinishMethodChecks),
-                "Partial methods complete method checks during construction.  " +
-                "Other methods can't complete method checks before executing this method.");
-
             if (!this.IsAsync)
             {
                 CompleteAsyncMethodChecks(diagnosticsOpt: null, cancellationToken: cancellationToken);
@@ -96,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations();
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

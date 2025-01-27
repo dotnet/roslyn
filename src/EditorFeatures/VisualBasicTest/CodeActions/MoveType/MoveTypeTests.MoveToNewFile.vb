@@ -4,7 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.MoveType
     <Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
-    Partial Public Class MoveTypeTests
+    Partial Public NotInheritable Class MoveTypeTests
         Inherits BasicMoveTypeTestsBase
 
         <WpfFact>
@@ -107,8 +107,7 @@ End Class
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText, index:=1)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/14484")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/14484")>
         Public Async Function MoveNestedTypeToNewFile_RemoveComments() As Task
             Dim code =
 "
@@ -186,8 +185,7 @@ End Class
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/16282")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16282")>
         Public Async Function TestTypeInheritance() As Task
             Dim code =
 "
@@ -228,8 +226,7 @@ End Class
             Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/21456")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21456")>
         Public Async Function TestLeadingBlankLines1() As Task
             Dim code =
 "' Banner Text
@@ -272,8 +269,7 @@ end class
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/21456")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21456")>
         Public Async Function TestLeadingBlankLines2() As Task
             Dim code =
 "' Banner Text
@@ -314,6 +310,38 @@ end class
 
             Await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64066")>
+        Public Async Function MoveNestedTypeToNewFile_SiblingMethods() As Task
+            Dim code =
+"
+Public Class Class1
+    Class Class2[||]
+    End Class
+
+    Sub M1()
+    End Sub
+End Class
+"
+            Dim codeAfterMove =
+"
+Partial Public Class Class1
+
+    Sub M1()
+    End Sub
+End Class
+"
+            Dim expectedDocumentName = "Class2.vb"
+
+            Dim destinationDocumentText =
+"
+Partial Public Class Class1
+    Class Class2
+    End Class
+End Class
+"
+            Await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
     End Class
 End Namespace

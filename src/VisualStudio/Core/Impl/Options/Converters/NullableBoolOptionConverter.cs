@@ -7,25 +7,18 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Converters
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Converters;
+
+internal sealed class NullableBoolOptionConverter(Func<bool> onNullValue) : IValueConverter
 {
-    internal class NullableBoolOptionConverter : IValueConverter
-    {
-        private readonly Func<bool> _onNullValue;
-        public NullableBoolOptionConverter(Func<bool> onNullValue)
+    public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
+        => value switch
         {
-            _onNullValue = onNullValue;
-        }
+            null => onNullValue(),
+            bool b => b,
+            _ => DependencyProperty.UnsetValue
+        };
 
-        public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
-            => value switch
-            {
-                null => _onNullValue(),
-                bool b => b,
-                _ => DependencyProperty.UnsetValue
-            };
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => value;
-    }
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => value;
 }

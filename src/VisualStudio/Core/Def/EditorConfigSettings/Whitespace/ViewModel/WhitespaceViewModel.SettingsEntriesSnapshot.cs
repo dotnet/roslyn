@@ -7,36 +7,35 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
+
+internal partial class WhitespaceViewModel
 {
-    internal partial class WhitespaceViewModel
+    internal sealed class SettingsEntriesSnapshot : SettingsEntriesSnapshotBase<Setting>
     {
-        internal sealed class SettingsEntriesSnapshot : SettingsEntriesSnapshotBase<Setting>
+        public SettingsEntriesSnapshot(ImmutableArray<Setting> data, int currentVersionNumber) : base(data, currentVersionNumber) { }
+
+        protected override bool TryGetValue(Setting result, string keyName, out object? content)
         {
-            public SettingsEntriesSnapshot(ImmutableArray<Setting> data, int currentVersionNumber) : base(data, currentVersionNumber) { }
-
-            protected override bool TryGetValue(Setting result, string keyName, out object? content)
+            content = keyName switch
             {
-                content = keyName switch
-                {
-                    ColumnDefinitions.Whitespace.Description => result.Description,
-                    ColumnDefinitions.Whitespace.Category => result.Category,
-                    ColumnDefinitions.Whitespace.Value => result,
-                    ColumnDefinitions.Whitespace.Location => GetLocationString(result.Location),
-                    _ => null,
-                };
+                ColumnDefinitions.Whitespace.Description => result.Description,
+                ColumnDefinitions.Whitespace.Category => result.Category,
+                ColumnDefinitions.Whitespace.Value => result,
+                ColumnDefinitions.Whitespace.Location => GetLocationString(result.Location),
+                _ => null,
+            };
 
-                return content is not null;
-            }
+            return content is not null;
+        }
 
-            private static string? GetLocationString(SettingLocation location)
+        private static string? GetLocationString(SettingLocation location)
+        {
+            return location.LocationKind switch
             {
-                return location.LocationKind switch
-                {
-                    LocationKind.EditorConfig or LocationKind.GlobalConfig => location.Path,
-                    _ => ServicesVSResources.Visual_Studio_Settings
-                };
-            }
+                LocationKind.EditorConfig or LocationKind.GlobalConfig => location.Path,
+                _ => ServicesVSResources.Visual_Studio_Settings
+            };
         }
     }
 }

@@ -18,12 +18,22 @@ dotnet_diagnostic.IDE0170.severity = suggestion
 # IDE0090: Simplify new expression
 dotnet_diagnostic.IDE0090.severity = none
 
+# IDE0130: Namespaces should match folder structure
+dotnet_diagnostic.IDE0130.severity = none
+
+# CA1052: Static holder types should be Static or NotInheritable
+dotnet_diagnostic.CA1052.severity = none
+
 # CSharp code style settings:
 [*.cs]
 csharp_style_var_for_built_in_types = false:none
 csharp_style_var_when_type_is_apparent = true:none
 csharp_style_var_elsewhere = false:none
 csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = true
+
+# RS0062: Do not capture primary constructor parameters
+# Warning so that it doesn't block local F5, but will fail in CI with WarnAsError
+dotnet_diagnostic.RS0062.severity = warning
 
 # XML files
 [*.xml]

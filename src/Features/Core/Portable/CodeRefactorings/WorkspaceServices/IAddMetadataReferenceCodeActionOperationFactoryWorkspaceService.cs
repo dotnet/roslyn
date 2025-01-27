@@ -6,10 +6,9 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.CodeActions.WorkspaceServices
+namespace Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
+
+internal interface IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService : IWorkspaceService
 {
-    internal interface IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService : IWorkspaceService
-    {
-        CodeActionOperation CreateAddMetadataReferenceOperation(ProjectId projectId, AssemblyIdentity assemblyIdentity);
-    }
+    CodeActionOperation CreateAddMetadataReferenceOperation(ProjectId projectId, AssemblyIdentity assemblyIdentity);
 }

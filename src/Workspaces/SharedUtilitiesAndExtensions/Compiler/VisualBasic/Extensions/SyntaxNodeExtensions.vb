@@ -841,7 +841,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim topMostExpression = node _
                 .AncestorsAndSelf() _
-                .TakeWhile(Function(n) Not TypeOf n Is StatementSyntax) _
+                .TakeWhile(Function(n) TypeOf n IsNot StatementSyntax) _
                 .OfType(Of ExpressionSyntax) _
                 .LastOrDefault()
 

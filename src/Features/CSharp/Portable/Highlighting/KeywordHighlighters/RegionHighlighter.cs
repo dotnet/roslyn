@@ -14,33 +14,32 @@ using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters
+namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
+
+[ExportHighlighter(LanguageNames.CSharp), Shared]
+internal class RegionHighlighter : AbstractKeywordHighlighter<DirectiveTriviaSyntax>
 {
-    [ExportHighlighter(LanguageNames.CSharp), Shared]
-    internal class RegionHighlighter : AbstractKeywordHighlighter<DirectiveTriviaSyntax>
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RegionHighlighter()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RegionHighlighter()
+    }
+
+    protected override void AddHighlights(
+        DirectiveTriviaSyntax directive, List<TextSpan> highlights, CancellationToken cancellationToken)
+    {
+        var matchingDirective = directive.GetMatchingDirective(cancellationToken);
+        if (matchingDirective == null)
         {
+            return;
         }
 
-        protected override void AddHighlights(
-            DirectiveTriviaSyntax directive, List<TextSpan> highlights, CancellationToken cancellationToken)
-        {
-            var matchingDirective = directive.GetMatchingDirective(cancellationToken);
-            if (matchingDirective == null)
-            {
-                return;
-            }
+        highlights.Add(TextSpan.FromBounds(
+            directive.HashToken.SpanStart,
+            directive.DirectiveNameToken.Span.End));
 
-            highlights.Add(TextSpan.FromBounds(
-                directive.HashToken.SpanStart,
-                directive.DirectiveNameToken.Span.End));
-
-            highlights.Add(TextSpan.FromBounds(
-                matchingDirective.HashToken.SpanStart,
-                matchingDirective.DirectiveNameToken.Span.End));
-        }
+        highlights.Add(TextSpan.FromBounds(
+            matchingDirective.HashToken.SpanStart,
+            matchingDirective.DirectiveNameToken.Span.End));
     }
 }

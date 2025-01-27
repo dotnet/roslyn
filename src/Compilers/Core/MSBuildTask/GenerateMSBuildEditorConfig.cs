@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 // write the section for this item
                 builder.AppendLine()
-                       .Append("[");
+                       .Append('[');
                 EncodeString(builder, group.Key);
                 builder.AppendLine("]");
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     {
                         builder.Append("build_metadata.")
                                .Append(itemType)
-                               .Append(".")
+                               .Append('.')
                                .Append(metadataName)
                                .Append(" = ")
                                .AppendLine(item.GetMetadata(metadataName));
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 if (c is '*' or '?' or '{' or ',' or ';' or '}' or '[' or ']' or '#' or '!')
                 {
-                    builder.Append("\\");
+                    builder.Append('\\');
                 }
                 builder.Append(c);
             }

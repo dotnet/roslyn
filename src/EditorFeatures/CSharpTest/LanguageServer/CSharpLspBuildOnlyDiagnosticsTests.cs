@@ -9,32 +9,31 @@ using Microsoft.CodeAnalysis.CSharp.LanguageServer;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities.LanguageServer;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LanguageServer
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LanguageServer;
+
+public class CSharpLspBuildOnlyDiagnosticsTests : AbstractLspBuildOnlyDiagnosticsTests
 {
-    public class CSharpLspBuildOnlyDiagnosticsTests : AbstractLspBuildOnlyDiagnosticsTests
+    protected override Type ErrorCodeType => typeof(ErrorCode);
+
+    protected override Type LspBuildOnlyDiagnosticsType => typeof(CSharpLspBuildOnlyDiagnostics);
+
+    protected override ImmutableArray<string> ExpectedDiagnosticCodes
     {
-        protected override Type ErrorCodeType => typeof(ErrorCode);
-
-        protected override Type LspBuildOnlyDiagnosticsType => typeof(CSharpLspBuildOnlyDiagnostics);
-
-        protected override ImmutableArray<string> ExpectedDiagnosticCodes
+        get
         {
-            get
+            var errorCodes = Enum.GetValues(typeof(ErrorCode));
+            var supported = new CSharpCompilerDiagnosticAnalyzer().GetSupportedErrorCodes();
+            var builder = ImmutableArray.CreateBuilder<string>();
+            foreach (int errorCode in errorCodes)
             {
-                var errorCodes = Enum.GetValues(typeof(ErrorCode));
-                var supported = new CSharpCompilerDiagnosticAnalyzer().GetSupportedErrorCodes();
-                var builder = ImmutableArray.CreateBuilder<string>();
-                foreach (int errorCode in errorCodes)
+                if (!supported.Contains(errorCode) && errorCode > 0)
                 {
-                    if (!supported.Contains(errorCode) && errorCode > 0)
-                    {
-                        var errorCodeD4String = errorCode.ToString("D4");
-                        builder.Add("CS" + errorCodeD4String);
-                    }
+                    var errorCodeD4String = errorCode.ToString("D4");
+                    builder.Add("CS" + errorCodeD4String);
                 }
-
-                return builder.ToImmutable();
             }
+
+            return builder.ToImmutable();
         }
     }
 }

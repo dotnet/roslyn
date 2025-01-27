@@ -54,11 +54,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         [Fact]
         public void DriverCache_Evicts_Least_Recently_Used()
         {
-            var drivers = GetDrivers(GeneratorDriverCache.MaxCacheSize + 2);
-            var driverCache = new GeneratorDriverCache();
+            var maxCacheSize = 10;
+
+            var drivers = GetDrivers(maxCacheSize + 2);
+            var driverCache = new GeneratorDriverCache(maxCacheSize);
 
             // put n+1 drivers into the cache
-            for (int i = 0; i < GeneratorDriverCache.MaxCacheSize + 1; i++)
+            for (int i = 0; i < maxCacheSize + 1; i++)
             {
                 driverCache.CacheGenerator(i.ToString(), drivers[i]);
             }

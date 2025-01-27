@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(this.Type is { }, $"Unexpected null type in {this.GetType().Name}");
+                RoslynDebug.Assert(this.Type is { }, $"Unexpected null type in {this.GetType().Name}");
                 return this.Type;
             }
         }

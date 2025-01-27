@@ -8,7 +8,6 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace AnalyzerRunner
@@ -27,7 +26,6 @@ namespace AnalyzerRunner
         public readonly int Iterations;
 
         // Options specific to incremental analyzers
-        public readonly bool UsePersistentStorage;
         public readonly ImmutableArray<string> IncrementalAnalyzerNames;
         public readonly bool FullSolutionAnalysis;
 
@@ -53,7 +51,6 @@ namespace AnalyzerRunner
             bool applyChanges,
             bool useAll,
             int iterations,
-            bool usePersistentStorage,
             bool fullSolutionAnalysis,
             ImmutableArray<string> incrementalAnalyzerNames)
             : this(analyzerPath,
@@ -72,7 +69,6 @@ namespace AnalyzerRunner
                   testDocumentIterations: 0,
                   logFileName: null,
                   profileRoot: null,
-                  usePersistentStorage,
                   fullSolutionAnalysis,
                   incrementalAnalyzerNames)
         { }
@@ -94,7 +90,6 @@ namespace AnalyzerRunner
             int testDocumentIterations,
             string logFileName,
             string profileRoot,
-            bool usePersistentStorage,
             bool fullSolutionAnalysis,
             ImmutableArray<string> incrementalAnalyzerNames)
         {
@@ -114,7 +109,6 @@ namespace AnalyzerRunner
             TestDocumentIterations = testDocumentIterations;
             LogFileName = logFileName;
             ProfileRoot = profileRoot;
-            UsePersistentStorage = usePersistentStorage;
             FullSolutionAnalysis = fullSolutionAnalysis;
             IncrementalAnalyzerNames = incrementalAnalyzerNames;
         }
@@ -137,7 +131,6 @@ namespace AnalyzerRunner
             int testDocumentIterations = 10;
             string logFileName = null;
             string profileRoot = null;
-            var usePersistentStorage = false;
             var fullSolutionAnalysis = false;
             var incrementalAnalyzerNames = ImmutableArray.CreateBuilder<string>();
 
@@ -193,9 +186,6 @@ namespace AnalyzerRunner
                     case "/profileroot":
                         profileRoot = ReadValue();
                         break;
-                    case "/persist":
-                        usePersistentStorage = true;
-                        break;
                     case "/fsa":
                         fullSolutionAnalysis = true;
                         break;
@@ -217,6 +207,7 @@ namespace AnalyzerRunner
                              ? "Unrecognized option " + arg
                              : "Unrecognized parameter " + arg));
                         }
+
                         break;
                 }
             }
@@ -248,7 +239,6 @@ namespace AnalyzerRunner
                 testDocumentIterations: testDocumentIterations,
                 logFileName: logFileName,
                 profileRoot: profileRoot,
-                usePersistentStorage: usePersistentStorage,
                 fullSolutionAnalysis: fullSolutionAnalysis,
                 incrementalAnalyzerNames: incrementalAnalyzerNames.ToImmutable());
         }

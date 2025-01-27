@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return !typeParam.ConstraintTypes.IsEmpty || typeParam.HasConstructorConstraint ||
                 typeParam.HasReferenceTypeConstraint || typeParam.HasValueTypeConstraint ||
-                typeParam.HasNotNullConstraint;
+                typeParam.HasNotNullConstraint || typeParam.AllowsRefLikeType;
         }
 
         private void AddTypeParameterConstraints(ImmutableArray<ITypeSymbol> typeArguments)
@@ -917,7 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 needComma = true;
                             }
 
-                            //ctor constraint must be last
+                            //ctor constraint must be last before 'allows ref struct'
                             if (typeParam.HasConstructorConstraint)
                             {
                                 if (needComma)
@@ -929,6 +929,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AddKeyword(SyntaxKind.NewKeyword);
                                 AddPunctuation(SyntaxKind.OpenParenToken);
                                 AddPunctuation(SyntaxKind.CloseParenToken);
+                                needComma = true;
+                            }
+
+                            if (typeParam.AllowsRefLikeType)
+                            {
+                                if (needComma)
+                                {
+                                    AddPunctuation(SyntaxKind.CommaToken);
+                                    AddSpace();
+                                }
+
+                                AddKeyword(SyntaxKind.AllowsKeyword);
+                                AddSpace();
+                                AddKeyword(SyntaxKind.RefKeyword);
+                                AddSpace();
+                                AddKeyword(SyntaxKind.StructKeyword);
                             }
                         }
                     }

@@ -5,12 +5,11 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.Utilities
-{
-    internal interface IParseOptionsChangingService : ILanguageService
-    {
-        bool CanApplyChange(ParseOptions oldOptions, ParseOptions newOptions, string? maxSupportedLangVersion);
+namespace Microsoft.VisualStudio.LanguageServices.Utilities;
 
-        void Apply(ParseOptions options, ProjectPropertyStorage storage);
-    }
+internal interface IParseOptionsChangingService : ILanguageService
+{
+    bool CanApplyChange(ParseOptions oldOptions, ParseOptions newOptions, string? maxSupportedLangVersion);
+
+    void Apply(ParseOptions options, ProjectPropertyStorage storage);
 }

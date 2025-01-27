@@ -9,8 +9,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -141,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 }
             }
 
-            return result.ToArray();
+            return [.. result];
         }
 
         internal EnvDTE80.CodeAttributeArgument AddAttributeArgument(SyntaxNode containerNode, string name, string value, object position)
@@ -215,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 access,
                 options,
                 baseType: baseTypeSymbol,
-                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
+                implementedInterfaces: [.. implementedInterfaceSymbols]);
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
@@ -360,7 +358,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 CodeModelService.GetUnescapedName(name),
                 access,
                 options,
-                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
+                implementedInterfaces: [.. implementedInterfaceSymbols]);
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
@@ -430,7 +428,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 CodeModelService.GetUnescapedName(name),
                 access,
                 options,
-                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
+                implementedInterfaces: [.. implementedInterfaceSymbols]);
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 

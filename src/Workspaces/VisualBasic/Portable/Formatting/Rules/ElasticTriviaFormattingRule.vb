@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddSuppressOperationsSlow(list As List(Of SuppressOperation), node As SyntaxNode, ByRef nextOperation As NextSuppressOperationAction)
+        Public Overrides Sub AddSuppressOperationsSlow(list As ArrayBuilder(Of SuppressOperation), node As SyntaxNode, ByRef nextOperation As NextSuppressOperationAction)
             nextOperation.Invoke()
         End Sub
 
@@ -200,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             If AfterLastInheritsOrImplements(previousToken, currentToken) Then
-                If Not TypeOf currentToken.Parent Is EndBlockStatementSyntax Then
+                If TypeOf currentToken.Parent IsNot EndBlockStatementSyntax Then
                     Return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.ForceLines)
                 End If
             End If
@@ -233,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' current one is not import statement
-            If Not TypeOf token.Parent Is NameSyntax Then
+            If TypeOf token.Parent IsNot NameSyntax Then
                 Return False
             End If
 

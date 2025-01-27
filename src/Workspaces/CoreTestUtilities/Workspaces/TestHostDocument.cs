@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public SourceHashAlgorithm ChecksumAlgorithm { get; } = SourceHashAlgorithms.Default;
 
         public int? CursorPosition { get; }
-        public IList<TextSpan> SelectedSpans { get; } = new List<TextSpan>();
+        public IList<TextSpan> SelectedSpans { get; } = [];
         public IDictionary<string, ImmutableArray<TextSpan>> AnnotatedSpans { get; } = new Dictionary<string, ImmutableArray<TextSpan>>();
 
         /// <summary>
@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             ISourceGenerator? generator = null)
         {
             Contract.ThrowIfNull(filePath);
+            Contract.ThrowIfFalse(generator == null || PathUtilities.IsAbsolute(filePath));
 
             ExportProvider = exportProvider;
             LanguageServiceProvider = languageServiceProvider;
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             get
             {
-                return _folders ?? ImmutableArray.Create<string>();
+                return _folders ?? [];
             }
         }
 

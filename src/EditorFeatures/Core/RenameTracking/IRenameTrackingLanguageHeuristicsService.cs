@@ -6,10 +6,9 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
+namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
+
+internal interface IRenameTrackingLanguageHeuristicsService : ILanguageService
 {
-    internal interface IRenameTrackingLanguageHeuristicsService : ILanguageService
-    {
-        bool IsIdentifierValidForRenameTracking(string name);
-    }
+    bool IsIdentifierValidForRenameTracking(string name);
 }

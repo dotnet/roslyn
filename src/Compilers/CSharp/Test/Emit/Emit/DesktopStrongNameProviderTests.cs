@@ -32,6 +32,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void EqualityUsingPath()
+        {
+            var tempDir = Temp.CreateDirectory();
+            var provider1 = new DesktopStrongNameProvider(tempPath: tempDir.Path);
+            var provider2 = new DesktopStrongNameProvider(tempPath: tempDir.Path);
+
+            Assert.Equal(provider1, provider2);
+        }
+
+        [Fact]
+        public void EqualityUsingKeyFileSearchPaths()
+        {
+            var tempDir = Temp.CreateDirectory();
+            var provider1 = new DesktopStrongNameProvider(keyFileSearchPaths: [tempDir.Path]);
+            var provider2 = new DesktopStrongNameProvider(keyFileSearchPaths: [tempDir.Path]);
+
+            Assert.Equal(provider1, provider2);
+        }
+
+        [Fact]
+        public void InequalityUsingPath()
+        {
+            var tempDir = Temp.CreateDirectory();
+            var provider1 = new DesktopStrongNameProvider(tempPath: tempDir.Path);
+            var provider2 = new DesktopStrongNameProvider(tempPath: tempDir.Path + "2");
+
+            Assert.NotEqual(provider1, provider2);
+        }
+
+        [Fact]
+        public void InequalityUsingKeyFileSearchPaths()
+        {
+            var tempDir = Temp.CreateDirectory();
+            var provider1 = new DesktopStrongNameProvider(keyFileSearchPaths: [tempDir.Path]);
+            var provider2 = new DesktopStrongNameProvider(keyFileSearchPaths: [tempDir.Path + "2"]);
+
+            Assert.NotEqual(provider1, provider2);
+        }
+
+        [Fact]
+        public void InequalityUsingKeyFileSearchPathsDueToCaseSensitivity()
+        {
+            var tempDir = Temp.CreateDirectory();
+            var provider1 = new DesktopStrongNameProvider(keyFileSearchPaths: [tempDir.Path]);
+            var provider2 = new DesktopStrongNameProvider(keyFileSearchPaths: [tempDir.Path.ToUpper()]);
+
+            Assert.NotEqual(provider1, provider2);
+        }
+
+        [Fact]
         public void EmitWithCustomTempPath()
         {
             string src = @"

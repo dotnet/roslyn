@@ -7,22 +7,21 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespace
-{
-    [Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-    public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
-    {
-        [Fact]
-        public async Task NoAction_NotOnNamespaceDeclaration()
-        {
-            var folders = new[] { "A", "B" };
-            var (folder, filePath) = CreateDocumentFilePath(folders);
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespace;
 
-            var code =
+[Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
+{
+    [Fact]
+    public async Task NoAction_NotOnNamespaceDeclaration()
+    {
+        var folders = new[] { "A", "B" };
+        var (folder, filePath) = CreateDocumentFilePath(folders);
+
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
@@ -37,15 +36,15 @@ namespace NS
     </Project>
 </Workspace>";
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
-        [Fact]
-        public async Task NoAction_NotOnNamespaceDeclaration_FileScopedNamespace()
-        {
-            var folders = new[] { "A", "B" };
-            var (folder, filePath) = CreateDocumentFilePath(folders);
+        await TestMissingInRegularAndScriptAsync(code);
+    }
+    [Fact]
+    public async Task NoAction_NotOnNamespaceDeclaration_FileScopedNamespace()
+    {
+        var folders = new[] { "A", "B" };
+        var (folder, filePath) = CreateDocumentFilePath(folders);
 
-            var code =
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
@@ -59,16 +58,16 @@ class [||]Class1
     </Project>
 </Workspace>";
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+        await TestMissingInRegularAndScriptAsync(code);
+    }
 
-        [Fact]
-        public async Task NoAction_NotOnFirstMemberInGlobal()
-        {
-            var folders = new[] { "A" };
-            var (folder, filePath) = CreateDocumentFilePath(folders);
+    [Fact]
+    public async Task NoAction_NotOnFirstMemberInGlobal()
+    {
+        var folders = new[] { "A" };
+        var (folder, filePath) = CreateDocumentFilePath(folders);
 
-            var code =
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace="""" CommonReferences=""true"">
@@ -84,16 +83,16 @@ class [||]Class2
     </Project>
 </Workspace>";
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+        await TestMissingInRegularAndScriptAsync(code);
+    }
 
-        [Fact]
-        public async Task NoAction_MultipleNamespaceDeclarations()
-        {
-            var folders = new[] { "A", "B" };
-            var (folder, filePath) = CreateDocumentFilePath(folders);
+    [Fact]
+    public async Task NoAction_MultipleNamespaceDeclarations()
+    {
+        var folders = new[] { "A", "B" };
+        var (folder, filePath) = CreateDocumentFilePath(folders);
 
-            var code =
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
@@ -115,16 +114,16 @@ namespace NS2
     </Project>
 </Workspace>";
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+        await TestMissingInRegularAndScriptAsync(code);
+    }
 
-        [Fact]
-        public async Task NoAction_MembersInBothGlobalAndNamespaceDeclaration_CursorOnNamespace()
-        {
-            var folders = new[] { "A", "B" };
-            var (folder, filePath) = CreateDocumentFilePath(folders);
+    [Fact]
+    public async Task NoAction_MembersInBothGlobalAndNamespaceDeclaration_CursorOnNamespace()
+    {
+        var folders = new[] { "A", "B" };
+        var (folder, filePath) = CreateDocumentFilePath(folders);
 
-            var code =
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
@@ -143,16 +142,16 @@ class Class2
     </Project>
 </Workspace>";
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+        await TestMissingInRegularAndScriptAsync(code);
+    }
 
-        [Fact]
-        public async Task NoAction_MembersInBothGlobalAndNamespaceDeclaration_CursorOnFirstGlobalMember()
-        {
-            var folders = new[] { "A", "B" };
-            var (folder, filePath) = CreateDocumentFilePath(folders);
+    [Fact]
+    public async Task NoAction_MembersInBothGlobalAndNamespaceDeclaration_CursorOnFirstGlobalMember()
+    {
+        var folders = new[] { "A", "B" };
+        var (folder, filePath) = CreateDocumentFilePath(folders);
 
-            var code =
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
@@ -171,16 +170,16 @@ namespace NS1
     </Project>
 </Workspace>";
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+        await TestMissingInRegularAndScriptAsync(code);
+    }
 
-        [Fact]
-        public async Task NoAction_NestedNamespaceDeclarations()
-        {
-            var folders = new[] { "A", "B" };
-            var (folder, filePath) = CreateDocumentFilePath(folders);
+    [Fact]
+    public async Task NoAction_NestedNamespaceDeclarations()
+    {
+        var folders = new[] { "A", "B" };
+        var (folder, filePath) = CreateDocumentFilePath(folders);
 
-            var code =
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
@@ -198,16 +197,16 @@ namespace [||]NS1
     </Project>
 </Workspace>";
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+        await TestMissingInRegularAndScriptAsync(code);
+    }
 
-        [Fact]
-        public async Task NoAction_InvalidNamespaceIdentifier()
-        {
-            var folders = new[] { "A", "B" };
-            var (folder, filePath) = CreateDocumentFilePath(folders);
+    [Fact]
+    public async Task NoAction_InvalidNamespaceIdentifier()
+    {
+        var folders = new[] { "A", "B" };
+        var (folder, filePath) = CreateDocumentFilePath(folders);
 
-            var code =
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace="""" CommonReferences=""true"">
@@ -222,16 +221,16 @@ namespace [||]
     </Project>
 </Workspace>";
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+        await TestMissingInRegularAndScriptAsync(code);
+    }
 
-        [Fact]
-        public async Task NoAction_MatchingNamespace_InGlobalNamespace()
-        {
-            var folders = Array.Empty<string>();
-            var (folder, filePath) = CreateDocumentFilePath(folders);
+    [Fact]
+    public async Task NoAction_MatchingNamespace_InGlobalNamespace()
+    {
+        var folders = Array.Empty<string>();
+        var (folder, filePath) = CreateDocumentFilePath(folders);
 
-            var code =
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""""  CommonReferences=""true"">
@@ -243,16 +242,16 @@ class [||]Class1
     </Project>
 </Workspace>";
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+        await TestMissingInRegularAndScriptAsync(code);
+    }
 
-        [Fact]
-        public async Task NoAction_MatchingNamespace_DefaultGlobalNamespace()
-        {
-            var folders = new[] { "A", "B", "C" };
-            var (folder, filePath) = CreateDocumentFilePath(folders);
+    [Fact]
+    public async Task NoAction_MatchingNamespace_DefaultGlobalNamespace()
+    {
+        var folders = new[] { "A", "B", "C" };
+        var (folder, filePath) = CreateDocumentFilePath(folders);
 
-            var code =
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""""  CommonReferences=""true"">
@@ -267,16 +266,16 @@ namespace [||]A.B.C
     </Project>
 </Workspace>";
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+        await TestMissingInRegularAndScriptAsync(code);
+    }
 
-        [Fact]
-        public async Task NoAction_MatchingNamespace_InNamespaceDeclaration()
-        {
-            var folders = new[] { "B", "C" };
-            var (folder, filePath) = CreateDocumentFilePath(folders);
+    [Fact]
+    public async Task NoAction_MatchingNamespace_InNamespaceDeclaration()
+    {
+        var folders = new[] { "B", "C" };
+        var (folder, filePath) = CreateDocumentFilePath(folders);
 
-            var code =
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""A"" CommonReferences=""true"">
@@ -291,15 +290,15 @@ namespace [||]A.B.C
     </Project>
 </Workspace>";
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+        await TestMissingInRegularAndScriptAsync(code);
+    }
 
-        [Fact]
-        public async Task NoAction_FileNotRooted()
-        {
-            var filePath = PathUtilities.CombineAbsoluteAndRelativePaths(PathUtilities.GetPathRoot(ProjectFilePath), "Foo.cs");
+    [Fact]
+    public async Task NoAction_FileNotRooted()
+    {
+        var filePath = PathUtilities.CombineAbsoluteAndRelativePaths(PathUtilities.GetPathRoot(ProjectFilePath), "Foo.cs");
 
-            var code =
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
@@ -314,16 +313,16 @@ namespace [||]NS
     </Project>
 </Workspace>";
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+        await TestMissingInRegularAndScriptAsync(code);
+    }
 
-        [Fact]
-        public async Task NoAction_NoDeclaration()
-        {
-            var folders = new[] { "A" };
-            var (folder, filePath) = CreateDocumentFilePath(folders);
+    [Fact]
+    public async Task NoAction_NoDeclaration()
+    {
+        var folders = new[] { "A" };
+        var (folder, filePath) = CreateDocumentFilePath(folders);
 
-            var code =
+        var code =
 $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" CommonReferences=""true"">
@@ -334,7 +333,6 @@ using System;
     </Project>
 </Workspace>";
 
-            await TestMissingInRegularAndScriptAsync(code);
-        }
+        await TestMissingInRegularAndScriptAsync(code);
     }
 }

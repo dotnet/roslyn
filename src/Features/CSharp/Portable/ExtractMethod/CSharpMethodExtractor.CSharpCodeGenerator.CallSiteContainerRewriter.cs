@@ -8,15 +8,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
+namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
+
+internal sealed partial class CSharpExtractMethodService
 {
-    internal partial class CSharpMethodExtractor
+    internal sealed partial class CSharpMethodExtractor
     {
         private abstract partial class CSharpCodeGenerator
         {
@@ -47,9 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     _firstStatementOrFieldToReplace = firstStatementOrFieldToReplace;
                     _lastStatementOrFieldToReplace = lastStatementOrFieldToReplace;
                     _statementsOrMemberOrAccessorToInsert = statementsOrFieldToInsert;
-
-                    Contract.ThrowIfFalse(_firstStatementOrFieldToReplace.Parent == _lastStatementOrFieldToReplace.Parent
-                        || CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(_firstStatementOrFieldToReplace, _lastStatementOrFieldToReplace));
                 }
 
                 public SyntaxNode Generate()
@@ -425,6 +423,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     var newMembers = VisitList(ReplaceMembers(node.Members, global: true));
                     return node.WithMembers(newMembers);
+                }
+
+                public override SyntaxNode VisitBaseList(BaseListSyntax node)
+                {
+                    if (node != ContainerOfStatementsOrFieldToReplace)
+                        return base.VisitBaseList(node);
+
+                    var primaryConstructorBase = (PrimaryConstructorBaseTypeSyntax)_statementsOrMemberOrAccessorToInsert.Single();
+                    return node.WithTypes(node.Types.Replace(node.Types[0], primaryConstructorBase));
                 }
 
                 private SyntaxNode GetUpdatedTypeDeclaration(TypeDeclarationSyntax node)

@@ -11,37 +11,45 @@ using Roslyn.VisualStudio.IntegrationTests;
 using WindowsInput.Native;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
+
+public class CSharpGoToGlobalImportsTests : AbstractEditorTest
 {
-    public class CSharpGoToGlobalImportsTests : AbstractEditorTest
+    protected override string LanguageName => LanguageNames.CSharp;
+
+    public CSharpGoToGlobalImportsTests() : base(solutionName: nameof(CSharpGoToGlobalImportsTests), projectTemplate: WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
     {
-        protected override string LanguageName => LanguageNames.CSharp;
+    }
 
-        public CSharpGoToGlobalImportsTests() : base(solutionName: nameof(CSharpGoToGlobalImportsTests), projectTemplate: WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
-        {
-        }
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/72018")]
+    public async Task TestGlobalImports()
+    {
+        // Make sure no glyph is in the margin at first.
+        await TestServices.InheritanceMargin.DisableOptionsAsync(LanguageName, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.OpenFileAsync(
+            ProjectName, "Class1.cs", HangMitigatingCancellationToken);
 
-        [IdeFact]
-        public async Task TestGlobalImports()
-        {
-            // Make sure no glyph is in the margin at first.
-            await TestServices.InheritanceMargin.DisableOptionsAsync(LanguageName, HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.OpenFileAsync(
-                ProjectName, "Class1.cs", HangMitigatingCancellationToken);
+        await TestServices.InheritanceMargin.EnableOptionsAsync(LanguageName, HangMitigatingCancellationToken);
+        await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync("""
+            namespace N
+            {
+                class C
+                {
+                }
+            }
+            """, 1, HangMitigatingCancellationToken);
+        await TestServices.InheritanceMargin.ClickTheGlyphOnLine(1, HangMitigatingCancellationToken);
 
-            await TestServices.InheritanceMargin.EnableOptionsAndEnsureGlyphsAppearAsync(LanguageName, 1, HangMitigatingCancellationToken);
-            await TestServices.InheritanceMargin.ClickTheGlyphOnLine(1, HangMitigatingCancellationToken);
+        // Move focus to menu item 'System'
+        await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
+        // Navigate to 'System'
+        await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
+        await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
+        await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.InheritanceMargin], HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextContainsAsync(@"global using global::System;$$", assertCaretPosition: true);
 
-            // Move focus to menu item 'System'
-            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
-            // Navigate to 'System'
-            await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.InheritanceMargin], HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextContainsAsync(@"global using global::System;$$", assertCaretPosition: true);
-
-            var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
-            RoslynDebug.AssertNotNull(document);
-            Assert.NotEqual(WorkspaceKind.MetadataAsSource, document.Project.Solution.WorkspaceKind);
-        }
+        var document = await TestServices.Editor.GetActiveDocumentAsync(HangMitigatingCancellationToken);
+        RoslynDebug.AssertNotNull(document);
+        Assert.NotEqual(WorkspaceKind.MetadataAsSource, document.Project.Solution.WorkspaceKind);
     }
 }

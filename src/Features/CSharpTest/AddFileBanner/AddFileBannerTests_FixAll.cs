@@ -4,20 +4,19 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddFileBanner
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddFileBanner;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsAddFileBanner)]
+[Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+public partial class AddFileBannerTests
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsAddFileBanner)]
-    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public partial class AddFileBannerTests
+    [Fact]
+    public async Task FixAllInProject()
     {
-        [Fact]
-        public async Task FixAllInProject()
-        {
-            await TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -72,12 +71,12 @@ class Program3
         </Document>
     </Project>
 </Workspace>");
-        }
+    }
 
-        [Fact]
-        public async Task FixAllInSolution()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task FixAllInSolution()
+    {
+        await TestInRegularAndScriptAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -136,12 +135,12 @@ class Program3
         </Document>
     </Project>
 </Workspace>");
-        }
+    }
 
-        [Fact]
-        public async Task FixAll_AlreadyHasBanner()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task FixAll_AlreadyHasBanner()
+    {
+        await TestInRegularAndScriptAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -226,12 +225,12 @@ class Program5
         </Document>
     </Project>
 </Workspace>");
-        }
+    }
 
-        [Fact]
-        public async Task FixAll_UpdatedFileNameInBanner()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task FixAll_UpdatedFileNameInBanner()
+    {
+        await TestInRegularAndScriptAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -294,17 +293,17 @@ class Program3
         </Document>
     </Project>
 </Workspace>");
-        }
+    }
 
-        [Theory]
-        [InlineData(FixAllScope.ContainingMember)]
-        [InlineData(FixAllScope.ContainingType)]
-        [InlineData(FixAllScope.Document)]
-        public async Task FixAllScopes_NotApplicable(FixAllScope fixAllScope)
-        {
-            var fixAllScopeString = $"FixAllIn{fixAllScope}";
+    [Theory]
+    [InlineData(FixAllScope.ContainingMember)]
+    [InlineData(FixAllScope.ContainingType)]
+    [InlineData(FixAllScope.Document)]
+    public async Task FixAllScopes_NotApplicable(FixAllScope fixAllScope)
+    {
+        var fixAllScopeString = $"FixAllIn{fixAllScope}";
 
-            await TestMissingInRegularAndScriptAsync(
+        await TestMissingInRegularAndScriptAsync(
 @$"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -325,6 +324,5 @@ class Program2
         </Document>
     </Project>
 </Workspace>");
-        }
     }
 }

@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -32,10 +31,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // that intersect the requested span if we do.
                 if (_textBuffer.Properties.TryGetProperty<IList<ClassificationSpan>>(s_classificationsKey, out var classifications))
                 {
-                    return classifications.Where(c => c.Span.IntersectsWith(span)).ToList();
+                    return [.. classifications.Where(c => c.Span.IntersectsWith(span))];
                 }
 
-                return SpecializedCollections.EmptyList<ClassificationSpan>();
+                return [];
             }
         }
     }

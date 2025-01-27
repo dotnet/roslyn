@@ -7,17 +7,16 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
-{
-    internal interface IUnnecessaryImportsProvider<TSyntaxNode>
-        where TSyntaxNode : SyntaxNode
-    {
-        ImmutableArray<TSyntaxNode> GetUnnecessaryImports(SemanticModel model, TextSpan? span, CancellationToken cancellationToken);
+namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 
-        ImmutableArray<TSyntaxNode> GetUnnecessaryImports(
-            SemanticModel model,
-            TextSpan? span,
-            Func<SyntaxNode, bool>? predicate,
-            CancellationToken cancellationToken);
-    }
+internal interface IUnnecessaryImportsProvider<TSyntaxNode>
+    where TSyntaxNode : SyntaxNode
+{
+    ImmutableArray<TSyntaxNode> GetUnnecessaryImports(SemanticModel model, TextSpan? span, CancellationToken cancellationToken);
+
+    ImmutableArray<TSyntaxNode> GetUnnecessaryImports(
+        SemanticModel model,
+        TextSpan? span,
+        Func<SyntaxNode, bool>? predicate,
+        CancellationToken cancellationToken);
 }

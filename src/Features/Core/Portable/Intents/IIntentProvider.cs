@@ -7,15 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Features.Intents
+namespace Microsoft.CodeAnalysis.Features.Intents;
+
+internal interface IIntentProvider
 {
-    internal interface IIntentProvider
-    {
-        Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
-            Document priorDocument,
-            TextSpan priorSelection,
-            Document currentDocument,
-            IntentDataProvider intentDataProvider,
-            CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
+        Document priorDocument,
+        TextSpan priorSelection,
+        Document currentDocument,
+        IntentDataProvider intentDataProvider,
+        CancellationToken cancellationToken);
 }

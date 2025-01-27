@@ -95,11 +95,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void UpdateText(ITextBuffer textBuffer, string text)
         {
-            using (var edit = textBuffer.CreateEdit())
-            {
-                edit.Replace(0, textBuffer.CurrentSnapshot.Length, text);
-                edit.Apply();
-            }
+            using var edit = textBuffer.CreateEdit();
+            edit.Replace(0, textBuffer.CurrentSnapshot.Length, text);
+            edit.Apply();
         }
 
         private void CloseTextView()

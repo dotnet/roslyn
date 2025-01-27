@@ -9,13 +9,12 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 
-namespace Microsoft.CodeAnalysis.Editor.Commanding.Commands
+namespace Microsoft.CodeAnalysis.Editor.Commanding.Commands;
+
+/// <summary>
+/// Arguments for the Sort and Remove Unused Usings command being invoked.
+/// </summary>
+[ExcludeFromCodeCoverage]
+internal class SortAndRemoveUnnecessaryImportsCommandArgs(ITextView textView, ITextBuffer subjectBuffer) : EditorCommandArgs(textView, subjectBuffer)
 {
-    /// <summary>
-    /// Arguments for the Sort and Remove Unused Usings command being invoked.
-    /// </summary>
-    [ExcludeFromCodeCoverage]
-    internal class SortAndRemoveUnnecessaryImportsCommandArgs(ITextView textView, ITextBuffer subjectBuffer) : EditorCommandArgs(textView, subjectBuffer)
-    {
-    }
 }

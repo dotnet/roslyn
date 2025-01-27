@@ -241,6 +241,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return _underlyingMethod.GetOverloadResolutionPriority()
+        End Function
+
         Friend Overrides ReadOnly Property IsHiddenBySignature As Boolean
             Get
                 Return _underlyingMethod.IsHiddenBySignature

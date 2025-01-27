@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public static readonly TestComposition Empty = new TestComposition([], [], []);
 
-        private static readonly Dictionary<CacheKey, IExportProviderFactory> s_factoryCache = new Dictionary<CacheKey, IExportProviderFactory>();
+        private static readonly Dictionary<CacheKey, IExportProviderFactory> s_factoryCache = [];
 
         private readonly struct CacheKey : IEquatable<CacheKey>
         {
@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public CacheKey(ImmutableHashSet<Assembly> assemblies, ImmutableHashSet<Type> parts, ImmutableHashSet<Type> excludedPartTypes)
             {
-                _assemblies = assemblies.OrderBy((a, b) => string.CompareOrdinal(a.FullName, b.FullName)).ToImmutableArray();
-                _parts = parts.OrderBy((a, b) => string.CompareOrdinal(a.FullName, b.FullName)).ToImmutableArray();
-                _excludedPartTypes = excludedPartTypes.OrderBy((a, b) => string.CompareOrdinal(a.FullName, b.FullName)).ToImmutableArray();
+                _assemblies = [.. assemblies.OrderBy((a, b) => string.CompareOrdinal(a.FullName, b.FullName))];
+                _parts = [.. parts.OrderBy((a, b) => string.CompareOrdinal(a.FullName, b.FullName))];
+                _excludedPartTypes = [.. excludedPartTypes.OrderBy((a, b) => string.CompareOrdinal(a.FullName, b.FullName))];
             }
 
             public override bool Equals(object? obj)

@@ -84,6 +84,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private _lazyHasVisualBasicEmbeddedAttribute As Integer = ThreeState.Unknown
 
+        Private _lazyHasCompilerLoweringPreserveAttribute As Integer = ThreeState.Unknown
+
         Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
 
         Private _lazyIsExtensibleInterface As ThreeState = ThreeState.Unknown
@@ -649,7 +651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Sub EnsureNonTypeMembersAreLoaded()
 
-            If _lazyMembers Is Nothing Then
+            If Volatile.Read(_lazyMembers) Is Nothing Then
                 ' A method may be referenced as an accessor by one or more properties. And,
                 ' any of those properties may be "bogus" if one of the property accessors
                 ' does not match the property signature. If the method is referenced by at
@@ -963,6 +965,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
+            Get
+                If Me._lazyHasCompilerLoweringPreserveAttribute = ThreeState.Unknown Then
+                    Interlocked.CompareExchange(
+                        Me._lazyHasCompilerLoweringPreserveAttribute,
+                        Me.ContainingPEModule.Module.HasCompilerLoweringPreserveAttribute(Me._handle).ToThreeState(),
+                        ThreeState.Unknown)
+                End If
+                Return Me._lazyHasCompilerLoweringPreserveAttribute = ThreeState.True
+            End Get
+        End Property
+
         Friend Overrides Sub BuildExtensionMethodsMap(
             map As Dictionary(Of String, ArrayBuilder(Of MethodSymbol)),
             appendThrough As NamespaceSymbol
@@ -1137,13 +1151,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         If Not import Then
                             Select Case Me.TypeKind
                                 Case TypeKind.Structure
-                                    Dim specialType = Me.SpecialType
-                                    If specialType = SpecialType.None OrElse specialType = SpecialType.System_Nullable_T Then
-                                        ' This is an ordinary struct
-                                        If ([module].GetFieldDefFlagsOrThrow(fieldDef) And FieldAttributes.Static) = 0 Then
-                                            import = True
-                                        End If
-                                    End If
+                                    Select Case Me.SpecialType
+                                        Case SpecialType.System_Void,
+                                             SpecialType.System_Boolean,
+                                             SpecialType.System_Char,
+                                             SpecialType.System_Byte,
+                                             SpecialType.System_SByte,
+                                             SpecialType.System_Int16,
+                                             SpecialType.System_UInt16,
+                                             SpecialType.System_Int32,
+                                             SpecialType.System_UInt32,
+                                             SpecialType.System_Int64,
+                                             SpecialType.System_UInt64,
+                                             SpecialType.System_Single,
+                                             SpecialType.System_Double,
+                                             SpecialType.System_Decimal,
+                                             SpecialType.System_IntPtr,
+                                             SpecialType.System_UIntPtr,
+                                             SpecialType.System_DateTime,
+                                             SpecialType.System_TypedReference,
+                                             SpecialType.System_ArgIterator,
+                                             SpecialType.System_RuntimeArgumentHandle,
+                                             SpecialType.System_RuntimeFieldHandle,
+                                             SpecialType.System_RuntimeMethodHandle,
+                                             SpecialType.System_RuntimeTypeHandle
+                                        Case Else
+                                            ' This is an ordinary struct
+                                            If ([module].GetFieldDefFlagsOrThrow(fieldDef) And FieldAttributes.Static) = 0 Then
+                                                import = True
+                                            End If
+                                    End Select
 
                                 Case TypeKind.Enum
                                     If ([module].GetFieldDefFlagsOrThrow(fieldDef) And FieldAttributes.Static) = 0 Then

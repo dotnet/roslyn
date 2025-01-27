@@ -68,12 +68,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_moduleBeingBuilt != null)
                 {
+                    var interfaces = sourceTypeSymbol.GetInterfacesToEmit();
+
                     // In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a
                     // base type from another assembly) it is necessary for the compiler to generate explicit implementations for
                     // some interface methods.  They don't go in the symbol table, but if we are emitting metadata, then we should
                     // generate MethodDef entries for them.
                     foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(_cancellationToken).ForwardingMethods)
                     {
+                        // Avoid emitting duplicate forwarding methods (e.g., when the class implements the same interface twice with different nullability).
+                        if (!interfaces.Contains(synthesizedExplicitImpl.ExplicitInterfaceImplementations[0].ContainingType,
+                            Symbols.SymbolEqualityComparer.ConsiderEverything))
+                        {
+                            continue;
+                        }
+
                         _moduleBeingBuilt.AddSynthesizedDefinition(symbol, synthesizedExplicitImpl.GetCciAdapter());
                     }
                 }

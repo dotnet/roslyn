@@ -6,35 +6,35 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
-namespace Microsoft.CodeAnalysis.CSharp.Structure
+namespace Microsoft.CodeAnalysis.CSharp.Structure;
+
+internal class FileScopedNamespaceDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<FileScopedNamespaceDeclarationSyntax>
 {
-    internal class FileScopedNamespaceDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<FileScopedNamespaceDeclarationSyntax>
+    protected override void CollectBlockSpans(
+        SyntaxToken previousToken,
+        FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclaration,
+        ArrayBuilder<BlockSpan> spans,
+        BlockStructureOptions options,
+        CancellationToken cancellationToken)
     {
-        protected override void CollectBlockSpans(
-            SyntaxToken previousToken,
-            FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclaration,
-            ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptions options,
-            CancellationToken cancellationToken)
+        // add leading comments
+        CSharpStructureHelpers.CollectCommentBlockSpans(fileScopedNamespaceDeclaration, spans, options);
+
+        // extern aliases and usings are outlined in a single region
+        var externsAndUsings = Enumerable.Union<SyntaxNode>(fileScopedNamespaceDeclaration.Externs, fileScopedNamespaceDeclaration.Usings).ToImmutableArray();
+
+        // add any leading comments before the extern aliases and usings
+        if (externsAndUsings.Any())
         {
-            // add leading comments
-            CSharpStructureHelpers.CollectCommentBlockSpans(fileScopedNamespaceDeclaration, ref spans, options);
-
-            // extern aliases and usings are outlined in a single region
-            var externsAndUsings = Enumerable.Union<SyntaxNode>(fileScopedNamespaceDeclaration.Externs, fileScopedNamespaceDeclaration.Usings).ToImmutableArray();
-
-            // add any leading comments before the extern aliases and usings
-            if (externsAndUsings.Any())
-            {
-                CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), ref spans, options);
-            }
-
-            spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
-                externsAndUsings, compressEmptyLines: false, autoCollapse: true,
-                type: BlockTypes.Imports, isCollapsible: true, isDefaultCollapsed: options.CollapseImportsWhenFirstOpened));
+            CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), spans, options);
         }
+
+        spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
+            externsAndUsings, compressEmptyLines: false, autoCollapse: true,
+            type: BlockTypes.Imports, isCollapsible: true, isDefaultCollapsed: options.CollapseImportsWhenFirstOpened));
     }
 }

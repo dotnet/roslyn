@@ -5,35 +5,34 @@
 using System.Text;
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-namespace Microsoft.CodeAnalysis.Features.RQName
+namespace Microsoft.CodeAnalysis.Features.RQName;
+
+internal static class ParenthesesTreeWriter
 {
-    internal static class ParenthesesTreeWriter
+    public static string ToParenthesesFormat(SimpleTreeNode tree)
     {
-        public static string ToParenthesesFormat(SimpleTreeNode tree)
-        {
-            var sb = new StringBuilder();
-            WriteNode(tree, sb);
-            return sb.ToString();
-        }
+        var sb = new StringBuilder();
+        WriteNode(tree, sb);
+        return sb.ToString();
+    }
 
-        private static void WriteNode(SimpleTreeNode node, StringBuilder sb)
+    private static void WriteNode(SimpleTreeNode node, StringBuilder sb)
+    {
+        sb.Append(node.Text);
+        if (node is SimpleGroupNode group)
         {
-            sb.Append(node.Text);
-            if (node is SimpleGroupNode group)
+            sb.Append('(');
+            for (var i = 0; i < group.Count; i++)
             {
-                sb.Append('(');
-                for (var i = 0; i < group.Count; i++)
+                if (i > 0)
                 {
-                    if (i > 0)
-                    {
-                        sb.Append(',');
-                    }
-
-                    WriteNode(group[i], sb);
+                    sb.Append(',');
                 }
 
-                sb.Append(')');
+                WriteNode(group[i], sb);
             }
+
+            sb.Append(')');
         }
     }
 }

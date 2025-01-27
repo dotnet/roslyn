@@ -54,21 +54,21 @@ Friend Class GoToHelpers
                                 $"Expected: ({expected}) but got: ({actual})")
                 Next
 
-                Dim actualDefintionsWithoutSpans = context.GetDefinitions().
+                Dim actualDefinitionsWithoutSpans = context.GetDefinitions().
                     Where(Function(d) d.SourceSpans.IsDefaultOrEmpty).
                     Select(Function(di)
                                Return String.Format("{0}:{1}",
-                                                    String.Join("", di.OriginationParts.Select(Function(t) t.Text)),
+                                                    String.Join("", di.MetadataLocations.Single().Name),
                                                     String.Join("", di.NameDisplayParts.Select(Function(t) t.Text)))
                            End Function).ToList()
 
-                actualDefintionsWithoutSpans.Sort()
+                actualDefinitionsWithoutSpans.Sort()
 
                 If metadataDefinitions Is Nothing Then
                     metadataDefinitions = {}
                 End If
 
-                AssertEx.Equal(metadataDefinitions, actualDefintionsWithoutSpans)
+                AssertEx.Equal(metadataDefinitions, actualDefinitionsWithoutSpans)
             End If
         End Using
     End Function

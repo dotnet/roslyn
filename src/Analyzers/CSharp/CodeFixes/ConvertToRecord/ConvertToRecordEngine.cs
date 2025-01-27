@@ -20,6 +20,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 internal static class ConvertToRecordEngine
 {
     private const SyntaxRemoveOptions RemovalOptions =
@@ -28,7 +31,7 @@ internal static class ConvertToRecordEngine
         SyntaxRemoveOptions.AddElasticMarker;
 
     public static async Task<CodeAction?> GetCodeActionAsync(
-        Document document, TypeDeclarationSyntax typeDeclaration, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, TypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
     {
         // any type declared partial requires complex movement, don't offer refactoring
         if (typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
@@ -67,7 +70,6 @@ internal static class ConvertToRecordEngine
                 type,
                 positionalParameterInfos,
                 typeDeclaration,
-                fallbackOptions,
                 cancellationToken),
             nameof(CSharpCodeFixesResources.Convert_to_positional_record));
         // note: when adding nested actions, use string.Format(CSharpFeaturesResources.Convert_0_to_record, type.Name) as title string
@@ -79,36 +81,12 @@ internal static class ConvertToRecordEngine
         INamedTypeSymbol type,
         ImmutableArray<PositionalParameterInfo> positionalParameterInfos,
         TypeDeclarationSyntax typeDeclaration,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         // first see if we need to re-order our primary constructor parameters.
-        var propertiesToAssign = positionalParameterInfos.SelectAsArray(info => info.Symbol);
-        var primaryConstructor = typeDeclaration.Members
-            .OfType<ConstructorDeclarationSyntax>()
-            .FirstOrDefault(constructor =>
-            {
-                var constructorSymbol = (IMethodSymbol)semanticModel
-                    .GetRequiredDeclaredSymbol(constructor, cancellationToken);
-                var constructorOperation = (IConstructorBodyOperation)semanticModel
-                    .GetRequiredOperation(constructor, cancellationToken);
-                // We want to make sure that each type in the parameter list corresponds
-                // to exactly one positional parameter type, but they don't need to be in the same order.
-                // We can't use something like set equality because some parameter types may be duplicate.
-                // So, we order the types in a consistent way (by name) and then compare the lists of types.
-                return constructorSymbol.Parameters.SelectAsArray(parameter => parameter.Type)
-                                .OrderBy(type => type.Name)
-                        .SequenceEqual(propertiesToAssign.SelectAsArray(s => s.Type)
-                                .OrderBy(type => type.Name),
-                            SymbolEqualityComparer.Default) &&
-                    // make sure that we do all the correct assignments. There may be multiple constructors
-                    // that meet the parameter condition but only one actually assigns all properties.
-                    // If successful, we set propertiesToAssign in the order of the parameters.
-                    ConvertToRecordHelpers.IsSimplePrimaryConstructor(
-                        constructorOperation, ref propertiesToAssign, constructorSymbol.Parameters);
-            });
+        var (primaryConstructor, propertiesToAssign) = TryFindPrimaryConstructor();
 
         var solutionEditor = new SolutionEditor(document.Project.Solution);
         // we must refactor usages first because usages can appear within the class definition and
@@ -147,8 +125,8 @@ internal static class ConvertToRecordEngine
                 // add an initializer that links the property to the primary constructor parameter
                 documentEditor.ReplaceNode(property, property
                     .WithInitializer(
-                        SyntaxFactory.EqualsValueClause(SyntaxFactory.IdentifierName(property.Identifier.WithoutTrivia())))
-                    .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+                        EqualsValueClause(IdentifierName(property.Identifier.WithoutTrivia())))
+                    .WithSemicolonToken(SemicolonToken));
             }
             else
             {
@@ -174,14 +152,14 @@ internal static class ConvertToRecordEngine
             }
             else
             {
-                var constructorSymbol = (IMethodSymbol)semanticModel
-                    .GetRequiredDeclaredSymbol(constructor, cancellationToken);
-                var constructorOperation = (IConstructorBodyOperation)semanticModel
-                    .GetRequiredOperation(constructor, cancellationToken);
+                var constructorSymbol = semanticModel.GetRequiredDeclaredSymbol(constructor, cancellationToken);
+                var constructorOperation = (IConstructorBodyOperation?)semanticModel.GetOperation(constructor, cancellationToken);
+                if (constructorOperation is null)
+                    continue;
 
                 // check for copy constructor
-                if (constructorSymbol.Parameters.Length == 1 &&
-                    constructorSymbol.Parameters[0].Type.Equals(type))
+                if (constructorSymbol is { Parameters: [{ Type: var parameterType }] } &&
+                    parameterType.Equals(type))
                 {
                     if (ConvertToRecordHelpers.IsSimpleCopyConstructor(
                         constructorOperation, expectedFields, constructorSymbol.Parameters.First()))
@@ -209,9 +187,9 @@ internal static class ConvertToRecordEngine
 
                     var modifiedConstructor = constructor
                         .RemoveNodes(expressionStatementsToRemove, RemovalOptions)!
-                        .WithInitializer(SyntaxFactory.ConstructorInitializer(
+                        .WithInitializer(ConstructorInitializer(
                             SyntaxKind.ThisConstructorInitializer,
-                                SyntaxFactory.ArgumentList([.. expressions.Select(SyntaxFactory.Argument)])));
+                                ArgumentList([.. expressions.Select(Argument)])));
 
                     documentEditor.ReplaceNode(constructor, modifiedConstructor);
                 }
@@ -261,8 +239,7 @@ internal static class ConvertToRecordEngine
             }
         }
 
-        var optionsProvider = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-        var lineFormattingOptions = optionsProvider.GetLineFormattingOptions();
+        var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var modifiedClassTrivia = GetModifiedClassTrivia(
             positionalParameterInfos, typeDeclaration, lineFormattingOptions);
@@ -274,10 +251,10 @@ internal static class ConvertToRecordEngine
                 ? result.Symbol.Type.GenerateTypeSyntax()
                 : result.Declaration.Type;
             var identifier = result.IsInherited
-                ? SyntaxFactory.Identifier(result.Symbol.Name)
+                ? Identifier(result.Symbol.Name)
                 : result.Declaration.Identifier;
 
-            return SyntaxFactory.Parameter(
+            return Parameter(
                 GetModifiedAttributeListsForProperty(result),
                 modifiers: default,
                 type,
@@ -287,7 +264,7 @@ internal static class ConvertToRecordEngine
 
         // if we have a class, move trivia from class keyword to record keyword
         // if struct, split trivia and leading goes to record keyword, trailing goes to struct keyword
-        var recordKeyword = SyntaxFactory.Token(SyntaxKind.RecordKeyword);
+        var recordKeyword = RecordKeyword;
         recordKeyword = type.TypeKind == TypeKind.Class
             ? recordKeyword.WithTriviaFrom(typeDeclaration.Keyword)
             : recordKeyword.WithLeadingTrivia(typeDeclaration.Keyword.LeadingTrivia);
@@ -335,11 +312,11 @@ internal static class ConvertToRecordEngine
                     var inheritedPositionalParams = PositionalParameterInfo
                         .GetInheritedPositionalParams(type, cancellationToken)
                         .SelectAsArray(prop =>
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(prop.Name)));
+                            Argument(IdentifierName(prop.Name)));
 
                     typeList = typeList.Replace(baseRecord,
-                        SyntaxFactory.PrimaryConstructorBaseType(baseRecord.Type.WithoutTrailingTrivia(),
-                            SyntaxFactory.ArgumentList([.. inheritedPositionalParams])
+                        PrimaryConstructorBaseType(baseRecord.Type.WithoutTrailingTrivia(),
+                            ArgumentList([.. inheritedPositionalParams])
                             .WithTrailingTrivia(baseTrailingTrivia)));
                 }
 
@@ -352,6 +329,47 @@ internal static class ConvertToRecordEngine
                 propertiesToAddAsParams, recordKeyword, constructorTrivia, baseList));
 
         return solutionEditor.GetChangedSolution();
+
+        (ConstructorDeclarationSyntax? constructor, ImmutableArray<IPropertySymbol> propertiesToAssign) TryFindPrimaryConstructor()
+        {
+            var propertiesToAssign = positionalParameterInfos.SelectAsArray(info => info.Symbol);
+            var orderedPropertyTypesToAssign = propertiesToAssign.SelectAsArray(s => s.Type).OrderBy(type => type.Name);
+
+            foreach (var member in typeDeclaration.Members)
+            {
+                if (member is not ConstructorDeclarationSyntax constructor)
+                    continue;
+
+                var constructorSymbol = semanticModel.GetRequiredDeclaredSymbol(constructor, cancellationToken);
+                var constructorOperation = (IConstructorBodyOperation?)semanticModel.GetOperation(constructor, cancellationToken);
+                if (constructorOperation is null)
+                    continue;
+
+                // We want to make sure that each type in the parameter list corresponds
+                // to exactly one positional parameter type, but they don't need to be in the same order.
+                // We can't use something like set equality because some parameter types may be duplicate.
+                // So, we order the types in a consistent way (by name) and then compare the lists of types.
+                var orderedParameterTypes = constructorSymbol.Parameters
+                    .SelectAsArray(parameter => parameter.Type)
+                    .OrderBy(type => type.Name);
+
+                if (!orderedParameterTypes.SequenceEqual(orderedPropertyTypesToAssign))
+                    continue;
+
+                // make sure that we do all the correct assignments. There may be multiple constructors
+                // that meet the parameter condition but only one actually assigns all properties.
+                // If successful, we set propertiesToAssign in the order of the parameters.
+                if (!ConvertToRecordHelpers.IsSimplePrimaryConstructor(
+                        constructorOperation, propertiesToAssign, constructorSymbol.Parameters, out var orderedPropertiesToAssign))
+                {
+                    continue;
+                }
+
+                return (constructor, orderedPropertiesToAssign);
+            }
+
+            return (null, propertiesToAssign);
+        }
     }
 
     private static RecordDeclarationSyntax CreateRecordDeclaration(
@@ -371,16 +389,16 @@ internal static class ConvertToRecordEngine
             openBrace = default;
             closeBrace = default;
             semicolon = typeDeclaration.SemicolonToken == default
-                ? SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                ? SemicolonToken
                 : typeDeclaration.SemicolonToken;
         }
         else
         {
             openBrace = typeDeclaration.OpenBraceToken == default
-                ? SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
+                ? OpenBraceToken
                 : typeDeclaration.OpenBraceToken;
             closeBrace = typeDeclaration.CloseBraceToken == default
-                ? SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
+                ? CloseBraceToken
                 : typeDeclaration.CloseBraceToken;
             semicolon = default;
 
@@ -391,7 +409,7 @@ internal static class ConvertToRecordEngine
                 typeDeclaration.Members[0], typeDeclaration.Members[0].GetNodeWithoutLeadingBlankLines());
         }
 
-        return SyntaxFactory.RecordDeclaration(
+        return RecordDeclaration(
             type.TypeKind == TypeKind.Class
                 ? SyntaxKind.RecordDeclaration
                 : SyntaxKind.RecordStructDeclaration,
@@ -400,11 +418,11 @@ internal static class ConvertToRecordEngine
             recordKeyword,
             type.TypeKind == TypeKind.Class
                 ? default
-                : typeDeclaration.Keyword.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
+                : typeDeclaration.Keyword.WithTrailingTrivia(ElasticMarker),
             // remove trailing trivia from places where we would want to insert the parameter list before a line break
-            typeDeclaration.Identifier.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-            typeDeclaration.TypeParameterList?.WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-            SyntaxFactory.ParameterList([.. propertiesToAddAsParams])
+            typeDeclaration.Identifier.WithTrailingTrivia(ElasticMarker),
+            typeDeclaration.TypeParameterList?.WithTrailingTrivia(ElasticMarker),
+            ParameterList([.. propertiesToAddAsParams])
                 .WithAppendedTrailingTrivia(constructorTrivia),
             baseList,
             typeDeclaration.ConstraintClauses,
@@ -439,7 +457,7 @@ internal static class ConvertToRecordEngine
             {
                 // convert attributes attached to the property with no target into "property :" targeted attributes
                 return attributeList
-                    .WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.PropertyKeyword)))
+                    .WithTarget(AttributeTargetSpecifier(PropertyKeyword))
                     .WithoutTrivia();
             }
             else
@@ -458,11 +476,15 @@ internal static class ConvertToRecordEngine
         var symbolReferences = await SymbolFinder
             .FindReferencesAsync(type, solutionEditor.OriginalSolution, cancellationToken).ConfigureAwait(false);
         var referenceLocations = symbolReferences.SelectMany(reference => reference.Locations);
-        var documentLookup = referenceLocations.ToLookup(refLoc => refLoc.Document.Id);
-        foreach (var (documentID, documentLocations) in documentLookup)
+        var documentLookup = referenceLocations.ToLookup(refLoc => refLoc.Document);
+        foreach (var (document, documentLocations) in documentLookup)
         {
+            // We don't want to process source-generated documents.  Make sure we can get back to a real document here.
+            if (document is SourceGeneratedDocument)
+                continue;
+
             var documentEditor = await solutionEditor
-                .GetDocumentEditorAsync(documentID, cancellationToken).ConfigureAwait(false);
+                .GetDocumentEditorAsync(document.Id, cancellationToken).ConfigureAwait(false);
             if (documentEditor.OriginalDocument.Project.Language != LanguageNames.CSharp)
             {
                 // since this is a CSharp-dependent file, we need to have specific VB support.
@@ -531,10 +553,10 @@ internal static class ConvertToRecordEngine
 
                     // replace: new C { Foo = 0; Bar = false; };
                     // with: new C(0, false);
-                    return SyntaxFactory.ObjectCreationExpression(
+                    return ObjectCreationExpression(
                         updatedObjectCreation.NewKeyword,
                         updatedObjectCreation.Type.WithoutTrailingTrivia(),
-                        SyntaxFactory.ArgumentList([.. updatedExpressions.Select(expression => SyntaxFactory.Argument(expression.WithoutTrivia()))]),
+                        ArgumentList([.. updatedExpressions.Select(expression => Argument(expression.WithoutTrivia()))]),
                         newInitializer);
                 });
             }
@@ -623,28 +645,28 @@ internal static class ConvertToRecordEngine
                 propDoc.IsMultilineDocComment())
             {
                 // add /** and */
-                newClassDocComment = SyntaxFactory.DocumentationCommentTrivia(
+                newClassDocComment = DocumentationCommentTrivia(
                     SyntaxKind.MultiLineDocumentationCommentTrivia,
                     // Our parameter method gives a newline (without leading trivia) to start
                     // because we assume we're following some other comment, we replace that newline to add
                     // the start of comment leading trivia as well since we're not following another comment
                     [.. propertyParamComments.Skip(1)
-                        .Prepend(SyntaxFactory.XmlText(SyntaxFactory.XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)
-                            .WithLeadingTrivia(SyntaxFactory.DocumentationCommentExterior("/**"))
+                        .Prepend(XmlText(XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)
+                            .WithLeadingTrivia(DocumentationCommentExterior("/**"))
                             .WithTrailingTrivia(exteriorTrivia)))
-                        .Append(SyntaxFactory.XmlText(SyntaxFactory.XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)))],
-                        SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken)
-                            .WithTrailingTrivia(SyntaxFactory.DocumentationCommentExterior("*/"), SyntaxFactory.ElasticCarriageReturnLineFeed));
+                        .Append(XmlText(XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false)))],
+                        EndOfDocumentationCommentToken
+                            .WithTrailingTrivia(DocumentationCommentExterior("*/"), ElasticCarriageReturnLineFeed));
             }
             else
             {
                 // add extra line at end to end doc comment
                 // also skip first newline and replace with non-newline
-                newClassDocComment = SyntaxFactory.DocumentationCommentTrivia(
+                newClassDocComment = DocumentationCommentTrivia(
                     SyntaxKind.MultiLineDocumentationCommentTrivia,
                     [.. propertyParamComments.Skip(1)
-                        .Prepend(SyntaxFactory.XmlText(SyntaxFactory.XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia)))])
-                    .WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+                        .Prepend(XmlText(XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia)))])
+                    .WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed);
             }
         }
 
@@ -655,14 +677,14 @@ internal static class ConvertToRecordEngine
             return [.. classTrivia
                 .Where(trivia => !trivia.IsDocComment())
                 .Concat(propertyNonDocComments)
-                .Append(SyntaxFactory.Trivia(newClassDocComment))
+                .Append(Trivia(newClassDocComment))
                 .Select(trivia => trivia.AsElastic())];
         }
         else
         {
             // there were comments after doc comment
             return [.. classTrivia
-                .Replace(classDocComment.Value, SyntaxFactory.Trivia(newClassDocComment))
+                .Replace(classDocComment.Value, Trivia(newClassDocComment))
                 .Concat(propertyNonDocComments)
                 .Select(trivia => trivia.AsElastic())];
         }
@@ -734,15 +756,15 @@ internal static class ConvertToRecordEngine
             // add an extra line and space with the exterior trivia, so that our params start on the next line and each
             // param goes on a new line with the continuation trivia
             // when adding a new line, the continue flag adds a single line documentation trivia, but we don't necessarily want that
-            yield return SyntaxFactory.XmlText(
-                SyntaxFactory.XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false),
-                SyntaxFactory.XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia));
+            yield return XmlText(
+                XmlTextNewLine(lineFormattingOptions.NewLine, continueXmlDocumentationComment: false),
+                XmlTextLiteral(" ").WithLeadingTrivia(exteriorTrivia));
 
             if (result.IsInherited)
             {
                 // generate a param comment with an inherited doc
-                yield return SyntaxFactory.XmlParamElement(result.Symbol.Name, SyntaxFactory.XmlEmptyElement(
-                        SyntaxFactory.XmlName(DocumentationCommentXmlNames.InheritdocElementName)));
+                yield return XmlParamElement(result.Symbol.Name, XmlEmptyElement(
+                        XmlName(DocumentationCommentXmlNames.InheritdocElementName)));
             }
             else
             {
@@ -798,7 +820,7 @@ internal static class ConvertToRecordEngine
                     }
                 }
 
-                yield return SyntaxFactory.XmlParamElement(result.Declaration.Identifier.ValueText, paramContent.AsArray());
+                yield return XmlParamElement(result.Declaration.Identifier.ValueText, paramContent.AsArray());
             }
         }
     }

@@ -90,7 +90,7 @@ internal static partial class EncodingExtensions
     }
 
     public static bool HasPreamble(this Encoding encoding)
-#if NETCOREAPP
+#if NET
         => !encoding.Preamble.IsEmpty;
 #else
         => !encoding.GetPreamble().IsEmpty();

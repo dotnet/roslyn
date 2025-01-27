@@ -3,29 +3,33 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal abstract partial class AbstractRenameCommandHandler :
+    ICommandHandler<MoveSelectedLinesUpCommandArgs>, ICommandHandler<MoveSelectedLinesDownCommandArgs>
 {
-    internal abstract partial class AbstractRenameCommandHandler :
-        ICommandHandler<MoveSelectedLinesUpCommandArgs>, ICommandHandler<MoveSelectedLinesDownCommandArgs>
+    public CommandState GetCommandState(MoveSelectedLinesUpCommandArgs args)
+        => CommandState.Unspecified;
+
+    public bool ExecuteCommand(MoveSelectedLinesUpCommandArgs args, CommandExecutionContext context)
+        => HandleMoveSelectLinesUpOrDownCommand(args, context);
+
+    public CommandState GetCommandState(MoveSelectedLinesDownCommandArgs args)
+        => CommandState.Unspecified;
+
+    public bool ExecuteCommand(MoveSelectedLinesDownCommandArgs args, CommandExecutionContext context)
+        => HandleMoveSelectLinesUpOrDownCommand(args, context);
+
+    private bool HandleMoveSelectLinesUpOrDownCommand(EditorCommandArgs args, CommandExecutionContext context)
     {
-        public CommandState GetCommandState(MoveSelectedLinesUpCommandArgs args)
-            => CommandState.Unspecified;
+        // When rename commit is in progress, swallow the command so it won't change the workspace
+        if (IsRenameCommitInProgress())
+            return true;
 
-        public bool ExecuteCommand(MoveSelectedLinesUpCommandArgs args, CommandExecutionContext context)
-        {
-            CommitIfActive(args);
-            return false;
-        }
-
-        public CommandState GetCommandState(MoveSelectedLinesDownCommandArgs args)
-            => CommandState.Unspecified;
-
-        public bool ExecuteCommand(MoveSelectedLinesDownCommandArgs args, CommandExecutionContext context)
-        {
-            CommitIfActive(args);
-            return false;
-        }
+        CommitIfSynchronousOrCancelIfAsynchronous(args, context.OperationContext, placeCaretAtTheEndOfIdentifier: true);
+        return false;
     }
 }

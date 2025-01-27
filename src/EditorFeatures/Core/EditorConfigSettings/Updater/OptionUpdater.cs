@@ -4,17 +4,15 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+
+internal class OptionUpdater(Workspace workspace, string editorconfigPath) : SettingsUpdaterBase<IOption2, object>(workspace, editorconfigPath)
 {
-    internal class OptionUpdater(Workspace workspace, string editorconfigPath) : SettingsUpdaterBase<IOption2, object>(workspace, editorconfigPath)
-    {
-        protected override SourceText? GetNewText(SourceText sourceText,
-                                                  IReadOnlyList<(IOption2 option, object value)> settingsToUpdate,
-                                                  CancellationToken token)
-            => SettingsUpdateHelper.TryUpdateAnalyzerConfigDocument(sourceText, EditorconfigPath, settingsToUpdate);
-    }
+    protected override SourceText? GetNewText(SourceText sourceText,
+                                              IReadOnlyList<(IOption2 option, object value)> settingsToUpdate,
+                                              CancellationToken token)
+        => SettingsUpdateHelper.TryUpdateAnalyzerConfigDocument(sourceText, EditorconfigPath, settingsToUpdate);
 }

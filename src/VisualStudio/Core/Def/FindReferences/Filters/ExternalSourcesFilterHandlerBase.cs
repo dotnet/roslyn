@@ -6,53 +6,52 @@ using Microsoft.Internal.VisualStudio.Shell.ErrorList;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences.Filters
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences.Filters;
+
+internal abstract class ExternalSourcesFilterHandlerBase : FilterHandlerBase
 {
-    internal abstract class ExternalSourcesFilterHandlerBase : FilterHandlerBase
+    /// <summary>
+    /// Whether to include items that have an ItemOrigin ("Source") column value of Exact ("Local")
+    /// </summary>
+    public abstract bool IncludeExact { get; }
+
+    /// <summary>
+    /// Whether to include items that have an ItemOrigin ("Source") column value of ExactMetadata ("Local (from metadata)")
+    /// </summary>
+    public abstract bool IncludeExactMetadata { get; }
+
+    /// <summary>
+    /// Whether to include items that have an ItemOrigin ("Source") column value of Other
+    /// </summary>
+    public abstract bool IncludeOther { get; }
+
+    public override IEntryFilter GetFilter(out string displayText)
     {
-        /// <summary>
-        /// Whether to include items that have an ItemOrigin ("Source") column value of Exact ("Local")
-        /// </summary>
-        public abstract bool IncludeExact { get; }
+        displayText = FilterDisplayName;
+        return new EntryFilter(IncludeExact, IncludeExactMetadata, IncludeOther);
+    }
 
-        /// <summary>
-        /// Whether to include items that have an ItemOrigin ("Source") column value of ExactMetadata ("Local (from metadata)")
-        /// </summary>
-        public abstract bool IncludeExactMetadata { get; }
+    private class EntryFilter : IEntryFilter
+    {
+        private readonly bool _includeExact;
+        private readonly bool _includeExactMetadata;
+        private readonly bool _includeOther;
 
-        /// <summary>
-        /// Whether to include items that have an ItemOrigin ("Source") column value of Other
-        /// </summary>
-        public abstract bool IncludeOther { get; }
-
-        public override IEntryFilter GetFilter(out string displayText)
+        public EntryFilter(bool includeExact, bool includeExactMetadata, bool includeOther)
         {
-            displayText = FilterDisplayName;
-            return new EntryFilter(IncludeExact, IncludeExactMetadata, IncludeOther);
+            _includeExact = includeExact;
+            _includeExactMetadata = includeExactMetadata;
+            _includeOther = includeOther;
         }
 
-        private class EntryFilter : IEntryFilter
+        public bool Match(ITableEntryHandle entry)
         {
-            private readonly bool _includeExact;
-            private readonly bool _includeExactMetadata;
-            private readonly bool _includeOther;
+            if (!entry.TryGetValue(StandardTableKeyNames.ItemOrigin, out ItemOrigin origin))
+                origin = ItemOrigin.Exact;
 
-            public EntryFilter(bool includeExact, bool includeExactMetadata, bool includeOther)
-            {
-                _includeExact = includeExact;
-                _includeExactMetadata = includeExactMetadata;
-                _includeOther = includeOther;
-            }
-
-            public bool Match(ITableEntryHandle entry)
-            {
-                if (!entry.TryGetValue(StandardTableKeyNames.ItemOrigin, out ItemOrigin origin))
-                    origin = ItemOrigin.Exact;
-
-                return _includeExact && origin == ItemOrigin.Exact
-                    || _includeExactMetadata && origin == ItemOrigin.ExactMetadata
-                    || _includeOther && origin == ItemOrigin.Other;
-            }
+            return _includeExact && origin == ItemOrigin.Exact
+                || _includeExactMetadata && origin == ItemOrigin.ExactMetadata
+                || _includeOther && origin == ItemOrigin.Other;
         }
     }
 }

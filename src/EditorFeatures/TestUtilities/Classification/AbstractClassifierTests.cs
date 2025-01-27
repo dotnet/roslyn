@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 {
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             {
                 var start = allCode.IndexOf(code, StringComparison.Ordinal);
                 var length = code.Length;
-                spans = ImmutableArray.Create(new TextSpan(start, length));
+                spans = [new TextSpan(start, length)];
             }
             else
             {
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 }
                 else
                 {
-                    spans = ImmutableArray.Create(new TextSpan(0, allCode.Length));
+                    spans = [new TextSpan(0, allCode.Length)];
                 }
             }
 
@@ -65,8 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
             var actualOrdered = actual.OrderBy((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
 
-            var actualFormatted = actualOrdered.Select(a => new FormattedClassification(allCode.Substring(a.TextSpan.Start, a.TextSpan.Length), a.ClassificationType));
-            AssertEx.Equal(expected, actualFormatted);
+            var actualFormatted = actualOrdered.SelectAsArray(a => new FormattedClassification(allCode.Substring(a.TextSpan.Start, a.TextSpan.Length), a.ClassificationType));
+            AssertEx.Equal([.. expected], actualFormatted);
         }
 
         private async Task TestAsync(
@@ -274,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             using var _ = Classifier.GetPooledList(out var result);
             await service.AddSemanticClassificationsAsync(document, spans, options, result, CancellationToken.None);
             await service.AddEmbeddedLanguageClassificationsAsync(document, spans, options, result, CancellationToken.None);
-            return result.ToImmutableArray();
+            return [.. result];
         }
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetSyntacticClassificationsAsync(Document document, ImmutableArray<TextSpan> spans)
@@ -284,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
             using var _ = Classifier.GetPooledList(out var results);
             service.AddSyntacticClassifications(root, spans, results, CancellationToken.None);
-            return results.ToImmutableArray();
+            return [.. results];
         }
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetAllClassificationsAsync(Document document, ImmutableArray<TextSpan> spans)
@@ -304,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 where !classificationsSpans.Contains(t.TextSpan)
                 select t);
 
-            return allClassifications.ToImmutableArray();
+            return [.. allClassifications];
         }
     }
 }

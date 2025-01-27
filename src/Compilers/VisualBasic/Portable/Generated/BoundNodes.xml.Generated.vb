@@ -846,13 +846,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundGetType
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, sourceType As BoundTypeExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, sourceType As BoundTypeExpression, getTypeFromHandle As MethodSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.GetType, syntax, type, hasErrors OrElse sourceType.NonNullAndHasErrors())
 
             Debug.Assert(sourceType IsNot Nothing, "Field 'sourceType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._SourceType = sourceType
+            Me._GetTypeFromHandle = getTypeFromHandle
         End Sub
 
 
@@ -863,14 +864,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _GetTypeFromHandle As MethodSymbol
+        Public ReadOnly Property GetTypeFromHandle As MethodSymbol
+            Get
+                Return _GetTypeFromHandle
+            End Get
+        End Property
+
         <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitGetType(Me)
         End Function
 
-        Public Function Update(sourceType As BoundTypeExpression, type As TypeSymbol) As BoundGetType
-            If sourceType IsNot Me.SourceType OrElse type IsNot Me.Type Then
-                Dim result = New BoundGetType(Me.Syntax, sourceType, type, Me.HasErrors)
+        Public Function Update(sourceType As BoundTypeExpression, getTypeFromHandle As MethodSymbol, type As TypeSymbol) As BoundGetType
+            If sourceType IsNot Me.SourceType OrElse getTypeFromHandle IsNot Me.GetTypeFromHandle OrElse type IsNot Me.Type Then
+                Dim result = New BoundGetType(Me.Syntax, sourceType, getTypeFromHandle, type, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -925,22 +933,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundMethodInfo
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol, hasErrors As Boolean)
+        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, getMethodFromHandle As MethodSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MethodInfo, syntax, type, hasErrors)
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(getMethodFromHandle IsNot Nothing, "Field 'getMethodFromHandle' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
+            Me._GetMethodFromHandle = getMethodFromHandle
         End Sub
 
-        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
+        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, getMethodFromHandle As MethodSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.MethodInfo, syntax, type)
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(getMethodFromHandle IsNot Nothing, "Field 'getMethodFromHandle' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
+            Me._GetMethodFromHandle = getMethodFromHandle
         End Sub
 
 
@@ -951,14 +963,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _GetMethodFromHandle As MethodSymbol
+        Public ReadOnly Property GetMethodFromHandle As MethodSymbol
+            Get
+                Return _GetMethodFromHandle
+            End Get
+        End Property
+
         <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitMethodInfo(Me)
         End Function
 
-        Public Function Update(method As MethodSymbol, type As TypeSymbol) As BoundMethodInfo
-            If method IsNot Me.Method OrElse type IsNot Me.Type Then
-                Dim result = New BoundMethodInfo(Me.Syntax, method, type, Me.HasErrors)
+        Public Function Update(method As MethodSymbol, getMethodFromHandle As MethodSymbol, type As TypeSymbol) As BoundMethodInfo
+            If method IsNot Me.Method OrElse getMethodFromHandle IsNot Me.GetMethodFromHandle OrElse type IsNot Me.Type Then
+                Dim result = New BoundMethodInfo(Me.Syntax, method, getMethodFromHandle, type, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -9010,14 +9029,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundLoweredConditionalAccess
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, receiverOrCondition As BoundExpression, captureReceiver As Boolean, placeholderId As Integer, whenNotNull As BoundExpression, whenNullOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
-            MyBase.New(BoundKind.LoweredConditionalAccess, syntax, type, hasErrors OrElse receiverOrCondition.NonNullAndHasErrors() OrElse whenNotNull.NonNullAndHasErrors() OrElse whenNullOpt.NonNullAndHasErrors())
+        Public Sub New(syntax As SyntaxNode, receiver As BoundExpression, captureReceiver As Boolean, placeholderId As Integer, whenNotNull As BoundExpression, whenNullOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
+            MyBase.New(BoundKind.LoweredConditionalAccess, syntax, type, hasErrors OrElse receiver.NonNullAndHasErrors() OrElse whenNotNull.NonNullAndHasErrors() OrElse whenNullOpt.NonNullAndHasErrors())
 
-            Debug.Assert(receiverOrCondition IsNot Nothing, "Field 'receiverOrCondition' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(receiver IsNot Nothing, "Field 'receiver' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(whenNotNull IsNot Nothing, "Field 'whenNotNull' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
-            Me._ReceiverOrCondition = receiverOrCondition
+            Me._Receiver = receiver
             Me._CaptureReceiver = captureReceiver
             Me._PlaceholderId = placeholderId
             Me._WhenNotNull = whenNotNull
@@ -9030,10 +9049,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ReceiverOrCondition As BoundExpression
-        Public ReadOnly Property ReceiverOrCondition As BoundExpression
+        Private ReadOnly _Receiver As BoundExpression
+        Public ReadOnly Property Receiver As BoundExpression
             Get
-                Return _ReceiverOrCondition
+                Return _Receiver
             End Get
         End Property
 
@@ -9070,9 +9089,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitLoweredConditionalAccess(Me)
         End Function
 
-        Public Function Update(receiverOrCondition As BoundExpression, captureReceiver As Boolean, placeholderId As Integer, whenNotNull As BoundExpression, whenNullOpt As BoundExpression, type As TypeSymbol) As BoundLoweredConditionalAccess
-            If receiverOrCondition IsNot Me.ReceiverOrCondition OrElse captureReceiver <> Me.CaptureReceiver OrElse placeholderId <> Me.PlaceholderId OrElse whenNotNull IsNot Me.WhenNotNull OrElse whenNullOpt IsNot Me.WhenNullOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundLoweredConditionalAccess(Me.Syntax, receiverOrCondition, captureReceiver, placeholderId, whenNotNull, whenNullOpt, type, Me.HasErrors)
+        Public Function Update(receiver As BoundExpression, captureReceiver As Boolean, placeholderId As Integer, whenNotNull As BoundExpression, whenNullOpt As BoundExpression, type As TypeSymbol) As BoundLoweredConditionalAccess
+            If receiver IsNot Me.Receiver OrElse captureReceiver <> Me.CaptureReceiver OrElse placeholderId <> Me.PlaceholderId OrElse whenNotNull IsNot Me.WhenNotNull OrElse whenNullOpt IsNot Me.WhenNullOpt OrElse type IsNot Me.Type Then
+                Dim result = New BoundLoweredConditionalAccess(Me.Syntax, receiver, captureReceiver, placeholderId, whenNotNull, whenNullOpt, type, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -9220,15 +9239,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundInterpolatedStringExpression
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, contents As ImmutableArray(Of BoundNode), binder As Binder, type As TypeSymbol, Optional hasErrors As Boolean = False)
-            MyBase.New(BoundKind.InterpolatedStringExpression, syntax, type, hasErrors OrElse contents.NonNullAndHasErrors())
+        Public Sub New(syntax As SyntaxNode, contents As ImmutableArray(Of BoundNode), constructionOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
+            MyBase.New(BoundKind.InterpolatedStringExpression, syntax, type, hasErrors OrElse contents.NonNullAndHasErrors() OrElse constructionOpt.NonNullAndHasErrors())
 
             Debug.Assert(Not (contents.IsDefault), "Field 'contents' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Contents = contents
-            Me._Binder = binder
+            Me._ConstructionOpt = constructionOpt
 
             Validate()
         End Sub
@@ -9244,10 +9262,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly _Binder As Binder
-        Public ReadOnly Property Binder As Binder
+        Private ReadOnly _ConstructionOpt As BoundExpression
+        Public ReadOnly Property ConstructionOpt As BoundExpression
             Get
-                Return _Binder
+                Return _ConstructionOpt
             End Get
         End Property
 
@@ -9256,9 +9274,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitInterpolatedStringExpression(Me)
         End Function
 
-        Public Function Update(contents As ImmutableArray(Of BoundNode), binder As Binder, type As TypeSymbol) As BoundInterpolatedStringExpression
-            If contents <> Me.Contents OrElse binder IsNot Me.Binder OrElse type IsNot Me.Type Then
-                Dim result = New BoundInterpolatedStringExpression(Me.Syntax, contents, binder, type, Me.HasErrors)
+        Public Function Update(contents As ImmutableArray(Of BoundNode), constructionOpt As BoundExpression, type As TypeSymbol) As BoundInterpolatedStringExpression
+            If contents <> Me.Contents OrElse constructionOpt IsNot Me.ConstructionOpt OrElse type IsNot Me.Type Then
+                Dim result = New BoundInterpolatedStringExpression(Me.Syntax, contents, constructionOpt, type, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -11995,7 +12013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
-            Me.Visit(node.ReceiverOrCondition)
+            Me.Visit(node.Receiver)
             Me.Visit(node.WhenNotNull)
             Me.Visit(node.WhenNullOpt)
             Return Nothing
@@ -12114,7 +12132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitGetType(node As BoundGetType) As BoundNode
             Dim sourceType As BoundTypeExpression = DirectCast(Me.Visit(node.SourceType), BoundTypeExpression)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(sourceType, type)
+            Return node.Update(sourceType, node.GetTypeFromHandle, type)
         End Function
 
         Public Overrides Function VisitFieldInfo(node As BoundFieldInfo) As BoundNode
@@ -12124,7 +12142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitMethodInfo(node As BoundMethodInfo) As BoundNode
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(node.Method, type)
+            Return node.Update(node.Method, node.GetMethodFromHandle, type)
         End Function
 
         Public Overrides Function VisitTypeExpression(node As BoundTypeExpression) As BoundNode
@@ -13079,11 +13097,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
-            Dim receiverOrCondition As BoundExpression = DirectCast(Me.Visit(node.ReceiverOrCondition), BoundExpression)
+            Dim receiver As BoundExpression = DirectCast(Me.Visit(node.Receiver), BoundExpression)
             Dim whenNotNull As BoundExpression = DirectCast(Me.Visit(node.WhenNotNull), BoundExpression)
             Dim whenNullOpt As BoundExpression = DirectCast(Me.Visit(node.WhenNullOpt), BoundExpression)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(receiverOrCondition, node.CaptureReceiver, node.PlaceholderId, whenNotNull, whenNullOpt, type)
+            Return node.Update(receiver, node.CaptureReceiver, node.PlaceholderId, whenNotNull, whenNullOpt, type)
         End Function
 
         Public Overrides Function VisitComplexConditionalAccessReceiver(node As BoundComplexConditionalAccessReceiver) As BoundNode
@@ -13107,8 +13125,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression) As BoundNode
             Dim contents As ImmutableArray(Of BoundNode) = Me.VisitList(node.Contents)
+            Dim constructionOpt As BoundExpression = node.ConstructionOpt
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(contents, node.Binder, type)
+            Return node.Update(contents, constructionOpt, type)
         End Function
 
         Public Overrides Function VisitInterpolation(node As BoundInterpolation) As BoundNode
@@ -13230,6 +13249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitGetType(node As BoundGetType, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("[getType]", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("sourceType", Nothing, new TreeDumperNode() {Visit(node.SourceType, Nothing)}),
+                New TreeDumperNode("getTypeFromHandle", node.GetTypeFromHandle, Nothing),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function
@@ -13244,6 +13264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitMethodInfo(node As BoundMethodInfo, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("methodInfo", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("method", node.Method, Nothing),
+                New TreeDumperNode("getMethodFromHandle", node.GetMethodFromHandle, Nothing),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function
@@ -14533,7 +14554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("loweredConditionalAccess", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("receiverOrCondition", Nothing, new TreeDumperNode() {Visit(node.ReceiverOrCondition, Nothing)}),
+                New TreeDumperNode("receiver", Nothing, new TreeDumperNode() {Visit(node.Receiver, Nothing)}),
                 New TreeDumperNode("captureReceiver", node.CaptureReceiver, Nothing),
                 New TreeDumperNode("placeholderId", node.PlaceholderId, Nothing),
                 New TreeDumperNode("whenNotNull", Nothing, new TreeDumperNode() {Visit(node.WhenNotNull, Nothing)}),
@@ -14568,7 +14589,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("interpolatedStringExpression", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("contents", Nothing, From x In node.Contents Select Visit(x, Nothing)),
-                New TreeDumperNode("binder", node.Binder, Nothing),
+                New TreeDumperNode("constructionOpt", Nothing, new TreeDumperNode() {Visit(node.ConstructionOpt, Nothing)}),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function

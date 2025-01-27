@@ -6,22 +6,21 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+
+internal partial struct VirtualCharSequence
 {
-    internal partial struct VirtualCharSequence
+    public struct Enumerator(VirtualCharSequence virtualCharSequence) : IEnumerator<VirtualChar>
     {
-        public struct Enumerator(VirtualCharSequence virtualCharSequence) : IEnumerator<VirtualChar>
-        {
-            private int _position = -1;
+        private int _position = -1;
 
-            public bool MoveNext() => ++_position < virtualCharSequence.Length;
-            public readonly VirtualChar Current => virtualCharSequence[_position];
+        public bool MoveNext() => ++_position < virtualCharSequence.Length;
+        public readonly VirtualChar Current => virtualCharSequence[_position];
 
-            public void Reset()
-                => _position = -1;
+        public void Reset()
+            => _position = -1;
 
-            readonly object? IEnumerator.Current => this.Current;
-            public readonly void Dispose() { }
-        }
+        readonly object? IEnumerator.Current => this.Current;
+        public readonly void Dispose() { }
     }
 }

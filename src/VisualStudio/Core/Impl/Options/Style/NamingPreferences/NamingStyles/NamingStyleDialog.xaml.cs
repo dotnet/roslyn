@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Windows;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
@@ -24,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         public string CapitalizationLabelText => ServicesVSResources.Capitalization_colon;
         public string SampleIdentifierLabelText => ServicesVSResources.Sample_Identifier_colon;
         public string OK => ServicesVSResources.OK;
-        public string Cancel => ServicesVSResources.Cancel;
+        public string Cancel => EditorFeaturesResources.Cancel;
 
         internal NamingStyleDialog(NamingStyleViewModel viewModel)
         {

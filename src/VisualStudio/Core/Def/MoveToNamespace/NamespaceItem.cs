@@ -4,19 +4,18 @@
 
 #nullable disable
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace;
+
+internal class NamespaceItem
 {
-    internal class NamespaceItem
+    public string Namespace { get; }
+    public bool IsFromHistory { get; }
+
+    public NamespaceItem(bool isFromHistory, string @namespace)
     {
-        public string Namespace { get; }
-        public bool IsFromHistory { get; }
-
-        public NamespaceItem(bool isFromHistory, string @namespace)
-        {
-            IsFromHistory = isFromHistory;
-            Namespace = @namespace;
-        }
-
-        public override string ToString() => Namespace;
+        IsFromHistory = isFromHistory;
+        Namespace = @namespace;
     }
+
+    public override string ToString() => Namespace;
 }

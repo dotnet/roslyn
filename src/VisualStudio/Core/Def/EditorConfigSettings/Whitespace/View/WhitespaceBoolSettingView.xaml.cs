@@ -3,20 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Windows.Controls;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View;
+
+/// <summary>
+/// Interaction logic for WhitespaceValueSettingControl.xaml
+/// </summary>
+internal partial class WhitespaceBoolSettingView : UserControl
 {
-    /// <summary>
-    /// Interaction logic for WhitespaceValueSettingControl.xaml
-    /// </summary>
-    internal partial class WhitespaceBoolSettingView : UserControl
+    public WhitespaceBoolSettingView(WhitespaceSettingBoolViewModel viewModel)
     {
-        public WhitespaceBoolSettingView(WhitespaceSettingBoolViewModel viewModel)
-        {
-            InitializeComponent();
-            DataContext = viewModel;
-        }
+        InitializeComponent();
+        DataContext = viewModel;
     }
 }

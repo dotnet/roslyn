@@ -1117,6 +1117,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             return true;
                         }
                     }
+                    else if (symbol is IPropertySymbolInternal propertySymbol)
+                    {
+                        if (propertySymbol.PartialDefinitionPart?.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken) == true
+                            || propertySymbol.PartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken) == true)
+                        {
+                            return true;
+                        }
+                    }
 
                     return false;
                 }

@@ -8,46 +8,45 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BasicVSResources.Completion_Lists
 
         Public ReadOnly Property Option_Show_completion_list_after_a_character_is_typed As String =
-            BasicVSResources.Show_completion_list_after_a_character_is_typed
+            ServicesVSResources._Show_completion_list_after_a_character_is_typed
 
         Public ReadOnly Property Option_Show_completion_list_after_a_character_is_deleted As String =
-            BasicVSResources.Show_completion_list_after_a_character_is_deleted
+            ServicesVSResources.Show_completion_list_after_a_character_is__deleted
 
         Public ReadOnly Property Option_Highlight_matching_portions_of_completion_list_items As String =
-            BasicVSResources.Highlight_matching_portions_of_completion_list_items
+            ServicesVSResources._Highlight_matching_portions_of_completion_list_items
 
         Public ReadOnly Property Option_Show_completion_item_filters As String =
-            BasicVSResources.Show_completion_item_filters
+            ServicesVSResources.Show_completion_item__filters
 
         Public ReadOnly Property Option_Only_add_new_line_on_enter_with_whole_word As String =
-            BasicVSResources.Only_add_new_line_on_enter_after_end_of_fully_typed_word
+            ServicesVSResources.Only_add_new_line_on_enter_after_end_of_fully_typed_word
 
         Public ReadOnly Property Option_Always_add_new_line_on_enter As String =
-            BasicVSResources.Always_add_new_line_on_enter
+            ServicesVSResources.Always_add_new_line_on_enter
 
         Public ReadOnly Property Option_Never_add_new_line_on_enter As String =
-            BasicVSResources.Never_add_new_line_on_enter
+            ServicesVSResources.Never_add_new_line_on_enter
 
         Public ReadOnly Property Enter_key_behavior_Title As String =
-            BasicVSResources.Enter_key_behavior_colon
+            ServicesVSResources.Enter_key_behavior_colon
 
         Public ReadOnly Property Snippets_behavior As String =
-            BasicVSResources.Snippets_behavior
+            ServicesVSResources.Snippets_behavior
 
         Public ReadOnly Property Option_Never_include_snippets As String =
-            BasicVSResources.Never_include_snippets
+            VSPackage.Never_include_snippets
 
         Public ReadOnly Property Option_Always_include_snippets As String =
-            BasicVSResources.Always_include_snippets
+            VSPackage.Always_include_snippets
 
         Public ReadOnly Property Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier As String =
-            BasicVSResources.Include_snippets_when_Tab_is_typed_after_an_identifier
+            VSPackage.Include_snippets_when_Tab_is_typed_after_an_identifier
 
         Public ReadOnly Property Option_Show_items_from_unimported_namespaces As String =
-            BasicVSResources.Show_items_from_unimported_namespaces
+            ServicesVSResources.Show_items_from_unimported_namespaces
 
-        Public ReadOnly Property Option_Tab_twice_to_insert_arguments As String =
-            ServicesVSResources.Tab_twice_to_insert_arguments
-
+        Public ReadOnly Property Option_Tab_twice_to_insert_arguments_experimental As String =
+            ServicesVSResources.Tab_twice_to_insert_arguments_experimental
     End Module
 End Namespace

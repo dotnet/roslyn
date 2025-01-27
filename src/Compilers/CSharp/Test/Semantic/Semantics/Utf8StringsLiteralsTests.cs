@@ -11,6 +11,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2432,9 +2433,9 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,9): error CS0306: The type 'ReadOnlySpan<byte>' may not be used as a type argument
-                //         PrintType("""
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "PrintType").WithArguments("System.ReadOnlySpan<byte>").WithLocation(6, 9)
+                // (6,9): error CS9244: The type 'ReadOnlySpan<byte>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.PrintType<T>(T)'
+                //         PrintType(@"hello"u8);
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "PrintType").WithArguments("C.PrintType<T>(T)", "T", "System.ReadOnlySpan<byte>").WithLocation(6, 9)
                 );
         }
 
@@ -3277,13 +3278,13 @@ class C
             var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.ReadOnlySpan<System.Char> System.String.op_Implicit(System.String? value)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
 
             var typeInfo = model.GetTypeInfo(node);
             Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
             Assert.Equal("System.ReadOnlySpan<System.Char>", typeInfo.ConvertedType.ToTestDisplayString());
 
-            Assert.True(model.GetConversion(node).IsUserDefined);
+            Assert.True(model.GetConversion(node).IsSpan);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -3305,13 +3306,14 @@ class C
             var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Equal("System.ReadOnlySpan<System.Char> System.String.op_Implicit(System.String? value)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Null(symbolInfo.Symbol);
 
             var typeInfo = model.GetTypeInfo(node);
             Assert.Equal("System.ReadOnlySpan<System.Char>", typeInfo.Type.ToTestDisplayString());
             Assert.Equal("System.ReadOnlySpan<System.Char>", typeInfo.ConvertedType.ToTestDisplayString());
 
             Assert.True(model.GetConversion(node).IsIdentity);
+            Assert.True(((IConversionOperation)model.GetOperation(node)).GetConversion().IsSpan);
         }
 
         [Theory]

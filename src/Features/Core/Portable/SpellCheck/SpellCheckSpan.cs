@@ -4,9 +4,8 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.SpellCheck
-{
-    internal readonly record struct SpellCheckSpan(
-        TextSpan TextSpan,
-        SpellCheckKind Kind);
-}
+namespace Microsoft.CodeAnalysis.SpellCheck;
+
+internal readonly record struct SpellCheckSpan(
+    TextSpan TextSpan,
+    SpellCheckKind Kind);

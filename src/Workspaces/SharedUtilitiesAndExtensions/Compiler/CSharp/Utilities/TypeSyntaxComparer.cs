@@ -5,62 +5,56 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Utilities
+namespace Microsoft.CodeAnalysis.CSharp.Utilities;
+
+internal sealed class TypeSyntaxComparer(IComparer<SyntaxToken> tokenComparer, IComparer<NameSyntax?> nameComparer)
+    : IComparer<TypeSyntax?>
 {
-    internal class TypeSyntaxComparer : IComparer<TypeSyntax?>
+    private readonly IComparer<SyntaxToken> _tokenComparer = tokenComparer;
+    internal readonly IComparer<NameSyntax?> NameComparer = nameComparer;
+
+    public int Compare(TypeSyntax? x, TypeSyntax? y)
     {
-        private readonly IComparer<SyntaxToken> _tokenComparer;
-        internal readonly IComparer<NameSyntax?> NameComparer;
+        if (x is null)
+            return y is null ? 0 : -1;
+        else if (y is null)
+            return 1;
 
-        internal TypeSyntaxComparer(IComparer<SyntaxToken> tokenComparer, IComparer<NameSyntax?> nameComparer)
+        if (x == y)
         {
-            _tokenComparer = tokenComparer;
-            NameComparer = nameComparer;
+            return 0;
         }
 
-        public int Compare(TypeSyntax? x, TypeSyntax? y)
+        x = UnwrapType(x);
+        y = UnwrapType(y);
+
+        if (x is NameSyntax xName && y is NameSyntax yName)
         {
-            if (x is null)
-                return y is null ? 0 : -1;
-            else if (y is null)
-                return 1;
-
-            if (x == y)
-            {
-                return 0;
-            }
-
-            x = UnwrapType(x);
-            y = UnwrapType(y);
-
-            if (x is NameSyntax && y is NameSyntax)
-            {
-                return NameComparer.Compare((NameSyntax)x, (NameSyntax)y);
-            }
-
-            // we have two predefined types, or a predefined type and a normal C# name.  We only need
-            // to compare the first tokens here.
-            return _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
+            return NameComparer.Compare(xName, yName);
         }
 
-        private static TypeSyntax UnwrapType(TypeSyntax type)
+        // we have two predefined types, or a predefined type and a normal C# name.  We only need
+        // to compare the first tokens here.
+        return _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
+    }
+
+    private static TypeSyntax UnwrapType(TypeSyntax type)
+    {
+        while (true)
         {
-            while (true)
+            switch (type.Kind())
             {
-                switch (type.Kind())
-                {
-                    case SyntaxKind.ArrayType:
-                        type = ((ArrayTypeSyntax)type).ElementType;
-                        break;
-                    case SyntaxKind.PointerType:
-                        type = ((PointerTypeSyntax)type).ElementType;
-                        break;
-                    case SyntaxKind.NullableType:
-                        type = ((NullableTypeSyntax)type).ElementType;
-                        break;
-                    default:
-                        return type;
-                }
+                case SyntaxKind.ArrayType:
+                    type = ((ArrayTypeSyntax)type).ElementType;
+                    break;
+                case SyntaxKind.PointerType:
+                    type = ((PointerTypeSyntax)type).ElementType;
+                    break;
+                case SyntaxKind.NullableType:
+                    type = ((NullableTypeSyntax)type).ElementType;
+                    break;
+                default:
+                    return type;
             }
         }
     }

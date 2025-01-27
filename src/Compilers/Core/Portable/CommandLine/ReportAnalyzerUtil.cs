@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
                     executionTime = kvp.Value.TotalSeconds;
                     percentage = (int)(executionTime * 100 / totalAnalyzerExecutionTime);
 
-                    var analyzerIds = string.Join(", ", kvp.Key.SupportedDiagnostics.Select(d => d.Id).Distinct().OrderBy(id => id));
+                    var analyzerIds = string.Join(", ", GetSupportedIds(kvp.Key).Distinct().OrderBy(id => id));
                     var analyzerNameColumn = $"   {kvp.Key} ({analyzerIds})";
                     consoleOutput.WriteLine(GetColumnEntry(executionTime, percentage, analyzerNameColumn, culture));
                 }
@@ -101,6 +101,13 @@ namespace Microsoft.CodeAnalysis
                 consoleOutput.WriteLine();
             }
         }
+
+        private static IEnumerable<string> GetSupportedIds(DiagnosticAnalyzer analyzer)
+            => analyzer switch
+            {
+                DiagnosticSuppressor suppressor => suppressor.SupportedSuppressions.Select(s => s.Id),
+                _ => analyzer.SupportedDiagnostics.Select(d => d.Id),
+            };
 
         private static void ReportGeneratorExecutionTime(TextWriter consoleOutput, GeneratorDriverTimingInfo driverTimingInfo, CultureInfo culture)
         {

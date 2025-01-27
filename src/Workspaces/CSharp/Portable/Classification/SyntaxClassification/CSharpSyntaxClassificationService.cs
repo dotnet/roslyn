@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
-[ExportLanguageService(typeof(ISyntaxClassificationService), LanguageNames.CSharp), Shared]
+[ExportLanguageService(typeof(ISyntaxClassificationService), LanguageNames.CSharp), Export, Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpSyntaxClassificationService() : AbstractSyntaxClassificationService

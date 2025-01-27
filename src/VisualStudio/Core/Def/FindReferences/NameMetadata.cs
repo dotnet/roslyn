@@ -5,13 +5,12 @@
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindUsages
-{
-    internal class NameMetadata
-    {
-        public string? Name { get; }
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
 
-        public NameMetadata(IDictionary<string, object> data)
-            => this.Name = (string?)data.GetValueOrDefault(nameof(Name));
-    }
+internal class NameMetadata
+{
+    public string? Name { get; }
+
+    public NameMetadata(IDictionary<string, object> data)
+        => this.Name = (string?)data.GetValueOrDefault(nameof(Name));
 }

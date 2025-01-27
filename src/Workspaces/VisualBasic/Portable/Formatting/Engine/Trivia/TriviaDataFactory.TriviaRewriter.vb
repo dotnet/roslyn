@@ -13,14 +13,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Inherits VisualBasicSyntaxRewriter
 
             Private ReadOnly _node As SyntaxNode
-            Private ReadOnly _spans As TextSpanIntervalTree
+            Private ReadOnly _spans As TextSpanMutableIntervalTree
             Private ReadOnly _lastToken As SyntaxToken
             Private ReadOnly _cancellationToken As CancellationToken
 
             Private ReadOnly _trailingTriviaMap As Dictionary(Of SyntaxToken, SyntaxTriviaList)
             Private ReadOnly _leadingTriviaMap As Dictionary(Of SyntaxToken, SyntaxTriviaList)
 
-            Public Sub New(node As SyntaxNode, spanToFormat As TextSpanIntervalTree, map As Dictionary(Of ValueTuple(Of SyntaxToken, SyntaxToken), TriviaData), cancellationToken As CancellationToken)
+            Public Sub New(node As SyntaxNode, spanToFormat As TextSpanMutableIntervalTree, map As Dictionary(Of ValueTuple(Of SyntaxToken, SyntaxToken), TriviaData), cancellationToken As CancellationToken)
                 Contract.ThrowIfNull(node)
                 Contract.ThrowIfNull(map)
 

@@ -12,9 +12,9 @@ using Microsoft.CodeAnalysis.SymbolMapping;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
-    [ExportWorkspaceServiceFactory(typeof(ISymbolMappingService), WorkspaceKind.MetadataAsSource)]
+    [ExportWorkspaceServiceFactory(typeof(ISymbolMappingService), [WorkspaceKind.MetadataAsSource])]
     [Shared]
-    internal class SymbolMappingServiceFactory : IWorkspaceServiceFactory
+    internal sealed class SymbolMappingServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

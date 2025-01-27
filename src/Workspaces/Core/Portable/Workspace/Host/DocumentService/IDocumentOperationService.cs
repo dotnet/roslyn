@@ -4,22 +4,21 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+/// <summary>
+/// TODO: Merge into <see cref="DocumentPropertiesService"/>.
+/// Used by Razor via IVT.
+/// </summary>
+internal interface IDocumentOperationService : IDocumentService
 {
     /// <summary>
-    /// TODO: Merge into <see cref="DocumentPropertiesService"/>.
-    /// Used by Razor via IVT.
+    /// document version of <see cref="Workspace.CanApplyChange(ApplyChangesKind)"/>
     /// </summary>
-    internal interface IDocumentOperationService : IDocumentService
-    {
-        /// <summary>
-        /// document version of <see cref="Workspace.CanApplyChange(ApplyChangesKind)"/>
-        /// </summary>
-        bool CanApplyChange { get; }
+    bool CanApplyChange { get; }
 
-        /// <summary>
-        /// indicates whether this document supports diagnostics or not
-        /// </summary>
-        bool SupportDiagnostics { get; }
-    }
+    /// <summary>
+    /// indicates whether this document supports diagnostics or not
+    /// </summary>
+    bool SupportDiagnostics { get; }
 }

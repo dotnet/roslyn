@@ -38,7 +38,7 @@ namespace N
             Assert.False(implicitClass.IsSubmissionClass);
             Assert.False(implicitClass.IsScriptClass);
 
-            var c2 = CreateCompilationWithMscorlib45("", new[] { c.ToMetadataReference() });
+            var c2 = CreateCompilationWithMscorlib461("", new[] { c.ToMetadataReference() });
 
             n = ((NamespaceSymbol)c2.GlobalNamespace.GetMembers("N").Single());
             implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
@@ -79,7 +79,7 @@ void Goo()
         [Fact, WorkItem(531535, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531535")]
         public void Events()
         {
-            var c = CreateCompilationWithMscorlib45(@"
+            var c = CreateCompilationWithMscorlib461(@"
 event System.Action e;
 ", parseOptions: TestOptions.Script);
 

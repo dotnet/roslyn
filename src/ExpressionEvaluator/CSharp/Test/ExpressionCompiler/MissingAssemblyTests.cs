@@ -21,6 +21,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
@@ -475,7 +476,7 @@ class C
         [Fact]
         public void ShouldTryAgain_RPC_E_DISCONNECTED()
         {
-            IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
+            static IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
             {
                 Marshal.ThrowExceptionForHR(unchecked((int)0x80010108));
                 throw ExceptionUtilities.Unreachable();
@@ -489,7 +490,7 @@ class C
         [Fact]
         public void ShouldTryAgain_Exception()
         {
-            IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
+            static IntPtr gmdbpf(AssemblyIdentity assemblyIdentity, out uint uSize)
             {
                 throw new Exception();
             }
@@ -662,6 +663,7 @@ class C
                         uSize = (uint)missingModule.MetadataLength;
                         return missingModule.MetadataAddress;
                     },
+                    out _,
                     out errorMessage);
 
                 Assert.Equal(2, numRetries); // Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
@@ -689,7 +691,7 @@ class C
 
                 var shouldSucceed = false;
                 string errorMessage;
-                var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                     runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
                     context,
                     (_, diagnostics) =>
@@ -710,6 +712,7 @@ class C
                         uSize = (uint)missingModule.MetadataLength;
                         return missingModule.MetadataAddress;
                     },
+                    out var compileResult,
                     out errorMessage);
 
                 Assert.Same(TestCompileResult.Instance, compileResult);
@@ -739,7 +742,7 @@ class UseLinq
                 var context = CreateMethodContext(runtime, "C.M");
 
                 var systemCore = SystemCoreRef.ToModuleInstance();
-                var fakeSystemLinq = CreateCompilationWithMscorlib45("", assemblyName: "System.Linq").
+                var fakeSystemLinq = CreateCompilationWithMscorlib461("", assemblyName: "System.Linq").
                     EmitToImageReference().ToModuleInstance();
 
                 string errorMessage;
@@ -894,18 +897,18 @@ LanguageVersion.CSharp7_1);
         private static void TupleContextNoSystemRuntime(string source, string methodName, string expression, string expectedIL,
             LanguageVersion languageVersion = LanguageVersion.CSharp7)
         {
-            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
-                references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                references: [Net461.References.mscorlib, Net461.References.SystemRuntime, ValueTupleLegacyRef], options: TestOptions.DebugDll);
             using (var systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance())
             {
-                WithRuntimeInstance(comp, new[] { MscorlibRef, ValueTupleRef }, runtime =>
+                WithRuntimeInstance(comp, [Net461.References.mscorlib, ValueTupleLegacyRef], runtime =>
                 {
                     ImmutableArray<MetadataBlock> blocks;
-                    Guid moduleVersionId;
+                    ModuleId moduleId;
                     ISymUnmanagedReader symReader;
                     int methodToken;
                     int localSignatureToken;
-                    GetContextState(runtime, methodName, out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+                    GetContextState(runtime, methodName, out blocks, out moduleId, out symReader, out methodToken, out localSignatureToken);
                     string errorMessage;
                     CompilationTestData testData;
                     int retryCount = 0;
@@ -914,9 +917,9 @@ LanguageVersion.CSharp7_1);
                         expression,
                         ImmutableArray<Alias>.Empty,
                         (b, u) => EvaluationContext.CreateMethodContext(
-                            b.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies),
+                            b.ToCompilation(moduleId: default, MakeAssemblyReferencesKind.AllAssemblies),
                             symReader,
-                            moduleVersionId,
+                            moduleId,
                             methodToken,
                             methodVersion: 1,
                             ilOffset: 0,

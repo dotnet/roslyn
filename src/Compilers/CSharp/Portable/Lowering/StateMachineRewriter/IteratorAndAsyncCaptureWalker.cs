@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     /// <remarks>
     /// Data flow analysis is used to calculate the locals. At yield/await we mark all variables as "unassigned".
-    /// When a read from an unassigned variables is reported we add the variable to the captured set.
+    /// When a read from an unassigned variable is reported we add the variable to the captured set.
     /// "this" parameter is captured if a reference to "this", "base" or an instance field is encountered.
     /// Variables used in finally also need to be captured if there is a yield in the corresponding try block.
     /// </remarks>
@@ -76,19 +76,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var kvp in lazyDisallowedCaptures)
                 {
                     var variable = kvp.Key;
-                    var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
 
-                    if (variable is SynthesizedLocal local && local.SynthesizedKind == SynthesizedLocalKind.Spill)
+                    if (variable is LocalSymbol local)
                     {
-                        Debug.Assert(local.TypeWithAnnotations.IsRestrictedType());
-                        diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.GetFirstLocation(), local.TypeWithAnnotations);
+                        foreach (var syntax in kvp.Value)
+                        {
+                            if (local.TypeWithAnnotations.IsRestrictedType())
+                            {
+                                // CS4007: Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.
+                                diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, syntax.Location, local.TypeWithAnnotations);
+                            }
+                            else
+                            {
+                                Debug.Assert(local.RefKind != RefKind.None);
+                                // CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                                diagnostics.Add(ErrorCode.ERR_RefLocalAcrossAwait, syntax.Location);
+                            }
+                        }
                     }
                     else
                     {
-                        foreach (CSharpSyntaxNode syntax in kvp.Value)
+                        var parameter = (ParameterSymbol)variable;
+                        Debug.Assert(parameter.TypeWithAnnotations.IsRestrictedType());
+
+                        foreach (var syntax in kvp.Value)
                         {
-                            // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
-                            diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, type);
+                            // CS4007: Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.
+                            diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, syntax.Location, parameter.TypeWithAnnotations);
                         }
                     }
                 }
@@ -195,14 +209,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CaptureVariable(Symbol variable, SyntaxNode syntax)
         {
             var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
-            if (type.IsRestrictedType())
+            if (type.IsRestrictedType() ||
+                (variable is LocalSymbol { RefKind: not RefKind.None } refLocal && !canRefLocalBeHoisted(refLocal)))
             {
                 (_lazyDisallowedCaptures ??= new MultiDictionary<Symbol, SyntaxNode>()).Add(variable, syntax);
             }
             else
             {
                 if (_variablesToHoist.Add(variable) && variable is LocalSymbol local && _boundRefLocalInitializers.TryGetValue(local, out var variableInitializer))
-                    CaptureRefInitializer(variableInitializer, syntax);
+                    CaptureRefInitializer(variableInitializer, local.SynthesizedKind != SynthesizedLocalKind.UserDefined ? variableInitializer.Syntax : syntax);
+            }
+
+            static bool canRefLocalBeHoisted(LocalSymbol refLocal)
+            {
+                return refLocal.SynthesizedKind == SynthesizedLocalKind.Spill ||
+                    (refLocal.SynthesizedKind == SynthesizedLocalKind.ForEachArray &&
+                        refLocal.Type.HasInlineArrayAttribute(out _) &&
+                        refLocal.Type.TryGetInlineArrayElementField() is not null);
             }
         }
 

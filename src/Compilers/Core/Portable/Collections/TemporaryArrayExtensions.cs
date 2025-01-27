@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
@@ -59,6 +60,79 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
 
             return true;
+        }
+
+        private static void ThrowSequenceContainsMoreThanOneElement()
+            => new[] { 0, 0 }.Single();
+
+        public static T? SingleOrDefault<T>(this in TemporaryArray<T> array, Func<T, bool> predicate)
+        {
+            var first = true;
+            T? result = default;
+            foreach (var item in array)
+            {
+                if (predicate(item))
+                {
+                    if (!first)
+                    {
+                        ThrowSequenceContainsMoreThanOneElement();
+                    }
+
+                    first = false;
+                    result = item;
+                }
+            }
+
+            return result;
+        }
+
+        public static T? SingleOrDefault<T, TArg>(this in TemporaryArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            var first = true;
+            T? result = default;
+            foreach (var item in array)
+            {
+                if (predicate(item, arg))
+                {
+                    if (!first)
+                    {
+                        ThrowSequenceContainsMoreThanOneElement();
+                    }
+
+                    first = false;
+                    result = item;
+                }
+            }
+
+            return result;
+        }
+
+        public static T? FirstOrDefault<T>(this in TemporaryArray<T> array)
+            => array.Count > 0 ? array[0] : default;
+
+        public static T? FirstOrDefault<T, TArg>(this in TemporaryArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            foreach (var item in array)
+            {
+                if (predicate(item, arg))
+                    return item;
+            }
+
+            return default;
+        }
+
+        public static int IndexOf<T, TArg>(this in TemporaryArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            var index = 0;
+            foreach (var item in array)
+            {
+                if (predicate(item, arg))
+                    return index;
+
+                index++;
+            }
+
+            return -1;
         }
 
         public static void AddIfNotNull<T>(this ref TemporaryArray<T> array, T? value)

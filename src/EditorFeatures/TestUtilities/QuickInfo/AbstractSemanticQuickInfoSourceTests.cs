@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             FormattedClassification[] expectedClassifications = null)
         {
             var textBlock = sections.FirstOrDefault(tb => tb.Kind == textBlockKind);
-            var text = textBlock != null ? textBlock.TaggedParts : ImmutableArray<TaggedText>.Empty;
+            var text = textBlock != null ? textBlock.TaggedParts : [];
             AssertTaggedText(expectedText, text, expectedClassifications);
         }
 

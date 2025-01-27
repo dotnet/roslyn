@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Drawing.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;

@@ -20,10 +20,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 {
     internal partial class SignatureHelpPresenter
     {
-        private class SignatureHelpPresenterSession : ForegroundThreadAffinitizedObject, ISignatureHelpPresenterSession
+        private sealed class SignatureHelpPresenterSession(
+            IThreadingContext threadingContext,
+            ISignatureHelpBroker sigHelpBroker,
+            ITextView textView) : ISignatureHelpPresenterSession
         {
-            private readonly ISignatureHelpBroker _sigHelpBroker;
-            private readonly ITextView _textView;
+            private readonly IThreadingContext _threadingContext = threadingContext;
+            private readonly ISignatureHelpBroker _sigHelpBroker = sigHelpBroker;
+            private readonly ITextView _textView = textView;
 
             public event EventHandler<EventArgs> Dismissed;
             public event EventHandler<SignatureHelpItemEventArgs> ItemSelected;
@@ -37,16 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             private bool _ignoreSelectionStatusChangedEvent;
 
             public bool EditorSessionIsActive => _editorSessionOpt?.IsDismissed == false;
-
-            public SignatureHelpPresenterSession(
-                IThreadingContext threadingContext,
-                ISignatureHelpBroker sigHelpBroker,
-                ITextView textView)
-                : base(threadingContext)
-            {
-                _sigHelpBroker = sigHelpBroker;
-                _textView = textView;
-            }
 
             public void PresentItems(
                 ITrackingSpan triggerSpan,
@@ -150,13 +144,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             private void OnEditorSessionDismissed()
             {
-                AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
                 this.Dismissed?.Invoke(this, new EventArgs());
             }
 
             private void OnSelectedSignatureChanged(object sender, SelectedSignatureChangedEventArgs eventArgs)
             {
-                AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
 
                 if (_ignoreSelectionStatusChangedEvent)
                 {
@@ -174,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             public void Dismiss()
             {
-                AssertIsForeground();
+                _threadingContext.ThrowIfNotOnUIThread();
 
                 if (_editorSessionOpt == null)
                 {

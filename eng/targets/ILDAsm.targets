@@ -11,6 +11,12 @@
       <Visible>false</Visible>
       <Pack>false</Pack>
     </Content>
+    <Content Include="$(Pkgruntime_linux-arm64_Microsoft_NETCore_ILDAsm)\runtimes\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <LinkBase>runtimes</LinkBase>
+      <Visible>false</Visible>
+      <Pack>false</Pack>
+    </Content>
     <Content Include="$(Pkgruntime_linux-x64_Microsoft_NETCore_ILDAsm)\runtimes\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <LinkBase>runtimes</LinkBase>
@@ -25,6 +31,7 @@
     </Content>
 
     <PackageReference Include="runtime.win-x64.Microsoft.NETCore.ILDAsm" GeneratePathProperty="true" ExcludeAssets="all" />
+    <PackageReference Include="runtime.linux-arm64.Microsoft.NETCore.ILDAsm" GeneratePathProperty="true" ExcludeAssets="all" />
     <PackageReference Include="runtime.linux-x64.Microsoft.NETCore.ILDAsm" GeneratePathProperty="true" ExcludeAssets="all" />
     <PackageReference Include="runtime.osx-x64.Microsoft.NETCore.ILDAsm" GeneratePathProperty="true" ExcludeAssets="all" />
   </ItemGroup>

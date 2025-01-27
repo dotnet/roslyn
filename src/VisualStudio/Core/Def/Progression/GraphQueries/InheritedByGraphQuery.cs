@@ -12,47 +12,46 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.Schemas;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
+
+internal sealed class InheritedByGraphQuery : IGraphQuery
 {
-    internal sealed class InheritedByGraphQuery : IGraphQuery
+    public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
     {
-        public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
+
+        foreach (var node in context.InputNodes)
         {
-            var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
+            var symbol = graphBuilder.GetSymbol(node, cancellationToken);
+            if (symbol is not INamedTypeSymbol namedType)
+                continue;
 
-            foreach (var node in context.InputNodes)
+            if (namedType.TypeKind == TypeKind.Class)
             {
-                var symbol = graphBuilder.GetSymbol(node, cancellationToken);
-                if (symbol is not INamedTypeSymbol namedType)
-                    continue;
-
-                if (namedType.TypeKind == TypeKind.Class)
+                var derivedTypes = await SymbolFinder.FindDerivedClassesArrayAsync(
+                    namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                foreach (var derivedType in derivedTypes)
                 {
-                    var derivedTypes = await SymbolFinder.FindDerivedClassesArrayAsync(
-                        namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    foreach (var derivedType in derivedTypes)
-                    {
-                        var symbolNode = await graphBuilder.AddNodeAsync(
-                            derivedType, relatedNode: node, cancellationToken).ConfigureAwait(false);
-                        graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node, cancellationToken);
-                    }
-                }
-                else if (namedType.TypeKind == TypeKind.Interface)
-                {
-                    var implementingClassesAndStructs = await SymbolFinder.FindImplementationsArrayAsync(
-                        namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    var derivedInterfaces = await SymbolFinder.FindDerivedInterfacesArrayAsync(
-                        namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    foreach (var derivedType in implementingClassesAndStructs.Concat(derivedInterfaces))
-                    {
-                        var symbolNode = await graphBuilder.AddNodeAsync(
-                            derivedType, relatedNode: node, cancellationToken).ConfigureAwait(false);
-                        graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node, cancellationToken);
-                    }
+                    var symbolNode = await graphBuilder.AddNodeAsync(
+                        derivedType, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                    graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node, cancellationToken);
                 }
             }
-
-            return graphBuilder;
+            else if (namedType.TypeKind == TypeKind.Interface)
+            {
+                var implementingClassesAndStructs = await SymbolFinder.FindImplementationsArrayAsync(
+                    namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var derivedInterfaces = await SymbolFinder.FindDerivedInterfacesArrayAsync(
+                    namedType, solution, transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                foreach (var derivedType in implementingClassesAndStructs.Concat(derivedInterfaces))
+                {
+                    var symbolNode = await graphBuilder.AddNodeAsync(
+                        derivedType, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                    graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node, cancellationToken);
+                }
+            }
         }
+
+        return graphBuilder;
     }
 }

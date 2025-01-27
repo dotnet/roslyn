@@ -37,12 +37,12 @@ Task.Run(() => { return 1; });";
         [WpfFact]
         public void TestExecuteInInteractiveWithoutSelection()
         {
-            AssertExecuteInInteractive(Caret, new string[0]);
+            AssertExecuteInInteractive(Caret, []);
 
             AssertExecuteInInteractive(
 @"var x = 1;
 $$
-var y = 2;", new string[0]);
+var y = 2;", []);
 
             AssertExecuteInInteractive(ExampleCode1 + Caret, ExampleCode1);
             AssertExecuteInInteractive(ExampleCode1.Insert(3, Caret), ExampleCode1);
@@ -55,7 +55,7 @@ var y = 2;", new string[0]);
         {
             AssertExecuteInInteractive(
 @"{|Selection:|}var x = 1;
-{|Selection:$$|}var y = 2;", new string[0]);
+{|Selection:$$|}var y = 2;", []);
 
             AssertExecuteInInteractive($@"{{|Selection:{ExampleCode1}$$|}}", ExampleCode1);
 
@@ -170,7 +170,7 @@ $@"#define DEF
 
         private static void AssertExecuteInInteractive(string code, string expectedSubmission, string submissionBuffer = null)
         {
-            AssertExecuteInInteractive(code, new string[] { expectedSubmission }, submissionBuffer);
+            AssertExecuteInInteractive(code, [expectedSubmission], submissionBuffer);
         }
 
         private static void AssertExecuteInInteractive(string code, string[] expectedSubmissions, string submissionBuffer = null)

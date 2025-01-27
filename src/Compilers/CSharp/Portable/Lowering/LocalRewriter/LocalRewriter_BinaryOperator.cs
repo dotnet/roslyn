@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -998,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Optimization: If one side is non-default constant, checking HasValue is not needed.
             if (kind.Operator() is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual)
             {
-                if (xNonNull?.ConstantValueOpt is { IsDefaultValue: false })
+                if (canNotBeEqualToDefaultValue(xNonNull?.ConstantValueOpt))
                 {
                     Debug.Assert(yNonNull is null, "Handled by trivial optimization above; otherwise we should use yNonNull here.");
                     return MakeBinaryOperator(
@@ -1011,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         constrainedToTypeOpt: null);
                 }
 
-                if (yNonNull?.ConstantValueOpt is { IsDefaultValue: false })
+                if (canNotBeEqualToDefaultValue(yNonNull?.ConstantValueOpt))
                 {
                     Debug.Assert(xNonNull is null, "Handled by trivial optimization above; otherwise we should use xNonNull here.");
                     return MakeBinaryOperator(
@@ -1098,6 +1099,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignmentX, tempAssignmentY),
                 value: binaryExpression,
                 type: boolType);
+
+            static bool canNotBeEqualToDefaultValue(
+                [NotNullWhen(returnValue: true)] ConstantValue? constantValue)
+            {
+                // This is an explicit list so new constant values are not accidentally supported without consideration.
+                // Decimal is not in the list because it is possible to have a non-default decimal constant
+                // which is equal to the default decimal (0.0m == default(decimal)).
+                return constantValue is
+                {
+                    IsDefaultValue: false,
+                    Discriminator: ConstantValueTypeDiscriminator.Boolean
+                        or ConstantValueTypeDiscriminator.Double
+                        or ConstantValueTypeDiscriminator.Int32
+                        or ConstantValueTypeDiscriminator.Int64
+                        or ConstantValueTypeDiscriminator.NInt
+                        or ConstantValueTypeDiscriminator.NUInt
+                        or ConstantValueTypeDiscriminator.Single
+                        or ConstantValueTypeDiscriminator.UInt32
+                        or ConstantValueTypeDiscriminator.UInt64
+                };
+            }
         }
 
         private BoundExpression LowerLiftedUserDefinedComparisonOperator(

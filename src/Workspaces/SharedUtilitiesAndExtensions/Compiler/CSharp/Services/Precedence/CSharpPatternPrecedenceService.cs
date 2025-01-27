@@ -7,17 +7,16 @@
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Precedence
+namespace Microsoft.CodeAnalysis.CSharp.Precedence;
+
+internal class CSharpPatternPrecedenceService : AbstractCSharpPrecedenceService<PatternSyntax>
 {
-    internal class CSharpPatternPrecedenceService : AbstractCSharpPrecedenceService<PatternSyntax>
+    public static readonly CSharpPatternPrecedenceService Instance = new();
+
+    private CSharpPatternPrecedenceService()
     {
-        public static readonly CSharpPatternPrecedenceService Instance = new();
-
-        private CSharpPatternPrecedenceService()
-        {
-        }
-
-        public override OperatorPrecedence GetOperatorPrecedence(PatternSyntax pattern)
-            => pattern.GetOperatorPrecedence();
     }
+
+    public override OperatorPrecedence GetOperatorPrecedence(PatternSyntax pattern)
+        => pattern.GetOperatorPrecedence();
 }

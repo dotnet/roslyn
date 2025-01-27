@@ -45,9 +45,9 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
         if (nodeToReplace is null)
             return;
 
-        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
+        var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, nodeToReplace, expressionType, isSingletonInstance: true, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
+                semanticModel, nodeToReplace, expressionType, isSingletonInstance: true, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
         {
             return;
         }
@@ -56,7 +56,8 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyDiagnosticAna
             Descriptor,
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,
-            additionalLocations: ImmutableArray.Create(nodeToReplace.GetLocation()),
+            context.Options,
+            additionalLocations: [nodeToReplace.GetLocation()],
             properties: changesSemantics ? ChangesSemantics : null));
     }
 }

@@ -624,8 +624,7 @@ End Module
         End Sub
 
         <WorkItem(16493, "DevDiv_Projects/Roslyn")>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539544")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539544")>
         Public Sub TestBetterStartIndentation()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -1012,8 +1011,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/3119")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3119")>
         Public Sub TestMissingThenInIf()
             Using testData = CommitTestData.Create(
                 <Workspace>
@@ -1047,8 +1045,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/3119")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/3119")>
         Public Sub TestMissingThenInElseIf()
             Using testData = CommitTestData.Create(
                 <Workspace>

@@ -24,11 +24,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private _lazyText As SourceText
 
-            Public Sub New(lazyText As SourceText, root As VisualBasicSyntaxNode, options As VisualBasicParseOptions, filePath As String, encoding As Encoding, checksumAlgorithm As SourceHashAlgorithm)
+            Public Sub New(
+                    lazyText As SourceText,
+                    root As VisualBasicSyntaxNode,
+                    options As VisualBasicParseOptions,
+                    filePath As String,
+                    encoding As Encoding,
+                    checksumAlgorithm As SourceHashAlgorithm)
                 _lazyText = lazyText
                 _root = CloneNodeAsRoot(root)
                 _checksumAlgorithm = checksumAlgorithm
-
                 Me.Encoding = encoding
                 Me.Options = options
                 Me.FilePath = filePath
@@ -71,7 +76,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function WithRootAndOptions(root As SyntaxNode, options As ParseOptions) As SyntaxTree
                 Return If(ReferenceEquals(root, _root) AndAlso options = Me.Options,
                     Me,
-                    New ParsedSyntaxTree(If(ReferenceEquals(root, _root), _lazyText, Nothing), DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), FilePath, Encoding, _checksumAlgorithm))
+                    New ParsedSyntaxTree(
+                        If(ReferenceEquals(root, _root), _lazyText, Nothing),
+                        DirectCast(root, VisualBasicSyntaxNode),
+                        DirectCast(options, VisualBasicParseOptions),
+                        FilePath,
+                        Encoding,
+                        _checksumAlgorithm))
             End Function
 
             Public Overrides Function WithFilePath(path As String) As SyntaxTree

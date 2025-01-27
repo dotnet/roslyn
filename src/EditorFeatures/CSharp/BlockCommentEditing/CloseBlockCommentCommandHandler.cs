@@ -12,54 +12,53 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
+namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
+
+[Export(typeof(ICommandHandler))]
+[ContentType(ContentTypeNames.CSharpContentType)]
+[Name(nameof(CloseBlockCommentCommandHandler))]
+[Order(After = nameof(BlockCommentEditingCommandHandler))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CloseBlockCommentCommandHandler(EditorOptionsService editorOptionsService) : ICommandHandler<TypeCharCommandArgs>
 {
-    [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [Name(nameof(CloseBlockCommentCommandHandler))]
-    [Order(After = nameof(BlockCommentEditingCommandHandler))]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class CloseBlockCommentCommandHandler(EditorOptionsService editorOptionsService) : ICommandHandler<TypeCharCommandArgs>
+    private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+
+    public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
+
+    public bool ExecuteCommand(TypeCharCommandArgs args, CommandExecutionContext executionContext)
     {
-        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
-
-        public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
-
-        public bool ExecuteCommand(TypeCharCommandArgs args, CommandExecutionContext executionContext)
+        if (args.TypedChar == '/')
         {
-            if (args.TypedChar == '/')
+            var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
+            if (caret != null)
             {
-                var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
-                if (caret != null)
-                {
-                    var (snapshot, position) = caret.Value;
+                var (snapshot, position) = caret.Value;
 
-                    // Check that the line is all whitespace ending with an asterisk and a single space (| marks caret position):
-                    // * |
-                    if (position >= 2 &&
-                        snapshot[position - 1] == ' ' &&
-                        snapshot[position - 2] == '*')
+                // Check that the line is all whitespace ending with an asterisk and a single space (| marks caret position):
+                // * |
+                if (position >= 2 &&
+                    snapshot[position - 1] == ' ' &&
+                    snapshot[position - 2] == '*')
+                {
+                    var line = snapshot.GetLineFromPosition(position);
+                    if (line.End == position &&
+                        line.IsEmptyOrWhitespace(0, line.Length - 2))
                     {
-                        var line = snapshot.GetLineFromPosition(position);
-                        if (line.End == position &&
-                            line.IsEmptyOrWhitespace(0, line.Length - 2))
+                        if (_editorOptionsService.GlobalOptions.GetOption(BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, LanguageNames.CSharp) &&
+                            BlockCommentEditingCommandHandler.IsCaretInsideBlockCommentSyntax(caret.Value, args.SubjectBuffer, _editorOptionsService, out _, out _, executionContext.OperationContext.UserCancellationToken))
                         {
-                            if (_editorOptionsService.GlobalOptions.GetOption(BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, LanguageNames.CSharp) &&
-                                BlockCommentEditingCommandHandler.IsCaretInsideBlockCommentSyntax(caret.Value, args.SubjectBuffer, _editorOptionsService, out _, out _, executionContext.OperationContext.UserCancellationToken))
-                            {
-                                args.SubjectBuffer.Replace(new VisualStudio.Text.Span(position - 1, 1), "/");
-                                return true;
-                            }
+                            args.SubjectBuffer.Replace(new VisualStudio.Text.Span(position - 1, 1), "/");
+                            return true;
                         }
                     }
                 }
             }
-
-            return false;
         }
 
-        public CommandState GetCommandState(TypeCharCommandArgs args)
-            => CommandState.Unspecified;
+        return false;
     }
+
+    public CommandState GetCommandState(TypeCharCommandArgs args)
+        => CommandState.Unspecified;
 }

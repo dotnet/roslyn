@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.EditorConfig;
 using Microsoft.CodeAnalysis.EditorConfig.Parsing;
 using Microsoft.CodeAnalysis.Text;
@@ -19,11 +18,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
             foreach (var (headerText, span, isGlobal) in sections)
             {
                 var section = new Section(editorconfigFilePath, isGlobal, span, headerText, $"[{headerText}]");
-                var parseResult = new EditorConfigOption(section, null);
+                var parseResult = new EditorConfigOption<object?>(section, Span: null, Value: null);
                 list.Add(parseResult);
             }
 
-            return new EditorConfigFile<EditorConfigOption>(editorconfigFilePath, list.ToImmutableArray());
+            return new EditorConfigFile<EditorConfigOption>(editorconfigFilePath, [.. list]);
         }
 
         [Fact]

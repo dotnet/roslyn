@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -44,7 +45,7 @@ static class Program
         await goo;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (8,15): error CS0103: The name 'goo' does not exist in the current context
                 //         await goo;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo"));
@@ -67,7 +68,7 @@ static class Program
 class A
 {
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (8,9): error CS1061: 'A' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "await new A()").WithArguments("A", "GetAwaiter")
@@ -121,7 +122,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return true; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS0122: 'A.GetAwaiter()' is inaccessible due to its protection level
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAccess, "await new A()").WithArguments("A.GetAwaiter()"),
@@ -169,7 +170,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return true; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (11,9): error CS1986: 'await' requires that the type B have a suitable GetAwaiter method
                 //         await new B();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new B()").WithArguments("B")
@@ -216,7 +217,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return true; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS1955: Non-invocable member 'A.GetAwaiter' cannot be used like a method.
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "await new A()").WithArguments("A.GetAwaiter"),
@@ -253,7 +254,7 @@ public static class Test
         await new A();
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (22,9): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A"));
@@ -279,7 +280,7 @@ class A
 {
     public void GetAwaiter() { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A"));
@@ -335,7 +336,7 @@ static class MyExtensions
         return new Awaiter();
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,15): error CS1929: 'A' does not contain a definition for 'GetAwaiter' and the best extension method overload 'MyExtensions.GetAwaiter(C)' requires a receiver of type 'C'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new A()").WithArguments("A", "GetAwaiter", "MyExtensions.GetAwaiter(C)", "C"),
@@ -391,7 +392,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return true; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.GetAwaiter(A)' and 'E.GetAwaiter(A)'
                 //         new A().GetAwaiter();
                 Diagnostic(ErrorCode.ERR_AmbigCall, "GetAwaiter").WithArguments("Test.GetAwaiter(A)", "E.GetAwaiter(A)"),
@@ -452,7 +453,7 @@ public static class Test
 
     public static Awaiter GetAwaiter(this I2 a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (31,9): error CS0121: The call is ambiguous between the following methods or properties: 'E.GetAwaiter(I1)' and 'E.GetAwaiter(I2)'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("E.GetAwaiter(I1)", "E.GetAwaiter(I2)")
@@ -497,7 +498,7 @@ public static class Test
 
     public static Awaiter GetAwaiter(this A a, object o = null) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (19,9): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A"));
@@ -541,7 +542,7 @@ public static class Test
 
     public static Awaiter GetAwaiter(this I1 a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (19,9): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A"));
@@ -578,7 +579,7 @@ public static class E
 {
     public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -612,7 +613,7 @@ public static class E
 {
     public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (19,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.GetAwaiter(A)' and 'E.GetAwaiter(A)'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("Test.GetAwaiter(A)", "E.GetAwaiter(A)"));
@@ -651,7 +652,7 @@ public static class E
 {
     public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -686,7 +687,7 @@ public static class E
 {
     public static void GetAwaiter(this object a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (24,9): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A"));
@@ -732,7 +733,7 @@ public static class E2
 {
     public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (20,9): error CS0121: The call is ambiguous between the following methods or properties: 'E1.GetAwaiter(A)' and 'E2.GetAwaiter(A)'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("E1.GetAwaiter(A)", "E2.GetAwaiter(A)")
@@ -779,7 +780,7 @@ public static class E2
 {
     public static void GetAwaiter(this A a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (20,9): error CS0121: The call is ambiguous between the following methods or properties: 'E1.GetAwaiter(A)' and 'E2.GetAwaiter(A)'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("E1.GetAwaiter(A)", "E2.GetAwaiter(A)")
@@ -817,7 +818,7 @@ public static class E
 {
     public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -856,7 +857,7 @@ public static class EE
 {
     public static void GetAwaiter(this object a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (24,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.GetAwaiter(object)' and 'EE.GetAwaiter(object)'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("Test.GetAwaiter(object)", "EE.GetAwaiter(object)")
@@ -899,7 +900,7 @@ public static class EE
 {
     public static Awaiter GetAwaiter(this object a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (24,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.GetAwaiter(object)' and 'EE.GetAwaiter(object)'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("Test.GetAwaiter(object)", "EE.GetAwaiter(object)")
@@ -943,7 +944,7 @@ namespace parent
         public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (24,17): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
                 //                 await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A"));
@@ -988,7 +989,7 @@ namespace parent
         public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1033,7 +1034,7 @@ namespace parent
         public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (11,9): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A"));
@@ -1081,7 +1082,7 @@ namespace parent
         public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (11,9): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A"));
@@ -1131,7 +1132,7 @@ public static class E2
 {
     public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (23,13): error CS0121: The call is ambiguous between the following methods or properties: 'E1.GetAwaiter(A)' and 'E2.GetAwaiter(A)'
                 //             await new A();
                 Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("E1.GetAwaiter(A)", "E2.GetAwaiter(A)")
@@ -1182,7 +1183,7 @@ public static class E2
 {
     public static void GetAwaiter(this A a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (23,13): error CS0121: The call is ambiguous between the following methods or properties: 'E1.GetAwaiter(A)' and 'E2.GetAwaiter(A)'
                 //             await new A();
                 Diagnostic(ErrorCode.ERR_AmbigCall, "await new A()").WithArguments("E1.GetAwaiter(A)", "E2.GetAwaiter(A)")
@@ -1240,7 +1241,7 @@ public static class E2
 
     public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1298,7 +1299,7 @@ public static class E2
 
     public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1356,7 +1357,7 @@ public static class E2
 
     public static Awaiter GetAwaiter(this A a) { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (11,9): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A"));
@@ -1399,7 +1400,7 @@ static class MyExtensions
         return new Awaiter();
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1439,7 +1440,7 @@ static class MyExtensions
         return new Awaiter();
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A"));
@@ -1510,7 +1511,7 @@ static class MyExtensions
         return new Awaiter();
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS1986: 'await' requires that the type A have a suitable GetAwaiter method
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await new A()").WithArguments("A").WithLocation(10, 9),
@@ -1568,7 +1569,7 @@ static class MyExtensions
         return null;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS0411: The type arguments for method 'A.GetAwaiter<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "await new A()").WithArguments("A.GetAwaiter<T>()"),
@@ -1659,7 +1660,7 @@ class Awaiter4
 
     public bool IsCompleted { get { return true; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (13,9): error CS4027: 'Awaiter4' does not implement 'System.Runtime.CompilerServices.INotifyCompletion'
                 //         await new D();
                 Diagnostic(ErrorCode.ERR_DoesntImplementAwaitInterface, "await new D()").WithArguments("Awaiter4", "System.Runtime.CompilerServices.INotifyCompletion"));
@@ -1718,7 +1719,7 @@ class C
         await new Awaitable<T10>();
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (37,9): error CS4027: 'T1' does not implement 'System.Runtime.CompilerServices.INotifyCompletion'
                 //         await new Awaitable<T1>();
                 Diagnostic(ErrorCode.ERR_DoesntImplementAwaitInterface, "await new Awaitable<T1>()").WithArguments("T1", "System.Runtime.CompilerServices.INotifyCompletion").WithLocation(37, 9),
@@ -1786,7 +1787,7 @@ class D3 : C<S>
         await new Awaitable<T3>();
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (31,9): error CS4027: 'U' does not implement 'System.Runtime.CompilerServices.INotifyCompletion'
                 //         await new Awaitable<U>();
                 Diagnostic(ErrorCode.ERR_DoesntImplementAwaitInterface, "await new Awaitable<U>()").WithArguments("U", "System.Runtime.CompilerServices.INotifyCompletion").WithLocation(31, 9),
@@ -1838,7 +1839,7 @@ class C
         await new Awaitable<B<A>>();
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (34,9): error CS4027: 'B' does not implement 'System.Runtime.CompilerServices.INotifyCompletion'
                 //         await new Awaitable<B>();
                 Diagnostic(ErrorCode.ERR_DoesntImplementAwaitInterface, "await new Awaitable<B>()").WithArguments("B", "System.Runtime.CompilerServices.INotifyCompletion").WithLocation(34, 9),
@@ -1892,7 +1893,7 @@ class C
         await new Awaitable<T6>();
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
             var verifier = CompileAndVerify(compilation);
             var actualIL = verifier.VisualizeIL("C.<F>d__0<T1, T2, T3, T4, T5, T6>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
             var calls = actualIL.Split(new[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries).Where(s => s.Contains("OnCompleted")).ToArray();
@@ -1949,7 +1950,7 @@ static class MyExtensions
         return null;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (28,17): error CS0629: Conditional member 'Awaiter.OnCompleted(System.Action)' cannot implement interface member 'System.Runtime.CompilerServices.INotifyCompletion.OnCompleted(System.Action)' in type 'Awaiter'
                 //     public void OnCompleted(Action x) { }
                 Diagnostic(ErrorCode.ERR_InterfaceImplementedByConditional, "OnCompleted").WithArguments("Awaiter.OnCompleted(System.Action)", "System.Runtime.CompilerServices.INotifyCompletion.OnCompleted(System.Action)", "Awaiter"));
@@ -1982,7 +1983,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool GetResult() { throw new Exception(); }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS0117: 'Awaiter' does not contain a definition for 'IsCompleted'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "await new A()").WithArguments("Awaiter", "IsCompleted"));
@@ -2017,7 +2018,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     bool IsCompleted { get { return false; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS0117: 'Awaiter' does not contain a definition for 'IsCompleted'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "await new A()").WithArguments("Awaiter", "IsCompleted"));
@@ -2052,7 +2053,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public static bool IsCompleted { get { return false; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS0176: Member 'Awaiter.IsCompleted' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "await new A()").WithArguments("Awaiter.IsCompleted")
@@ -2088,7 +2089,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public static bool IsCompleted { set { } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS0176: Member 'Awaiter.IsCompleted' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "await new A()").WithArguments("Awaiter.IsCompleted")
@@ -2124,7 +2125,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public static bool IsCompleted { }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (25,24): error CS0548: 'Awaiter.IsCompleted': property or indexer must have at least one accessor
                 //     public static bool IsCompleted { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "IsCompleted").WithArguments("Awaiter.IsCompleted"),
@@ -2163,7 +2164,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public int IsCompleted { get { return -1; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS4011: 'await' requires that the return type 'Awaiter' of 'A.GetAwaiter()' have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaiterPattern, "await new A()").WithArguments("Awaiter", "A"));
@@ -2198,7 +2199,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { set { } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS0117: 'A' does not contain a definition for 'IsCompleted'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "await new A()").WithArguments("Awaiter.IsCompleted"));
@@ -2233,7 +2234,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public int IsCompleted { set { } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS0117: 'A' does not contain a definition for 'IsCompleted'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "await new A()").WithArguments("Awaiter.IsCompleted"));
@@ -2266,7 +2267,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return false; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS0117: 'Awaiter' does not contain a definition for 'GetResult'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "await new A()").WithArguments("Awaiter", "GetResult"));
@@ -2301,7 +2302,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return false; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS0122: 'Awaiter.GetResult()' is inaccessible due to its protection level
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAccess, "await new A()").WithArguments("Awaiter.GetResult()")
@@ -2337,7 +2338,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return false; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS0176: Member 'Awaiter.GetResult()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "await new A()").WithArguments("Awaiter.GetResult()"));
@@ -2378,7 +2379,7 @@ static class MyExtensions
         throw new Exception();
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS0117: 'Awaiter' does not contain a definition for 'GetResult'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "await new A()").WithArguments("Awaiter", "GetResult"));
@@ -2413,7 +2414,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return false; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS4011: 'await' requires that the return type 'Awaiter' of 'A.GetAwaiter()' have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaiterPattern, "await new A()").WithArguments("Awaiter", "A"));
@@ -2448,7 +2449,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return false; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS0411: The type arguments for method 'Awaiter.GetResult<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "await new A()").WithArguments("Awaiter.GetResult<T>()")
@@ -2482,7 +2483,7 @@ class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return true; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (15,9): error CS4011: 'await' requires that the return type 'Awaiter' of 'A.GetAwaiter()' have suitable IsCompleted, OnCompleted, and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_BadAwaiterPattern, "await new A()").WithArguments("Awaiter", "A"));
@@ -2515,7 +2516,7 @@ class Awaiter //: System.Runtime.CompilerServices.INotifyCompletion
 
     //public bool IsCompleted { get { return true; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (8,9): error CS0117: 'Awaiter' does not contain a definition for 'IsCompleted'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "await new A()").WithArguments("Awaiter", "IsCompleted"));
@@ -2548,7 +2549,7 @@ class Awaiter //: System.Runtime.CompilerServices.INotifyCompletion
 
     public bool IsCompleted { get { return true; } }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (8,9): error CS4027: 'Awaiter' does not implement 'System.Runtime.CompilerServices.INotifyCompletion'
                 //         await new A();
                 Diagnostic(ErrorCode.ERR_DoesntImplementAwaitInterface, "await new A()").WithArguments("Awaiter", "System.Runtime.CompilerServices.INotifyCompletion"));
@@ -2592,7 +2593,7 @@ class C
         }
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,22): error CS0103: The name 'goo' does not exist in the current context
                 //         using (await goo())
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "goo").WithArguments("goo"));
@@ -2628,7 +2629,7 @@ class Test
 
     public static void Main() { }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (8,9): error CS4008: Cannot await 'void'
                 //         await goo();
                 Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await goo()"),
@@ -2663,7 +2664,7 @@ class Test
 
     public static void Main() { }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,9): error CS4008: Cannot await 'void'
                 //         await goo();
                 Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "await goo()"));
@@ -2683,7 +2684,7 @@ class C
         });
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,12): error CS0246: The type or namespace name 'IVsTask' could not be found (are you missing a using directive or an assembly reference?)
                 //     public IVsTask ResolveReferenceAsync()
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IVsTask").WithArguments("IVsTask").WithLocation(4, 12),
@@ -2722,7 +2723,7 @@ class D
 {
     Action<IC> a = async x => await x;
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (23,31): error CS0118: 'GetResult' is a property but is used like a method
                 //     Action<IC> a = async x => await x;
                 Diagnostic(ErrorCode.ERR_BadSKknown, "await x").WithArguments("GetResult", "property", "method")
@@ -2758,7 +2759,7 @@ class Repro
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "42");
@@ -2830,7 +2831,7 @@ class Repro
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, new[] { TestMetadata.Net40.SystemCore, TestMetadata.Net40.MicrosoftCSharp }, TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461(source, new[] { Net40.References.SystemCore, Net40.References.MicrosoftCSharp }, TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1));

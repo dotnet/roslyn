@@ -12,33 +12,32 @@ using Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
 using Microsoft.CodeAnalysis.GoToBase;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.GoToBase
+namespace Microsoft.CodeAnalysis.CSharp.GoToBase;
+
+[ExportLanguageService(typeof(IGoToBaseService), LanguageNames.CSharp), Shared]
+internal sealed class CSharpGoToBaseService : AbstractGoToBaseService
 {
-    [ExportLanguageService(typeof(IGoToBaseService), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpGoToBaseService : AbstractGoToBaseService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpGoToBaseService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpGoToBaseService()
-        {
-        }
+    }
 
-        protected override async Task<IMethodSymbol?> FindNextConstructorInChainAsync(
-            Solution solution, IMethodSymbol constructor, CancellationToken cancellationToken)
-        {
-            if (constructor.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax(cancellationToken) is not ConstructorDeclarationSyntax constructorDeclaration)
-                return null;
+    protected override async Task<IMethodSymbol?> FindNextConstructorInChainAsync(
+        Solution solution, IMethodSymbol constructor, CancellationToken cancellationToken)
+    {
+        if (constructor.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax(cancellationToken) is not ConstructorDeclarationSyntax constructorDeclaration)
+            return null;
 
-            var document = solution.GetDocument(constructorDeclaration.SyntaxTree);
-            if (document is null)
-                return null;
+        var document = solution.GetDocument(constructorDeclaration.SyntaxTree);
+        if (document is null)
+            return null;
 
-            // this constructor must be calling an accessible no-arg constructor in the base type.
-            if (constructorDeclaration.Initializer is null)
-                return FindBaseNoArgConstructor(constructor);
+        // this constructor must be calling an accessible no-arg constructor in the base type.
+        if (constructorDeclaration.Initializer is null)
+            return FindBaseNoArgConstructor(constructor);
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return semanticModel.GetSymbolInfo(constructorDeclaration.Initializer, cancellationToken).GetAnySymbol() as IMethodSymbol;
-        }
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        return semanticModel.GetSymbolInfo(constructorDeclaration.Initializer, cancellationToken).GetAnySymbol() as IMethodSymbol;
     }
 }

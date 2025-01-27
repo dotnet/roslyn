@@ -4,63 +4,61 @@
 
 #nullable disable
 
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+
+internal class TaskItemsEnum<T> : IVsEnumTaskItems where T : IVsTaskItem
 {
-    internal class TaskItemsEnum<T> : IVsEnumTaskItems where T : IVsTaskItem
+    private readonly T[] _items;
+    private int _next;
+
+    public TaskItemsEnum(T[] immutableItems)
     {
-        private readonly T[] _items;
-        private int _next;
+        _items = immutableItems;
+        _next = 0;
+    }
 
-        public TaskItemsEnum(T[] immutableItems)
+    int IVsEnumTaskItems.Next(uint celt, IVsTaskItem[] rgelt, uint[] pceltFetched)
+    {
+        checked
         {
-            _items = immutableItems;
-            _next = 0;
-        }
-
-        int IVsEnumTaskItems.Next(uint celt, IVsTaskItem[] rgelt, uint[] pceltFetched)
-        {
-            checked
+            int i;
+            for (i = 0; i < celt && _next + i < _items.Length; i++)
             {
-                int i;
-                for (i = 0; i < celt && _next + i < _items.Length; i++)
-                {
-                    rgelt[i] = _items[_next + i];
-                }
-
-                _next += i;
-
-                if (pceltFetched != null)
-                {
-                    pceltFetched[0] = (uint)i;
-                }
-
-                return (i == celt) ? VSConstants.S_OK : VSConstants.S_FALSE;
-            }
-        }
-
-        int IVsEnumTaskItems.Skip(uint celt)
-        {
-            checked
-            {
-                _next += (int)celt;
+                rgelt[i] = _items[_next + i];
             }
 
-            return VSConstants.S_OK;
+            _next += i;
+
+            if (pceltFetched != null)
+            {
+                pceltFetched[0] = (uint)i;
+            }
+
+            return (i == celt) ? VSConstants.S_OK : VSConstants.S_FALSE;
+        }
+    }
+
+    int IVsEnumTaskItems.Skip(uint celt)
+    {
+        checked
+        {
+            _next += (int)celt;
         }
 
-        int IVsEnumTaskItems.Reset()
-        {
-            _next = 0;
-            return VSConstants.S_OK;
-        }
+        return VSConstants.S_OK;
+    }
 
-        int IVsEnumTaskItems.Clone(out IVsEnumTaskItems taskItemsEnum)
-        {
-            taskItemsEnum = new TaskItemsEnum<T>(_items);
-            return VSConstants.S_OK;
-        }
+    int IVsEnumTaskItems.Reset()
+    {
+        _next = 0;
+        return VSConstants.S_OK;
+    }
+
+    int IVsEnumTaskItems.Clone(out IVsEnumTaskItems taskItemsEnum)
+    {
+        taskItemsEnum = new TaskItemsEnum<T>(_items);
+        return VSConstants.S_OK;
     }
 }

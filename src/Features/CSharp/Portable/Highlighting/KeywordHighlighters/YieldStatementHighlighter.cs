@@ -16,62 +16,61 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters
+namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
+
+[ExportHighlighter(LanguageNames.CSharp), Shared]
+internal class YieldStatementHighlighter : AbstractKeywordHighlighter<YieldStatementSyntax>
 {
-    [ExportHighlighter(LanguageNames.CSharp), Shared]
-    internal class YieldStatementHighlighter : AbstractKeywordHighlighter<YieldStatementSyntax>
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public YieldStatementHighlighter()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public YieldStatementHighlighter()
+    }
+
+    protected override void AddHighlights(
+        YieldStatementSyntax yieldStatement, List<TextSpan> spans, CancellationToken cancellationToken)
+    {
+        var parent = yieldStatement
+                         .GetAncestorsOrThis<SyntaxNode>()
+                         .FirstOrDefault(n => n.IsReturnableConstruct());
+
+        if (parent == null)
         {
+            return;
         }
 
-        protected override void AddHighlights(
-            YieldStatementSyntax yieldStatement, List<TextSpan> spans, CancellationToken cancellationToken)
+        HighlightRelatedKeywords(parent, spans);
+    }
+
+    /// <summary>
+    /// Finds all returns that are children of this node, and adds the appropriate spans to the spans list.
+    /// </summary>
+    private static void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans)
+    {
+        switch (node)
         {
-            var parent = yieldStatement
-                             .GetAncestorsOrThis<SyntaxNode>()
-                             .FirstOrDefault(n => n.IsReturnableConstruct());
+            case YieldStatementSyntax statement:
+                spans.Add(
+                    TextSpan.FromBounds(
+                        statement.YieldKeyword.SpanStart,
+                        statement.ReturnOrBreakKeyword.Span.End));
 
-            if (parent == null)
-            {
-                return;
-            }
+                spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
+                break;
+            default:
+                foreach (var child in node.ChildNodesAndTokens())
+                {
+                    if (child.IsToken)
+                        continue;
 
-            HighlightRelatedKeywords(parent, spans);
-        }
-
-        /// <summary>
-        /// Finds all returns that are children of this node, and adds the appropriate spans to the spans list.
-        /// </summary>
-        private static void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans)
-        {
-            switch (node)
-            {
-                case YieldStatementSyntax statement:
-                    spans.Add(
-                        TextSpan.FromBounds(
-                            statement.YieldKeyword.SpanStart,
-                            statement.ReturnOrBreakKeyword.Span.End));
-
-                    spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
-                    break;
-                default:
-                    foreach (var child in node.ChildNodesAndTokens())
+                    // Only recurse if we have anything to do
+                    if (!child.AsNode().IsReturnableConstruct())
                     {
-                        if (child.IsToken)
-                            continue;
-
-                        // Only recurse if we have anything to do
-                        if (!child.AsNode().IsReturnableConstruct())
-                        {
-                            HighlightRelatedKeywords(child.AsNode(), spans);
-                        }
+                        HighlightRelatedKeywords(child.AsNode(), spans);
                     }
+                }
 
-                    break;
-            }
+                break;
         }
     }
 }

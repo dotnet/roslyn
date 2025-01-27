@@ -8,29 +8,23 @@ using System.Collections.Generic;
 using System.Windows.Media;
 using Microsoft.VisualStudio.Language.CallHierarchy;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
+namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
+
+internal class FieldInitializerItem : ICallHierarchyNameItem
 {
-    internal class FieldInitializerItem : ICallHierarchyNameItem
+    public FieldInitializerItem(string name, string sortText, ImageSource displayGlyph, IEnumerable<CallHierarchyDetail> details)
     {
-        private readonly IEnumerable<ICallHierarchyItemDetails> _details;
-        private readonly ImageSource _displayGlyph;
-        private readonly string _name;
-        private readonly string _sortText;
-
-        public FieldInitializerItem(string name, string sortText, ImageSource displayGlyph, IEnumerable<CallHierarchyDetail> details)
-        {
-            _name = name;
-            _sortText = sortText;
-            _displayGlyph = displayGlyph;
-            _details = details;
-        }
-
-        public IEnumerable<ICallHierarchyItemDetails> Details => _details;
-
-        public ImageSource DisplayGlyph => _displayGlyph;
-
-        public string Name => _name;
-
-        public string SortText => _sortText;
+        Name = name;
+        SortText = sortText;
+        DisplayGlyph = displayGlyph;
+        Details = details;
     }
+
+    public IEnumerable<ICallHierarchyItemDetails> Details { get; }
+
+    public ImageSource DisplayGlyph { get; }
+
+    public string Name { get; }
+
+    public string SortText { get; }
 }

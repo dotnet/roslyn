@@ -23,39 +23,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             : base(kind)
         {
             FullWidth = this.Text.Length;
-            this.flags |= NodeFlags.IsNotMissing; //note: cleared by subclasses representing missing tokens
+            SetFlags(NodeFlags.IsNotMissing); //note: cleared by subclasses representing missing tokens
         }
 
         internal SyntaxToken(SyntaxKind kind, DiagnosticInfo[] diagnostics)
             : base(kind, diagnostics)
         {
             FullWidth = this.Text.Length;
-            this.flags |= NodeFlags.IsNotMissing; //note: cleared by subclasses representing missing tokens
+            SetFlags(NodeFlags.IsNotMissing); //note: cleared by subclasses representing missing tokens
         }
 
         internal SyntaxToken(SyntaxKind kind, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
             : base(kind, diagnostics, annotations)
         {
             FullWidth = this.Text.Length;
-            this.flags |= NodeFlags.IsNotMissing; //note: cleared by subclasses representing missing tokens
+            SetFlags(NodeFlags.IsNotMissing); //note: cleared by subclasses representing missing tokens
         }
 
         internal SyntaxToken(SyntaxKind kind, int fullWidth)
             : base(kind, fullWidth)
         {
-            this.flags |= NodeFlags.IsNotMissing; //note: cleared by subclasses representing missing tokens
+            SetFlags(NodeFlags.IsNotMissing); //note: cleared by subclasses representing missing tokens
         }
 
         internal SyntaxToken(SyntaxKind kind, int fullWidth, DiagnosticInfo[] diagnostics)
             : base(kind, diagnostics, fullWidth)
         {
-            this.flags |= NodeFlags.IsNotMissing; //note: cleared by subclasses representing missing tokens
+            SetFlags(NodeFlags.IsNotMissing); //note: cleared by subclasses representing missing tokens
         }
 
         internal SyntaxToken(SyntaxKind kind, int fullWidth, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
             : base(kind, diagnostics, annotations, fullWidth)
         {
-            this.flags |= NodeFlags.IsNotMissing; //note: cleared by subclasses representing missing tokens
+            SetFlags(NodeFlags.IsNotMissing); //note: cleared by subclasses representing missing tokens
         }
 
         //====================
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     throw new ArgumentException(string.Format(CSharpResources.ThisMethodCanOnlyBeUsedToCreateTokens, kind), nameof(kind));
                 }
 
-                return CreateMissing(kind, null, null);
+                return CreateMissing(kind);
             }
 
             return s_tokensWithNoTrivia[(int)kind].Value;
@@ -118,6 +118,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxTokenWithTrivia(kind, leading, trailing);
         }
 
+        internal static SyntaxToken CreateMissing(SyntaxKind kind)
+        {
+            if (kind <= LastTokenWithWellKnownText)
+            {
+                return s_missingTokensWithNoTrivia[(int)kind].Value;
+            }
+            else if (kind == SyntaxKind.IdentifierToken)
+            {
+                return s_missingIdentifierTokenWithNoTrivia;
+            }
+
+            return new MissingTokenWithTrivia(kind, leading: null, trailing: null);
+        }
+
         internal static SyntaxToken CreateMissing(SyntaxKind kind, GreenNode leading, GreenNode trailing)
         {
             return new MissingTokenWithTrivia(kind, leading, trailing);
@@ -131,6 +145,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private static readonly ArrayElement<SyntaxToken>[] s_tokensWithElasticTrivia = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
         private static readonly ArrayElement<SyntaxToken>[] s_tokensWithSingleTrailingSpace = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
         private static readonly ArrayElement<SyntaxToken>[] s_tokensWithSingleTrailingCRLF = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
+        private static readonly ArrayElement<SyntaxToken>[] s_missingTokensWithNoTrivia = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
+
+        private static readonly SyntaxToken s_missingIdentifierTokenWithNoTrivia = new MissingTokenWithTrivia(SyntaxKind.IdentifierToken, leading: null, trailing: null);
 
         static SyntaxToken()
         {
@@ -140,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 s_tokensWithElasticTrivia[(int)kind].Value = new SyntaxTokenWithTrivia(kind, SyntaxFactory.ElasticZeroSpace, SyntaxFactory.ElasticZeroSpace);
                 s_tokensWithSingleTrailingSpace[(int)kind].Value = new SyntaxTokenWithTrivia(kind, null, SyntaxFactory.Space);
                 s_tokensWithSingleTrailingCRLF[(int)kind].Value = new SyntaxTokenWithTrivia(kind, null, SyntaxFactory.CarriageReturnLineFeed);
+                s_missingTokensWithNoTrivia[(int)kind].Value = new MissingTokenWithTrivia(kind, leading: null, trailing: null);
             }
         }
 

@@ -5,10 +5,9 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.MoveStaticMembers
+namespace Microsoft.CodeAnalysis.MoveStaticMembers;
+
+internal interface IMoveStaticMembersOptionsService : IWorkspaceService
 {
-    internal interface IMoveStaticMembersOptionsService : IWorkspaceService
-    {
-        MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ImmutableArray<ISymbol> selectedNodeSymbols);
-    }
+    MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ImmutableArray<ISymbol> selectedNodeSymbols);
 }

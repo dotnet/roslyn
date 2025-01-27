@@ -15,23 +15,23 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-    public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public AddUsingTestsWithAddImportDiagnosticProvider(ITestOutputHelper logger)
+       : base(logger)
     {
-        public AddUsingTestsWithAddImportDiagnosticProvider(ITestOutputHelper logger)
-           : base(logger)
-        {
-        }
+    }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new CSharpAddImportCodeFixProvider());
+    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new CSharpAddImportCodeFixProvider());
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
-        public async Task TestUnknownIdentifierGenericName()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
+    public async Task TestUnknownIdentifierGenericName()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     private [|List<int>|]
@@ -42,12 +42,12 @@ class C
 {
     private List<int>
 }");
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
-        public async Task TestUnknownIdentifierInAttributeSyntaxWithoutTarget()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
+    public async Task TestUnknownIdentifierInAttributeSyntaxWithoutTarget()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     [[|Extension|]]
@@ -58,29 +58,22 @@ class C
 {
     [Extension]
 }");
-        }
+    }
 
-        [Fact]
-        public async Task TestOutsideOfMethodWithMalformedGenericParameters()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task TestOutsideOfMethodWithMalformedGenericParameters()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"using System;
-
 class Program
 {
-    Func<[|FlowControl|] x }",
-@"using System;
-using System.Reflection.Emit;
+    Func<[|FlowControl|] x }");
+    }
 
-class Program
-{
-    Func<FlowControl x }");
-        }
-
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752640")]
-        public async Task TestUnknownIdentifierWithSyntaxError()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752640")]
+    public async Task TestUnknownIdentifierWithSyntaxError()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     [|Directory|] private int i;
@@ -91,12 +84,12 @@ class C
 {
     Directory private int i;
 }");
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855748")]
-        public async Task TestGenericNameWithBrackets()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855748")]
+    public async Task TestGenericNameWithBrackets()
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|List|]
@@ -108,7 +101,7 @@ class Class
     List
 }");
 
-            await TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|List<>|]
@@ -120,7 +113,7 @@ class Class
     List<>
 }");
 
-            await TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     List[|<>|]
@@ -131,12 +124,12 @@ class Class
 {
     List<>
 }");
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867496")]
-        public async Task TestMalformedGenericParameters()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867496")]
+    public async Task TestMalformedGenericParameters()
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|List<|] }",
@@ -146,21 +139,16 @@ class Class
 {
     List< }");
 
-            await TestInRegularAndScriptAsync(
+        await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
-    [|List<Y x;|] }",
-@"using System.Collections.Generic;
+    [|List<Y x;|] }");
+    }
 
-class Class
-{
-    List<Y x; }");
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18621")]
-        public async Task TestIncompleteMemberWithAsyncTaskReturnType()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18621")]
+    public async Task TestIncompleteMemberWithAsyncTaskReturnType()
+    {
+        await TestInRegularAndScriptAsync(
 @"
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -198,12 +186,12 @@ namespace ConsoleApp282
         public async Task<IReadOnlyCollection<ProjectConfiguration>>
     }
 }");
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23667")]
-        public async Task TestMissingDiagnosticForNameOf()
-        {
-            await TestDiagnosticMissingAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23667")]
+    public async Task TestMissingDiagnosticForNameOf()
+    {
+        await TestDiagnosticMissingAsync(
 @"using System;
 
 class C
@@ -213,6 +201,5 @@ class C
 #warning xxx
     };
 }");
-        }
     }
 }

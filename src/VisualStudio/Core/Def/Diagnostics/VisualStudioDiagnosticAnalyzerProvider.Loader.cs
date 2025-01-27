@@ -8,37 +8,36 @@ using System;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
+
+internal partial class VisualStudioDiagnosticAnalyzerProvider
 {
-    internal partial class VisualStudioDiagnosticAnalyzerProvider
+    private sealed class Loader : IAnalyzerAssemblyLoader
     {
-        private sealed class Loader : IAnalyzerAssemblyLoader
+        private readonly IAnalyzerAssemblyLoader _fallbackLoader;
+
+        public Loader()
         {
-            private readonly IAnalyzerAssemblyLoader _fallbackLoader;
+            _fallbackLoader = new DefaultAnalyzerAssemblyLoader();
+        }
 
-            public Loader()
+        public void AddDependencyLocation(string fullPath)
+        {
+            _fallbackLoader.AddDependencyLocation(fullPath);
+        }
+
+        public Assembly LoadFromPath(string fullPath)
+        {
+            try
             {
-                _fallbackLoader = new DefaultAnalyzerAssemblyLoader();
+                // We want to load the analyzer assembly assets in default context.
+                // Use Assembly.Load instead of Assembly.LoadFrom to ensure that if the assembly is ngen'ed, then the native image gets loaded.
+                return Assembly.Load(AssemblyName.GetAssemblyName(fullPath));
             }
-
-            public void AddDependencyLocation(string fullPath)
+            catch (Exception)
             {
-                _fallbackLoader.AddDependencyLocation(fullPath);
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-            {
-                try
-                {
-                    // We want to load the analyzer assembly assets in default context.
-                    // Use Assembly.Load instead of Assembly.LoadFrom to ensure that if the assembly is ngen'ed, then the native image gets loaded.
-                    return Assembly.Load(AssemblyName.GetAssemblyName(fullPath));
-                }
-                catch (Exception)
-                {
-                    // Use the fallback loader if we fail to load the assembly in the default context.
-                    return _fallbackLoader.LoadFromPath(fullPath);
-                }
+                // Use the fallback loader if we fail to load the assembly in the default context.
+                return _fallbackLoader.LoadFromPath(fullPath);
             }
         }
     }

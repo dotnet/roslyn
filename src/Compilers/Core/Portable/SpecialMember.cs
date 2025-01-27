@@ -19,12 +19,19 @@ namespace Microsoft.CodeAnalysis
         System_String__ConcatObjectObjectObject,
         System_String__ConcatObjectArray,
 
+        System_String__Concat_2ReadOnlySpans,
+        System_String__Concat_3ReadOnlySpans,
+        System_String__Concat_4ReadOnlySpans,
+
         System_String__op_Equality,
         System_String__op_Inequality,
         System_String__Length,
         System_String__Chars,
         System_String__Format,
+        System_String__Format_IFormatProvider,
         System_String__Substring,
+
+        System_String__op_Implicit_ToReadOnlySpanOfChar,
 
         System_Double__IsNaN,
         System_Single__IsNaN,
@@ -33,6 +40,8 @@ namespace Microsoft.CodeAnalysis
         System_Delegate__Remove,
         System_Delegate__op_Equality,
         System_Delegate__op_Inequality,
+        System_Delegate__CreateDelegate,
+        System_Delegate__CreateDelegate4,
 
         System_Decimal__Zero,
         System_Decimal__MinusOne,
@@ -155,9 +164,35 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces,
         System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr,
         System_Runtime_CompilerServices_RuntimeFeature__ByRefFields,
+        System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics,
 
         System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor,
         System_Runtime_CompilerServices_InlineArrayAttribute__ctor,
+
+        System_ReadOnlySpan_T__ctor_Reference,
+
+        System_Collections_Generic_IReadOnlyCollection_T__Count,
+        System_Collections_Generic_IReadOnlyList_T__get_Item,
+        System_Collections_Generic_ICollection_T__Count,
+        System_Collections_Generic_ICollection_T__IsReadOnly,
+        System_Collections_Generic_ICollection_T__Add,
+        System_Collections_Generic_ICollection_T__Clear,
+        System_Collections_Generic_ICollection_T__Contains,
+        System_Collections_Generic_ICollection_T__CopyTo,
+        System_Collections_Generic_ICollection_T__Remove,
+        System_Collections_Generic_IList_T__get_Item,
+        System_Collections_Generic_IList_T__IndexOf,
+        System_Collections_Generic_IList_T__Insert,
+        System_Collections_Generic_IList_T__RemoveAt,
+
+        System_Reflection_MethodBase__GetMethodFromHandle,
+        System_Reflection_MethodBase__GetMethodFromHandle2,
+
+        System_Array__get_Length,
+        System_Array__Empty,
+        System_Array__SetValue,
+
+        System_Type__GetTypeFromHandle,
 
         Count
     }

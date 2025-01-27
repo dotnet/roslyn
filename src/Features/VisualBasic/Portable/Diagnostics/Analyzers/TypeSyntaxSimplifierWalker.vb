@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
@@ -38,7 +39,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         Private ReadOnly _analyzer As VisualBasicSimplifyTypeNamesDiagnosticAnalyzer
         Private ReadOnly _semanticModel As SemanticModel
         Private ReadOnly _options As VisualBasicSimplifierOptions
-        Private ReadOnly _ignoredSpans As TextSpanIntervalTree
+        Private ReadOnly _analyzerOptions As AnalyzerOptions
+        Private ReadOnly _ignoredSpans As TextSpanMutableIntervalTree
         Private ReadOnly _cancellationToken As CancellationToken
 
         Private _diagnostics As ImmutableArray(Of Diagnostic).Builder
@@ -67,12 +69,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             End Get
         End Property
 
-        Public Sub New(analyzer As VisualBasicSimplifyTypeNamesDiagnosticAnalyzer, semanticModel As SemanticModel, options As VisualBasicSimplifierOptions, ignoredSpans As TextSpanIntervalTree, cancellationToken As CancellationToken)
+        Public Sub New(analyzer As VisualBasicSimplifyTypeNamesDiagnosticAnalyzer, semanticModel As SemanticModel, options As VisualBasicSimplifierOptions, analyzerOptions As AnalyzerOptions, ignoredSpans As TextSpanMutableIntervalTree, cancellationToken As CancellationToken)
             MyBase.New(SyntaxWalkerDepth.StructuredTrivia)
 
             _analyzer = analyzer
             _semanticModel = semanticModel
             _options = options
+            _analyzerOptions = analyzerOptions
             _ignoredSpans = ignoredSpans
             _cancellationToken = cancellationToken
 
@@ -185,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
         Private Function TrySimplify(node As SyntaxNode) As Boolean
             Dim diagnostic As Diagnostic = Nothing
-            If Not _analyzer.TrySimplify(_semanticModel, node, diagnostic, _options, _cancellationToken) Then
+            If Not _analyzer.TrySimplify(_semanticModel, node, diagnostic, _options, _analyzerOptions, _cancellationToken) Then
                 Return False
             End If
 

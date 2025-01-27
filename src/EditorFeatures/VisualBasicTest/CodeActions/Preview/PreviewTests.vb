@@ -18,9 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         Inherits AbstractVisualBasicCodeActionTest
 
         Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf _
-            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
             .AddParts(
-                GetType(MockDiagnosticUpdateSourceRegistrationService),
                 GetType(MockPreviewPaneService))
 
         Private Const s_addedDocumentName As String = "AddedDocument"

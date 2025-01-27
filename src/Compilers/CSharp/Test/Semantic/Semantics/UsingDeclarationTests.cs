@@ -867,7 +867,10 @@ class C
 ";
             var expected = new[]
             {
-                // (8,15): error CS8652: The feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // 0.cs(8,9): error CS8370: Feature 'pattern-based disposal' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         await using IAsyncDisposable x = null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await using IAsyncDisposable x = null;").WithArguments("pattern-based disposal", "8.0").WithLocation(8, 9),
+                // 0.cs(8,15): error CS8370: Feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         await using IAsyncDisposable x = null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "using").WithArguments("using declarations", "8.0").WithLocation(8, 15)
             };
@@ -951,12 +954,12 @@ class C
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                // (7,15): error CS0106: The modifier 'public' is not valid for this item
+                // (7,15): error CS9229: Modifiers cannot be placed on using declarations
                 //         using public readonly var x = (IDisposable)null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 15),
-                // (7,22): error CS0106: The modifier 'readonly' is not valid for this item
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "public").WithLocation(7, 15),
+                // (7,22): error CS9229: Modifiers cannot be placed on using declarations
                 //         using public readonly var x = (IDisposable)null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(7, 22)
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(7, 22)
                 );
         }
     }

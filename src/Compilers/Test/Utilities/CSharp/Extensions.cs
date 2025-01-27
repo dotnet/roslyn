@@ -416,6 +416,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(IsEqual(arg, v));
         }
 
+        public static ImmutableArray<string> ToStrings(this ImmutableArray<CSharpAttributeData> attributes)
+            => attributes.SelectAsArray(a => a.ToString());
+
         internal static bool IsEqual(TypedConstant arg, object expected)
         {
             switch (arg.Kind)

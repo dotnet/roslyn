@@ -13,10 +13,12 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Remote;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
 {
+#pragma warning disable CA1416 // Validate platform compatibility
     internal sealed class InProcRemoteHostClientProvider : IRemoteHostClientProvider, IDisposable
     {
         [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider), ServiceLayer.Test), Shared, PartNotDiscoverable]
@@ -61,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private readonly SolutionServices _services;
         private readonly Lazy<WorkspaceManager> _lazyManager;
         private readonly Lazy<RemoteHostClient> _lazyClient;
+        private readonly TaskCompletionSource<bool> _clientCreationSource = new();
 
         public Type[]? AdditionalRemoteParts { get; set; }
         public Type[]? ExcludedRemoteParts { get; set; }
@@ -79,11 +82,21 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                     AdditionalRemoteParts,
                     ExcludedRemoteParts));
             _lazyClient = new Lazy<RemoteHostClient>(
-                () => InProcRemoteHostClient.Create(
-                    _services,
-                    callbackDispatchers,
-                    TraceListener,
-                    new RemoteHostTestData(_lazyManager.Value, isInProc: true)));
+                () =>
+                {
+                    try
+                    {
+                        return InProcRemoteHostClient.Create(
+                            _services,
+                            callbackDispatchers,
+                            TraceListener,
+                            new RemoteHostTestData(_lazyManager.Value, isInProc: true));
+                    }
+                    finally
+                    {
+                        _clientCreationSource.SetResult(true);
+                    }
+                });
         }
 
         public void Dispose()
@@ -98,5 +111,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             => Task.FromResult<RemoteHostClient?>(_lazyClient.Value);
+
+        public Task WaitForClientCreationAsync(CancellationToken cancellationToken)
+            => _clientCreationSource.Task.WithCancellation(cancellationToken);
     }
+#pragma warning restore CA1416 // Validate platform compatibility
 }

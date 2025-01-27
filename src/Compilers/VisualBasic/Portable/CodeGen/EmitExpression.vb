@@ -248,16 +248,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Debug.Assert(conditional.WhenNullOpt IsNot Nothing OrElse Not used)
 
-            If conditional.ReceiverOrCondition.Type.IsBooleanType() Then
-                ' This is a trivial case 
-                Debug.Assert(Not conditional.CaptureReceiver)
-                Debug.Assert(conditional.PlaceholderId = 0)
+            Dim receiverTemp As LocalDefinition = Nothing
+
+            Dim receiver As BoundExpression = conditional.Receiver
+            Dim receiverType As TypeSymbol = receiver.Type
+
+            If receiverType.IsNullableType() Then
+
+                If conditional.CaptureReceiver Then
+                    EmitExpression(receiver, used:=True)
+                    receiverTemp = AllocateTemp(receiverType, receiver.Syntax)
+                    _builder.EmitLocalStore(receiverTemp)
+                    _builder.EmitLocalAddress(receiverTemp)
+                Else
+                    receiverTemp = EmitAddress(receiver, addressKind:=AddressKind.Immutable)
+                End If
 
                 Dim doneLabel = New Object()
 
                 Dim consequenceLabel = New Object()
 
-                EmitCondBranch(conditional.ReceiverOrCondition, consequenceLabel, sense:=True)
+                Dim hasValue = DirectCast(Me._module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue), MethodSymbol)
+                Debug.Assert(hasValue IsNot Nothing)
+
+                _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=0)
+                EmitSymbolToken(hasValue.AsMember(DirectCast(receiverType, NamedTypeSymbol)), conditional.Syntax)
+
+                _builder.EmitBranch(ILOpCode.Brtrue, consequenceLabel)
 
                 If conditional.WhenNullOpt IsNot Nothing Then
                     EmitExpression(conditional.WhenNullOpt, used)
@@ -272,13 +289,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 End If
 
                 _builder.MarkLabel(consequenceLabel)
+
+                If receiverTemp Is Nothing Then
+                    receiverTemp = EmitAddress(receiver, addressKind:=AddressKind.Immutable)
+                    Debug.Assert(receiverTemp Is Nothing)
+                Else
+                    _builder.EmitLocalAddress(receiverTemp)
+                End If
+
                 EmitExpression(conditional.WhenNotNull, used)
 
                 _builder.MarkLabel(doneLabel)
             Else
-                Debug.Assert(Not conditional.ReceiverOrCondition.Type.IsValueType)
+                Debug.Assert(Not receiverType.IsValueType)
 
-                Dim receiverTemp As LocalDefinition = Nothing
                 Dim temp As LocalDefinition = Nothing
 
                 ' labels
@@ -287,9 +311,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 ' we need a copy if we deal with nonlocal value (to capture the value)
                 ' Or if we have a ref-constrained T (to do box just once)
-                Dim receiver As BoundExpression = conditional.ReceiverOrCondition
-                Dim receiverType As TypeSymbol = receiver.Type
-
                 Debug.Assert(Not (Not receiverType.IsReferenceType AndAlso
                                    Not receiverType.IsValueType AndAlso
                                    Not DirectCast(receiverType, TypeParameterSymbol).HasInterfaceConstraint) OrElse ' This could be a nullable value type, which must be copied in order to not mutate the original value
@@ -392,10 +413,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 If temp IsNot Nothing Then
                     FreeTemp(temp)
                 End If
+            End If
 
-                If receiverTemp IsNot Nothing Then
-                    FreeTemp(receiverTemp)
-                End If
+            If receiverTemp IsNot Nothing Then
+                FreeTemp(receiverTemp)
             End If
         End Sub
 
@@ -2227,7 +2248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitSymbolToken(type, boundTypeOfOperator.SourceType.Syntax)
 
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=0) 'argument off, return value on
-            Dim getTypeMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__GetTypeFromHandle), MethodSymbol)
+            Dim getTypeMethod = boundTypeOfOperator.GetTypeFromHandle
             Debug.Assert(getTypeMethod IsNot Nothing) ' Should have been checked during binding
             EmitSymbolToken(getTypeMethod, boundTypeOfOperator.Syntax)
             EmitPopIfUnused(used)
@@ -2268,20 +2289,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             _builder.EmitOpCode(ILOpCode.Ldtoken)
             EmitSymbolToken(method, node.Syntax)
-            Dim getMethod As MethodSymbol
-            If Not method.ContainingType.IsGenericType AndAlso Not method.ContainingType.IsAnonymousType Then ' anonymous types are generic under the hood.
+
+            If node.GetMethodFromHandle.ParameterCount = 1 Then
+                Debug.Assert(Not method.ContainingType.IsGenericType AndAlso Not method.ContainingType.IsAnonymousType)
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=0) ' argument off, return value on
-                getMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle), MethodSymbol)
             Else
+                Debug.Assert(method.ContainingType.IsGenericType OrElse method.ContainingType.IsAnonymousType)
+                Debug.Assert(node.GetMethodFromHandle.ParameterCount = 2)
+
                 _builder.EmitOpCode(ILOpCode.Ldtoken)
                 EmitSymbolToken(method.ContainingType, node.Syntax)
                 _builder.EmitOpCode(ILOpCode.Call, stackAdjustment:=-1) ' 2 arguments off, return value on
-                getMethod = DirectCast(Me._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2), MethodSymbol)
             End If
 
-            Debug.Assert(getMethod IsNot Nothing)
-            EmitSymbolToken(getMethod, node.Syntax)
-            If Not TypeSymbol.Equals(node.Type, getMethod.ReturnType, TypeCompareKind.ConsiderEverything) Then
+            EmitSymbolToken(node.GetMethodFromHandle, node.Syntax)
+            If Not TypeSymbol.Equals(node.Type, node.GetMethodFromHandle.ReturnType, TypeCompareKind.ConsiderEverything) Then
                 _builder.EmitOpCode(ILOpCode.Castclass)
                 EmitSymbolToken(node.Type, node.Syntax)
             End If

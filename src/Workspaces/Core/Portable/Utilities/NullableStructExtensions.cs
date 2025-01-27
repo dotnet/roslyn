@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal static class NullableStructExtensions
 {
-    internal static class NullableStructExtensions
+    public static void Deconstruct<T>(this T? value, out T valueOrDefault, out bool hasValue) where T : struct
     {
-        public static void Deconstruct<T>(this T? value, out T valueOrDefault, out bool hasValue) where T : struct
-        {
-            valueOrDefault = value.GetValueOrDefault();
-            hasValue = value.HasValue;
-        }
+        valueOrDefault = value.GetValueOrDefault();
+        hasValue = value.HasValue;
     }
 }

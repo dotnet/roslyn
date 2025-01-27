@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,30 +17,27 @@ namespace Microsoft.CodeAnalysis.Remote.Testing;
 /// </summary>
 internal sealed class SimpleAssetSource(ISerializerService serializerService, IReadOnlyDictionary<Checksum, object> map) : IAssetSource
 {
-    public ValueTask<ImmutableArray<object>> GetAssetsAsync(
-        Checksum solutionChecksum, AssetHint assetHint, ImmutableArray<Checksum> checksums, ISerializerService deserializerService, CancellationToken cancellationToken)
+    public ValueTask GetAssetsAsync<T, TArg>(
+        Checksum solutionChecksum, AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, ISerializerService deserializerService, Action<Checksum, T, TArg> callback, TArg arg, CancellationToken cancellationToken)
     {
-        var results = new List<object>();
-
-        foreach (var checksum in checksums)
+        foreach (var checksum in checksums.Span)
         {
             Contract.ThrowIfFalse(map.TryGetValue(checksum, out var data));
 
             using var stream = new MemoryStream();
-            using var context = new SolutionReplicationContext();
 
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                serializerService.Serialize(data, writer, context, cancellationToken);
+                serializerService.Serialize(data, writer, cancellationToken);
             }
 
             stream.Position = 0;
-            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, cancellationToken);
-            var asset = deserializerService.Deserialize<object>(data.GetWellKnownSynchronizationKind(), reader, cancellationToken);
+            using var reader = ObjectReader.GetReader(stream, leaveOpen: true);
+            var asset = deserializerService.Deserialize(data.GetWellKnownSynchronizationKind(), reader, cancellationToken);
             Contract.ThrowIfNull(asset);
-            results.Add(asset);
+            callback(checksum, (T)asset, arg);
         }
 
-        return ValueTaskFactory.FromResult(results.ToImmutableArray());
+        return ValueTaskFactory.CompletedTask;
     }
 }

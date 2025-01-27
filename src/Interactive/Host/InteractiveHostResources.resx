@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Attempt_to_connect_to_process_Sharp_0_failed_retrying" xml:space="preserve">
-    <value>Attempt to connect to process #{0} failed, retrying ...</value>
-  </data>
   <data name="Cannot_resolve_reference_0" xml:space="preserve">
     <value>Cannot resolve reference '{0}'.</value>
   </data>
@@ -155,11 +152,5 @@
   </data>
   <data name="Failed_to_create_a_remote_process_for_interactive_code_execution" xml:space="preserve">
     <value>Failed to create a remote process for interactive code execution: '{0}'</value>
-  </data>
-  <data name="Failed_to_initialize_remote_interactive_process" xml:space="preserve">
-    <value>Failed to initialize remote interactive process.</value>
-  </data>
-  <data name="Interactive_Host_not_initialized" xml:space="preserve">
-    <value>Interactive Host not initialized.</value>
   </data>
 </root>

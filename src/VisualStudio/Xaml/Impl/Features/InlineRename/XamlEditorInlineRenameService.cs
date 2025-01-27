@@ -13,7 +13,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
@@ -29,6 +28,13 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
         public XamlEditorInlineRenameService(IXamlRenameInfoService renameService)
         {
             _renameService = renameService;
+        }
+
+        public bool IsEnabled => true;
+
+        public Task<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty);
         }
 
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
@@ -82,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
                 return new InlineRenameLocationSet(
                     _renameInfo, _document.Project.Solution,
-                    references.ToImmutableArray());
+                    [.. references]);
             }
 
             public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)

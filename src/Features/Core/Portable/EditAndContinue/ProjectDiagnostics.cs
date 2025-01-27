@@ -29,6 +29,6 @@ internal static partial class Extensions
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 }

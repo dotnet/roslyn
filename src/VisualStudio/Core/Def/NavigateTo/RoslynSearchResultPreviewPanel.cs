@@ -4,11 +4,11 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Search.Data;
 using Microsoft.VisualStudio.Search.UI.PreviewPanel.Models;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
@@ -31,6 +31,8 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             ImageId icon)
             : base(title, icon)
         {
+            Contract.ThrowIfFalse(uri.IsAbsoluteUri, $"{nameof(TextDocumentLocation)} assumes the URI is an absolute URI and invokes {nameof(Uri.LocalPath)}.");
+
             UserInterface = new CodeEditorModel(
                 nameof(RoslynSearchResultPreviewPanel),
                 new VisualStudio.Threading.AsyncLazy<TextDocumentLocation>(() =>

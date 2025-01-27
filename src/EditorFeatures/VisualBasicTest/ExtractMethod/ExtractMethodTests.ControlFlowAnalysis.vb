@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
-    Partial Public Class ExtractMethodTests
+    Partial Public NotInheritable Class ExtractMethodTests
         ''' <summary>
         ''' This contains tests for Extract Method components that depend on Control Flow Analysis API
         ''' (A) Selection Validator

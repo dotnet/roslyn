@@ -67,9 +67,14 @@
         <target state="translated">Die Anzahl muss positiv sein und auf eine Position in der dem Zeichenfolge/Array/Sammlung verweisen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ArgumentOutOfRange_Index">
+      <trans-unit id="ArgumentOutOfRange_IndexMustBeLess">
         <source>Index was out of range. Must be non-negative and less than the size of the collection.</source>
         <target state="translated">Der Index lag außerhalb des Bereichs. Er darf nicht negativ und kleiner als die Sammlung sein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_IndexMustBeLessOrEqual">
+        <source>Index was out of range. Must be non-negative and less than or equal to the size of the collection.</source>
+        <target state="translated">Der Index lag außerhalb des gültigen Bereichs. Muss nicht negativ und kleiner oder gleich der Größe der Auflistung sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ArgumentOutOfRange_ListInsert">
@@ -92,7 +97,7 @@
         <target state="translated">Es wurde bereits ein Element mit dem gleichen Schlüssel hinzugefügt. Schlüssel: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Argument_InvalidArrayType">
+      <trans-unit id="Argument_IncompatibleArrayType">
         <source>Target array type is not compatible with the type of items in the collection.</source>
         <target state="translated">Der Typ des Zielarrays ist mit dem Typ der Elemente in der Sammlung nicht kompatibel.</target>
         <note />

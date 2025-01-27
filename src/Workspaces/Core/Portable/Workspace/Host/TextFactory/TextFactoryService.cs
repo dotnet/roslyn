@@ -11,31 +11,30 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+[ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Default), Shared]
+internal sealed class TextFactoryService : ITextFactoryService
 {
-    [ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Default), Shared]
-    internal sealed class TextFactoryService : ITextFactoryService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public TextFactoryService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TextFactoryService()
-        {
-        }
+    }
 
-        public SourceText CreateText(Stream stream, Encoding? defaultEncoding, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            return EncodedStringText.Create(stream, defaultEncoding, checksumAlgorithm);
-        }
+    public SourceText CreateText(Stream stream, Encoding? defaultEncoding, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return EncodedStringText.Create(stream, defaultEncoding, checksumAlgorithm);
+    }
 
-        public SourceText CreateText(TextReader reader, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+    public SourceText CreateText(TextReader reader, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
 
-            return (reader is TextReaderWithLength textReaderWithLength)
-                ? SourceText.From(textReaderWithLength, textReaderWithLength.Length, encoding, checksumAlgorithm)
-                : SourceText.From(reader.ReadToEnd(), encoding, checksumAlgorithm);
-        }
+        return (reader is TextReaderWithLength textReaderWithLength)
+            ? SourceText.From(textReaderWithLength, textReaderWithLength.Length, encoding, checksumAlgorithm)
+            : SourceText.From(reader.ReadToEnd(), encoding, checksumAlgorithm);
     }
 }
 

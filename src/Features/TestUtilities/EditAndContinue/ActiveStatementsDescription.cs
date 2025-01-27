@@ -10,7 +10,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public readonly ActiveStatementsMap OldStatementsMap;
         public readonly ImmutableArray<SourceFileSpan> NewMappedSpans;
         public readonly ImmutableArray<ImmutableArray<SourceFileSpan>> NewMappedRegions;
-        public readonly ImmutableArray<LinePositionSpan> OldUnmappedTrackingSpans;
+        public readonly ImmutableArray<ActiveStatementLineSpan> OldUnmappedTrackingSpans;
 
         private ActiveStatementsDescription()
         {
@@ -53,20 +52,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var activeStatementCount = Math.Max(OldStatements.Length, (newActiveStatementMarkers.Length == 0) ? -1 : newActiveStatementMarkers.Max(m => m.Id));
 
-            var newMappedSpans = new ArrayBuilder<SourceFileSpan>();
-            var newMappedRegions = new ArrayBuilder<ImmutableArray<SourceFileSpan>>();
+            using var _1 = ArrayBuilder<SourceFileSpan>.GetInstance(out var newMappedSpans);
+            using var _2 = ArrayBuilder<ImmutableArray<SourceFileSpan>>.GetInstance(out var newMappedRegions);
             var newExceptionRegionMarkers = SourceMarkers.GetExceptionRegions(newMarkedSource);
 
             newMappedSpans.ZeroInit(activeStatementCount);
             newMappedRegions.ZeroInit(activeStatementCount);
 
             // initialize with deleted spans (they will retain their file path):
-            foreach (var oldStatement in OldStatements)
+            for (var i = 0; i < OldStatements.Length; i++)
             {
+                var oldStatement = OldStatements[i];
                 if (oldStatement.Statement != null)
                 {
-                    newMappedSpans[oldStatement.Statement.Ordinal] = new SourceFileSpan(oldStatement.Statement.FilePath, default);
-                    newMappedRegions[oldStatement.Statement.Ordinal] = [];
+                    newMappedSpans[i] = new SourceFileSpan(oldStatement.Statement.FilePath, default);
+                    newMappedRegions[i] = [];
                 }
             }
 
@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // edits the source and we get their positions when analyzing the new source.
             // The EnC analyzer uses old tracking spans as hints to find matching nodes.
             var newText = newTree.GetText();
-            OldUnmappedTrackingSpans = SourceMarkers.GetTrackingSpans(newMarkedSource, activeStatementCount).
-                SelectAsArray(s => newText.Lines.GetLinePositionSpan(s));
+            OldUnmappedTrackingSpans = SourceMarkers.GetTrackingSpans(newMarkedSource).
+                SelectAsArray(s => new ActiveStatementLineSpan(new ActiveStatementId(s.id), newText.Lines.GetLinePositionSpan(s.span)));
         }
 
         internal static ImmutableArray<UnmappedActiveStatement> CreateActiveStatementMapFromMarkers(
@@ -99,13 +99,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var activeStatementMarkers = SourceMarkers.GetActiveSpans(markedSource).ToArray();
             var exceptionRegionMarkers = SourceMarkers.GetExceptionRegions(markedSource);
 
-            return activeStatementMarkers.Aggregate(
+            return [.. activeStatementMarkers.Aggregate(
                 new List<UnmappedActiveStatement>(),
                 (list, marker) =>
                 {
                     var (unmappedSpan, ordinal) = marker;
                     var mappedSpan = tree.GetMappedLineSpan(unmappedSpan);
-                    var documentActiveStatements = documentMap.GetOrAdd(mappedSpan.Path, path => new List<ActiveStatement>());
+                    var documentActiveStatements = documentMap.GetOrAdd(mappedSpan.Path, path => []);
 
                     var statementFlags = (flags != null) ? flags[ordinal] :
                         ((ordinal == 0) ? ActiveStatementFlags.LeafFrame : ActiveStatementFlags.NonLeafFrame) | ActiveStatementFlags.MethodUpToDate;
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     var unmappedActiveStatement = new UnmappedActiveStatement(
                         unmappedSpan,
                         new ActiveStatement(
-                            ordinal,
+                            new ActiveStatementId(ordinal),
                             statementFlags,
                             mappedSpan,
                             instructionId: default),
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                     documentActiveStatements.Add(unmappedActiveStatement.Statement);
                     return SourceMarkers.SetListItem(list, ordinal, unmappedActiveStatement);
-                }).ToImmutableArray();
+                })];
         }
 
         internal static ImmutableArray<UnmappedActiveStatement> GetUnmappedActiveStatements(
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var map = new Dictionary<string, List<ActiveStatement>>();
 
-            var activeStatements = new ArrayBuilder<UnmappedActiveStatement>();
+            using var _ = ArrayBuilder<UnmappedActiveStatement>.GetInstance(out var activeStatements);
 
             var sourceIndex = 0;
             foreach (var markedSource in markedSources)
@@ -150,8 +150,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 sourceIndex++;
             }
 
-            activeStatements.Sort((x, y) => x.Statement.Ordinal.CompareTo(y.Statement.Ordinal));
-            return activeStatements.ToImmutable();
+            activeStatements.Sort((x, y) => x.Statement.Id.Ordinal.CompareTo(y.Statement.Id.Ordinal));
+            return activeStatements.ToImmutableAndClear();
         }
 
         internal static ImmutableArray<ManagedActiveStatementDebugInfo> GetActiveStatementDebugInfos(
@@ -167,11 +167,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 new ManagedActiveStatementDebugInfo(
                     new ManagedInstructionId(
                         new ManagedMethodId(
-                            (modules != null) ? modules[statement.Ordinal] : moduleId,
+                            (modules != null) ? modules[statement.Id.Ordinal] : moduleId,
                             new ManagedModuleMethodId(
-                                token: 0x06000000 | (methodRowIds != null ? methodRowIds[statement.Ordinal] : statement.Ordinal + 1),
-                                version: (methodVersions != null) ? methodVersions[statement.Ordinal] : 1)),
-                        ilOffset: (ilOffsets != null) ? ilOffsets[statement.Ordinal] : 0),
+                                token: 0x06000000 | (methodRowIds != null ? methodRowIds[statement.Id.Ordinal] : statement.Id.Ordinal + 1),
+                                version: (methodVersions != null) ? methodVersions[statement.Id.Ordinal] : 1)),
+                        ilOffset: (ilOffsets != null) ? ilOffsets[statement.Id.Ordinal] : 0),
                     documentName: statement.FilePath,
                     sourceSpan: statement.Span.ToSourceSpan(),
                     flags: statement.Flags));

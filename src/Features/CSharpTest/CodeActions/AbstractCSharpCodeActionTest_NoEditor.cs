@@ -4,16 +4,14 @@
 
 #nullable disable
 
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
-{
-    public abstract class AbstractCSharpCodeActionTest_NoEditor : AbstractCodeActionTest_NoEditor
-    {
-        protected override ParseOptions GetScriptOptions() => TestOptions.Script;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 
-        protected internal override string GetLanguage() => LanguageNames.CSharp;
-    }
+public abstract class AbstractCSharpCodeActionTest_NoEditor : AbstractCodeActionTest_NoEditor
+{
+    protected override ParseOptions GetScriptOptions() => TestOptions.Script;
+
+    protected internal override string GetLanguage() => LanguageNames.CSharp;
 }

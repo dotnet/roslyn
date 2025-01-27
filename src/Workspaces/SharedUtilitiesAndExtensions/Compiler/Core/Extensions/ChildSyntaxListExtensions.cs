@@ -5,32 +5,31 @@
 using System;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal static class ChildSyntaxListExtensions
 {
-    internal static class ChildSyntaxListExtensions
+    public static SyntaxNodeOrToken First(this ChildSyntaxList childSyntaxList, Func<SyntaxNodeOrToken, bool> predicate)
     {
-        public static SyntaxNodeOrToken First(this ChildSyntaxList childSyntaxList, Func<SyntaxNodeOrToken, bool> predicate)
+        foreach (var syntaxNodeOrToken in childSyntaxList)
         {
-            foreach (var syntaxNodeOrToken in childSyntaxList)
-            {
-                if (predicate(syntaxNodeOrToken))
-                    return syntaxNodeOrToken;
-            }
-
-            // Delegate to Enumerable.Last which will throw the exception.
-            return Enumerable.First(childSyntaxList, predicate);
+            if (predicate(syntaxNodeOrToken))
+                return syntaxNodeOrToken;
         }
 
-        public static SyntaxNodeOrToken Last(this ChildSyntaxList childSyntaxList, Func<SyntaxNodeOrToken, bool> predicate)
-        {
-            foreach (var syntaxNodeOrToken in childSyntaxList.Reverse())
-            {
-                if (predicate(syntaxNodeOrToken))
-                    return syntaxNodeOrToken;
-            }
+        // Delegate to Enumerable.Last which will throw the exception.
+        return Enumerable.First(childSyntaxList, predicate);
+    }
 
-            // Delegate to Enumerable.Last which will throw the exception.
-            return Enumerable.Last(childSyntaxList, predicate);
+    public static SyntaxNodeOrToken Last(this ChildSyntaxList childSyntaxList, Func<SyntaxNodeOrToken, bool> predicate)
+    {
+        foreach (var syntaxNodeOrToken in childSyntaxList.Reverse())
+        {
+            if (predicate(syntaxNodeOrToken))
+                return syntaxNodeOrToken;
         }
+
+        // Delegate to Enumerable.Last which will throw the exception.
+        return Enumerable.Last(childSyntaxList, predicate);
     }
 }

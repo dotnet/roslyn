@@ -71,8 +71,8 @@ public class InvalidIdentifierStructureTests : AbstractSyntaxStructureProviderTe
                 """;
 
         await VerifyBlockSpansAsync(code,
-            Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
+            Region("textspan3", "/* now everything is commented (); ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-            Region("textspan3", "/* now everything is commented (); ...", autoCollapse: true));
+            Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 }

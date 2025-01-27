@@ -34,5 +34,14 @@
     // ms-azure-devops.azure-pipelines settings
     "azure-pipelines.customSchemaFile": ".vscode/dnceng-schema.json",
     "dotnet.defaultSolution": "Roslyn.sln",
-    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true
+    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+    "dotnet.testWindow.disableAutoDiscovery": true,
+    "dotnet.testWindow.disableBuildOnRefresh": true,
+    "cSpell.words": [
+        "Nerdbank",
+        "NETCOREAPP",
+        "Unregistration",
+        "Unregistrations",
+        "Xunit"
+    ]
 }

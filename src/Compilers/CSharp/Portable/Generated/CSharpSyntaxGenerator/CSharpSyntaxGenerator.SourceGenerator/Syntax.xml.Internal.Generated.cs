@@ -3201,6 +3201,71 @@ internal sealed partial class LiteralExpressionSyntax : ExpressionSyntax
         => new LiteralExpressionSyntax(this.Kind, this.token, GetDiagnostics(), annotations);
 }
 
+/// <summary>Class which represents the syntax node for a field expression.</summary>
+internal sealed partial class FieldExpressionSyntax : ExpressionSyntax
+{
+    internal readonly SyntaxToken token;
+
+    internal FieldExpressionSyntax(SyntaxKind kind, SyntaxToken token, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(token);
+        this.token = token;
+    }
+
+    internal FieldExpressionSyntax(SyntaxKind kind, SyntaxToken token, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(token);
+        this.token = token;
+    }
+
+    internal FieldExpressionSyntax(SyntaxKind kind, SyntaxToken token)
+      : base(kind)
+    {
+        this.SlotCount = 1;
+        this.AdjustFlagsAndWidth(token);
+        this.token = token;
+    }
+
+    /// <summary>SyntaxToken representing the field keyword.</summary>
+    public SyntaxToken Token => this.token;
+
+    internal override GreenNode? GetSlot(int index)
+        => index == 0 ? this.token : null;
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.FieldExpressionSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFieldExpression(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFieldExpression(this);
+
+    public FieldExpressionSyntax Update(SyntaxToken token)
+    {
+        if (token != this.Token)
+        {
+            var newNode = SyntaxFactory.FieldExpression(token);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new FieldExpressionSyntax(this.Kind, this.token, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new FieldExpressionSyntax(this.Kind, this.token, GetDiagnostics(), annotations);
+}
+
 /// <summary>Class which represents the syntax node for MakeRef expression.</summary>
 internal sealed partial class MakeRefExpressionSyntax : ExpressionSyntax
 {
@@ -15864,6 +15929,7 @@ internal sealed partial class AttributeSyntax : CSharpSyntaxNode
     internal AttributeSyntax(SyntaxKind kind, NameSyntax name, AttributeArgumentListSyntax? argumentList, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
       : base(kind, diagnostics, annotations)
     {
+        SetFlags(NodeFlags.ContainsAttributes);
         this.SlotCount = 2;
         this.AdjustFlagsAndWidth(name);
         this.name = name;
@@ -15878,6 +15944,7 @@ internal sealed partial class AttributeSyntax : CSharpSyntaxNode
       : base(kind)
     {
         this.SetFactoryContext(context);
+        SetFlags(NodeFlags.ContainsAttributes);
         this.SlotCount = 2;
         this.AdjustFlagsAndWidth(name);
         this.name = name;
@@ -15891,6 +15958,7 @@ internal sealed partial class AttributeSyntax : CSharpSyntaxNode
     internal AttributeSyntax(SyntaxKind kind, NameSyntax name, AttributeArgumentListSyntax? argumentList)
       : base(kind)
     {
+        SetFlags(NodeFlags.ContainsAttributes);
         this.SlotCount = 2;
         this.AdjustFlagsAndWidth(name);
         this.name = name;
@@ -18710,6 +18778,186 @@ internal sealed partial class DefaultConstraintSyntax : TypeParameterConstraintS
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
         => new DefaultConstraintSyntax(this.Kind, this.defaultKeyword, GetDiagnostics(), annotations);
+}
+
+/// <summary>The allows type parameter constraint clause.</summary>
+internal sealed partial class AllowsConstraintClauseSyntax : TypeParameterConstraintSyntax
+{
+    internal readonly SyntaxToken allowsKeyword;
+    internal readonly GreenNode? constraints;
+
+    internal AllowsConstraintClauseSyntax(SyntaxKind kind, SyntaxToken allowsKeyword, GreenNode? constraints, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(allowsKeyword);
+        this.allowsKeyword = allowsKeyword;
+        if (constraints != null)
+        {
+            this.AdjustFlagsAndWidth(constraints);
+            this.constraints = constraints;
+        }
+    }
+
+    internal AllowsConstraintClauseSyntax(SyntaxKind kind, SyntaxToken allowsKeyword, GreenNode? constraints, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(allowsKeyword);
+        this.allowsKeyword = allowsKeyword;
+        if (constraints != null)
+        {
+            this.AdjustFlagsAndWidth(constraints);
+            this.constraints = constraints;
+        }
+    }
+
+    internal AllowsConstraintClauseSyntax(SyntaxKind kind, SyntaxToken allowsKeyword, GreenNode? constraints)
+      : base(kind)
+    {
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(allowsKeyword);
+        this.allowsKeyword = allowsKeyword;
+        if (constraints != null)
+        {
+            this.AdjustFlagsAndWidth(constraints);
+            this.constraints = constraints;
+        }
+    }
+
+    public SyntaxToken AllowsKeyword => this.allowsKeyword;
+    /// <summary>Gets the constraints list.</summary>
+    public CoreSyntax.SeparatedSyntaxList<AllowsConstraintSyntax> Constraints => new CoreSyntax.SeparatedSyntaxList<AllowsConstraintSyntax>(new CoreSyntax.SyntaxList<CSharpSyntaxNode>(this.constraints));
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.allowsKeyword,
+            1 => this.constraints,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.AllowsConstraintClauseSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAllowsConstraintClause(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAllowsConstraintClause(this);
+
+    public AllowsConstraintClauseSyntax Update(SyntaxToken allowsKeyword, CoreSyntax.SeparatedSyntaxList<AllowsConstraintSyntax> constraints)
+    {
+        if (allowsKeyword != this.AllowsKeyword || constraints != this.Constraints)
+        {
+            var newNode = SyntaxFactory.AllowsConstraintClause(allowsKeyword, constraints);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new AllowsConstraintClauseSyntax(this.Kind, this.allowsKeyword, this.constraints, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new AllowsConstraintClauseSyntax(this.Kind, this.allowsKeyword, this.constraints, GetDiagnostics(), annotations);
+}
+
+/// <summary>Base type for allow constraint syntax.</summary>
+internal abstract partial class AllowsConstraintSyntax : CSharpSyntaxNode
+{
+    internal AllowsConstraintSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+    }
+
+    internal AllowsConstraintSyntax(SyntaxKind kind)
+      : base(kind)
+    {
+    }
+}
+
+/// <summary>Ref struct constraint syntax.</summary>
+internal sealed partial class RefStructConstraintSyntax : AllowsConstraintSyntax
+{
+    internal readonly SyntaxToken refKeyword;
+    internal readonly SyntaxToken structKeyword;
+
+    internal RefStructConstraintSyntax(SyntaxKind kind, SyntaxToken refKeyword, SyntaxToken structKeyword, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(refKeyword);
+        this.refKeyword = refKeyword;
+        this.AdjustFlagsAndWidth(structKeyword);
+        this.structKeyword = structKeyword;
+    }
+
+    internal RefStructConstraintSyntax(SyntaxKind kind, SyntaxToken refKeyword, SyntaxToken structKeyword, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(refKeyword);
+        this.refKeyword = refKeyword;
+        this.AdjustFlagsAndWidth(structKeyword);
+        this.structKeyword = structKeyword;
+    }
+
+    internal RefStructConstraintSyntax(SyntaxKind kind, SyntaxToken refKeyword, SyntaxToken structKeyword)
+      : base(kind)
+    {
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(refKeyword);
+        this.refKeyword = refKeyword;
+        this.AdjustFlagsAndWidth(structKeyword);
+        this.structKeyword = structKeyword;
+    }
+
+    /// <summary>Gets the "ref" keyword.</summary>
+    public SyntaxToken RefKeyword => this.refKeyword;
+    /// <summary>Gets the "struct" keyword.</summary>
+    public SyntaxToken StructKeyword => this.structKeyword;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.refKeyword,
+            1 => this.structKeyword,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.RefStructConstraintSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefStructConstraint(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefStructConstraint(this);
+
+    public RefStructConstraintSyntax Update(SyntaxToken refKeyword, SyntaxToken structKeyword)
+    {
+        if (refKeyword != this.RefKeyword || structKeyword != this.StructKeyword)
+        {
+            var newNode = SyntaxFactory.RefStructConstraint(refKeyword, structKeyword);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new RefStructConstraintSyntax(this.Kind, this.refKeyword, this.structKeyword, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new RefStructConstraintSyntax(this.Kind, this.refKeyword, this.structKeyword, GetDiagnostics(), annotations);
 }
 
 internal abstract partial class BaseFieldDeclarationSyntax : MemberDeclarationSyntax
@@ -24097,13 +24345,13 @@ internal abstract partial class DirectiveTriviaSyntax : StructuredTriviaSyntax
     internal DirectiveTriviaSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
       : base(kind, diagnostics, annotations)
     {
-        this.flags |= NodeFlags.ContainsDirectives;
+        SetFlags(NodeFlags.ContainsDirectives);
     }
 
     internal DirectiveTriviaSyntax(SyntaxKind kind)
       : base(kind)
     {
-        this.flags |= NodeFlags.ContainsDirectives;
+        SetFlags(NodeFlags.ContainsDirectives);
     }
 
     public abstract SyntaxToken HashToken { get; }
@@ -26273,6 +26521,7 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitThisExpression(ThisExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitBaseExpression(BaseExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitFieldExpression(FieldExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
@@ -26413,6 +26662,8 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitDefaultConstraint(DefaultConstraintSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitAllowsConstraintClause(AllowsConstraintClauseSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitRefStructConstraint(RefStructConstraintSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
@@ -26518,6 +26769,7 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitThisExpression(ThisExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitBaseExpression(BaseExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitFieldExpression(FieldExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
@@ -26658,6 +26910,8 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
     public virtual void VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
     public virtual void VisitDefaultConstraint(DefaultConstraintSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitAllowsConstraintClause(AllowsConstraintClauseSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitRefStructConstraint(RefStructConstraintSyntax node) => this.DefaultVisit(node);
     public virtual void VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
     public virtual void VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
@@ -26835,6 +27089,9 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
         => node.Update((SyntaxToken)Visit(node.Token));
 
     public override CSharpSyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
+        => node.Update((SyntaxToken)Visit(node.Token));
+
+    public override CSharpSyntaxNode VisitFieldExpression(FieldExpressionSyntax node)
         => node.Update((SyntaxToken)Visit(node.Token));
 
     public override CSharpSyntaxNode VisitMakeRefExpression(MakeRefExpressionSyntax node)
@@ -27256,6 +27513,12 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
 
     public override CSharpSyntaxNode VisitDefaultConstraint(DefaultConstraintSyntax node)
         => node.Update((SyntaxToken)Visit(node.DefaultKeyword));
+
+    public override CSharpSyntaxNode VisitAllowsConstraintClause(AllowsConstraintClauseSyntax node)
+        => node.Update((SyntaxToken)Visit(node.AllowsKeyword), VisitList(node.Constraints));
+
+    public override CSharpSyntaxNode VisitRefStructConstraint(RefStructConstraintSyntax node)
+        => node.Update((SyntaxToken)Visit(node.RefKeyword), (SyntaxToken)Visit(node.StructKeyword));
 
     public override CSharpSyntaxNode VisitFieldDeclaration(FieldDeclarationSyntax node)
         => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (VariableDeclarationSyntax)Visit(node.Declaration), (SyntaxToken)Visit(node.SemicolonToken));
@@ -28419,6 +28682,26 @@ internal partial class ContextAwareSyntax
         if (cached != null) return (LiteralExpressionSyntax)cached;
 
         var result = new LiteralExpressionSyntax(kind, token, this.context);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public FieldExpressionSyntax FieldExpression(SyntaxToken token)
+    {
+#if DEBUG
+        if (token == null) throw new ArgumentNullException(nameof(token));
+        if (token.Kind != SyntaxKind.FieldKeyword) throw new ArgumentException(nameof(token));
+#endif
+
+        int hash;
+        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.FieldExpression, token, this.context, out hash);
+        if (cached != null) return (FieldExpressionSyntax)cached;
+
+        var result = new FieldExpressionSyntax(SyntaxKind.FieldExpression, token, this.context);
         if (hash >= 0)
         {
             SyntaxNodeCache.AddNode(result, hash);
@@ -30780,17 +31063,7 @@ internal partial class ContextAwareSyntax
         if (name == null) throw new ArgumentNullException(nameof(name));
 #endif
 
-        int hash;
-        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.Attribute, name, argumentList, this.context, out hash);
-        if (cached != null) return (AttributeSyntax)cached;
-
-        var result = new AttributeSyntax(SyntaxKind.Attribute, name, argumentList, this.context);
-        if (hash >= 0)
-        {
-            SyntaxNodeCache.AddNode(result, hash);
-        }
-
-        return result;
+        return new AttributeSyntax(SyntaxKind.Attribute, name, argumentList, this.context);
     }
 
     public AttributeArgumentListSyntax AttributeArgumentList(SyntaxToken openParenToken, CoreSyntax.SeparatedSyntaxList<AttributeArgumentSyntax> arguments, SyntaxToken closeParenToken)
@@ -31310,6 +31583,48 @@ internal partial class ContextAwareSyntax
         if (cached != null) return (DefaultConstraintSyntax)cached;
 
         var result = new DefaultConstraintSyntax(SyntaxKind.DefaultConstraint, defaultKeyword, this.context);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public AllowsConstraintClauseSyntax AllowsConstraintClause(SyntaxToken allowsKeyword, CoreSyntax.SeparatedSyntaxList<AllowsConstraintSyntax> constraints)
+    {
+#if DEBUG
+        if (allowsKeyword == null) throw new ArgumentNullException(nameof(allowsKeyword));
+        if (allowsKeyword.Kind != SyntaxKind.AllowsKeyword) throw new ArgumentException(nameof(allowsKeyword));
+#endif
+
+        int hash;
+        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.AllowsConstraintClause, allowsKeyword, constraints.Node, this.context, out hash);
+        if (cached != null) return (AllowsConstraintClauseSyntax)cached;
+
+        var result = new AllowsConstraintClauseSyntax(SyntaxKind.AllowsConstraintClause, allowsKeyword, constraints.Node, this.context);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public RefStructConstraintSyntax RefStructConstraint(SyntaxToken refKeyword, SyntaxToken structKeyword)
+    {
+#if DEBUG
+        if (refKeyword == null) throw new ArgumentNullException(nameof(refKeyword));
+        if (refKeyword.Kind != SyntaxKind.RefKeyword) throw new ArgumentException(nameof(refKeyword));
+        if (structKeyword == null) throw new ArgumentNullException(nameof(structKeyword));
+        if (structKeyword.Kind != SyntaxKind.StructKeyword) throw new ArgumentException(nameof(structKeyword));
+#endif
+
+        int hash;
+        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.RefStructConstraint, refKeyword, structKeyword, this.context, out hash);
+        if (cached != null) return (RefStructConstraintSyntax)cached;
+
+        var result = new RefStructConstraintSyntax(SyntaxKind.RefStructConstraint, refKeyword, structKeyword, this.context);
         if (hash >= 0)
         {
             SyntaxNodeCache.AddNode(result, hash);
@@ -33635,6 +33950,26 @@ internal static partial class SyntaxFactory
         if (cached != null) return (LiteralExpressionSyntax)cached;
 
         var result = new LiteralExpressionSyntax(kind, token);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public static FieldExpressionSyntax FieldExpression(SyntaxToken token)
+    {
+#if DEBUG
+        if (token == null) throw new ArgumentNullException(nameof(token));
+        if (token.Kind != SyntaxKind.FieldKeyword) throw new ArgumentException(nameof(token));
+#endif
+
+        int hash;
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.FieldExpression, token, out hash);
+        if (cached != null) return (FieldExpressionSyntax)cached;
+
+        var result = new FieldExpressionSyntax(SyntaxKind.FieldExpression, token);
         if (hash >= 0)
         {
             SyntaxNodeCache.AddNode(result, hash);
@@ -35996,17 +36331,7 @@ internal static partial class SyntaxFactory
         if (name == null) throw new ArgumentNullException(nameof(name));
 #endif
 
-        int hash;
-        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Attribute, name, argumentList, out hash);
-        if (cached != null) return (AttributeSyntax)cached;
-
-        var result = new AttributeSyntax(SyntaxKind.Attribute, name, argumentList);
-        if (hash >= 0)
-        {
-            SyntaxNodeCache.AddNode(result, hash);
-        }
-
-        return result;
+        return new AttributeSyntax(SyntaxKind.Attribute, name, argumentList);
     }
 
     public static AttributeArgumentListSyntax AttributeArgumentList(SyntaxToken openParenToken, CoreSyntax.SeparatedSyntaxList<AttributeArgumentSyntax> arguments, SyntaxToken closeParenToken)
@@ -36526,6 +36851,48 @@ internal static partial class SyntaxFactory
         if (cached != null) return (DefaultConstraintSyntax)cached;
 
         var result = new DefaultConstraintSyntax(SyntaxKind.DefaultConstraint, defaultKeyword);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public static AllowsConstraintClauseSyntax AllowsConstraintClause(SyntaxToken allowsKeyword, CoreSyntax.SeparatedSyntaxList<AllowsConstraintSyntax> constraints)
+    {
+#if DEBUG
+        if (allowsKeyword == null) throw new ArgumentNullException(nameof(allowsKeyword));
+        if (allowsKeyword.Kind != SyntaxKind.AllowsKeyword) throw new ArgumentException(nameof(allowsKeyword));
+#endif
+
+        int hash;
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AllowsConstraintClause, allowsKeyword, constraints.Node, out hash);
+        if (cached != null) return (AllowsConstraintClauseSyntax)cached;
+
+        var result = new AllowsConstraintClauseSyntax(SyntaxKind.AllowsConstraintClause, allowsKeyword, constraints.Node);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public static RefStructConstraintSyntax RefStructConstraint(SyntaxToken refKeyword, SyntaxToken structKeyword)
+    {
+#if DEBUG
+        if (refKeyword == null) throw new ArgumentNullException(nameof(refKeyword));
+        if (refKeyword.Kind != SyntaxKind.RefKeyword) throw new ArgumentException(nameof(refKeyword));
+        if (structKeyword == null) throw new ArgumentNullException(nameof(structKeyword));
+        if (structKeyword.Kind != SyntaxKind.StructKeyword) throw new ArgumentException(nameof(structKeyword));
+#endif
+
+        int hash;
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.RefStructConstraint, refKeyword, structKeyword, out hash);
+        if (cached != null) return (RefStructConstraintSyntax)cached;
+
+        var result = new RefStructConstraintSyntax(SyntaxKind.RefStructConstraint, refKeyword, structKeyword);
         if (hash >= 0)
         {
             SyntaxNodeCache.AddNode(result, hash);

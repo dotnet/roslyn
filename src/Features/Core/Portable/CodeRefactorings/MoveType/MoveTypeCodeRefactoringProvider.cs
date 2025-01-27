@@ -7,30 +7,25 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
+namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
+
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
+    Name = PredefinedCodeRefactoringProviderNames.MoveTypeToFile), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class MoveTypeCodeRefactoringProvider() : CodeRefactoringProvider
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-        Name = PredefinedCodeRefactoringProviderNames.MoveTypeToFile), Shared]
-    internal class MoveTypeCodeRefactoringProvider : CodeRefactoringProvider
+    public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public MoveTypeCodeRefactoringProvider()
-        {
-        }
+        var (document, textSpan, cancellationToken) = context;
+        if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
+            return;
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
-        {
-            var (document, textSpan, cancellationToken) = context;
-            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
-                return;
+        if (document.IsGeneratedCode(cancellationToken))
+            return;
 
-            if (document.IsGeneratedCode(cancellationToken))
-                return;
-
-            var service = document.GetRequiredLanguageService<IMoveTypeService>();
-            var actions = await service.GetRefactoringAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
-            context.RegisterRefactorings(actions);
-        }
+        var service = document.GetRequiredLanguageService<IMoveTypeService>();
+        var actions = await service.GetRefactoringAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+        context.RegisterRefactorings(actions);
     }
 }

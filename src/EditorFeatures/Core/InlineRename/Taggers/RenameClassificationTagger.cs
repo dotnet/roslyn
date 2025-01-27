@@ -8,22 +8,21 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal class RenameClassificationTagger(ITextBuffer buffer, InlineRenameService renameService, IClassificationType classificationType) : AbstractRenameTagger<IClassificationTag>(buffer, renameService)
 {
-    internal class RenameClassificationTagger(ITextBuffer buffer, InlineRenameService renameService, IClassificationType classificationType) : AbstractRenameTagger<IClassificationTag>(buffer, renameService)
+    private readonly IClassificationType _classificationType = classificationType;
+
+    protected override bool TryCreateTagSpan(SnapshotSpan span, RenameSpanKind type, out TagSpan<IClassificationTag> tagSpan)
     {
-        private readonly IClassificationType _classificationType = classificationType;
-
-        protected override bool TryCreateTagSpan(SnapshotSpan span, RenameSpanKind type, out TagSpan<IClassificationTag> tagSpan)
+        if (type == RenameSpanKind.Reference)
         {
-            if (type == RenameSpanKind.Reference)
-            {
-                tagSpan = new TagSpan<IClassificationTag>(span, new ClassificationTag(_classificationType));
-                return true;
-            }
-
-            tagSpan = null;
-            return false;
+            tagSpan = new TagSpan<IClassificationTag>(span, new ClassificationTag(_classificationType));
+            return true;
         }
+
+        tagSpan = null;
+        return false;
     }
 }

@@ -62,16 +62,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"global using Goo = $$");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestEmptyStatement(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestBeforeStatement(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -81,8 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterStatement(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -92,8 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterBlock(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -104,8 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterIf(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -115,8 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterDo(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -126,8 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterWhile(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -137,8 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterFor(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -148,8 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterForeach(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -159,8 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotInsideLambda(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -171,8 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotInsideAnonymousMethod(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -183,8 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInsideSwitch(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -195,8 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotInsideSwitchWithLambda(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -208,8 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInsideSwitchOutsideLambda(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -222,8 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotAfterBreak(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -241,16 +226,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterYield(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"yield $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterSwitchInSwitch(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -263,8 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterBlockInSwitch(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(

@@ -8,14 +8,12 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
+
+internal interface IProgressionLanguageService : ILanguageService
 {
-    internal interface IProgressionLanguageService : ILanguageService
-    {
-        IEnumerable<SyntaxNode> GetTopLevelNodesFromDocument(SyntaxNode root, CancellationToken cancellationToken);
-        string GetDescriptionForSymbol(ISymbol symbol, bool includeContainingSymbol);
-        string GetLabelForSymbol(ISymbol symbol, bool includeContainingSymbol);
-    }
+    IEnumerable<SyntaxNode> GetTopLevelNodesFromDocument(SyntaxNode root, CancellationToken cancellationToken);
+    string GetDescriptionForSymbol(ISymbol symbol, bool includeContainingSymbol);
+    string GetLabelForSymbol(ISymbol symbol, bool includeContainingSymbol);
 }

@@ -47,11 +47,6 @@
         <target state="translated">Plataforma de proceso de host interactiva</target>
         <note />
       </trans-unit>
-      <trans-unit id="Print_a_list_of_referenced_assemblies">
-        <source>Print a list of referenced assemblies.</source>
-        <target state="translated">Imprima una lista de ensamblados de referencia.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reset_the_execution_environment_to_the_initial_state_and_keep_history_with_the_option_to_switch_the_runtime_of_the_host_process">
         <source>Reset the execution environment to the initial state and keep history, with the option to switch the runtime of the host process.</source>
         <target state="translated">Restablezca el entorno de ejecución al estado inicial y mantenga el historial, con la opción de cambiar el tiempo de ejecución del proceso de host.</target>
@@ -77,9 +72,9 @@
         <target state="translated">La propiedad CurrentWindow solo se puede asignar una vez.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_references_command_is_not_supported_in_this_Interactive_Window_implementation">
-        <source>The references command is not supported in this Interactive Window implementation.</source>
-        <target state="translated">No se admite el comando de referencias en esta implementación de ventana interactiva.</target>
+      <trans-unit id="Toggle_AI_suggestions">
+        <source>Toggle rename suggestions (Ctrl+Space)</source>
+        <target state="translated">Alternar sugerencias de cambio de nombre (Ctrl+Espacio)</target>
         <note />
       </trans-unit>
     </body>

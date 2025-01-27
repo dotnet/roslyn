@@ -15,305 +15,304 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configuration.ConfigureSeverity
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configuration.ConfigureSeverity;
+
+public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTests : AbstractSuppressionDiagnosticTest_NoEditor
 {
-    public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTests : AbstractSuppressionDiagnosticTest_NoEditor
+    protected internal override string GetLanguage() => LanguageNames.CSharp;
+
+    protected override ParseOptions GetScriptOptions() => Options.Script;
+
+    internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
     {
-        protected internal override string GetLanguage() => LanguageNames.CSharp;
+        return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
+                    new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());
+    }
 
-        protected override ParseOptions GetScriptOptions() => Options.Script;
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+    public class ErrorConfigurationTests : CSharpCodeStyleOptionBasedSeverityConfigurationTests
+    {
+        protected override int CodeActionIndex => 4;
 
-        internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_Empty_Error()
         {
-            return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                        new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new ConfigureSeverityLevelCodeFixProvider());
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                public class Class1
+                {
+                    public int Test()
+                    {
+                        var o = 1;
+                        // csharp_style_unused_value_assignment_preference = discard_variable
+                        var [|unused|] = o;
+                        return 1;
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                public class Class1
+                {
+                    public int Test()
+                    {
+                        var o = 1;
+                        // csharp_style_unused_value_assignment_preference = discard_variable
+                        var [|unused|] = o;
+                        return 1;
+                    }
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+
+                # IDE0059: Unnecessary assignment of a value
+                dotnet_diagnostic.IDE0059.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }
 
-        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-        public class ErrorConfigurationTests : CSharpCodeStyleOptionBasedSeverityConfigurationTests
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_ExistingRule_Error()
         {
-            protected override int CodeActionIndex => 4;
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_Empty_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    public class Class1
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                public class Class1
+                {
+                    public int Test()
                     {
-                        public int Test()
-                        {
-                            var o = 1;
-                            // csharp_style_unused_value_assignment_preference = discard_variable
-                            var [|unused|] = o;
-                            return 1;
-                        }
+                        var o = 1;
+                        // csharp_style_unused_value_assignment_preference = discard_variable
+                        var [|unused|] = o;
+                        return 1;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    public class Class1
+                # IDE0059: Unnecessary assignment of a value
+                csharp_style_unused_value_assignment_preference = discard_variable:warning
+                dotnet_diagnostic.IDE0059.severity = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
+
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                public class Class1
+                {
+                    public int Test()
                     {
-                        public int Test()
-                        {
-                            var o = 1;
-                            // csharp_style_unused_value_assignment_preference = discard_variable
-                            var [|unused|] = o;
-                            return 1;
-                        }
+                        var o = 1;
+                        // csharp_style_unused_value_assignment_preference = discard_variable
+                        var [|unused|] = o;
+                        return 1;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
 
-                    # IDE0059: Unnecessary assignment of a value
-                    dotnet_diagnostic.IDE0059.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                # IDE0059: Unnecessary assignment of a value
+                csharp_style_unused_value_assignment_preference = discard_variable:error
+                dotnet_diagnostic.IDE0059.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_ExistingRule_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    public class Class1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_ExistingRuleDotNetHeader_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                public class Class1
+                {
+                    public int Test()
                     {
-                        public int Test()
-                        {
-                            var o = 1;
-                            // csharp_style_unused_value_assignment_preference = discard_variable
-                            var [|unused|] = o;
-                            return 1;
-                        }
+                        var o = 1;
+                        // csharp_style_unused_value_assignment_preference = discard_variable
+                        var [|unused|] = o;
+                        return 1;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
 
-                    # IDE0059: Unnecessary assignment of a value
-                    csharp_style_unused_value_assignment_preference = discard_variable:warning
-                    dotnet_diagnostic.IDE0059.severity = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                # IDE0059: Unnecessary assignment of a value
+                csharp_style_unused_value_assignment_preference = discard_variable:warning
+                dotnet_diagnostic.IDE0059.severity = suggestion
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    public class Class1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                public class Class1
+                {
+                    public int Test()
                     {
-                        public int Test()
-                        {
-                            var o = 1;
-                            // csharp_style_unused_value_assignment_preference = discard_variable
-                            var [|unused|] = o;
-                            return 1;
-                        }
+                        var o = 1;
+                        // csharp_style_unused_value_assignment_preference = discard_variable
+                        var [|unused|] = o;
+                        return 1;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
 
-                    # IDE0059: Unnecessary assignment of a value
-                    csharp_style_unused_value_assignment_preference = discard_variable:error
-                    dotnet_diagnostic.IDE0059.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                # IDE0059: Unnecessary assignment of a value
+                csharp_style_unused_value_assignment_preference = discard_variable:error
+                dotnet_diagnostic.IDE0059.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_ExistingRuleDotNetHeader_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    public class Class1
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_ChooseBestHeader_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                public class Class1
+                {
+                    public int Test()
                     {
-                        public int Test()
-                        {
-                            var o = 1;
-                            // csharp_style_unused_value_assignment_preference = discard_variable
-                            var [|unused|] = o;
-                            return 1;
-                        }
+                        var o = 1;
+                        // csharp_style_unused_value_assignment_preference = discard_variable
+                        var [|unused|] = o;
+                        return 1;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                csharp_style_expression_bodied_methods = false:silent
 
-                    # IDE0059: Unnecessary assignment of a value
-                    csharp_style_unused_value_assignment_preference = discard_variable:warning
-                    dotnet_diagnostic.IDE0059.severity = suggestion
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                [*.{vb,cs}]
+                dotnet_style_qualification_for_field = false:silent
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    public class Class1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                public class Class1
+                {
+                    public int Test()
                     {
-                        public int Test()
-                        {
-                            var o = 1;
-                            // csharp_style_unused_value_assignment_preference = discard_variable
-                            var [|unused|] = o;
-                            return 1;
-                        }
+                        var o = 1;
+                        // csharp_style_unused_value_assignment_preference = discard_variable
+                        var [|unused|] = o;
+                        return 1;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
+                csharp_style_expression_bodied_methods = false:silent
 
-                    # IDE0059: Unnecessary assignment of a value
-                    csharp_style_unused_value_assignment_preference = discard_variable:error
-                    dotnet_diagnostic.IDE0059.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                # IDE0059: Unnecessary assignment of a value
+                dotnet_diagnostic.IDE0059.severity = error
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+                [*.{vb,cs}]
+                dotnet_style_qualification_for_field = false:silent
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_ChooseBestHeader_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    public class Class1
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public async Task ConfigureEditorconfig_ChooseBestHeaderReversed_Error()
+        {
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                public class Class1
+                {
+                    public int Test()
                     {
-                        public int Test()
-                        {
-                            var o = 1;
-                            // csharp_style_unused_value_assignment_preference = discard_variable
-                            var [|unused|] = o;
-                            return 1;
-                        }
+                        var o = 1;
+                        // csharp_style_unused_value_assignment_preference = discard_variable
+                        var [|unused|] = o;
+                        return 1;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    csharp_style_expression_bodied_methods = false:silent
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
+                dotnet_style_qualification_for_field = false:silent
 
-                    [*.{vb,cs}]
-                    dotnet_style_qualification_for_field = false:silent
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                [*.cs]
+                csharp_style_expression_bodied_methods = false:silent
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    public class Class1
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document FilePath="z:\\Program.cs">
+                public class Class1
+                {
+                    public int Test()
                     {
-                        public int Test()
-                        {
-                            var o = 1;
-                            // csharp_style_unused_value_assignment_preference = discard_variable
-                            var [|unused|] = o;
-                            return 1;
-                        }
+                        var o = 1;
+                        // csharp_style_unused_value_assignment_preference = discard_variable
+                        var [|unused|] = o;
+                        return 1;
                     }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.cs]
-                    csharp_style_expression_bodied_methods = false:silent
+                }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
+                dotnet_style_qualification_for_field = false:silent
 
-                    # IDE0059: Unnecessary assignment of a value
-                    dotnet_diagnostic.IDE0059.severity = error
+                [*.cs]
+                csharp_style_expression_bodied_methods = false:silent
 
-                    [*.{vb,cs}]
-                    dotnet_style_qualification_for_field = false:silent
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
+                # IDE0059: Unnecessary assignment of a value
+                dotnet_diagnostic.IDE0059.severity = error
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """;
 
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
-
-            [ConditionalFact(typeof(IsEnglishLocal))]
-            public async Task ConfigureEditorconfig_ChooseBestHeaderReversed_Error()
-            {
-                var input = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    public class Class1
-                    {
-                        public int Test()
-                        {
-                            var o = 1;
-                            // csharp_style_unused_value_assignment_preference = discard_variable
-                            var [|unused|] = o;
-                            return 1;
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
-                    dotnet_style_qualification_for_field = false:silent
-
-                    [*.cs]
-                    csharp_style_expression_bodied_methods = false:silent
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                var expected = """
-                    <Workspace>
-                        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                            <Document FilePath="z:\\Program.cs">
-                    public class Class1
-                    {
-                        public int Test()
-                        {
-                            var o = 1;
-                            // csharp_style_unused_value_assignment_preference = discard_variable
-                            var [|unused|] = o;
-                            return 1;
-                        }
-                    }
-                            </Document>
-                            <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[*.{vb,cs}]
-                    dotnet_style_qualification_for_field = false:silent
-
-                    [*.cs]
-                    csharp_style_expression_bodied_methods = false:silent
-
-                    # IDE0059: Unnecessary assignment of a value
-                    dotnet_diagnostic.IDE0059.severity = error
-                    </AnalyzerConfigDocument>
-                        </Project>
-                    </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
-            }
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
         }
     }
 }

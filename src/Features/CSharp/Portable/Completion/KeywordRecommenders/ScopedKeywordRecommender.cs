@@ -6,43 +6,42 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal sealed class ScopedKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.ScopedKeyword)
 {
-    internal sealed class ScopedKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.ScopedKeyword)
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        var syntaxTree = context.SyntaxTree;
+        return
+            syntaxTree.IsParameterModifierContext(position, context.LeftToken, includeOperators: true, out _, out _) ||
+            syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
+            syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
+            IsValidScopedLocalContext(context);
+    }
+
+    private static bool IsValidScopedLocalContext(CSharpSyntaxContext context)
+    {
+        // scoped ref var x ...
+        if (context.IsStatementContext || context.IsGlobalStatementContext)
         {
-            var syntaxTree = context.SyntaxTree;
-            return
-                syntaxTree.IsParameterModifierContext(position, context.LeftToken, includeOperators: true, out _, out _) ||
-                syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
-                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
-                IsValidScopedLocalContext(context);
+            return true;
         }
 
-        private static bool IsValidScopedLocalContext(CSharpSyntaxContext context)
+        var token = context.TargetToken;
+        switch (token.Kind())
         {
-            // scoped ref var x ...
-            if (context.IsStatementContext || context.IsGlobalStatementContext)
-            {
-                return true;
-            }
+            // for (scoped ref var x ...
+            // foreach (scoped ...
+            case SyntaxKind.OpenParenToken:
+                var previous = token.GetPreviousToken(includeSkipped: true);
+                return previous.Kind() is SyntaxKind.ForKeyword or SyntaxKind.ForEachKeyword;
 
-            var token = context.TargetToken;
-            switch (token.Kind())
-            {
-                // for (scoped ref var x ...
-                // foreach (scoped ...
-                case SyntaxKind.OpenParenToken:
-                    var previous = token.GetPreviousToken(includeSkipped: true);
-                    return previous.Kind() is SyntaxKind.ForKeyword or SyntaxKind.ForEachKeyword;
-
-                // M(out scoped ..)
-                case SyntaxKind.OutKeyword:
-                    return token.Parent is ArgumentSyntax;
-            }
-
-            return false;
+            // M(out scoped ..)
+            case SyntaxKind.OutKeyword:
+                return token.Parent is ArgumentSyntax;
         }
+
+        return false;
     }
 }

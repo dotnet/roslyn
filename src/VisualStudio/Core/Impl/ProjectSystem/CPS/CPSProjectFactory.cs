@@ -6,10 +6,8 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -18,7 +16,6 @@ using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
@@ -36,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         /// Solutions containing projects that use older compiler toolset that does not provide a checksum algorithm.
         /// Used only for EnC issue diagnostics.
         /// </summary>
-        private ImmutableHashSet<string> _solutionsWithMissingChecksumAlgorithm = ImmutableHashSet<string>.Empty;
+        private ImmutableHashSet<string> _solutionsWithMissingChecksumAlgorithm = [];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -107,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             public override ImmutableArray<string> GetItemValues(string name)
                 => name switch
                 {
-                    BuildPropertyNames.IntermediateAssembly => ImmutableArray.Create(OutputAssembly),
+                    BuildPropertyNames.IntermediateAssembly => [OutputAssembly],
                     _ => throw ExceptionUtilities.UnexpectedValue(name)
                 };
         }
@@ -183,7 +180,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             // Set the properties in a batch; if we set the property directly we'll be taking a synchronous lock here and
             // potentially block up thread pool threads. Doing this in a batch means the global lock will be acquired asynchronously.
-            project.StartBatch();
+            var disposableBatchScope = await project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+            await using var _ = disposableBatchScope.ConfigureAwait(false);
 
             if (!string.IsNullOrEmpty(commandLineArgs))
             {
@@ -196,8 +194,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
 
             project.BinOutputPath = binOutputPath;
-
-            await project.EndBatchAsync().ConfigureAwait(false);
 
             return project;
         }
@@ -227,7 +223,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 throw new InvalidProjectDataException(itemName, values[0], $"Item group '{itemName}' is required to specify an absolute path or a path relative to the directory containing the project: '{values[0]}'.");
             }
 
-            return path;
+            // normalize "." and ".." on the way out
+            return FileUtilities.TryNormalizeAbsolutePath(path) ?? path;
         }
     }
 }

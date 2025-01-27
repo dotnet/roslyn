@@ -6,15 +6,12 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -80,10 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 MainPanel.Children.Insert(index + 1, smartRenameControl);
             }
 
-            RefreshColors();
-
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
-            _editorFormatMap.FormatMappingChanged += FormatMappingChanged;
 
             // Dismiss any current tooltips. Note that this does not disable tooltips
             // from showing up again, so if a user has the mouse unmoved another
@@ -94,20 +88,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         internal IRenameUserInput RenameUserInput { get; }
-
-        private void FormatMappingChanged(object sender, FormatItemsEventArgs e)
-        {
-            RefreshColors();
-        }
-
-        private void RefreshColors()
-        {
-            if (_wpfThemeService is not null)
-            {
-                Outline.BorderBrush = new SolidColorBrush(_wpfThemeService.GetThemeColor(EnvironmentColors.AccentBorderColorKey));
-                Background = new SolidColorBrush(_wpfThemeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
-            }
-        }
 
         private async Task DismissToolTipsAsync()
         {
@@ -129,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string PreviewChanges => EditorFeaturesResources.Preview_changes1;
         public string SubmitText
             => _viewModel.SmartRenameViewModel is not null
-            ? EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion
+            ? _viewModel.SmartRenameViewModel.SubmitTextOverride
             : EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 #pragma warning restore CA1822 // Mark members as static
 
@@ -178,7 +158,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.LayoutChanged -= TextView_LayoutChanged;
             _textView.ViewportHeightChanged -= TextView_ViewPortChanged;
             _textView.ViewportWidthChanged -= TextView_ViewPortChanged;
-            _editorFormatMap.FormatMappingChanged -= FormatMappingChanged;
 
             // Restore focus back to the textview
             _textView.VisualElement.Focus();
@@ -205,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     break;
 
                 case Key.Tab:
-                    // We don't want tab to lose focus for the adornment, so manually 
+                    // We don't want tab to lose focus for the adornment, so manually
                     // loop focus back to the first item that is focusable.
                     var lastItem = _viewModel.IsExpanded
                         ? FileRenameCheckbox
@@ -222,11 +201,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 case Key.Space:
                     if (Keyboard.Modifiers == ModifierKeys.Control)
                     {
-                        e.Handled = true;
-                        // If smart rename is available, trigger it.
-                        if (_viewModel.SmartRenameViewModel is not null && _viewModel.SmartRenameViewModel.GetSuggestionsCommand.CanExecute(null))
+                        // If smart rename is available, trigger or toggle it.
+                        if (_viewModel.SmartRenameViewModel is not null)
                         {
-                            _viewModel.SmartRenameViewModel.GetSuggestionsCommand.Execute(null);
+                            _viewModel.SmartRenameViewModel.ToggleOrTriggerSuggestions();
+                            e.Handled = true;
                         }
                     }
                     break;

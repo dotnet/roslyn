@@ -11,8 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private struct UIntTC : INumericTC<uint>
+        private class UIntTC : INumericTC<uint>
         {
+            public static readonly UIntTC Instance = new UIntTC();
+
             uint INumericTC<uint>.MinValue => uint.MinValue;
 
             uint INumericTC<uint>.MaxValue => uint.MaxValue;

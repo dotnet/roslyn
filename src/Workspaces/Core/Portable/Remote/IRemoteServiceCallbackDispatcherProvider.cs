@@ -4,10 +4,9 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal interface IRemoteServiceCallbackDispatcherProvider
 {
-    internal interface IRemoteServiceCallbackDispatcherProvider
-    {
-        IRemoteServiceCallbackDispatcher GetDispatcher(Type serviceType);
-    }
+    IRemoteServiceCallbackDispatcher GetDispatcher(Type serviceType);
 }

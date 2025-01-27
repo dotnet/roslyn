@@ -6,17 +6,16 @@
 
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
+
+internal sealed class KeywordHighlightTag : NavigableHighlightTag
 {
-    internal sealed class KeywordHighlightTag : NavigableHighlightTag
+    internal const string TagId = "MarkerFormatDefinition/HighlightedReference";
+
+    public static readonly KeywordHighlightTag Instance = new();
+
+    private KeywordHighlightTag()
+        : base(TagId)
     {
-        internal const string TagId = "MarkerFormatDefinition/HighlightedReference";
-
-        public static readonly KeywordHighlightTag Instance = new();
-
-        private KeywordHighlightTag()
-            : base(TagId)
-        {
-        }
     }
 }

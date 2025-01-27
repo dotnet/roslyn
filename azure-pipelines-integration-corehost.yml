@@ -4,17 +4,11 @@
 trigger:
   branches:
     include:
-    - main
-    - main-vs-deps
-    - release/*
-    - features/*
-    - demos/*
-    exclude:
-    # Since the version of VS on the integration VM images are a moving target,
-    # we are unable to reliably run integration tests on servicing branches.
-    - release/dev17.0-vs-deps
-    - release/dev17.2
-    - release/dev17.3
+    - release/dev17.4
+    - release/dev17.6
+    - release/dev17.8
+    - release/dev17.9
+    - release/dev17.10
 
 # Branches that are allowed to trigger a build via /azp run.
 # Automatic building of all PRs is disabled in the pipeline's trigger page.
@@ -22,17 +16,11 @@ trigger:
 pr:
   branches:
     include:
-    - main
-    - main-vs-deps
-    - release/*
-    - features/*
-    - demos/*
-    exclude:
-    # Since the version of VS on the integration VM images are a moving target,
-    # we are unable to reliably run integration tests on servicing branches.
-    - release/dev17.0-vs-deps
-    - release/dev17.2
-    - release/dev17.3
+    - release/dev17.4
+    - release/dev17.6
+    - release/dev17.8
+    - release/dev17.9
+    - release/dev17.10
   paths:
     exclude:
       - docs/*
@@ -48,6 +36,12 @@ pr:
       - CONTRIBUTING.md
       - README.md
 
+variables:
+- name: Codeql.Enabled
+  value: false
+- name: Codeql.SkipTaskAutoInjection
+  value: true
+
 parameters:
 - name: poolName
   displayName: Pool Name
@@ -59,7 +53,7 @@ parameters:
 - name: queueName
   displayName: Queue Name
   type: string
-  default: windows.vs2022preview.amd64.open
+  default: windows.vs2022preview.scout.amd64.open
   values:
   - windows.vs2022.amd64.open
   - windows.vs2022.scout.amd64.open
@@ -79,7 +73,6 @@ stages:
     configuration: Debug
     testRuns:
       - oop64bit: true
-        oopCoreClr: true
         lspEditor: false
         runName: VS_Integration_CoreHost_Debug
 
@@ -92,6 +85,5 @@ stages:
       configuration: Release
       testRuns:
         - oop64bit: true
-          oopCoreClr: true
           lspEditor: false
           runName: VS_Integration_CoreHost_Release

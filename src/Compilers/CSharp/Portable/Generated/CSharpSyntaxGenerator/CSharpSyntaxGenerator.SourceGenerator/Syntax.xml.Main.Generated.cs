@@ -126,6 +126,9 @@ public partial class CSharpSyntaxVisitor<TResult>
     /// <summary>Called when the visitor visits a LiteralExpressionSyntax node.</summary>
     public virtual TResult? VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a FieldExpressionSyntax node.</summary>
+    public virtual TResult? VisitFieldExpression(FieldExpressionSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a MakeRefExpressionSyntax node.</summary>
     public virtual TResult? VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -546,6 +549,12 @@ public partial class CSharpSyntaxVisitor<TResult>
     /// <summary>Called when the visitor visits a DefaultConstraintSyntax node.</summary>
     public virtual TResult? VisitDefaultConstraint(DefaultConstraintSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a AllowsConstraintClauseSyntax node.</summary>
+    public virtual TResult? VisitAllowsConstraintClause(AllowsConstraintClauseSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a RefStructConstraintSyntax node.</summary>
+    public virtual TResult? VisitRefStructConstraint(RefStructConstraintSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a FieldDeclarationSyntax node.</summary>
     public virtual TResult? VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
 
@@ -851,6 +860,9 @@ public partial class CSharpSyntaxVisitor
 
     /// <summary>Called when the visitor visits a LiteralExpressionSyntax node.</summary>
     public virtual void VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a FieldExpressionSyntax node.</summary>
+    public virtual void VisitFieldExpression(FieldExpressionSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a MakeRefExpressionSyntax node.</summary>
     public virtual void VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
@@ -1272,6 +1284,12 @@ public partial class CSharpSyntaxVisitor
     /// <summary>Called when the visitor visits a DefaultConstraintSyntax node.</summary>
     public virtual void VisitDefaultConstraint(DefaultConstraintSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a AllowsConstraintClauseSyntax node.</summary>
+    public virtual void VisitAllowsConstraintClause(AllowsConstraintClauseSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a RefStructConstraintSyntax node.</summary>
+    public virtual void VisitRefStructConstraint(RefStructConstraintSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a FieldDeclarationSyntax node.</summary>
     public virtual void VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
 
@@ -1576,6 +1594,9 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
         => node.Update(VisitToken(node.Token));
 
     public override SyntaxNode? VisitLiteralExpression(LiteralExpressionSyntax node)
+        => node.Update(VisitToken(node.Token));
+
+    public override SyntaxNode? VisitFieldExpression(FieldExpressionSyntax node)
         => node.Update(VisitToken(node.Token));
 
     public override SyntaxNode? VisitMakeRefExpression(MakeRefExpressionSyntax node)
@@ -1997,6 +2018,12 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
 
     public override SyntaxNode? VisitDefaultConstraint(DefaultConstraintSyntax node)
         => node.Update(VisitToken(node.DefaultKeyword));
+
+    public override SyntaxNode? VisitAllowsConstraintClause(AllowsConstraintClauseSyntax node)
+        => node.Update(VisitToken(node.AllowsKeyword), VisitList(node.Constraints));
+
+    public override SyntaxNode? VisitRefStructConstraint(RefStructConstraintSyntax node)
+        => node.Update(VisitToken(node.RefKeyword), VisitToken(node.StructKeyword));
 
     public override SyntaxNode? VisitFieldDeclaration(FieldDeclarationSyntax node)
         => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (VariableDeclarationSyntax?)Visit(node.Declaration) ?? throw new ArgumentNullException("declaration"), VisitToken(node.SemicolonToken));
@@ -2917,6 +2944,17 @@ public static partial class SyntaxFactory
         }
         return (LiteralExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.LiteralExpression(kind, (Syntax.InternalSyntax.SyntaxToken)token.Node!).CreateRed();
     }
+
+    /// <summary>Creates a new FieldExpressionSyntax instance.</summary>
+    public static FieldExpressionSyntax FieldExpression(SyntaxToken token)
+    {
+        if (token.Kind() != SyntaxKind.FieldKeyword) throw new ArgumentException(nameof(token));
+        return (FieldExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.FieldExpression((Syntax.InternalSyntax.SyntaxToken)token.Node!).CreateRed();
+    }
+
+    /// <summary>Creates a new FieldExpressionSyntax instance.</summary>
+    public static FieldExpressionSyntax FieldExpression()
+        => SyntaxFactory.FieldExpression(SyntaxFactory.Token(SyntaxKind.FieldKeyword));
 
     /// <summary>Creates a new MakeRefExpressionSyntax instance.</summary>
     public static MakeRefExpressionSyntax MakeRefExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
@@ -5225,6 +5263,29 @@ public static partial class SyntaxFactory
     /// <summary>Creates a new DefaultConstraintSyntax instance.</summary>
     public static DefaultConstraintSyntax DefaultConstraint()
         => SyntaxFactory.DefaultConstraint(SyntaxFactory.Token(SyntaxKind.DefaultKeyword));
+
+    /// <summary>Creates a new AllowsConstraintClauseSyntax instance.</summary>
+    public static AllowsConstraintClauseSyntax AllowsConstraintClause(SyntaxToken allowsKeyword, SeparatedSyntaxList<AllowsConstraintSyntax> constraints)
+    {
+        if (allowsKeyword.Kind() != SyntaxKind.AllowsKeyword) throw new ArgumentException(nameof(allowsKeyword));
+        return (AllowsConstraintClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.AllowsConstraintClause((Syntax.InternalSyntax.SyntaxToken)allowsKeyword.Node!, constraints.Node.ToGreenSeparatedList<Syntax.InternalSyntax.AllowsConstraintSyntax>()).CreateRed();
+    }
+
+    /// <summary>Creates a new AllowsConstraintClauseSyntax instance.</summary>
+    public static AllowsConstraintClauseSyntax AllowsConstraintClause(SeparatedSyntaxList<AllowsConstraintSyntax> constraints = default)
+        => SyntaxFactory.AllowsConstraintClause(SyntaxFactory.Token(SyntaxKind.AllowsKeyword), constraints);
+
+    /// <summary>Creates a new RefStructConstraintSyntax instance.</summary>
+    public static RefStructConstraintSyntax RefStructConstraint(SyntaxToken refKeyword, SyntaxToken structKeyword)
+    {
+        if (refKeyword.Kind() != SyntaxKind.RefKeyword) throw new ArgumentException(nameof(refKeyword));
+        if (structKeyword.Kind() != SyntaxKind.StructKeyword) throw new ArgumentException(nameof(structKeyword));
+        return (RefStructConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.RefStructConstraint((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)structKeyword.Node!).CreateRed();
+    }
+
+    /// <summary>Creates a new RefStructConstraintSyntax instance.</summary>
+    public static RefStructConstraintSyntax RefStructConstraint()
+        => SyntaxFactory.RefStructConstraint(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.StructKeyword));
 
     /// <summary>Creates a new FieldDeclarationSyntax instance.</summary>
     public static FieldDeclarationSyntax FieldDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)

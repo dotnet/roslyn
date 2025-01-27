@@ -8,18 +8,17 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
-{
-    [ExportLanguageServiceFactory(typeof(ICodeCleanerService), LanguageNames.CSharp), Shared]
-    internal class CSharpCodeCleanerServiceFactory : ILanguageServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanerServiceFactory()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup;
 
-        public ILanguageService CreateLanguageService(HostLanguageServices provider)
-            => new CSharpCodeCleanerService();
+[ExportLanguageServiceFactory(typeof(ICodeCleanerService), LanguageNames.CSharp), Shared]
+internal class CSharpCodeCleanerServiceFactory : ILanguageServiceFactory
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpCodeCleanerServiceFactory()
+    {
     }
+
+    public ILanguageService CreateLanguageService(HostLanguageServices provider)
+        => new CSharpCodeCleanerService();
 }

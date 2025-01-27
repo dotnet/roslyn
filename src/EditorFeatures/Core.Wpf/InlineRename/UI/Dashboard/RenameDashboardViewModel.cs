@@ -10,34 +10,55 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineRename;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal class RenameDashboardViewModel : INotifyPropertyChanged, IDisposable
     {
-        private readonly InlineRenameSession _session;
-
+        private readonly IThreadingContext _threadingContext;
+        private readonly IWpfTextView _textView;
         private RenameDashboardSeverity _severity = RenameDashboardSeverity.None;
-        private string _searchText;
         private int _resolvableConflictCount;
         private int _unresolvableConflictCount;
-        private string _errorText;
         private bool _isReplacementTextValid;
+        private Visibility _visibility;
 
-        public RenameDashboardViewModel(InlineRenameSession session)
+        public RenameDashboardViewModel(InlineRenameSession session, IThreadingContext threadingContext, IWpfTextView wpfTextView)
         {
-            _session = session;
-            _searchText = EditorFeaturesResources.Searching;
+            Session = session;
+            SearchText = EditorFeaturesResources.Searching;
+            _textView = wpfTextView;
 
-            _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
-            _session.ReplacementsComputed += OnReplacementsComputed;
-            _session.ReplacementTextChanged += OnReplacementTextChanged;
+            Session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
+            Session.ReplacementsComputed += OnReplacementsComputed;
+            Session.ReplacementTextChanged += OnReplacementTextChanged;
+            Session.CommitStateChange += CommitStateChange;
+
+            _textView.GotAggregateFocus += GotAggregateFocus;
+            _textView.LostAggregateFocus += LostAggregateFocus;
 
             // Set the flag to true by default if we're showing the option.
             _isReplacementTextValid = true;
+            _threadingContext = threadingContext;
+            RefreshVisibility();
         }
+
+        private void LostAggregateFocus(object sender, EventArgs _)
+            => RefreshVisibility();
+
+        private void GotAggregateFocus(object sender, EventArgs _)
+            => RefreshVisibility();
+
+        private void CommitStateChange(object sender, EventArgs _)
+            => RefreshVisibility();
+
+        private void RefreshVisibility()
+            => Visibility = !Session.IsCommitInProgress && _textView.HasAggregateFocus
+            ? Visibility.Visible : Visibility.Collapsed;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -68,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             OnIsReplacementTextValidChanged(result.ReplacementTextValid);
             if (result.ReplacementTextValid)
             {
-                _errorText = null;
+                ErrorText = null;
                 foreach (var resolution in result.GetAllReplacementKinds())
                 {
                     switch (resolution)
@@ -85,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
             else
             {
-                _errorText = string.IsNullOrEmpty(session.ReplacementText)
+                ErrorText = string.IsNullOrEmpty(session.ReplacementText)
                     ? null
                     : EditorFeaturesResources.The_new_name_is_not_a_valid_identifier;
             }
@@ -114,15 +135,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (referenceCount == 1 && fileCount == 1)
             {
-                _searchText = EditorFeaturesResources.Rename_will_update_1_reference_in_1_file;
+                SearchText = EditorFeaturesResources.Rename_will_update_1_reference_in_1_file;
             }
             else if (fileCount == 1)
             {
-                _searchText = string.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, referenceCount);
+                SearchText = string.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, referenceCount);
             }
             else
             {
-                _searchText = string.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_files, referenceCount, fileCount);
+                SearchText = string.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_files, referenceCount, fileCount);
             }
 
             NotifyPropertyChanged("SearchText");
@@ -130,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void UpdateSeverity()
         {
-            if (_errorText != null ||
+            if (ErrorText != null ||
                 _unresolvableConflictCount > 0)
             {
                 _severity = RenameDashboardSeverity.Error;
@@ -145,18 +166,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public InlineRenameSession Session => _session;
+        public InlineRenameSession Session { get; }
 
         public RenameDashboardSeverity Severity => _severity;
 
-        public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
-        public bool ShowFileRename => _session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
-        public string FileRenameString => _session.FileRenameInfo switch
+        public bool AllowFileRename => Session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
+        public bool ShowFileRename => Session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
+        public string FileRenameString => Session.FileRenameInfo switch
         {
             InlineRenameFileRenameInfo.TypeDoesNotMatchFileName => EditorFeaturesResources.Rename_file_name_doesnt_match,
             InlineRenameFileRenameInfo.TypeWithMultipleLocations => EditorFeaturesResources.Rename_file_partial_type,
             _ => EditorFeaturesResources.Rename_symbols_file
         };
+
+        public Visibility Visibility
+        {
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _visibility;
+            }
+            set
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                if (_visibility != value)
+                {
+                    _visibility = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         public string HeaderText
         {
@@ -190,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public string SearchText => _searchText;
+        public string SearchText { get; private set; }
 
         public bool HasResolvableConflicts
         {
@@ -223,80 +262,83 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public bool HasError
-            => _errorText != null;
+            => ErrorText != null;
 
-        public string ErrorText => _errorText;
+        public string ErrorText { get; private set; }
 
         public Visibility RenameOverloadsVisibility
-            => _session.HasRenameOverloads ? Visibility.Visible : Visibility.Collapsed;
+            => Session.HasRenameOverloads ? Visibility.Visible : Visibility.Collapsed;
 
         public bool IsRenameOverloadsEditable
-            => !_session.MustRenameOverloads;
+            => !Session.MustRenameOverloads;
 
         public bool DefaultRenameOverloadFlag
         {
-            get => _session.Options.RenameOverloads;
+            get => Session.Options.RenameOverloads;
 
             set
             {
                 if (IsRenameOverloadsEditable)
                 {
-                    _session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, value);
-                    _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameOverloads = value });
+                    Session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, value);
+                    Session.RefreshRenameSessionWithOptionsChanged(Session.Options with { RenameOverloads = value });
                 }
             }
         }
 
         public bool DefaultRenameInStringsFlag
         {
-            get => _session.Options.RenameInStrings;
+            get => Session.Options.RenameInStrings;
 
             set
             {
-                _session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, value);
-                _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInStrings = value });
+                Session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, value);
+                Session.RefreshRenameSessionWithOptionsChanged(Session.Options with { RenameInStrings = value });
             }
         }
 
         public bool DefaultRenameInCommentsFlag
         {
-            get => _session.Options.RenameInComments;
+            get => Session.Options.RenameInComments;
 
             set
             {
-                _session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, value);
-                _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInComments = value });
+                Session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, value);
+                Session.RefreshRenameSessionWithOptionsChanged(Session.Options with { RenameInComments = value });
             }
         }
 
         public bool DefaultRenameFileFlag
         {
-            get => _session.Options.RenameFile;
+            get => Session.Options.RenameFile;
             set
             {
-                _session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, value);
-                _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameFile = value });
+                Session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, value);
+                Session.RefreshRenameSessionWithOptionsChanged(Session.Options with { RenameFile = value });
             }
         }
 
         public bool DefaultPreviewChangesFlag
         {
-            get => _session.PreviewChanges;
+            get => Session.PreviewChanges;
 
             set
             {
-                _session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.PreviewChanges, value);
-                _session.SetPreviewChanges(value);
+                Session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.PreviewChanges, value);
+                Session.SetPreviewChanges(value);
             }
         }
 
-        public string OriginalName => _session.OriginalSymbolName;
+        public string OriginalName => Session.OriginalSymbolName;
 
         public void Dispose()
         {
-            _session.ReplacementTextChanged -= OnReplacementTextChanged;
-            _session.ReferenceLocationsChanged -= OnReferenceLocationsChanged;
-            _session.ReplacementsComputed -= OnReplacementsComputed;
+            Session.ReplacementTextChanged -= OnReplacementTextChanged;
+            Session.ReferenceLocationsChanged -= OnReferenceLocationsChanged;
+            Session.ReplacementsComputed -= OnReplacementsComputed;
+            Session.CommitStateChange -= CommitStateChange;
+            _textView.GotAggregateFocus -= GotAggregateFocus;
+            _textView.LostAggregateFocus -= LostAggregateFocus;
         }
     }
 }

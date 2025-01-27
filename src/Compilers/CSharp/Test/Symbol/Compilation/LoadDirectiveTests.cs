@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var code = "#load \"\"";
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(TestSourceReferenceResolver.Default);
-            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib461(code, options: options, parseOptions: TestOptions.Script);
 
             Assert.Single(compilation.SyntaxTrees);
             compilation.VerifyDiagnostics(
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var code = "#load \"missing\"";
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(TestSourceReferenceResolver.Default);
-            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib461(code, options: options, parseOptions: TestOptions.Script);
 
             Assert.Single(compilation.SyntaxTrees);
             compilation.VerifyDiagnostics(
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     #load ""b.csx""
                     asdf();"));
                 var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
-                var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
+                var compilation = CreateCompilationWithMscorlib461(code, options: options, parseOptions: TestOptions.Script);
 
                 Assert.Equal(2, compilation.SyntaxTrees.Length);
                 compilation.GetParseDiagnostics().Verify(
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 KeyValuePairUtil.Create<string, object>("a.csx", new byte[] { 0xd8, 0x00, 0x00, 0x00 }),
                 KeyValuePairUtil.Create<string, object>("b.csx", "#load \"a.csx\""));
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
-            var compilation = CreateCompilationWithMscorlib45(code, sourceFileName: "external1.csx", options: options, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib461(code, sourceFileName: "external1.csx", options: options, parseOptions: TestOptions.Script);
             var external1 = compilation.SyntaxTrees.Last();
             var external2 = Parse(code, "external2.csx", TestOptions.Script);
             compilation = compilation.AddSyntaxTrees(external2);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void NoSourceReferenceResolver()
         {
             var code = "#load \"test\"";
-            var compilation = CreateCompilationWithMscorlib45(code, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib461(code, parseOptions: TestOptions.Script);
 
             Assert.Single(compilation.SyntaxTrees);
             compilation.VerifyDiagnostics(
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 #if undefined
 #load nothing
 #endif";
-            var compilation = CreateCompilationWithMscorlib45(code, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib461(code, parseOptions: TestOptions.Script);
 
             Assert.Single(compilation.SyntaxTrees);
             compilation.VerifyDiagnostics();
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var code = "#load \"a.csx\"";
             var resolver = TestSourceReferenceResolver.Create(KeyValuePairUtil.Create("a.csx", code));
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
-            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib461(code, options: options, parseOptions: TestOptions.Script);
 
             Assert.Equal(2, compilation.SyntaxTrees.Length);
             compilation.VerifyDiagnostics();
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 KeyValuePairUtil.Create("a.csx", "#load \"b.csx\""),
                 KeyValuePairUtil.Create("b.csx", code));
             options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
-            compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
+            compilation = CreateCompilationWithMscorlib461(code, options: options, parseOptions: TestOptions.Script);
 
             Assert.Equal(3, compilation.SyntaxTrees.Length);
             compilation.VerifyDiagnostics();

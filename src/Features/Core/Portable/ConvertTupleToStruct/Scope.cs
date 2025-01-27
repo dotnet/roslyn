@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
+namespace Microsoft.CodeAnalysis.ConvertTupleToStruct;
+
+internal enum Scope
 {
-    internal enum Scope
-    {
-        ContainingMember,
-        ContainingType,
-        ContainingProject,
-        DependentProjects
-    }
+    ContainingMember,
+    ContainingType,
+    ContainingProject,
+    DependentProjects
 }

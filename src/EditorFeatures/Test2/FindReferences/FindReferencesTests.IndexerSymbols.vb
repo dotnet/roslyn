@@ -339,5 +339,31 @@ public class Test
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/31819")>
+        Public Async Function TestCSharp_Indexer_AtReferenceLocation(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    public int {|Definition:this|}[int y] { get { } }
+}
+
+class D
+{
+    void Goo()
+    {
+        var q = new C();
+        var b = q[||]$$[4];
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

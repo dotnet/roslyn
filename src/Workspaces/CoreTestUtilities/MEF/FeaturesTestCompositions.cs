@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -17,7 +16,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             .AddParts(
                 typeof(TestSerializerService.Factory),
                 typeof(MockWorkspaceEventListenerProvider),  // by default, avoid running Solution Crawler and other services that start in workspace event listeners
-                typeof(TestErrorReportingService));          // mocks the info-bar error reporting
+                typeof(TestErrorReportingService),           // mocks the info-bar error reporting                                
+                typeof(MockFallbackAnalyzerConfigOptionsProvider)); // Prevent initialization for fallback options on TestWorkspace from global options.
+                                                                    // We need to update tests to handle the options correctly before enabling the default provider.
 
         public static readonly TestComposition RemoteHost = TestComposition.Empty
             .AddAssemblies(RemoteWorkspaceManager.RemoteHostAssemblies)

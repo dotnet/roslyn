@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
@@ -184,8 +183,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(markup, [new SignatureHelpTestItem("void C.Goo(int a, int b)", "Summary for Goo", "Param b", currentParameterIndex: 1)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
     public async Task TestDelegateParameterWithDocumentation_Invoke()
     {
         var markup = """
@@ -204,8 +202,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(markup, [new SignatureHelpTestItem("void SomeDelegate(int a)", parameterDocumentation: "Parameter docs", currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
     public async Task TestDelegateParameterWithDocumentation_Invoke2()
     {
         var markup = """
@@ -224,8 +221,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(markup, [new SignatureHelpTestItem("void SomeDelegate.Invoke(int a)", parameterDocumentation: "Parameter docs", currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
     public async Task TestDelegateParameterWithDocumentation_BeginInvoke()
     {
         var markup = """
@@ -244,8 +240,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(markup, [new SignatureHelpTestItem("System.IAsyncResult SomeDelegate.BeginInvoke(int a, System.AsyncCallback callback, object @object)", parameterDocumentation: "Parameter docs", currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
     public async Task TestDelegateParameterWithDocumentation_BeginInvoke2()
     {
         var markup = """
@@ -425,8 +420,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(markup);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
     public async Task TestInvocationOnNamedType()
     {
         var markup = """
@@ -453,8 +447,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(markup, [new SignatureHelpTestItem("double C.Goo(double x)", string.Empty, string.Empty, currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
     public async Task TestInvocationOnInstance()
     {
         var markup = """
@@ -481,8 +474,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(markup, [new SignatureHelpTestItem("double C.Goo(double x, double y)", string.Empty, string.Empty, currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
     public async Task TestStatic1()
     {
         var markup = """
@@ -506,8 +498,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(markup, [new SignatureHelpTestItem("void C.Bar()", currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
     public async Task TestStatic2()
     {
         var markup = """
@@ -533,8 +524,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("void C.Bar(int i)", currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543117")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543117")]
     public async Task TestInvocationOnAnonymousType()
     {
         var markup = """
@@ -573,8 +563,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 """)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
     public async Task TestInvocationOnBaseExpression_ProtectedAccessibility()
     {
         var markup = """
@@ -606,8 +595,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             description: string.Empty)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
     public async Task TestInvocationOnBaseExpression_AbstractBase()
     {
         var markup = """
@@ -639,8 +627,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             description: string.Empty)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
     public async Task TestInvocationOnThisExpression_ProtectedAccessibility()
     {
         var markup = """
@@ -667,8 +654,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             description: string.Empty)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
     public async Task TestInvocationOnThisExpression_ProtectedAccessibility_Overridden()
     {
         var markup = """
@@ -700,8 +686,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             description: string.Empty)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
     public async Task TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase()
     {
         var markup = """
@@ -728,8 +713,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             description: string.Empty)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
     public async Task TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase_Overridden()
     {
         var markup = """
@@ -761,8 +745,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             description: string.Empty)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
     public async Task TestInvocationOnBaseExpression_ProtectedInternalAccessibility()
     {
         var markup = """
@@ -794,8 +777,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             description: string.Empty)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
     public async Task TestInvocationOnBaseMember_ProtectedAccessibility_ThroughType()
     {
         var markup = """
@@ -822,8 +804,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(markup, null);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
     public async Task TestInvocationOnBaseExpression_PrivateAccessibility()
     {
         var markup = """
@@ -874,8 +855,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
 
     #region "Trigger tests"
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/47364")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47364")]
     public async Task TestInvocationOnTriggerParens_OptionalDefaultStruct()
     {
         var markup = """
@@ -1004,8 +984,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
 
     #region "EditorBrowsable tests"
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_Method_BrowsableStateAlways()
     {
         var markup = """
@@ -1038,8 +1017,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             referencedLanguage: LanguageNames.CSharp);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_Method_BrowsableStateNever()
     {
         var markup = """
@@ -1071,8 +1049,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             referencedLanguage: LanguageNames.CSharp);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_Method_BrowsableStateAdvanced()
     {
         var markup = """
@@ -1113,8 +1090,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             hideAdvancedMembers: false);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_Method_Overloads_OneBrowsableAlways_OneBrowsableNever()
     {
         var markup = """
@@ -1152,8 +1128,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             referencedLanguage: LanguageNames.CSharp);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_Method_Overloads_BothBrowsableNever()
     {
         var markup = """
@@ -1192,8 +1167,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             referencedLanguage: LanguageNames.CSharp);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task OverriddenSymbolsFilteredFromSigHelp()
     {
         var markup = """
@@ -1235,8 +1209,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             referencedLanguage: LanguageNames.CSharp);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverClass()
     {
         var markup = """
@@ -1268,8 +1241,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             referencedLanguage: LanguageNames.CSharp);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverBaseClass()
     {
         var markup = """
@@ -1312,8 +1284,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             referencedLanguage: LanguageNames.CSharp);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_BrowsableStateNeverMethodsInBaseClass()
     {
         var markup = """
@@ -1344,8 +1315,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             referencedLanguage: LanguageNames.CSharp);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableAlways()
     {
         var markup = """
@@ -1379,8 +1349,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             referencedLanguage: LanguageNames.CSharp);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed1()
     {
         var markup = """
@@ -1412,8 +1381,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             referencedLanguage: LanguageNames.CSharp);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed2()
     {
         var markup = """
@@ -1445,8 +1413,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             referencedLanguage: LanguageNames.CSharp);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableNever()
     {
         var markup = """
@@ -1480,8 +1447,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             referencedLanguage: LanguageNames.CSharp);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableAlways()
     {
         var markup = """
@@ -1516,8 +1482,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             referencedLanguage: LanguageNames.CSharp);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BrowsableMixed()
     {
         var markup = """
@@ -1549,8 +1514,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             referencedLanguage: LanguageNames.CSharp);
     }
 
-    [Fact]
-    [WorkItem(7336, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableNever()
     {
         var markup = """
@@ -1621,8 +1585,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
 
     #endregion
 
-    [Fact]
-    [WorkItem(13849, "DevDiv_Projects/Roslyn")]
+    [Fact, WorkItem(13849, "DevDiv_Projects/Roslyn")]
     public async Task TestSpecificity1()
     {
         var markup = """
@@ -1647,8 +1610,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(markup, [new SignatureHelpTestItem("void C<int>.M(int t)", string.Empty, "Real t", currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530017")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530017")]
     public async Task LongSignature()
     {
         var markup = """
@@ -1702,8 +1664,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void IGoo.Bar<T1, T2>()", currentParameterIndex: 0)], sourceCodeKind: SourceCodeKind.Regular);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
     public async Task PickCorrectOverload_PickInt()
     {
         var markup = """
@@ -1723,8 +1684,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem($"void Program.M(string s)", currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
     public async Task PickCorrectOverload_PickInt_ReverseOrder()
     {
         var markup = """
@@ -1744,8 +1704,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem($"void Program.M(string s)", currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
     public async Task PickCorrectOverload_PickSecond()
     {
         var markup = """
@@ -1765,8 +1724,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem($"void Program.M(string s)", currentParameterIndex: 0, isSelected: true)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
     public async Task PickCorrectOverload_OtherName_PickIntRemaining()
     {
         var markup = """
@@ -1787,8 +1745,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
     public async Task PickCorrectOverload_OtherName_PickIntRemaining_ConversionToD()
     {
         var markup = """
@@ -1810,8 +1767,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
     public async Task PickCorrectOverload_OtherName_PickIntRemaining_ReversedOrder()
     {
         var markup = """
@@ -1832,8 +1788,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
     public async Task PickCorrectOverload_OtherName_PickStringRemaining()
     {
         var markup = """
@@ -1854,8 +1809,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0, isSelected: true)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
     public async Task PickCorrectOverload_RefKind()
     {
         var markup = """
@@ -2037,8 +1991,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(source, [new SignatureHelpTestItem("void Program.M(int i1, params int i2)", currentParameterIndex: 1, isSelected: true)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/6713")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6713")]
     public async Task PickCorrectOverload_Incomplete_OutOfPositionArgument()
     {
         var markup = """
@@ -2180,8 +2133,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, currentParameterIndex: 0)], hideAdvancedMembers: false);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
     public async Task InstanceAndStaticMethodsShown1()
     {
         var markup = """
@@ -2207,8 +2159,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("void Goo.Bar(string s)", currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
     public async Task InstanceAndStaticMethodsShown2()
     {
         var markup = """
@@ -2234,8 +2185,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("void Goo.Bar(string s)", currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
     public async Task InstanceAndStaticMethodsShown3()
     {
         var markup = """
@@ -2261,8 +2211,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("void Goo.Bar(string s)", currentParameterIndex: 0)]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
     public async Task InstanceAndStaticMethodsShown4()
     {
         var markup = """
@@ -2285,8 +2234,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(markup, []);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
     public async Task InstanceAndStaticMethodsShown5()
     {
         var markup = """
@@ -2309,8 +2257,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(markup, []);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/33549")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33549")]
     public async Task ShowOnlyStaticMethodsForBuildInTypes()
     {
         var markup = """
@@ -2329,8 +2276,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("bool string.Equals(string a, string b, System.StringComparison comparisonType)")]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/23133")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23133")]
     public async Task ShowOnlyStaticMethodsForNotImportedTypes()
     {
         var markup = """
@@ -2354,8 +2300,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(markup, [new SignatureHelpTestItem("void Test.Goo.Bar(string s)")]);
     }
 
-    [Fact]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
     public async Task InvokedWithNoToken()
     {
         var markup = """
@@ -2403,8 +2348,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, currentParameterIndex: 0)], hideAdvancedMembers: false);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/699")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/699")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")]
     public async Task TestGenericParameters1()
     {
@@ -2426,8 +2370,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("void C.Goo<T, U>(T a, U b)", string.Empty)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/699")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/699")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")]
     public async Task TestGenericParameters2()
     {
@@ -2449,8 +2392,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("void C.Goo<T, U>(T a, U b)", string.Empty, string.Empty, currentParameterIndex: 1)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/4144")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4144")]
     public async Task TestSigHelpIsVisibleOnInaccessibleItem()
     {
         var markup = """
@@ -2563,8 +2505,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("bool Comparer.Equals(string x, string y)", currentParameterIndex: 1, isSelected: true)]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/38074")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38074")]
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public async Task TestLocalFunction()
     {
@@ -2582,8 +2523,7 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await TestAsync(markup, [new SignatureHelpTestItem("void Local()")]);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/38074")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38074")]
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public async Task TestLocalFunctionInStaticMethod()
     {

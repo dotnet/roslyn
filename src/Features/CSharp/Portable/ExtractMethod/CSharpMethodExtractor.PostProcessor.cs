@@ -12,11 +12,15 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
+namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
+
+using static SyntaxFactory;
+
+internal sealed partial class CSharpExtractMethodService
 {
-    internal partial class CSharpMethodExtractor
+    internal sealed partial class CSharpMethodExtractor
     {
-        private class PostProcessor
+        private sealed class PostProcessor
         {
             private readonly SemanticModel _semanticModel;
             private readonly int _contextPosition;
@@ -32,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             public static ImmutableArray<StatementSyntax> RemoveRedundantBlock(ImmutableArray<StatementSyntax> statements)
             {
                 // it must have only one statement
-                if (statements.Count() != 1)
+                if (statements.Length != 1)
                 {
                     return statements;
                 }
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 block = block.ReplaceTokens([firstToken, lastToken], (o, c) => (o == firstToken) ? firstTokenWithAsset : lastTokenWithAsset);
 
                 // return only statements without the wrapping block
-                return ImmutableArray.CreateRange(block.Statements);
+                return [.. block.Statements];
             }
 
             public ImmutableArray<StatementSyntax> MergeDeclarationStatements(ImmutableArray<StatementSyntax> statements)
@@ -106,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (map.Count > 0)
                     result.AddRange(GetMergedDeclarationStatements(map));
 
-                return result.ToImmutable();
+                return result.ToImmutableAndClear();
             }
 
             private void AppendDeclarationStatementToMap(
@@ -118,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var type = _semanticModel.GetSpeculativeTypeInfo(_contextPosition, statement.Declaration.Type, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
                 Contract.ThrowIfNull(type);
 
-                map.GetOrAdd(type, _ => new List<LocalDeclarationStatementSyntax>()).Add(statement);
+                map.GetOrAdd(type, _ => []).Add(statement);
             }
 
             private static IEnumerable<LocalDeclarationStatementSyntax> GetMergedDeclarationStatements(
@@ -141,8 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // and create one decl statement
                     // use type name from the first decl statement
                     yield return
-                        SyntaxFactory.LocalDeclarationStatement(
-                            SyntaxFactory.VariableDeclaration(keyValuePair.Value.First().Declaration.Type, [.. variables]));
+                        LocalDeclarationStatement(
+                            VariableDeclaration(keyValuePair.Value.First().Declaration.Type, [.. variables]));
                 }
 
                 map.Clear();
@@ -256,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return statements;
                 }
 
-                return [SyntaxFactory.ReturnStatement(declaration.Declaration.Variables[0].Initializer.Value)];
+                return [ReturnStatement(declaration.Declaration.Variables[0].Initializer.Value)];
             }
 
             public static ImmutableArray<StatementSyntax> RemoveDeclarationAssignmentPattern(ImmutableArray<StatementSyntax> statements)
@@ -291,11 +295,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return statements;
                 }
 
-                var variable = declaration.Declaration.Variables[0].WithInitializer(SyntaxFactory.EqualsValueClause(assignmentExpression.Right));
+                var variable = declaration.Declaration.Variables[0].WithInitializer(EqualsValueClause(assignmentExpression.Right));
                 return
                 [
                     declaration.WithDeclaration(
-                        declaration.Declaration.WithVariables([variable])),
+                    declaration.Declaration.WithVariables([variable])),
                     .. statements.Skip(2),
                 ];
             }

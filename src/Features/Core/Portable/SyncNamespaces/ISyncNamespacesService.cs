@@ -9,15 +9,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.SyncNamespaces
+namespace Microsoft.CodeAnalysis.SyncNamespaces;
+
+internal interface ISyncNamespacesService : ILanguageService
 {
-    internal interface ISyncNamespacesService : ILanguageService
-    {
-        /// <summary>
-        /// This will update documents in the specified projects so that their namespace matches the RootNamespace
-        /// and their relative folder path.
-        /// </summary>
-        Task<Solution> SyncNamespacesAsync(
-            ImmutableArray<Project> projects, CodeActionOptionsProvider options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
-    }
+    /// <summary>
+    /// This will update documents in the specified projects so that their namespace matches the RootNamespace
+    /// and their relative folder path.
+    /// </summary>
+    Task<Solution> SyncNamespacesAsync(
+        ImmutableArray<Project> projects, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
 }

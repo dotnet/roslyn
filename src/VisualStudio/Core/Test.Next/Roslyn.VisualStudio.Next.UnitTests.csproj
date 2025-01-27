@@ -14,7 +14,7 @@
     <ProjectReference Include="..\..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
     <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
     <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
-    <ProjectReference Include="..\..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
     <ProjectReference Include="..\..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
     <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
@@ -66,5 +66,13 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="TestFiles\analyzer_input.csv" />
+    <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\VisualBasic\Impl\UnifiedSettings\visualBasicSettings.registration.json" />
+    <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\VisualBasic\Impl\PackageRegistration.pkgdef" Link="visualBasicPackageRegistration.pkgdef" />
+    <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\CSharp\Impl\UnifiedSettings\csharpSettings.registration.json" />
+    <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\CSharp\Impl\PackageRegistration.pkgdef" Link="csharpPackageRegistration.pkgdef" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
   </ItemGroup>
 </Project>

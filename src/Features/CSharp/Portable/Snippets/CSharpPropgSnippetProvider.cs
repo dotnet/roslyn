@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -11,40 +12,35 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpPropgSnippetProvider() : AbstractCSharpAutoPropertySnippetProvider
 {
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpPropgSnippetProvider : AbstractCSharpAutoPropertySnippetProvider
+    public override string Identifier => CommonSnippetIdentifiers.GetOnlyProperty;
+
+    public override string Description => FeaturesResources.get_only_property;
+
+    protected override AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator, CancellationToken cancellationToken)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpPropgSnippetProvider()
+        // Interface cannot have properties with `private set` accessor.
+        // So if we are inside an interface, we just return null here.
+        // This causes the caller to just skip this `set` accessor
+        if (syntaxContext.ContainingTypeDeclaration is InterfaceDeclarationSyntax)
         {
+            return null;
         }
 
-        public override string Identifier => "propg";
-
-        public override string Description => FeaturesResources.get_only_property;
-
-        protected override AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
+        // Having a property with `set` accessor in a readonly struct leads to a compiler error.
+        // So if user executes snippet inside a readonly struct the right thing to do is to not generate `set` accessor at all
+        if (syntaxContext.ContainingTypeDeclaration is StructDeclarationSyntax structDeclaration &&
+            syntaxContext.SemanticModel.GetDeclaredSymbol(structDeclaration, cancellationToken) is { IsReadOnly: true })
         {
-            // Interface cannot have properties with `private set` accessor.
-            // So if we are inside an interface, we just return null here.
-            // This causes the caller to just skip this `set` accessor
-            if (syntaxContext.ContainingTypeDeclaration is InterfaceDeclarationSyntax)
-            {
-                return null;
-            }
-
-            // Having a property with `set` accessor in a readonly struct leads to a compiler error.
-            // So if user executes snippet inside a readonly struct the right thing to do is to not generate `set` accessor at all
-            if (syntaxContext.ContainingTypeDeclaration is StructDeclarationSyntax structDeclaration &&
-                structDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
-            {
-                return null;
-            }
-
-            return (AccessorDeclarationSyntax)generator.SetAccessorDeclaration(Accessibility.Private);
+            return null;
         }
+
+        return (AccessorDeclarationSyntax)generator.SetAccessorDeclaration(Accessibility.Private);
     }
 }

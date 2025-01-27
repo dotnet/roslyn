@@ -67,9 +67,14 @@
         <target state="translated">Počet musí být kladný a musí odkazovat na umístění v řetězci, v poli nebo v kolekci.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ArgumentOutOfRange_Index">
+      <trans-unit id="ArgumentOutOfRange_IndexMustBeLess">
         <source>Index was out of range. Must be non-negative and less than the size of the collection.</source>
         <target state="translated">Index je mimo rozsah. Index musí být nezáporný a musí být menší než velikost kolekce.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_IndexMustBeLessOrEqual">
+        <source>Index was out of range. Must be non-negative and less than or equal to the size of the collection.</source>
+        <target state="translated">Index byl mimo rozsah. Musí mít nezápornou hodnotu, která je menší nebo rovna velikosti kolekce.</target>
         <note />
       </trans-unit>
       <trans-unit id="ArgumentOutOfRange_ListInsert">
@@ -92,7 +97,7 @@
         <target state="translated">Položka se stejným klíčem již byla přidána. Klíč: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Argument_InvalidArrayType">
+      <trans-unit id="Argument_IncompatibleArrayType">
         <source>Target array type is not compatible with the type of items in the collection.</source>
         <target state="translated">Typ cílového pole není kompatibilní s typem položek v kolekci.</target>
         <note />

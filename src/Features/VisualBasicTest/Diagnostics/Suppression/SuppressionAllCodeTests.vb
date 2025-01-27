@@ -17,9 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
         Inherits AbstractSuppressionAllCodeTests
 
         Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = FeaturesTestCompositions.Features _
-            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
-            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService)) _
-            .AddAssemblies(GetType(DiagnosticService).Assembly)
+            .AddAssemblies(GetType(DiagnosticAnalyzerService).Assembly)
 
         Protected Overrides Function CreateWorkspaceFromFile(definition As String, parseOptions As ParseOptions) As TestWorkspace
             Return TestWorkspace.CreateVisualBasic(definition, DirectCast(parseOptions, VisualBasicParseOptions), composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
@@ -45,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
                                  Return True
                              End If
 
-                             Return Not TypeOf n Is StatementSyntax
+                             Return TypeOf n IsNot StatementSyntax
                          End Function,
                 verifier:=Function(t) t.IndexOf("SuppressMessage", StringComparison.Ordinal) >= 0)
         End Function

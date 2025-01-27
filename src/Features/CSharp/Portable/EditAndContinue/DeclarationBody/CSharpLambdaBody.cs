@@ -55,7 +55,7 @@ internal sealed class CSharpLambdaBody(SyntaxNode node) : LambdaBody
         => LambdaUtilities.TryGetCorrespondingLambdaBody(node, newLambda) is { } newNode ? new CSharpLambdaBody(newNode) : null;
 
     public override IEnumerable<SyntaxNode> GetExpressionsAndStatements()
-        => SpecializedCollections.SingletonEnumerable(node);
+        => [node];
 
     public override SyntaxNode GetLambda()
         => LambdaUtilities.GetLambda(node);

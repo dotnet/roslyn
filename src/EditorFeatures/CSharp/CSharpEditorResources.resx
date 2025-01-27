@@ -126,9 +126,6 @@
   <data name="Press_TAB_to_insert" xml:space="preserve">
     <value>     (Press TAB to insert)</value>
   </data>
-  <data name="Smart_Indenting" xml:space="preserve">
-    <value>Smart Indenting</value>
-  </data>
   <data name="Split_string" xml:space="preserve">
     <value>Split string</value>
   </data>
@@ -154,5 +151,8 @@
   </data>
   <data name="Fixing_string_literal_after_paste" xml:space="preserve">
     <value>Fixing string literal after paste</value>
+  </data>
+  <data name="Generating_event" xml:space="preserve">
+    <value>Generating event...</value>
   </data>
 </root>

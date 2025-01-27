@@ -35,7 +35,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
             Dim commandHandler = New EncapsulateFieldCommandHandler(
                 Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)(),
                 Workspace.GetService(Of ITextBufferUndoManagerProvider)(),
-                Workspace.GlobalOptions,
                 Workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
             Dim provider = Workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)()
             Dim waiter = DirectCast(provider.GetListener(FeatureAttribute.EncapsulateField), IAsynchronousOperationWaiter)

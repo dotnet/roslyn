@@ -21,8 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     public abstract class AbstractOptionPageControl : UserControl
     {
         internal readonly OptionStore OptionStore;
-        private readonly List<BindingExpressionBase> _bindingExpressions = new List<BindingExpressionBase>();
-        private readonly List<OptionPageSearchHandler> _searchHandlers = new();
+        private readonly List<BindingExpressionBase> _bindingExpressions = [];
+        private readonly List<OptionPageSearchHandler> _searchHandlers = [];
 
         private protected AbstractOptionPageControl(OptionStore optionStore)
         {
@@ -191,6 +191,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
+        private protected void BindToOption<T>(RadioButton radiobutton, Option2<T> optionKey, T optionValue)
+        {
+            var binding = new Binding()
+            {
+                Source = new OptionBinding<T>(OptionStore, optionKey),
+                Path = new PropertyPath("Value"),
+                UpdateSourceTrigger = UpdateSourceTrigger.Default,
+                Converter = new RadioButtonCheckedConverter(),
+                ConverterParameter = optionValue
+            };
+
+            AddSearchHandler(radiobutton);
+
+            var bindingExpression = radiobutton.SetBinding(RadioButton.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
+        private protected void BindToOption<T>(RadioButton radioButton, Option2<T?> nullableOptionKey, T optionValue, Func<bool> onNullValue) where T : struct
+        {
+            var binding = new Binding()
+            {
+                Source = new OptionBinding<T?>(OptionStore, nullableOptionKey),
+                Path = new PropertyPath("Value"),
+                UpdateSourceTrigger = UpdateSourceTrigger.Default,
+                Converter = new RadioButtonCheckedConverter<T>(onNullValue),
+                ConverterParameter = optionValue,
+            };
+
+            AddSearchHandler(radioButton);
+
+            var bindingExpression = radioButton.SetBinding(RadioButton.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
         private protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption2<T> optionKey, T optionValue, string languageName)
         {
             var binding = new Binding()
@@ -255,19 +289,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
     }
 
-    public class RadioButtonCheckedConverter : IValueConverter
+    public sealed class RadioButtonCheckedConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter,
-            System.Globalization.CultureInfo culture)
-        {
-            return value.Equals(parameter);
-        }
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => value.Equals(parameter);
 
-        public object ConvertBack(object value, Type targetType, object parameter,
-            System.Globalization.CultureInfo culture)
-        {
-            return value.Equals(true) ? parameter : Binding.DoNothing;
-        }
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => value.Equals(true) ? parameter : Binding.DoNothing;
+    }
+
+    public sealed class RadioButtonCheckedConverter<T>(Func<bool> onNullValue) : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => value switch
+            {
+                null => onNullValue(),
+                _ => value.Equals(parameter),
+            };
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => value.Equals(true) ? parameter : Binding.DoNothing;
     }
 
     public class ComboBoxItemTagToIndexConverter : IValueConverter
