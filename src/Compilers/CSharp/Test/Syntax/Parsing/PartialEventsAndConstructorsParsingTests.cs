@@ -960,6 +960,28 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
+    public void Constructor_PartialAsName([FeatureLangVersions] LanguageVersion langVersion)
+    {
+        UsingDeclaration("""
+            partial partial();
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
+
+        N(SyntaxKind.ConstructorDeclaration);
+        {
+            N(SyntaxKind.PartialKeyword);
+            N(SyntaxKind.IdentifierToken, "partial");
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
     public void Constructor_PartialAfterName([LastThreeLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
@@ -1167,7 +1189,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void LocalFunction_ReturningPartialType_InMethod([FeatureLangVersions] LanguageVersion langVersion)
+    public void ReturningPartialType_LocalFunction_InMethod([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingTree("""
             class C
@@ -1238,7 +1260,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Fact]
-    public void LocalFunction_ReturningPartialType_InMethod_CSharp13()
+    public void ReturningPartialType_LocalFunction_InMethod_CSharp13()
     {
         UsingTree("""
             class C
@@ -1306,7 +1328,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void LocalFunction_ReturningPartialType_TopLevel([FeatureLangVersions] LanguageVersion langVersion)
+    public void ReturningPartialType_LocalFunction_TopLevel([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingTree("""
             partial F() => null;
@@ -1352,7 +1374,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Fact]
-    public void LocalFunction_ReturningPartialType_TopLevel_CSharp13()
+    public void ReturningPartialType_LocalFunction_TopLevel_CSharp13()
     {
         UsingTree("""
             partial F() => null;
@@ -1385,6 +1407,143 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void ReturningPartialType_Method([FeatureLangVersions] LanguageVersion langVersion)
+    {
+        UsingTree("""
+            class C
+            {
+                partial M() => null;
+                @partial M() => null;
+            }
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NullLiteralExpression);
+                        {
+                            N(SyntaxKind.NullKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "@partial");
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NullLiteralExpression);
+                        {
+                            N(SyntaxKind.NullKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ReturningPartialType_Method_CSharp13()
+    {
+        UsingTree("""
+            class C
+            {
+                partial M() => null;
+                @partial M() => null;
+            }
+            """,
+            TestOptions.Regular13);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NullLiteralExpression);
+                        {
+                            N(SyntaxKind.NullKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "@partial");
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NullLiteralExpression);
+                        {
+                            N(SyntaxKind.NullKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
             }
             N(SyntaxKind.EndOfFileToken);
         }

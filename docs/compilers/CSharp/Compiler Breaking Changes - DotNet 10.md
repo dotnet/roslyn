@@ -292,16 +292,19 @@ unsafe record struct R(
 }
 ```
 
-## `partial` cannot be a return type of local functions
+## `partial` cannot be a return type of methods
 
 ***Introduced in Visual Studio 2022 version 17.14***
 
 The [partial events and constructors](https://github.com/dotnet/csharplang/issues/9058) language feature
-allows the `partial` modifier in more places and so it cannot be a local function return type unless escaped:
+allows the `partial` modifier in more places and so it cannot be a return type unless escaped:
 
 ```cs
-partial F() => new partial(); // previously worked
-@partial F() => new partial(); // workaround
+class C
+{
+    partial F() => new partial(); // previously worked
+    @partial F() => new partial(); // workaround
+}
 
 class partial { }
 ```
