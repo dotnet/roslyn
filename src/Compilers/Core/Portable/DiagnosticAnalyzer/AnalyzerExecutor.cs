@@ -972,7 +972,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var nodeAction in nodeActions)
             {
                 foreach (var kind in nodeAction.Kinds)
+                {
                     nodeActionsByKind.AddPooled(kind, nodeAction);
+                }
             }
 
             return nodeActionsByKind.ToImmutableSegmentedDictionaryAndFree();
@@ -1066,7 +1068,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             foreach (var operationAction in operationActions)
             {
                 foreach (var kind in operationAction.Kinds)
+                {
                     operationActionsByKind.AddPooled(kind, operationAction);
+                }
             }
 
             return operationActionsByKind.ToImmutableSegmentedDictionaryAndFree();
@@ -1236,7 +1240,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Exception, bool>? analyzerExceptionFilter,
             CancellationToken cancellationToken)
         {
-            if (!ExceptionFilter(exception, analyzerExceptionFilter, cancellationToken))
+            if (!exceptionFilter(exception, analyzerExceptionFilter, cancellationToken))
             {
                 return false;
             }
@@ -1254,7 +1258,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return true;
 
-            static bool ExceptionFilter(Exception ex, Func<Exception, bool>? analyzerExceptionFilter, CancellationToken cancellationToken)
+            static bool exceptionFilter(Exception ex, Func<Exception, bool>? analyzerExceptionFilter, CancellationToken cancellationToken)
             {
                 if ((ex as OperationCanceledException)?.CancellationToken == cancellationToken)
                 {

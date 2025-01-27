@@ -1525,6 +1525,54 @@ class C { }
             Assert.Equal(e, runResults.Results.Single().Exception);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76765")]
+        public void Incremental_Generators_Exception_In_DefaultComparer()
+        {
+            var source = """
+                class C { }
+                """;
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var syntaxTree = compilation.SyntaxTrees.Single();
+
+            var e = new InvalidOperationException("abc");
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                var name = ctx.CompilationProvider.Select((c, _) => new ThrowWhenEqualsItem(e));
+                ctx.RegisterSourceOutput(name, (spc, n) => spc.AddSource("item.cs", "// generated"));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResults = driver.GetRunResult();
+
+            Assert.Empty(runResults.Diagnostics);
+            Assert.Equal("// generated", runResults.Results.Single().GeneratedSources.Single().SourceText.ToString());
+
+            compilation = compilation.ReplaceSyntaxTree(syntaxTree, CSharpSyntaxTree.ParseText("""
+                class D { }
+                """, parseOptions));
+            compilation.VerifyDiagnostics();
+
+            driver = driver.RunGenerators(compilation);
+            runResults = driver.GetRunResult();
+
+            VerifyGeneratorExceptionDiagnostic<InvalidOperationException>(runResults.Diagnostics.Single(), nameof(PipelineCallbackGenerator), "abc");
+            Assert.Empty(runResults.GeneratedTrees);
+            Assert.Equal(e, runResults.Results.Single().Exception);
+        }
+
+        class ThrowWhenEqualsItem(Exception toThrow)
+        {
+            readonly Exception _toThrow = toThrow;
+
+            public override bool Equals(object? obj) => throw _toThrow;
+
+            public override int GetHashCode() => throw new NotImplementedException();
+        }
+
         [Fact]
         public void Incremental_Generators_Exception_During_Execution_Doesnt_Produce_AnySource()
         {

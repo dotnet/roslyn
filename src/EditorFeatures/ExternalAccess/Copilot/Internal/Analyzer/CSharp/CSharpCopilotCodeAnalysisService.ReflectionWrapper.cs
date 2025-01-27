@@ -19,7 +19,7 @@ using GetAvailablePromptTitlesAsyncDelegateType = Func<Document, CancellationTok
 using GetCachedDiagnosticsAsyncDelegateType = Func<Document, string, CancellationToken, Task<ImmutableArray<Diagnostic>>>;
 using IsAvailableAsyncDelegateType = Func<CancellationToken, Task<bool>>;
 using StartRefinementSessionAsyncDelegateType = Func<Document, Document, Diagnostic?, CancellationToken, Task>;
-using GetOnTheFlyDocsAsyncDelegateType = Func<string, ImmutableArray<string>, string, CancellationToken, Task<string>>;
+using GetOnTheFlyDocsAsyncDelegateType = Func<string, ImmutableArray<string>, string, CancellationToken, Task<(string responseString, bool isQuotaExceeded)>>;
 using IsAnyExclusionAsyncDelegateType = Func<CancellationToken, Task<bool>>;
 using IsFileExcludedAsyncDelegateType = Func<string, CancellationToken, Task<bool>>;
 
@@ -159,10 +159,10 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
             return _lazyStartRefinementSessionAsyncDelegate.Value(oldDocument, newDocument, primaryDiagnostic, cancellationToken);
         }
 
-        public async Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken)
+        public async Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken)
         {
             if (_lazyGetOnTheFlyDocsAsyncDelegate.Value is null)
-                return string.Empty;
+                return (string.Empty, false);
 
             return await _lazyGetOnTheFlyDocsAsyncDelegate.Value(symbolSignature, declarationCode, language, cancellationToken).ConfigureAwait(false);
         }

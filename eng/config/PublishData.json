@@ -281,6 +281,16 @@
       "insertionTitlePrefix": "[Do not merge, please close me]",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false
+    },
+    "features/vscode_net9": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionTitlePrefix": "[Do not merge, please close me]",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true
     }
   }
 }
