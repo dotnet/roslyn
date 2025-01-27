@@ -25,7 +25,7 @@ You should install the version specified in `global.json` or a later version wit
 the same major.minor.Bxx "hundreds" band.
 For example if 2.2.300 is specified, you may install 2.2.300, 2.2.301, or 2.2.310
 while the 2.2.400 version would not be considered compatible by .NET SDK.
-See [.NET Core Versioning](https://docs.microsoft.com/dotnet/core/versions/) for more information.
+See [.NET Core Versioning](https://learn.microsoft.com/dotnet/core/versions/) for more information.
 
 ## Package restore
 
@@ -44,7 +44,7 @@ Building, testing, and packing this repository can be done by using the standard
 ## Releases
 
 Use `nbgv tag` to create a tag for a particular commit that you mean to release.
-[Learn more about `nbgv` and its `tag` and `prepare-release` commands](https://github.com/dotnet/Nerdbank.GitVersioning/blob/main/doc/nbgv-cli.md).
+[Learn more about `nbgv` and its `tag` and `prepare-release` commands](https://dotnet.github.io/Nerdbank.GitVersioning/docs/nbgv-cli.html).
 
 Push the tag.
 
