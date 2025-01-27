@@ -294,7 +294,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             cancellationToken.ThrowIfCancellationRequested();
 
             var supportedSuppressions = _analyzerManager.GetSupportedSuppressionDescriptors(suppressor, this, cancellationToken);
-            Func<SuppressionDescriptor, bool> isSupportedSuppression = supportedSuppressions.Contains;
+
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, supportedSuppressions) => supportedSuppressions.Contains(d),
+                supportedSuppressions,
+                out Func<SuppressionDescriptor, bool> isSupportedSuppression);
 
             var context = new SuppressionAnalysisContext(Compilation, AnalyzerOptions,
                 reportedDiagnostics, _addSuppression, isSupportedSuppression, _getSemanticModel, cancellationToken);
