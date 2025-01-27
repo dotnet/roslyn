@@ -575,21 +575,17 @@ new T Goo();
         {
             var tree = UsingTree(@"
 new partial Goo();
-",
-                // (2,13): error CS1520: Method must have a return type
-                // new partial Goo();
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Goo").WithLocation(2, 13));
+");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
                 {
                     N(SyntaxKind.NewKeyword);
-                    N(SyntaxKind.PartialKeyword);
-                    M(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        M(SyntaxKind.VoidKeyword);
+                        N(SyntaxKind.IdentifierToken);
                     }
-                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -599,7 +595,6 @@ new partial Goo();
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
-            EOF();
         }
 
         [Fact]
@@ -647,55 +642,26 @@ new partial[] Goo();
         {
             var tree = UsingTree(@"
 new partial.partial Goo();
-",
-                // (2,13): error CS1525: Invalid expression term 'partial'
-                // new partial.partial Goo();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(2, 13),
-                // (2,13): error CS1002: ; expected
-                // new partial.partial Goo();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(2, 13),
-                // (2,21): error CS1520: Method must have a return type
-                // new partial.partial Goo();
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Goo").WithLocation(2, 21));
+");
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
-                    {
-                        N(SyntaxKind.ObjectCreationExpression);
-                        {
-                            N(SyntaxKind.NewKeyword);
-                            N(SyntaxKind.QualifiedName);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "partial");
-                                }
-                                N(SyntaxKind.DotToken);
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                            }
-                            M(SyntaxKind.ArgumentList);
-                            {
-                                M(SyntaxKind.OpenParenToken);
-                                M(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
                 N(SyntaxKind.MethodDeclaration);
                 {
-                    N(SyntaxKind.PartialKeyword);
-                    M(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.QualifiedName);
                     {
-                        M(SyntaxKind.VoidKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
                     }
-                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -705,7 +671,6 @@ new partial.partial Goo();
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
-            EOF();
         }
 
         [Fact]
@@ -747,35 +712,28 @@ new partial.partial Goo();
         {
             var tree = UsingTree(@"
 new partial partial Goo();
-",
-                // (2,13): error CS1525: Invalid expression term 'partial'
-                // new partial partial Goo();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(2, 13),
-                // (2,13): error CS1003: Syntax error, ',' expected
-                // new partial partial Goo();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(2, 13));
+");
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.MethodDeclaration);
                 {
                     N(SyntaxKind.NewKeyword);
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
+                        N(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
-            EOF();
         }
 
         [Fact]
@@ -783,90 +741,36 @@ new partial partial Goo();
         {
             var tree = UsingTree(@"
 new partial partial.partial partial();
-",
-                // (2,21): error CS1525: Invalid expression term 'partial'
-                // new partial partial.partial partial();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(2, 21),
-                // (2,21): error CS1003: Syntax error, '(' expected
-                // new partial partial.partial partial();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments("(").WithLocation(2, 21),
-                // (2,36): error CS1001: Identifier expected
-                // new partial partial.partial partial();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 36),
-                // (2,36): error CS1003: Syntax error, ',' expected
-                // new partial partial.partial partial();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(2, 36),
-                // (2,37): error CS8124: Tuple must contain at least two elements.
-                // new partial partial.partial partial();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(2, 37),
-                // (2,38): error CS1001: Identifier expected
-                // new partial partial.partial partial();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(2, 38),
-                // (2,38): error CS1026: ) expected
-                // new partial partial.partial partial();
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(2, 38));
+");
 
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
                 {
                     N(SyntaxKind.NewKeyword);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "partial");
-                    }
-                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.QualifiedName);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            N(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
                     }
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.ParameterList);
                     {
-                        M(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "partial");
-                            }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.TupleType);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                M(SyntaxKind.TupleElement);
-                                {
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                }
-                                M(SyntaxKind.CommaToken);
-                                M(SyntaxKind.TupleElement);
-                                {
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
-            EOF();
         }
 
         [Fact]
@@ -2097,22 +2001,7 @@ partial Goo() { }
 partial partial Goo() { } 
 partial partial[] Goo() { } 
 partial partial<int> Goo() { } 
-",
-                // (12,9): error CS1520: Method must have a return type
-                // partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Goo").WithLocation(12, 9),
-                // (13,9): error CS1525: Invalid expression term 'partial'
-                // partial partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(13, 9),
-                // (13,9): error CS1003: Syntax error, ',' expected
-                // partial partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(13, 9),
-                // (13,17): error CS1002: ; expected
-                // partial partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Goo").WithLocation(13, 17),
-                // (13,23): error CS1002: ; expected
-                // partial partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(13, 23));
+");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2124,12 +2013,12 @@ partial partial<int> Goo() { }
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "partial");
+                                N(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.EqualsToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "partial");
+                                N(SyntaxKind.IdentifierToken);
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -2141,11 +2030,11 @@ partial partial<int> Goo() { }
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            N(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            N(SyntaxKind.IdentifierToken);
                         }
                     }
                     N(SyntaxKind.SemicolonToken);
@@ -2156,17 +2045,17 @@ partial partial<int> Goo() { }
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            N(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            N(SyntaxKind.IdentifierToken);
                             N(SyntaxKind.EqualsValueClause);
                             {
                                 N(SyntaxKind.EqualsToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "partial");
+                                    N(SyntaxKind.IdentifierToken);
                                 }
                             }
                         }
@@ -2177,9 +2066,9 @@ partial partial<int> Goo() { }
                 {
                     N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken, "partial");
+                        N(SyntaxKind.IdentifierToken);
                     }
-                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
@@ -2196,9 +2085,9 @@ partial partial<int> Goo() { }
                     N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken, "partial");
+                        N(SyntaxKind.IdentifierToken);
                     }
-                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
@@ -2217,7 +2106,7 @@ partial partial<int> Goo() { }
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            N(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.ArrayRankSpecifier);
                         {
@@ -2229,7 +2118,7 @@ partial partial<int> Goo() { }
                             N(SyntaxKind.CloseBracketToken);
                         }
                     }
-                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
@@ -2246,7 +2135,7 @@ partial partial<int> Goo() { }
                     N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.GenericName);
                     {
-                        N(SyntaxKind.IdentifierToken, "partial");
+                        N(SyntaxKind.IdentifierToken);
                         N(SyntaxKind.TypeArgumentList);
                         {
                             N(SyntaxKind.LessThanToken);
@@ -2257,7 +2146,7 @@ partial partial<int> Goo() { }
                             N(SyntaxKind.GreaterThanToken);
                         }
                     }
-                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
@@ -2271,12 +2160,11 @@ partial partial<int> Goo() { }
                 }
                 N(SyntaxKind.MethodDeclaration);
                 {
-                    N(SyntaxKind.PartialKeyword);
-                    M(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        M(SyntaxKind.VoidKeyword);
+                        N(SyntaxKind.IdentifierToken);
                     }
-                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -2288,42 +2176,19 @@ partial partial<int> Goo() { }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.MethodDeclaration);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
+                        N(SyntaxKind.IdentifierToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.InvocationExpression);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Goo");
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
                     N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
@@ -2337,7 +2202,7 @@ partial partial<int> Goo() { }
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            N(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.ArrayRankSpecifier);
                         {
@@ -2349,7 +2214,7 @@ partial partial<int> Goo() { }
                             N(SyntaxKind.CloseBracketToken);
                         }
                     }
-                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -2366,7 +2231,7 @@ partial partial<int> Goo() { }
                     N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.GenericName);
                     {
-                        N(SyntaxKind.IdentifierToken, "partial");
+                        N(SyntaxKind.IdentifierToken);
                         N(SyntaxKind.TypeArgumentList);
                         {
                             N(SyntaxKind.LessThanToken);
@@ -2377,7 +2242,7 @@ partial partial<int> Goo() { }
                             N(SyntaxKind.GreaterThanToken);
                         }
                     }
-                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -2391,7 +2256,6 @@ partial partial<int> Goo() { }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
-            EOF();
         }
 
         #endregion

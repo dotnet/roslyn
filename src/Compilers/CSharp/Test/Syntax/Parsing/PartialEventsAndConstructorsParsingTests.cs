@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -9,8 +10,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper output) : ParsingTests(output)
 {
-    [Fact]
-    public void Event_Tree()
+    private sealed class FeatureLangVersions()
+        : CombinatorialValuesAttribute(LanguageVersionFacts.CSharpNext, LanguageVersion.Preview);
+
+    private sealed class LastThreeLangVersions()
+        : CombinatorialValuesAttribute(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview);
+
+    [Theory, CombinatorialData]
+    public void Event_Tree([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingTree("""
             partial class C
@@ -18,7 +25,8 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
                 partial event Action E;
                 partial event Action E { add { } remove { } }
             }
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -85,12 +93,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Definition()
+    [Theory, CombinatorialData]
+    public void Event_Definition([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E;
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.EventFieldDeclaration);
         {
@@ -113,11 +122,36 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Fact]
-    public void Event_Definition_Multiple()
+    public void Event_Definition_CSharp13()
+    {
+        UsingDeclaration("""
+            partial event Action E;
+            """,
+            TestOptions.Regular13,
+            // (1,1): error CS1073: Unexpected token 'event'
+            // partial event Action E;
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "partial").WithArguments("event").WithLocation(1, 1),
+            // (1,9): error CS1519: Invalid token 'event' in class, record, struct, or interface member declaration
+            // partial event Action E;
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "event").WithArguments("event").WithLocation(1, 9));
+
+        N(SyntaxKind.IncompleteMember);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "partial");
+            }
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void Event_Definition_Multiple([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E, F;
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.EventFieldDeclaration);
         {
@@ -144,12 +178,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Definition_Initializer()
+    [Theory, CombinatorialData]
+    public void Event_Definition_Initializer([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E = null;
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.EventFieldDeclaration);
         {
@@ -179,12 +214,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Definition_Multiple_Initializer()
+    [Theory, CombinatorialData]
+    public void Event_Definition_Multiple_Initializer([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E, F = null;
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.EventFieldDeclaration);
         {
@@ -219,12 +255,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Definition_Multiple_Initializers()
+    [Theory, CombinatorialData]
+    public void Event_Definition_Multiple_Initializers([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E = null, F = null;
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.EventFieldDeclaration);
         {
@@ -267,13 +304,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Definition_PartialAfterEvent()
+    [Theory, CombinatorialData]
+    public void Event_Definition_PartialAfterEvent([LastThreeLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             event partial Action E;
             """,
-            null,
+            TestOptions.Regular.WithLanguageVersion(langVersion),
             // (1,7): error CS1031: Type expected
             // event partial Action E;
             Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 7),
@@ -303,13 +340,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Definition_PartialAfterType()
+    [Theory, CombinatorialData]
+    public void Event_Definition_PartialAfterType([LastThreeLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             event Action partial E;
             """,
-            null,
+            TestOptions.Regular.WithLanguageVersion(langVersion),
             // (1,22): error CS1003: Syntax error, ',' expected
             // event Action partial E;
             Diagnostic(ErrorCode.ERR_SyntaxError, "E").WithArguments(",").WithLocation(1, 22));
@@ -333,12 +370,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Definition_PartialAfterPublic()
+    [Theory, CombinatorialData]
+    public void Event_Definition_PartialAfterPublic([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             public partial event Action E;
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.EventFieldDeclaration);
         {
@@ -361,12 +399,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Definition_PartialBeforePublic()
+    [Theory, CombinatorialData]
+    public void Event_Definition_PartialBeforePublic([LastThreeLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial public event Action E;
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.EventFieldDeclaration);
         {
@@ -389,13 +428,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Definition_DoublePartial()
+    [Theory, CombinatorialData]
+    public void Event_Definition_DoublePartial([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial partial event Action E;
             """,
-            null,
+            TestOptions.Regular.WithLanguageVersion(langVersion),
             // (1,9): error CS1525: Invalid expression term 'partial'
             // partial partial event Action E;
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 9),
@@ -421,13 +460,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Definition_MissingRest()
+    [Theory, CombinatorialData]
+    public void Event_Definition_MissingRest([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event
             """,
-            null,
+            TestOptions.Regular.WithLanguageVersion(langVersion),
             // (1,14): error CS1031: Type expected
             // partial event
             Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 14),
@@ -456,12 +495,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Implementation()
+    [Theory, CombinatorialData]
+    public void Event_Implementation([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E { add { } remove { } }
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.EventDeclaration);
         {
@@ -499,13 +539,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Implementation_Multiple()
+    [Theory, CombinatorialData]
+    public void Event_Implementation_Multiple([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E, F { add { } remove { } }
             """,
-            null,
+            TestOptions.Regular.WithLanguageVersion(langVersion),
             // (1,27): error CS1003: Syntax error, ',' expected
             // partial event Action E, F { add { } remove { } }
             Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 27),
@@ -538,13 +578,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Implementation_PartialAfterEvent()
+    [Theory, CombinatorialData]
+    public void Event_Implementation_PartialAfterEvent([LastThreeLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             event partial Action E { add { } remove { } }
             """,
-            null,
+            TestOptions.Regular.WithLanguageVersion(langVersion),
             // (1,7): error CS1031: Type expected
             // event partial Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 7),
@@ -577,12 +617,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Implementation_SemicolonAccessors()
+    [Theory, CombinatorialData]
+    public void Event_Implementation_SemicolonAccessors([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E { add; remove; }
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.EventDeclaration);
         {
@@ -612,13 +653,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_Implementation_PartialAccessors()
+    [Theory, CombinatorialData]
+    public void Event_Implementation_PartialAccessors([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E { partial add; partial remove; }
             """,
-            null,
+            TestOptions.Regular.WithLanguageVersion(langVersion),
             // (1,26): error CS1055: An add or remove accessor expected
             // partial event Action E { partial add; partial remove; }
             Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "partial").WithLocation(1, 26),
@@ -662,8 +703,8 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Event_InPlaceOfIdentifier()
+    [Theory, CombinatorialData]
+    public void Event_InPlaceOfIdentifier([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingTree("""
             partial class C
@@ -672,6 +713,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
                 partial event Action E;
             }
             """,
+            TestOptions.Regular.WithLanguageVersion(langVersion),
             // (3,11): error CS1026: ) expected
             //     [Attr(
             Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 11),
@@ -728,8 +770,8 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Constructor_Tree()
+    [Theory, CombinatorialData]
+    public void Constructor_Tree([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingTree("""
             partial class C
@@ -737,7 +779,8 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
                 partial C();
                 partial C() { }
             }
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -780,12 +823,68 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
+    [Theory, CombinatorialData]
+    public void Constructor_Declaration([FeatureLangVersions] LanguageVersion langVersion)
+    {
+        UsingDeclaration("""
+            partial C() { }
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
+
+        N(SyntaxKind.ConstructorDeclaration);
+        {
+            N(SyntaxKind.PartialKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
     [Fact]
-    public void Constructor_ArrowBody()
+    public void Constructor_Declaration_CSharp13()
+    {
+        UsingDeclaration("""
+            partial C() { }
+            """,
+            TestOptions.Regular13);
+
+        N(SyntaxKind.MethodDeclaration);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "partial");
+            }
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void Constructor_ArrowBody([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial C() => throw null;
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.ConstructorDeclaration);
         {
@@ -813,12 +912,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Constructor_NoParens()
+    [Theory, CombinatorialData]
+    public void Constructor_NoParens([LastThreeLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial C;
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.FieldDeclaration);
         {
@@ -838,12 +938,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Constructor_NoName()
+    [Theory, CombinatorialData]
+    public void Constructor_NoName([LastThreeLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial ();
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.ConstructorDeclaration);
         {
@@ -858,12 +959,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Constructor_PartialAfterName()
+    [Theory, CombinatorialData]
+    public void Constructor_PartialAfterName([LastThreeLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             C partial();
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.MethodDeclaration);
         {
@@ -882,12 +984,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Constructor_PartialAfterPublic()
+    [Theory, CombinatorialData]
+    public void Constructor_PartialAfterPublic([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             public partial C();
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.ConstructorDeclaration);
         {
@@ -904,12 +1007,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Constructor_PartialBeforePublic()
+    [Theory, CombinatorialData]
+    public void Constructor_PartialBeforePublic([LastThreeLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial public C();
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.ConstructorDeclaration);
         {
@@ -926,12 +1030,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Constructor_TypeTwice()
+    [Theory, CombinatorialData]
+    public void Constructor_TypeTwice([LastThreeLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial C C();
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.MethodDeclaration);
         {
@@ -951,12 +1056,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Constructor_PartialEscaped()
+    [Theory, CombinatorialData]
+    public void Constructor_PartialEscaped([LastThreeLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             @partial C();
-            """);
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.MethodDeclaration);
         {
@@ -975,13 +1081,13 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Constructor_KeywordName()
+    [Theory, CombinatorialData]
+    public void Constructor_KeywordName([LastThreeLangVersions] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial const();
             """,
-            null,
+            TestOptions.Regular.WithLanguageVersion(langVersion),
             // (1,1): error CS1073: Unexpected token 'const'
             // partial const();
             Diagnostic(ErrorCode.ERR_UnexpectedToken, "partial").WithArguments("const").WithLocation(1, 1),
@@ -999,8 +1105,8 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         EOF();
     }
 
-    [Fact]
-    public void Constructor_InPlaceOfIdentifier()
+    [Theory, CombinatorialData]
+    public void Constructor_InPlaceOfIdentifier([FeatureLangVersions] LanguageVersion langVersion)
     {
         UsingTree("""
             partial class C
@@ -1009,6 +1115,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
                 partial C();
             }
             """,
+            TestOptions.Regular.WithLanguageVersion(langVersion),
             // (3,11): error CS1026: ) expected
             //     [Attr(
             Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 11),
@@ -1053,6 +1160,231 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
                     N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void LocalFunction_ReturningPartialType_InMethod([FeatureLangVersions] LanguageVersion langVersion)
+    {
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    partial F() => null;
+                }
+            }
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion),
+            // (4,6): error CS1513: } expected
+            //     {
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 6),
+            // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
+            // }
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.IdentifierToken, "F");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NullLiteralExpression);
+                        {
+                            N(SyntaxKind.NullKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void LocalFunction_ReturningPartialType_InMethod_CSharp13()
+    {
+        UsingTree("""
+            class C
+            {
+                void M()
+                {
+                    partial F() => null;
+                }
+            }
+            """,
+            TestOptions.Regular13);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.LocalFunctionStatement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
+                            N(SyntaxKind.IdentifierToken, "F");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void LocalFunction_ReturningPartialType_TopLevel([FeatureLangVersions] LanguageVersion langVersion)
+    {
+        UsingTree("""
+            partial F() => null;
+            """,
+            TestOptions.Regular.WithLanguageVersion(langVersion),
+            // (1,9): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+            // partial F() => null;
+            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "F").WithLocation(1, 9));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "F");
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NullLiteralExpression);
+                        {
+                            N(SyntaxKind.NullKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void LocalFunction_ReturningPartialType_TopLevel_CSharp13()
+    {
+        UsingTree("""
+            partial F() => null;
+            """,
+            TestOptions.Regular13);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalFunctionStatement);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                    N(SyntaxKind.IdentifierToken, "F");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NullLiteralExpression);
+                        {
+                            N(SyntaxKind.NullKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
             }
             N(SyntaxKind.EndOfFileToken);
         }
