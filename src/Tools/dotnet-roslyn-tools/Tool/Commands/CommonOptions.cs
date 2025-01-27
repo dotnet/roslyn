@@ -4,8 +4,8 @@
 
 using System.CommandLine;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 using Microsoft.RoslynTools.Authentication;
+using Microsoft.RoslynTools.Logging;
 
 namespace Microsoft.RoslynTools.Commands;
 
@@ -75,7 +75,7 @@ internal static class CommonOptions
     {
         var minimalLogLevel = parseResult.ParseVerbosity();
         using var loggerFactory = LoggerFactory
-            .Create(builder => builder.AddSimpleConsole(c => c.ColorBehavior = LoggerColorBehavior.Default)
+            .Create(builder => builder.AddSimplerFormatter(o => { })
             .SetMinimumLevel(minimalLogLevel));
         return loggerFactory.CreateLogger<Program>();
     }
