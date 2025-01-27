@@ -47,7 +47,9 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
     private readonly SuggestionServiceBase? _suggestionServiceBase;
     private SuggestionManagerBase? _suggestionManagerBase;
     internal SuggestionSessionBase? _suggestionSession;
-    public readonly IThreadingContext _threadingContext;
+    private VisualStudio.Threading.IAsyncDisposable? _intellicodeLineCompletionsDisposable;
+
+    public readonly IThreadingContext ThreadingContext;
 
     protected AbstractDocumentationCommentCommandHandler(
         IUIThreadOperationExecutor uiThreadOperationExecutor,
@@ -67,7 +69,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         _editorOperationsFactoryService = editorOperationsFactoryService;
         _editorOptionsService = editorOptionsService;
         _suggestionServiceBase = suggestionServiceBase;
-        _threadingContext = threadingContext;
+        ThreadingContext = threadingContext;
     }
 
     protected abstract string ExteriorTriviaText { get; }
@@ -123,12 +125,13 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                 var oldCaret = textView.Caret.Position.VirtualBufferPosition;
 
                 returnValue = true;
+
                 // Only calls into the suggestion manager is available, the shell of the comment still gets inserted regardless.
                 if (_suggestionManagerBase != null)
                 {
-                    _threadingContext.ThrowIfNotOnUIThread();
+                    ThreadingContext.ThrowIfNotOnUIThread();
 
-                    _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                    ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
                     {
                         await Task.Run(async () =>
                         {
@@ -152,9 +155,9 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                                 return;
                             }
 
-                            // Does not do IntelliCode line completions if we're about to generate a documentation comment
+                            // Do not do IntelliCode line completions if we're about to generate a documentation comment
                             // so that won't have interfering grey text.
-                            /*var intellicodeLineCompletionsDisposable = */await _suggestionManagerBase.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
+                            _intellicodeLineCompletionsDisposable = await _suggestionManagerBase.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
 
                             var proposalEdits = await GetProposedEditsAsync(snippetProposal, copilotService, oldSnapshot, cancellationToken).ConfigureAwait(false);
 
@@ -323,7 +326,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
     {
         try
         {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await session.DisplayProposalAsync(suggestion.Proposal, cancellationToken).ConfigureAwait(false);
             return true;
         }
@@ -342,6 +345,16 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         }
 
         _suggestionSession = null;
+        await DisposeAsync().ConfigureAwait(false);
+    }
+
+    public async Task DisposeAsync()
+    {
+        if (_intellicodeLineCompletionsDisposable != null)
+        {
+            await _intellicodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
+            _intellicodeLineCompletionsDisposable = null;
+        }
     }
 
     public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
@@ -359,7 +372,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         if (args.SubjectBuffer.IsInLspEditorContext())
             return;
 
-        _threadingContext.JoinableTaskFactory.Run(async () =>
+        ThreadingContext.JoinableTaskFactory.Run(async () =>
         {
             if (_suggestionServiceBase != null)
             {

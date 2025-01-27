@@ -28,9 +28,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public override event PropertyChangedEventHandler? PropertyChanged;
 
-        public override Task OnAcceptedAsync(SuggestionSessionBase session, ProposalBase originalProposal, ProposalBase currentProposal, ReasonForAccept reason, CancellationToken cancel)
+        public override async Task OnAcceptedAsync(SuggestionSessionBase session, ProposalBase originalProposal, ProposalBase currentProposal, ReasonForAccept reason, CancellationToken cancel)
         {
-            return Task.CompletedTask;
+            await handlerInstance.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
+
+            await handlerInstance.DisposeAsync().ConfigureAwait(false);
         }
 
         public override Task OnChangeProposalAsync(SuggestionSessionBase session, ProposalBase originalProposal, ProposalBase currentProposal, bool forward, CancellationToken cancel)
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public override async Task OnDismissedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForDismiss reason, CancellationToken cancel)
         {
-            await handlerInstance._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
+            await handlerInstance.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
 
             await handlerInstance.ClearSuggestionAsync(reason, cancel).ConfigureAwait(false);
 
