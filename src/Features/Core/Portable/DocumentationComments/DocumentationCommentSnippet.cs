@@ -26,12 +26,12 @@ internal sealed class DocumentationCommentSnippet
     public int CaretOffset { get; }
 
     /// <summary>
-    /// 
+    /// The original position of the caret in the original text.
     /// </summary>
     public int? Position { get; }
 
     /// <summary>
-    /// 
+    /// The node that is being documented.
     /// </summary>
     public SyntaxNode? MemberNode { get; }
 
