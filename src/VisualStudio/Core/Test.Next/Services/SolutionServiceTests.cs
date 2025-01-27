@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Test;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
@@ -34,7 +35,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 [Trait(Traits.Feature, Traits.Features.RemoteHost)]
 public class SolutionServiceTests
 {
-    private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
+    private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
     private static readonly TestComposition s_compositionWithFirstDocumentIsActiveAndVisible =
         s_composition.AddParts(typeof(FirstDocumentIsActiveAndVisibleDocumentTrackingService.Factory));
 
@@ -1152,7 +1153,7 @@ public class SolutionServiceTests
     {
         var code = @"class Test { void Method() { } }";
 
-        using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithFirstDocumentIsActiveAndVisible);
+        using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_compositionWithFirstDocumentIsActiveAndVisible);
         using var remoteWorkspace = CreateRemoteWorkspace();
 
         var solution = workspace.CurrentSolution;

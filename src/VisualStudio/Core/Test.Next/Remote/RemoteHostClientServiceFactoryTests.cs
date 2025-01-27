@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class RemoteHostClientServiceFactoryTests
     {
-        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
 
         private static AdhocWorkspace CreateWorkspace()
             => new(s_composition.GetHostServices());
