@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: 📚 docfx
+    name: 📚 Doc validation
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -15,7 +15,7 @@ jobs:
     - name: 🔗 Markup Link Checker (mlc)
       uses: becheran/mlc@v0.19.0
       with:
-        args: --do-not-warn-for-redirect-to https://learn.microsoft.com*,https://dev.azure.com/*,https://app.codecov.io/* -p docfx
+        args: --do-not-warn-for-redirect-to https://learn.microsoft.com*,https://dev.azure.com/*,https://app.codecov.io/*,https://msrc.microsoft.com/*,https://www.microsoft.com/en-us/msrc* -p docfx -i https://aka.ms/onboardsupport,https://aka.ms/spot,https://www.microsoft.com/msrc/cvd,https://www.microsoft.com/msrc
     - name: ⚙ Install prerequisites
       run: |
         ./init.ps1 -UpgradePrerequisites
