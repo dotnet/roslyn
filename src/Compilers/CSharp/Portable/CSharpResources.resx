@@ -2600,7 +2600,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Invalid preprocessor expression</value>
   </data>
   <data name="ERR_InvalidMemberDecl" xml:space="preserve">
-    <value>Invalid token '{0}' in class, record, struct, or interface member declaration</value>
+    <value>Invalid token '{0}' in a member declaration</value>
   </data>
   <data name="ERR_MemberNeedsType" xml:space="preserve">
     <value>Method must have a return type</value>
@@ -8046,5 +8046,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_InterceptsLocationAttributeUnsupportedSignature_Title" xml:space="preserve">
     <value>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</value>
+  </data>
+  <data name="IDS_FeatureExtensions" xml:space="preserve">
+    <value>extensions</value>
+  </data>
+  <data name="ERR_ExtensionDisallowsName" xml:space="preserve">
+    <value>Extension declarations may not have a name.</value>
   </data>
 </root>

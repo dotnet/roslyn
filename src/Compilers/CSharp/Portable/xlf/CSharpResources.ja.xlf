@@ -757,6 +757,11 @@
         <target state="translated">式ツリーは、with 式を含むことはできません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsName">
+        <source>Extension declarations may not have a name.</source>
+        <target state="new">Extension declarations may not have a name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">'{0}': extern イベントは初期化子を持つことができません</target>
@@ -2420,6 +2425,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">拡張プロパティ パターン</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extensions</source>
+        <target state="new">extensions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
@@ -8907,8 +8917,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">クラス、レコード、構造体、またはインターフェイス メンバーの宣言でトークン '{0}' が無効です</target>
+        <source>Invalid token '{0}' in a member declaration</source>
+        <target state="needs-review-translation">クラス、レコード、構造体、またはインターフェイス メンバーの宣言でトークン '{0}' が無効です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

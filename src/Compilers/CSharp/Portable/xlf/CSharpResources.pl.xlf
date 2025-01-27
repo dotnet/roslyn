@@ -757,6 +757,11 @@
         <target state="translated">Drzewo wyrażeń nie może zawierać wyrażenia with.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsName">
+        <source>Extension declarations may not have a name.</source>
+        <target state="new">Extension declarations may not have a name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">„{0}”: zdarzenie extern nie może mieć inicjatora</target>
@@ -2420,6 +2425,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">wzorce właściwości rozszerzonych</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extensions</source>
+        <target state="new">extensions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
@@ -8907,8 +8917,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">Nieprawidłowy token „{0}” w deklaracji składowej klasy, rekordu, struktury lub interfejsu</target>
+        <source>Invalid token '{0}' in a member declaration</source>
+        <target state="needs-review-translation">Nieprawidłowy token „{0}” w deklaracji składowej klasy, rekordu, struktury lub interfejsu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

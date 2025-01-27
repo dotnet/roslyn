@@ -757,6 +757,11 @@
         <target state="translated">Дерево выражения не может содержать выражение with.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsName">
+        <source>Extension declarations may not have a name.</source>
+        <target state="new">Extension declarations may not have a name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">"{0}": внешнее событие не может иметь инициализатор</target>
@@ -2420,6 +2425,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">шаблоны расширенных свойств</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extensions</source>
+        <target state="new">extensions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
@@ -8908,8 +8918,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">Недопустимый токен "{0}" в объявлении класса, записи, структуры или элемента интерфейса</target>
+        <source>Invalid token '{0}' in a member declaration</source>
+        <target state="needs-review-translation">Недопустимый токен "{0}" в объявлении класса, записи, структуры или элемента интерфейса</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

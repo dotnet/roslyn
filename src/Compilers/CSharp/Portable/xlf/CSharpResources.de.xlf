@@ -757,6 +757,11 @@
         <target state="translated">Eine Ausdrucksbaumstruktur darf keinen with-Ausdruck enthalten.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsName">
+        <source>Extension declarations may not have a name.</source>
+        <target state="new">Extension declarations may not have a name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">"{0}": Externes Ereignis darf keinen Initialisierer aufweisen.</target>
@@ -2420,6 +2425,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">Muster für erweiterte Eigenschaften</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extensions</source>
+        <target state="new">extensions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
@@ -8907,8 +8917,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">Ungültiges Token "{0}" in Klassen-, Datensatz-, Struktur- oder Schnittstellenmemberdeklaration</target>
+        <source>Invalid token '{0}' in a member declaration</source>
+        <target state="needs-review-translation">Ungültiges Token "{0}" in Klassen-, Datensatz-, Struktur- oder Schnittstellenmemberdeklaration</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
