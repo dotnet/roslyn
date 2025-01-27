@@ -81,7 +81,7 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// <summary>
     /// Method to retrieve the documentation comment for a given <paramref name="proposal"/>
     /// </summary>
-    /// <param name="proposal"></param>
-    Task<string> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
+    /// <param name="proposal">The documentation comment that has been broken down into its individual pieces.</param>
+    Task<(string responseString, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
 
 }

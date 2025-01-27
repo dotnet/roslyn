@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
@@ -23,7 +22,7 @@ using StartRefinementSessionAsyncDelegateType = Func<Document, Document, Diagnos
 using GetOnTheFlyDocsAsyncDelegateType = Func<string, ImmutableArray<string>, string, CancellationToken, Task<(string responseString, bool isQuotaExceeded)>>;
 using IsAnyExclusionAsyncDelegateType = Func<CancellationToken, Task<bool>>;
 using IsFileExcludedAsyncDelegateType = Func<string, CancellationToken, Task<bool>>;
-using GetDocumentationCommentAsyncDelegateType = Func<CopilotDocumentationCommentProposalWrapper, CancellationToken, Task<string>>;
+using GetDocumentationCommentAsyncDelegateType = Func<CopilotDocumentationCommentProposalWrapper, CancellationToken, Task<(string responseString, bool isQuotaExceeded)>>;
 
 internal sealed partial class CSharpCopilotCodeAnalysisService
 {
@@ -183,10 +182,10 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
             return await _lazyIsFileExcludedAsyncDelegate.Value(filePath, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<string> GetDocumentationCommentAsync(CopilotDocumentationCommentProposalWrapper proposal, CancellationToken cancellationToken)
+        public async Task<(string responseString, bool isQuotaExceeded)> GetDocumentationCommentAsync(CopilotDocumentationCommentProposalWrapper proposal, CancellationToken cancellationToken)
         {
             if (_lazyGetDocumentationCommentAsyncDelegate is null)
-                return string.Empty;
+                return (string.Empty, false);
 
             return await _lazyGetDocumentationCommentAsyncDelegate.Value(proposal, cancellationToken).ConfigureAwait(false);
         }

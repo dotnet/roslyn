@@ -269,7 +269,13 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         ITextSnapshot oldSnapshot, CancellationToken cancellationToken)
     {
         var list = new List<ProposedEdit>();
-        var copilotText = await copilotService.GetDocumentationCommentAsync(proposal, cancellationToken).ConfigureAwait(false);
+        var (copilotText, isQuotaExceeded) = await copilotService.GetDocumentationCommentAsync(proposal, cancellationToken).ConfigureAwait(false);
+
+        // Quietly fail if the quota has been exceeded.
+        if (isQuotaExceeded)
+        {
+            return list;
+        }
 
         // The response from Copilot is structured like a JSON object, so make sure it is being returned appropriately.
         if (copilotText is null || copilotText.AsSpan().Trim() is "{}" or "{ }" or "")

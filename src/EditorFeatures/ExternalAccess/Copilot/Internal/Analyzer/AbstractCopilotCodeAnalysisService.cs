@@ -42,7 +42,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     protected abstract Task StartRefinementSessionCoreAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
     protected abstract Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsCoreAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
     protected abstract Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken);
-    protected abstract Task<string> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
+    protected abstract Task<(string responseString, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
 
     public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         => IsAvailableCoreAsync(cancellationToken);
@@ -191,10 +191,10 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
         return await IsFileExcludedCoreAsync(filePath, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<string> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
+    public async Task<(string responseString, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
     {
         if (!IsAvailableAsync(cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult())
-            return string.Empty;
+            return (string.Empty, false);
 
         return await GetDocumentationCommentCoreAsync(proposal, cancellationToken).ConfigureAwait(false);
     }

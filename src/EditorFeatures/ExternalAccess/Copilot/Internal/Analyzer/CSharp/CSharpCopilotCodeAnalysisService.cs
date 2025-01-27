@@ -84,6 +84,6 @@ internal sealed partial class CSharpCopilotCodeAnalysisService : AbstractCopilot
     protected override Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken)
         => _lazyExternalCopilotService.Value.IsFileExcludedAsync(filePath, cancellationToken);
 
-    protected override Task<string> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
+    protected override Task<(string responseString, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
         => _lazyExternalCopilotService.Value.GetDocumentationCommentAsync(new CopilotDocumentationCommentProposalWrapper(proposal), cancellationToken);
 }
