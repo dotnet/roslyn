@@ -78,7 +78,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
     public string DisplayName => EditorFeaturesResources.Documentation_Comment;
 
     private static DocumentationCommentSnippet? InsertOnCharacterTyped(IDocumentationCommentSnippetService service, ParsedDocument document, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
-        => service.GetDocumentationCommentSnippetOnCharacterTyped(document, position, options, cancellationToken, addGreyText: true);
+        => service.GetDocumentationCommentSnippetOnCharacterTyped(document, position, options, cancellationToken);
 
     private static DocumentationCommentSnippet? InsertOnEnterTyped(IDocumentationCommentSnippetService service, ParsedDocument document, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
         => service.GetDocumentationCommentSnippetOnEnterTyped(document, position, options, cancellationToken);
@@ -158,7 +158,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                             // so that won't have interfering grey text.
                             _intellicodeLineCompletionsDisposable = await _suggestionManagerBase.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
 
-                            var proposalEdits = await GetProposedEditsAsync(snippetProposal, copilotService, oldSnapshot, cancellationToken).ConfigureAwait(false);
+                            var proposalEdits = await GetProposedEditsAsync(snippetProposal, copilotService, oldSnapshot, snippet.CaretOffset, cancellationToken).ConfigureAwait(false);
 
                             var proposal = new DocumentationCommentHandlerProposal(oldCaret, proposalEdits);
                             var suggestion = new DocumentationCommentSuggestion(this, proposal);
@@ -265,7 +265,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
     /// </summary>
     private static async Task<IReadOnlyList<ProposedEdit>> GetProposedEditsAsync(
         DocumentationCommentProposal proposal, ICopilotCodeAnalysisService copilotService,
-        ITextSnapshot oldSnapshot, CancellationToken cancellationToken)
+        ITextSnapshot oldSnapshot, int caretOffset, CancellationToken cancellationToken)
     {
         var list = new List<ProposedEdit>();
         var (copilotText, isQuotaExceeded) = await copilotService.GetDocumentationCommentAsync(proposal, cancellationToken).ConfigureAwait(false);
@@ -320,13 +320,13 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                 copilotStatement = exception;
             }
 
-            var proposedEdit = new ProposedEdit(new SnapshotSpan(oldSnapshot, textSpan.Start, textSpan.Length), AddNewLinesToCopilotText(copilotStatement!, 120));
+            var proposedEdit = new ProposedEdit(new SnapshotSpan(oldSnapshot, textSpan.Start, textSpan.Length), AddNewLinesToCopilotText(copilotStatement!, caretOffset, characterLimit: 120));
             list.Add(proposedEdit);
         }
 
         return list;
 
-        static string AddNewLinesToCopilotText(string copilotText, int characterLimit)
+        static string AddNewLinesToCopilotText(string copilotText, int caretOffset, int characterLimit)
         {
             var builder = new StringBuilder();
             var words = copilotText.Split(' ');
@@ -337,6 +337,8 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                 if (currentLineLength + word.Length >= characterLimit)
                 {
                     builder.AppendLine();
+                    builder.Append(new string(' ', caretOffset));
+                    builder.Append("/// ");
                     currentLineLength = 0;
                 }
 

@@ -69,8 +69,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         int position,
         in DocumentationCommentOptions options,
         CancellationToken cancellationToken,
-        bool addIndentation = true,
-        bool addGreyText = false)
+        bool addIndentation = true)
     {
         if (!options.AutoXmlDocCommentGeneration)
             return null;
