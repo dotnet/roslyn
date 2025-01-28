@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper output) : ParsingTests(output)
 {
-    private sealed class FeatureLangVersions()
+    private sealed class CSharp14_Preview()
         : CombinatorialValuesAttribute(LanguageVersionFacts.CSharpNext, LanguageVersion.Preview);
 
-    private sealed class LastThreeLangVersions()
+    private sealed class CSharp13_CSharp14_Preview()
         : CombinatorialValuesAttribute(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview);
 
     [Theory, CombinatorialData]
-    public void Event_Tree([FeatureLangVersions] LanguageVersion langVersion)
+    public void Event_Tree([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingTree("""
             partial class C
@@ -94,7 +94,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Definition([FeatureLangVersions] LanguageVersion langVersion)
+    public void Event_Definition([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E;
@@ -146,7 +146,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Definition_Multiple([FeatureLangVersions] LanguageVersion langVersion)
+    public void Event_Definition_Multiple([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E, F;
@@ -179,7 +179,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Definition_Initializer([FeatureLangVersions] LanguageVersion langVersion)
+    public void Event_Definition_Initializer([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E = null;
@@ -215,7 +215,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Definition_Multiple_Initializer([FeatureLangVersions] LanguageVersion langVersion)
+    public void Event_Definition_Multiple_Initializer([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E, F = null;
@@ -256,7 +256,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Definition_Multiple_Initializers([FeatureLangVersions] LanguageVersion langVersion)
+    public void Event_Definition_Multiple_Initializers([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E = null, F = null;
@@ -305,7 +305,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Definition_PartialAfterEvent([LastThreeLangVersions] LanguageVersion langVersion)
+    public void Event_Definition_PartialAfterEvent([CSharp13_CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             event partial Action E;
@@ -341,7 +341,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Definition_PartialAfterType([LastThreeLangVersions] LanguageVersion langVersion)
+    public void Event_Definition_PartialAfterType([CSharp13_CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             event Action partial E;
@@ -371,7 +371,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Definition_PartialAfterPublic([FeatureLangVersions] LanguageVersion langVersion)
+    public void Event_Definition_PartialAfterPublic([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             public partial event Action E;
@@ -400,7 +400,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Definition_PartialBeforePublic([LastThreeLangVersions] LanguageVersion langVersion)
+    public void Event_Definition_PartialBeforePublic([CSharp13_CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial public event Action E;
@@ -429,7 +429,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Definition_DoublePartial([FeatureLangVersions] LanguageVersion langVersion)
+    public void Event_Definition_DoublePartial([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial partial event Action E;
@@ -461,7 +461,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Definition_MissingRest([FeatureLangVersions] LanguageVersion langVersion)
+    public void Event_Definition_MissingRest([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event
@@ -496,7 +496,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Implementation([FeatureLangVersions] LanguageVersion langVersion)
+    public void Event_Implementation([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E { add { } remove { } }
@@ -540,7 +540,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Implementation_Multiple([FeatureLangVersions] LanguageVersion langVersion)
+    public void Event_Implementation_Multiple([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E, F { add { } remove { } }
@@ -579,7 +579,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Implementation_PartialAfterEvent([LastThreeLangVersions] LanguageVersion langVersion)
+    public void Event_Implementation_PartialAfterEvent([CSharp13_CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             event partial Action E { add { } remove { } }
@@ -618,7 +618,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Implementation_SemicolonAccessors([FeatureLangVersions] LanguageVersion langVersion)
+    public void Event_Implementation_SemicolonAccessors([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E { add; remove; }
@@ -654,7 +654,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Implementation_PartialAccessors([FeatureLangVersions] LanguageVersion langVersion)
+    public void Event_Implementation_PartialAccessors([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E { partial add; partial remove; }
@@ -704,7 +704,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_InPlaceOfIdentifier([FeatureLangVersions] LanguageVersion langVersion)
+    public void Event_InPlaceOfIdentifier([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingTree("""
             partial class C
@@ -771,7 +771,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Constructor_Tree([FeatureLangVersions] LanguageVersion langVersion)
+    public void Constructor_Tree([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingTree("""
             partial class C
@@ -824,7 +824,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Constructor_Declaration([FeatureLangVersions] LanguageVersion langVersion)
+    public void Constructor_Declaration([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial C() { }
@@ -879,7 +879,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Constructor_ArrowBody([FeatureLangVersions] LanguageVersion langVersion)
+    public void Constructor_ArrowBody([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial C() => throw null;
@@ -913,7 +913,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Constructor_NoParens([LastThreeLangVersions] LanguageVersion langVersion)
+    public void Constructor_NoParens([CSharp13_CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial C;
@@ -939,7 +939,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Constructor_NoName([LastThreeLangVersions] LanguageVersion langVersion)
+    public void Constructor_NoName([CSharp13_CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial ();
@@ -960,7 +960,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Constructor_PartialAsName([FeatureLangVersions] LanguageVersion langVersion)
+    public void Constructor_PartialAsName([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial partial();
@@ -982,7 +982,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Constructor_PartialAfterName([LastThreeLangVersions] LanguageVersion langVersion)
+    public void Constructor_PartialAfterName([CSharp13_CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             C partial();
@@ -1007,7 +1007,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Constructor_PartialAfterPublic([FeatureLangVersions] LanguageVersion langVersion)
+    public void Constructor_PartialAfterPublic([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             public partial C();
@@ -1030,7 +1030,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Constructor_PartialBeforePublic([LastThreeLangVersions] LanguageVersion langVersion)
+    public void Constructor_PartialBeforePublic([CSharp13_CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial public C();
@@ -1053,7 +1053,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Constructor_TypeTwice([LastThreeLangVersions] LanguageVersion langVersion)
+    public void Constructor_TypeTwice([CSharp13_CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial C C();
@@ -1079,7 +1079,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Constructor_PartialEscaped([LastThreeLangVersions] LanguageVersion langVersion)
+    public void Constructor_PartialEscaped([CSharp13_CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             @partial C();
@@ -1104,7 +1104,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Constructor_KeywordName([LastThreeLangVersions] LanguageVersion langVersion)
+    public void Constructor_KeywordName([CSharp13_CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial const();
@@ -1128,7 +1128,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Constructor_InPlaceOfIdentifier([FeatureLangVersions] LanguageVersion langVersion)
+    public void Constructor_InPlaceOfIdentifier([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingTree("""
             partial class C
@@ -1189,7 +1189,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void ReturningPartialType_LocalFunction_InMethod([FeatureLangVersions] LanguageVersion langVersion)
+    public void ReturningPartialType_LocalFunction_InMethod([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingTree("""
             class C
@@ -1328,7 +1328,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void ReturningPartialType_LocalFunction_TopLevel([FeatureLangVersions] LanguageVersion langVersion)
+    public void ReturningPartialType_LocalFunction_TopLevel([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingTree("""
             partial F() => null;
@@ -1414,7 +1414,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void ReturningPartialType_Method([FeatureLangVersions] LanguageVersion langVersion)
+    public void ReturningPartialType_Method([CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingTree("""
             class C
