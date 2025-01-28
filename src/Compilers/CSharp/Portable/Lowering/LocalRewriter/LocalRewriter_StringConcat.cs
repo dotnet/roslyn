@@ -15,12 +15,71 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class LocalRewriter
     {
         private static bool IsBinaryStringConcatenation([NotNullWhen(true)] BoundBinaryOperator? binaryOperator)
-            => binaryOperator is { OperatorKind: BinaryOperatorKind.StringConcatenation or BinaryOperatorKind.StringAndObjectConcatenation or BinaryOperatorKind.ObjectAndStringConcatenation };
+            => binaryOperator is { OperatorKind: var kind } && IsBinaryStringConcatenation(kind);
 
-        private BoundExpression RewriteStringConcatenation(BoundBinaryOperator originalOperator)
+        private static bool IsBinaryStringConcatenation(BinaryOperatorKind binaryOperator)
+            => binaryOperator is BinaryOperatorKind.StringConcatenation or BinaryOperatorKind.StringAndObjectConcatenation or BinaryOperatorKind.ObjectAndStringConcatenation;
+
+        private BoundExpression VisitCompoundAssignmentStringConcatenation(BoundExpression left, BoundExpression unvisitedRight, BinaryOperatorKind operatorKind, TypeSymbol resultType, SyntaxNode syntax)
+        {
+            Debug.Assert(IsBinaryStringConcatenation(operatorKind));
+
+            if (_inExpressionLambda)
+            {
+                return RewriteStringConcatInExpressionLambda(left, unvisitedRight, operatorKind, syntax, resultType);
+            }
+
+            ArrayBuilder<BoundExpression> arguments;
+            if (unvisitedRight is BoundBinaryOperator rightBinary && IsBinaryStringConcatenation(rightBinary))
+            {
+                CollectConcatArguments(rightBinary, left, out arguments);
+
+                Debug.Assert(ReferenceEquals(arguments[0], left));
+
+                for (var i = 1; i < arguments.Count; i++)
+                {
+                    arguments[i] = VisitExpression(arguments[i]);
+                }
+            }
+            else
+            {
+                arguments = ArrayBuilder<BoundExpression>.GetInstance();
+                arguments.Add(left);
+                arguments.Add(VisitExpression(unvisitedRight));
+            }
+
+            return RewriteStringConcat(syntax, arguments);
+        }
+
+        private BoundExpression VisitStringConcatenation(BoundBinaryOperator originalOperator)
         {
             Debug.Assert(IsBinaryStringConcatenation(originalOperator));
 
+            if (_inExpressionLambda)
+            {
+                // Case 1, expression trees
+                return RewriteStringConcatInExpressionLambda(
+                    originalOperator,
+                    compoundAssignmentLeft: null,
+                    compoundAssignmentOperatorKind: null,
+                    compoundAssignmentSyntax: null,
+                    compoundAssignmentType: null);
+            }
+
+            // We'll walk the children in a depth-first order, pull all the arguments out, and then visit them. We'll fold any constant arguments as
+            // we go, pulling them all into a string literal.
+            CollectConcatArguments(originalOperator, compoundAssignmentLeftRead: null, out var arguments);
+
+            for (int i = 0; i < arguments.Count; i++)
+            {
+                arguments[i] = VisitExpression(arguments[i]);
+            }
+
+            return RewriteStringConcat(originalOperator.Syntax, arguments);
+        }
+
+        private BoundExpression RewriteStringConcat(SyntaxNode originalSyntax, ArrayBuilder<BoundExpression> visitedArguments)
+        {
             // The strategy of this rewrite is to pull out all the individual arguments of the concat, visit them as appropriate,
             // and then construct the final concat all in one go. There are a few different lowering patterns that we take:
             //
@@ -34,32 +93,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 5. If all the added expressions are strings or objects, we'll use the `string.Concat(string)`-based overloads, and call ToString on the
             //    arguments to avoid boxing structs by converthing them into objects. If there are more than 3, we'll use `string.Concat(string[])`.
 
-            if (_inExpressionLambda)
-            {
-                // Case 1, expression trees
-                return RewriteStringConcatInExpressionLambda(originalOperator);
-            }
-
-            // We'll walk the children in a depth-first order, pull all the arguments out, and then visit them. We'll fold any constant arguments as
-            // we go, pulling them all into a string literal.
-            CollectConcatArguments(originalOperator, out var arguments);
-
-            if (arguments.Count == 0)
+            if (visitedArguments.Count == 0)
             {
                 // All the arguments were null or the empty string. We can just return a constant empty string.
+                visitedArguments.Free();
                 return _factory.StringLiteral(string.Empty);
             }
-            else if (arguments is [{ ConstantValueOpt: { IsString: true } or { IsChar: true } } arg])
+            else if (visitedArguments is [{ ConstantValueOpt: { IsString: true } or { IsChar: true } } arg])
             {
                 // We were able to fold a constant, so we can just return that constant.
+                visitedArguments.Free();
                 return arg as BoundLiteral ?? VisitExpression(arg);
             }
 
             var concatKind = StringConcatenationRewriteKind.AllStrings;
-            for (int i = 0; i < arguments.Count; i++)
+
+            foreach (var arg in visitedArguments)
             {
-                arguments[i] = VisitExpression(arguments[i]);
-                var argumentType = arguments[i].Type;
+                var argumentType = arg.Type;
                 // Null arguments should have been eliminated before now.
                 Debug.Assert(argumentType is not null);
                 switch (argumentType.SpecialType)
@@ -69,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SpecialType.System_Char:
                         // If we're concating a constant char, we can just treat it as if it's a one-character string, which is more preferable.
-                        if (concatKind == StringConcatenationRewriteKind.AllStrings && arguments[i].ConstantValueOpt is not { IsChar: true })
+                        if (concatKind == StringConcatenationRewriteKind.AllStrings && arg.ConstantValueOpt is not { IsChar: true })
                         {
                             concatKind = StringConcatenationRewriteKind.AllStringsOrChars;
                         }
@@ -80,20 +131,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
             }
-
-            // Now that we have all the visited arguments, we can construct the final Concat call, using the above rules.
-            switch (concatKind, arguments.Count)
+            switch (concatKind, visitedArguments.Count)
             {
                 case (_, 0):
                     throw ExceptionUtilities.Unreachable();
 
                 case (_, 1):
                     // Only 1 argument. We need to make sure that it's not null, but otherwise we don't need to call Concat and can just use ToString.
-                    return _factory.Coalesce(ConvertConcatExprToString(arguments[0]), _factory.StringLiteral(string.Empty));
+                    var arg = ConvertConcatExprToString(visitedArguments[0]);
+                    visitedArguments.Free();
+                    return _factory.Coalesce(arg, _factory.StringLiteral(string.Empty));
 
                 case (StringConcatenationRewriteKind.AllStringsOrChars, <= 4):
                     // We can use one of the `string.Concat(ReadOnlySpan<char>)`-based overloads.
-                    var concatMember = arguments.Count switch
+                    var concatMember = visitedArguments.Count switch
                     {
                         2 => SpecialMember.System_String__Concat_2ReadOnlySpans,
                         3 => SpecialMember.System_String__Concat_3ReadOnlySpans,
@@ -101,17 +152,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _ => throw ExceptionUtilities.Unreachable(),
                     };
 
-                    bool needsImplicitConversionFromStringToSpan = arguments.Any(arg => arg.Type is { SpecialType: SpecialType.System_String });
+                    bool needsImplicitConversionFromStringToSpan = visitedArguments.Any(arg => arg.Type is { SpecialType: SpecialType.System_String });
                     var charType = _compilation.GetSpecialType(SpecialType.System_Char);
 
-                    if (!TryGetSpecialTypeMethod(originalOperator.Syntax, concatMember, out var spanConcat, isOptional: true)
-                        || !tryGetNeededToSpanMembers(this, originalOperator.Syntax, needsImplicitConversionFromStringToSpan, charType, out var readOnlySpanCtorRefParamChar, out var stringImplicitConversionToReadOnlySpan))
+                    if (!TryGetSpecialTypeMethod(originalSyntax, concatMember, out var spanConcat, isOptional: true)
+                        || !TryGetNeededToSpanMembers(this, originalSyntax, needsImplicitConversionFromStringToSpan, charType, out var readOnlySpanCtorRefParamChar, out var stringImplicitConversionToReadOnlySpan))
                     {
                         goto fallbackStrings;
                     }
 
-                    // TODO: Just pass arguments through, don't materialize the array yet
-                    return rewriteStringConcatenationWithSpanBasedConcat(originalOperator.Syntax, _factory, spanConcat, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, arguments.ToImmutableAndFree());
+                    return RewriteStringConcatenationWithSpanBasedConcat(originalSyntax, _factory, spanConcat, stringImplicitConversionToReadOnlySpan, readOnlySpanCtorRefParamChar, visitedArguments);
 
                 case (StringConcatenationRewriteKind.AllStrings, _):
                 case (StringConcatenationRewriteKind.AllStringsOrChars, _):
@@ -121,21 +171,21 @@ fallbackStrings:
 #pragma warning disable IDE0055// Fix formatting
                     // All other cases can be handled here
 #pragma warning restore IDE0055// Fix formatting
-                    concatMember = arguments.Count switch
+                    concatMember = visitedArguments.Count switch
                     {
                         2 => SpecialMember.System_String__ConcatStringString,
                         3 => SpecialMember.System_String__ConcatStringStringString,
                         4 => SpecialMember.System_String__ConcatStringStringStringString,
                         >= 5 => SpecialMember.System_String__ConcatStringArray,
-                        _ => throw ExceptionUtilities.UnexpectedValue(arguments.Count),
+                        _ => throw ExceptionUtilities.UnexpectedValue(visitedArguments.Count),
                     };
 
-                    for (int i = 0; i < arguments.Count; i++)
+                    for (int i = 0; i < visitedArguments.Count; i++)
                     {
-                        arguments[i] = ConvertConcatExprToString(arguments[i]);
+                        visitedArguments[i] = ConvertConcatExprToString(visitedArguments[i]);
                     }
 
-                    var finalArguments = arguments.ToImmutableAndFree();
+                    var finalArguments = visitedArguments.ToImmutableAndFree();
 
                     if (finalArguments.Length > 4)
                     {
@@ -143,20 +193,31 @@ fallbackStrings:
                         finalArguments = [array];
                     }
 
-                    var method = UnsafeGetSpecialTypeMethod(originalOperator.Syntax, concatMember);
+                    var method = UnsafeGetSpecialTypeMethod(originalSyntax, concatMember);
                     Debug.Assert(method is not null);
-                    return BoundCall.Synthesized(originalOperator.Syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, finalArguments);
+                    return BoundCall.Synthesized(originalSyntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, finalArguments);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(concatKind);
             }
         }
 
-        private void CollectConcatArguments(BoundBinaryOperator originalOperator, out ArrayBuilder<BoundExpression> destinationArguments)
+        private void CollectConcatArguments(BoundBinaryOperator originalOperator, BoundExpression? compoundAssignmentLeftRead, out ArrayBuilder<BoundExpression> destinationArguments)
         {
             destinationArguments = ArrayBuilder<BoundExpression>.GetInstance();
             var concatMethods = new WellKnownConcatRelatedMethods(_compilation);
             pushArguments(this, originalOperator, destinationArguments, ref concatMethods);
+            if (compoundAssignmentLeftRead is not null)
+            {
+                // We don't expect to be able to optimize anything about the compound assignment left read, so we just add it as-is. This assert should be kept in sync
+                // with the cases that can be optimized by the addArgument local function below; if we ever find a case that can be optimized, we may need to consider
+                // whether to do so. The visiting logic in the parent function here depends on only one argument being added for a compound assignment left read, so if
+                // we ever do introduce optimizations here that result in more than one argument being added to destinationArguments, we'll need to adjust that logic.
+                Debug.Assert(compoundAssignmentLeftRead is
+                    not (BoundCall or BoundConversion { ConversionKind: ConversionKind.Boxing, Type.SpecialType: SpecialType.System_Object, Operand.Type.SpecialType: SpecialType.System_Char })
+                    and { ConstantValueOpt: null });
+                destinationArguments.Add(compoundAssignmentLeftRead);
+            }
             destinationArguments.ReverseContents();
 
             // We push these in reverse order to take advantage of the left-recursive nature of the tree and avoid needing a second stack
@@ -339,485 +400,7 @@ fallbackStrings:
             }
         }
 
-        /// <summary>
-        /// The strategy of this rewrite is to do rewrite "locally".
-        /// We analyze arguments of the concat in a shallow fashion assuming that 
-        /// lowering and optimizations (including this one) is already done for the arguments.
-        /// Based on the arguments we select the most appropriate pattern for the current node.
-        /// 
-        /// NOTE: it is not guaranteed that the node that we chose will be the most optimal since we have only 
-        ///       local information - i.e. we look at the arguments, but we do not know about siblings.
-        ///       When we move to the parent, the node may be rewritten by this or some another optimization.
-        ///       
-        /// Example:
-        ///     result = ( "abc" + "def" + null ?? expr1 + "moo" + "baz" ) + expr2
-        /// 
-        /// Will rewrite into:
-        ///     result = Concat("abcdef", expr2)
-        ///     
-        /// However there will be transient nodes like  Concat(expr1 + "moo")  that will not be present in the
-        /// resulting tree.
-        ///
-        /// </summary>
-        private BoundExpression RewriteStringConcatenation(SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type)
-        {
-            Debug.Assert(
-                operatorKind == BinaryOperatorKind.StringConcatenation ||
-                operatorKind == BinaryOperatorKind.StringAndObjectConcatenation ||
-                operatorKind == BinaryOperatorKind.ObjectAndStringConcatenation);
-
-            if (_inExpressionLambda)
-            {
-                return RewriteStringConcatInExpressionLambda(syntax, operatorKind, loweredLeft, loweredRight, type);
-            }
-
-            // Convert both sides to a string (calling ToString if necessary)
-            loweredLeft = ConvertConcatExprToString(loweredLeft);
-            loweredRight = ConvertConcatExprToString(loweredRight);
-
-            Debug.Assert(loweredLeft.Type is { } && (loweredLeft.Type.IsStringType() || loweredLeft.Type.IsErrorType()) || loweredLeft.ConstantValueOpt?.IsNull == true);
-            Debug.Assert(loweredRight.Type is { } && (loweredRight.Type.IsStringType() || loweredRight.Type.IsErrorType()) || loweredRight.ConstantValueOpt?.IsNull == true);
-
-            // try fold two args without flattening.
-            var folded = TryFoldTwoConcatOperands(loweredLeft, loweredRight);
-            if (folded != null)
-            {
-                return folded;
-            }
-
-            // flatten and merge -  ( expr1 + "A" ) + ("B" + expr2) ===> (expr1 + "AB" + expr2)
-            ArrayBuilder<BoundExpression> leftFlattened = ArrayBuilder<BoundExpression>.GetInstance();
-            ArrayBuilder<BoundExpression> rightFlattened = ArrayBuilder<BoundExpression>.GetInstance();
-
-            FlattenConcatArg(loweredLeft, leftFlattened);
-            FlattenConcatArg(loweredRight, rightFlattened);
-
-            if (leftFlattened.Any() && rightFlattened.Any())
-            {
-                folded = TryFoldTwoConcatOperands(leftFlattened.Last(), rightFlattened.First());
-                if (folded != null)
-                {
-                    rightFlattened[0] = folded;
-                    leftFlattened.RemoveLast();
-                }
-            }
-
-            leftFlattened.AddRange(rightFlattened);
-            rightFlattened.Free();
-
-            BoundExpression? result;
-
-            switch (leftFlattened.Count)
-            {
-                case 0:
-                    result = _factory.StringLiteral(string.Empty);
-                    break;
-
-                case 1:
-                    // All code paths which reach here (through TryFoldTwoConcatOperands) have already called
-                    // RewriteStringConcatenationOneExpr if necessary
-                    result = leftFlattened[0];
-                    break;
-
-                case 2:
-                    var left = leftFlattened[0];
-                    var right = leftFlattened[1];
-
-                    if (!TryRewriteStringConcatenationWithSpanBasedConcat(syntax, leftFlattened, out result))
-                    {
-                        result = RewriteStringConcatenationTwoExprs(syntax, left, right);
-                    }
-                    break;
-
-                case 3:
-                    {
-                        var first = leftFlattened[0];
-                        var second = leftFlattened[1];
-                        var third = leftFlattened[2];
-
-                        if (!TryRewriteStringConcatenationWithSpanBasedConcat(syntax, leftFlattened, out result))
-                        {
-                            result = RewriteStringConcatenationThreeExprs(syntax, first, second, third);
-                        }
-                    }
-                    break;
-
-                case 4:
-                    {
-                        var first = leftFlattened[0];
-                        var second = leftFlattened[1];
-                        var third = leftFlattened[2];
-                        var fourth = leftFlattened[3];
-
-                        if (!TryRewriteStringConcatenationWithSpanBasedConcat(syntax, leftFlattened, out result))
-                        {
-                            result = RewriteStringConcatenationFourExprs(syntax, first, second, third, fourth);
-                        }
-                    }
-                    break;
-
-                default:
-                    result = RewriteStringConcatenationManyExprs(syntax, leftFlattened.ToImmutable());
-                    break;
-            }
-
-            leftFlattened.Free();
-            return result;
-        }
-
-        /// <summary>
-        /// digs into known concat operators and unwraps their arguments
-        /// otherwise returns the expression as-is
-        /// 
-        /// Generally we only need to recognize same node patterns that we create as a result of concatenation rewrite.
-        /// </summary>
-        private void FlattenConcatArg(BoundExpression lowered, ArrayBuilder<BoundExpression> flattened)
-        {
-            if (TryExtractStringConcatArgs(lowered, out var arguments))
-            {
-                flattened.AddRange(arguments);
-            }
-            else
-            {
-                // fallback - if nothing above worked, leave arg as-is
-                flattened.Add(lowered);
-            }
-        }
-
-        /// <summary>
-        /// Determines whether an expression is a known string concat operator (with or without a subsequent ?? ""), and extracts
-        /// its args if so.
-        /// </summary>
-        /// <returns>True if this is a call to a known string concat operator and its arguments are successfully extracted, false otherwise</returns>
-        private bool TryExtractStringConcatArgs(BoundExpression lowered, out ImmutableArray<BoundExpression> arguments)
-        {
-            switch (lowered)
-            {
-                case BoundCall boundCall:
-                    var method = boundCall.Method;
-                    if (method.IsStatic && method.ContainingType.SpecialType == SpecialType.System_String)
-                    {
-                        if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
-                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||
-                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString))
-                        {
-                            arguments = boundCall.Arguments;
-                            return true;
-                        }
-
-                        if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray))
-                        {
-                            var args = boundCall.Arguments[0] as BoundArrayCreation;
-                            if (args != null)
-                            {
-                                var initializer = args.InitializerOpt;
-                                if (initializer != null)
-                                {
-                                    arguments = initializer.Initializers;
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                    break;
-
-                case BoundNullCoalescingOperator boundCoalesce:
-                    Debug.Assert(boundCoalesce.LeftPlaceholder is null);
-                    Debug.Assert(boundCoalesce.LeftConversion is null);
-
-                    // The RHS may be a constant value with an identity conversion to string even
-                    // if it is not a string: in particular, the null literal behaves this way.
-                    // To be safe, check that the constant value is actually a string before
-                    // attempting to access its value as a string.
-
-                    var rightConstant = boundCoalesce.RightOperand.ConstantValueOpt;
-                    if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
-                    {
-                        arguments = ImmutableArray.Create(boundCoalesce.LeftOperand);
-                        return true;
-                    }
-
-                    break;
-
-                case BoundSequence { SideEffects.Length: 0, Value: BoundCall sequenceCall } sequence:
-                    if ((object)sequenceCall.Method == _compilation.GetSpecialTypeMember(SpecialMember.System_String__Concat_2ReadOnlySpans) ||
-                        (object)sequenceCall.Method == _compilation.GetSpecialTypeMember(SpecialMember.System_String__Concat_3ReadOnlySpans) ||
-                        (object)sequenceCall.Method == _compilation.GetSpecialTypeMember(SpecialMember.System_String__Concat_4ReadOnlySpans))
-                    {
-                        // Faced a span-based `string.Concat` call. Since we can produce such call on the previous iterations ourselves, we need to unwrap it.
-                        // The key thing is that we need not to only extract arguments, but also unwrap them from being spans and for chars also wrap them into `ToString` calls.
-                        var wrappedArgs = sequenceCall.Arguments;
-                        var unwrappedArgsBuilder = ArrayBuilder<BoundExpression>.GetInstance(capacity: wrappedArgs.Length);
-
-                        var locals = PooledHashSet<LocalSymbol>.GetInstance();
-                        locals.AddAll(sequence.Locals);
-
-                        foreach (var wrappedArg in wrappedArgs)
-                        {
-                            switch (wrappedArg)
-                            {
-                                // Check whether a call is an implicit `string -> ReadOnlySpan<char>` conversion
-                                case BoundCall { Method: var argMethod, Arguments: [var singleArgument] } when (object)argMethod == _compilation.GetSpecialTypeMember(SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar):
-                                    unwrappedArgsBuilder.Add(singleArgument);
-                                    break;
-                                // This complicated check is for a sequence, which wraps a span around single char.
-                                // The sequence needs to have this shape: `{ locals: <none>, sideEffects: temp = <original char expression>, result: new ReadOnlySpan<char>(in temp) }`
-                                case BoundSequence
-                                {
-                                    Locals.Length: 0,
-                                    SideEffects: [BoundAssignmentOperator { Right.Type.SpecialType: SpecialType.System_Char } assignment],
-                                    Value: BoundObjectCreationExpression { Constructor: var objectCreationConstructor, Arguments: [BoundLocal constructorLocal] }
-                                } when constructorLocal == assignment.Left &&
-                                       locals.Remove(constructorLocal.LocalSymbol) &&
-                                       (object)objectCreationConstructor.OriginalDefinition == _compilation.GetSpecialTypeMember(SpecialMember.System_ReadOnlySpan_T__ctor_Reference) &&
-                                       objectCreationConstructor.ContainingType.IsReadOnlySpanChar():
-                                    var wrappedExpr = ConvertConcatExprToString(assignment.Right);
-                                    unwrappedArgsBuilder.Add(wrappedExpr);
-                                    break;
-                                default:
-                                    locals.Free();
-                                    unwrappedArgsBuilder.Free();
-                                    arguments = default;
-                                    return false;
-                            }
-                        }
-
-                        if (locals.Count > 0)
-                        {
-                            // Not all locals are part of a known shape
-                            locals.Free();
-                            unwrappedArgsBuilder.Free();
-                            arguments = default;
-                            return false;
-                        }
-
-                        locals.Free();
-                        arguments = unwrappedArgsBuilder.ToImmutableAndFree();
-                        return true;
-                    }
-
-                    break;
-            }
-
-            arguments = default;
-            return false;
-        }
-
-        /// <summary>
-        /// folds two concat operands into one expression if possible
-        /// otherwise returns null
-        /// </summary>
-        private BoundExpression? TryFoldTwoConcatOperands(BoundExpression loweredLeft, BoundExpression loweredRight)
-        {
-            // both left and right are constants
-            var leftConst = loweredLeft.ConstantValueOpt;
-            var rightConst = loweredRight.ConstantValueOpt;
-
-            if (leftConst != null && rightConst != null)
-            {
-                // const concat may fail to fold if strings are huge. 
-                // This would be unusual.
-                ConstantValue? concatenated = TryFoldTwoConcatConsts(leftConst, rightConst);
-                if (concatenated != null)
-                {
-                    return _factory.StringLiteral(concatenated);
-                }
-            }
-
-            // one or another is null. 
-            if (IsNullOrEmptyStringConstant(loweredLeft))
-            {
-                if (IsNullOrEmptyStringConstant(loweredRight))
-                {
-                    return _factory.Literal(string.Empty);
-                }
-
-                return RewriteStringConcatenationOneExpr(loweredRight);
-            }
-            else if (IsNullOrEmptyStringConstant(loweredRight))
-            {
-                return RewriteStringConcatenationOneExpr(loweredLeft);
-            }
-
-            return null;
-        }
-
-        private static bool IsNullOrEmptyStringConstant(BoundExpression operand)
-        {
-            return (operand.ConstantValueOpt != null && string.IsNullOrEmpty(operand.ConstantValueOpt.StringValue)) ||
-                    operand.IsDefaultValue();
-        }
-
-        /// <summary>
-        /// folds two concat constants into one if possible
-        /// otherwise returns null.
-        /// It is generally always possible to concat constants, unless resulting string would be too large.
-        /// </summary>
-        private static ConstantValue? TryFoldTwoConcatConsts(ConstantValue leftConst, ConstantValue rightConst)
-        {
-            var leftVal = leftConst.StringValue;
-            var rightVal = rightConst.StringValue;
-
-            if (!leftConst.IsDefaultValue && !rightConst.IsDefaultValue)
-            {
-                Debug.Assert(leftVal is { } && rightVal is { });
-                if (leftVal.Length + rightVal.Length < 0)
-                {
-                    return null;
-                }
-            }
-
-            // TODO: if transient string allocations are an issue, consider introducing constants that contain builders.
-            //       it may be not so easy to even get here though, since typical
-            //       "A" + "B" + "C" + ... cases should be folded in the binder as spec requires so.
-            //       we would be mostly picking here edge cases like "A" + (object)null + "B" + (object)null + ...
-            return ConstantValue.Create(leftVal + rightVal);
-        }
-
-        /// <summary>
-        /// Strangely enough there is such a thing as unary concatenation and it must be rewritten.
-        /// </summary>
-        private BoundExpression RewriteStringConcatenationOneExpr(BoundExpression loweredOperand)
-        {
-            // If it's a call to 'string.Concat' (or is something which ends in '?? ""', which this method also extracts),
-            // we know the result cannot be null. Otherwise return loweredOperand ?? ""
-            if (TryExtractStringConcatArgs(loweredOperand, out _))
-            {
-                return loweredOperand;
-            }
-            else
-            {
-                return _factory.Coalesce(loweredOperand, _factory.Literal(""));
-            }
-        }
-
-        private BoundExpression RewriteStringConcatenationTwoExprs(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
-        {
-            Debug.Assert(loweredLeft.HasAnyErrors || loweredLeft.Type is { } && loweredLeft.Type.IsStringType());
-            Debug.Assert(loweredRight.HasAnyErrors || loweredRight.Type is { } && loweredRight.Type.IsStringType());
-
-            var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringString);
-            Debug.Assert((object)method != null);
-
-            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, loweredLeft, loweredRight);
-        }
-
-        private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird)
-        {
-            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type is { } && loweredFirst.Type.IsStringType());
-            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type is { } && loweredSecond.Type.IsStringType());
-            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type is { } && loweredThird.Type.IsStringType());
-
-            var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringString);
-            Debug.Assert((object)method != null);
-
-            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
-        }
-
-        private BoundExpression RewriteStringConcatenationFourExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird, BoundExpression loweredFourth)
-        {
-            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type is { } && loweredFirst.Type.IsStringType());
-            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type is { } && loweredSecond.Type.IsStringType());
-            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type is { } && loweredThird.Type.IsStringType());
-            Debug.Assert(loweredFourth.HasAnyErrors || loweredFourth.Type is { } && loweredFourth.Type.IsStringType());
-
-            var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringStringString);
-            Debug.Assert((object)method != null);
-
-            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird, loweredFourth));
-        }
-
-        private BoundExpression RewriteStringConcatenationManyExprs(SyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
-        {
-            Debug.Assert(loweredArgs.Length > 4);
-            Debug.Assert(loweredArgs.All(a => a.HasErrors || a.Type is { } && a.Type.IsStringType()));
-
-            var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringArray);
-            Debug.Assert((object)method != null);
-
-            var array = _factory.ArrayOrEmpty(_factory.SpecialType(SpecialType.System_String), loweredArgs);
-
-            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, array);
-        }
-
-        private bool TryRewriteStringConcatenationWithSpanBasedConcat(SyntaxNode syntax, ArrayBuilder<BoundExpression> args, [NotNullWhen(true)] out BoundExpression? result)
-        {
-            // We should have called this only for 2, 3 or 4 arguments
-            Debug.Assert(args.Count is >= 2 and <= 4);
-
-            var preparedArgs = ArrayBuilder<BoundExpression>.GetInstance(capacity: args.Count);
-
-            var needsSpanRefParamConstructor = false;
-            var needsImplicitConversionFromStringToSpan = false;
-
-            NamedTypeSymbol? charType = null;
-
-            foreach (var arg in args)
-            {
-                Debug.Assert(arg.HasAnyErrors || arg.Type?.IsStringType() == true);
-
-                if (arg is BoundCall { ReceiverOpt: { Type: NamedTypeSymbol { SpecialType: SpecialType.System_Char } receiverCharType } receiver } potentialToStringCall &&
-                    (object)potentialToStringCall.Method.GetLeastOverriddenMethod(charType) == _compilation.GetSpecialTypeMember(SpecialMember.System_Object__ToString))
-                {
-                    needsSpanRefParamConstructor = true;
-                    charType = receiverCharType;
-                    preparedArgs.Add(receiver);
-                    continue;
-                }
-                else if (arg.ConstantValueOpt is { IsString: true, StringValue: [char c] })
-                {
-                    preparedArgs.Add(
-                        new BoundLiteral(
-                            arg.Syntax, constantValueOpt: ConstantValue.Create(c),
-                            charType ?? _compilation.GetSpecialType(SpecialType.System_Char))); // We will pull 'charType' from BoundCall, if it is bad an error has been already reported elsewhere
-                    continue;
-                }
-
-                preparedArgs.Add(arg);
-                needsImplicitConversionFromStringToSpan = true;
-            }
-
-            // It only makes sense to lower using span-based concat if at least one operand is a char.
-            // Because otherwise we will just wrap every string operand into span conversion and use span-based concat
-            // which is unnecessary IL bloat. Thus we require `needsSpanRefParamConstructor` to be true
-            if (!needsSpanRefParamConstructor)
-            {
-                preparedArgs.Free();
-                result = null;
-                return false;
-            }
-
-            // Just direct consequence of a condition above since we capture `char` type and set `needsSpanRefParamConstructor` at the same time
-            Debug.Assert(charType is not null);
-
-            var concatMember = preparedArgs.Count switch
-            {
-                2 => SpecialMember.System_String__Concat_2ReadOnlySpans,
-                3 => SpecialMember.System_String__Concat_3ReadOnlySpans,
-                4 => SpecialMember.System_String__Concat_4ReadOnlySpans,
-                _ => throw ExceptionUtilities.Unreachable(),
-            };
-
-            if (TryGetSpecialTypeMethod(syntax, concatMember, out MethodSymbol? spanConcat, isOptional: true) &&
-                tryGetNeededToSpanMembers(this, syntax, needsImplicitConversionFromStringToSpan, charType, out MethodSymbol? readOnlySpanCtorRefParamChar, out MethodSymbol? stringImplicitConversionToReadOnlySpan))
-            {
-                result = rewriteStringConcatenationWithSpanBasedConcat(
-                        syntax,
-                        _factory,
-                        spanConcat,
-                        stringImplicitConversionToReadOnlySpan,
-                        readOnlySpanCtorRefParamChar,
-                        preparedArgs.ToImmutableAndFree());
-
-                return true;
-            }
-
-            preparedArgs.Free();
-            result = null;
-            return false;
-        }
-
-        private static bool tryGetNeededToSpanMembers(
+        private static bool TryGetNeededToSpanMembers(
             LocalRewriter self,
             SyntaxNode syntax,
             bool needsImplicitConversionFromStringToSpan,
@@ -847,19 +430,19 @@ fallbackStrings:
             return true;
         }
 
-        private static BoundExpression rewriteStringConcatenationWithSpanBasedConcat(
+        private static BoundExpression RewriteStringConcatenationWithSpanBasedConcat(
             SyntaxNode syntax,
             SyntheticBoundNodeFactory factory,
             MethodSymbol spanConcat,
             MethodSymbol? stringImplicitConversionToReadOnlySpan,
             MethodSymbol readOnlySpanCtorRefParamChar,
-            ImmutableArray<BoundExpression> args)
+            ArrayBuilder<BoundExpression> args)
         {
-            var preparedArgsBuilder = ArrayBuilder<BoundExpression>.GetInstance(capacity: args.Length);
             var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
 
-            foreach (var arg in args)
+            for (int i = 0; i < args.Count; i++)
             {
+                BoundExpression? arg = args[i];
                 Debug.Assert(arg.Type is not null);
 
                 if (arg.Type.SpecialType == SpecialType.System_Char)
@@ -882,22 +465,22 @@ fallbackStrings:
                         initializerExpressionOpt: null,
                         type: readOnlySpanCtorRefParamChar.ContainingType);
 
-                    preparedArgsBuilder.Add(new BoundSequence(
+                    args[i] = new BoundSequence(
                         arg.Syntax,
                         [],
                         [tempAssignment],
                         wrappedChar,
-                        wrappedChar.Type));
+                        wrappedChar.Type);
                 }
                 else
                 {
                     Debug.Assert(arg.HasAnyErrors || arg.Type.SpecialType == SpecialType.System_String);
                     Debug.Assert(stringImplicitConversionToReadOnlySpan is not null);
-                    preparedArgsBuilder.Add(BoundCall.Synthesized(arg.Syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringImplicitConversionToReadOnlySpan, arg));
+                    args[i] = BoundCall.Synthesized(arg.Syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringImplicitConversionToReadOnlySpan, arg);
                 }
             }
 
-            var concatCall = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, spanConcat, preparedArgsBuilder.ToImmutableAndFree());
+            var concatCall = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, spanConcat, args.ToImmutableAndFree());
 
             var oldSyntax = factory.Syntax;
             factory.Syntax = syntax;
@@ -915,55 +498,63 @@ fallbackStrings:
         /// Most of the above optimizations are not applicable in expression trees as the operator
         /// must stay a binary operator. We cannot do much beyond constant folding which is done in binder.
         /// </summary>
-        private BoundExpression RewriteStringConcatInExpressionLambda(BoundBinaryOperator original)
+        private BoundExpression RewriteStringConcatInExpressionLambda(
+            BoundExpression original,
+            BoundExpression? compoundAssignmentLeft,
+            BinaryOperatorKind? compoundAssignmentOperatorKind,
+            SyntaxNode? compoundAssignmentSyntax,
+            TypeSymbol? compoundAssignmentType)
         {
+            BoundBinaryOperator? current = original as BoundBinaryOperator;
+            Debug.Assert(IsBinaryStringConcatenation(current) || (compoundAssignmentLeft is not null && compoundAssignmentOperatorKind is not null && compoundAssignmentSyntax is not null));
             var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
 
-            BoundBinaryOperator? current;
-            for (current = original;
+            for (;
                  current is not null && IsBinaryStringConcatenation(current);
                  current = current.Left as BoundBinaryOperator)
             {
                 stack.Push(current);
             }
 
-            Debug.Assert(stack.Count > 0);
+            BoundExpression currentResult;
 
-            var left = stack.Peek().Left;
-            left = VisitExpression(left);
+            if (stack.Count == 0)
+            {
+                currentResult = VisitExpression(original);
+            }
+            else
+            {
+                currentResult = stack.Peek().Left;
+                currentResult = VisitExpression(currentResult);
+            }
 
             while (stack.TryPop(out current))
             {
                 var right = VisitExpression(current.Right);
 
-                SpecialMember member = (current.OperatorKind == BinaryOperatorKind.StringConcatenation) ?
-                    SpecialMember.System_String__ConcatStringString :
-                    SpecialMember.System_String__ConcatObjectObject;
+                currentResult = createBinaryOperator(this, current.OperatorKind, currentResult, right, current.Syntax, current.Type);
+            }
 
-                var method = UnsafeGetSpecialTypeMethod(current.Syntax, member);
-                Debug.Assert((object)method != null);
-
-                left = new BoundBinaryOperator(current.Syntax, current.OperatorKind, constantValueOpt: null, method, constrainedToTypeOpt: null, default(LookupResultKind), left, right, current.Type);
+            if (compoundAssignmentLeft is not null)
+            {
+                currentResult = createBinaryOperator(this, compoundAssignmentOperatorKind!.Value, compoundAssignmentLeft, currentResult, compoundAssignmentSyntax!, compoundAssignmentType!);
             }
 
             stack.Free();
-            return left;
-        }
+            return currentResult;
 
-        /// <summary>
-        /// Most of the above optimizations are not applicable in expression trees as the operator
-        /// must stay a binary operator. We cannot do much beyond constant folding which is done in binder.
-        /// </summary>
-        private BoundExpression RewriteStringConcatInExpressionLambda(SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type)
-        {
-            SpecialMember member = (operatorKind == BinaryOperatorKind.StringConcatenation) ?
-                SpecialMember.System_String__ConcatStringString :
-                SpecialMember.System_String__ConcatObjectObject;
+            static BoundExpression createBinaryOperator(LocalRewriter self, BinaryOperatorKind operatorKind, BoundExpression currentResult, BoundExpression right, SyntaxNode syntax, TypeSymbol type)
+            {
+                SpecialMember member = (operatorKind == BinaryOperatorKind.StringConcatenation) ?
+                    SpecialMember.System_String__ConcatStringString :
+                    SpecialMember.System_String__ConcatObjectObject;
 
-            var method = UnsafeGetSpecialTypeMethod(syntax, member);
-            Debug.Assert((object)method != null);
+                var method = self.UnsafeGetSpecialTypeMethod(syntax, member);
+                Debug.Assert((object)method != null);
 
-            return new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, method, constrainedToTypeOpt: null, default(LookupResultKind), loweredLeft, loweredRight, type);
+                currentResult = new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, method, constrainedToTypeOpt: null, default(LookupResultKind), currentResult, right, type);
+                return currentResult;
+            }
         }
 
         /// <summary>

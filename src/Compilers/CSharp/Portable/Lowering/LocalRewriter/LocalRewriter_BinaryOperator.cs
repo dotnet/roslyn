@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsBinaryStringConcatenation(node))
             {
                 Debug.Assert(applyParentUnaryOperator is null);
-                return RewriteStringConcatenation(node);
+                return VisitStringConcatenation(node);
             }
 
             // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
@@ -262,7 +262,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.ObjectAndStringConcatenation:
                     case BinaryOperatorKind.StringAndObjectConcatenation:
                     case BinaryOperatorKind.StringConcatenation:
-                        //return RewriteStringConcatenation(syntax, operatorKind, loweredLeft, loweredRight, type);
                         throw ExceptionUtilities.UnexpectedValue(operatorKind);
 
                     case BinaryOperatorKind.StringEqual:

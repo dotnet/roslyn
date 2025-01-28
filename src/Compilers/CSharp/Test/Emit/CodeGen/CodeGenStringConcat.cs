@@ -361,7 +361,7 @@ OAFABOFA");
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [Fact]
         [WorkItem(37830, "https://github.com/dotnet/roslyn/issues/37830")]
         public void ConcatMerge_MarshalByRefObject()
         {
@@ -405,7 +405,7 @@ class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"test_field: 2");
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.NetFramework, expectedOutput: ExecutionConditionUtil.IsWindowsDesktop ? @"test_field: 2" : null);
             comp.VerifyDiagnostics();
             // Note: we use ldfld on the field, but not ldflda, because the type is MarshalByRefObject
             comp.VerifyIL("Test.Main", @"
