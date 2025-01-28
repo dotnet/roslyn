@@ -82,11 +82,8 @@ public abstract partial class Workspace
         WorkspaceChangeEventArgs args = null;
         if (ev.HasHandlers)
         {
-            using (Logger.LogBlock(FunctionId.Workspace_EventsImmediate, (s, p, d, k) => $"{s.Id} - {p} - {d} {kind.ToString()}", newSolution, projectId, documentId, kind, CancellationToken.None))
-            {
-                args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-                ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
-            }
+            args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
+            RaiseEventForHandlers(ev, args, isImmediate: true);
         }
 
         ev = GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangeEventName);
@@ -94,16 +91,26 @@ public abstract partial class Workspace
         {
             return this.ScheduleTask(() =>
             {
-                using (Logger.LogBlock(FunctionId.Workspace_Events, (s, p, d, k) => $"{s.Id} - {p} - {d} {kind.ToString()}", newSolution, projectId, documentId, kind, CancellationToken.None))
-                {
-                    args ??= new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-                    ev.RaiseEvent(static (handler, arg) => handler(arg.self, arg.args), (self: this, args));
-                }
+                args ??= new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
+                RaiseEventForHandlers(ev, args, isImmediate: false);
             }, WorkspaceChangeEventName);
         }
         else
         {
             return Task.CompletedTask;
+        }
+
+        static void RaiseEventForHandlers(
+            EventMap.EventHandlerSet<EventHandler<WorkspaceChangeEventArgs>> handlers,
+            WorkspaceChangeEventArgs args,
+            bool isImmediate)
+        {
+            var functionId = isImmediate ? FunctionId.Workspace_EventsImmediate : FunctionId.Workspace_Events;
+
+            using (Logger.LogBlock(functionId, (s, p, d, k) => $"{s.Id} - {p} - {d} {args.Kind.ToString()}", args.NewSolution, args.ProjectId, args.DocumentId, args.Kind, CancellationToken.None))
+            {
+                handlers.RaiseEvent(static (handler, args) => handler(args.NewSolution.Workspace, args), args);
+            }
         }
     }
 
