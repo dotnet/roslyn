@@ -78,7 +78,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
 
         Public ReadOnly Property Option_DisplayLineSeparators As String =
-            ServicesVSResources.Show_procedure_line_separators
+            ServicesVSResources._Show_procedure_line_separators
 
         Public ReadOnly Property Option_Underline_reassigned_variables As String =
             ServicesVSResources.Underline_reassigned_variables
@@ -122,11 +122,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Display_diagnostics_inline_experimental As String =
             ServicesVSResources.Display_diagnostics_inline_experimental
 
-        Public ReadOnly Property Option_at_the_end_of_the_line_of_code As String =
-            ServicesVSResources.at_the_end_of_the_line_of_code
+        Public ReadOnly Property Option_At_the_end_of_the_line_of_code As String =
+            ServicesVSResources.At_the_end_of_the_line_of_code
 
-        Public ReadOnly Property Option_on_the_right_edge_of_the_editor_window As String =
-            ServicesVSResources.on_the_right_edge_of_the_editor_window
+        Public ReadOnly Property Option_On_the_right_edge_of_the_editor_window As String =
+            ServicesVSResources.On_the_right_edge_of_the_editor_window
 
         Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String =
             BasicVSResources.Don_t_put_ByRef_on_custom_structure
@@ -173,20 +173,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_When_inserting_properties_events_and_methods_place_them As String =
             ServicesVSResources.When_inserting_properties_events_and_methods_place_them
 
-        Public ReadOnly Property Option_with_other_members_of_the_same_kind As String =
-            ServicesVSResources.with_other_members_of_the_same_kind
+        Public ReadOnly Property Option_With_other_members_of_the_same_kind As String =
+            ServicesVSResources.With_other_members_of_the_same_kind
 
-        Public ReadOnly Property Option_When_generating_properties As String =
-            ServicesVSResources.When_generating_properties
+        Public ReadOnly Property Option_When_generating_properties_colon As String =
+            ServicesVSResources.When_generating_properties_colon
 
         Public ReadOnly Property Option_prefer_auto_properties As String =
             ServicesVSResources.codegen_prefer_auto_properties
 
         Public ReadOnly Property Option_prefer_throwing_properties As String =
-            ServicesVSResources.prefer_throwing_properties
+            ServicesVSResources.Prefer_throwing_properties
 
-        Public ReadOnly Property Option_at_the_end As String =
-            ServicesVSResources.at_the_end
+        Public ReadOnly Property Option_At_the_end As String =
+            ServicesVSResources.At_the_end
 
         Public ReadOnly Property Option_GenerateXmlDocCommentsForTripleApostrophes As String =
             BasicVSResources.Generate_XML_documentation_comments_for
@@ -263,7 +263,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BasicVSResources.Report_invalid_placeholders_in_string_dot_format_calls
 
         Public ReadOnly Property Option_RenameTrackingPreview As String =
-            ServicesVSResources.Show_preview_for_rename_tracking
+            ServicesVSResources.Show_preview_for_rename__tracking
 
         Public ReadOnly Property Option_Import_Directives As String =
             BasicVSResources.Import_Directives
@@ -325,8 +325,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer As String =
             ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer
 
-        Public ReadOnly Property Option_Enable_file_logging_for_diagnostics As String =
-            ServicesVSResources.Enable_file_logging_for_diagnostics
+        Public ReadOnly Property Option_Enable_file_logging_for_diagnostics_logged_in_temp_roslyn_folder As String =
+            ServicesVSResources.Enable_file_logging_for_diagnostics_logged_in_temp_roslyn_folder
 
         Public ReadOnly Property Option_Skip_analyzers_for_implicitly_triggered_builds As String =
             ServicesVSResources.Skip_analyzers_for_implicitly_triggered_builds
@@ -379,7 +379,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Balanced_Run_generators_after_saving_or_building As String =
             ServicesVSResources.Balanced_Run_generators_after_saving_or_building
 
-        Public ReadOnly Property Option_Automatically_reload_updated_analyzers_and_generators As String =
-            ServicesVSResources.Automatically_reload_updated_analyzers_and_generators
+        Public ReadOnly Property Option_Automatically_reload_updated_analyzers_and_generators_requires_restart As String =
+            ServicesVSResources.Automatically_reload_updated_analyzers_and_generators_requires_restart
     End Module
 End Namespace
