@@ -3519,7 +3519,8 @@ public class Child : Parent, IParent
                 symbolValidator: static (ModuleSymbol module) =>
                 {
                     Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
-                    Assert.NotNull(module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>$"));
+                    var main = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>$");
+                    Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
                 })
                 .VerifyDiagnostics();
         }
@@ -3543,7 +3544,8 @@ public class Child : Parent, IParent
                 symbolValidator: static (ModuleSymbol module) =>
                 {
                     Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
-                    Assert.NotNull(module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>"));
+                    var main = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>");
+                    Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
                 })
                 .VerifyDiagnostics();
         }
@@ -3578,7 +3580,8 @@ public class Child : Parent, IParent
                 symbolValidator: static (ModuleSymbol module) =>
                 {
                     Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
-                    Assert.NotNull(module.GlobalNamespace.GetMember<MethodSymbol>("Program.Main"));
+                    var main = module.GlobalNamespace.GetMember<MethodSymbol>("Program.Main");
+                    Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
                 })
                 .VerifyDiagnostics();
         }
@@ -3603,7 +3606,8 @@ public class Child : Parent, IParent
                 symbolValidator: static (ModuleSymbol module) =>
                 {
                     Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
-                    Assert.NotNull(module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>"));
+                    var main = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>");
+                    Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
                 })
                 .VerifyDiagnostics();
         }
@@ -3641,7 +3645,8 @@ public class Child : Parent, IParent
                 var reference = AssemblyMetadata.CreateFromStream(stream).GetReference();
                 var comp = CreateCompilation("", references: [reference],
                     options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-                Assert.NotNull(comp.GetMember<MethodSymbol>("Program.Main"));
+                var main = comp.GetMember<MethodSymbol>("Program.Main");
+                Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
             }
         }
 
@@ -3682,7 +3687,8 @@ public class Child : Parent, IParent
                 var reference = AssemblyMetadata.CreateFromStream(stream).GetReference();
                 var comp = CreateCompilation("", references: [reference],
                     options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-                Assert.NotNull(comp.GetMember<MethodSymbol>("Program.<Main>"));
+                var main = comp.GetMember<MethodSymbol>("Program.<Main>");
+                Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
             }
         }
     }

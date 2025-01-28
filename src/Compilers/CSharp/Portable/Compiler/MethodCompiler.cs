@@ -252,6 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (((object)synthesizedEntryPoint != null) &&
                 (moduleBeingBuilt != null) &&
                 !hasDeclarationErrors &&
+                !moduleBeingBuilt.EmitOptions.EmitMetadataOnly &&
                 !diagnostics.HasAnyErrors())
             {
                 BoundStatement body = synthesizedEntryPoint.CreateBody(diagnostics);

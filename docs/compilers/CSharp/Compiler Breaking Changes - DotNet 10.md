@@ -311,3 +311,6 @@ CSharpCompilation.Create("test",
     .Emit(new MemoryStream(),
         options: EmitOptions.Default.WithEmitMetadataOnly(true))
 ```
+
+Similarly this can be observed when using the command-line argument `/refonly`
+or the `ProduceOnlyReferenceAssembly` MSBuild property.

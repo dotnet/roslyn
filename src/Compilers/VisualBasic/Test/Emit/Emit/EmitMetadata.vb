@@ -992,9 +992,33 @@ End Module
                 emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True),
                 symbolValidator:=Sub(m)
                                      Assert.NotEqual(0, m.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress)
-                                     Assert.NotNull(m.GlobalNamespace.GetMember(Of MethodSymbol)("Program.Main"))
+                                     Dim main = m.GlobalNamespace.GetMember(Of MethodSymbol)("Program.Main")
+                                     Assert.Equal(Accessibility.Public, main.DeclaredAccessibility)
                                  End Sub
             ).VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
+        Public Sub EmitMetadataOnly_Exe_AsyncMain()
+            Dim emitResult = CreateCompilation(
+                <compilation>
+                    <file>
+Imports System.Threading.Tasks
+Module Program
+    Public Async Function Main() As Task
+        Await Task.Yield()
+        System.Console.WriteLine("a")
+    End Function
+End Module
+                    </file>
+                </compilation>,
+                options:=TestOptions.ReleaseExe,
+                assemblyName:="MyLib"
+            ).Emit(New MemoryStream(), options:=EmitOptions.Default.WithEmitMetadataOnly(True))
+            Assert.False(emitResult.Success)
+            emitResult.Diagnostics.AssertTheseDiagnostics(<errors>
+BC30737: No accessible 'Main' method with an appropriate signature was found in 'MyLib'.
+                                                          </errors>)
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
@@ -1030,7 +1054,8 @@ End Module
                 emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False),
                 symbolValidator:=Sub(m)
                                      Assert.NotEqual(0, m.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress)
-                                     Assert.NotNull(m.GlobalNamespace.GetMember(Of MethodSymbol)("Program.Main"))
+                                     Dim main = m.GlobalNamespace.GetMember(Of MethodSymbol)("Program.Main")
+                                     Assert.Equal(Accessibility.Internal, main.DeclaredAccessibility)
                                  End Sub
             ).VerifyDiagnostics()
         End Sub
@@ -1072,7 +1097,8 @@ End Module
             stream.Position = 0
             Dim reference = AssemblyMetadata.CreateFromStream(stream).GetReference()
             Dim comp = CreateCompilation("", references:={reference}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
-            Assert.NotNull(comp.GetMember(Of MethodSymbol)("Program.Main") IsNot Nothing)
+            Dim main = comp.GetMember(Of MethodSymbol)("Program.Main")
+            Assert.Equal(Accessibility.Internal, main.DeclaredAccessibility)
         End Sub
     End Class
 End Namespace

@@ -1875,7 +1875,7 @@ End Class
         <Fact>
         Public Sub AttributeArgumentAsEnumFromMetadata()
             Dim metadata1 = VisualBasicCompilation.Create("bar.dll",
-                                               options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                               options:=TestOptions.DebugDll,
                                                references:={MscorlibRef},
                                                syntaxTrees:={Parse("Public Enum Bar : Baz : End Enum")}).EmitToArray(New EmitOptions(metadataOnly:=True))
 
@@ -1883,7 +1883,7 @@ End Class
 
             Dim metadata2 = VisualBasicCompilation.Create(
                                 "goo.dll",
-                                options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                                options:=TestOptions.DebugDll,
                                 references:={MscorlibRef, ref1},
                                 syntaxTrees:={
                                     VisualBasicSyntaxTree.ParseText(<![CDATA[

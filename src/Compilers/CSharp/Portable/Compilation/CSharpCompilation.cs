@@ -3515,6 +3515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         entryPointDiagnostics,
                         cancellationToken);
                     diagnostics.AddRange(entryPointDiagnostics.DiagnosticBag!);
+                    entryPointDiagnostics.Free();
                     if (entryPoint != null)
                     {
                         moduleBeingBuilt.SetPEEntryPoint(entryPoint, diagnostics);
