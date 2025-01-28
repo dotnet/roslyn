@@ -19,7 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // When this assertion fails, it means a new syntax is being used which corresponds to a BoundCall.
                 // The developer needs to determine how this new syntax should interact with interceptors (produce an error, permit intercepting the call, etc...)
-                Debug.Assert(this.WasCompilerGenerated || this.Syntax is InvocationExpressionSyntax or ConstructorInitializerSyntax or PrimaryConstructorBaseTypeSyntax { ArgumentList: { } },
+                Debug.Assert(this.WasCompilerGenerated ||
+                    this.Syntax is
+                        InvocationExpressionSyntax or
+                        ConstructorInitializerSyntax or
+                        PrimaryConstructorBaseTypeSyntax { ArgumentList: { } } or
+                        WithElementSyntax,
                     $"Unexpected syntax kind for BoundCall: {this.Syntax.Kind()}");
 
                 if (this.WasCompilerGenerated || this.Syntax is not InvocationExpressionSyntax syntax)

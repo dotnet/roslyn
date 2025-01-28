@@ -1924,10 +1924,8 @@
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
     <!-- Construct method for collection types with [CollectionBuilder]. -->
     <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
-    <!-- Placeholder for collection builder method invocation. -->
-    <Field Name="CollectionBuilderInvocationPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
-    <!-- Conversion from collection builder method invocation to collection type. -->
-    <Field Name="CollectionBuilderInvocationConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    <!-- Placeholder for collection builder elements span. -->
+    <Field Name="CollectionBuilderSpanPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
     <!-- Indicates whether the collection expression was successfully target-typed (it is inside a conversion) -->
     <Field Name="WasTargetTyped" Type="bool" />
     <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>

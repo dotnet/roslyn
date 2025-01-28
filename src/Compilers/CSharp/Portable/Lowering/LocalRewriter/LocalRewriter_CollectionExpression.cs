@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return VisitArrayOrSpanCollectionExpression(node, collectionTypeKind, node.Type, TypeWithAnnotations.Create(elementType));
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         // A few special cases when a collection type is an ImmutableArray<T>
+                        // PROTOTYPE: Test these cases with collection args (possibly empty).
                         if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType))
                         {
                             // For `[]` try to use `ImmutableArray<T>.Empty` singleton if available
@@ -265,7 +266,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(_additionalLocals is { });
-            Debug.Assert(node.CollectionCreation is null); // shouldn't have generated a constructor call
             Debug.Assert(node.Placeholder is null);
 
             var syntax = node.Syntax;
@@ -504,47 +504,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
-            Debug.Assert(node.CollectionCreation is null);
+            Debug.Assert(node.CollectionCreation is { });
             Debug.Assert(node.Placeholder is null);
-            Debug.Assert(node.CollectionBuilderMethod is { });
-            Debug.Assert(node.CollectionBuilderInvocationPlaceholder is { });
-            Debug.Assert(node.CollectionBuilderInvocationConversion is { });
+            Debug.Assert(node.CollectionBuilderSpanPlaceholder is { Type: NamedTypeSymbol { } });
 
-            var constructMethod = node.CollectionBuilderMethod;
-
-            var spanType = (NamedTypeSymbol)constructMethod.Parameters[0].Type;
+            var spanPlaceholder = node.CollectionBuilderSpanPlaceholder;
+            var spanType = (NamedTypeSymbol)spanPlaceholder.Type;
             Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
-
-            var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
 
             // If collection expression is of form `[.. anotherReadOnlySpan]`
             // with `anotherReadOnlySpan` being a ReadOnlySpan of the same type as target collection type
             // and that span cannot be captured in a returned ref struct
             // we can directly use `anotherReadOnlySpan` as collection builder argument and skip the copying assignment.
+            // PROTOTYPE: Test this case with collection args (possibly empty).
             BoundExpression span = CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out var spreadExpression)
                 ? VisitExpression(spreadExpression)
-                : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
+                : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]);
 
-            var invocation = new BoundCall(
-                node.Syntax,
-                receiverOpt: null,
-                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
-                method: constructMethod,
-                arguments: ImmutableArray.Create(span),
-                argumentNamesOpt: default,
-                argumentRefKindsOpt: default,
-                isDelegateCall: false,
-                expanded: false,
-                invokedAsExtensionMethod: false,
-                argsToParamsOpt: default,
-                defaultArguments: default,
-                resultKind: LookupResultKind.Viable,
-                type: constructMethod.ReturnType);
-
-            var invocationPlaceholder = node.CollectionBuilderInvocationPlaceholder;
-            AddPlaceholderReplacement(invocationPlaceholder, invocation);
-            var result = VisitExpression(node.CollectionBuilderInvocationConversion);
-            RemovePlaceholderReplacement(invocationPlaceholder);
+            AddPlaceholderReplacement(spanPlaceholder, span);
+            var result = VisitExpression(node.CollectionCreation);
+            RemovePlaceholderReplacement(spanPlaceholder);
             return result;
         }
 

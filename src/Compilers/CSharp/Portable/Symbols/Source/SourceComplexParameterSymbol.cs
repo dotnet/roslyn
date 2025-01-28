@@ -1640,16 +1640,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            MethodSymbol? collectionBuilderMethod = binder.GetAndValidateCollectionBuilderMethod(syntax, (NamedTypeSymbol)Type, diagnostics, elementType: out _);
-                            if (collectionBuilderMethod is null)
+                            var candidateMethods = ArrayBuilder<MethodSymbol>.GetInstance();
+                            binder.GetAndValidateCollectionBuilderMethods(syntax, (NamedTypeSymbol)Type, candidateMethods, diagnostics);
+
+                            // PROTOTYPE: Test where the builder factory method has an optional parameter, and update the params collection spec.
+                            var collectionBuilderMethod = candidateMethods.FirstOrDefault(m => m.ParameterCount == 1); // PROTOTYPE: Test where the expected method has an optional parameter.
+                            if (collectionBuilderMethod is { })
                             {
-                                return;
+                                // PROTOTYPE: Previously, GetAndValidateCollectionBuilderMethod() called the following with the one method
+                                // that was found. Which of these need to be called here for the method callable with no arguments?
+                                //  ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
+                                //  collectionBuilderMethod.CheckConstraints(
+                                //      new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, syntax.Location, diagnostics));
+                                binder.ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
+                                Binder.ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
+
+                                if (ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
+                                {
+                                    checkIsAtLeastAsVisible(syntax, binder, collectionBuilderMethod, diagnostics);
+                                }
                             }
 
-                            if (ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
-                            {
-                                checkIsAtLeastAsVisible(syntax, binder, collectionBuilderMethod, diagnostics);
-                            }
+                            candidateMethods.Free();
                         }
                         break;
                 }
