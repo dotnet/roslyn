@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Remote;
 internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.ServiceConstructionArguments arguments)
     : BrokeredServiceBase(in arguments), IRemoteAssetSynchronizationService
 {
+    private const string SynchronizeTextChangesAsyncSucceededMetricName = "SucceededCount";
+    private const string SynchronizeTextChangesAsyncFailedMetricName = "FailedCount";
+    private const string SynchronizeTextChangesAsyncSucceededKeyName = nameof(RemoteAssetSynchronizationService) + "." + SynchronizeTextChangesAsyncSucceededMetricName;
+    private const string SynchronizeTextChangesAsyncFailedKeyName = nameof(RemoteAssetSynchronizationService) + "." + SynchronizeTextChangesAsyncFailedMetricName;
+
     internal sealed class Factory : FactoryBase<IRemoteAssetSynchronizationService>
     {
         protected override IRemoteAssetSynchronizationService CreateService(in ServiceConstructionArguments arguments)
@@ -59,10 +64,11 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
         {
             var wasSynchronized = await SynchronizeTextChangesHelperAsync().ConfigureAwait(false);
 
-            var metricName = wasSynchronized ? "SucceededCount" : "FailedCount";
+            var metricName = wasSynchronized ? SynchronizeTextChangesAsyncSucceededMetricName : SynchronizeTextChangesAsyncFailedMetricName;
+            var keyName = wasSynchronized ? SynchronizeTextChangesAsyncSucceededKeyName : SynchronizeTextChangesAsyncFailedKeyName;
             TelemetryLogging.LogAggregatedCounter(FunctionId.RemoteHostService_SynchronizeTextAsyncStatus, KeyValueLogMessage.Create(m =>
             {
-                m[TelemetryLogging.KeyName] = nameof(RemoteAssetSynchronizationService) + "." + metricName;
+                m[TelemetryLogging.KeyName] = keyName;
                 m[TelemetryLogging.KeyValue] = 1L;
                 m[TelemetryLogging.KeyMetricName] = metricName;
             }));

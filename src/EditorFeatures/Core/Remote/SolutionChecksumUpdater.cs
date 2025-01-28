@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,6 +151,8 @@ internal sealed class SolutionChecksumUpdater
         {
             var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
             var newDocument = e.NewSolution.GetDocument(e.DocumentId);
+
+            Debug.Assert(oldDocument != null && newDocument != null);
             if (oldDocument != null && newDocument != null)
                 DispatchSynchronizeTextChanges(oldDocument, newDocument);
         }
@@ -204,11 +207,11 @@ internal sealed class SolutionChecksumUpdater
         // Attempt to inform the remote asset synchronization service as quickly as possible
         // about the text changes between oldDocument and newDocument. By doing this, we can
         // reduce the likelihood of the remote side encountering an unknown checksum and
-        // requiring a synchronization of the full document.
+        // requiring a synchronization of the full document contents.
         // This method uses JTF.RunAsync to create a fire-and-forget task. JTF.RunAsync will
-        // attempt to execute DispatchSynchronizeTextChangesHelperAsync synchronously if possible.
-        // If it is unable to finish synchronously, then we'll return to the caller without
-        // the task having been completed, and it will complete later.
+        // execute DispatchSynchronizeTextChangesHelperAsync synchronously until no longer
+        // possible. The hopefully common occurrence is that it is able to run synchronously
+        // all the way until it fires off the RPC call notifying the remote side of the changes.
         _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
         {
             var wasSynchronized = await DispatchSynchronizeTextChangesHelperAsync().ConfigureAwait(false);
