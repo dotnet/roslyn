@@ -560,6 +560,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">数値の変換</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_field_property">
+        <source>Convert to 'field' property</source>
+        <target state="new">Convert to 'field' property</target>
+        <note>{Locked="field"} "field" is C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">LINQ に変換</target>

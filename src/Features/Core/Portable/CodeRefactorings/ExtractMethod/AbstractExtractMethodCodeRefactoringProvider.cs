@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod;
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class ExtractMethodCodeRefactoringProvider() : CodeRefactoringProvider
 {
+    internal override CodeRefactoringKind Kind => CodeRefactoringKind.Extract;
+
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         // Don't bother if there isn't a selection

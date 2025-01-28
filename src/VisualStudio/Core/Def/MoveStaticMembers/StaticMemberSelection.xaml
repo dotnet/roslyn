@@ -48,7 +48,9 @@
                         <Image 
                             x:Name="GlyphOfMember"
                             Margin="8, 0, 5, 0"
-                            Source="{Binding Glyph}"/>
+                            Source="{Binding Glyph}"
+                            Width="16"
+                            Height="16"/>
                         <TextBlock
                             x:Name="MemberName"
                             Text="{Binding SymbolName}"
