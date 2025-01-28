@@ -45,7 +45,8 @@ public abstract partial class Workspace
 
     /// <summary>
     /// An event raised *immediately* whenever the current solution is changed. Handlers
-    /// should be written to be very fast.
+    /// should be written to be very fast. Called on the same thread changing the workspace,
+    /// which may vary depending on the workspace.
     /// </summary>
     internal event EventHandler<WorkspaceChangeEventArgs> WorkspaceChangedImmediate
     {

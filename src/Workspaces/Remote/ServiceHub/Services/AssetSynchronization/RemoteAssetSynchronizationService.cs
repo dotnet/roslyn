@@ -57,13 +57,23 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
     {
         return RunServiceAsync(async cancellationToken =>
         {
-            var workspace = GetWorkspace();
+            var wasSynchronized = await SynchronizeTextChangesHelperAsync().ConfigureAwait(false);
 
-            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, cancellationToken))
+            var metricName = wasSynchronized ? "SucceededCount" : "FailedCount";
+            TelemetryLogging.LogAggregatedCounter(FunctionId.RemoteHostService_SynchronizeTextAsyncStatus, KeyValueLogMessage.Create(m =>
             {
-                var ableToSync = false;
+                m[TelemetryLogging.KeyName] = nameof(RemoteAssetSynchronizationService) + "." + metricName;
+                m[TelemetryLogging.KeyValue] = 1L;
+                m[TelemetryLogging.KeyMetricName] = metricName;
+            }));
 
-                try
+            return;
+
+            async Task<bool> SynchronizeTextChangesHelperAsync()
+            {
+                var workspace = GetWorkspace();
+
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, cancellationToken))
                 {
                     // Try to get the text associated with baseTextChecksum
                     var text = await TryGetSourceTextAsync(WorkspaceManager, workspace, documentId, baseTextChecksum, cancellationToken).ConfigureAwait(false);
@@ -71,10 +81,8 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
                     {
                         // it won't bring in base text if it is not there already.
                         // text needed will be pulled in when there is request
-                        return;
+                        return false;
                     }
-
-                    ableToSync = true;
 
                     // Now attempt to manually apply the edit, producing the new forked text.  Store that directly in
                     // the asset cache so that future calls to retrieve it can do so quickly, without synchronizing over
@@ -84,19 +92,9 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
 
                     WorkspaceManager.SolutionAssetCache.GetOrAdd(newSerializableText.ContentChecksum, newSerializableText);
                 }
-                finally
-                {
-                    var metricName = ableToSync ? "SucceededCount" : "FailedCount";
-                    TelemetryLogging.LogAggregatedCounter(FunctionId.RemoteHostService_SynchronizeTextAsyncStatus, KeyValueLogMessage.Create(m =>
-                    {
-                        m[TelemetryLogging.KeyName] = nameof(RemoteAssetSynchronizationService) + "." + metricName;
-                        m[TelemetryLogging.KeyValue] = 1L;
-                        m[TelemetryLogging.KeyMetricName] = metricName;
-                    }));
-                }
-            }
 
-            return;
+                return true;
+            }
 
             async static Task<SourceText?> TryGetSourceTextAsync(
                 RemoteWorkspaceManager workspaceManager,

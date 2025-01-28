@@ -201,14 +201,33 @@ internal sealed class SolutionChecksumUpdater
         Document oldDocument,
         Document newDocument)
     {
+        // Attempt to inform the remote asset synchronization service as quickly as possible
+        // about the text changes between oldDocument and newDocument. By doing this, we can
+        // reduce the likelihood of the remote side encountering an unknown checksum and
+        // requiring a synchronization of the full document.
+        // This method uses JTF.RunAsync to create a fire-and-forget task. JTF.RunAsync will
+        // attempt to execute DispatchSynchronizeTextChangesHelperAsync synchronously if possible.
+        // If it is unable to finish synchronously, then we'll return to the caller without
+        // the task having been completed, and it will complete later.
         _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
         {
-            var ableToSync = false;
-            try
+            var wasSynchronized = await DispatchSynchronizeTextChangesHelperAsync().ConfigureAwait(false);
+
+            var metricName = wasSynchronized ? "SucceededCount" : "FailedCount";
+            TelemetryLogging.LogAggregatedCounter(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, KeyValueLogMessage.Create(m =>
+            {
+                m[TelemetryLogging.KeyName] = nameof(SolutionChecksumUpdater) + "." + metricName;
+                m[TelemetryLogging.KeyValue] = 1L;
+                m[TelemetryLogging.KeyMetricName] = metricName;
+            }));
+
+            return;
+
+            async Task<bool> DispatchSynchronizeTextChangesHelperAsync()
             {
                 var client = await RemoteHostClient.TryGetClientAsync(_workspace, _shutdownToken).ConfigureAwait(false);
                 if (client == null)
-                    return;
+                    return false;
 
                 // this pushes text changes to the remote side if it can. this is purely perf optimization. whether this
                 // pushing text change worked or not doesn't affect feature's functionality.
@@ -225,20 +244,17 @@ internal sealed class SolutionChecksumUpdater
                     !newDocument.TryGetText(out var newText))
                 {
                     // we only support case where text already exist
-                    return;
+                    return false;
                 }
-
-                // we are able to synchronize (but might choose not to due to various optimizations)
-                ableToSync = true;
 
                 // Avoid allocating text before seeing if we can bail out.
                 var changeRanges = newText.GetChangeRanges(oldText).AsImmutable();
                 if (changeRanges.Length == 0)
-                    return;
+                    return true;
 
                 // no benefit here. pulling from remote host is more efficient
                 if (changeRanges is [{ Span.Length: var singleChangeLength }] && singleChangeLength == oldText.Length)
-                    return;
+                    return true;
 
                 var state = await oldDocument.State.GetStateChecksumsAsync(_shutdownToken).ConfigureAwait(false);
                 var newState = await newDocument.State.GetStateChecksumsAsync(_shutdownToken).ConfigureAwait(false);
@@ -248,16 +264,8 @@ internal sealed class SolutionChecksumUpdater
                 await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                     (service, cancellationToken) => service.SynchronizeTextChangesAsync(oldDocument.Id, state.Text, textChanges, newState.Text, cancellationToken),
                     _shutdownToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                var metricName = ableToSync ? "SucceededCount" : "FailedCount";
-                TelemetryLogging.LogAggregatedCounter(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, KeyValueLogMessage.Create(m =>
-                {
-                    m[TelemetryLogging.KeyName] = nameof(SolutionChecksumUpdater) + "." + metricName;
-                    m[TelemetryLogging.KeyValue] = 1L;
-                    m[TelemetryLogging.KeyMetricName] = metricName;
-                }));
+
+                return true;
             }
         });
     }
