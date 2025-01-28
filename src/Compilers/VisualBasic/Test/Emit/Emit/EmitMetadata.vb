@@ -1022,6 +1022,31 @@ BC30737: No accessible 'Main' method with an appropriate signature was found in 
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
+        Public Sub EmitMetadataOnly_Exe_AsyncMain_Void()
+            Dim emitResult = CreateCompilation(
+                <compilation>
+                    <file>
+Imports System.Threading.Tasks
+Module Program
+    Public Async Sub Main()
+        Await Task.Yield()
+        System.Console.WriteLine("a")
+    End Sub
+End Module
+                    </file>
+                </compilation>,
+                options:=TestOptions.ReleaseExe,
+                assemblyName:="MyLib"
+            ).Emit(New MemoryStream(), options:=EmitOptions.Default.WithEmitMetadataOnly(True))
+            Assert.False(emitResult.Success)
+            emitResult.Diagnostics.AssertTheseDiagnostics(<errors>
+BC36934: The 'Main' method cannot be marked 'Async'.
+    Public Async Sub Main()
+                     ~~~~
+                                                          </errors>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
         Public Sub EmitMetadataOnly_Exe_NoMain()
             Dim emitResult = CreateCompilation(
                 <compilation>

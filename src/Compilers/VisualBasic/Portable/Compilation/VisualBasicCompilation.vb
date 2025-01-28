@@ -2491,7 +2491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If moduleBeingBuilt.OutputKind.IsApplication() Then
                     Dim entryPoint = GetEntryPointAndDiagnostics(cancellationToken)
                     diagnostics.AddRange(entryPoint.Diagnostics)
-                    If entryPoint.MethodSymbol IsNot Nothing Then
+                    If entryPoint.MethodSymbol IsNot Nothing AndAlso Not entryPoint.Diagnostics.HasAnyErrors() Then
                         moduleBeingBuilt.SetPEEntryPoint(entryPoint.MethodSymbol, diagnostics)
                     Else
                         Return False
