@@ -49,7 +49,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
     internal SuggestionSessionBase? _suggestionSession;
     private VisualStudio.Threading.IAsyncDisposable? _intellicodeLineCompletionsDisposable;
 
-    public readonly IThreadingContext ThreadingContext;
+    public readonly IThreadingContext? ThreadingContext;
 
     protected AbstractDocumentationCommentCommandHandler(
         IUIThreadOperationExecutor uiThreadOperationExecutor,
@@ -62,7 +62,6 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         Contract.ThrowIfNull(uiThreadOperationExecutor);
         Contract.ThrowIfNull(undoHistoryRegistry);
         Contract.ThrowIfNull(editorOperationsFactoryService);
-        Contract.ThrowIfNull(threadingContext);
 
         _uiThreadOperationExecutor = uiThreadOperationExecutor;
         _undoHistoryRegistry = undoHistoryRegistry;
@@ -127,7 +126,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                 returnValue = true;
 
                 // Only calls into the suggestion manager is available, the shell of the comment still gets inserted regardless.
-                if (_suggestionManagerBase != null)
+                if (_suggestionManagerBase != null && ThreadingContext != null)
                 {
                     ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -357,6 +356,11 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
 
     private async Task<bool> TryDisplaySuggestionAsync(SuggestionSessionBase session, DocumentationCommentSuggestion suggestion, CancellationToken cancellationToken)
     {
+        if (ThreadingContext is null)
+        {
+            return false;
+        }
+
         try
         {
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -405,13 +409,16 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         if (args.SubjectBuffer.IsInLspEditorContext())
             return;
 
-        ThreadingContext.JoinableTaskFactory.Run(async () =>
+        if (ThreadingContext is not null)
         {
-            if (_suggestionServiceBase != null)
+            ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
-                _suggestionManagerBase = await _suggestionServiceBase.TryRegisterProviderAsync(this, args.TextView, "AmbientAIDocumentationComments", context.OperationContext.UserCancellationToken).ConfigureAwait(false);
-            }
-        });
+                if (_suggestionServiceBase != null)
+                {
+                    _suggestionManagerBase = await _suggestionServiceBase.TryRegisterProviderAsync(this, args.TextView, "AmbientAIDocumentationComments", context.OperationContext.UserCancellationToken).ConfigureAwait(false);
+                }
+            });
+        }
 
         CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCharacterTyped, CancellationToken.None);
     }
