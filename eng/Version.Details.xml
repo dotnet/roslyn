@@ -13,14 +13,14 @@
       <Sha>be366997dfae0aa6e3c9a78bad10bfb3f79cbde1</Sha>
       <SourceBuild RepoName="source-build-reference-packages" ManagedOnly="true" />
     </Dependency>
-    <Dependency Name="System.CommandLine" Version="2.0.0-beta4.24528.1">
+    <Dependency Name="System.CommandLine" Version="2.0.0-beta4.25072.1">
       <Uri>https://github.com/dotnet/command-line-api</Uri>
-      <Sha>feb61c7f328a2401d74f4317b39d02126cfdfe24</Sha>
+      <Sha>060374e56c1b2e741b6525ca8417006efb54fbd7</Sha>
     </Dependency>
     <!-- Intermediate is necessary for source build. -->
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.command-line-api" Version="0.1.552801">
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.command-line-api" Version="0.1.607201">
       <Uri>https://github.com/dotnet/command-line-api</Uri>
-      <Sha>feb61c7f328a2401d74f4317b39d02126cfdfe24</Sha>
+      <Sha>060374e56c1b2e741b6525ca8417006efb54fbd7</Sha>
       <SourceBuild RepoName="command-line-api" ManagedOnly="true" />
     </Dependency>
     <!-- Necessary for source-build. This allows the live version of the package to be used by source-build. -->
