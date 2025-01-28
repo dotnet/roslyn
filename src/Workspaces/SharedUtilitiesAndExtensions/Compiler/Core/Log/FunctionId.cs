@@ -642,4 +642,6 @@ internal enum FunctionId
 
     // 900-999 for items that don't fit into other categories.
     Workspace_EventsImmediate = 900,
+    ChecksumUpdater_SynchronizeTextChangesStatus = 901,
+    RemoteHostService_SynchronizeTextAsyncStatus = 902,
 }

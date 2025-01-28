@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
@@ -60,22 +61,39 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
 
             using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, cancellationToken))
             {
-                // Try to get the text associated with baseTextChecksum
-                var text = await TryGetSourceTextAsync(WorkspaceManager, workspace, documentId, baseTextChecksum, cancellationToken).ConfigureAwait(false);
-                if (text == null)
+                var ableToSync = false;
+
+                try
                 {
-                    // it won't bring in base text if it is not there already.
-                    // text needed will be pulled in when there is request
-                    return;
+                    // Try to get the text associated with baseTextChecksum
+                    var text = await TryGetSourceTextAsync(WorkspaceManager, workspace, documentId, baseTextChecksum, cancellationToken).ConfigureAwait(false);
+                    if (text == null)
+                    {
+                        // it won't bring in base text if it is not there already.
+                        // text needed will be pulled in when there is request
+                        return;
+                    }
+
+                    ableToSync = true;
+
+                    // Now attempt to manually apply the edit, producing the new forked text.  Store that directly in
+                    // the asset cache so that future calls to retrieve it can do so quickly, without synchronizing over
+                    // the entire document.
+                    var newText = text.WithChanges(textChanges);
+                    var newSerializableText = new SerializableSourceText(newText, newTextChecksum);
+
+                    WorkspaceManager.SolutionAssetCache.GetOrAdd(newSerializableText.ContentChecksum, newSerializableText);
                 }
-
-                // Now attempt to manually apply the edit, producing the new forked text.  Store that directly in
-                // the asset cache so that future calls to retrieve it can do so quickly, without synchronizing over
-                // the entire document.
-                var newText = text.WithChanges(textChanges);
-                var newSerializableText = new SerializableSourceText(newText, newTextChecksum);
-
-                WorkspaceManager.SolutionAssetCache.GetOrAdd(newSerializableText.ContentChecksum, newSerializableText);
+                finally
+                {
+                    var metricName = ableToSync ? "SucceededCount" : "FailedCount";
+                    TelemetryLogging.LogAggregatedCounter(FunctionId.RemoteHostService_SynchronizeTextAsyncStatus, KeyValueLogMessage.Create(m =>
+                    {
+                        m[TelemetryLogging.KeyName] = nameof(RemoteAssetSynchronizationService) + "." + metricName;
+                        m[TelemetryLogging.KeyValue] = 1L;
+                        m[TelemetryLogging.KeyMetricName] = metricName;
+                    }));
+                }
             }
 
             return;
