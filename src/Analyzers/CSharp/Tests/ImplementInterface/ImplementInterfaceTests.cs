@@ -7626,7 +7626,7 @@ class Program : IDisposable
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")]
     public async Task TestDisposePatternWhenAdditionalUsingsAreIntroduced1()
     {
-#if NET9_0_OR_GREATER
+#if NET
         var extraUsing = """
 
             using System.Diagnostics.CodeAnalysis;

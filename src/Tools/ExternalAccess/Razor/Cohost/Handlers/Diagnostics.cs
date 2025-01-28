@@ -21,7 +21,7 @@ internal static class Diagnostics
         var diagnosticAnalyzerService = document.Project.Solution.Services.ExportProvider.GetService<IDiagnosticAnalyzerService>();
 
         var diagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
-            document, range: null, DiagnosticKind.All, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
+            document, range: null, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
 
         var project = document.Project;
         // isLiveSource means build might override a diagnostics, but this method is only used by tooling, so builds aren't relevant
@@ -32,7 +32,8 @@ internal static class Diagnostics
         var result = ArrayBuilder<LSP.Diagnostic>.GetInstance(capacity: diagnostics.Length);
         foreach (var diagnostic in diagnostics)
         {
-            result.AddRange(ProtocolConversions.ConvertDiagnostic(diagnostic, supportsVisualStudioExtensions, project, IsLiveSource, PotentialDuplicate, globalOptionsService));
+            if (!diagnostic.IsSuppressed)
+                result.AddRange(ProtocolConversions.ConvertDiagnostic(diagnostic, supportsVisualStudioExtensions, project, IsLiveSource, PotentialDuplicate, globalOptionsService));
         }
 
         return result.ToImmutableAndFree();

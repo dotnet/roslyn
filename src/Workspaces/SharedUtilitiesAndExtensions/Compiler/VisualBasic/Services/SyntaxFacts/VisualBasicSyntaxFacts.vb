@@ -84,6 +84,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return True
         End Function
 
+        Public Function SupportsFieldExpression(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsFieldExpression
+            Return False
+        End Function
+
         Public Function ParseToken(text As String) As SyntaxToken Implements ISyntaxFacts.ParseToken
             Return SyntaxFactory.ParseToken(text, startStatement:=True)
         End Function

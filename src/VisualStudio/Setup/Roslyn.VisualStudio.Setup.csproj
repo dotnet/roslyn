@@ -168,10 +168,17 @@
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj">
       <Name>Workspaces.MSBuild</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <!-- Make sure we include ContentFilesProjectOutputGroup so we get the BuildHosts deployed into the VSIX -->
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup;ContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
+
+      <!-- Disable ngen. If we don't set this, ngen is enabled for all binaries coming from this ProjectReference, which includes the build hosts coming in as content.
+           That doesn't make sense to do for the .NET Core build host (since ngen isn't supported there), and without extra configuation to specify the correct set
+           of binding redirects, it probably won't be useful for the .NET Framework one in practice. Customer use of MSBuildWorkspace inside Visual Studio is rare as it is;
+           so while we could try to do a bunch of extra MSBuild trickery to get the right ngen attributes to the right binaries, it's just far easier to turn it off. -->
+      <Ngen>false</Ngen>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj">
       <Name>CSharpWorkspace</Name>

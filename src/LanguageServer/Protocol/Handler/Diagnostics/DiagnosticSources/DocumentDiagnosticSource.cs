@@ -27,9 +27,10 @@ internal sealed class DocumentDiagnosticSource(IDiagnosticAnalyzerService diagno
         // We call GetDiagnosticsForSpanAsync here instead of GetDiagnosticsForIdsAsync as it has faster perf
         // characteristics. GetDiagnosticsForIdsAsync runs analyzers against the entire compilation whereas
         // GetDiagnosticsForSpanAsync will only run analyzers against the request document.
-        // Also ensure we pass in "includeSuppressedDiagnostics = true" for unnecessary suppressions to be reported.
         var allSpanDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
-        Document, range: null, diagnosticKind: this.DiagnosticKind, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            Document, range: null, diagnosticKind: this.DiagnosticKind, cancellationToken).ConfigureAwait(false);
+
+        // Note: we do not filter our suppressed diagnostics we we want unnecessary suppressions to be reported.
 
         // Add cached Copilot diagnostics when computing analyzer semantic diagnostics.
         // TODO: move to a separate diagnostic source. https://github.com/dotnet/roslyn/issues/72896
