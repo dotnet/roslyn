@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    we'll use one of the hardcoded overloads. Otherwise, we'll use `string.Concat(string[])`.
             // 4. If all the added expressions are strings or chars, we can use the `string.Concat(ReadOnlySpan<char>)`-based overloads. If there are
             //    more than 4 arguments, we will instead fall back to `string.Concat(string[])`.
-            // 5. If all the added expressions are strings or objects, we'll use the `string.Concat(object)`-based overloads. If there are more than 3,
-            //    we'll use `string.Concat(object[])`.
+            // 5. If all the added expressions are strings or objects, we'll use the `string.Concat(string)`-based overloads, and call ToString on the
+            //    arguments to avoid boxing structs by converthing them into objects. If there are more than 3, we'll use `string.Concat(string[])`.
 
             if (_inExpressionLambda)
             {
@@ -40,12 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return RewriteStringConcatInExpressionLambda(originalOperator);
             }
 
-            // What's left is cases 3, 4, and 5. We'll walk the children in a depth-first order, pull all the arguments out, and then visit them.
-            // Along the way, we want to determine which type of concatenation we're doing; strings, strings/chars, or strings/objects.
-            var concatKind = StringConcatenationRewriteKind.AllStrings;
-            var arguments = ArrayBuilder<BoundExpression>.GetInstance();
-            pushArguments(this, originalOperator, arguments);
-            arguments.ReverseContents();
+            // We'll walk the children in a depth-first order, pull all the arguments out, and then visit them. We'll fold any constant arguments as
+            // we go, pulling them all into a string literal.
+            CollectConcatArguments(originalOperator, out var arguments);
 
             if (arguments.Count == 0)
             {
@@ -58,9 +55,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return arg as BoundLiteral ?? VisitExpression(arg);
             }
 
+            var concatKind = StringConcatenationRewriteKind.AllStrings;
             for (int i = 0; i < arguments.Count; i++)
             {
                 arguments[i] = VisitExpression(arguments[i]);
+                var argumentType = arguments[i].Type;
+                // Null arguments should have been eliminated before now.
+                Debug.Assert(argumentType is not null);
+                switch (argumentType.SpecialType)
+                {
+                    case SpecialType.System_String:
+                        break;
+
+                    case SpecialType.System_Char:
+                        // If we're concating a constant char, we can just treat it as if it's a one-character string, which is more preferable.
+                        if (concatKind == StringConcatenationRewriteKind.AllStrings && arguments[i].ConstantValueOpt is not { IsChar: true })
+                        {
+                            concatKind = StringConcatenationRewriteKind.AllStringsOrChars;
+                        }
+                        break;
+
+                    default:
+                        concatKind = StringConcatenationRewriteKind.AllStringsOrObjects;
+                        break;
+                }
             }
 
             // Now that we have all the visited arguments, we can construct the final Concat call, using the above rules.
@@ -126,25 +144,33 @@ fallbackStrings:
                     }
 
                     var method = UnsafeGetSpecialTypeMethod(originalOperator.Syntax, concatMember);
-                    Debug.Assert((object)method != null);
+                    Debug.Assert(method is not null);
                     return BoundCall.Synthesized(originalOperator.Syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, finalArguments);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(concatKind);
             }
+        }
+
+        private void CollectConcatArguments(BoundBinaryOperator originalOperator, out ArrayBuilder<BoundExpression> destinationArguments)
+        {
+            destinationArguments = ArrayBuilder<BoundExpression>.GetInstance();
+            var concatMethods = new WellKnownConcatRelatedMethods(_compilation);
+            pushArguments(this, originalOperator, destinationArguments, ref concatMethods);
+            destinationArguments.ReverseContents();
 
             // We push these in reverse order to take advantage of the left-recursive nature of the tree and avoid needing a second stack
-            static void pushArguments(LocalRewriter self, BoundBinaryOperator binaryOperator, ArrayBuilder<BoundExpression> arguments)
+            static void pushArguments(LocalRewriter self, BoundBinaryOperator binaryOperator, ArrayBuilder<BoundExpression> arguments, ref WellKnownConcatRelatedMethods concatMethods)
             {
                 do
                 {
                     if (shouldRecurse(binaryOperator.Right, out var right))
                     {
-                        pushArguments(self, right, arguments);
+                        pushArguments(self, right, arguments, ref concatMethods);
                     }
                     else
                     {
-                        addArgumentAndUpdateRewriteKind(self, binaryOperator.Right, arguments);
+                        addArgument(self, binaryOperator.Right, arguments, ref concatMethods);
                     }
 
                     if (shouldRecurse(binaryOperator.Left, out var left))
@@ -153,7 +179,7 @@ fallbackStrings:
                     }
                     else
                     {
-                        addArgumentAndUpdateRewriteKind(self, binaryOperator.Left, arguments);
+                        addArgument(self, binaryOperator.Left, arguments, ref concatMethods);
                         break;
                     }
                 }
@@ -173,11 +199,28 @@ fallbackStrings:
                     }
                 }
 
-                static void addArgumentAndUpdateRewriteKind(LocalRewriter self, BoundExpression argument, ArrayBuilder<BoundExpression> arguments)
+                static void addArgument(LocalRewriter self, BoundExpression argument, ArrayBuilder<BoundExpression> finalArguments, ref WellKnownConcatRelatedMethods wellKnownConcatOptimizationMethods)
                 {
                     if (argument is BoundConversion { ConversionKind: ConversionKind.Boxing, Type.SpecialType: SpecialType.System_Object, Operand: { Type.SpecialType: SpecialType.System_Char } operand })
                     {
                         argument = operand;
+                    }
+
+                    if (argument is BoundCall call)
+                    {
+                        if (wellKnownConcatOptimizationMethods.IsWellKnownConcatMethod(call, out var concatArguments))
+                        {
+                            for (int i = concatArguments.Length - 1; i >= 0; i--)
+                            {
+                                addArgument(self, concatArguments[i], finalArguments, ref wellKnownConcatOptimizationMethods);
+                            }
+
+                            return;
+                        }
+                        else if (wellKnownConcatOptimizationMethods.IsCharToString(call, out var charExpression))
+                        {
+                            argument = charExpression;
+                        }
                     }
 
                     switch (argument.ConstantValueOpt)
@@ -188,25 +231,26 @@ fallbackStrings:
 
                         case { IsString: true } or { IsChar: true }:
                             // See if we can merge this argument with the previous one
-                            if (arguments.Count > 0 && arguments[^1].ConstantValueOpt is { IsString: true } or { IsChar: true })
+                            if (finalArguments.Count > 0 && finalArguments[^1].ConstantValueOpt is { IsString: true } or { IsChar: true })
                             {
-                                var constantValue = arguments[^1].ConstantValueOpt!;
+                                var constantValue = finalArguments[^1].ConstantValueOpt!;
                                 var previous = getRope(constantValue);
                                 var current = getRope(argument.ConstantValueOpt!);
                                 // We're visiting arguments in reverse order, so we need to prepend this constant value, not append
-                                arguments[^1] = self._factory.StringLiteral(ConstantValue.CreateFromRope(Rope.Concat(current, previous)));
+                                finalArguments[^1] = self._factory.StringLiteral(ConstantValue.CreateFromRope(Rope.Concat(current, previous)));
                                 return;
                             }
 
                             break;
                     }
 
-                    arguments.Add(argument);
+                    finalArguments.Add(argument);
                 }
             }
 
             static Rope getRope(ConstantValue constantValue)
             {
+                Debug.Assert(constantValue.IsString || constantValue.IsChar);
                 if (constantValue.IsString)
                 {
                     return constantValue.RopeValue!;
@@ -220,20 +264,79 @@ fallbackStrings:
 
         private enum StringConcatenationRewriteKind
         {
-            /// <summary>
-            /// All arguments are strings.
-            /// </summary>
             AllStrings,
-
-            /// <summary>
-            /// All arguments are strings or chars.
-            /// </summary>
             AllStringsOrChars,
-
-            /// <summary>
-            /// All arguments are strings or objects.
-            /// </summary>
             AllStringsOrObjects,
+        }
+
+        private struct WellKnownConcatRelatedMethods(CSharpCompilation compilation)
+        {
+            private readonly CSharpCompilation _compilation = compilation;
+
+            private MethodSymbol? _concatStringString;
+            private MethodSymbol? _concatStringStringString;
+            private MethodSymbol? _concatStringStringStringString;
+            private MethodSymbol? _concatStringArray;
+            private MethodSymbol? _objectToString;
+
+            public bool IsWellKnownConcatMethod(BoundCall call, out ImmutableArray<BoundExpression> arguments)
+            {
+                if (!call.ArgsToParamsOpt.IsDefault)
+                {
+                    // If the arguments were explicitly ordered, we don't want to try doing any optimizations, so just assume that
+                    // it's not a well-known concat method.
+                    arguments = default;
+                    return false;
+                }
+
+                if (IsConcatNonArray(call, ref _concatStringString, SpecialMember.System_String__ConcatStringString, out arguments)
+                    || IsConcatNonArray(call, ref _concatStringStringString, SpecialMember.System_String__ConcatStringStringString, out arguments)
+                    || IsConcatNonArray(call, ref _concatStringStringStringString, SpecialMember.System_String__ConcatStringStringStringString, out arguments))
+                {
+                    return true;
+                }
+
+                InitializeField(ref _concatStringArray, SpecialMember.System_String__ConcatStringArray);
+                if ((object)call.Method == _concatStringArray && call.Arguments[0] is BoundArrayCreation array)
+                {
+                    arguments = array.InitializerOpt?.Initializers ?? [];
+                    return true;
+                }
+
+                arguments = default;
+                return false;
+            }
+
+            public bool IsCharToString(BoundCall call, [NotNullWhen(true)] out BoundExpression? charExpression)
+            {
+                InitializeField(ref _objectToString, SpecialMember.System_Object__ToString);
+                if (call is { Arguments: [], ReceiverOpt.Type: NamedTypeSymbol { SpecialType: SpecialType.System_Char } charType, Method: { Name: "ToString" } method }
+                    && (object)method.GetLeastOverriddenMethod(charType) == _objectToString)
+                {
+                    charExpression = call.ReceiverOpt;
+                    return true;
+                }
+
+                charExpression = null;
+                return false;
+            }
+
+            private readonly void InitializeField(ref MethodSymbol? member, SpecialMember specialMember)
+                => member ??= _compilation.GetSpecialTypeMember(specialMember) as MethodSymbol;
+
+            private readonly bool IsConcatNonArray(BoundCall call, ref MethodSymbol? concatMethod, SpecialMember concatSpecialMember, out ImmutableArray<BoundExpression> arguments)
+            {
+                InitializeField(ref concatMethod, concatSpecialMember);
+
+                if ((object)call.Method == concatMethod)
+                {
+                    arguments = call.Arguments;
+                    return true;
+                }
+
+                arguments = default;
+                return false;
+            }
         }
 
         /// <summary>
