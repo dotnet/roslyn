@@ -87,7 +87,7 @@
       <Content Include="@(CompilerVersionTargetsFile)">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <Pack>true</Pack>
-        <BuildAction>None</BuildAction>
+       <BuildAction>None</BuildAction>
         <PackageCopyToOutput>true</PackageCopyToOutput>
         <PackagePath>contentFiles\any\any</PackagePath>
       </Content>
