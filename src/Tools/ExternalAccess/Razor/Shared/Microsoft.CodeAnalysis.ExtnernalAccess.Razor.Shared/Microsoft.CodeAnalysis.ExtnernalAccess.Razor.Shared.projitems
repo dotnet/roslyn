@@ -9,5 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.ExtnernalAccess.Razor.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorMappingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorMappedSpanResult.cs" />
   </ItemGroup>
 </Project>

@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using System.Text;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Services.Razor;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
@@ -25,18 +25,15 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
     private const string ProvideRazorDynamicFileInfoMethodName = "razor/provideDynamicFileInfo";
     private const string RemoveRazorDynamicFileInfoMethodName = "razor/removeDynamicFileInfo";
 
-    private readonly Lazy<RazorWorkspaceListenerInitializer> _razorWorkspaceListenerInitializer;
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly AsyncBatchingWorkQueue<string> _updateWorkQueue;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public RazorDynamicFileInfoProvider(
-        Lazy<RazorWorkspaceListenerInitializer> razorWorkspaceListenerInitializer,
         LanguageServerWorkspaceFactory workspaceFactory,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
-        _razorWorkspaceListenerInitializer = razorWorkspaceListenerInitializer;
         _updateWorkQueue = new AsyncBatchingWorkQueue<string>(
             TimeSpan.FromMilliseconds(200),
             UpdateAsync,
@@ -54,7 +51,14 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 
     public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
-        _razorWorkspaceListenerInitializer.Value.NotifyDynamicFile(projectId);
+        var initializer = await RazorLSPServiceProvider.TryGetServiceAsync<IRazorWorkspaceService>(cancellationToken);
+
+        if (initializer is null || !initializer.IsInitialized)
+        {
+            return null;
+        }
+
+        initializer.NotifyDynamicFile(projectId);
 
         var razorUri = ProtocolConversions.CreateAbsoluteUri(filePath);
         var requestParams = new RazorProvideDynamicFileParams
