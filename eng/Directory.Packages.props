@@ -228,7 +228,7 @@
     <PackageVersion Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SqliteVersion)" />
 
     <PackageVersion Include="Humanizer.Core" Version="2.14.1" />
-    <PackageVersion Include="ICSharpCode.Decompiler" Version="8.1.1.7464" />
+    <PackageVersion Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Elfie" Version="1.0.0" />
 
     <!--
