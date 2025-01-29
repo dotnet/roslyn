@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -9,7 +9,13 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.ExtnernalAccess.Razor.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorClientLanguageServerManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorDocumentServiceProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorDynamicFileInfoProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRazorMappingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorClientLanguageServerManager.cs" />
+    <Compile Include="..\Shared\IRazorDynamicFileInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorMappedSpanResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorMappingServiceWrapper.cs" />
   </ItemGroup>
 </Project>

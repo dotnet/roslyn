@@ -4,6 +4,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -45,8 +46,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                             return new RazorMappingServiceWrapper(razorMappingService);
                         }
 
-                        var razorSpanMappingService = documentServiceProvider.GetService<IRazorSpanMappingService>();
-                        return razorSpanMappingService != null ? new RazorSpanMappingServiceWrapper(razorSpanMappingService) : null;
+                        return null;
                     },
                     _innerDocumentServiceProvider);
 

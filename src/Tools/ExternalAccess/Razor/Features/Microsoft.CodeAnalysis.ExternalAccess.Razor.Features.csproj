@@ -22,6 +22,11 @@
 
   <ItemGroup>
     <!--
+      This is used to load in the language server so it gets special treatment. Otherwise only razor assemblies should be added.
+    -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
+    
+    <!--
       ⚠ ONLY RAZOR ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.LanguageServer" Key="$(RazorKey)" />
@@ -47,6 +52,6 @@
     <ProjectReference Include="..\..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
   </ItemGroup>
 
-  <Import Project="..\Shared\Microsoft.CodeAnalysis.ExtnernalAccess.Razor.Shared\Microsoft.CodeAnalysis.ExtnernalAccess.Razor.Shared.projitems" Label="Shared" />
+  <Import Project="..\Shared\Microsoft.CodeAnalysis.ExtnernalAccess.Razor.Shared.projitems" Label="Shared" />
 
 </Project>

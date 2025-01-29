@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 
-public interface IRazorWorkspaceService
+internal interface IRazorWorkspaceService
 {
     public void Initialize(Workspace workspace, string pipeName);
     public bool IsInitialized { get; }

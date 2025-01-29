@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     /// this will be used to provide dynamic content such as generated content from cshtml to workspace
     /// we acquire this from <see cref="IDynamicFileInfoProvider"/> exposed from external components such as razor for cshtml
     /// </summary>
-    internal sealed class RazorDynamicFileInfo
+    internal sealed class RazorDynamicFileInfo : IRazorDynamicFileInfo
     {
         public RazorDynamicFileInfo(string filePath, SourceCodeKind sourceCodeKind, TextLoader textLoader, IRazorDocumentServiceProvider documentServiceProvider)
         {

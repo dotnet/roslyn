@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 
-public interface IRazorServiceProvider
+internal interface IRazorServiceProvider
 {
     public T? TryGetService<T>();
 }

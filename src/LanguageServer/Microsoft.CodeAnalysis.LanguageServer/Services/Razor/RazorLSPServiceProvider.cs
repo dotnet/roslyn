@@ -55,6 +55,22 @@ internal static class RazorLSPServiceProvider
         return TryInitializeAndGetCoreAsync<T>(cancellationToken);
     }
 
+    internal static async Task<T> GetRequiredServiceAsync<T>(CancellationToken cancellationToken)
+    {
+        var service = await TryGetServiceAsync<T>(cancellationToken).ConfigureAwait(false);
+        if (s_loadStatus is false)
+        {
+            throw new InvalidOperationException("Failed to load service provider to get service");
+        }
+
+        if (service is null)
+        {
+            throw new InvalidOperationException($"Unable to get service of type {typeof(T)}");
+        }
+
+        return service;
+    }
+
     private static async Task<T?> TryInitializeAndGetCoreAsync<T>(CancellationToken cancellationToken)
     {
         if (s_loadStatus is not null)

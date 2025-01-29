@@ -4,17 +4,17 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 
 [Shared]
-[ExportCohostLspServiceFactory(typeof(IRazorClientLanguageServerManager))]
+[ExportLspServiceFactory(typeof(IRazorClientLanguageServerManager), ProtocolConstants.RazorFeaturesContract)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RazorCohostClientLanguageServerManagerFactory() : ILspServiceFactory
+internal class RazorClientLanguageServerManagerFactory() : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {

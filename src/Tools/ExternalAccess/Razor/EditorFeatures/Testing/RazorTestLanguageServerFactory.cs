@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Text.Json;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;

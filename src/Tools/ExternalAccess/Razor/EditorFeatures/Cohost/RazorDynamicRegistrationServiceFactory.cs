@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -79,7 +80,7 @@ internal sealed class RazorDynamicRegistrationServiceFactory(
 
             // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
             var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities, ProtocolConversions.LspJsonSerializerOptions);
-            var razorCohostClientLanguageServerManager = new RazorCohostClientLanguageServerManager(clientLanguageServerManager!);
+            var razorCohostClientLanguageServerManager = new RazorClientLanguageServerManager(clientLanguageServerManager!);
 
             var requestContext = new RazorCohostRequestContext(context);
             dynamicRegistrationService!.Value.RegisterAsync(serializedClientCapabilities, requestContext, cancellationToken).ReportNonFatalErrorAsync();
