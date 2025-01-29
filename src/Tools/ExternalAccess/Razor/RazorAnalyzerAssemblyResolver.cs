@@ -5,6 +5,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -37,8 +38,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                         return loadedAssembly;
                     }
 
-                    var assembly = Path.Combine(rootDirectory, $"{assemblyName.Name}.dll");
-                    return compilerContext.LoadFromAssemblyPath(assembly);
+                    // Load all the assemblies, otherwise the compiler ALC could be missing dependencies of the generator.
+                    ReadOnlySpan<string> razorAssemblies = [RazorCompilerAssemblyName, RazorUtilsAssemblyName, ObjectPoolAssemblyName];
+                    Assembly? result = null;
+                    foreach (var razorAssemblyName in razorAssemblies)
+                    {
+                        var assemblyPath = Path.Combine(rootDirectory, $"{razorAssemblyName}.dll");
+                        var assembly = compilerContext.LoadFromAssemblyPath(assemblyPath);
+                        if (assemblyName.Name == razorAssemblyName)
+                        {
+                            result = assembly;
+                        }
+                    }
+                    Debug.Assert(result != null);
+                    return result;
                 }
             }
             return null;
