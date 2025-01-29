@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -21,7 +22,8 @@ internal partial class CSharpSimplificationService
         private readonly Func<SyntaxNodeOrToken, bool> _isNodeOrTokenOutsideSimplifySpans;
 
         private bool _simplifyAllDescendants;
-        private bool _insideSpeculatedNode;
+        private int? _speculatedNodeAnnotationCount;
+        private bool InsideSpeculatedNode => _speculatedNodeAnnotationCount.HasValue;
 
         /// <summary>
         /// Computes a list of nodes and tokens that need to be reduced in the given syntax root.
@@ -38,7 +40,7 @@ internal partial class CSharpSimplificationService
         {
             _isNodeOrTokenOutsideSimplifySpans = isNodeOrTokenOutsideSimplifySpans;
             _simplifyAllDescendants = false;
-            _insideSpeculatedNode = false;
+            _speculatedNodeAnnotationCount = null;
         }
 
         public override SyntaxNode Visit(SyntaxNode node)
@@ -62,17 +64,34 @@ internal partial class CSharpSimplificationService
                 }
             }
 
-            var savedSimplifyAllDescendants = _simplifyAllDescendants;
-            _simplifyAllDescendants = _simplifyAllDescendants || node.HasAnnotation(Simplifier.Annotation);
+            var hasSimplifierAnnotation = node.HasAnnotation(Simplifier.Annotation);
 
-            if (!_insideSpeculatedNode && SpeculationAnalyzer.CanSpeculateOnNode(node))
+            var savedSimplifyAllDescendants = _simplifyAllDescendants;
+            _simplifyAllDescendants = _simplifyAllDescendants || hasSimplifierAnnotation;
+
+            var descendantsWithSimplifierAnnotation = node.DescendantNodesAndTokens(s_containsAnnotations, descendIntoTrivia: true).Count(s_hasSimplifierAnnotation);
+            var subTreeAnnotationCount = descendantsWithSimplifierAnnotation + (hasSimplifierAnnotation ? 1 : 0);
+
+            // Consider the current node as a possible node for reducing if we curently
+            // are not inside any speculated node OR if this node has an equal count of
+            // simplifier annotations in it's subtree as the node we are currently speculating
+            // in which case we will considering switching to this one.
+            if ((!InsideSpeculatedNode || (subTreeAnnotationCount == _speculatedNodeAnnotationCount && IsSupportedType(node)))
+                && SpeculationAnalyzer.CanSpeculateOnNode(node))
             {
-                if (_simplifyAllDescendants || node.DescendantNodesAndTokens(s_containsAnnotations, descendIntoTrivia: true).Any(s_hasSimplifierAnnotation))
+                if (_simplifyAllDescendants || descendantsWithSimplifierAnnotation > 0)
                 {
-                    _insideSpeculatedNode = true;
+                    _speculatedNodeAnnotationCount = subTreeAnnotationCount;
+
                     var rewrittenNode = base.Visit(node);
-                    _nodesAndTokensToReduce.Add(new NodeOrTokenToReduce(rewrittenNode, _simplifyAllDescendants, node));
-                    _insideSpeculatedNode = false;
+
+                    // Extra check to see if we are still inside a speculated node
+                    // or if we have already picked a better one
+                    if (_speculatedNodeAnnotationCount >= 0)
+                    {
+                        _nodesAndTokensToReduce.Add(new NodeOrTokenToReduce(rewrittenNode, _simplifyAllDescendants, node));
+                        _speculatedNodeAnnotationCount = null;
+                    }
                 }
             }
             else if (node.ContainsAnnotations || savedSimplifyAllDescendants)
@@ -82,6 +101,14 @@ internal partial class CSharpSimplificationService
 
             _simplifyAllDescendants = savedSimplifyAllDescendants;
             return node;
+
+            // While this is definitely not correct, enabling this behavior
+            // just for ForStatementSyntax will work correctly in some
+            // cases we care about without risking breaking anything.
+            static bool IsSupportedType(SyntaxNode node)
+            {
+                return node is ForStatementSyntax;
+            }
         }
 
         public override SyntaxToken VisitToken(SyntaxToken token)
@@ -103,7 +130,7 @@ internal partial class CSharpSimplificationService
             var savedSimplifyAllDescendants = _simplifyAllDescendants;
             _simplifyAllDescendants = _simplifyAllDescendants || token.HasAnnotation(Simplifier.Annotation);
 
-            if (_simplifyAllDescendants && !_insideSpeculatedNode && !token.IsKind(SyntaxKind.None))
+            if (_simplifyAllDescendants && !InsideSpeculatedNode && !token.IsKind(SyntaxKind.None))
             {
                 _nodesAndTokensToReduce.Add(new NodeOrTokenToReduce(token, SimplifyAllDescendants: true, token));
             }
@@ -121,10 +148,10 @@ internal partial class CSharpSimplificationService
         {
             if (trivia.HasStructure)
             {
-                var savedInsideSpeculatedNode = _insideSpeculatedNode;
-                _insideSpeculatedNode = false;
+                var savedAnnotationCount = _speculatedNodeAnnotationCount;
+                _speculatedNodeAnnotationCount = null;
                 base.VisitTrivia(trivia);
-                _insideSpeculatedNode = savedInsideSpeculatedNode;
+                _speculatedNodeAnnotationCount = savedAnnotationCount;
             }
 
             return trivia;
