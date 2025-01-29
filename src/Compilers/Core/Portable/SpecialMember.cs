@@ -13,13 +13,11 @@ namespace Microsoft.CodeAnalysis
         System_String__ConcatStringStringString,
         System_String__ConcatStringStringStringString,
         System_String__ConcatStringArray,
-        System_String__ConcatReadOnlySpanString,
 
         System_String__ConcatObject,
         System_String__ConcatObjectObject,
         System_String__ConcatObjectObjectObject,
         System_String__ConcatObjectArray,
-        System_String__ConcatReadOnlySpanObject,
 
         System_String__Concat_2ReadOnlySpans,
         System_String__Concat_3ReadOnlySpans,

@@ -30,16 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ArrayBuilder<BoundExpression> arguments;
-            if (unvisitedRight is BoundBinaryOperator rightBinary && IsBinaryStringConcatenation(rightBinary))
+            if (unvisitedRight is BoundBinaryOperator { InterpolatedStringHandlerData: null } rightBinary && IsBinaryStringConcatenation(rightBinary))
             {
-                CollectConcatArguments(rightBinary, left, out arguments);
-
+                CollectAndVisitConcatArguments(rightBinary, left, out arguments);
                 Debug.Assert(ReferenceEquals(arguments[0], left));
-
-                for (var i = 1; i < arguments.Count; i++)
-                {
-                    arguments[i] = VisitExpression(arguments[i]);
-                }
             }
             else
             {
@@ -68,12 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We'll walk the children in a depth-first order, pull all the arguments out, and then visit them. We'll fold any constant arguments as
             // we go, pulling them all into a string literal.
-            CollectConcatArguments(originalOperator, compoundAssignmentLeftRead: null, out var arguments);
-
-            for (int i = 0; i < arguments.Count; i++)
-            {
-                arguments[i] = VisitExpression(arguments[i]);
-            }
+            CollectAndVisitConcatArguments(originalOperator, visitedCompoundAssignmentLeftRead: null, out var arguments);
 
             return RewriteStringConcat(originalOperator.Syntax, arguments);
         }
@@ -202,21 +191,21 @@ fallbackStrings:
             }
         }
 
-        private void CollectConcatArguments(BoundBinaryOperator originalOperator, BoundExpression? compoundAssignmentLeftRead, out ArrayBuilder<BoundExpression> destinationArguments)
+        private void CollectAndVisitConcatArguments(BoundBinaryOperator originalOperator, BoundExpression? visitedCompoundAssignmentLeftRead, out ArrayBuilder<BoundExpression> destinationArguments)
         {
             destinationArguments = ArrayBuilder<BoundExpression>.GetInstance();
             var concatMethods = new WellKnownConcatRelatedMethods(_compilation);
             pushArguments(this, originalOperator, destinationArguments, ref concatMethods);
-            if (compoundAssignmentLeftRead is not null)
+            if (visitedCompoundAssignmentLeftRead is not null)
             {
                 // We don't expect to be able to optimize anything about the compound assignment left read, so we just add it as-is. This assert should be kept in sync
                 // with the cases that can be optimized by the addArgument local function below; if we ever find a case that can be optimized, we may need to consider
                 // whether to do so. The visiting logic in the parent function here depends on only one argument being added for a compound assignment left read, so if
                 // we ever do introduce optimizations here that result in more than one argument being added to destinationArguments, we'll need to adjust that logic.
-                Debug.Assert(compoundAssignmentLeftRead is
+                Debug.Assert(visitedCompoundAssignmentLeftRead is
                     not (BoundCall or BoundConversion { ConversionKind: ConversionKind.Boxing, Type.SpecialType: SpecialType.System_Object, Operand.Type.SpecialType: SpecialType.System_Char })
                     and { ConstantValueOpt: null });
-                destinationArguments.Add(compoundAssignmentLeftRead);
+                destinationArguments.Add(visitedCompoundAssignmentLeftRead);
             }
             destinationArguments.ReverseContents();
 
@@ -249,7 +238,7 @@ fallbackStrings:
                 static bool shouldRecurse(BoundExpression expr, [NotNullWhen(true)] out BoundBinaryOperator? binaryOperator)
                 {
                     binaryOperator = expr as BoundBinaryOperator;
-                    if (IsBinaryStringConcatenation(binaryOperator))
+                    if (IsBinaryStringConcatenation(binaryOperator) && binaryOperator.InterpolatedStringHandlerData is null)
                     {
                         return true;
                     }
@@ -262,6 +251,8 @@ fallbackStrings:
 
                 static void addArgument(LocalRewriter self, BoundExpression argument, ArrayBuilder<BoundExpression> finalArguments, ref WellKnownConcatRelatedMethods wellKnownConcatOptimizationMethods)
                 {
+                    argument = self.VisitExpression(argument);
+
                     if (argument is BoundConversion { ConversionKind: ConversionKind.Boxing, Type.SpecialType: SpecialType.System_Object, Operand: { Type.SpecialType: SpecialType.System_Char } operand })
                     {
                         argument = operand;
@@ -282,6 +273,12 @@ fallbackStrings:
                         {
                             argument = charExpression;
                         }
+                    }
+
+                    // This is `strValue ?? ""`, possibly from a nested binary addition of an interpolated string. We can just directly use the left operand
+                    if (argument is BoundNullCoalescingOperator { LeftOperand: { Type.SpecialType: SpecialType.System_String } left, RightOperand: BoundLiteral { ConstantValueOpt: { IsString: true, RopeValue.IsEmpty: true } } })
+                    {
+                        argument = left;
                     }
 
                     switch (argument.ConstantValueOpt)

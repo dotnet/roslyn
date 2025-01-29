@@ -62,16 +62,6 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
 
-                // System_String__ConcatReadOnlySpanString
-                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)InternalSpecialType.System_ReadOnlySpan_T,
-                    1,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-
                 // System_String__ConcatObject
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
@@ -106,16 +96,6 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
-
-                // System_String__ConcatReadOnlySpanObject
-                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-                    (byte)SignatureTypeCode.GenericTypeInstance, (byte)SignatureTypeCode.TypeHandle, (byte)InternalSpecialType.System_ReadOnlySpan_T,
-                    1,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 
                 // System_String__Concat_2ReadOnlySpans
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
@@ -1342,12 +1322,10 @@ namespace Microsoft.CodeAnalysis
                 "Concat",                                   // System_String__ConcatStringStringString
                 "Concat",                                   // System_String__ConcatStringStringStringString
                 "Concat",                                   // System_String__ConcatStringArray
-                "Concat",                                   // System_String__ConcatReadOnlySpanString
                 "Concat",                                   // System_String__ConcatObject
                 "Concat",                                   // System_String__ConcatObjectObject
                 "Concat",                                   // System_String__ConcatObjectObjectObject
                 "Concat",                                   // System_String__ConcatObjectArray
-                "Concat",                                   // System_String__ConcatReadOnlySpanObject
                 "Concat",                                   // System_String__Concat_2ReadOnlySpans
                 "Concat",                                   // System_String__Concat_3ReadOnlySpans
                 "Concat",                                   // System_String__Concat_4ReadOnlySpans

@@ -1668,7 +1668,7 @@ struct S
     private string str;
     public S(char chr) { this.str = chr.ToString(); }
     public S(string str) { this.str = str; }
-    public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+    public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str); }
 }
 
 class C
@@ -1679,6 +1679,7 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlib461(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__ConcatStringStringStringString);
+            compilation.MakeMemberMissing(SpecialMember.System_String__Concat_4ReadOnlySpans);
             compilation.VerifyEmitDiagnostics(
                 // (8,58): error CS0656: Missing compiler required member 'System.String.Concat'
                 //     public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
