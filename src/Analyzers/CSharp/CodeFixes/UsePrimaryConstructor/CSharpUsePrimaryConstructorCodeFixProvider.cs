@@ -143,6 +143,8 @@ internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider() : Cod
         // member constants in scope.  So rewrite references to them if that's the case.
         var updatedParameterList = GenerateFinalParameterList();
 
+        await RestoreRemovedComments().ConfigureAwait(false);
+
         // Finally move the constructors parameter list to the type declaration.
         constructorDocumentEditor.ReplaceNode(
             typeDeclaration,
@@ -479,7 +481,7 @@ internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider() : Cod
 
             declarationDocumentEditor.ReplaceNode(
                 declaration,
-                UpdateDeclaration(declaration, assignmentExpression, expressionStatement).WithAdditionalAnnotations(Formatter.Annotation));
+                (node, _) => UpdateDeclaration(node, assignmentExpression, expressionStatement).WithAdditionalAnnotations(Formatter.Annotation));
         }
 
         SyntaxNode UpdateDeclaration(SyntaxNode declaration, AssignmentExpressionSyntax assignmentExpression, ExpressionStatementSyntax? expressionStatement)
@@ -636,6 +638,111 @@ internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider() : Cod
                     documentEditor.ReplaceNode(seeTag, paramRefTag);
                 }
             }
+        }
+
+        async ValueTask RestoreRemovedComments()
+        {
+            foreach (var typeDeclaration in typeDeclarationNodes)
+            {
+                var memberDocument = solution.GetRequiredDocument(typeDeclaration.SyntaxTree);
+                var documentEditor = await solutionEditor.GetDocumentEditorAsync(memberDocument.Id, cancellationToken).ConfigureAwait(false);
+                var triviaToAttach = ImmutableArray.CreateBuilder<SyntaxTrivia>();
+                var typeDeclarationMembers = documentEditor.Generator.GetMembers(typeDeclaration);
+                foreach (var member in typeDeclarationMembers)
+                {
+                    if (IsSyntaxNodeRemoved(member))
+                    {
+                        if (member.HasLeadingTrivia)
+                        {
+                            var comments = ExtractComments(member.GetLeadingTrivia());
+                            triviaToAttach.AddRange(comments);
+                        }
+                    }
+                    else if (triviaToAttach.Count > 0)
+                    {
+                        var memberTrivia = member.GetLeadingTrivia();
+                        triviaToAttach.AddRange(member.GetLeadingTrivia());
+                        var newLeadingTrivia = new SyntaxTriviaList(triviaToAttach);
+                        documentEditor.ReplaceNode(member, (node, _) => node.WithLeadingTrivia(newLeadingTrivia));
+                        triviaToAttach.Clear();
+                    }
+                }
+
+                if (triviaToAttach.Count > 0)
+                {
+                    documentEditor.ReplaceNode(typeDeclaration, (node, generator) =>
+                    {
+                        var typeNode = (TypeDeclarationSyntax)node;
+                        var closingBraceToken = typeNode.CloseBraceToken;
+                        var newLeadingTrivia = new SyntaxTriviaList(triviaToAttach);
+                        newLeadingTrivia = newLeadingTrivia.AddRange(closingBraceToken.LeadingTrivia);
+
+                        return typeNode.WithCloseBraceToken(closingBraceToken.WithLeadingTrivia(newLeadingTrivia));
+                    });
+                }
+            }
+        }
+
+        bool IsSyntaxNodeRemoved(SyntaxNode node)
+        {
+            if (node is FieldDeclarationSyntax field)
+            {
+                return field.Declaration.Variables.Any(removedMembers.ContainsValue);
+            }
+
+            if (node is ConstructorDeclarationSyntax constructor)
+            {
+                return node == constructorDeclaration;
+            }
+
+            return false;
+        }
+
+        ImmutableArray<SyntaxTrivia> ExtractComments(SyntaxTriviaList triviaList)
+        {
+            var result = ImmutableArray.CreateBuilder<SyntaxTrivia>(triviaList.Count);
+
+            var whitespaces = ImmutableArray.CreateBuilder<SyntaxTrivia>(triviaList.Count);
+            var previousTriviaWasAdded = false;
+            var anyCommentIsAdded = false;
+            foreach (var trivia in triviaList)
+            {
+                if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                {
+                    whitespaces.Add(trivia);
+                }
+                else if (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) ||
+                    trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
+                {
+                    result.AddRange(whitespaces);
+                    result.Add(trivia);
+                    whitespaces.Clear();
+                    previousTriviaWasAdded = true;
+                    anyCommentIsAdded = true;
+                }
+                else if (trivia.IsKind(SyntaxKind.EndOfLineTrivia) && (previousTriviaWasAdded || !anyCommentIsAdded))
+                {
+                    result.Add(trivia);
+                }
+                else
+                {
+                    previousTriviaWasAdded = false;
+                    whitespaces.Clear();
+                }
+            }
+
+            if (!anyCommentIsAdded)
+                return ImmutableArray<SyntaxTrivia>.Empty;
+
+            // Keep only one EndOfLineTrivia to prevent stacking end of lines
+            // if the node to which the comment is attached has its own leading EndOfLineTrivia.
+            // Also, this prevents excess end-of-lines if the comment is attached
+            // to the closing brace of the type declaration.
+            var lastNonEndOfLine = result.Last(node => !node.IsKind(SyntaxKind.EndOfLineTrivia));
+            var lastNonEndOfLineIndex = result.IndexOf(lastNonEndOfLine);
+            result.RemoveRange(lastNonEndOfLineIndex + 2, result.Count - lastNonEndOfLineIndex - 2);
+
+            return result.ToImmutableArray();
         }
     }
 }
