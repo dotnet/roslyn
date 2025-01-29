@@ -13,6 +13,7 @@ public interface IRepositoryHost
     string GetPullRequestUrl(string prNumber);
     string GetCommitUrl(string commitSha);
     string GetDiffUrl(string startRef, string endRef);
+    Task<bool> HasAnyLabelAsync(string prNumber, string[] labels);
 }
 
 public record class MergeInfo(string PrNumber, string Comment);

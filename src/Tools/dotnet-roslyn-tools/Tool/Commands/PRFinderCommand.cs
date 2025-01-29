@@ -4,6 +4,8 @@
 
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using Microsoft.Extensions.Logging;
+using Microsoft.RoslynTools.Utilities;
 
 namespace Microsoft.RoslynTools.Commands;
 
@@ -38,6 +40,11 @@ internal static class PRFinderCommand
     {
         Description = "The directory of the repository to look for PRs. If none is provided, the current directory is used",
     };
+    internal static readonly Option<string[]> LabelsOption = new("--label")
+    {
+        Description = "Filter PRs to those with one of the specified labels. Can be specified multiple times.",
+        DefaultValueFactory = _ => [],
+    };
 
     static PRFinderCommand()
     {
@@ -53,7 +60,8 @@ internal static class PRFinderCommand
             PathOption,
             FormatOption,
             VerbosityOption,
-            RepoPathOption
+            RepoPathOption,
+            LabelsOption,
         };
         prFinderCommand.Action = s_prFinderCommandHandler;
         return prFinderCommand;
@@ -61,7 +69,7 @@ internal static class PRFinderCommand
 
     private class PrFinderCommandDefaultHandler : AsynchronousCommandLineAction
     {
-        public override Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
+        public override async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
         {
             var logger = parseResult.SetupLogging();
 
@@ -70,8 +78,17 @@ internal static class PRFinderCommand
             var path = parseResult.GetValue(PathOption);
             var format = parseResult.GetValue(FormatOption)!;
             var repoPath = parseResult.GetValue(RepoPathOption);
+            var labels = parseResult.GetValue(LabelsOption);
+            ArgumentNullException.ThrowIfNull(labels);
 
-            return PRFinder.PRFinder.FindPRsAsync(startRef, endRef, path, format, logger, repoPath: repoPath);
+            var settings = parseResult.LoadSettings(logger);
+            if (string.IsNullOrEmpty(settings.GitHubToken))
+            {
+                logger.LogWarning("Missing GitHub authentication token.");
+            }
+
+            using var remoteConnections = new RemoteConnections(settings, loginToAzureDevOps: false);
+            return await PRFinder.PRFinder.FindPRsAsync(startRef, endRef, path, format, labels, remoteConnections, logger, repoPath);
         }
     }
 }
