@@ -1640,7 +1640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             //   partial event
             if (this.PeekToken(1).Kind == SyntaxKind.EventKeyword)
             {
-                return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
+                return true;
             }
 
             // Check for constructor:

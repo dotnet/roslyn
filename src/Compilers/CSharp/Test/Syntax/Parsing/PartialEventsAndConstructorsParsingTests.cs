@@ -94,7 +94,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
     }
 
     [Theory, CombinatorialData]
-    public void Event_Definition([CSharp14_Preview] LanguageVersion langVersion)
+    public void Event_Definition([CSharp13_CSharp14_Preview] LanguageVersion langVersion)
     {
         UsingDeclaration("""
             partial event Action E;
@@ -117,30 +117,6 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
                 }
             }
             N(SyntaxKind.SemicolonToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void Event_Definition_CSharp13()
-    {
-        UsingDeclaration("""
-            partial event Action E;
-            """,
-            TestOptions.Regular13,
-            // (1,1): error CS1073: Unexpected token 'event'
-            // partial event Action E;
-            Diagnostic(ErrorCode.ERR_UnexpectedToken, "partial").WithArguments("event").WithLocation(1, 1),
-            // (1,9): error CS1519: Invalid token 'event' in class, record, struct, or interface member declaration
-            // partial event Action E;
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "event").WithArguments("event").WithLocation(1, 9));
-
-        N(SyntaxKind.IncompleteMember);
-        {
-            N(SyntaxKind.IdentifierName);
-            {
-                N(SyntaxKind.IdentifierToken, "partial");
-            }
         }
         EOF();
     }
