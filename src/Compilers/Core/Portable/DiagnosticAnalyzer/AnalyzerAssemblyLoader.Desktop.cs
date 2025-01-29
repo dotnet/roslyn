@@ -29,9 +29,14 @@ namespace Microsoft.CodeAnalysis
     {
         private bool _hookedAssemblyResolve;
 
-        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+        internal AnalyzerAssemblyLoader()
+         : this([])
         {
-            _externalResolvers = externalResolvers;
+        }
+
+        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerPathResolver> analyzerPathResolvers)
+        {
+            AnalyzerPathResolvers = analyzerPathResolvers;
         }
 
         private partial void DisposeWorker()
@@ -63,13 +68,9 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private partial Assembly? Load(AssemblyName assemblyName, string assemblyOriginalPath)
+        private partial Assembly? Load(AssemblyName assemblyName, string assemblyRealPath)
         {
             EnsureResolvedHooked();
-            if (ResolveAssemblyExternally(assemblyName, Path.GetDirectoryName(assemblyOriginalPath)) is { } externallyResolvedAssembly)
-            {
-                return externallyResolvedAssembly;
-            }
 
             return AppDomain.CurrentDomain.Load(assemblyName);
         }
@@ -120,27 +121,24 @@ namespace Microsoft.CodeAnalysis
                 const string resourcesExtension = ".resources";
                 var assemblyName = new AssemblyName(args.Name);
                 var simpleName = assemblyName.Name;
-                var isSatelliteAssembly =
-                    assemblyName.CultureInfo is not null &&
-                    simpleName.EndsWith(resourcesExtension, StringComparison.Ordinal);
 
-                if (isSatelliteAssembly)
+                string? loadPath;
+                if (assemblyName.CultureInfo is not null && simpleName.EndsWith(resourcesExtension, StringComparison.Ordinal))
                 {
                     // Satellite assemblies should get the best path information using the
                     // non-resource part of the assembly name. Once the path information is obtained
                     // GetSatelliteInfoForPath will translate to the resource assembly path.
-                    assemblyName.Name = simpleName[..^resourcesExtension.Length];
+                    var (_, realPath) = GetBestPath(new AssemblyName(simpleName[..^resourcesExtension.Length]));
+                    loadPath = realPath is not null ? GetSatelliteLoadPath(realPath, assemblyName.CultureInfo) : null;
+                }
+                else
+                {
+                    (_, loadPath) = GetBestPath(assemblyName);
                 }
 
-                var (originalPath, realPath) = GetBestPath(assemblyName);
-                if (isSatelliteAssembly && originalPath is not null)
+                if (loadPath is not null)
                 {
-                    realPath = GetRealSatelliteLoadPath(originalPath, assemblyName.CultureInfo);
-                }
-
-                if (realPath is not null)
-                {
-                    return Assembly.LoadFrom(realPath);
+                    return Assembly.LoadFrom(loadPath);
                 }
 
                 return null;

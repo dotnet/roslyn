@@ -5,6 +5,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -23,28 +24,34 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         private const string RazorUtilsAssemblyName = "Microsoft.AspNetCore.Razor.Utilities.Shared";
         private const string ObjectPoolAssemblyName = "Microsoft.Extensions.ObjectPool";
 
-        private static readonly object s_loaderLock = new();
-
-        public static Assembly? ResolveRazorAssembly(AssemblyName assemblyName, string rootDirectory)
+        public Assembly? Resolve(AnalyzerAssemblyLoader loader, AssemblyLoadContext current, AssemblyName assemblyName, string directory)
         {
-            if (assemblyName.Name is RazorCompilerAssemblyName or RazorUtilsAssemblyName or ObjectPoolAssemblyName)
+            if (assemblyName.Name is not (RazorCompilerAssemblyName or RazorUtilsAssemblyName or ObjectPoolAssemblyName))
             {
-                lock (s_loaderLock)
-                {
-                    var compilerContext = AssemblyLoadContext.GetLoadContext(typeof(Compilation).Assembly)!;
-                    if (compilerContext.Assemblies.SingleOrDefault(a => a.GetName().Name == assemblyName.Name) is Assembly loadedAssembly)
-                    {
-                        return loadedAssembly;
-                    }
+                return null;
+            }
 
-                    var assembly = Path.Combine(rootDirectory, $"{assemblyName.Name}.dll");
-                    return compilerContext.LoadFromAssemblyPath(assembly);
+            var compilerContext = AssemblyLoadContext.GetLoadContext(typeof(Compilation).Assembly)!;
+            if (compilerContext.Assemblies.SingleOrDefault(a => a.GetName().Name == assemblyName.Name) is Assembly loadedAssembly)
+            {
+                return loadedAssembly;
+            }
+
+            ReadOnlySpan<string> razorAssemblies = [RazorCompilerAssemblyName, RazorUtilsAssemblyName, ObjectPoolAssemblyName];
+            Assembly? result = null;
+            foreach (var razorAssemblyName in razorAssemblies)
+            {
+                var assemblyPath = Path.Combine(directory, $"{razorAssemblyName}.dll");
+                var assembly = compilerContext.LoadFromAssemblyPath(assemblyPath);
+                if (assemblyName.Name == razorAssemblyName)
+                {
+                    result = assembly;
                 }
             }
-            return null;
-        }
 
-        public Assembly? ResolveAssembly(AssemblyName assemblyName, string directoryName) => ResolveRazorAssembly(assemblyName, directoryName);
+            Debug.Assert(result != null);
+            return result;
+        }
     }
 }
 #endif

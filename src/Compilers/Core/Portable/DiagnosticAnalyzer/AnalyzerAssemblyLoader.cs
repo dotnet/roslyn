@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -31,6 +32,27 @@ namespace Microsoft.CodeAnalysis
     }
 
     /// <summary>
+    /// Instances of this type will be accessed from multiple threads. All method implementations are expected 
+    /// to be idempotent.
+    /// </summary>
+    internal interface IAnalyzerPathResolver
+    {
+        bool IsAnalyzerPathHandled(string analyzerPath);
+
+        /// <summary>
+        /// This method is used to allow compiler hosts to intercept an analyzer path and redirect it to a
+        /// a different location. The path returned must point to a real file on disk.
+        /// </summary>
+        string GetRealAnalyzerPath(string analyzerPath);
+
+        /// <summary>
+        /// This method is used to allow compiler hosts to intercept an analyzer satellite path and redirect it to a
+        /// a different location. The path returned must point to a real file on disk.
+        /// </summary>
+        string? GetRealSatellitePath(string analyzerPath, CultureInfo cultureInfo);
+    }
+
+    /// <summary>
     /// The base implementation for <see cref="IAnalyzerAssemblyLoader"/>. This type provides caching and tracking of inputs given
     /// to <see cref="AddDependencyLocation(string)"/>.
     /// </summary>
@@ -38,59 +60,50 @@ namespace Microsoft.CodeAnalysis
     /// This type generally assumes that files on disk aren't changing, since it ensure that two calls to <see cref="LoadFromPath(string)"/>
     /// will always return the same thing, per that interface's contract.
     /// </remarks>
-    internal abstract partial class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoaderInternal
+    internal sealed partial class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoaderInternal
     {
         private readonly object _guard = new();
 
         /// <summary>
-        /// Set of analyzer dependencies original full paths to the data calculated for that path
+        /// This is a map between the original full path and what <see cref="IAnalyzerPathResolver"/>, if
+        /// any, handles it.
         /// </summary>
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
         /// </remarks>
-        private readonly Dictionary<string, (AssemblyName? AssemblyName, string RealAssemblyPath)?> _analyzerAssemblyInfoMap = new();
+        private readonly Dictionary<string, (IAnalyzerPathResolver? Resolver, string RealPath, AssemblyName? AssemblyName)> _originalPathInfoMap = new();
 
         /// <summary>
-        /// Mapping of analyzer dependency original full path and culture to the real satellite
-        /// assembly path. If the satellite assembly doesn't exist for the original analyzer and 
-        /// culture, the real path value stored will be null.
+        /// This is a map between assembly simple names and the collection of original paths that map to them
         /// </summary>
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
         /// </remarks>
-        private readonly Dictionary<(string OriginalAnalyzerPath, CultureInfo CultureInfo), string?> _analyzerSatelliteAssemblyRealPaths = new();
+        private readonly Dictionary<string, HashSet<string>> _assemblySimpleNameToOriginalPathListMap = new();
 
         /// <summary>
-        /// Maps analyzer dependency simple names to the set of original full paths it was loaded from. This _only_ 
-        /// tracks the paths provided to the analyzer as it's a place to look for indirect loads. 
+        /// Map from real paths to the original ones
         /// </summary>
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
         /// </remarks>
-        private readonly Dictionary<string, ImmutableHashSet<string>> _knownAssemblyPathsBySimpleName = new(StringComparer.OrdinalIgnoreCase);
-
-        /// <summary>
-        /// A collection of <see cref="IAnalyzerAssemblyResolver"/>s that can be used to override the assembly resolution process.
-        /// </summary>
-        /// <remarks>
-        /// When multiple resolvers are present they are consulted in-order, with the first resolver to return a non-null
-        /// <see cref="Assembly"/> winning.</remarks>
-        private readonly ImmutableArray<IAnalyzerAssemblyResolver> _externalResolvers;
+        private readonly Dictionary<string, string> _realToOriginalPathMap = new();
 
         /// <summary>
         /// Whether or not we're disposed.  Once disposed, all functionality on this type should throw.
         /// </summary>
         private bool _isDisposed;
 
+        public ImmutableArray<IAnalyzerPathResolver> AnalyzerPathResolvers { get; }
+
         /// <summary>
-        /// The implementation needs to load an <see cref="Assembly"/> with the specified <see cref="AssemblyName"/>. The
-        /// <paramref name="assemblyOriginalPath"/> parameter is the original path. It may be different than
-        /// <see cref="AssemblyName.CodeBase"/> as that is empty on .NET Core.
+        /// The implementation needs to load an <see cref="Assembly"/> with the specified <see cref="AssemblyName"/> from
+        /// the specified path.
         /// </summary>
         /// <remarks>
         /// This method should return an <see cref="Assembly"/> instance or throw.
         /// </remarks>
-        private partial Assembly Load(AssemblyName assemblyName, string assemblyOriginalPath);
+        private partial Assembly Load(AssemblyName assemblyName, string assemblyRealPath);
 
         /// <summary>
         /// Determines if the <paramref name="candidateName"/> satisfies the request for 
@@ -120,171 +133,176 @@ namespace Microsoft.CodeAnalysis
 
         private partial void DisposeWorker();
 
-        internal bool IsAnalyzerDependencyPath(string fullPath)
+        public void AddDependencyLocation(string originalPath)
         {
             CheckIfDisposed();
+
+            CompilerPathUtilities.RequireAbsolutePath(originalPath, nameof(originalPath));
+            var simpleName = PathUtilities.GetFileName(originalPath, includeExtension: false);
+            string realPath = originalPath;
+            IAnalyzerPathResolver? resolver = null;
+            foreach (var current in AnalyzerPathResolvers)
+            {
+                if (current.IsAnalyzerPathHandled(originalPath))
+                {
+                    resolver = current;
+                    realPath = resolver.GetRealAnalyzerPath(originalPath);
+                    break;
+                }
+            }
+
+            var assemblyName = readAssemblyName(realPath);
 
             lock (_guard)
             {
-                return _analyzerAssemblyInfoMap.ContainsKey(fullPath);
+                if (_originalPathInfoMap.TryAdd(originalPath, (resolver, realPath, assemblyName)))
+                {
+                    // In the case multiple original paths map to the same real path then the first on
+                    // wins.
+                    //
+                    // An example reason to map multiple original paths to the same real path would be to
+                    // unify references.
+                    _realToOriginalPathMap.TryAdd(realPath, originalPath);
+
+                    if (!_assemblySimpleNameToOriginalPathListMap.TryGetValue(simpleName, out var set))
+                    {
+                        set = new();
+                        _assemblySimpleNameToOriginalPathListMap[simpleName] = set;
+                    }
+
+                    _ = set.Add(originalPath);
+                }
             }
-        }
 
-        public void AddDependencyLocation(string fullPath)
-        {
-            CheckIfDisposed();
-
-            CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
-            string simpleName = PathUtilities.GetFileName(fullPath, includeExtension: false);
-
-            lock (_guard)
+            static AssemblyName? readAssemblyName(string filePath)
             {
-                if (!_knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths))
+                AssemblyName? assemblyName;
+                try
                 {
-                    paths = ImmutableHashSet.Create(PathUtilities.Comparer, fullPath);
-                    _knownAssemblyPathsBySimpleName.Add(simpleName, paths);
+                    assemblyName = AssemblyName.GetAssemblyName(filePath);
                 }
-                else
+                catch
                 {
-                    _knownAssemblyPathsBySimpleName[simpleName] = paths.Add(fullPath);
+                    // The above can fail when the assembly doesn't exist because it's corrupted, 
+                    // doesn't exist on disk, or is a native DLL. Those failures are handled when 
+                    // the actual load is attempted. Just record the failure now.
+                    assemblyName = null;
                 }
 
-                // This type assumes the file system is static for the duration of the
-                // it's instance. Repeated calls to this method, even if the underlying 
-                // file system contents, should reuse the results of the first call.
-                _ = _analyzerAssemblyInfoMap.TryAdd(fullPath, null);
+                return assemblyName;
             }
         }
 
-        public Assembly LoadFromPath(string originalAnalyzerPath)
+        /// <summary>
+        /// Called from the consumer of <see cref="AnalyzerAssemblyLoader"/> to load an analyzer assembly from disk. It
+        /// should _not_ be called from the implementation.
+        /// </summary>
+        public Assembly LoadFromPath(string originalPath)
         {
             CheckIfDisposed();
 
-            CompilerPathUtilities.RequireAbsolutePath(originalAnalyzerPath, nameof(originalAnalyzerPath));
-
-            (AssemblyName? assemblyName, _) = GetAssemblyInfoForPath(originalAnalyzerPath);
-
-            // Not a managed assembly, nothing else to do
+            CompilerPathUtilities.RequireAbsolutePath(originalPath, nameof(originalPath));
+            var (realPath, assemblyName) = GetRealAnalyzerPathAndName(originalPath);
             if (assemblyName is null)
             {
-                throw new ArgumentException($"Not a valid assembly: {originalAnalyzerPath}");
+                // Not a managed assembly, nothing else to do
+                throw new ArgumentException($"Not a valid assembly: {originalPath}");
             }
 
             try
             {
-                return Load(assemblyName, originalAnalyzerPath);
+                return Load(assemblyName, realPath);
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Unable to load {assemblyName.Name}", ex);
+                throw new InvalidOperationException($"Unable to load {assemblyName.Name}: {ex.Message}", ex);
             }
         }
 
-        /// <summary>
-        /// Get the <see cref="AssemblyName"/> and the path it should be loaded from for the given original 
-        /// analyzer path
-        /// </summary>
-        /// <remarks>
-        /// This is used in the implementation of the loader instead of <see cref="AssemblyName.GetAssemblyName(string)"/>
-        /// because we only want information for registered paths. Using unregistered paths inside the
-        /// implementation should result in errors.
-        /// </remarks>
-        protected (AssemblyName? AssemblyName, string RealAssemblyPath) GetAssemblyInfoForPath(string originalAnalyzerPath)
+        public (string RealPath, AssemblyName? AssemblyName) GetRealAnalyzerPathAndName(string originalPath)
+        {
+            lock (_guard)
+            {
+                if (!_originalPathInfoMap.TryGetValue(originalPath, out var info))
+                {
+                    throw new ArgumentException("Path not registered: " + originalPath, nameof(originalPath));
+                }
+
+                return (info.RealPath, info.AssemblyName);
+            }
+        }
+
+        public string GetRealAnalyzerPath(string originalPath) =>
+            GetRealAnalyzerPathAndName(originalPath).RealPath;
+
+        public string? GetRealSatellitePath(string originalPath, CultureInfo cultureInfo)
         {
             CheckIfDisposed();
 
+            IAnalyzerPathResolver? resolver;
             lock (_guard)
             {
-                if (!_analyzerAssemblyInfoMap.TryGetValue(originalAnalyzerPath, out var tuple))
+                if (!_originalPathInfoMap.TryGetValue(originalPath, out var info))
                 {
-                    throw new InvalidOperationException();
+                    throw new ArgumentException("Path not registered: " + originalPath, nameof(originalPath));
                 }
 
-                if (tuple is { } info)
-                {
-                    return info;
-                }
+                resolver = info.Resolver;
             }
 
-            string realPath = PreparePathToLoad(originalAnalyzerPath);
-            AssemblyName? assemblyName;
-            try
+            if (resolver is not null)
             {
-                assemblyName = AssemblyName.GetAssemblyName(realPath);
-            }
-            catch
-            {
-                // The above can fail when the assembly doesn't exist because it's corrupted, 
-                // doesn't exist on disk, or is a native DLL. Those failures are handled when 
-                // the actual load is attempted. Just record the failure now.
-                assemblyName = null;
+                return resolver.GetRealSatellitePath(originalPath, cultureInfo);
             }
 
-            lock (_guard)
-            {
-                _analyzerAssemblyInfoMap[originalAnalyzerPath] = (assemblyName, realPath);
-            }
-
-            return (assemblyName, realPath);
+            return GetSatelliteAssemblyPath(originalPath, cultureInfo);
         }
 
         /// <summary>
-        /// Get the path a satellite assembly should be loaded from for the given original 
+        /// Get the path a satellite assembly should be loaded from for the given real 
         /// analyzer path and culture
         /// </summary>
-        /// <remarks>
-        /// This is used during assembly resolve for satellite assemblies to determine the
-        /// path from where the satellite assembly should be loaded for the specified culture.
-        /// This method calls <see cref="PrepareSatelliteAssemblyToLoad"/> to ensure this path
-        /// contains the satellite assembly.
-        /// </remarks>
-        internal string? GetRealSatelliteLoadPath(string originalAnalyzerPath, CultureInfo cultureInfo)
+        private string? GetSatelliteLoadPath(string analyzerFilePath, CultureInfo cultureInfo)
         {
-            CheckIfDisposed();
-
-            string? realSatelliteAssemblyPath = null;
+            string? originalPath;
 
             lock (_guard)
             {
-                if (_analyzerSatelliteAssemblyRealPaths.TryGetValue((originalAnalyzerPath, cultureInfo), out realSatelliteAssemblyPath))
+                if (!_realToOriginalPathMap.TryGetValue(analyzerFilePath, out originalPath))
                 {
-                    return realSatelliteAssemblyPath;
+                    return null;
                 }
             }
 
-            var actualCultureName = getSatelliteCultureName(originalAnalyzerPath, cultureInfo);
-            if (actualCultureName != null)
+            return GetRealSatellitePath(originalPath, cultureInfo);
+        }
+
+        /// <summary>
+        /// This method mimics the .NET lookup rules for sattelite assemblies and will return the ideal
+        /// resource assembly for the given culture.
+        /// </summary>
+        internal static string? GetSatelliteAssemblyPath(string assemblyFilePath, CultureInfo cultureInfo)
+        {
+            var assemblyFileName = Path.GetFileName(assemblyFilePath);
+            var satelliteAssemblyName = Path.ChangeExtension(assemblyFileName, ".resources.dll");
+            var path = Path.GetDirectoryName(assemblyFilePath);
+            if (path is null)
             {
-                realSatelliteAssemblyPath = PrepareSatelliteAssemblyToLoad(originalAnalyzerPath, actualCultureName);
-            }
-
-            lock (_guard)
-            {
-                _analyzerSatelliteAssemblyRealPaths[(originalAnalyzerPath, cultureInfo)] = realSatelliteAssemblyPath;
-            }
-
-            return realSatelliteAssemblyPath;
-
-            // Discover the most specific culture name to use for the specified analyzer path and culture
-            static string? getSatelliteCultureName(string originalAnalyzerPath, CultureInfo cultureInfo)
-            {
-                var path = Path.GetDirectoryName(originalAnalyzerPath)!;
-                var resourceFileName = GetSatelliteFileName(Path.GetFileName(originalAnalyzerPath));
-
-                while (cultureInfo != CultureInfo.InvariantCulture)
-                {
-                    var resourceFilePath = Path.Combine(path, cultureInfo.Name, resourceFileName);
-
-                    if (File.Exists(resourceFilePath))
-                    {
-                        return cultureInfo.Name;
-                    }
-
-                    cultureInfo = cultureInfo.Parent;
-                }
-
                 return null;
             }
+
+            while (cultureInfo != CultureInfo.InvariantCulture)
+            {
+                var filePath = Path.Combine(path, cultureInfo.Name, satelliteAssemblyName);
+                if (File.Exists(filePath))
+                {
+                    return filePath;
+                }
+
+                cultureInfo = cultureInfo.Parent;
+            }
+
+            return null;
         }
 
         public string? GetOriginalDependencyLocation(AssemblyName assemblyName)
@@ -293,10 +311,11 @@ namespace Microsoft.CodeAnalysis
 
             return GetBestPath(assemblyName).BestOriginalPath;
         }
+
         /// <summary>
         /// Return the best (original, real) path information for loading an assembly with the specified <see cref="AssemblyName"/>.
         /// </summary>
-        protected (string? BestOriginalPath, string? BestRealPath) GetBestPath(AssemblyName requestedName)
+        private (string? BestOriginalPath, string? BestRealPath) GetBestPath(AssemblyName requestedName)
         {
             CheckIfDisposed();
 
@@ -305,23 +324,23 @@ namespace Microsoft.CodeAnalysis
                 return (null, null);
             }
 
-            ImmutableHashSet<string>? paths;
+            var originalPaths = new List<string>();
             lock (_guard)
             {
-                if (!_knownAssemblyPathsBySimpleName.TryGetValue(requestedName.Name, out paths))
+                if (!_assemblySimpleNameToOriginalPathListMap.TryGetValue(requestedName.Name, out var set))
                 {
                     return (null, null);
                 }
+
+                originalPaths = set.OrderBy(x => x).ToList();
             }
 
-            // Sort the candidate paths by ordinal, to ensure determinism with the same inputs if you were to have
-            // multiple assemblies providing the same version.
             string? bestRealPath = null;
             string? bestOriginalPath = null;
             AssemblyName? bestName = null;
-            foreach (var candidateOriginalPath in paths.OrderBy(StringComparer.Ordinal))
+            foreach (var candidateOriginalPath in originalPaths)
             {
-                (AssemblyName? candidateName, string candidateRealPath) = GetAssemblyInfoForPath(candidateOriginalPath);
+                var (candidateRealPath, candidateName) = GetRealAnalyzerPathAndName(candidateOriginalPath);
                 if (candidateName is null)
                 {
                     continue;
@@ -346,83 +365,14 @@ namespace Microsoft.CodeAnalysis
             return (bestOriginalPath, bestRealPath);
         }
 
-        protected static string GetSatelliteFileName(string assemblyFileName) =>
-            Path.ChangeExtension(assemblyFileName, ".resources.dll");
-
-        /// <summary>
-        /// When overridden in a derived class, allows substituting an assembly path after we've
-        /// identified the context to load an assembly in, but before the assembly is actually
-        /// loaded from disk. This is used to substitute out the original path with the shadow-copied version.
-        /// </summary>
-        protected abstract string PreparePathToLoad(string assemblyFilePath);
-
-        /// <summary>
-        /// When overridden in a derived class, allows substituting a satellite assembly path after we've
-        /// identified the context to load a satellite assembly in, but before the satellite assembly is actually
-        /// loaded from disk. This is used to substitute out the original path with the shadow-copied version.
-        /// </summary>
-        protected abstract string PrepareSatelliteAssemblyToLoad(string assemblyFilePath, string cultureName);
-
-        /// <summary>
-        /// When <see cref="PreparePathToLoad(string)"/> is overridden this returns the most recent
-        /// real path calculated for the <paramref name="originalFullPath"/>
-        /// </summary>
-        internal string GetRealAnalyzerLoadPath(string originalFullPath)
-        {
-            CheckIfDisposed();
-
-            lock (_guard)
-            {
-                if (!_analyzerAssemblyInfoMap.TryGetValue(originalFullPath, out var tuple))
-                {
-                    throw new InvalidOperationException($"Invalid original path: {originalFullPath}");
-                }
-
-                return tuple is { } value ? value.RealAssemblyPath : originalFullPath;
-            }
-        }
-
         internal (string OriginalAssemblyPath, string RealAssemblyPath)[] GetPathMapSnapshot()
         {
             CheckIfDisposed();
 
             lock (_guard)
             {
-                return _analyzerAssemblyInfoMap
-                    .Select(x => (x.Key, x.Value?.RealAssemblyPath ?? ""))
-                    .OrderBy(x => x.Key)
-                    .ToArray();
+                return _realToOriginalPathMap.Select(x => (x.Value, x.Key)).ToArray();
             }
-        }
-
-        /// <summary>
-        /// Iterates the <see cref="_externalResolvers"/> if any, to see if any of them can resolve
-        /// the given <see cref="AssemblyName"/> to an <see cref="Assembly"/>.
-        /// </summary>
-        /// <param name="assemblyName">The name of the assembly to resolve</param>
-        /// <returns>An <see langword="assembly"/> if one of the resolvers is successful, or <see langword="null"/></returns>
-        internal Assembly? ResolveAssemblyExternally(AssemblyName assemblyName, string rootDirectory)
-        {
-            CheckIfDisposed();
-
-            if (!_externalResolvers.IsDefaultOrEmpty)
-            {
-                foreach (var resolver in _externalResolvers)
-                {
-                    try
-                    {
-                        if (resolver.ResolveAssembly(assemblyName, rootDirectory) is { } resolvedAssembly)
-                        {
-                            return resolvedAssembly;
-                        }
-                    }
-                    catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Diagnostic))
-                    {
-                        // Ignore if the external resolver throws
-                    }
-                }
-            }
-            return null;
         }
     }
 }

@@ -11,50 +11,53 @@ using System.Threading.Tasks;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Reflection;
-
-#if NET
-using System.Runtime.Loader;
-#endif
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class ShadowCopyAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
+    internal sealed class ShadowCopyAnalyzerPathResolver : IAnalyzerPathResolver
     {
         /// <summary>
         /// The base directory for shadow copies. Each instance of
-        /// <see cref="ShadowCopyAnalyzerAssemblyLoader"/> gets its own
+        /// <see cref="ShadowCopyAnalyzerPathResolver"/> gets its own
         /// subdirectory under this directory. This is also the starting point
         /// for scavenge operations.
         /// </summary>
         private readonly string _baseDirectory;
 
-        internal readonly Task DeleteLeftoverDirectoriesTask;
+        /// <summary>
+        /// The name of the shadow directory. This will be the same name as used for the <see cref="_mutex"/>
+        /// field. That allows other instances of this type to coordinate on active and inactive
+        /// shadow copy directories.
+        /// </summary>
+        private readonly string _shadowDirectoryName;
+
+        private readonly string _shadowDirectory;
 
         /// <summary>
-        /// The directory where this instance of <see cref="ShadowCopyAnalyzerAssemblyLoader"/>
-        /// will shadow-copy assemblies, and the mutex created to mark that the owner of it is still active.
+        /// As long as this mutex is alive, other instances of this type will not try to clean
+        /// up the shadow directory.
         /// </summary>
-        private readonly Lazy<(string directory, Mutex)> _shadowCopyDirectoryAndMutex;
+        private readonly Mutex _mutex;
 
-        private readonly ConcurrentDictionary<Guid, Task<string>> _mvidPathMap = new ConcurrentDictionary<Guid, Task<string>>();
-        private readonly ConcurrentDictionary<(Guid, string), Task<string>> _mvidSatelliteAssemblyPathMap = new ConcurrentDictionary<(Guid, string), Task<string>>();
+        internal readonly Task DeleteLeftoverDirectoriesTask;
+
+        private int _directoryCount;
+
+        private readonly ConcurrentDictionary<string, int> _directoryMap = new();
+
+        /// <summary>
+        /// Map from the shadow assembly path to the original assembly path
+        /// </summary>
+        private readonly ConcurrentDictionary<string, string> _shadowToOriginalPathMap = new();
+
+        private readonly ConcurrentDictionary<string, Task> _copyMap = new();
 
         internal string BaseDirectory => _baseDirectory;
 
-        internal int CopyCount => _mvidPathMap.Count;
+        internal int CopyCount => _copyMap.Count;
 
-#if NET
-        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
-            : this(null, baseDirectory, externalResolvers)
-        {
-        }
-
-        public ShadowCopyAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
-            : base(compilerLoadContext, AnalyzerLoadOption.LoadFromDisk, externalResolvers ?? [])
-#else
-        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
-            : base(externalResolvers ?? [])
-#endif
+        public ShadowCopyAnalyzerPathResolver(string baseDirectory)
         {
             if (baseDirectory is null)
             {
@@ -62,9 +65,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             _baseDirectory = baseDirectory;
-            _shadowCopyDirectoryAndMutex = new Lazy<(string directory, Mutex)>(
-                () => CreateUniqueDirectoryForProcess(), LazyThreadSafetyMode.ExecutionAndPublication);
+            _shadowDirectoryName = Guid.NewGuid().ToString("N").ToLowerInvariant();
 
+            // The directory is deliberately _not_ created at this point. It will only be created when the first
+            // request comes in. This avoids creating unnecessary directories when no analyzers are loaded 
+            // via the shadow layer.
+            _shadowDirectory = Path.Combine(_baseDirectory, _shadowDirectoryName);
+            _mutex = new Mutex(initiallyOwned: false, name: _shadowDirectoryName);
             DeleteLeftoverDirectoriesTask = Task.Run(DeleteLeftoverDirectories);
         }
 
@@ -129,64 +136,65 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override string PreparePathToLoad(string originalAnalyzerPath)
+        public bool IsAnalyzerPathHandled(string analyzerFilePath) => true;
+
+        public string GetRealAnalyzerPath(string analyzerFilePath)
         {
-            var mvid = AssemblyUtilities.ReadMvid(originalAnalyzerPath);
-
-            return PrepareLoad(_mvidPathMap, mvid, copyAnalyzerContents);
-
-            string copyAnalyzerContents()
-            {
-                var analyzerFileName = Path.GetFileName(originalAnalyzerPath);
-                var shadowDirectory = Path.Combine(_shadowCopyDirectoryAndMutex.Value.directory, mvid.ToString());
-                var shadowAnalyzerPath = Path.Combine(shadowDirectory, analyzerFileName);
-                CopyFile(originalAnalyzerPath, shadowAnalyzerPath);
-
-                return shadowAnalyzerPath;
-            }
+            var analyzerShadowDir = GetAnalyzerShadowDirectory(analyzerFilePath);
+            var analyzerShadowPath = Path.Combine(analyzerShadowDir, Path.GetFileName(analyzerFilePath));
+            _ = _shadowToOriginalPathMap[analyzerShadowPath] = analyzerFilePath;
+            ShadowCopyFile(analyzerFilePath, analyzerShadowPath);
+            return analyzerShadowPath;
         }
 
-        protected override string PrepareSatelliteAssemblyToLoad(string originalAnalyzerPath, string cultureName)
+        public string? GetRealSatellitePath(string analyzerFilePath, CultureInfo cultureInfo)
         {
-            var mvid = AssemblyUtilities.ReadMvid(originalAnalyzerPath);
-
-            return PrepareLoad(_mvidSatelliteAssemblyPathMap, (mvid, cultureName), copyAnalyzerContents);
-
-            string copyAnalyzerContents()
+            var satelliteFilePath = AnalyzerAssemblyLoader.GetSatelliteAssemblyPath(analyzerFilePath, cultureInfo);
+            if (satelliteFilePath is null)
             {
-                var analyzerFileName = Path.GetFileName(originalAnalyzerPath);
-                var shadowDirectory = Path.Combine(_shadowCopyDirectoryAndMutex.Value.directory, mvid.ToString());
-                var shadowAnalyzerPath = Path.Combine(shadowDirectory, analyzerFileName);
-
-                var originalDirectory = Path.GetDirectoryName(originalAnalyzerPath)!;
-                var satelliteFileName = GetSatelliteFileName(analyzerFileName);
-
-                var originalSatellitePath = Path.Combine(originalDirectory, cultureName, satelliteFileName);
-                var shadowSatellitePath = Path.Combine(shadowDirectory, cultureName, satelliteFileName);
-                CopyFile(originalSatellitePath, shadowSatellitePath);
-
-                return shadowSatellitePath;
+                return null;
             }
+
+            var analyzerShadowDir = GetAnalyzerShadowDirectory(analyzerFilePath);
+            var satelliteFileName = Path.GetFileName(satelliteFilePath);
+            var satelliteDirectoryName = Path.GetFileName(Path.GetDirectoryName(satelliteFilePath));
+            var shadowSatellitePath = Path.Combine(analyzerShadowDir, satelliteDirectoryName!, satelliteFileName);
+            ShadowCopyFile(satelliteFilePath, shadowSatellitePath);
+            return shadowSatellitePath;
         }
 
-        private static string PrepareLoad<TKey>(ConcurrentDictionary<TKey, Task<string>> mvidPathMap, TKey mvidKey, Func<string> copyContents)
-            where TKey : notnull
+        /// <summary>
+        /// Get the shadow directory for the given original analyzer file path.
+        /// </summary>
+        private string GetAnalyzerShadowDirectory(string analyzerFilePath)
         {
-            if (mvidPathMap.TryGetValue(mvidKey, out Task<string>? copyTask))
+            var orignalDirName = Path.GetFileName(Path.GetDirectoryName(analyzerFilePath))!;
+            var shadowDirName = _directoryMap.GetOrAdd(orignalDirName, _ => Interlocked.Increment(ref _directoryCount)).ToString();
+            return Path.Combine(_shadowDirectory, shadowDirName);
+        }
+
+        /// <summary>
+        /// This type has account for multiple threads calling into the various Before APIs. To avoid two threads
+        /// writing at the same time this method is used to ensure only one thread _wins_ and both can wait for 
+        /// that thread to complete the copy.
+        /// </summary>
+        private void ShadowCopyFile(string originalFilePath, string shadowCopyPath)
+        {
+            if (_copyMap.TryGetValue(originalFilePath, out var copyTask))
             {
-                return copyTask.Result;
+                copyTask.Wait();
+                return;
             }
 
-            var tcs = new TaskCompletionSource<string>();
-            var task = mvidPathMap.GetOrAdd(mvidKey, tcs.Task);
+            var tcs = new TaskCompletionSource<object?>();
+            var task = _copyMap.GetOrAdd(originalFilePath, tcs.Task);
             if (object.ReferenceEquals(task, tcs.Task))
             {
                 // This thread won and we need to do the copy.
                 try
                 {
-                    var shadowAnalyzerPath = copyContents();
-                    tcs.SetResult(shadowAnalyzerPath);
-                    return shadowAnalyzerPath;
+                    copyFile(originalFilePath, shadowCopyPath);
+                    tcs.SetResult(null);
                 }
                 catch (Exception ex)
                 {
@@ -197,21 +205,27 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 // This thread lost and we need to wait for the winner to finish the copy.
-                return task.Result;
+                task.Wait();
             }
-        }
 
-        private static void CopyFile(string originalPath, string shadowCopyPath)
-        {
-            var directory = Path.GetDirectoryName(shadowCopyPath);
-            if (directory is null)
+            static void copyFile(string originalPath, string shadowCopyPath)
             {
-                throw new ArgumentException($"Shadow copy path '{shadowCopyPath}' must not be the root directory");
-            }
+                var directory = Path.GetDirectoryName(shadowCopyPath);
+                if (directory is null)
+                {
+                    throw new ArgumentException($"Shadow copy path '{shadowCopyPath}' must not be the root directory");
+                }
 
-            _ = Directory.CreateDirectory(directory);
-            File.Copy(originalPath, shadowCopyPath);
-            ClearReadOnlyFlagOnFile(new FileInfo(shadowCopyPath));
+                _ = Directory.CreateDirectory(directory);
+
+                // The shadow copy should only copy files that exist. For files that don't exist, this best
+                // emulates not having the shadow copy layer
+                if (File.Exists(originalPath))
+                {
+                    File.Copy(originalPath, shadowCopyPath);
+                    ClearReadOnlyFlagOnFile(new FileInfo(shadowCopyPath));
+                }
+            }
         }
 
         private static void ClearReadOnlyFlagOnFiles(string directoryPath)
@@ -239,16 +253,5 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private (string directory, Mutex mutex) CreateUniqueDirectoryForProcess()
-        {
-            string guid = Guid.NewGuid().ToString("N").ToLowerInvariant();
-            string directory = Path.Combine(_baseDirectory, guid);
-
-            var mutex = new Mutex(initiallyOwned: false, name: guid);
-
-            Directory.CreateDirectory(directory);
-
-            return (directory, mutex);
-        }
     }
 }
