@@ -237,4 +237,77 @@ public class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharpCodeAct
     }
 }", parameters: new TestParameters(options: UseExpressionBody));
     }
+
+    [Fact]
+    public async Task TestOfferedWithSelectionInsideBlockBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void Goo()
+                {
+                    [|Bar()|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void Goo() => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
+
+    [Fact]
+    public async Task TestNotOfferedWithSelectionOutsideBlockBody()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Goo()
+                {
+                    [|Bar();
+                }
+            }|]
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
+
+    [Fact]
+    public async Task TestOfferedWithSelectionInsideExpressionBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void Goo() => [|Bar()|];
+            }
+            """,
+            """
+            class C
+            {
+                void Goo()
+                {
+                    Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
+    }
+
+    [Fact]
+    public async Task TestNotOfferedWithSelectionOutsideExpressionBody()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Goo() => [|Bar();
+            }|]
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
+    }
 }

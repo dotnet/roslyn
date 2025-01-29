@@ -154,4 +154,51 @@ public class UseExpressionBodyForLocalFunctionsRefactoringTests : AbstractCSharp
     }
 }", parameters: new TestParameters(options: UseExpressionBody));
     }
+
+    [Fact]
+    public async Task TestOfferedWithSelectionInsideBlockBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void Goo()
+                {
+                    void Bar() 
+                    {
+                        [|Test()|];
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void Goo()
+                {
+                    void Bar() => Test();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
+
+    [Fact]
+    public async Task TestNotOfferedWithSelectionOutsideBlockBody()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void Goo()
+                {
+                    void Bar() 
+                    {
+                        [|Test();
+                    }
+                }|]
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
 }

@@ -286,4 +286,51 @@ public class UseExpressionBodyForAccessorsRefactoringTests : AbstractCSharpCodeA
     }
 }", parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
     }
+
+    [Fact]
+    public async Task TestOfferedWithSelectionInsideExpressionBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                int Goo
+                {
+                    get
+                    {
+                        return [|Bar()|];
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int Goo
+                {
+                    get => Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
+    }
+
+    [Fact]
+    public async Task TestNotOfferedWithSelectionOutsideExpressionBody()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                int Goo
+                {
+                    get
+                    {
+                        return [|Bar();
+                    }
+                }|]
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
+    }
 }

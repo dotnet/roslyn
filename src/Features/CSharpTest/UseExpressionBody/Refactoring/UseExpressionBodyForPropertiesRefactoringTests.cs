@@ -308,4 +308,48 @@ public class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSharpCode
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
 options: UseExpressionBodyForAccessors_ExpressionBodyForProperties);
     }
+
+    [Fact]
+    public async Task TestOfferedWithSelectionInsideBlockBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                int Goo
+                {
+                    get
+                    {
+                        [|return Bar()|];
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int Goo => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
+    }
+
+    [Fact]
+    public async Task TestNotOfferedWithSelectionOutsideBlockBody()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                int Goo
+                {
+                    get
+                    {
+                        [|return Bar();
+                    }
+                }
+            }|]
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
+    }
 }

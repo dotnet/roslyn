@@ -156,4 +156,48 @@ public class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeAc
     }
 }", parameters: new TestParameters(options: UseExpressionBody));
     }
+
+    [Fact]
+    public async Task TestOfferedWithSelectionInsideBlockBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                int this[int i]
+                {
+                    get
+                    {
+                        [|return Bar()|];
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int this[int i] => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
+
+    [Fact]
+    public async Task TestNotOfferedWithSelectionOutsideBlockBody()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                int this[int i]
+                {
+                    get
+                    {
+                        [|return Bar();
+                    }
+                }
+            }|]
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
 }

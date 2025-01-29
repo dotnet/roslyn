@@ -137,4 +137,42 @@ public class UseExpressionBodyForConversionOperatorsRefactoringTests : AbstractC
     }
 }", parameters: new TestParameters(options: UseExpressionBody));
     }
+
+    [Fact]
+    public async Task TestOfferedWithSelectionInsideBlockBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public static implicit operator bool(C c1)
+                {
+                    [|Bar()|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static implicit operator bool(C c1) => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
+
+    [Fact]
+    public async Task TestNotOfferedWithSelectionOutsideBlockBody()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                public static implicit operator bool(C c1)
+                {
+                    [|Bar();
+                }
+            }|]
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
 }

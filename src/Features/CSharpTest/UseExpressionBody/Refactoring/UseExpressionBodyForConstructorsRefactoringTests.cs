@@ -137,4 +137,42 @@ public class UseExpressionBodyForConstructorsRefactoringTests : AbstractCSharpCo
     }
 }", parameters: new TestParameters(options: UseExpressionBody));
     }
+
+    [Fact]
+    public async Task TestOfferedWithSelectionInsideExpressionBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public C()
+                {
+                    [|Bar()|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C() => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
+
+    [Fact]
+    public async Task TestNotOfferedWithSelectionOutsideExpressionBody()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                public C()
+                {
+                    [|Bar();
+                }
+            }|]
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
 }
