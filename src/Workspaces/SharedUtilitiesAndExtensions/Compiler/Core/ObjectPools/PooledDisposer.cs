@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.PooledObjects;
 
 [NonCopyable]
-partial struct PooledDisposer<TPoolable>
+internal partial struct PooledDisposer<TPoolable>
     where TPoolable : class, IPooled
 {
 }
