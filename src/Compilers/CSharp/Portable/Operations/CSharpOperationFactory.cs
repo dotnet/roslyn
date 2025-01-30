@@ -1262,7 +1262,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return element switch
             {
-                BoundWithElement collectionArguments => Create(collectionArguments),
+                BoundWithElement withElement => Create(withElement),
                 BoundCollectionExpressionSpreadElement spreadElement => CreateBoundCollectionExpressionSpreadElement(expr, spreadElement),
                 BoundKeyValuePairElement keyValuePairElement => Create(keyValuePairElement),
                 _ => Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element, throwOnErrors: false))

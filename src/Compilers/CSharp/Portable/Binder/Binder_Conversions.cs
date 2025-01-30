@@ -899,10 +899,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Bind collection creation with arguments.
                 foreach (var element in elements)
                 {
-                    if (element is BoundWithElement collectionArguments)
+                    if (element is BoundWithElement withElement)
                     {
                         var analyzedArguments = AnalyzedArguments.GetInstance();
-                        collectionArguments.GetArguments(analyzedArguments);
+                        withElement.GetArguments(analyzedArguments);
                         var collectionWithArguments = BindCollectionExpressionConstructor(syntax, targetType, constructor, analyzedArguments, diagnostics);
                         analyzedArguments.Free();
                         collectionCreation ??= collectionWithArguments;
@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundNode convertedElement;
                     switch (element)
                     {
-                        case BoundWithElement collectionArguments:
+                        case BoundWithElement:
                             // Handled above.
                             continue;
                         case BoundCollectionExpressionSpreadElement spreadElement:
@@ -1004,10 +1004,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundNode convertedElement;
                     switch (element)
                     {
-                        case BoundWithElement collectionArguments:
-                            if (collectionArguments.Arguments.Length > 0)
+                        case BoundWithElement withElement:
+                            if (withElement.Arguments.Length > 0)
                             {
-                                diagnostics.Add(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, ((WithElementSyntax)collectionArguments.Syntax).WithKeyword, targetType);
+                                diagnostics.Add(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, ((WithElementSyntax)withElement.Syntax).WithKeyword, targetType);
                             }
                             continue;
                         case BoundCollectionExpressionSpreadElement spreadElement:
@@ -1824,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         keyValuePairElement.Update(
                             BindToNaturalType(keyValuePairElement.Key, diagnostics, reportNoTargetType),
                             BindToNaturalType(keyValuePairElement.Value, diagnostics, reportNoTargetType)),
-                    BoundWithElement collectionArguments => bindToNaturalType(collectionArguments, diagnostics, reportNoTargetType),
+                    BoundWithElement withElement => bindToNaturalType(withElement, diagnostics, reportNoTargetType),
                     _ => BindToNaturalType((BoundExpression)element, diagnostics, reportNoTargetType)
                 };
                 builder.Add(result);
@@ -1844,19 +1844,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: true)
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
 
-            BoundWithElement bindToNaturalType(BoundWithElement collectionArguments, BindingDiagnosticBag diagnostics, bool reportNoTargetType)
+            BoundWithElement bindToNaturalType(BoundWithElement withElement, BindingDiagnosticBag diagnostics, bool reportNoTargetType)
             {
-                var arguments = collectionArguments.Arguments;
+                var arguments = withElement.Arguments;
                 var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
                 foreach (var argument in arguments)
                 {
                     builder.Add(BindToNaturalType(argument, diagnostics, reportNoTargetType));
                 }
-                return collectionArguments.Update(
+                return withElement.Update(
                     builder.ToImmutableAndFree(),
-                    collectionArguments.ArgumentNamesOpt,
-                    collectionArguments.ArgumentRefKindsOpt,
-                    collectionArguments.Binder);
+                    withElement.ArgumentNamesOpt,
+                    withElement.ArgumentRefKindsOpt,
+                    withElement.Binder);
             }
         }
 
