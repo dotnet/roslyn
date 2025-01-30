@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 {
     [DebuggerDisplay("Count = {Count,nq}")]
     [DebuggerTypeProxy(typeof(ArrayBuilder<>.DebuggerProxy))]
-    internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>, ICollection<T>
+    internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>, ICollection<T>, IPooled
     {
         /// <summary>
         /// See <see cref="Free()"/> for an explanation of this constant value.
@@ -720,5 +720,24 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             set.Free();
             return result.ToImmutableAndFree();
         }
+
+        public static PooledDisposer<ArrayBuilder<T>> GetInstance(out ArrayBuilder<T> instance)
+        {
+            instance = GetInstance();
+            return new PooledDisposer<ArrayBuilder<T>>(instance);
+        }
+
+        public static PooledDisposer<ArrayBuilder<T>> GetInstance(int capacity, out ArrayBuilder<T> instance)
+        {
+            instance = GetInstance(capacity);
+            return new PooledDisposer<ArrayBuilder<T>>(instance);
+        }
+
+        public static PooledDisposer<ArrayBuilder<T>> GetInstance(int capacity, T fillWithValue, out ArrayBuilder<T> instance)
+        {
+            instance = GetInstance(capacity, fillWithValue);
+            return new PooledDisposer<ArrayBuilder<T>>(instance);
+        }
     }
+
 }
