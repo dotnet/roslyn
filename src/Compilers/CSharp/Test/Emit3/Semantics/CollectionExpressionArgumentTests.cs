@@ -1078,6 +1078,134 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void Arglist()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection : IEnumerable
+                {
+                    public readonly List<int> Args;
+                    public MyCollection() { Args = new(); }
+                    public MyCollection(__arglist) { Args = GetArgs(0, new ArgIterator(__arglist)); }
+                    public MyCollection(int x, __arglist) { Args = GetArgs(x, new ArgIterator(__arglist)); }
+                    private static List<int> GetArgs(int x, ArgIterator iterator)
+                    {
+                        var args = new List<int>();
+                        args.Add(x);
+                        while (iterator.GetRemainingCount() > 0)
+                            args.Add(__refvalue(iterator.GetNextArg(), int));
+                        return args;
+                    }
+                    public void Add(object o) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        F1().Args.Report();
+                        F2().Args.Report();
+                        F3(1, 2).Args.Report();
+                        F4(3, 4).Args.Report();
+                    }
+                    static MyCollection F1() => [with()];
+                    static MyCollection F2() => [with(__arglist())];
+                    static MyCollection F3(int x, int y) => [with(__arglist(x, y))];
+                    static MyCollection F4(int x, int y) => [with(x, __arglist(y))];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB, s_collectionExtensions],
+                targetFramework: TargetFramework.NetFramework,
+                verify: Verification.FailsILVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? null : "[], [0], [0, 1, 2], [3, 4], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.F1", """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  newobj     "MyCollection..ctor()"
+                  IL_0005:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.F2", """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  newobj     "MyCollection..ctor(__arglist)"
+                  IL_0005:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.F3", """
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  newobj     "MyCollection..ctor(__arglist) with __arglist( int, int)"
+                  IL_0007:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.F4", """
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  newobj     "MyCollection..ctor(int, __arglist) with __arglist( int)"
+                  IL_0007:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Arglist_NoParameterlessConstructor()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                class MyCollection : IEnumerable
+                {
+                    public MyCollection(__arglist) { }
+                    public void Add(object o) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            string sourceB = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection c;
+                        c = [];
+                        c = [with()];
+                        c = [with(__arglist())];
+                        c = [with(__arglist(0))];
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            comp.VerifyEmitDiagnostics(
+                // (7,13): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[]").WithLocation(7, 13),
+                // (8,13): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+                //         c = [with()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with()]").WithLocation(8, 13),
+                // (9,13): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+                //         c = [with(__arglist())];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with(__arglist())]").WithLocation(9, 13),
+                // (10,13): error CS9214: Collection expression type must have an applicable constructor that can be called with no arguments.
+                //         c = [with(__arglist(0))];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingConstructor, "[with(__arglist(0))]").WithLocation(10, 13));
+        }
+
+        [Fact]
         public void DynamicArguments_01()
         {
             string source = """
