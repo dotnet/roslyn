@@ -35,12 +35,19 @@ internal sealed class DocumentationCommentSnippet
     /// </summary>
     public SyntaxNode? MemberNode { get; }
 
-    internal DocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset, int? position, SyntaxNode? memberNode)
+    /// <summary>
+    /// The text to use for indentation. This is specifically used for the generate documentation with
+    /// Copilot case to ensure the wrapped comments are indented correctly.
+    /// </summary>
+    public string? IndentText { get; }
+
+    internal DocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset, int? position, SyntaxNode? memberNode, string? indentText)
     {
         SpanToReplace = spanToReplace;
         SnippetText = snippetText;
         CaretOffset = caretOffset;
         Position = position;
         MemberNode = memberNode;
+        IndentText = indentText;
     }
 }

@@ -158,7 +158,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                             // so that won't have interfering grey text.
                             _intellicodeLineCompletionsDisposable = await _suggestionManagerBase.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
 
-                            var proposalEdits = await GetProposedEditsAsync(snippetProposal, copilotService, oldSnapshot, snippet.CaretOffset, cancellationToken).ConfigureAwait(false);
+                            var proposalEdits = await GetProposedEditsAsync(snippetProposal, copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
 
                             var proposal = new DocumentationCommentHandlerProposal(oldCaret, proposalEdits);
                             var suggestion = new DocumentationCommentSuggestion(this, proposal);
@@ -265,7 +265,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
     /// </summary>
     private static async Task<IReadOnlyList<ProposedEdit>> GetProposedEditsAsync(
         DocumentationCommentProposal proposal, ICopilotCodeAnalysisService copilotService,
-        ITextSnapshot oldSnapshot, int caretOffset, CancellationToken cancellationToken)
+        ITextSnapshot oldSnapshot, string? indentText, CancellationToken cancellationToken)
     {
         var list = new List<ProposedEdit>();
         var (copilotText, isQuotaExceeded) = await copilotService.GetDocumentationCommentAsync(proposal, cancellationToken).ConfigureAwait(false);
@@ -320,13 +320,13 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                 copilotStatement = exception;
             }
 
-            var proposedEdit = new ProposedEdit(new SnapshotSpan(oldSnapshot, textSpan.Start, textSpan.Length), AddNewLinesToCopilotText(copilotStatement!, caretOffset, characterLimit: 120));
+            var proposedEdit = new ProposedEdit(new SnapshotSpan(oldSnapshot, textSpan.Start, textSpan.Length), AddNewLinesToCopilotText(copilotStatement!, indentText, characterLimit: 120 - indentText!.Length - 4));
             list.Add(proposedEdit);
         }
 
         return list;
 
-        static string AddNewLinesToCopilotText(string copilotText, int caretOffset, int characterLimit)
+        static string AddNewLinesToCopilotText(string copilotText, string? indentText, int characterLimit)
         {
             var builder = new StringBuilder();
             var words = copilotText.Split(' ');
@@ -337,7 +337,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                 if (currentLineLength + word.Length >= characterLimit)
                 {
                     builder.AppendLine();
-                    builder.Append(new string(' ', caretOffset));
+                    builder.Append(indentText);
                     builder.Append("/// ");
                     currentLineLength = 0;
                 }
@@ -415,7 +415,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         {
             ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
-                if (_suggestionServiceBase != null)
+                if (_suggestionServiceBase is not null)
                 {
                     _suggestionManagerBase = await _suggestionServiceBase.TryRegisterProviderAsync(this, args.TextView, "AmbientAIDocumentationComments", context.OperationContext.UserCancellationToken).ConfigureAwait(false);
                 }
