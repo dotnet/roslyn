@@ -1958,7 +1958,8 @@
     <Field Name="Value" Type="BoundExpression"/>
   </Node>
 
-  <Node Name="BoundUnconvertedCollectionArguments" Base="BoundNode">
+  <!-- Unconverted collection expression arguments. -->
+  <Node Name="BoundWithElement" Base="BoundNode">
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;(string Name, Location Location)?&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>

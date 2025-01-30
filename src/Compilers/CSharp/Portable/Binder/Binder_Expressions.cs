@@ -5321,7 +5321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var arguments = AnalyzedArguments.GetInstance();
             BindArgumentsAndNames(syntax.ArgumentList, diagnostics, arguments, allowArglist: true);
-            var result = new BoundUnconvertedCollectionArguments(
+            var result = new BoundWithElement(
                 syntax,
                 arguments.Arguments.ToImmutable(),
                 arguments.Names.ToImmutableOrNull(),

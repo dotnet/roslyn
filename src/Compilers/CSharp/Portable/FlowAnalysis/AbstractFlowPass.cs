@@ -2092,7 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitUnconvertedCollectionArguments(BoundUnconvertedCollectionArguments node)
+        public override BoundNode VisitWithElement(BoundWithElement node)
         {
             // We only get here if the conversion of the collection expression to the
             // target type failed. In this case, simply visit each argument.

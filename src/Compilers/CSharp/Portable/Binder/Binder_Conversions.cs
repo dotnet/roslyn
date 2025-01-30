@@ -899,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Bind collection creation with arguments.
                 foreach (var element in elements)
                 {
-                    if (element is BoundUnconvertedCollectionArguments collectionArguments)
+                    if (element is BoundWithElement collectionArguments)
                     {
                         var analyzedArguments = AnalyzedArguments.GetInstance();
                         collectionArguments.GetArguments(analyzedArguments);
@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundNode convertedElement;
                     switch (element)
                     {
-                        case BoundUnconvertedCollectionArguments collectionArguments:
+                        case BoundWithElement collectionArguments:
                             // Handled above.
                             continue;
                         case BoundCollectionExpressionSpreadElement spreadElement:
@@ -1004,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundNode convertedElement;
                     switch (element)
                     {
-                        case BoundUnconvertedCollectionArguments collectionArguments:
+                        case BoundWithElement collectionArguments:
                             if (collectionArguments.Arguments.Length > 0)
                             {
                                 diagnostics.Add(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, ((WithElementSyntax)collectionArguments.Syntax).WithKeyword, targetType);
@@ -1824,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         keyValuePairElement.Update(
                             BindToNaturalType(keyValuePairElement.Key, diagnostics, reportNoTargetType),
                             BindToNaturalType(keyValuePairElement.Value, diagnostics, reportNoTargetType)),
-                    BoundUnconvertedCollectionArguments collectionArguments => bindToNaturalType(collectionArguments, diagnostics, reportNoTargetType),
+                    BoundWithElement collectionArguments => bindToNaturalType(collectionArguments, diagnostics, reportNoTargetType),
                     _ => BindToNaturalType((BoundExpression)element, diagnostics, reportNoTargetType)
                 };
                 builder.Add(result);
@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: true)
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
 
-            BoundUnconvertedCollectionArguments bindToNaturalType(BoundUnconvertedCollectionArguments collectionArguments, BindingDiagnosticBag diagnostics, bool reportNoTargetType)
+            BoundWithElement bindToNaturalType(BoundWithElement collectionArguments, BindingDiagnosticBag diagnostics, bool reportNoTargetType)
             {
                 var arguments = collectionArguments.Arguments;
                 var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
@@ -1914,7 +1914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (element)
                     {
-                        case BoundUnconvertedCollectionArguments:
+                        case BoundWithElement:
                             // Collection arguments do not affect convertibility.
                             break;
                         case BoundCollectionExpressionSpreadElement spreadElement:
