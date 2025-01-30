@@ -132,6 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Project project,
             ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
             ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
+            bool includeSuppressedDiagnostics,
             bool crashOnAnalyzerException,
             CancellationToken cancellationToken)
         {
@@ -166,14 +167,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
                 logAnalyzerExecutionTime: true,
-                reportSuppressedDiagnostics: true);
+                reportSuppressedDiagnostics: includeSuppressedDiagnostics);
             var hostAnalyzerOptions = new CompilationWithAnalyzersOptions(
                 options: project.HostAnalyzerOptions,
                 onAnalyzerException: null,
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
                 logAnalyzerExecutionTime: true,
-                reportSuppressedDiagnostics: true);
+                reportSuppressedDiagnostics: includeSuppressedDiagnostics);
 
             // Create driver that holds onto compilation and associated analyzers
             return new CompilationWithAnalyzersPair(

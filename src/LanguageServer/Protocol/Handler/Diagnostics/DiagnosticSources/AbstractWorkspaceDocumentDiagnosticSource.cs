@@ -45,8 +45,7 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             {
                 // Unfortunately GetDiagnosticsForIdsAsync returns nothing for source generated documents.
                 var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
-                    sourceGeneratedDocument, range: null, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
-                documentDiagnostics = documentDiagnostics.WhereAsArray(d => !d.IsSuppressed);
+                    sourceGeneratedDocument, range: null, DiagnosticKind.All, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
                 return documentDiagnostics;
             }
             else
@@ -80,11 +79,9 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
                                 diagnosticIds: null, shouldIncludeAnalyzer,
                                 // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this project.
                                 static (project, _) => [.. project.DocumentIds.Concat(project.AdditionalDocumentIds)],
+                                includeSuppressedDiagnostics: false,
                                 includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
-
-                            // TODO(cyrusn): Should we be filtering out suppressed diagnostics here? This is how the
-                            // code has always worked, but it isn't clear if that is correct.
-                            return allDiagnostics.Where(d => !d.IsSuppressed && d.DocumentId != null).ToLookup(d => d.DocumentId!);
+                            return allDiagnostics.Where(d => d.DocumentId != null).ToLookup(d => d.DocumentId!);
                         }));
             }
         }

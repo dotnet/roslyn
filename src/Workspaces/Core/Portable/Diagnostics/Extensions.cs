@@ -107,6 +107,7 @@ internal static partial class Extensions
         ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
         ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
         SkippedHostAnalyzersInfo skippedAnalyzersInfo,
+        bool includeSuppressedDiagnostics,
         CancellationToken cancellationToken)
     {
         SyntaxTree? treeToAnalyze = null;
@@ -153,13 +154,13 @@ internal static partial class Extensions
                             if (analysisResult.MergedSyntaxDiagnostics.TryGetValue(treeToAnalyze, out diagnosticsByAnalyzerMap))
                             {
                                 AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
-                                    treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter);
+                                    treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                             }
                         }
                         else if (analysisResult.MergedAdditionalFileDiagnostics.TryGetValue(additionalFileToAnalyze!, out diagnosticsByAnalyzerMap))
                         {
                             AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
-                                tree: null, documentAnalysisScope.TextDocument.Id, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter);
+                                tree: null, documentAnalysisScope.TextDocument.Id, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                         }
 
                         break;
@@ -168,7 +169,7 @@ internal static partial class Extensions
                         if (analysisResult.MergedSemanticDiagnostics.TryGetValue(treeToAnalyze!, out diagnosticsByAnalyzerMap))
                         {
                             AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
-                                treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Semantic, diagnosticIdsToFilter);
+                                treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                         }
 
                         break;
@@ -182,13 +183,13 @@ internal static partial class Extensions
                 foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.MergedSyntaxDiagnostics)
                 {
                     AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
-                        tree, additionalDocumentId: null, span: null, AnalysisKind.Syntax, diagnosticIdsToFilter);
+                        tree, additionalDocumentId: null, span: null, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                 }
 
                 foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.MergedSemanticDiagnostics)
                 {
                     AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
-                        tree, additionalDocumentId: null, span: null, AnalysisKind.Semantic, diagnosticIdsToFilter);
+                        tree, additionalDocumentId: null, span: null, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                 }
 
                 foreach (var (file, diagnosticsByAnalyzerMap) in analysisResult.MergedAdditionalFileDiagnostics)
@@ -196,11 +197,11 @@ internal static partial class Extensions
                     var additionalDocumentId = project.GetDocumentForFile(file);
                     var kind = additionalDocumentId != null ? AnalysisKind.Syntax : AnalysisKind.NonLocal;
                     AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
-                        tree: null, additionalDocumentId, span: null, kind, diagnosticIdsToFilter);
+                        tree: null, additionalDocumentId, span: null, kind, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                 }
 
                 AddAnalyzerDiagnosticsToResult(analyzer, analysisResult.MergedCompilationDiagnostics, ref result,
-                    tree: null, additionalDocumentId: null, span: null, AnalysisKind.NonLocal, diagnosticIdsToFilter);
+                    tree: null, additionalDocumentId: null, span: null, AnalysisKind.NonLocal, diagnosticIdsToFilter, includeSuppressedDiagnostics);
             }
 
             // Special handling for pragma suppression diagnostics.
@@ -213,7 +214,7 @@ internal static partial class Extensions
                     {
                         var diagnostics = additionalPragmaSuppressionDiagnostics.WhereAsArray(d => d.Location.SourceTree == treeToAnalyze);
                         AddDiagnosticsToResult(diagnostics, ref result, treeToAnalyze, additionalDocumentId: null,
-                            documentAnalysisScope.Span, AnalysisKind.Semantic, diagnosticIdsToFilter);
+                            documentAnalysisScope.Span, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                     }
                 }
                 else
@@ -221,7 +222,7 @@ internal static partial class Extensions
                     foreach (var group in additionalPragmaSuppressionDiagnostics.GroupBy(d => d.Location.SourceTree!))
                     {
                         AddDiagnosticsToResult(group.AsImmutable(), ref result, group.Key, additionalDocumentId: null,
-                            span: null, AnalysisKind.Semantic, diagnosticIdsToFilter);
+                            span: null, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                     }
                 }
 
@@ -241,12 +242,13 @@ internal static partial class Extensions
             DocumentId? additionalDocumentId,
             TextSpan? span,
             AnalysisKind kind,
-            ImmutableArray<string> diagnosticIdsToFilter)
+            ImmutableArray<string> diagnosticIdsToFilter,
+            bool includeSuppressedDiagnostics)
         {
             if (diagnosticsByAnalyzer.TryGetValue(analyzer, out var diagnostics))
             {
                 AddDiagnosticsToResult(diagnostics, ref result,
-                    tree, additionalDocumentId, span, kind, diagnosticIdsToFilter);
+                    tree, additionalDocumentId, span, kind, diagnosticIdsToFilter, includeSuppressedDiagnostics);
             }
         }
 
@@ -257,14 +259,15 @@ internal static partial class Extensions
             DocumentId? additionalDocumentId,
             TextSpan? span,
             AnalysisKind kind,
-            ImmutableArray<string> diagnosticIdsToFilter)
+            ImmutableArray<string> diagnosticIdsToFilter,
+            bool includeSuppressedDiagnostics)
         {
             if (diagnostics.IsEmpty)
             {
                 return;
             }
 
-            diagnostics = diagnostics.Filter(diagnosticIdsToFilter, span);
+            diagnostics = diagnostics.Filter(diagnosticIdsToFilter, includeSuppressedDiagnostics, span);
 
             switch (kind)
             {
@@ -296,20 +299,23 @@ internal static partial class Extensions
 
     /// <summary>
     /// Filters out the diagnostics with the specified <paramref name="diagnosticIdsToFilter"/>.
+    /// If <paramref name="includeSuppressedDiagnostics"/> is false, filters out suppressed diagnostics.
     /// If <paramref name="filterSpan"/> is non-null, filters out diagnostics with location outside this span.
     /// </summary>
     public static ImmutableArray<Diagnostic> Filter(
         this ImmutableArray<Diagnostic> diagnostics,
         ImmutableArray<string> diagnosticIdsToFilter,
+        bool includeSuppressedDiagnostics,
         TextSpan? filterSpan = null)
     {
-        if (diagnosticIdsToFilter.IsEmpty && !filterSpan.HasValue)
+        if (diagnosticIdsToFilter.IsEmpty && includeSuppressedDiagnostics && !filterSpan.HasValue)
         {
             return diagnostics;
         }
 
         return diagnostics.RemoveAll(diagnostic =>
             diagnosticIdsToFilter.Contains(diagnostic.Id) ||
+            !includeSuppressedDiagnostics && diagnostic.IsSuppressed ||
             filterSpan.HasValue && !filterSpan.Value.IntersectsWith(diagnostic.Location.SourceSpan));
     }
 
