@@ -220,7 +220,7 @@ fallbackStrings:
                     }
                     else
                     {
-                        addArgument(self, binaryOperator.Right, arguments, ref concatMethods);
+                        addArgument(self, binaryOperator.Right, argumentAlreadyVisited: false, arguments, ref concatMethods);
                     }
 
                     if (shouldRecurse(binaryOperator.Left, out var left))
@@ -229,7 +229,7 @@ fallbackStrings:
                     }
                     else
                     {
-                        addArgument(self, binaryOperator.Left, arguments, ref concatMethods);
+                        addArgument(self, binaryOperator.Left, argumentAlreadyVisited: false, arguments, ref concatMethods);
                         break;
                     }
                 }
@@ -249,9 +249,12 @@ fallbackStrings:
                     }
                 }
 
-                static void addArgument(LocalRewriter self, BoundExpression argument, ArrayBuilder<BoundExpression> finalArguments, ref WellKnownConcatRelatedMethods wellKnownConcatOptimizationMethods)
+                static void addArgument(LocalRewriter self, BoundExpression argument, bool argumentAlreadyVisited, ArrayBuilder<BoundExpression> finalArguments, ref WellKnownConcatRelatedMethods wellKnownConcatOptimizationMethods)
                 {
-                    argument = self.VisitExpression(argument);
+                    if (!argumentAlreadyVisited)
+                    {
+                        argument = self.VisitExpression(argument);
+                    }
 
                     if (argument is BoundConversion { ConversionKind: ConversionKind.Boxing, Type.SpecialType: SpecialType.System_Object, Operand: { Type.SpecialType: SpecialType.System_Char } operand })
                     {
@@ -264,7 +267,7 @@ fallbackStrings:
                         {
                             for (int i = concatArguments.Length - 1; i >= 0; i--)
                             {
-                                addArgument(self, concatArguments[i], finalArguments, ref wellKnownConcatOptimizationMethods);
+                                addArgument(self, concatArguments[i], argumentAlreadyVisited: true, finalArguments, ref wellKnownConcatOptimizationMethods);
                             }
 
                             return;

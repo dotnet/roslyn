@@ -2104,5 +2104,39 @@ class Test
   IL_0084:  ret
 }");
         }
+
+        [Fact]
+        public void ConcatNullConditionalAccesses()
+        {
+            var source = """
+                C c = null;
+
+                System.Console.WriteLine(string.Concat(c?.Prop, "a") + "b");
+                
+                class C
+                {
+                    public string Prop { get; }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "ab");
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  2
+                  IL_0000:  ldnull
+                  IL_0001:  dup
+                  IL_0002:  brtrue.s   IL_0008
+                  IL_0004:  pop
+                  IL_0005:  ldnull
+                  IL_0006:  br.s       IL_000d
+                  IL_0008:  call       "string C.Prop.get"
+                  IL_000d:  ldstr      "ab"
+                  IL_0012:  call       "string string.Concat(string, string)"
+                  IL_0017:  call       "void System.Console.WriteLine(string)"
+                  IL_001c:  ret
+                }
+                """);
+        }
     }
 }
