@@ -1013,9 +1013,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
+                class A
+                {
+                    private int _i;
+                    private A(int i) { _i = i; }
+                    public static implicit operator A(int i)
+                    {
+                        Console.WriteLine("{0} -> A", i);
+                        return new(i);
+                    }
+                    public override string ToString() => _i.ToString();
+                }
                 class MyCollection<T> : IEnumerable<T>
                 {
-                    public MyCollection(object x = null, object y = null) { Console.WriteLine("MyCollection({0}, {1})", x, y); }
+                    public MyCollection(A x = null, A y = null) { Console.WriteLine("MyCollection({0}, {1})", x, y); }
                     public void Add(T t) { Console.WriteLine("Add({0})", t); }
                     IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
                     IEnumerator IEnumerable.GetEnumerator() => throw null;
@@ -1027,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        MyCollection<int> c;
+                        MyCollection<A> c;
                         c = [with(y: Identity(1), x: Identity(2)), Identity(3), Identity(4)];
                     }
                     static T Identity<T>(T value)
@@ -1041,38 +1052,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB],
                 expectedOutput: """
                     1
+                    1 -> A
                     2
+                    2 -> A
                     MyCollection(2, 1)
                     3
+                    3 -> A
                     Add(3)
                     4
+                    4 -> A
                     Add(4)
                     """);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main()", """
                 {
-                  // Code size       55 (0x37)
+                  // Code size       65 (0x41)
                   .maxstack  3
-                  .locals init (object V_0)
+                  .locals init (A V_0)
                   IL_0000:  ldc.i4.1
                   IL_0001:  call       "int Program.Identity<int>(int)"
-                  IL_0006:  box        "int"
+                  IL_0006:  call       "A A.op_Implicit(int)"
                   IL_000b:  stloc.0
                   IL_000c:  ldc.i4.2
                   IL_000d:  call       "int Program.Identity<int>(int)"
-                  IL_0012:  box        "int"
+                  IL_0012:  call       "A A.op_Implicit(int)"
                   IL_0017:  ldloc.0
-                  IL_0018:  newobj     "MyCollection<int>..ctor(object, object)"
+                  IL_0018:  newobj     "MyCollection<A>..ctor(A, A)"
                   IL_001d:  dup
                   IL_001e:  ldc.i4.3
                   IL_001f:  call       "int Program.Identity<int>(int)"
-                  IL_0024:  callvirt   "void MyCollection<int>.Add(int)"
-                  IL_0029:  dup
-                  IL_002a:  ldc.i4.4
-                  IL_002b:  call       "int Program.Identity<int>(int)"
-                  IL_0030:  callvirt   "void MyCollection<int>.Add(int)"
-                  IL_0035:  pop
-                  IL_0036:  ret
+                  IL_0024:  call       "A A.op_Implicit(int)"
+                  IL_0029:  callvirt   "void MyCollection<A>.Add(A)"
+                  IL_002e:  dup
+                  IL_002f:  ldc.i4.4
+                  IL_0030:  call       "int Program.Identity<int>(int)"
+                  IL_0035:  call       "A A.op_Implicit(int)"
+                  IL_003a:  callvirt   "void MyCollection<A>.Add(A)"
+                  IL_003f:  pop
+                  IL_0040:  ret
                 }
                 """);
         }
