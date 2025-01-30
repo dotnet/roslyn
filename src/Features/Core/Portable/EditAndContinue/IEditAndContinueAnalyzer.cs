@@ -19,7 +19,6 @@ internal interface IEditAndContinueAnalyzer : ILanguageService
         Document document,
         ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         AsyncLazy<EditAndContinueCapabilities> lazyCapabilities,
-        TraceLog log,
         CancellationToken cancellationToken);
 
     ActiveStatementExceptionRegions GetExceptionRegions(SyntaxNode syntaxRoot, TextSpan unmappedActiveStatementSpan, bool isNonLeaf, CancellationToken cancellationToken);

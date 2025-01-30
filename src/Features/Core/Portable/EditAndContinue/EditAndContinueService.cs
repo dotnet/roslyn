@@ -45,12 +45,10 @@ internal sealed class EditAndContinueService : IEditAndContinueService
         public ImmutableArray<DiagnosticData> ApplyChangesDiagnostics => [];
     }
 
-    private static readonly string? s_logDir = GetLogDirectory();
+    internal static readonly TraceLog Log;
+    internal static readonly TraceLog AnalysisLog;
 
-    internal readonly TraceLog Log;
-    internal readonly TraceLog AnalysisLog;
-
-    private Func<Project, CompilationOutputs> _compilationOutputsProvider = GetCompilationOutputs;
+    private Func<Project, CompilationOutputs> _compilationOutputsProvider;
 
     /// <summary>
     /// List of active debugging sessions (small number of simoultaneously active sessions is expected).
@@ -60,16 +58,21 @@ internal sealed class EditAndContinueService : IEditAndContinueService
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EditAndContinueService(
-        [Import(AllowDefault = true)] IEditAndContinueLogReporter? logReporter)
+    public EditAndContinueService()
     {
-        Log = new TraceLog("Session", logReporter);
-        AnalysisLog = new TraceLog("Analysis", logReporter);
+        _compilationOutputsProvider = GetCompilationOutputs;
+    }
 
-        if (s_logDir != null)
+    static EditAndContinueService()
+    {
+        Log = new(2048, "EnC", "Trace.log");
+        AnalysisLog = new(1024, "EnC", "Analysis.log");
+
+        var logDir = GetLogDirectory();
+        if (logDir != null)
         {
-            Log.SetLogDirectory(s_logDir);
-            AnalysisLog.SetLogDirectory(s_logDir);
+            Log.SetLogDirectory(logDir);
+            AnalysisLog.SetLogDirectory(logDir);
         }
     }
 
@@ -94,9 +97,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
 
     public void SetFileLoggingDirectory(string? logDirectory)
     {
-        logDirectory ??= GetLogDirectory();
-        Log.SetLogDirectory(logDirectory);
-        AnalysisLog.SetLogDirectory(logDirectory);
+        Log.SetLogDirectory(logDirectory ?? GetLogDirectory());
     }
 
     private static CompilationOutputs GetCompilationOutputs(Project project)
@@ -152,7 +153,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
                     ? solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values))
                     : GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
 
-                initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(Log, documentsByProject, _compilationOutputsProvider, sourceTextProvider, cancellationToken).ConfigureAwait(false);
+                initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(documentsByProject, _compilationOutputsProvider, sourceTextProvider, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -163,14 +164,14 @@ internal sealed class EditAndContinueService : IEditAndContinueService
             solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
 
             var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, initialDocumentStates, Log, AnalysisLog, reportDiagnostics);
+            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, initialDocumentStates, reportDiagnostics);
 
             lock (_debuggingSessions)
             {
                 _debuggingSessions.Add(session);
             }
 
-            Log.Write($"Session #{sessionId} started.");
+            Log.Write("Session #{0} started.", sessionId.Ordinal);
             return sessionId;
 
         }
@@ -199,7 +200,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
 
         debuggingSession.EndSession(out var telemetryData);
 
-        Log.Write($"Session #{debuggingSession.Id} ended.");
+        Log.Write("Session #{0} ended.", debuggingSession.Id.Ordinal);
     }
 
     public void BreakStateOrCapabilitiesChanged(DebuggingSessionId sessionId, bool? inBreakState)

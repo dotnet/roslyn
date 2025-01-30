@@ -6,6 +6,8 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,36 +15,111 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal enum LogMessageSeverity
-{
-    Info,
-    Warning,
-    Error
-}
-
 /// <summary>
-/// Implements EnC logging.
-/// 
-/// Writes log messages to:
-/// - fixed size rolling tracing log captured in a memory dump,
-/// - a file log, if a log directory is provided,
-/// - log service, if avaiable.
+/// Fixed size rolling tracing log. 
 /// </summary>
-internal sealed class TraceLog(string name, IEditAndContinueLogReporter? logService = null, int logSize = 2048)
+/// <remarks>
+/// Recent entries are captured in a memory dump.
+/// If DEBUG is defined, all entries written to <see cref="DebugWrite(string)"/> or
+/// <see cref="DebugWrite(string, Arg[])"/> are print to <see cref="Debug"/> output.
+/// </remarks>
+internal sealed class TraceLog(int logSize, string id, string fileName)
 {
+    internal readonly struct Arg
+    {
+        // To display enums in Expression Evaluator we need to remember the type of the enum.
+        // The debugger currently does not support evaluating expressions that involve Type instances nor lambdas,
+        // so we need to manually special case the types of enums we care about displaying.
+
+        private enum EnumType
+        {
+            ProjectAnalysisSummary,
+            RudeEditKind,
+            ModuleUpdateStatus,
+            EditAndContinueCapabilities,
+        }
+
+        private static readonly StrongBox<EnumType> s_ProjectAnalysisSummary = new(EnumType.ProjectAnalysisSummary);
+        private static readonly StrongBox<EnumType> s_RudeEditKind = new(EnumType.RudeEditKind);
+        private static readonly StrongBox<EnumType> s_ModuleUpdateStatus = new(EnumType.ModuleUpdateStatus);
+        private static readonly StrongBox<EnumType> s_EditAndContinueCapabilities = new(EnumType.EditAndContinueCapabilities);
+
+        public readonly object? Object;
+        public readonly int Int32;
+        public readonly ImmutableArray<int> Tokens;
+
+        public Arg(object? value)
+        {
+            Int32 = -1;
+            Object = value ?? "<null>";
+            Tokens = default;
+        }
+
+        public Arg(ImmutableArray<int> tokens)
+        {
+            Int32 = -1;
+            Object = null;
+            Tokens = tokens;
+        }
+
+        private Arg(int value, StrongBox<EnumType> enumKind)
+        {
+            Int32 = value;
+            Object = enumKind;
+            Tokens = default;
+        }
+
+        public object? GetDebuggerDisplay()
+            => (!Tokens.IsDefault) ? string.Join(",", Tokens.Select(token => token.ToString("X8"))) :
+               (Object is ImmutableArray<string> array) ? string.Join(",", array) :
+               (Object is null) ? Int32 :
+               (Object is StrongBox<EnumType> { Value: var enumType }) ? enumType switch
+               {
+                   EnumType.ProjectAnalysisSummary => (ProjectAnalysisSummary)Int32,
+                   EnumType.RudeEditKind => (RudeEditKind)Int32,
+                   EnumType.ModuleUpdateStatus => (ModuleUpdateStatus)Int32,
+                   EnumType.EditAndContinueCapabilities => (EditAndContinueCapabilities)Int32,
+                   _ => throw ExceptionUtilities.UnexpectedValue(enumType)
+               } :
+               Object;
+
+        public static implicit operator Arg(string? value) => new(value);
+        public static implicit operator Arg(int value) => new(value);
+        public static implicit operator Arg(bool value) => new(value ? "true" : "false");
+        public static implicit operator Arg(ProjectId value) => new(value.DebugName);
+        public static implicit operator Arg(DocumentId value) => new(value.DebugName);
+        public static implicit operator Arg(Diagnostic value) => new(value.ToString());
+        public static implicit operator Arg(ProjectAnalysisSummary value) => new((int)value, s_ProjectAnalysisSummary);
+        public static implicit operator Arg(RudeEditKind value) => new((int)value, s_RudeEditKind);
+        public static implicit operator Arg(ModuleUpdateStatus value) => new((int)value, s_ModuleUpdateStatus);
+        public static implicit operator Arg(EditAndContinueCapabilities value) => new((int)value, s_EditAndContinueCapabilities);
+        public static implicit operator Arg(ImmutableArray<int> tokens) => new(tokens);
+        public static implicit operator Arg(ImmutableArray<string> items) => new(items);
+    }
+
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+    internal readonly struct Entry(string format, Arg[]? args)
+    {
+        public readonly string MessageFormat = format;
+        public readonly Arg[]? Args = args;
+
+        internal string GetDebuggerDisplay()
+            => (MessageFormat == null) ? "" : string.Format(MessageFormat, Args?.Select(a => a.GetDebuggerDisplay()).ToArray() ?? []);
+    }
+
     internal sealed class FileLogger(string logDirectory, TraceLog traceLog)
     {
         private readonly string _logDirectory = logDirectory;
         private readonly TraceLog _traceLog = traceLog;
 
-        public void Append(string entry)
+        public void Append(Entry entry)
         {
             string? path = null;
 
             try
             {
-                path = Path.Combine(_logDirectory, _traceLog._name + ".log");
-                File.AppendAllLines(path, [entry]);
+                path = Path.Combine(_logDirectory, _traceLog._fileName);
+                File.AppendAllLines(path, [entry.GetDebuggerDisplay()]);
             }
             catch (Exception e)
             {
@@ -137,8 +214,9 @@ internal sealed class TraceLog(string name, IEditAndContinueLogReporter? logServ
         }
     }
 
-    private readonly string[] _log = new string[logSize];
-    private readonly string _name = name;
+    private readonly Entry[] _log = new Entry[logSize];
+    private readonly string _id = id;
+    private readonly string _fileName = fileName;
     private int _currentLine;
 
     public FileLogger? FileLog { get; private set; }
@@ -148,20 +226,37 @@ internal sealed class TraceLog(string name, IEditAndContinueLogReporter? logServ
         FileLog = (logDirectory != null) ? new FileLogger(logDirectory, this) : null;
     }
 
-    private void AppendInMemory(string entry)
+    private void AppendInMemory(Entry entry)
     {
         var index = Interlocked.Increment(ref _currentLine);
         _log[(index - 1) % _log.Length] = entry;
     }
 
     private void AppendFileLoggingErrorInMemory(string? path, Exception e)
-        => AppendInMemory($"Error writing log file '{path}': {e.Message}");
+        => AppendInMemory(new Entry("Error writing log file '{0}': {1}", [new Arg(path), new Arg(e.Message)]));
 
-    public void Write(string message, LogMessageSeverity severity = LogMessageSeverity.Info)
+    private void Append(Entry entry)
     {
-        AppendInMemory(message);
-        FileLog?.Append(message);
-        logService?.Report(message, severity);
+        AppendInMemory(entry);
+        FileLog?.Append(entry);
+    }
+
+    public void Write(string str)
+        => Write(str, args: null);
+
+    public void Write(string format, params Arg[]? args)
+        => Append(new Entry(format, args));
+
+    [Conditional("DEBUG")]
+    public void DebugWrite(string str)
+        => DebugWrite(str, args: null);
+
+    [Conditional("DEBUG")]
+    public void DebugWrite(string format, params Arg[]? args)
+    {
+        var entry = new Entry(format, args);
+        Append(entry);
+        Debug.WriteLine(entry.ToString(), _id);
     }
 
     internal TestAccessor GetTestAccessor()
@@ -169,7 +264,8 @@ internal sealed class TraceLog(string name, IEditAndContinueLogReporter? logServ
 
     internal readonly struct TestAccessor(TraceLog traceLog)
     {
-        internal string[] Entries => traceLog._log;
+        private readonly TraceLog _traceLog = traceLog;
+
+        internal Entry[] Entries => _traceLog._log;
     }
 }
-

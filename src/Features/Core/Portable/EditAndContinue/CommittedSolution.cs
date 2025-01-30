@@ -312,15 +312,14 @@ internal sealed class CommittedSolution
 
         var maybePdbHasDocument = TryReadSourceFileChecksumFromPdb(document, out var requiredChecksum, out var checksumAlgorithm);
 
-        var maybeMatchingSourceText = (maybePdbHasDocument == true)
-            ? await TryGetMatchingSourceTextAsync(_debuggingSession.SessionLog, sourceText, document.FilePath, currentDocument, _debuggingSession.SourceTextProvider, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false)
-            : default;
+        var maybeMatchingSourceText = (maybePdbHasDocument == true) ?
+            await TryGetMatchingSourceTextAsync(sourceText, document.FilePath, currentDocument, _debuggingSession.SourceTextProvider, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false) : default;
 
         return (maybeMatchingSourceText, maybePdbHasDocument);
     }
 
     private static async ValueTask<Optional<SourceText?>> TryGetMatchingSourceTextAsync(
-        TraceLog log, SourceText sourceText, string filePath, Document? currentDocument, IPdbMatchingSourceTextProvider sourceTextProvider, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
+        SourceText sourceText, string filePath, Document? currentDocument, IPdbMatchingSourceTextProvider sourceTextProvider, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
     {
         if (IsMatchingSourceText(sourceText, requiredChecksum, checksumAlgorithm))
         {
@@ -342,11 +341,10 @@ internal sealed class CommittedSolution
             return SourceText.From(text, sourceText.Encoding, checksumAlgorithm);
         }
 
-        return await Task.Run(() => TryGetPdbMatchingSourceTextFromDisk(log, filePath, sourceText.Encoding, requiredChecksum, checksumAlgorithm), cancellationToken).ConfigureAwait(false);
+        return await Task.Run(() => TryGetPdbMatchingSourceTextFromDisk(filePath, sourceText.Encoding, requiredChecksum, checksumAlgorithm), cancellationToken).ConfigureAwait(false);
     }
 
     internal static async Task<IEnumerable<KeyValuePair<DocumentId, DocumentState>>> GetMatchingDocumentsAsync(
-        TraceLog log,
         IEnumerable<(Project, IEnumerable<CodeAnalysis.DocumentState>)> documentsByProject,
         Func<Project, CompilationOutputs> compilationOutputsProvider,
         IPdbMatchingSourceTextProvider sourceTextProvider,
@@ -365,7 +363,7 @@ internal sealed class CommittedSolution
                 return [];
             }
 
-            using var debugInfoReaderProvider = GetMethodDebugInfoReader(log, compilationOutputsProvider(project), project.Name);
+            using var debugInfoReaderProvider = GetMethodDebugInfoReader(compilationOutputsProvider(project), project.Name);
             if (debugInfoReaderProvider == null)
             {
                 return [];
@@ -388,8 +386,8 @@ internal sealed class CommittedSolution
 
                     // TODO: https://github.com/dotnet/roslyn/issues/51993
                     // avoid rereading the file in common case - the workspace should create source texts with the right checksum algorithm and encoding
-                    if (TryReadSourceFileChecksumFromPdb(log, debugInfoReader, sourceFilePath, out var requiredChecksum, out var checksumAlgorithm) == true &&
-                        await TryGetMatchingSourceTextAsync(log, sourceText, sourceFilePath, currentDocument: null, sourceTextProvider, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false) is { HasValue: true, Value: not null })
+                    if (TryReadSourceFileChecksumFromPdb(debugInfoReader, sourceFilePath, out var requiredChecksum, out var checksumAlgorithm) == true &&
+                        await TryGetMatchingSourceTextAsync(sourceText, sourceFilePath, currentDocument: null, sourceTextProvider, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false) is { HasValue: true, Value: not null })
                     {
                         return documentState.Id;
                     }
@@ -406,7 +404,7 @@ internal sealed class CommittedSolution
         return documentIdArrays.SelectMany(ids => ids.WhereNotNull()).Select(id => KeyValuePairUtil.Create(id, DocumentState.MatchesBuildOutput));
     }
 
-    private static DebugInformationReaderProvider? GetMethodDebugInfoReader(TraceLog log, CompilationOutputs compilationOutputs, string projectName)
+    private static DebugInformationReaderProvider? GetMethodDebugInfoReader(CompilationOutputs compilationOutputs, string projectName)
     {
         DebugInformationReaderProvider? debugInfoReaderProvider;
         try
@@ -415,14 +413,14 @@ internal sealed class CommittedSolution
 
             if (debugInfoReaderProvider == null)
             {
-                log.Write($"Source file of project '{projectName}' doesn't match output PDB: PDB '{compilationOutputs.PdbDisplayPath}' (assembly: '{compilationOutputs.AssemblyDisplayPath}') not found", LogMessageSeverity.Warning);
+                EditAndContinueService.Log.Write("Source file of project '{0}' doesn't match output PDB: PDB '{1}' (assembly: '{2}') not found", projectName, compilationOutputs.PdbDisplayPath, compilationOutputs.AssemblyDisplayPath);
             }
 
             return debugInfoReaderProvider;
         }
         catch (Exception e)
         {
-            log.Write($"Source file of project '{projectName}' doesn't match output PDB: error opening PDB '{compilationOutputs.PdbDisplayPath}' (assembly: '{compilationOutputs.AssemblyDisplayPath}'): {e.Message}", LogMessageSeverity.Warning);
+            EditAndContinueService.Log.Write("Source file of project '{0}' doesn't match output PDB: error opening PDB '{1}' (assembly: '{2}'): {3}", projectName, compilationOutputs.PdbDisplayPath, compilationOutputs.AssemblyDisplayPath, e.Message);
             return null;
         }
     }
@@ -438,12 +436,7 @@ internal sealed class CommittedSolution
     private static bool IsMatchingSourceText(SourceText sourceText, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm)
         => checksumAlgorithm == sourceText.ChecksumAlgorithm && sourceText.GetChecksum().SequenceEqual(requiredChecksum);
 
-    private static Optional<SourceText?> TryGetPdbMatchingSourceTextFromDisk(
-        TraceLog log,
-        string sourceFilePath,
-        Encoding? encoding,
-        ImmutableArray<byte> requiredChecksum,
-        SourceHashAlgorithm checksumAlgorithm)
+    private static Optional<SourceText?> TryGetPdbMatchingSourceTextFromDisk(string sourceFilePath, Encoding? encoding, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm)
     {
         try
         {
@@ -460,14 +453,14 @@ internal sealed class CommittedSolution
                 return sourceText;
             }
 
-            log.Write($"Checksum differs for source file '{sourceFilePath}'", LogMessageSeverity.Warning);
+            EditAndContinueService.Log.Write("Checksum differs for source file '{0}'", sourceFilePath);
 
             // does not match:
             return null;
         }
         catch (Exception e)
         {
-            log.Write($"Error calculating checksum for source file '{sourceFilePath}': '{e.Message}'", LogMessageSeverity.Error);
+            EditAndContinueService.Log.Write("Error calculating checksum for source file '{0}': '{1}'", sourceFilePath, e.Message);
 
             // unable to determine:
             return default;
@@ -479,7 +472,7 @@ internal sealed class CommittedSolution
         Contract.ThrowIfNull(document.FilePath);
 
         var compilationOutputs = _debuggingSession.GetCompilationOutputs(document.Project);
-        using var debugInfoReaderProvider = GetMethodDebugInfoReader(_debuggingSession.SessionLog, compilationOutputs, document.Project.Name);
+        using var debugInfoReaderProvider = GetMethodDebugInfoReader(compilationOutputs, document.Project.Name);
         if (debugInfoReaderProvider == null)
         {
             // unable to determine whether document is in the PDB
@@ -489,7 +482,7 @@ internal sealed class CommittedSolution
         }
 
         var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();
-        return TryReadSourceFileChecksumFromPdb(_debuggingSession.SessionLog, debugInfoReader, document.FilePath, out requiredChecksum, out checksumAlgorithm);
+        return TryReadSourceFileChecksumFromPdb(debugInfoReader, document.FilePath, out requiredChecksum, out checksumAlgorithm);
     }
 
     /// <summary>
@@ -498,12 +491,7 @@ internal sealed class CommittedSolution
     /// False if the document is not found in the PDB.
     /// Null if it can't be determined because the PDB is not available or an error occurred while reading the PDB.
     /// </summary>
-    private static bool? TryReadSourceFileChecksumFromPdb(
-        TraceLog log,
-        EditAndContinueMethodDebugInfoReader debugInfoReader,
-        string sourceFilePath,
-        out ImmutableArray<byte> checksum,
-        out SourceHashAlgorithm algorithm)
+    private static bool? TryReadSourceFileChecksumFromPdb(EditAndContinueMethodDebugInfoReader debugInfoReader, string sourceFilePath, out ImmutableArray<byte> checksum, out SourceHashAlgorithm algorithm)
     {
         checksum = default;
         algorithm = default;
@@ -512,7 +500,7 @@ internal sealed class CommittedSolution
         {
             if (!debugInfoReader.TryGetDocumentChecksum(sourceFilePath, out checksum, out var algorithmId))
             {
-                log.Write($"Source '{sourceFilePath}' doesn't match output PDB: no document", LogMessageSeverity.Warning);
+                EditAndContinueService.Log.Write("Source '{0}' doesn't match output PDB: no document", sourceFilePath);
                 return false;
             }
 
@@ -520,14 +508,14 @@ internal sealed class CommittedSolution
             if (algorithm == SourceHashAlgorithm.None)
             {
                 // This can only happen if the PDB was post-processed by a misbehaving tool.
-                log.Write($"Source '{sourceFilePath}' doesn't match PDB: unknown checksum alg", LogMessageSeverity.Warning);
+                EditAndContinueService.Log.Write("Source '{0}' doesn't match PDB: unknown checksum alg", sourceFilePath);
             }
 
             return true;
         }
         catch (Exception e)
         {
-            log.Write($"Source '{sourceFilePath}' doesn't match output PDB: error reading symbols: {e.Message}", LogMessageSeverity.Error);
+            EditAndContinueService.Log.Write("Source '{0}' doesn't match output PDB: error reading symbols: {1}", sourceFilePath, e.Message);
         }
 
         // unable to determine

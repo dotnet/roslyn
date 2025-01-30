@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var mockCompilationOutputsProvider = new Func<Project, CompilationOutputs>(_ => new MockCompilationOutputs(Guid.NewGuid()));
 
-            var log = new TraceLog("Test");
-
             var debuggingSession = new DebuggingSession(
                 new DebuggingSessionId(1),
                 solution,
@@ -52,8 +50,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 mockCompilationOutputsProvider,
                 NullPdbMatchingSourceTextProvider.Instance,
                 initialDocumentStates: [],
-                log,
-                log,
                 reportDiagnostics: true);
 
             if (initialState != CommittedSolution.DocumentState.None)

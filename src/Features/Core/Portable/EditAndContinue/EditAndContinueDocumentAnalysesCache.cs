@@ -21,13 +21,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// The work is triggered by an incremental analyzer on idle or explicitly when "continue" operation is executed.
 /// Contains analyses of the latest observed document versions.
 /// </summary>
-internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveStatementsMap> baseActiveStatements, AsyncLazy<EditAndContinueCapabilities> capabilities, TraceLog log)
+internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveStatementsMap> baseActiveStatements, AsyncLazy<EditAndContinueCapabilities> capabilities)
 {
     private readonly object _guard = new();
     private readonly Dictionary<DocumentId, (AsyncLazy<DocumentAnalysisResults> results, Project baseProject, Document document, ImmutableArray<ActiveStatementLineSpan> activeStatementSpans)> _analyses = [];
     private readonly AsyncLazy<ActiveStatementsMap> _baseActiveStatements = baseActiveStatements;
     private readonly AsyncLazy<EditAndContinueCapabilities> _capabilities = capabilities;
-    private readonly TraceLog _log = log;
 
     public async ValueTask<ImmutableArray<DocumentAnalysisResults>> GetDocumentAnalysesAsync(
         CommittedSolution oldSolution,
@@ -188,7 +187,7 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
                 try
                 {
                     var analyzer = arg.document.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
-                    return await analyzer.AnalyzeDocumentAsync(arg.baseProject, arg.self._baseActiveStatements, arg.document, arg.activeStatementSpans, arg.self._capabilities, arg.self._log, cancellationToken).ConfigureAwait(false);
+                    return await analyzer.AnalyzeDocumentAsync(arg.baseProject, arg.self._baseActiveStatements, arg.document, arg.activeStatementSpans, arg.self._capabilities, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {

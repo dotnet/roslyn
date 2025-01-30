@@ -44,19 +44,19 @@ internal static partial class Extensions
     {
         if (project.FilePath == null)
         {
-            log?.Write($"Project '{project.Name}' ('{project.Id.DebugName}') doesn't support EnC: no file path");
+            log?.Write("Project '{0}' (id '{1}') doesn't support EnC: no file path", project.Name, project.Id);
             return false;
         }
 
         if (project.Services.GetService<IEditAndContinueAnalyzer>() == null)
         {
-            log?.Write($"Project '{project.FilePath}' doesn't support EnC: no EnC service");
+            log?.Write("Project '{0}' doesn't support EnC: no EnC service", project.FilePath);
             return false;
         }
 
         if (!project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory)
         {
-            log?.Write($"Project '{project.FilePath}' doesn't support EnC: no generated files output directory");
+            log?.Write("Project '{0}' doesn't support EnC: no generated files output directory", project.FilePath);
             return false;
         }
 

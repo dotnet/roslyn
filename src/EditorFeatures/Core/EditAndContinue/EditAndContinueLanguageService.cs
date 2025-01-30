@@ -9,12 +9,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
 
@@ -29,12 +31,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class EditAndContinueLanguageService(
+    IServiceBrokerProvider serviceBrokerProvider,
     EditAndContinueSessionState sessionState,
     Lazy<IHostWorkspaceProvider> workspaceProvider,
     Lazy<IManagedHotReloadService> debuggerService,
     PdbMatchingSourceTextProvider sourceTextProvider,
-    IEditAndContinueLogReporter logReporter,
-    IDiagnosticsRefresher diagnosticRefresher) : IManagedHotReloadLanguageService2, IEditAndContinueSolutionProvider
+    IDiagnosticsRefresher diagnosticRefresher,
+    IAsynchronousOperationListenerProvider listenerProvider) : IManagedHotReloadLanguageService2, IEditAndContinueSolutionProvider
 {
     private sealed class NoSessionException : InvalidOperationException
     {
@@ -45,6 +48,9 @@ internal sealed class EditAndContinueLanguageService(
             HResult = unchecked((int)0x801315087);
         }
     }
+
+    private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.EditAndContinue);
+    private readonly HotReloadLoggerProxy _logger = new(serviceBrokerProvider.ServiceBroker);
 
     private bool _disabled;
     private RemoteDebuggingSessionProxy? _debuggingSession;
@@ -88,7 +94,11 @@ internal sealed class EditAndContinueLanguageService(
     internal void Disable(Exception e)
     {
         _disabled = true;
-        logReporter.Report(e.ToString(), LogMessageSeverity.Error);
+
+        var token = _asyncListener.BeginAsyncOperation(nameof(EditAndContinueLanguageService) + ".LogToOutput");
+
+        _ = _logger.LogAsync(new HotReloadLogMessage(HotReloadVerbosity.Diagnostic, e.ToString(), errorLevel: HotReloadDiagnosticErrorLevel.Error), CancellationToken.None).AsTask()
+            .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
     }
 
     private void UpdateApplyChangesDiagnostics(ImmutableArray<DiagnosticData> diagnostics)
@@ -255,7 +265,7 @@ internal sealed class EditAndContinueLanguageService(
         }
 
         _committedDesignTimeSolution = currentDesignTimeSolution;
-        var projectIds = GetProjectIds(projectPaths, currentCompileTimeSolution);
+        var projectIds = await GetProjectIdsAsync(projectPaths, currentCompileTimeSolution, cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -271,7 +281,7 @@ internal sealed class EditAndContinueLanguageService(
         }
     }
 
-    private ImmutableArray<ProjectId> GetProjectIds(ImmutableArray<string> projectPaths, Solution solution)
+    private async ValueTask<ImmutableArray<ProjectId>> GetProjectIdsAsync(ImmutableArray<string> projectPaths, Solution solution, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<ProjectId>.GetInstance(out var projectIds);
         foreach (var path in projectPaths)
@@ -283,7 +293,11 @@ internal sealed class EditAndContinueLanguageService(
             }
             else
             {
-                logReporter.Report($"Project with path '{path}' not found in the current solution.", LogMessageSeverity.Info);
+                await _logger.LogAsync(new HotReloadLogMessage(
+                    HotReloadVerbosity.Diagnostic,
+                    $"Project with path '{path}' not found in the current solution.",
+                    errorLevel: HotReloadDiagnosticErrorLevel.Warning),
+                    cancellationToken).ConfigureAwait(false);
             }
         }
 

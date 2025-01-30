@@ -120,11 +120,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         End Sub
 
         Private Shared Async Function AnalyzeDocumentAsync(oldProject As Project, newDocument As Document, Optional activeStatementMap As ActiveStatementsMap = Nothing) As Task(Of DocumentAnalysisResults)
-            Dim analyzer = oldProject.Services.GetRequiredService(Of IEditAndContinueAnalyzer)
+            Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
             Dim baseActiveStatements = AsyncLazy.Create(If(activeStatementMap, ActiveStatementsMap.Empty))
             Dim capabilities = AsyncLazy.Create(EditAndContinueTestVerifier.Net5RuntimeCapabilities)
-            Dim log = New TraceLog("Test")
-            Return Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray(Of ActiveStatementLineSpan).Empty, capabilities, log, CancellationToken.None)
+            Return Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray(Of ActiveStatementLineSpan).Empty, capabilities, CancellationToken.None)
         End Function
 #End Region
 
