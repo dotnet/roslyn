@@ -147,6 +147,10 @@
   <!-- Workaround to fix https://github.com/dotnet/msbuild/issues/10306 -->
   <Target Name="ExtensionJsonOutputGroupFixed" Returns="@(ExtensionJsonOutputGroupOutput)" DependsOnTargets="PrepareResources;ExtensionJsonOutputGroup" />
 
+  <!-- Import workarounds for the fast up to date check, but only if VsSdkTargetsImported is set which is set in the VS SDK targets themselves;
+       if we don't have that condition, we might try to include it when we don't have some targets we depend on, and things will break -->
+  <Import Project="VisualStudio.FastUpToDateCheckWorkarounds.targets" Condition="'$(VsSdkTargetsImported)' == 'true'"/>
+
   <!--
     Workaround for missing dependency publishing feature in the VS SDK.
     
