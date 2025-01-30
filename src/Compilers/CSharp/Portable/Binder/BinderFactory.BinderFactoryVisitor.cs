@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    if (kind is SymbolKind.Method or SymbolKind.Property)
+                    if (kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
                     {
                         if (InSpan(sym.GetFirstLocation(), this.syntaxTree, memberSpan))
                         {
@@ -613,6 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 MethodSymbol method => (Symbol)method.PartialImplementationPart,
                                 SourcePropertySymbol property => property.PartialImplementationPart,
+                                SourceEventSymbol ev => ev.PartialImplementationPart,
                                 _ => throw ExceptionUtilities.UnexpectedValue(sym)
                             }
 #pragma warning restore format

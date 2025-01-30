@@ -170,6 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create<EventSymbol>(explicitlyImplementedEvent);
         }
 
+        protected override bool IsFieldLike => false;
+
         public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }

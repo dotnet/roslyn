@@ -1667,6 +1667,11 @@
         <target state="translated">Der Params-Parameter muss einen gültigen Sammlungstyp aufweisen</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialEventInitializer">
+        <source>'{0}': partial event cannot have initializer</source>
+        <target state="new">'{0}': partial event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
         <source>Both partial member declarations must have identical accessibility modifiers.</source>
         <target state="translated">Beide Deklarationen des partiellen Mitglieds müssen identische Zugriffsmodifizierer aufweisen.</target>
@@ -1677,9 +1682,29 @@
         <target state="translated">Ein partielles Mitglied darf nicht den Modifizierer "abstract" aufweisen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateDefinition">
+        <source>Partial member '{0}' may not have multiple defining declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple defining declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateImplementation">
+        <source>Partial member '{0}' may not have multiple implementing declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple implementing declarations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
         <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
         <target state="translated">Beide Deklarationen des partiellen Mitglieds ("{0}" und "{1}") müssen die gleichen Tupelelementnamen verwenden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingDefinition">
+        <source>Partial member '{0}' must have a definition part.</source>
+        <target state="new">Partial member '{0}' must have a definition part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingImplementation">
+        <source>Partial member '{0}' must have an implementation part.</source>
+        <target state="new">Partial member '{0}' must have an implementation part.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
@@ -2530,6 +2555,11 @@
       <trans-unit id="IDS_FeatureParamsCollections">
         <source>params collections</source>
         <target state="translated">Params-Sammlungen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePartialEventsAndConstructors">
+        <source>partial events and constructors</source>
+        <target state="new">partial events and constructors</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -6704,8 +6734,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="translated">Der partial-Modifizierer kann nur unmittelbar vor "class", "record", "struct", "interface" oder einem Methoden- Eigenschaftsrückgabetyp verwendet werden.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor identifier, or a method or property return type.</source>
+        <target state="needs-review-translation">Der partial-Modifizierer kann nur unmittelbar vor "class", "record", "struct", "interface" oder einem Methoden- Eigenschaftsrückgabetyp verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

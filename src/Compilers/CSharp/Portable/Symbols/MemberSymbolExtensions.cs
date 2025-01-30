@@ -551,7 +551,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member
                 is SourceOrdinaryMethodSymbol { IsPartial: true }
                 or SourcePropertySymbol { IsPartial: true }
-                or SourcePropertyAccessorSymbol { IsPartial: true };
+                or SourcePropertyAccessorSymbol { IsPartial: true }
+                or SourceConstructorSymbol { IsPartial: true }
+                or SourceEventSymbol { IsPartial: true };
         }
 
         internal static bool IsPartialImplementation(this Symbol member)
@@ -560,7 +562,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member
                 is SourceOrdinaryMethodSymbol { IsPartialImplementation: true }
                 or SourcePropertySymbol { IsPartialImplementation: true }
-                or SourcePropertyAccessorSymbol { IsPartialImplementation: true };
+                or SourcePropertyAccessorSymbol { IsPartialImplementation: true }
+                or SourceConstructorSymbol { IsPartialImplementation: true }
+                or SourceEventSymbol { IsPartialImplementation: true };
         }
 
         internal static bool IsPartialDefinition(this Symbol member)
@@ -569,7 +573,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member
                 is SourceOrdinaryMethodSymbol { IsPartialDefinition: true }
                 or SourcePropertySymbol { IsPartialDefinition: true }
-                or SourcePropertyAccessorSymbol { IsPartialDefinition: true };
+                or SourcePropertyAccessorSymbol { IsPartialDefinition: true }
+                or SourceConstructorSymbol { IsPartialDefinition: true }
+                or SourceEventSymbol { IsPartialDefinition: true };
         }
 
         internal static bool ContainsTupleNames(this Symbol member)

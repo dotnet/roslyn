@@ -223,6 +223,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        internal static void CheckFeatureAvailabilityForPartialEventsAndConstructors(Location location, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(location.SourceTree is not null);
+
+            LanguageVersion availableVersion = ((CSharpParseOptions)location.SourceTree.Options).LanguageVersion;
+            LanguageVersion requiredVersion = MessageID.IDS_FeaturePartialEventsAndConstructors.RequiredVersion();
+            if (availableVersion < requiredVersion)
+            {
+                ReportUnsupportedModifiersForLanguageVersion(
+                    DeclarationModifiers.Partial,
+                    DeclarationModifiers.Partial,
+                    location,
+                    diagnostics,
+                    availableVersion,
+                    requiredVersion);
+            }
+        }
+#nullable disable
+
         internal static DeclarationModifiers AdjustModifiersForAnInterfaceMember(DeclarationModifiers mods, bool hasBody, bool isExplicitInterfaceImplementation)
         {
             if (isExplicitInterfaceImplementation)

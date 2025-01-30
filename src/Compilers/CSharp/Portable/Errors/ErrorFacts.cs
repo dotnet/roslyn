@@ -2479,6 +2479,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature
                 or ErrorCode.ERR_ImplicitlyTypedParamsParameter
                 or ErrorCode.ERR_VariableDeclarationNamedField
+                or ErrorCode.ERR_PartialMemberMissingImplementation
+                or ErrorCode.ERR_PartialMemberMissingDefinition
+                or ErrorCode.ERR_PartialMemberDuplicateDefinition
+                or ErrorCode.ERR_PartialMemberDuplicateImplementation
+                or ErrorCode.ERR_PartialEventInitializer
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -12,6 +10,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceConstructorSymbol : SourceConstructorSymbolBase
     {
+        private SourceConstructorSymbol? _otherPartOfPartial;
+
+#nullable disable
         public static SourceConstructorSymbol CreateConstructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
             ConstructorDeclarationSyntax syntax,
@@ -88,10 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool modifierErrors,
             out bool report_ERR_StaticConstructorWithAccessModifiers)
         {
-            DeclarationModifiers declarationModifiers = MakeModifiers(containingType, syntax, methodKind, syntax.HasAnyBody(), location, diagnostics, out modifierErrors, out report_ERR_StaticConstructorWithAccessModifiers);
-            Flags flags = MakeFlags(
-                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, returnsVoidIsSet: true,
-                isExpressionBodied: syntax.IsExpressionBodied(), isExtensionMethod: false, isVarArg: syntax.IsVarArg(),
+            bool hasAnyBody = syntax.HasAnyBody();
+            DeclarationModifiers declarationModifiers = MakeModifiers(containingType, syntax, methodKind, hasAnyBody, location, diagnostics, out modifierErrors, out report_ERR_StaticConstructorWithAccessModifiers);
+            Flags flags = new Flags(
+                methodKind, RefKind.None, declarationModifiers, returnsVoid: true, returnsVoidIsSet: true, hasAnyBody: hasAnyBody,
+                isExpressionBodied: syntax.IsExpressionBodied(), isExtensionMethod: false, isVararg: syntax.IsVarArg(),
                 isNullableAnalysisEnabled: isNullableAnalysisEnabled, isExplicitInterfaceImplementation: false,
                 hasThisInitializer: hasThisInitializer);
 
@@ -126,11 +128,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var defaultAccess = (methodKind == MethodKind.StaticConstructor) ? DeclarationModifiers.None : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
-            const DeclarationModifiers allowedModifiers =
+            DeclarationModifiers allowedModifiers =
                 DeclarationModifiers.AccessibilityMask |
                 DeclarationModifiers.Static |
                 DeclarationModifiers.Extern |
                 DeclarationModifiers.Unsafe;
+
+            if (methodKind == MethodKind.Constructor)
+            {
+                allowedModifiers |= DeclarationModifiers.Partial;
+            }
 
             bool isInterface = containingType.IsInterface;
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface, syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
@@ -164,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckModifiers(MethodKind methodKind, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
         {
-            if (!hasBody && !IsExtern)
+            if (!hasBody && !IsExtern && !IsPartial)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -175,6 +182,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ContainingType.IsStatic && methodKind == MethodKind.Constructor)
             {
                 diagnostics.Add(ErrorCode.ERR_ConstructorInStaticClass, location);
+            }
+            else if (IsPartial && !ContainingType.IsPartial())
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberOnlyInPartialClass, location);
+            }
+
+            if (IsPartial)
+            {
+                ModifierUtils.CheckFeatureAvailabilityForPartialEventsAndConstructors(location, diagnostics);
             }
         }
 
@@ -212,6 +228,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             offset = -1;
             return false;
+        }
+
+#nullable enable
+        public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : HasExternModifier;
+
+        private bool HasAnyBody => flags.HasAnyBody;
+
+        internal bool IsPartialDefinition => IsPartial && !HasAnyBody && !HasExternModifier;
+
+        internal bool IsPartialImplementation => IsPartial && (HasAnyBody || HasExternModifier);
+
+        internal SourceConstructorSymbol? OtherPartOfPartial => _otherPartOfPartial;
+
+        public override MethodSymbol? PartialDefinitionPart => IsPartialImplementation ? OtherPartOfPartial : null;
+
+        public override MethodSymbol? PartialImplementationPart => IsPartialDefinition ? OtherPartOfPartial : null;
+
+        internal static void InitializePartialConstructorParts(SourceConstructorSymbol definition, SourceConstructorSymbol implementation)
+        {
+            Debug.Assert(definition.IsPartialDefinition);
+            Debug.Assert(implementation.IsPartialImplementation);
+
+            Debug.Assert(definition._otherPartOfPartial is not { } alreadySetImplPart || alreadySetImplPart == implementation);
+            Debug.Assert(implementation._otherPartOfPartial is not { } alreadySetDefPart || alreadySetDefPart == definition);
+
+            definition._otherPartOfPartial = implementation;
+            implementation._otherPartOfPartial = definition;
+
+            Debug.Assert(definition._otherPartOfPartial == implementation);
+            Debug.Assert(implementation._otherPartOfPartial == definition);
         }
     }
 }
