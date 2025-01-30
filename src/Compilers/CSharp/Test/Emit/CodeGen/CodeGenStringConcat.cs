@@ -2138,5 +2138,44 @@ class Test
                 }
                 """);
         }
+
+        [Fact]
+        public void CompoundAdditionDirectConcatOptimization()
+        {
+            var source = """
+                string s1 = "a";
+                string s2 = "b";
+                string s3 = "c";
+                string s4 = "d";
+
+                s1 += $"{s2}{s3}{s4}";
+
+                System.Console.WriteLine(s1);
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "abcd");
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       37 (0x25)
+                  .maxstack  4
+                  .locals init (string V_0, //s2
+                                string V_1, //s3
+                                string V_2) //s4
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  ldstr      "b"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldstr      "c"
+                  IL_0010:  stloc.1
+                  IL_0011:  ldstr      "d"
+                  IL_0016:  stloc.2
+                  IL_0017:  ldloc.0
+                  IL_0018:  ldloc.1
+                  IL_0019:  ldloc.2
+                  IL_001a:  call       "string string.Concat(string, string, string, string)"
+                  IL_001f:  call       "void System.Console.WriteLine(string)"
+                  IL_0024:  ret
+                }
+                """);
+        }
     }
 }

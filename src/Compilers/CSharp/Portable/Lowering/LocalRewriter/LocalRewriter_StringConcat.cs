@@ -38,8 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 arguments = ArrayBuilder<BoundExpression>.GetInstance();
-                arguments.Add(left);
-                arguments.Add(VisitExpression(unvisitedRight));
+                var concatMethods = new WellKnownConcatRelatedMethods(_compilation);
+                AddConcatArgument(unvisitedRight, argumentAlreadyVisited: false, arguments, ref concatMethods);
+                AddConcatArgument(left, argumentAlreadyVisited: true, arguments, ref concatMethods);
+                arguments.ReverseContents();
             }
 
             return RewriteStringConcat(syntax, arguments);
@@ -220,7 +222,7 @@ fallbackStrings:
                     }
                     else
                     {
-                        addArgument(self, binaryOperator.Right, argumentAlreadyVisited: false, arguments, ref concatMethods);
+                        self.AddConcatArgument(binaryOperator.Right, argumentAlreadyVisited: false, arguments, ref concatMethods);
                     }
 
                     if (shouldRecurse(binaryOperator.Left, out var left))
@@ -229,7 +231,7 @@ fallbackStrings:
                     }
                     else
                     {
-                        addArgument(self, binaryOperator.Left, argumentAlreadyVisited: false, arguments, ref concatMethods);
+                        self.AddConcatArgument(binaryOperator.Left, argumentAlreadyVisited: false, arguments, ref concatMethods);
                         break;
                     }
                 }
@@ -248,66 +250,66 @@ fallbackStrings:
                         return false;
                     }
                 }
+            }
+        }
 
-                static void addArgument(LocalRewriter self, BoundExpression argument, bool argumentAlreadyVisited, ArrayBuilder<BoundExpression> finalArguments, ref WellKnownConcatRelatedMethods wellKnownConcatOptimizationMethods)
+        private void AddConcatArgument(BoundExpression argument, bool argumentAlreadyVisited, ArrayBuilder<BoundExpression> finalArguments, ref WellKnownConcatRelatedMethods wellKnownConcatOptimizationMethods)
+        {
+            if (!argumentAlreadyVisited)
+            {
+                argument = VisitExpression(argument);
+            }
+
+            if (argument is BoundConversion { ConversionKind: ConversionKind.Boxing, Type.SpecialType: SpecialType.System_Object, Operand: { Type.SpecialType: SpecialType.System_Char } operand })
+            {
+                argument = operand;
+            }
+
+            if (argument is BoundCall call)
+            {
+                if (wellKnownConcatOptimizationMethods.IsWellKnownConcatMethod(call, out var concatArguments))
                 {
-                    if (!argumentAlreadyVisited)
+                    for (int i = concatArguments.Length - 1; i >= 0; i--)
                     {
-                        argument = self.VisitExpression(argument);
+                        AddConcatArgument(concatArguments[i], argumentAlreadyVisited: true, finalArguments, ref wellKnownConcatOptimizationMethods);
                     }
 
-                    if (argument is BoundConversion { ConversionKind: ConversionKind.Boxing, Type.SpecialType: SpecialType.System_Object, Operand: { Type.SpecialType: SpecialType.System_Char } operand })
-                    {
-                        argument = operand;
-                    }
-
-                    if (argument is BoundCall call)
-                    {
-                        if (wellKnownConcatOptimizationMethods.IsWellKnownConcatMethod(call, out var concatArguments))
-                        {
-                            for (int i = concatArguments.Length - 1; i >= 0; i--)
-                            {
-                                addArgument(self, concatArguments[i], argumentAlreadyVisited: true, finalArguments, ref wellKnownConcatOptimizationMethods);
-                            }
-
-                            return;
-                        }
-                        else if (wellKnownConcatOptimizationMethods.IsCharToString(call, out var charExpression))
-                        {
-                            argument = charExpression;
-                        }
-                    }
-
-                    // This is `strValue ?? ""`, possibly from a nested binary addition of an interpolated string. We can just directly use the left operand
-                    if (argument is BoundNullCoalescingOperator { LeftOperand: { Type.SpecialType: SpecialType.System_String } left, RightOperand: BoundLiteral { ConstantValueOpt: { IsString: true, RopeValue.IsEmpty: true } } })
-                    {
-                        argument = left;
-                    }
-
-                    switch (argument.ConstantValueOpt)
-                    {
-                        case { IsNull: true } or { IsString: true, RopeValue.IsEmpty: true }:
-                            // If this is a null constant or an empty string, then we don't need to include it in the final arguments list
-                            return;
-
-                        case { IsString: true } or { IsChar: true }:
-                            // See if we can merge this argument with the previous one
-                            if (finalArguments.Count > 0 && finalArguments[^1].ConstantValueOpt is { IsString: true } or { IsChar: true })
-                            {
-                                var constantValue = finalArguments[^1].ConstantValueOpt!;
-                                var previous = getRope(constantValue);
-                                var current = getRope(argument.ConstantValueOpt!);
-                                // We're visiting arguments in reverse order, so we need to prepend this constant value, not append
-                                finalArguments[^1] = self._factory.StringLiteral(ConstantValue.CreateFromRope(Rope.Concat(current, previous)));
-                                return;
-                            }
-
-                            break;
-                    }
-
-                    finalArguments.Add(argument);
+                    return;
+                }
+                else if (wellKnownConcatOptimizationMethods.IsCharToString(call, out var charExpression))
+                {
+                    argument = charExpression;
                 }
             }
+
+            // This is `strValue ?? ""`, possibly from a nested binary addition of an interpolated string. We can just directly use the left operand
+            if (argument is BoundNullCoalescingOperator { LeftOperand: { Type.SpecialType: SpecialType.System_String } left, RightOperand: BoundLiteral { ConstantValueOpt: { IsString: true, RopeValue.IsEmpty: true } } })
+            {
+                argument = left;
+            }
+
+            switch (argument.ConstantValueOpt)
+            {
+                case { IsNull: true } or { IsString: true, RopeValue.IsEmpty: true }:
+                    // If this is a null constant or an empty string, then we don't need to include it in the final arguments list
+                    return;
+
+                case { IsString: true } or { IsChar: true }:
+                    // See if we can merge this argument with the previous one
+                    if (finalArguments.Count > 0 && finalArguments[^1].ConstantValueOpt is { IsString: true } or { IsChar: true })
+                    {
+                        var constantValue = finalArguments[^1].ConstantValueOpt!;
+                        var previous = getRope(constantValue);
+                        var current = getRope(argument.ConstantValueOpt!);
+                        // We're visiting arguments in reverse order, so we need to prepend this constant value, not append
+                        finalArguments[^1] = _factory.StringLiteral(ConstantValue.CreateFromRope(Rope.Concat(current, previous)));
+                        return;
+                    }
+
+                    break;
+            }
+
+            finalArguments.Add(argument);
 
             static Rope getRope(ConstantValue constantValue)
             {
