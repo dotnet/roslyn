@@ -165,6 +165,7 @@
   
   <PropertyGroup>
     <CreateVsixContainerDependsOn>$(CreateVsixContainerDependsOn);PublishProjectReferencesForVsixCreation</CreateVsixContainerDependsOn>
+    <CollectUpToDateCheckInputDesignTimeDependsOn>$(CollectUpToDateCheckInputDesignTimeDependsOn);AddUpToDateCheckItemsForPublishProjectReferences</CollectUpToDateCheckInputDesignTimeDependsOn>
   </PropertyGroup>
 
   <Target Name="PublishProjectReferencesForVsixCreation">
@@ -177,5 +178,23 @@
              Properties="%(_ProjectsToPublish.SetConfiguration);%(_ProjectsToPublish.SetPlatform);%(_ProjectsToPublish.SetTargetFramework)"
              Targets="PublishVsixItems"
              RebaseOutputs="true" />
+  </Target>
+
+  <Target Name="AddUpToDateCheckItemsForPublishProjectReferences">
+    <ItemGroup>
+      <_ProjectsToPublishForUpToDateCheck Include="@(ProjectReference)" Condition="$([MSBuild]::ValueOrDefault('%(ProjectReference.IncludeOutputGroupsInVSIX)', '').Contains('PublishedProjectOutputGroup'))"/>
+    </ItemGroup>
+    <MSBuild Projects="@(_ProjectsToPublishForUpToDateCheck)"
+           BuildInParallel="$(BuildInParallel)"
+           Properties="%(_ProjectsToPublish.SetConfiguration);%(_ProjectsToPublish.SetPlatform);%(_ProjectsToPublish.SetTargetFramework)"
+           Targets="PublishItemsOutputGroup"
+           RebaseOutputs="true"
+           ContinueOnError="$(ContinueOnError)">
+      <Output TaskParameter="TargetOutputs" ItemName="_PublishUpToDateInputs" />
+    </MSBuild>
+
+    <ItemGroup>
+      <UpToDateCheckInput Include="@(_PublishUpToDateInputs)" Set="VSIX" />
+    </ItemGroup>
   </Target>
 </Project>
