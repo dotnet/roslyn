@@ -291,3 +291,20 @@ unsafe record struct R(
     public bool Equals(R other) => true;
 }
 ```
+
+## `partial` cannot be a return type of methods
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+The [partial events and constructors](https://github.com/dotnet/csharplang/issues/9058) language feature
+allows the `partial` modifier in more places and so it cannot be a return type unless escaped:
+
+```cs
+class C
+{
+    partial F() => new partial(); // previously worked
+    @partial F() => new partial(); // workaround
+}
+
+class partial { }
+```
