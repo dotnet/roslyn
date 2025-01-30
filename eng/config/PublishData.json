@@ -247,7 +247,7 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.14",
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.14 P1]",
       "insertionCreateDraftPR": false
@@ -259,8 +259,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.14 P2 Validation]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.14 P2]"
     },
     "dev/andrha/telemetry": {
       "nugetKind": [
