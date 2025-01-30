@@ -587,7 +587,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
         comp.MakeMemberMissing(SpecialMember.System_Object__ToString);
 
         // We don't use object.ToString() or char.ToString() in the final codegen.
-        var verifier = CompileAndVerify(comp, expectedOutput: "sccs");
+        var verifier = CompileAndVerify(comp, expectedOutput: "sccs", verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("Test.M1", """
             {
@@ -2136,7 +2136,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
         comp.MakeMemberMissing(SpecialMember.System_Object__ToString);
 
-        var verifier = CompileAndVerify(comp, expectedOutput: "cssscsssccsc");
+        var verifier = CompileAndVerify(comp, expectedOutput: "cssscsssccsc", verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
 
         verifier.VerifyIL("Test.M1", """
@@ -4827,7 +4827,7 @@ public class CodeGenSpanBasedStringConcatTests : CSharpTestBase
         comp.MakeMemberMissing(SpecialMember.System_Object__ToString);
 
         // We don't use object.ToString() or char.ToString() in the final codegen.
-        var verifier = CompileAndVerify(compilation: comp, expectedOutput: "csssscsssscssssccscsscsccssc");
+        var verifier = CompileAndVerify(compilation: comp, expectedOutput: "csssscsssscssssccscsscsccssc", verify: Verification.FailsPEVerify);
         verifier.VerifyDiagnostics();
 
         verifier.VerifyIL("Test.M1", """
