@@ -10602,15 +10602,15 @@ class C(string p)
 
                 public class C
                 {
-                    public static string? field;
+                    public static string? _field;
 
                     public Action Prop1 { get; } = () =>
                     {
                         init();
-                        Console.WriteLine(field.Length);
+                        Console.WriteLine(_field.Length);
 
-                        [MemberNotNull(nameof(field))]
-                        {{modifiers}}void init() => field ??= "";
+                        [MemberNotNull(nameof(_field))]
+                        {{modifiers}}void init() => _field ??= "";
                     };
                 }
                 """;
@@ -10631,15 +10631,15 @@ class C(string p)
 
                 public class C
                 {
-                    public static string? field;
+                    public static string? _field;
 
-                    public Action field2 = () =>
+                    public Action _field2 = () =>
                     {
                         init();
-                        Console.WriteLine(field.Length);
+                        Console.WriteLine(_field.Length);
 
-                        [MemberNotNull(nameof(field))]
-                        {{modifiers}}void init() => field ??= "";
+                        [MemberNotNull(nameof(_field))]
+                        {{modifiers}}void init() => _field ??= "";
                     };
                 }
                 """;
@@ -10660,15 +10660,15 @@ class C(string p)
 
                 public class C
                 {
-                    public static string? field;
+                    public static string? _field;
 
                     public Action Prop1 { get; } = static () =>
                     {
                         init();
-                        Console.WriteLine(field.Length);
+                        Console.WriteLine(_field.Length);
 
-                        [MemberNotNull(nameof(field))]
-                        {{modifiers}}void init() => field ??= "";
+                        [MemberNotNull(nameof(_field))]
+                        {{modifiers}}void init() => _field ??= "";
                     };
                 }
                 """;
@@ -10688,15 +10688,15 @@ class C(string p)
 
                 public class C(string p)
                 {
-                    public static string? field;
+                    public static string? _field;
 
-                    public Action field2 = () =>
+                    public Action _field2 = () =>
                     {
                         init();
-                        Console.WriteLine(field.Length);
+                        Console.WriteLine(_field.Length);
 
-                        [MemberNotNull(nameof(field))]
-                        {{(isStatic ? "static " : "")}}void init() => field ??= p;
+                        [MemberNotNull(nameof(_field))]
+                        {{(isStatic ? "static " : "")}}void init() => _field ??= p;
                     };
 
                     string M() => p;
@@ -10704,9 +10704,9 @@ class C(string p)
                 """;
             var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(isStatic ? [
-                    // (16,41): error CS8421: A static local function cannot contain a reference to 'p'.
-                    //         static void init() => field ??= p;
-                    Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "p").WithArguments("p").WithLocation(16, 41)
+                // (16,42): error CS8421: A static local function cannot contain a reference to 'p'.
+                //         static void init() => _field ??= p;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "p").WithArguments("p").WithLocation(16, 42)
                 ] : []);
         }
     }
