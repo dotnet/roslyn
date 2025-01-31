@@ -2611,10 +2611,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             void executeNodeActionsByKind(ArrayBuilder<SyntaxNode> nodesToAnalyze, GroupedAnalyzerActions groupedActions, bool arePerSymbolActions)
             {
+                if (groupedActions.GroupedActionsByAnalyzer.Length == 0)
+                {
+                    return;
+                }
+
+                var analyzersForNodes = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
+                foreach (var node in nodesToAnalyze)
+                {
+                    if (groupedActions.AnalyzersByKind.TryGetValue(_getKind(node), out var analyzersForKind))
+                    {
+                        foreach (var analyzer in analyzersForKind)
+                        {
+                            analyzersForNodes.Add(analyzer);
+                        }
+                    }
+                }
+
                 foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActions.GroupedActionsByAnalyzer)
                 {
-                    var nodeActionsByKind = groupedActionsForAnalyzer.NodeActionsByAnalyzerAndKind;
-                    if (nodeActionsByKind.IsEmpty || !analysisScope.Contains(analyzer))
+                    if (!analyzersForNodes.Contains(analyzer) || !analysisScope.Contains(analyzer))
                     {
                         continue;
                     }
@@ -2641,6 +2657,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         executeSyntaxNodeActions(analyzer, groupedActionsForAnalyzer, nodesToAnalyze);
                     }
                 }
+
+                analyzersForNodes.Free();
 
                 void executeSyntaxNodeActions(
                     DiagnosticAnalyzer analyzer,

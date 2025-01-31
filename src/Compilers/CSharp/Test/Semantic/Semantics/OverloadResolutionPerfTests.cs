@@ -1061,5 +1061,33 @@ class C
             var containingTypes = exprs.SelectAsArray(e => model.GetSymbolInfo(e).Symbol.ContainingSymbol).ToTestDisplayStrings();
             Assert.Equal(new[] { "A", "B", "B", "A", "B", "B" }, containingTypes);
         }
+
+        [ConditionalFact(typeof(IsRelease))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76568")]
+        public void NullableAnalysis_ObjectCreationExpression()
+        {
+            const int n = 200000;
+            var builder = new StringBuilder();
+            builder.AppendLine("""
+                #nullable enable
+                class A { }
+                class B
+                {
+                    static void Main()
+                    {
+                        A a;
+                """);
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine("        a = new A();");
+            }
+            builder.AppendLine("""
+                    }
+                }
+                """);
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }

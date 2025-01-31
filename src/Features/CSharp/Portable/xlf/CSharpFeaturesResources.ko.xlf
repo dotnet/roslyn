@@ -399,7 +399,7 @@
       </trans-unit>
       <trans-unit id="required_property">
         <source>required property</source>
-        <target state="new">required property</target>
+        <target state="translated">필수 속성</target>
         <note />
       </trans-unit>
       <trans-unit id="reversed_for_loop">

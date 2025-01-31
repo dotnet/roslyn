@@ -18,10 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
             MyBase.New(s_title)
         End Sub
 
-        Protected Overrides Function SupportsUnboundGenerics(options As ParseOptions) As Boolean
-            Return False
-        End Function
-
         Protected Overrides Function IsValidTypeofAction(context As OperationAnalysisContext) As Boolean
             Dim node = context.Operation.Syntax
             Dim compilation = context.Compilation
