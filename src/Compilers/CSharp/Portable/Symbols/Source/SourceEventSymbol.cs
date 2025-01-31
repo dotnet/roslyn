@@ -57,11 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool modifierErrors;
             _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isFieldLike, _location, diagnostics, out modifierErrors);
             this.CheckAccessibility(_location, diagnostics, isExplicitInterfaceImplementation);
-
-            if (IsPartial)
-            {
-                ModifierUtils.CheckFeatureAvailabilityForPartialEventsAndConstructors(_location, diagnostics);
-            }
         }
 
         public Location Location
@@ -632,6 +627,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // '{0}' is a new virtual member in sealed type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
+            }
+
+            if (IsPartial)
+            {
+                ModifierUtils.CheckFeatureAvailabilityForPartialEventsAndConstructors(_location, diagnostics);
             }
 
             diagnostics.Add(location, useSiteInfo);
