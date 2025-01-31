@@ -161,19 +161,20 @@ internal sealed class EventMap
             // will raise that as a fatal exception, but OperationCancelledExceptions might be able to propagate through and fault the task we are using in the
             // chain. I'm choosing to use ReportWithoutCrashAndPropagate, because if our theory here is correct, it seems the first exception isn't actually
             // causing crashes, and so if it turns out this is a very common situation I don't want to make a often-benign situation fatal.
-            try
+            if (this.HasHandlers)
             {
-                if (this.HasHandlers)
+                foreach (var registry in _registries)
                 {
-                    foreach (var registry in _registries)
+                    try
                     {
                         registry.Invoke(invoker, arg);
                     }
+                    catch (Exception e) when (FatalError.ReportAndCatch(e))
+                    {
+                        // Catch the exception and continue as this an event handler and propagating the exception would prevent
+                        // other handlers from executing
+                    }
                 }
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
-            {
-                throw ExceptionUtilities.Unreachable();
             }
         }
     }
