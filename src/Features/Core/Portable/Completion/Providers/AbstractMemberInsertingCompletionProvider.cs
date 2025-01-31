@@ -37,7 +37,8 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
 
     protected abstract Task<ISymbol> GenerateMemberAsync(
         Document document, CompletionItem item, Compilation compilation, ISymbol member, INamedTypeSymbol containingType, CancellationToken cancellationToken);
-    protected abstract int GetTargetCaretPosition(SyntaxNode caretTarget);
+    protected abstract TextSpan GetTargetSelectionSpan(SyntaxNode caretTarget);
+
     protected abstract SyntaxNode GetSyntax(SyntaxToken commonSyntaxToken);
 
     protected static CompletionItemRules GetRules()
@@ -49,7 +50,7 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        int? newPosition = null;
+        TextSpan? newSpan = null;
 
         // Attempt to find the inserted node and move the caret appropriately
         if (newRoot != null)
@@ -57,11 +58,11 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
             var caretTarget = newRoot.GetAnnotatedNodes(_annotation).FirstOrDefault();
             if (caretTarget != null)
             {
-                var targetPosition = GetTargetCaretPosition(caretTarget);
+                var targetSelectionSpan = GetTargetSelectionSpan(caretTarget);
 
-                if (targetPosition > 0 && targetPosition <= newText.Length)
+                if (targetSelectionSpan.Start > 0 && targetSelectionSpan.End <= newText.Length)
                 {
-                    newPosition = targetPosition;
+                    newSpan = targetSelectionSpan;
                 }
             }
         }
@@ -70,7 +71,7 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         var changesArray = changes.ToImmutableArray();
         var change = Utilities.Collapse(newText, changesArray);
 
-        return CompletionChange.Create(change, changesArray, newPosition, includesCommitCharacter: true);
+        return CompletionChange.Create(change, changesArray, properties: ImmutableDictionary<string, string>.Empty, newSpan, includesCommitCharacter: true);
     }
 
     private async Task<Document> DetermineNewDocumentAsync(
