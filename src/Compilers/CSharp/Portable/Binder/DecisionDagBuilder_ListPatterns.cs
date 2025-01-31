@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -28,7 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 tests.Add(new Tests.One(new BoundDagTypeTest(list.Syntax, ErrorType(), input, hasErrors: true)));
             }
-            else if (ListPatternHasOnlyEmptySlice(list))
+            else if (list.HasSlice &&
+                     subpatterns.Length == 1 &&
+                     subpatterns[0] is BoundSlicePattern { Pattern: null })
             {
                 // If `..` is the only pattern in the list, bail. This is a no-op and we don't need to match anything further.
             }
@@ -89,13 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Tests.AndSequence.Create(tests);
-        }
-
-        private static bool ListPatternHasOnlyEmptySlice(BoundListPattern list)
-        {
-            return list.HasSlice &&
-                list.Subpatterns.Length == 1 &&
-                list.Subpatterns[0] is BoundSlicePattern { Pattern: null };
         }
     }
 }

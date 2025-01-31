@@ -404,7 +404,7 @@ start:
                 if (pattern is BoundBinaryPattern binaryPattern)
                 {
                     var currentCases = ArrayBuilder<BoundPattern>.GetInstance();
-                    analyzeBinary(currentCases, binaryPattern, wrapIntoParentAndPattern: null, context);
+                    analyzeBinary(currentCases, binaryPattern, wrapIntoParentAndPattern: null, in context);
                     currentCases.Free();
                     return;
                 }
@@ -412,15 +412,15 @@ start:
                 return;
             }
 
-            static void analyzePattern(ArrayBuilder<BoundPattern> currentCases, BoundPattern pattern, Func<BoundPattern, BoundPattern>? wrapIntoParentAndPattern, ReachabilityAnalysisContext context)
+            static void analyzePattern(ArrayBuilder<BoundPattern> currentCases, BoundPattern pattern, Func<BoundPattern, BoundPattern>? wrapIntoParentAndPattern, ref readonly ReachabilityAnalysisContext context)
             {
                 if (pattern is BoundBinaryPattern nestedBinary)
                 {
-                    analyzeBinary(currentCases, nestedBinary, wrapIntoParentAndPattern, context);
+                    analyzeBinary(currentCases, nestedBinary, wrapIntoParentAndPattern, in context);
                 }
             }
 
-            static void analyzeBinary(ArrayBuilder<BoundPattern> currentCases, BoundBinaryPattern binaryPattern, Func<BoundPattern, BoundPattern>? wrapIntoParentAndPattern, ReachabilityAnalysisContext context)
+            static void analyzeBinary(ArrayBuilder<BoundPattern> currentCases, BoundBinaryPattern binaryPattern, Func<BoundPattern, BoundPattern>? wrapIntoParentAndPattern, ref readonly ReachabilityAnalysisContext context)
             {
                 if (binaryPattern.Disjunction)
                 {
@@ -434,13 +434,13 @@ start:
                     // we'll be able to check reachability on: `case A1:`, ... `case Ai:`, `case B1:`, ... `case Bn:`
                     for (int i = 0; i < patterns.Count; i++)
                     {
-                        analyzePattern(currentCases, patterns[i], wrapIntoParentAndPattern, context);
+                        analyzePattern(currentCases, patterns[i], wrapIntoParentAndPattern, in context);
                         var wrappedPattern = wrapIntoParentAndPattern?.Invoke(patterns[i]) ?? patterns[i];
                         currentCases.Add(wrappedPattern);
                     }
 
                     // For `A1 or ... or An`, we check reachability on: `case A1`, ..., `case An` (with each wrapped as indicated by caller)
-                    checkReachability(currentCases, context);
+                    checkReachability(currentCases, in context);
 
                     currentCases.Count = savedStackCount;
                     patterns.Free();
@@ -458,7 +458,23 @@ start:
 
                     current = stack.Pop();
                     // In `A and B and ...`, we analyze `A` without the `and B and ...`
-                    analyzePattern(currentCases, current.Left, wrapIntoParentAndPattern, context);
+                    analyzePattern(currentCases, current.Left, wrapIntoParentAndPattern, in context);
+
+                    // Given `newPattern`, produce `A and newPattern`
+                    Func<BoundPattern, BoundPattern> newWrapIntoParentAndPattern = (BoundPattern newPattern) =>
+                    {
+                        // Note: lambda intentionally captures
+                        bool wasCompilerGenerated = newPattern.WasCompilerGenerated;
+                        var wrappedPattern = new BoundBinaryPattern(newPattern.Syntax, disjunction: false, current.Left, newPattern, current.InputType, newPattern.NarrowedType);
+                        var result = wrapIntoParentAndPattern?.Invoke(wrappedPattern) ?? wrappedPattern;
+
+                        if (wasCompilerGenerated)
+                        {
+                            result = result.MakeCompilerGenerated();
+                        }
+
+                        return result;
+                    };
 
                     do
                     {
@@ -466,23 +482,7 @@ start:
                         // will be wrapped as `A and <expansion>`.
                         // So we'll check reachability on `case A and B1:`, ..., `case A and Bn:`
 
-                        // Given `newPattern`, produce `A and newPattern`
-                        Func<BoundPattern, BoundPattern> newWrapIntoParentAndPattern = (BoundPattern newPattern) =>
-                        {
-                            // Note: lambda intentionally captures
-                            bool wasCompilerGenerated = newPattern.WasCompilerGenerated;
-                            var wrappedPattern = new BoundBinaryPattern(newPattern.Syntax, disjunction: false, current.Left, newPattern, current.InputType, newPattern.NarrowedType);
-                            var result = wrapIntoParentAndPattern?.Invoke(wrappedPattern) ?? wrappedPattern;
-
-                            if (wasCompilerGenerated)
-                            {
-                                result = result.MakeCompilerGenerated();
-                            }
-
-                            return result;
-                        };
-
-                        analyzePattern(currentCases, current.Right, newWrapIntoParentAndPattern, context);
+                        analyzePattern(currentCases, current.Right, newWrapIntoParentAndPattern, in context);
                     }
                     while (stack.TryPop(out current));
 
@@ -490,11 +490,11 @@ start:
                 }
             }
 
-            static void checkReachability(ArrayBuilder<BoundPattern> orCases, ReachabilityAnalysisContext context)
+            static void checkReachability(ArrayBuilder<BoundPattern> orCases, ref readonly ReachabilityAnalysisContext context)
             {
                 // We construct a set of cases using the previous cases from context and the current/given cases.
                 // We then construct a DAG and analyze reachability of branches.
-                // Unreachable cases for patterns marked as compiler-generated will not reported.
+                // Unreachable cases for patterns marked as compiler-generated will not be reported.
 #if ROSLYN_TEST_REDUNDANT_PATTERN
                 context.Logger.AppendLine("Set:");
 #endif
@@ -565,7 +565,7 @@ start:
         // It also erases/simplifies some patterns (variable declarations).
         //
         // For example, given `not { Prop: 42 or 43 }`
-        // it produces `not null or ({ Prop: not 42 } and { Prop: not 43 })`.
+        // it produces `null or ({ Prop: not 42 } and { Prop: not 43 })`.
         //
         // When visiting a pattern, the caller indicates:
         // - whether the pattern should be negated,
@@ -670,7 +670,7 @@ start:
                     if (_operand is null)
                     {
                         Debug.Assert(_disjunction.HasValue);
-                        disjunction = _disjunction.Value;
+                        disjunction = _disjunction.GetValueOrDefault();
                         Debug.Assert(_operationSyntax is not null);
                         operationSyntax = _operationSyntax;
                         return true;
@@ -699,9 +699,11 @@ start:
                 return patternNormalizer.GetResult(inputType);
             }
 
-            // Reconstitutes a normalized pattern from the operands (ie. patterns) and operations (`and` or `or`)
-            // accumulated in the eval sequence.
-            // It takes care of adjusting the input type in `and` sequences.
+            /// <summary>
+            /// Reconstitutes a normalized pattern from the operands (ie. patterns) and operations (`and` or `or`)
+            /// accumulated in the eval sequence.
+            /// It takes care of adjusting the input type in `and` sequences.
+            /// </summary>
             private BoundPattern GetResult(TypeSymbol inputType)
             {
                 Debug.Assert(_evalSequence is [var first, ..] && first.IsOperand(out _));
@@ -788,17 +790,19 @@ start:
                 return base.Visit(node);
             }
 
-            // Updates the eval sequence from [...eval sequence...]
-            // to [...eval sequence..., ...eval for left..., ...eval for right..., binaryOperation]
-            // in the general case.
-            //
-            // If the left is a skipped, then update it to
-            // [...eval sequence..., ...eval for right...]
-            //
-            // If the right is a skipped, then update it to
-            // [...eval sequence..., ...eval for left...]
-            //
-            // If both are skipped, then no change occurs.
+            /// <summary>
+            /// Updates the eval sequence from [...eval sequence...]
+            /// to [...eval sequence..., ...eval for left..., ...eval for right..., binaryOperation]
+            /// in the general case.
+            ///
+            /// If the left is a skipped, then update it to
+            /// [...eval sequence..., ...eval for right...]
+            ///
+            /// If the right is a skipped, then update it to
+            /// [...eval sequence..., ...eval for left...]
+            ///
+            /// If both are skipped, then no change occurs.
+            /// </summary>
             public override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
             {
                 bool disjunction = node.Disjunction;
@@ -1085,7 +1089,7 @@ start:
 
                 int startOfNestedPatterns = _evalSequence.Count;
                 ImmutableArray<BoundPositionalSubpattern> deconstruction = node.Deconstruction;
-                if (!deconstruction.IsDefault)
+                if (!deconstruction.IsDefaultOrEmpty)
                 {
                     var discards = deconstruction.SelectAsArray(d => d.WithPattern(MakeDiscardPattern(d.Syntax, d.Pattern.InputType)));
                     var saveMakeEvaluationSequenceOperand = _makeEvaluationSequenceOperand;
@@ -1122,7 +1126,7 @@ start:
                     _makeEvaluationSequenceOperand = saveMakeEvaluationSequenceOperand;
                 }
 
-                if (!node.Properties.IsDefault)
+                if (!node.Properties.IsDefaultOrEmpty)
                 {
                     var saveMakeEvaluationSequenceOperand = _makeEvaluationSequenceOperand;
                     BoundPropertySubpattern? property = null;
@@ -1181,6 +1185,7 @@ start:
                     return;
                 }
 
+                Debug.Assert(_expectingOperandOfDisjunction == _negated);
                 PushBinaryOperation(syntax, endOfLeft, disjunction: _negated);
             }
 
@@ -1275,6 +1280,7 @@ start:
                 var saveMakeEvaluationSequenceOperand = _makeEvaluationSequenceOperand;
 
                 int i = 0;
+                bool hasSlice = listPattern.HasSlice;
 
                 // Given `newPattern`, produce `[..., _, newPattern, _, ...]`
                 Func<BoundPattern, BoundPattern> makeListPattern = (BoundPattern newPattern) =>
@@ -1285,7 +1291,7 @@ start:
                     ImmutableArray<BoundPattern> newSubpatterns = equivalentDefaultPatterns.SetItem(i, newPattern);
 
                     BoundPattern newList = new BoundListPattern(
-                        newPattern.Syntax, newSubpatterns, hasSlice: newSubpatterns.Any(p => p is BoundSlicePattern), listPattern.LengthAccess, listPattern.IndexerAccess,
+                        newPattern.Syntax, newSubpatterns, hasSlice, listPattern.LengthAccess, listPattern.IndexerAccess,
                         listPattern.ReceiverPlaceholder, listPattern.ArgumentPlaceholder, listPattern.Variable, listPattern.VariableAccess,
                         listPattern.InputType, listPattern.NarrowedType);
 
@@ -1298,32 +1304,36 @@ start:
                 };
 
                 // Given `newPattern`, produce `[..., _, ..newPattern, _, ...]`
-                Func<BoundPattern, BoundPattern> makeListPatternWithSlice = (BoundPattern newPattern) =>
+                Func<BoundPattern, BoundPattern>? makeListPatternWithSlice = null;
+                if (hasSlice)
                 {
-                    // Note: lambda intentionally captures
-                    bool wasCompilerGenerated = newPattern.WasCompilerGenerated;
-                    var slice = (BoundSlicePattern)listPattern.Subpatterns[i];
-                    Debug.Assert(slice.Pattern is not null);
-
-                    newPattern = WithInputTypeCheckIfNeeded(newPattern, slice.Pattern.InputType);
-
-                    BoundPattern newSlice = new BoundSlicePattern(newPattern.Syntax, newPattern, slice.IndexerAccess,
-                        slice.ReceiverPlaceholder, slice.ArgumentPlaceholder, slice.InputType, slice.NarrowedType);
-
-                    ImmutableArray<BoundPattern> newSubpatterns = equivalentDefaultPatterns.SetItem(i, newSlice);
-
-                    BoundPattern newList = new BoundListPattern(
-                        newPattern.Syntax, newSubpatterns, hasSlice: true, listPattern.LengthAccess, listPattern.IndexerAccess,
-                        listPattern.ReceiverPlaceholder, listPattern.ArgumentPlaceholder, listPattern.Variable, listPattern.VariableAccess,
-                        listPattern.InputType, listPattern.NarrowedType);
-
-                    if (wasCompilerGenerated)
+                    makeListPatternWithSlice = (BoundPattern newPattern) =>
                     {
-                        newList = newList.MakeCompilerGenerated();
-                    }
+                        // Note: lambda intentionally captures
+                        bool wasCompilerGenerated = newPattern.WasCompilerGenerated;
+                        var slice = (BoundSlicePattern)listPattern.Subpatterns[i];
+                        Debug.Assert(slice.Pattern is not null);
 
-                    return saveMakeEvaluationSequenceOperand?.Invoke(newList) ?? newList;
-                };
+                        newPattern = WithInputTypeCheckIfNeeded(newPattern, slice.Pattern.InputType);
+
+                        BoundPattern newSlice = new BoundSlicePattern(newPattern.Syntax, newPattern, slice.IndexerAccess,
+                            slice.ReceiverPlaceholder, slice.ArgumentPlaceholder, slice.InputType, slice.NarrowedType);
+
+                        ImmutableArray<BoundPattern> newSubpatterns = equivalentDefaultPatterns.SetItem(i, newSlice);
+
+                        BoundPattern newList = new BoundListPattern(
+                            newPattern.Syntax, newSubpatterns, hasSlice: true, listPattern.LengthAccess, listPattern.IndexerAccess,
+                            listPattern.ReceiverPlaceholder, listPattern.ArgumentPlaceholder, listPattern.Variable, listPattern.VariableAccess,
+                            listPattern.InputType, listPattern.NarrowedType);
+
+                        if (wasCompilerGenerated)
+                        {
+                            newList = newList.MakeCompilerGenerated();
+                        }
+
+                        return saveMakeEvaluationSequenceOperand?.Invoke(newList) ?? newList;
+                    };
+                }
 
                 for (; i < equivalentDefaultPatterns.Length; i++)
                 {
