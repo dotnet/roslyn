@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>$(NetVS)</TargetFramework>
+    <TargetFramework>$(NetVS)-windows</TargetFramework>
     <TargetArch>x64</TargetArch>
 
     <!-- This impacts alpine assets for SQLitePCLRaw.lib.e_sqlite3 which don't impact .NET Framework projects -->
