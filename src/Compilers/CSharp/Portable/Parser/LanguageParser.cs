@@ -3921,7 +3921,10 @@ parse_member_name:;
                     }
                     else if (SyntaxFacts.IsOverloadableUnaryOperator(opKind))
                     {
-                        opToken = this.AddError(opToken, ErrorCode.ERR_BadUnOpArgs, SyntaxFacts.GetText(opKind));
+                        if (opKind is not (SyntaxKind.PlusPlusToken or SyntaxKind.MinusMinusToken))
+                        {
+                            opToken = this.AddError(opToken, ErrorCode.ERR_BadUnOpArgs, SyntaxFacts.GetText(opKind));
+                        }
                     }
                     else
                     {

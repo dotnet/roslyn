@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_IdentityConversion = 555,
         ERR_ConversionNotInvolvingContainedType = 556,
         ERR_DuplicateConversionInClass = 557,
-        ERR_OperatorsMustBeStatic = 558,
+        ERR_OperatorsMustBeStaticAndPublic = 558,
         ERR_BadIncDecSignature = 559,
         ERR_BadUnaryOperatorSignature = 562,
         ERR_BadBinaryOperatorSignature = 563,
@@ -2359,6 +2359,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EmbeddedAttributeMustFollowPattern = 9271,
         ERR_ImplicitlyTypedParamsParameter = 9272,
         ERR_VariableDeclarationNamedField = 9273,
+
+        ERR_OperatorsMustBePublic = 9501, // PROTOTYPE: Pack numbers
+        ERR_BadIncrementOpArgs = 9502,
+        ERR_OperatorMustReturnVoid = 9503,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

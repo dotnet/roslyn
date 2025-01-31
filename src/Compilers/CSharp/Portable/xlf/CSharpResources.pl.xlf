@@ -237,6 +237,11 @@
         <target state="translated">Elementu „{0}” nie można użyć jako modyfikatora w parametrze wskaźnika funkcji.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadIncrementOpArgs">
+        <source>Overloaded instance increment operator '{0}' takes no parameters</source>
+        <target state="new">Overloaded instance increment operator '{0}' takes no parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadInheritanceFromRecord">
         <source>Only records may inherit from records.</source>
         <target state="translated">Tylko rekordy mogą dziedziczyć po rekordach.</target>
@@ -1602,6 +1607,21 @@
         <target state="translated">Nie można zadeklarować operatora „{0}” zdefiniowanego przez użytkownika</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OperatorMustReturnVoid">
+        <source>The return type for this operator must be void</source>
+        <target state="new">The return type for this operator must be void</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorsMustBePublic">
+        <source>User-defined operator '{0}' must be declared public</source>
+        <target state="new">User-defined operator '{0}' must be declared public</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorsMustBeStaticAndPublic">
+        <source>User-defined operator '{0}' must be declared static and public</source>
+        <target state="new">User-defined operator '{0}' must be declared static and public</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
         <source>A ref readonly parameter cannot have the Out attribute.</source>
         <target state="translated">Parametr ref readonly nie może mieć atrybutu Out.</target>
@@ -2610,6 +2630,11 @@
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">niepodpisane przesunięcie w prawo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUserDefinedCompoundAssignmentOperators">
+        <source>user-defined compound assignment operators</source>
+        <target state="new">user-defined compound assignment operators</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUtf8StringLiterals">
@@ -7525,11 +7550,6 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       <trans-unit id="ERR_DuplicateConversionInClass">
         <source>Duplicate user-defined conversion in type '{0}'</source>
         <target state="translated">Zduplikowana konwersja zdefiniowana przez użytkownika w typie „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_OperatorsMustBeStatic">
-        <source>User-defined operator '{0}' must be declared static and public</source>
-        <target state="translated">Operator zdefiniowany przez użytkownika „{0}” musi być zadeklarowany ze specyfikatorami static i public</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIncDecSignature">

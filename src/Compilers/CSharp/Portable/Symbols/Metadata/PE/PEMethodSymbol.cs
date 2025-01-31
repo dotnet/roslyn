@@ -1134,13 +1134,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private bool IsValidUserDefinedOperatorSignature(int parameterCount)
+        private bool IsValidStaticUserDefinedOperatorSignature(int parameterCount)
         {
             if (this.ReturnsVoid || this.IsGenericMethod || this.IsVararg || this.ParameterCount != parameterCount || this.IsParams())
             {
                 return false;
             }
 
+            return HasValidOperatorParameterRefKinds();
+        }
+
+        private bool HasValidOperatorParameterRefKinds()
+        {
             if (this.ParameterRefKinds.IsDefault)
             {
                 return true;
@@ -1163,6 +1168,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return true;
+        }
+
+        private bool IsValidInstanceUserDefinedOperatorSignature(int parameterCount)
+        {
+            if (!this.ReturnsVoid || this.IsGenericMethod || this.IsVararg || this.ParameterCount != parameterCount || this.IsParams())
+            {
+                return false;
+            }
+
+            return HasValidOperatorParameterRefKinds();
         }
 
         private MethodKind ComputeMethodKind()
@@ -1201,55 +1216,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return MethodKind.Ordinary;
                 }
 
-                if (!this.HasRuntimeSpecialName && this.IsStatic && this.DeclaredAccessibility == Accessibility.Public)
+                if (!this.HasRuntimeSpecialName && this.DeclaredAccessibility == Accessibility.Public)
                 {
-                    switch (_name)
+                    if (this.IsStatic)
                     {
-                        case WellKnownMemberNames.CheckedAdditionOperatorName:
-                        case WellKnownMemberNames.AdditionOperatorName:
-                        case WellKnownMemberNames.BitwiseAndOperatorName:
-                        case WellKnownMemberNames.BitwiseOrOperatorName:
-                        case WellKnownMemberNames.CheckedDivisionOperatorName:
-                        case WellKnownMemberNames.DivisionOperatorName:
-                        case WellKnownMemberNames.EqualityOperatorName:
-                        case WellKnownMemberNames.ExclusiveOrOperatorName:
-                        case WellKnownMemberNames.GreaterThanOperatorName:
-                        case WellKnownMemberNames.GreaterThanOrEqualOperatorName:
-                        case WellKnownMemberNames.InequalityOperatorName:
-                        case WellKnownMemberNames.LeftShiftOperatorName:
-                        case WellKnownMemberNames.LessThanOperatorName:
-                        case WellKnownMemberNames.LessThanOrEqualOperatorName:
-                        case WellKnownMemberNames.ModulusOperatorName:
-                        case WellKnownMemberNames.CheckedMultiplyOperatorName:
-                        case WellKnownMemberNames.MultiplyOperatorName:
-                        case WellKnownMemberNames.RightShiftOperatorName:
-                        case WellKnownMemberNames.UnsignedRightShiftOperatorName:
-                        case WellKnownMemberNames.CheckedSubtractionOperatorName:
-                        case WellKnownMemberNames.SubtractionOperatorName:
-                            return IsValidUserDefinedOperatorSignature(2) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
-                        case WellKnownMemberNames.CheckedDecrementOperatorName:
-                        case WellKnownMemberNames.DecrementOperatorName:
-                        case WellKnownMemberNames.FalseOperatorName:
-                        case WellKnownMemberNames.CheckedIncrementOperatorName:
-                        case WellKnownMemberNames.IncrementOperatorName:
-                        case WellKnownMemberNames.LogicalNotOperatorName:
-                        case WellKnownMemberNames.OnesComplementOperatorName:
-                        case WellKnownMemberNames.TrueOperatorName:
-                        case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
-                        case WellKnownMemberNames.UnaryNegationOperatorName:
-                        case WellKnownMemberNames.UnaryPlusOperatorName:
-                            return IsValidUserDefinedOperatorSignature(1) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
-                        case WellKnownMemberNames.ImplicitConversionName:
-                        case WellKnownMemberNames.ExplicitConversionName:
-                        case WellKnownMemberNames.CheckedExplicitConversionName:
-                            return IsValidUserDefinedOperatorSignature(1) ? MethodKind.Conversion : MethodKind.Ordinary;
+                        switch (_name)
+                        {
+                            case WellKnownMemberNames.CheckedAdditionOperatorName:
+                            case WellKnownMemberNames.AdditionOperatorName:
+                            case WellKnownMemberNames.BitwiseAndOperatorName:
+                            case WellKnownMemberNames.BitwiseOrOperatorName:
+                            case WellKnownMemberNames.CheckedDivisionOperatorName:
+                            case WellKnownMemberNames.DivisionOperatorName:
+                            case WellKnownMemberNames.EqualityOperatorName:
+                            case WellKnownMemberNames.ExclusiveOrOperatorName:
+                            case WellKnownMemberNames.GreaterThanOperatorName:
+                            case WellKnownMemberNames.GreaterThanOrEqualOperatorName:
+                            case WellKnownMemberNames.InequalityOperatorName:
+                            case WellKnownMemberNames.LeftShiftOperatorName:
+                            case WellKnownMemberNames.LessThanOperatorName:
+                            case WellKnownMemberNames.LessThanOrEqualOperatorName:
+                            case WellKnownMemberNames.ModulusOperatorName:
+                            case WellKnownMemberNames.CheckedMultiplyOperatorName:
+                            case WellKnownMemberNames.MultiplyOperatorName:
+                            case WellKnownMemberNames.RightShiftOperatorName:
+                            case WellKnownMemberNames.UnsignedRightShiftOperatorName:
+                            case WellKnownMemberNames.CheckedSubtractionOperatorName:
+                            case WellKnownMemberNames.SubtractionOperatorName:
+                                return IsValidStaticUserDefinedOperatorSignature(2) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
+                            case WellKnownMemberNames.CheckedDecrementOperatorName:
+                            case WellKnownMemberNames.DecrementOperatorName:
+                            case WellKnownMemberNames.FalseOperatorName:
+                            case WellKnownMemberNames.CheckedIncrementOperatorName:
+                            case WellKnownMemberNames.IncrementOperatorName:
+                            case WellKnownMemberNames.LogicalNotOperatorName:
+                            case WellKnownMemberNames.OnesComplementOperatorName:
+                            case WellKnownMemberNames.TrueOperatorName:
+                            case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
+                            case WellKnownMemberNames.UnaryNegationOperatorName:
+                            case WellKnownMemberNames.UnaryPlusOperatorName:
+                                return IsValidStaticUserDefinedOperatorSignature(1) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
+                            case WellKnownMemberNames.ImplicitConversionName:
+                            case WellKnownMemberNames.ExplicitConversionName:
+                            case WellKnownMemberNames.CheckedExplicitConversionName:
+                                return IsValidStaticUserDefinedOperatorSignature(1) ? MethodKind.Conversion : MethodKind.Ordinary;
 
-                            //case WellKnownMemberNames.ConcatenateOperatorName:
-                            //case WellKnownMemberNames.ExponentOperatorName:
-                            //case WellKnownMemberNames.IntegerDivisionOperatorName:
-                            //case WellKnownMemberNames.LikeOperatorName:
-                            //// Non-C#-supported overloaded operator
-                            //return MethodKind.Ordinary;
+                                //case WellKnownMemberNames.ConcatenateOperatorName:
+                                //case WellKnownMemberNames.ExponentOperatorName:
+                                //case WellKnownMemberNames.IntegerDivisionOperatorName:
+                                //case WellKnownMemberNames.LikeOperatorName:
+                                //// Non-C#-supported overloaded operator
+                                //return MethodKind.Ordinary;
+                        }
+                    }
+                    else
+                    {
+                        switch (_name)
+                        {
+                            case WellKnownMemberNames.CheckedDecrementOperatorName:
+                            case WellKnownMemberNames.DecrementOperatorName:
+                            case WellKnownMemberNames.CheckedIncrementOperatorName:
+                            case WellKnownMemberNames.IncrementOperatorName:
+                                return IsValidInstanceUserDefinedOperatorSignature(0) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
+                        }
                     }
 
                     return MethodKind.Ordinary;
