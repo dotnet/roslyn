@@ -605,19 +605,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
                         }
 
-                        // If this is a partial member, the member represents the defining part,
-                        // not the implementation (member.Locations includes both parts). If the
-                        // span is in fact in the implementation, return that member instead.
-                        if (sym switch
-#pragma warning disable format
-                            {
-                                MethodSymbol method => (Symbol)method.PartialImplementationPart,
-                                SourcePropertySymbol property => property.PartialImplementationPart,
-                                SourceEventSymbol ev => ev.PartialImplementationPart,
-                                _ => throw ExceptionUtilities.UnexpectedValue(sym)
-                            }
-#pragma warning restore format
-                            is { } implementation)
+                        // If this is a partial member, the member represents the defining part, not the implementation.
+                        // If the span is in fact in the implementation, return that member instead.
+                        if (sym.GetPartialImplementationPart() is { } implementation)
                         {
                             if (InSpan(implementation.GetFirstLocation(), this.syntaxTree, memberSpan))
                             {

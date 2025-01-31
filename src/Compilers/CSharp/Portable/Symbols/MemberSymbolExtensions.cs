@@ -578,6 +578,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 or SourceEventSymbol { IsPartialDefinition: true };
         }
 
+#nullable enable
+        internal static Symbol? GetPartialImplementationPart(this Symbol member)
+        {
+            return member switch
+            {
+                MethodSymbol method => method.PartialImplementationPart,
+                SourcePropertySymbol property => property.PartialImplementationPart,
+                SourceEventSymbol ev => ev.PartialImplementationPart,
+                _ => null,
+            };
+        }
+#nullable disable
+
         internal static bool ContainsTupleNames(this Symbol member)
         {
             switch (member.Kind)

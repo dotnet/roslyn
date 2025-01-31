@@ -3971,7 +3971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Remove(nonTypeMembers, implementation);
         }
 
-        /// <summary>Links together the definition and implementation parts of a partial constructor. Returns a member list which has the implementation part removed.</summary>
+        /// <summary>Links together the definition and implementation parts of a partial constructor. Removes implementation part from <paramref name="nonTypeMembers"/>.</summary>
         private static void FixPartialConstructor(ArrayBuilder<Symbol> nonTypeMembers, SourceConstructorSymbol part1, SourceConstructorSymbol part2)
         {
             SourceConstructorSymbol definition;
@@ -3993,7 +3993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Remove(nonTypeMembers, implementation);
         }
 
-        /// <summary>Links together the definition and implementation parts of a partial event. Returns a member list which has the implementation part removed.</summary>
+        /// <summary>Links together the definition and implementation parts of a partial event. Removes implementation part from <paramref name="nonTypeMembers"/>.</summary>
         private static void FixPartialEvent(ArrayBuilder<Symbol> nonTypeMembers, SourceEventSymbol part1, SourceEventSymbol part2)
         {
             SourceEventSymbol definition;
