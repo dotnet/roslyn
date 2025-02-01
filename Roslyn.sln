@@ -573,6 +573,10 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Thre
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Threading.Package", "src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.Package.csproj", "{2559DAF9-784E-4C29-E0E1-70204B1FD56E}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Contracts", "src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.shproj", "{BD974609-C68B-4BE6-9682-EB132462B50D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Contracts.Package", "src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.Package.csproj", "{A8D5CFFA-7F9E-C35B-4F19-D63F6EC1D5CA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1407,6 +1411,10 @@ Global
 		{2559DAF9-784E-4C29-E0E1-70204B1FD56E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2559DAF9-784E-4C29-E0E1-70204B1FD56E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2559DAF9-784E-4C29-E0E1-70204B1FD56E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8D5CFFA-7F9E-C35B-4F19-D63F6EC1D5CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8D5CFFA-7F9E-C35B-4F19-D63F6EC1D5CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8D5CFFA-7F9E-C35B-4F19-D63F6EC1D5CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8D5CFFA-7F9E-C35B-4F19-D63F6EC1D5CA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1671,6 +1679,8 @@ Global
 		{5D60CF30-28A9-9F0F-7610-D90E4A69AE73} = {58A2876A-618D-4AE6-A136-E44B42BBDE11}
 		{967723E8-4FDD-447B-99F6-4F8C47CB5433} = {C2D1346B-9665-4150-B644-075CF1636BAA}
 		{2559DAF9-784E-4C29-E0E1-70204B1FD56E} = {C2D1346B-9665-4150-B644-075CF1636BAA}
+		{BD974609-C68B-4BE6-9682-EB132462B50D} = {C2D1346B-9665-4150-B644-075CF1636BAA}
+		{A8D5CFFA-7F9E-C35B-4F19-D63F6EC1D5CA} = {C2D1346B-9665-4150-B644-075CF1636BAA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
@@ -1745,6 +1755,7 @@ Global
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{b1481d94-682e-46ec-adbe-a16eb46feee9}*SharedItemsImports = 5
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 5
 		src\ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{bb3ca047-5d00-48d4-b7d3-233c1265c065}*SharedItemsImports = 13
+		src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems*{bd974609-c68b-4be6-9682-eb132462b50d}*SharedItemsImports = 13
 		src\ExpressionEvaluator\CSharp\Source\ResultProvider\CSharpResultProvider.projitems*{bf9dac1e-3a5e-4dc3-bb44-9a64e0d4e9d4}*SharedItemsImports = 5
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{c1930979-c824-496b-a630-70f5369a636f}*SharedItemsImports = 13
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\VisualBasic\VisualBasicCompilerExtensions.projitems*{cec0dce7-8d52-45c3-9295-fc7b16bd2451}*SharedItemsImports = 13
