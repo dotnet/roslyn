@@ -88,9 +88,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             AnalyzerActions.AddSyntaxNodeActions(nodeActions);
 
                         VerifyActions(nodeActions, _analyzer);
-                        var analyzerActionsByKind = AnalyzerExecutor.GetNodeActionsByKind(nodeActions);
-                        RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyNodeActionsByKind, analyzerActionsByKind);
-
+                        RoslynImmutableInterlocked.InterlockedInitialize(
+                            ref _lazyNodeActionsByKind, AnalyzerExecutor.GetNodeActionsByKind(nodeActions));
                         nodeActions.Free();
                     }
 
@@ -106,9 +105,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         var operationActions = ArrayBuilder<OperationAnalyzerAction>.GetInstance();
                         AddFilteredActions(AnalyzerActions.OperationActions, operationActions);
+
                         VerifyActions(operationActions, _analyzer);
-                        var analyzerActionsByKind = AnalyzerExecutor.GetOperationActionsByKind(operationActions);
-                        RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyOperationActionsByKind, analyzerActionsByKind);
+                        RoslynImmutableInterlocked.InterlockedInitialize(
+                            ref _lazyOperationActionsByKind, AnalyzerExecutor.GetOperationActionsByKind(operationActions));
                         operationActions.Free();
                     }
 
