@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Host;
 /// 
 /// see <see cref="WellKnownEventListeners"/> for supported services
 /// </summary>
-internal partial interface IEventListener
+internal interface IEventListener
 {
     void StartListening(Workspace workspace);
     void StopListening(Workspace workspace);
