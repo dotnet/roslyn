@@ -12,6 +12,8 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CollectionBuilderAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CompilerFeatureRequiredAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Contract.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Contract.InterpolatedStringHandlers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExperimentalAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InterpolatedStringHandlerArgumentAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InterpolatedStringHandlerAttribute.cs" />
