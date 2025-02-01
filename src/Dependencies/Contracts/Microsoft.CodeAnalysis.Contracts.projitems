@@ -19,6 +19,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)InterpolatedStringHandlerAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IReadOnlySet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IsExternalInit.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NonCopyableAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NonDefaultableAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NullableAttributes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RequiredMemberAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SetsRequiredMembersAttribute.cs" />
