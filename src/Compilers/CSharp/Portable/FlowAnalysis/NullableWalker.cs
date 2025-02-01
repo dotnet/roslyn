@@ -1193,9 +1193,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 containingSlot = GetReceiverSlotForMemberPostConditions(_symbol as MethodSymbol);
-                if (containingSlot == 0)
+                if (containingSlot <= 0)
                 {
-                    // Trying to access an instance member from a static context
+                    // Either trying to access an instance member from a static context,
+                    // or an invalid slot (-1) was returned
                     return -1;
                 }
             }
