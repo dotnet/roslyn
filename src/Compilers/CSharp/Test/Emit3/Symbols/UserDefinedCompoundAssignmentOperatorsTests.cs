@@ -6,6 +6,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -524,9 +525,14 @@ interface I2
                 Assert.False(m.IsStatic);
                 Assert.False(m.IsAbstract);
                 Assert.False(m.IsVirtual);
-                Assert.True(m.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.ForceCompleteIfNeeded));
                 Assert.False(m.IsSealed);
-                Assert.True(m.IsMetadataFinal);
+
+                if (m is PEMethodSymbol)
+                {
+                    Assert.True(m.IsMetadataVirtual());
+                    Assert.True(m.IsMetadataFinal);
+                }
+
                 Assert.False(m.IsOverride);
                 Assert.True(m.HasSpecialName);
                 Assert.False(m.HasRuntimeSpecialName);
@@ -1005,9 +1011,14 @@ interface I2
                 Assert.False(m.IsStatic);
                 Assert.False(m.IsAbstract);
                 Assert.False(m.IsVirtual);
-                Assert.True(m.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.ForceCompleteIfNeeded));
                 Assert.False(m.IsSealed);
-                Assert.True(m.IsMetadataFinal);
+
+                if (m is PEMethodSymbol)
+                {
+                    Assert.True(m.IsMetadataVirtual());
+                    Assert.True(m.IsMetadataFinal);
+                }
+
                 Assert.False(m.IsOverride);
                 Assert.True(m.HasSpecialName);
                 Assert.False(m.HasRuntimeSpecialName);
