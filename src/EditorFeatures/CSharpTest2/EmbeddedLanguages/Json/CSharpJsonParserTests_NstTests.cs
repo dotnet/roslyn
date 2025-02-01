@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         {
             var (_, tree, allChars) = JustParseTree(stringText, JsonOptions.Strict, conversionFailureOk: false);
             Assert.NotNull(tree);
-            Roslyn.Utilities.Contract.ThrowIfNull(tree);
+            Contract.ThrowIfNull(tree);
             var actualTree = TreeToText(tree!).Replace("\"", "\"\"");
             Assert.Equal(expected.Replace("\"", "\"\""), actualTree);
 
@@ -7391,14 +7391,16 @@ line""</StringToken>
         [Fact]
         public void y_string_u_2028_line_sep_json()
         {
-            TestNST(@"@""["""" """"]""", @"<Tree>
+            TestNST(@"@""[""""
+""""]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
       <Array>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
           <Literal>
-            <StringToken>"" ""</StringToken>
+            <StringToken>""
+""</StringToken>
           </Literal>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
@@ -7414,14 +7416,16 @@ line""</StringToken>
         [Fact]
         public void y_string_u_2029_par_sep_json()
         {
-            TestNST(@"@""["""" """"]""", @"<Tree>
+            TestNST(@"@""[""""
+""""]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
       <Array>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
           <Literal>
-            <StringToken>"" ""</StringToken>
+            <StringToken>""
+""</StringToken>
           </Literal>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>

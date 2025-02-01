@@ -7,7 +7,7 @@ using System.Text;
 
 #pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/58168
 
-namespace Roslyn.Utilities;
+namespace Microsoft.CodeAnalysis;
 
 internal static partial class Contract
 {

@@ -8,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 
-namespace Roslyn.Utilities;
+namespace Microsoft.CodeAnalysis;
 
 internal static partial class Contract
 {
