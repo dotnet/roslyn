@@ -10,9 +10,6 @@
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
-      <Link>Compiler\ExceptionUtilities.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\MetadataReader\MetadataTypeCodeExtensions.cs">
       <Link>Compiler\MetadataTypeCodeExtensions.cs</Link>
     </Compile>

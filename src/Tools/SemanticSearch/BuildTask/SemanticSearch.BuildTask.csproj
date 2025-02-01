@@ -20,7 +20,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Range.cs" Link="Utilities\Range.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Index.cs" Link="Utilities\Index.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="Utilities\Hash.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="Utilities\ExceptionUtilities.cs" />
   </ItemGroup>
   <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>
