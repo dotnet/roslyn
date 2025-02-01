@@ -168,8 +168,10 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
         // Update the getter/setter to reference the 'field' expression instead.
         var (newGetAccessor, newSetAccessor) = GetNewAccessors(info, property, FieldExpression(), cancellationToken);
 
-        var finalProperty = CreateFinalProperty(document, property, info, newGetAccessor, newSetAccessor);
-        var finalRoot = root.ReplaceNode(property, finalProperty);
+        // The normal helper will strip off the semicolon (as we're normally moving the initializer to a field).
+        // Don't do that here as we will keep the current initializer on the property if it is there.
+        var finalProperty = (PropertyDeclarationSyntax)CreateFinalProperty(document, property, info, newGetAccessor, newSetAccessor);
+        var finalRoot = root.ReplaceNode(property, finalProperty.WithSemicolonToken(property.SemicolonToken));
 
         return document.WithSyntaxRoot(finalRoot);
     }
