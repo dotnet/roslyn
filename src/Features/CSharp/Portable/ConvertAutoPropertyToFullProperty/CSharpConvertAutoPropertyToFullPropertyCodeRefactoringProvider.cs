@@ -129,9 +129,7 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
 
         var preference = info.Options.PreferExpressionBodiedProperties.Value;
         if (preference == ExpressionBodyPreference.Never)
-        {
-            return propertyDeclaration.WithSemicolonToken(default);
-        }
+            return propertyDeclaration;
 
         // if there is a get accessors only, we can move the expression body to the property
         if (propertyDeclaration.AccessorList?.Accessors.Count == 1 &&
@@ -146,7 +144,7 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
             }
         }
 
-        return propertyDeclaration.WithSemicolonToken(default);
+        return propertyDeclaration;
     }
 
     protected override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode)
@@ -168,10 +166,8 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
         // Update the getter/setter to reference the 'field' expression instead.
         var (newGetAccessor, newSetAccessor) = GetNewAccessors(info, property, FieldExpression(), cancellationToken);
 
-        // The normal helper will strip off the semicolon (as we're normally moving the initializer to a field).
-        // Don't do that here as we will keep the current initializer on the property if it is there.
-        var finalProperty = (PropertyDeclarationSyntax)CreateFinalProperty(document, property, info, newGetAccessor, newSetAccessor);
-        var finalRoot = root.ReplaceNode(property, finalProperty.WithSemicolonToken(property.SemicolonToken));
+        var finalProperty = CreateFinalProperty(document, property, info, newGetAccessor, newSetAccessor);
+        var finalRoot = root.ReplaceNode(property, finalProperty);
 
         return document.WithSyntaxRoot(finalRoot);
     }

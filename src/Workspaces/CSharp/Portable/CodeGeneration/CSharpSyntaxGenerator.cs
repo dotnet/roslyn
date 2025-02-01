@@ -440,13 +440,15 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     public override SyntaxNode WithAccessorDeclarations(SyntaxNode declaration, IEnumerable<SyntaxNode> accessorDeclarations)
         => declaration switch
         {
-            PropertyDeclarationSyntax property => property.WithAccessorList(CreateAccessorList(property.AccessorList, accessorDeclarations))
-                              .WithExpressionBody(null)
-                              .WithSemicolonToken(default),
+            PropertyDeclarationSyntax property =>
+                property.WithAccessorList(CreateAccessorList(property.AccessorList, accessorDeclarations))
+                        .WithExpressionBody(null)
+                        .WithSemicolonToken(property.Initializer is null ? default : property.SemicolonToken),
 
-            IndexerDeclarationSyntax indexer => indexer.WithAccessorList(CreateAccessorList(indexer.AccessorList, accessorDeclarations))
-                              .WithExpressionBody(null)
-                              .WithSemicolonToken(default),
+            IndexerDeclarationSyntax indexer =>
+                indexer.WithAccessorList(CreateAccessorList(indexer.AccessorList, accessorDeclarations))
+                       .WithExpressionBody(null)
+                       .WithSemicolonToken(default),
 
             _ => declaration,
         };
