@@ -7391,16 +7391,14 @@ line""</StringToken>
         [Fact]
         public void y_string_u_2028_line_sep_json()
         {
-            TestNST(@"@""[""""
-""""]""", @"<Tree>
+            TestNST(@"@""["""" """"]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
       <Array>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
           <Literal>
-            <StringToken>""
-""</StringToken>
+            <StringToken>"" ""</StringToken>
           </Literal>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
@@ -7416,16 +7414,14 @@ line""</StringToken>
         [Fact]
         public void y_string_u_2029_par_sep_json()
         {
-            TestNST(@"@""[""""
-""""]""", @"<Tree>
+            TestNST(@"@""["""" """"]""", @"<Tree>
   <CompilationUnit>
     <Sequence>
       <Array>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
           <Literal>
-            <StringToken>""
-""</StringToken>
+            <StringToken>"" ""</StringToken>
           </Literal>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
