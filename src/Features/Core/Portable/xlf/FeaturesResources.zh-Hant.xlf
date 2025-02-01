@@ -147,17 +147,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Adding_or_moving_0_of_1_requires_restarting_the_application">
         <source>Adding or moving {0} of {1} requires restarting the application.</source>
-        <target state="new">Adding or moving {0} of {1} requires restarting the application.</target>
+        <target state="translated">新增或移動 {1} {0} 需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_or_moving_0_of_1_with_explicit_or_sequential_layout_requires_restarting_the_application">
         <source>Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</source>
-        <target state="new">Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</target>
+        <target state="translated">使用明確或循序配置新增或移動 {1} 的 {0} 需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application">
         <source>Adding or moving {0} of a COM interface requires restarting the application.</source>
-        <target state="new">Adding or moving {0} of a COM interface requires restarting the application.</target>
+        <target state="translated">新增或移動 COM 介面的 {0} 需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -337,7 +337,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
         <source>Cannot determine valid range of statements to extract</source>
-        <target state="new">Cannot determine valid range of statements to extract</target>
+        <target state="translated">無法判斷要擷取的有效陳述式範圍</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_include_class_0_in_character_range">
@@ -467,12 +467,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application">
         <source>Changing the signature of {0} requires restarting the application.</source>
-        <target state="new">Changing the signature of {0} requires restarting the application.</target>
+        <target state="translated">變更 {0} 的簽章需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Changing the signature of {0} requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">變更 {0} 的簽章需要重新啟動應用程式，因為執行階段不支援它。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
@@ -537,7 +537,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
-        <target state="new">Conflict(s) detected.</target>
+        <target state="translated">偵測到衝突。</target>
         <note />
       </trans-unit>
       <trans-unit id="Constructors_not_allowed">
@@ -857,7 +857,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_constructor_from_members">
         <source>Generate constructor from members...</source>
-        <target state="new">Generate constructor from members...</target>
+        <target state="translated">從成員產生建構函式...</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -1197,7 +1197,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Move_declaration_near_reference_may_change_semantics">
         <source>Move declaration near reference (may change semantics)</source>
-        <target state="new">Move declaration near reference (may change semantics)</target>
+        <target state="translated">移動宣告附近參考 (可能會變更語意)</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -1272,12 +1272,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="No_valid_statement_range_to_extract">
         <source>No valid statement range to extract</source>
-        <target state="new">No valid statement range to extract</target>
+        <target state="translated">沒有可擷取的有效陳述式範圍</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
-        <target state="new">Not all code paths return</target>
+        <target state="translated">未傳回所有程式碼路徑</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -1327,7 +1327,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Pull_0_up_to">
         <source>Pull '{0}' up to ...</source>
-        <target state="new">Pull '{0}' up to ...</target>
+        <target state="translated">將 '{0}' 提取至 ...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
@@ -2617,12 +2617,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Simplify_member_access_0">
         <source>Simplify member access '{0}'</source>
-        <target state="new">Simplify member access '{0}'</target>
+        <target state="translated">簡化成員存取 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
-        <target state="new">Simplify name '{0}'</target>
+        <target state="translated">簡化名稱 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_Imports_or_usings">
@@ -2767,7 +2767,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Unable_to_create_0">
         <source>Unable to create '{0}'</source>
-        <target state="new">Unable to create '{0}'</target>
+        <target state="translated">無法建立 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
@@ -3478,7 +3478,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="new">&lt;class name&gt;</target>
+        <target state="translated">&lt;class name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
@@ -3664,7 +3664,7 @@ The "f" standard format specifier represents a combination of the long date ("D"
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="new">&lt;interface name&gt;</target>
+        <target state="translated">&lt;interface name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
@@ -3787,7 +3787,7 @@ If the "M" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
-        <target state="new">&lt;namespace name&gt;</target>
+        <target state="translated">&lt;namespace name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -4817,7 +4817,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Add_null_checks">
         <source>Add _null checks</source>
-        <target state="needs-review-translation">新增 null 檢查</target>
+        <target state="translated">新增 _null 檢查</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_operators">

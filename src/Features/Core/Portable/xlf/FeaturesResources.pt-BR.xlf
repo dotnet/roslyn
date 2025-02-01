@@ -147,17 +147,17 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Adding_or_moving_0_of_1_requires_restarting_the_application">
         <source>Adding or moving {0} of {1} requires restarting the application.</source>
-        <target state="new">Adding or moving {0} of {1} requires restarting the application.</target>
+        <target state="translated">Adicionar ou mover {0} de {1} requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_or_moving_0_of_1_with_explicit_or_sequential_layout_requires_restarting_the_application">
         <source>Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</source>
-        <target state="new">Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</target>
+        <target state="translated">Adicionar ou migrar {0} de {1} com layout explícito ou sequencial requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application">
         <source>Adding or moving {0} of a COM interface requires restarting the application.</source>
-        <target state="new">Adding or moving {0} of a COM interface requires restarting the application.</target>
+        <target state="translated">Adicionar ou mover {0} de uma interface COM requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -337,7 +337,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
         <source>Cannot determine valid range of statements to extract</source>
-        <target state="new">Cannot determine valid range of statements to extract</target>
+        <target state="translated">Não é possível determinar o intervalo válido de instruções a serem extraídas</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_include_class_0_in_character_range">
@@ -467,12 +467,12 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application">
         <source>Changing the signature of {0} requires restarting the application.</source>
-        <target state="new">Changing the signature of {0} requires restarting the application.</target>
+        <target state="translated">Alterar a assinatura de {0} requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Changing the signature of {0} requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">A alteração da assinatura de {0} requer a reinicialização do aplicativo porque não há suporte com o tempo de execução.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
@@ -537,7 +537,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
-        <target state="new">Conflict(s) detected.</target>
+        <target state="translated">Conflito(s) detectado(s).</target>
         <note />
       </trans-unit>
       <trans-unit id="Constructors_not_allowed">
@@ -857,7 +857,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Generate_constructor_from_members">
         <source>Generate constructor from members...</source>
-        <target state="new">Generate constructor from members...</target>
+        <target state="translated">Gerar construtor a partir de membros...</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -1197,7 +1197,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Move_declaration_near_reference_may_change_semantics">
         <source>Move declaration near reference (may change semantics)</source>
-        <target state="new">Move declaration near reference (may change semantics)</target>
+        <target state="translated">Mover declaração para perto da referência (pode alterar a semântica)</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -1272,12 +1272,12 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="No_valid_statement_range_to_extract">
         <source>No valid statement range to extract</source>
-        <target state="new">No valid statement range to extract</target>
+        <target state="translated">Nenhum intervalo de instruções válido para extrair</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
-        <target state="new">Not all code paths return</target>
+        <target state="translated">Nem todos os caminhos de código são retornados</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -1327,7 +1327,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Pull_0_up_to">
         <source>Pull '{0}' up to ...</source>
-        <target state="new">Pull '{0}' up to ...</target>
+        <target state="translated">Efetuar pull de "{0}" até...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
@@ -2617,12 +2617,12 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Simplify_member_access_0">
         <source>Simplify member access '{0}'</source>
-        <target state="new">Simplify member access '{0}'</target>
+        <target state="translated">Simplificar acesso do membro '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
-        <target state="new">Simplify name '{0}'</target>
+        <target state="translated">Simplificar nome '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_Imports_or_usings">
@@ -2767,7 +2767,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Unable_to_create_0">
         <source>Unable to create '{0}'</source>
-        <target state="new">Unable to create '{0}'</target>
+        <target state="translated">Não é possível criar '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
@@ -3478,7 +3478,7 @@ Se o especificador de formato "H" for usado sem outros especificadores de format
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="new">&lt;class name&gt;</target>
+        <target state="translated">&lt;nome da classe&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
@@ -3664,7 +3664,7 @@ O especificador de formato padrão "f" representa uma combinação de padrões d
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="new">&lt;interface name&gt;</target>
+        <target state="translated">&lt;nome da interface&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
@@ -3787,7 +3787,7 @@ Se o especificador de formato "M" for usado sem outros especificadores de format
       </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
-        <target state="new">&lt;namespace name&gt;</target>
+        <target state="translated">&lt;nome do namespace&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -4817,7 +4817,7 @@ Essa versão é usada no: {2}</target>
       </trans-unit>
       <trans-unit id="Add_null_checks">
         <source>Add _null checks</source>
-        <target state="needs-review-translation">Adicionar verificações nulas</target>
+        <target state="translated">Adicionar verificações _null</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_operators">
