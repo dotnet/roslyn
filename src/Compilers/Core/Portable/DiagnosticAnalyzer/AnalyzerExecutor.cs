@@ -804,6 +804,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         syntaxNodesToAnalyze.Free();
                     }
                 },
+                executeBlockActions: static (blockActions, diagReporter, isSupportedDiagnostic, args, cancellationToken) =>
+                {
+                    var (@this, startActions, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode, ephemeralActions) = args;
+
+                    foreach (var blockAction in blockActions)
+                    {
+                        // This context is a struct, so it's fine to create a new one for each action.
+                        var context = new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, semanticModel.Compilation,
+                            @this.AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, @this.GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
+
+                        @this.ExecuteAndCatchIfThrows(
+                            blockAction.Analyzer,
+                            static data => data.blockAction.Action(data.context),
+                            (blockAction, context),
+                            new AnalysisContextInfo(@this.Compilation, declaredSymbol),
+                            cancellationToken);
+                    }
+                },
                 argument: (@this: this, startActions, analyzer, declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind, filterSpan, isGeneratedCode, ephemeralActions),
                 cancellationToken);
             ephemeralActions.Free();
@@ -873,6 +891,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             cancellationToken);
                     }
                 },
+                executeBlockActions: static (blockActions, diagReporter, isSupportedDiagnostic, args, cancellationToken) =>
+                {
+                    var (@this, startActions, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode, ephemeralActions) = args;
+
+                    foreach (var blockAction in blockActions)
+                    {
+                        // This context is a struct, so it's fine to create a new one for each action.
+                        var context = new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, semanticModel.Compilation,
+                            @this.AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, @this.GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
+
+                        @this.ExecuteAndCatchIfThrows(
+                            blockAction.Analyzer,
+                            static data => data.blockAction.Action(data.context),
+                            (blockAction, context),
+                            new AnalysisContextInfo(@this.Compilation, declaredSymbol),
+                            cancellationToken);
+                    }
+                },
                 argument: (@this: this, startActions, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode, ephemeralActions),
                 cancellationToken);
             ephemeralActions.Free();
@@ -891,6 +927,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool isGeneratedCode,
             Action<TBlockStartAction, HashSet<TBlockAction>, TArgs, CancellationToken> addActions,
             Action<AnalyzerDiagnosticReporter, Func<Diagnostic, CancellationToken, bool>, TArgs, CancellationToken> executeActions,
+            Action<HashSet<TBlockAction>, AnalyzerDiagnosticReporter, Func<Diagnostic, CancellationToken, bool>, TArgs, CancellationToken> executeBlockActions,
             TArgs argument,
             CancellationToken cancellationToken)
             where TBlockStartAction : AnalyzerAction
