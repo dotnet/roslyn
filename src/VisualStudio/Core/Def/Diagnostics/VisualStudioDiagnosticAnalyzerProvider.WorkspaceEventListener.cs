@@ -50,6 +50,11 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider
             }
         }
 
+        public void StopListening(Workspace workspace)
+        {
+            // Nothing to do here.  We already kicked off the work to initialize the workspace.
+        }
+
         private async Task InitializeWorkspaceAsync(ISolutionAnalyzerSetterWorkspaceService setter)
         {
             try

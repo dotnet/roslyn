@@ -44,6 +44,11 @@ internal class AlwaysActiveLanguageClientEventListener(
         _ = LoadAsync();
     }
 
+    public void StopListening(Workspace workspace)
+    {
+        // Nothing to do here.  There's no concept of unloading an ILanguageClient.
+    }
+
     private async Task LoadAsync()
     {
         try

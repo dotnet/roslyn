@@ -54,10 +54,14 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
         if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
         {
             workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _threadingContext.DisposalToken.Register(() =>
-            {
-                workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            });
+        }
+    }
+
+    public void StopListening(Workspace workspace)
+    {
+        if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+        {
+            workspace.WorkspaceChanged -= OnWorkspaceChanged;
         }
     }
 

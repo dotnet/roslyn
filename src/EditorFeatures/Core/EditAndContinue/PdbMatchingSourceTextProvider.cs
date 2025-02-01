@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// </summary>
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
 [Export(typeof(PdbMatchingSourceTextProvider))]
-internal sealed class PdbMatchingSourceTextProvider : IEventListener<object>, IEventListenerStoppable, IPdbMatchingSourceTextProvider
+internal sealed class PdbMatchingSourceTextProvider : IEventListener<object>, IPdbMatchingSourceTextProvider
 {
     private readonly object _guard = new();
 

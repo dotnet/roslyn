@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Options;
     [WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.SemanticSearch, WorkspaceKind.MetadataAsSource, WorkspaceKind.MiscellaneousFiles, WorkspaceKind.Debugger, WorkspaceKind.Preview]), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class SolutionAnalyzerConfigOptionsUpdater(IGlobalOptionService globalOptions) : IEventListener<object>, IEventListenerStoppable
+internal sealed class SolutionAnalyzerConfigOptionsUpdater(IGlobalOptionService globalOptions) : IEventListener<object>
 {
     public void StartListening(Workspace workspace, object serviceOpt)
         => globalOptions.AddOptionChangedHandler(workspace, GlobalOptionsChanged);

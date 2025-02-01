@@ -62,15 +62,11 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 lock (_gate)
                 {
-                    if (!_initialized)
+                    // If we were never initialized, then there's nothing to do
+                    if (_initialized)
                     {
-                        // never initialized. nothing to do
-                        return;
-                    }
-
-                    foreach (var listener in _eventListeners.OfType<IEventListenerStoppable>())
-                    {
-                        listener.StopListening(workspace);
+                        foreach (var listener in _eventListeners)
+                            listener.StopListening(workspace);
                     }
                 }
             }
