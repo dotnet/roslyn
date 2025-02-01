@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
 internal sealed class VisualStudioDesignerAttributeService :
-    IDesignerAttributeDiscoveryService.ICallback, IEventListener<object>
+    IDesignerAttributeDiscoveryService.ICallback, IEventListener
 {
     private readonly VisualStudioWorkspaceImpl _workspace;
     private readonly IThreadingContext _threadingContext;
@@ -86,7 +86,7 @@ internal sealed class VisualStudioDesignerAttributeService :
             _threadingContext.DisposalToken);
     }
 
-    void IEventListener<object>.StartListening(Workspace workspace, object _)
+    void IEventListener.StartListening(Workspace workspace, object _)
     {
         if (workspace != _workspace)
             return;
@@ -95,7 +95,7 @@ internal sealed class VisualStudioDesignerAttributeService :
         _workQueue.AddWork(cancelExistingWork: true);
     }
 
-    void IEventListener<object>.StopListening(Workspace workspace)
+    void IEventListener.StopListening(Workspace workspace)
     {
         if (workspace != _workspace)
             return;

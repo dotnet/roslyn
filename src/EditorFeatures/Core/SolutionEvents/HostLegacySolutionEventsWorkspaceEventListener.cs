@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents;
 /// to an entirely differently (ideally 'pull') model for test discovery.
 /// </summary>
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener<object>
+internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener
 {
     private readonly IGlobalOptionService _globalOptions;
     private readonly IThreadingContext _threadingContext;

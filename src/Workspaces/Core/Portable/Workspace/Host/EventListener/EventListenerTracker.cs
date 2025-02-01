@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// 
     /// currently, this helper only supports services whose lifetime is same as Host (ex, VS)
     /// </summary>
-    /// <typeparam name="TService">TService for <see cref="IEventListener{TService}"/></typeparam>
-    internal sealed class EventListenerTracker<TService>(
+    internal sealed class EventListenerTracker(
         IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners, string kind)
     {
         /// <summary>
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly HashSet<string> _eventListenerInitialized = [];
         private readonly ImmutableArray<Lazy<IEventListener, EventListenerMetadata>> _eventListeners = [.. eventListeners.Where(el => el.Metadata.Service == kind)];
 
-        public void EnsureEventListener(Workspace workspace, TService serviceOpt)
+        public void EnsureEventListener(Workspace workspace, object serviceOpt)
         {
             Contract.ThrowIfNull(workspace.Kind);
 
@@ -44,13 +43,12 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        public static IEnumerable<IEventListener<TService>> GetListeners(
+        public static IEnumerable<IEventListener> GetListeners(
             string? workspaceKind, IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
             return (workspaceKind == null) ? [] : eventListeners
                 .Where(l => l.Metadata.WorkspaceKinds.Contains(workspaceKind))
-                .Select(l => l.Value)
-                .OfType<IEventListener<TService>>();
+                .Select(l => l.Value);
         }
 
         internal TestAccessor GetTestAccessor()
@@ -60,9 +58,9 @@ namespace Microsoft.CodeAnalysis.Host
 
         internal readonly struct TestAccessor
         {
-            private readonly EventListenerTracker<TService> _eventListenerTracker;
+            private readonly EventListenerTracker _eventListenerTracker;
 
-            internal TestAccessor(EventListenerTracker<TService> eventListenerTracker)
+            internal TestAccessor(EventListenerTracker eventListenerTracker)
                 => _eventListenerTracker = eventListenerTracker;
 
             internal ref readonly ImmutableArray<Lazy<IEventListener, EventListenerMetadata>> EventListeners

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 internal class AlwaysActiveLanguageClientEventListener(
     AlwaysActivateInProcLanguageClient languageClient,
     Lazy<ILanguageClientBroker> languageClientBroker,
-    IAsynchronousOperationListenerProvider listenerProvider) : IEventListener<object>
+    IAsynchronousOperationListenerProvider listenerProvider) : IEventListener
 {
     private readonly AlwaysActivateInProcLanguageClient _languageClient = languageClient;
     private readonly Lazy<ILanguageClientBroker> _languageClientBroker = languageClientBroker;
