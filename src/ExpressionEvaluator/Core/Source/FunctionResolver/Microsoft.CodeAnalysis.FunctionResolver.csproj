@@ -25,9 +25,6 @@
     <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\CommonGeneratedNames.cs">
       <Link>Compiler\CommonGeneratedNames.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs">
-      <Link>Compiler\NullableAttributes.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs">
       <Link>Compiler\RoslynString.cs</Link>
     </Compile>
@@ -64,5 +61,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" ExcludeAssets="compile" />
   </ItemGroup>
+  <Import Project="..\..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>

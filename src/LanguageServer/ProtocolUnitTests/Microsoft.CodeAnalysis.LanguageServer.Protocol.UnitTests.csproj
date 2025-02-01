@@ -13,10 +13,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <!-- Prevents ambiguity caused by InternalsVisibleTo from dependent assemblies. -->
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
-  </ItemGroup>
 
   <ItemGroup Label="Package References">
     <PackageReference Include="BenchmarkDotNet" />

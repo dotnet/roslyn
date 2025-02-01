@@ -10,6 +10,16 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Contracts</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CollectionBuilderAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CompilerFeatureRequiredAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExperimentalAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InterpolatedStringHandlerArgumentAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InterpolatedStringHandlerAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IReadOnlySet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IsExternalInit.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NullableAttributes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RequiredMemberAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SetsRequiredMembersAttribute.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

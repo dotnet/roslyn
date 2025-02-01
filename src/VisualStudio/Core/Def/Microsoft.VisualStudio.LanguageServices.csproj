@@ -51,9 +51,6 @@
     <EmbeddedResource Include="ColorSchemes\VisualStudio2019.xml" />
     <EmbeddedResource Include="ColorSchemes\VisualStudio2017.xml" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="InternalUtilities\IsExternalInit.cs" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
