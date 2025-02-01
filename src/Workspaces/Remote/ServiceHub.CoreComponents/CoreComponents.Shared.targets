@@ -63,7 +63,12 @@
       <_R2RAssemblies Include="Microsoft.NET.StringTools.dll" />
 
       <!-- Find all assemblies (including Roslyn and all dependencies) from the actual published location -->
-      <_AllPublishedAssemblyPaths Include="@(_PublishDllPaths)" Exclude="%(FileName).EndsWith('.resources')" />
+      <_AllPublishedAssemblyPaths Include="@(_PublishDllPaths)" />
+      <!-- Exclude resources DLLs-->
+      <_AllPublishedAssemblyPaths Remove="@(_AllPublishedAssemblyPaths)" Condition="$([MSBuild]::ValueOrDefault('%(FileName)', '').EndsWith('.resources'))" />
+      <!-- We are not including anything from runtimes folder, so don't try to crossgen them (see target "PublishedProjectOutputGroup" below) -->
+      <_AllPublishedAssemblyPaths Remove="@(_AllPublishedAssemblyPaths)" Condition="$([MSBuild]::ValueOrDefault('%(FullPath)', '').StartsWith('$(PublishDir)runtimes'))" />
+
       <_AllPublishedAssemblies Include="@(_AllPublishedAssemblyPaths->'%(FileName)%(Extension)')" >
         <_FullFilePath>%(FullPath)</_FullFilePath>
       </_AllPublishedAssemblies>
@@ -91,18 +96,20 @@
       <CrossgenWorkDir>$(PublishDir)CrossGen\</CrossgenWorkDir>
       <OriginalAssemblyDir>$(CrossgenWorkDir)OriginalAssemblies\</OriginalAssemblyDir>
       <PdbWorkDir>$(CrossgenWorkDir)Symbols\</PdbWorkDir>
+      <RspWorkDir>$(CrossgenWorkDir)RspFiles\</RspWorkDir>
     </PropertyGroup>   
   </Target>
 
   <Target Name="PrepareCrossgenTargets" DependsOnTargets="CalculateCrossgenInputs" Condition="'$(GenerateReadyToRun)' == 'true'">
-    <Move SourceFiles="@(_R2RAssemblyPaths)" DestinationFolder="$(OriginalAssemblyDir)">
+    <Move SourceFiles="@(_R2RAssemblyPaths)" DestinationFolder="$(OriginalAssemblyDir)\%(_R2RAssemblyPaths.DestinationSubDirectory)">
       <Output TaskParameter="DestinationFiles" ItemName="_FilesWritten" />
     </Move>
     <ItemGroup>
-      <_CrossgenTargetsAsDependencies Include="$(OriginalAssemblyDir)*.dll" />
+      <_CrossgenTargetsAsDependencies Include="$(OriginalAssemblyDir)**\*.dll" />
       <_NonCrossgenTargetsAsDependencies Include="@(_NonRuntimeAssembliesInPublishDir)" Exclude="@(_R2RAssemblyPaths)" />
       <_CrossgenTargetPaths Include="@(_CrossgenTargetsAsDependencies)">      
-        <OutputPath>$(PublishDir)%(_CrossgenTargetsAsDependencies.Filename)%(_CrossgenTargetsAsDependencies.Extension)</OutputPath>
+        <OutputPath>$(PublishDir)%(RecursiveDir)\%(_CrossgenTargetsAsDependencies.Filename)%(_CrossgenTargetsAsDependencies.Extension)</OutputPath>
+        <_RelativeDirectory>%(RecursiveDir)</_RelativeDirectory>
       </_CrossgenTargetPaths>
     </ItemGroup>
   </Target>
@@ -139,7 +146,7 @@
     <WriteLinesToFile File="$(_NuspecFilePath)" Lines="$(_NuspecFileContent)" Overwrite="true"/>
 
     <MakeDir Directories="$(ArtifactsNonShippingPackagesDir)" />
-    <ZipDirectory SourceDirectory="$(PdbWorkDir)" DestinationFile="$(ArtifactsNonShippingPackagesDir)$(ProjectName).$(PackageVersion).symbols.nupkg" />
+    <ZipDirectory SourceDirectory="$(PdbWorkDir)" DestinationFile="$(ArtifactsNonShippingPackagesDir)$(ProjectName).$(PackageVersion).symbols.nupkg" Overwrite="true"/>
   </Target>
 
   <!--
@@ -153,14 +160,15 @@
     <PropertyGroup>
       <_Crossgen2ExePath>$(PkgMicrosoft_NETCore_App_crossgen2_win-x64)\tools\crossgen2.exe</_Crossgen2ExePath>
       <_R2ROptimizeAssemblyPath>%(_CrossgenTargetPaths.FullPath)</_R2ROptimizeAssemblyPath>
-      <_R2ROptimizeAssemblyOutputPath>$(PublishDir)%(_CrossgenTargetPaths.Filename)%(_CrossgenTargetPaths.Extension)</_R2ROptimizeAssemblyOutputPath>
-      <_RspFilePath>$(CrossgenWorkDir)%(_CrossgenTargetPaths.Filename).CrossgenArgs.rsp</_RspFilePath>
+      <_R2ROptimizeAssemblyOutputPath>%(_CrossgenTargetPaths.OutputPath)</_R2ROptimizeAssemblyOutputPath>
+      <_RspFilePath>$(RspWorkDir)%(_CrossgenTargetPaths._RelativeDirectory)\%(_CrossgenTargetPaths.Filename).CrossgenArgs.rsp</_RspFilePath>
+      <_R2RPdbOutputDirecotry>$(PdbWorkDir)\%(_CrossgenTargetPaths._RelativeDirectory)</_R2RPdbOutputDirecotry>
     </PropertyGroup>
     <ItemGroup>
       <_RspFileLines Include="$(_R2ROptimizeAssemblyPath)" />
       <_RspFileLines Include="--out:$(_R2ROptimizeAssemblyOutputPath)" />
       <_RspFileLines Include="--pdb" />
-      <_RspFileLines Include="--pdb-path:$(PdbWorkDir)" />
+      <_RspFileLines Include="--pdb-path:$(_R2RPdbOutputDirecotry)" />
       <_RspFileLines Include="--targetarch:$(TargetArch)" />
       <_RspFileLines Include="--optimize" />
       <_RspFileLines Include="--opt-cross-module:*" />
@@ -172,7 +180,7 @@
     <WriteLinesToFile File="$(_RspFilePath)" Lines="" Overwrite="true" />
     <WriteLinesToFile File="$(_RspFilePath)" Lines="@(_RspFileLines)" />
     
-    <MakeDir Directories="$(PdbWorkDir)" />
+    <MakeDir Directories="$(_R2RPdbOutputDirecotry)" />
   
     <Exec Command='"$(_Crossgen2ExePath)" @"$(_RspFilePath)"' ConsoleToMSBuild="true" IgnoreExitCode="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="_Crossgen2Output" />
