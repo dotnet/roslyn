@@ -33,7 +33,7 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider
         private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(nameof(Workspace));
         private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _providerFactory = providerFactory;
 
-        public void StartListening(Workspace workspace, object serviceOpt)
+        public void StartListening(Workspace workspace)
         {
             var setter = workspace.Services.GetService<ISolutionAnalyzerSetterWorkspaceService>();
             if (setter != null)

@@ -22,7 +22,7 @@ internal sealed class LspWorkspaceRegistrationEventListener(LspWorkspaceRegistra
 {
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
 
-    public void StartListening(Workspace workspace, object _)
+    public void StartListening(Workspace workspace)
         => _lspWorkspaceRegistrationService.Register(workspace);
 
     public void StopListening(Workspace workspace)

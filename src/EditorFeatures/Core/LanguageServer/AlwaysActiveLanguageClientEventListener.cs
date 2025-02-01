@@ -38,7 +38,7 @@ internal class AlwaysActiveLanguageClientEventListener(
     /// agnostic.  We know we can provide <see cref="AlwaysActivateInProcLanguageClient"/> as soon as the
     /// workspace is started, so tell the <see cref="ILanguageClientBroker"/> to start loading it.
     /// </summary>
-    public void StartListening(Workspace workspace, object serviceOpt)
+    public void StartListening(Workspace workspace)
     {
         // Trigger a fire and forget request to the VS LSP client to load our ILanguageClient.
         _ = LoadAsync();

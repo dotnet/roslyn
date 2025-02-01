@@ -86,7 +86,7 @@ internal sealed class VisualStudioDesignerAttributeService :
             _threadingContext.DisposalToken);
     }
 
-    void IEventListener.StartListening(Workspace workspace, object _)
+    void IEventListener.StartListening(Workspace workspace)
     {
         if (workspace != _workspace)
             return;

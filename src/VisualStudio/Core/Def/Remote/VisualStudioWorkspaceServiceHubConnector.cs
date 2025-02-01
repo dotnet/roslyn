@@ -30,7 +30,7 @@ internal sealed class VisualStudioWorkspaceServiceHubConnector(
     private Task<RemoteHostClient?>? _remoteClientInitializationTask;
     private SolutionChecksumUpdater? _checksumUpdater;
 
-    public void StartListening(Workspace workspace, object serviceOpt)
+    public void StartListening(Workspace workspace)
     {
         if (workspace is not VisualStudioWorkspace)
         {

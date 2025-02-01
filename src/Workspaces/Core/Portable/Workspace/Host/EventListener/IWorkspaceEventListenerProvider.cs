@@ -53,7 +53,7 @@ internal sealed class DefaultWorkspaceEventListenerServiceFactory(
             }
 
             foreach (var listener in _eventListeners)
-                listener.StartListening(workspace, serviceOpt: null);
+                listener.StartListening(workspace);
         }
 
         public void Stop()

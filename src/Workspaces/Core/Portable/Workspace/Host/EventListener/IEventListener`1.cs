@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.Host;
 /// </summary>
 internal partial interface IEventListener
 {
-    void StartListening(Workspace workspace, object serviceOpt);
+    void StartListening(Workspace workspace);
     void StopListening(Workspace workspace);
 }
