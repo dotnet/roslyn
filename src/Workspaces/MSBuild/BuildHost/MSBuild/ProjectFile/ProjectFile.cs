@@ -10,8 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Evaluation;
-using Microsoft.Build.Globbing;
-using Microsoft.Build.Globbing.Extensions;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -207,7 +205,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             static FileGlobs GetFileGlobs(GlobResult g)
             {
-                return new FileGlobs([.. g.IncludeGlobs], [.. g.Excludes], [.. g.Removes]);
+                return new FileGlobs(
+                    Includes: [.. g.IncludeGlobs.Select(PathUtilities.ExpandAbsolutePathWithRelativeParts)],
+                    Excludes: [.. g.Excludes.Select(PathUtilities.ExpandAbsolutePathWithRelativeParts)],
+                    Removes: [.. g.Removes.Select(PathUtilities.ExpandAbsolutePathWithRelativeParts)]);
             }
         }
 

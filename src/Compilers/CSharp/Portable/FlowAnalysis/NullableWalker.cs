@@ -3926,10 +3926,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(isTargetTyped == argumentsCompletion is not null);
 
             var type = node.Type;
-            (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, int>? initialStateInferenceCompletion) = inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped);
+            var initializerOpt = node.InitializerExpressionOpt;
+            (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, int>? initialStateInferenceCompletion) =
+                inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped, hasObjectInitializer: initializerOpt is { });
 
             Action<int, TypeSymbol>? initializerCompletion = null;
-            var initializerOpt = node.InitializerExpressionOpt;
             if (initializerOpt != null)
             {
                 initializerCompletion = VisitObjectCreationInitializer(slot, type, initializerOpt, delayCompletionForType: isTargetTyped);
@@ -4012,20 +4013,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, int>? completion) inferInitialObjectState(
                 BoundExpression node, TypeSymbol type, MethodSymbol? constructor,
                 ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitResult> argumentResults,
-                bool isTargetTyped)
+                bool isTargetTyped,
+                bool hasObjectInitializer)
             {
                 if (isTargetTyped)
                 {
-                    return (-1, NullableFlowState.NotNull, inferInitialObjectStateAsContinuation(node, arguments, argumentResults));
+                    return (-1, NullableFlowState.NotNull, inferInitialObjectStateAsContinuation(node, arguments, argumentResults, hasObjectInitializer));
                 }
 
                 Debug.Assert(node.Kind is BoundKind.ObjectCreationExpression or BoundKind.DynamicObjectCreationExpression or BoundKind.NewT or BoundKind.NoPiaObjectCreationExpression);
 
-                var argumentTypes = argumentResults.SelectAsArray(ar => ar.RValueType);
-
                 int slot = -1;
                 var resultState = NullableFlowState.NotNull;
-                if (type is object)
+                if (type is object &&
+                    (hasObjectInitializer || type.IsStructType()))
                 {
                     slot = GetOrCreatePlaceholderSlot(node);
                     if (slot > 0)
@@ -4038,6 +4039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (containingType?.IsTupleType == true && !isDefaultValueTypeConstructor)
                             {
                                 // new System.ValueTuple<T1, ..., TN>(e1, ..., eN)
+                                var argumentTypes = argumentResults.SelectAsArray(ar => ar.RValueType);
                                 TrackNullableStateOfTupleElements(slot, containingType, arguments, argumentTypes, ((BoundObjectCreationExpression)node).ArgsToParamsOpt, useRestField: true);
                             }
                             else
@@ -4082,11 +4084,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Func<TypeSymbol, MethodSymbol?, int> inferInitialObjectStateAsContinuation(
                 BoundExpression node,
                 ImmutableArray<BoundExpression> arguments,
-                ImmutableArray<VisitResult> argumentResults)
+                ImmutableArray<VisitResult> argumentResults,
+                bool hasObjectInitializer)
             {
                 return (TypeSymbol type, MethodSymbol? constructor) =>
                 {
-                    var (slot, resultState, completion) = inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped: false);
+                    var (slot, resultState, completion) = inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped: false, hasObjectInitializer);
                     Debug.Assert(completion is null);
                     Debug.Assert(resultState == NullableFlowState.NotNull);
                     return slot;
