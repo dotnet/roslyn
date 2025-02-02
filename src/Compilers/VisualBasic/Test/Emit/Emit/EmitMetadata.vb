@@ -1125,5 +1125,40 @@ End Module
             Dim main = comp.GetMember(Of MethodSymbol)("Program.Main")
             Assert.Equal(Accessibility.Internal, main.DeclaredAccessibility)
         End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
+        Public Sub ExcludePrivateMembers_DebugEntryPoint()
+            Using peStream As New MemoryStream()
+                Using metadataStream As New MemoryStream()
+                    Dim comp = CreateCompilation(
+                        <compilation>
+                            <file>
+Module Program
+    Private Sub M1()
+    End Sub
+    Private Sub M2()
+    End Sub
+End Module
+                            </file>
+                        </compilation>).VerifyDiagnostics()
+                    Dim emitResult = comp.Emit(
+                        peStream:=peStream,
+                        metadataPEStream:=metadataStream,
+                        debugEntryPoint:=comp.GetMember(Of MethodSymbol)("Program.M1"),
+                        options:=EmitOptions.Default.WithIncludePrivateMembers(False))
+                    Assert.True(emitResult.Success)
+                    emitResult.Diagnostics.Verify()
+
+                    ' M1 should be emitted (it's the debug entry-point), M2 shouldn't (private members are excluded).
+                    metadataStream.Position = 0
+                    Dim reference = AssemblyMetadata.CreateFromStream(metadataStream).GetReference()
+                    Dim comp2 = CreateCompilation("", references:={reference},
+                        options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+                    Dim m1 = comp2.GetMember(Of MethodSymbol)("Program.M1")
+                    Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility)
+                    Assert.Null(comp2.GetMember(Of MethodSymbol)("Program.M2"))
+                End Using
+            End Using
+        End Sub
     End Class
 End Namespace

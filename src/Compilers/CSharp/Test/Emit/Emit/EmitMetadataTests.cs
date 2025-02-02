@@ -3691,5 +3691,40 @@ public class Child : Parent, IParent
                 Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
             }
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void ExcludePrivateMembers_DebugEntryPoint()
+        {
+            using var peStream = new MemoryStream();
+            using var metadataStream = new MemoryStream();
+
+            {
+                var comp = CreateCompilation("""
+                    static class Program
+                    {
+                        static void M1() { }
+                        static void M2() { }
+                    }
+                    """).VerifyDiagnostics();
+                var emitResult = comp.Emit(
+                    peStream: peStream,
+                    metadataPEStream: metadataStream,
+                    debugEntryPoint: comp.GetMember<MethodSymbol>("Program.M1").GetPublicSymbol(),
+                    options: EmitOptions.Default.WithIncludePrivateMembers(false));
+                Assert.True(emitResult.Success);
+                emitResult.Diagnostics.Verify();
+            }
+
+            {
+                // M1 should be emitted (it's the debug entry-point), M2 shouldn't (private members are excluded).
+                metadataStream.Position = 0;
+                var reference = AssemblyMetadata.CreateFromStream(metadataStream).GetReference();
+                var comp = CreateCompilation("", references: [reference],
+                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+                var m1 = comp.GetMember<MethodSymbol>("Program.M1");
+                Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+                Assert.Null(comp.GetMember<MethodSymbol>("Program.M2"));
+            }
+        }
     }
 }
