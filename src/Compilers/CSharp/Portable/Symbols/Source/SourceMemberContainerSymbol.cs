@@ -3892,7 +3892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (prevConstructor.IsPartialDefinition || (prevConstructor.OtherPartOfPartial is { } otherDefinition && !ReferenceEquals(otherDefinition, currentConstructor))))
                 {
                     // A partial constructor may not have multiple defining declarations
-                    diagnostics.Add(ErrorCode.ERR_PartialMemberDuplicateImplementation, currentConstructor.GetFirstLocation(), currentConstructor);
+                    diagnostics.Add(ErrorCode.ERR_PartialMemberDuplicateDefinition, currentConstructor.GetFirstLocation(), currentConstructor);
                 }
                 else
                 {
@@ -3912,7 +3912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (prevEvent.IsPartialDefinition || (prevEvent.OtherPartOfPartial is { } otherDefinition && !ReferenceEquals(otherDefinition, currentEvent))))
                 {
                     // A partial event may not have multiple defining declarations
-                    diagnostics.Add(ErrorCode.ERR_PartialMemberDuplicateImplementation, currentEvent.GetFirstLocation(), currentEvent);
+                    diagnostics.Add(ErrorCode.ERR_PartialMemberDuplicateDefinition, currentEvent.GetFirstLocation(), currentEvent);
                 }
                 else
                 {
