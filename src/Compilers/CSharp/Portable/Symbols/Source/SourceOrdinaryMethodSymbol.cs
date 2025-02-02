@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            if (this.ReturnType?.IsErrorType() == true && this.ReturnType.Name == "partial")
+            if (this.ReturnType?.IsErrorType() == true && GetSyntax().ReturnType is IdentifierNameSyntax { Identifier.RawContextualKind: (int)SyntaxKind.PartialKeyword })
             {
                 var available = MessageID.IDS_FeaturePartialEventsAndConstructors.CheckFeatureAvailability(diagnostics, DeclaringCompilation, ReturnTypeLocation);
                 Debug.Assert(!available, "Should have been parsed as partial constructor.");

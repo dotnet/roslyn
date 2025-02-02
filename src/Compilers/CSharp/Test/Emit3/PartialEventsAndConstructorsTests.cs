@@ -161,6 +161,41 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void ReturningPartialType_Method_Escaped()
+    {
+        var source = """
+            class C
+            {
+                @partial F() { }
+                @partial C() { }
+            }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (3,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+            //     @partial F() { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@partial").WithArguments("partial").WithLocation(3, 5),
+            // (3,14): error CS0161: 'C.F()': not all code paths return a value
+            //     @partial F() { }
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("C.F()").WithLocation(3, 14),
+            // (4,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+            //     @partial C() { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@partial").WithArguments("partial").WithLocation(4, 5),
+            // (4,14): error CS0542: 'C': member names cannot be the same as their enclosing type
+            //     @partial C() { }
+            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 14),
+            // (4,14): error CS0161: 'C.C()': not all code paths return a value
+            //     @partial C() { }
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "C").WithArguments("C.C()").WithLocation(4, 14)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
     public void LangVersion()
     {
         var source = """
