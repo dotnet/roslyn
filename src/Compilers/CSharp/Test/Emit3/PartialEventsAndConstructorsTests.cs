@@ -446,6 +446,50 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void DuplicateDeclarations_03()
+    {
+        var source = """
+            partial class C
+            {
+                partial event System.Action E;
+                partial event System.Action E;
+                partial C();
+                partial C();
+
+                partial event System.Action E { add { } remove { } }
+                partial event System.Action E { add { } remove { } }
+                partial C() { }
+                partial C() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,33): error CS9402: Partial member 'C.E' may not have multiple defining declarations.
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_PartialMemberDuplicateDefinition, "E").WithArguments("C.E").WithLocation(4, 33),
+            // (4,33): error CS0102: The type 'C' already contains a definition for 'E'
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(4, 33),
+            // (6,13): error CS9402: Partial member 'C.C()' may not have multiple defining declarations.
+            //     partial C();
+            Diagnostic(ErrorCode.ERR_PartialMemberDuplicateDefinition, "C").WithArguments("C.C()").WithLocation(6, 13),
+            // (6,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+            //     partial C();
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(6, 13),
+            // (9,33): error CS9403: Partial member 'C.E' may not have multiple implementing declarations.
+            //     partial event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "E").WithArguments("C.E").WithLocation(9, 33),
+            // (9,33): error CS0102: The type 'C' already contains a definition for 'E'
+            //     partial event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(9, 33),
+            // (11,13): error CS9403: Partial member 'C.C()' may not have multiple implementing declarations.
+            //     partial C() { }
+            Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "C").WithArguments("C.C()").WithLocation(11, 13),
+            // (11,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+            //     partial C() { }
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(11, 13));
+    }
+
+    [Fact]
     public void EventInitializer_Single()
     {
         var source = """
