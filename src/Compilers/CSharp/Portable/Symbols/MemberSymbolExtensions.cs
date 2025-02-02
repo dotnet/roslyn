@@ -581,6 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         internal static Symbol? GetPartialImplementationPart(this Symbol member)
         {
+            Debug.Assert(member.IsDefinition);
             return member switch
             {
                 MethodSymbol method => method.PartialImplementationPart,

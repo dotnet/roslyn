@@ -3883,13 +3883,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static void mergePartialConstructors(ArrayBuilder<Symbol> nonTypeMembers, SourceConstructorSymbol currentConstructor, SourceConstructorSymbol prevConstructor, BindingDiagnosticBag diagnostics)
             {
                 if (currentConstructor.IsPartialImplementation &&
-                    (prevConstructor.IsPartialImplementation || (prevConstructor.OtherPartOfPartial is { } otherImplementation && (object)otherImplementation != currentConstructor)))
+                    (prevConstructor.IsPartialImplementation || (prevConstructor.OtherPartOfPartial is { } otherImplementation && !ReferenceEquals(otherImplementation, currentConstructor))))
                 {
                     // A partial constructor may not have multiple implementing declarations
                     diagnostics.Add(ErrorCode.ERR_PartialMemberDuplicateImplementation, currentConstructor.GetFirstLocation(), currentConstructor);
                 }
                 else if (currentConstructor.IsPartialDefinition &&
-                    (prevConstructor.IsPartialDefinition || (prevConstructor.OtherPartOfPartial is { } otherDefinition && (object)otherDefinition != currentConstructor)))
+                    (prevConstructor.IsPartialDefinition || (prevConstructor.OtherPartOfPartial is { } otherDefinition && !ReferenceEquals(otherDefinition, currentConstructor))))
                 {
                     // A partial constructor may not have multiple defining declarations
                     diagnostics.Add(ErrorCode.ERR_PartialMemberDuplicateImplementation, currentConstructor.GetFirstLocation(), currentConstructor);
@@ -3903,13 +3903,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static void mergePartialEvents(ArrayBuilder<Symbol> nonTypeMembers, SourceEventSymbol currentEvent, SourceEventSymbol prevEvent, BindingDiagnosticBag diagnostics)
             {
                 if (currentEvent.IsPartialImplementation &&
-                    (prevEvent.IsPartialImplementation || (prevEvent.OtherPartOfPartial is { } otherImplementation && (object)otherImplementation != currentEvent)))
+                    (prevEvent.IsPartialImplementation || (prevEvent.OtherPartOfPartial is { } otherImplementation && !ReferenceEquals(otherImplementation, currentEvent))))
                 {
                     // A partial event may not have multiple implementing declarations
                     diagnostics.Add(ErrorCode.ERR_PartialMemberDuplicateImplementation, currentEvent.GetFirstLocation(), currentEvent);
                 }
                 else if (currentEvent.IsPartialDefinition &&
-                    (prevEvent.IsPartialDefinition || (prevEvent.OtherPartOfPartial is { } otherDefinition && (object)otherDefinition != currentEvent)))
+                    (prevEvent.IsPartialDefinition || (prevEvent.OtherPartOfPartial is { } otherDefinition && !ReferenceEquals(otherDefinition, currentEvent))))
                 {
                     // A partial event may not have multiple defining declarations
                     diagnostics.Add(ErrorCode.ERR_PartialMemberDuplicateImplementation, currentEvent.GetFirstLocation(), currentEvent);

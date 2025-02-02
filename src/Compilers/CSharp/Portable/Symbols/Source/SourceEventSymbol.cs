@@ -831,14 +831,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(definition.IsPartialDefinition);
             Debug.Assert(implementation.IsPartialImplementation);
 
-            Debug.Assert(definition._otherPartOfPartial is not { } alreadySetImplPart || alreadySetImplPart == implementation);
-            Debug.Assert(implementation._otherPartOfPartial is not { } alreadySetDefPart || alreadySetDefPart == definition);
+            Debug.Assert(definition._otherPartOfPartial is not { } alreadySetImplPart || ReferenceEquals(alreadySetImplPart, implementation));
+            Debug.Assert(implementation._otherPartOfPartial is not { } alreadySetDefPart || ReferenceEquals(alreadySetDefPart, definition));
 
             definition._otherPartOfPartial = implementation;
             implementation._otherPartOfPartial = definition;
 
-            Debug.Assert(definition._otherPartOfPartial == implementation);
-            Debug.Assert(implementation._otherPartOfPartial == definition);
+            Debug.Assert(ReferenceEquals(definition._otherPartOfPartial, implementation));
+            Debug.Assert(ReferenceEquals(implementation._otherPartOfPartial, definition));
         }
     }
 }
