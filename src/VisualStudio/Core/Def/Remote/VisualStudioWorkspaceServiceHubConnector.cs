@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class VisualStudioWorkspaceServiceHubConnector(
-    IAsynchronousOperationListenerProvider listenerProvider) : IEventListener
+    IAsynchronousOperationListenerProvider listenerProvider, IThreadingContext threadingContext) : IEventListener
 {
     private readonly IAsynchronousOperationListenerProvider _listenerProvider = listenerProvider;
     private readonly CancellationTokenSource _disposalCancellationSource = new();
