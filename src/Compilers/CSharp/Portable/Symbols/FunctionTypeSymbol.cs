@@ -103,9 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsRefLikeType => false;
 
-        internal override string ExtensionName
-            => throw ExceptionUtilities.Unreachable();
-
         public override bool IsReadOnly => true;
 
         public override SymbolKind Kind => SymbolKindInternal.FunctionType;

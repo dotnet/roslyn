@@ -79,6 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal sealed override bool IsFileLocal => false;
             internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
 
+            internal override string ExtensionName
+                => throw ExceptionUtilities.Unreachable();
+
             public sealed override int Arity
             {
                 get { return 0; }
@@ -108,9 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return false; }
             }
-
-            internal override string ExtensionName
-                => throw ExceptionUtilities.Unreachable();
 
             public sealed override bool IsReadOnly
             {

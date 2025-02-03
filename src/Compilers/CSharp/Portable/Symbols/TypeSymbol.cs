@@ -558,13 +558,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool IsExtension
             => TypeKind == TypeKind.Extension;
 
-#nullable enable
-        /// <summary>
-        /// For extensions, returns the synthesized identifier for the type: "&lt;E>__N".
-        /// </summary>
-        internal abstract string ExtensionName { get; }
-#nullable disable
-
         internal bool IsNativeIntegerType => IsNativeIntegerWrapperType
             || (SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr && this.ContainingAssembly.RuntimeSupportsNumericIntPtr);
 
