@@ -127,8 +127,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     // Satellite assemblies should get the best path information using the
                     // non-resource part of the assembly name. Once the path information is obtained
-                    // GetSatelliteInfoForPath will translate to the resource assembly path.
-                    var (_, realPath) = GetBestPath(new AssemblyName(simpleName[..^resourcesExtension.Length]));
+                    // GetSatelliteLoadPath will translate to the resource assembly path.
+                    assemblyName.Name = simpleName[..^resourcesExtension.Length];
+                    var (_, realPath) = GetBestPath(assemblyName);
                     loadPath = realPath is not null ? GetSatelliteLoadPath(realPath, assemblyName.CultureInfo) : null;
                 }
                 else

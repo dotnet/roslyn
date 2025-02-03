@@ -24,6 +24,9 @@ using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
+using System.Diagnostics;
+using System.ComponentModel;
+
 
 
 #if NET
@@ -204,7 +207,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var testOutputHelper = new AppDomainTestOutputHelper(TestOutputHelper);
                 var type = typeof(InvokeUtil);
                 var util = (InvokeUtil)appDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
-                util.Exec(testOutputHelper, TestFixture, kind, method.DeclaringType.FullName, method.Name, pathResolvers, state);
+                util.Exec(testOutputHelper, TestFixture, kind, method.DeclaringType.FullName, method.Name, pathResolvers.ToArray(), state);
             }
             finally
             {
@@ -501,6 +504,13 @@ Delta: Gamma: Beta: Test B
             loadedAssemblies = AppDomain.CurrentDomain
                 .GetAssemblies()
                 .Where(x => isInLoadFromContext(loader, x));
+
+            // When debugging the debugger will load this DLL and that can throw off the debugging 
+            // session so excude it here.
+            if (Debugger.IsAttached)
+            {
+                loadedAssemblies = loadedAssemblies.Where(x => !(x.GetName().Name == "Microsoft.VisualStudio.Debugger.Runtime.Desktop"));
+            }
 
             static bool isInLoadFromContext(AnalyzerAssemblyLoader loader, Assembly assembly)
             {
@@ -876,7 +886,7 @@ Delta: Epsilon: Test E
                 {
                     // See limitation 1
                     // The Epsilon.dll has Delta.dll (v2) next to it in the directory. 
-                    Assert.Throws<InvalidOperationException>(() => loader.GetRealAnalyzerPath(testFixture.Delta2));
+                    Assert.Throws<ArgumentException>(() => loader.GetRealAnalyzerPath(testFixture.Delta2));
 
                     // Fake the dependency so we can verify the rest of the load
                     loader.AddDependencyLocation(testFixture.Delta2);
@@ -909,38 +919,19 @@ Delta: Epsilon: Test E
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
-                if (ExecutionConditionUtil.IsDesktop && state is AnalyzerTestKind.ShadowLoad)
-                {
-                    // Delta2B and Delta2 have the same version, but we prefer Delta2B because it's added first and 
-                    // in shadow loader we can't fall back to same directory because the runtime doesn't provide
-                    // context for who requested the load. Just have to go to best version.
-                    VerifyDependencyAssemblies(
-                        loader,
-                        testFixture.Delta2B,
-                        testFixture.Epsilon);
+                // See limitation 1
+                // Delta2B and Delta2 have the same version, but we prefer Delta2 because it's in the same directory as Epsilon.
+                VerifyDependencyAssemblies(
+                    loader,
+                    copyCount: 3,
+                    testFixture.Delta2,
+                    testFixture.Epsilon);
 
-                    var actual = sb.ToString();
-                    Assert.Equal(
-    @"Delta.2B: Epsilon: Test E
+                var actual = sb.ToString();
+                Assert.Equal(
+@"Delta.2: Epsilon: Test E
 ",
-                        actual);
-                }
-                else
-                {
-                    // See limitation 1
-                    // Delta2B and Delta2 have the same version, but we prefer Delta2 because it's in the same directory as Epsilon.
-                    VerifyDependencyAssemblies(
-                        loader,
-                        copyCount: 3,
-                        testFixture.Delta2,
-                        testFixture.Epsilon);
-
-                    var actual = sb.ToString();
-                    Assert.Equal(
-    @"Delta.2: Epsilon: Test E
-",
-                        actual);
-                }
+                    actual);
             });
         }
 
@@ -987,48 +978,56 @@ Delta: Epsilon: Test E
         {
             Run(kind, state: kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
             {
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+
+                // This test is about validating how dependencies resolve when there are multiple versions
+                // on disk with some registered and some not-registered. In this case Epislon has a dependency
+                // on Delta2. 
+
+                var dir1 = tempDir.CreateDirectory("1");
+                var unregisteredDeltaPath = dir1.CopyFile(testFixture.Delta2).Path;
+                var epsilonPath = dir1.CopyFile(testFixture.Epsilon).Path;
+
+                var dir2 = tempDir.CreateDirectory("2");
+                var registeredDeltaPath = dir2.CopyFile(testFixture.Delta2).Path;
+
+                loader.AddDependencyLocation(registeredDeltaPath);
+                loader.AddDependencyLocation(epsilonPath);
+
+                Assembly epsilon = loader.LoadFromPath(epsilonPath);
                 StringBuilder sb = new StringBuilder();
-
-                loader.AddDependencyLocation(testFixture.Delta2B);
-                loader.AddDependencyLocation(testFixture.Delta3);
-                loader.AddDependencyLocation(testFixture.Epsilon);
-
-                Assembly epsilon = loader.LoadFromPath(testFixture.Epsilon);
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+                Assert.Equal(
+                    @"Delta.2: Epsilon: Test E
+",
+                    sb.ToString());
 
-                var actual = sb.ToString();
-                if (ExecutionConditionUtil.IsCoreClr)
+                if (ExecutionConditionUtil.IsCoreClr || state is AnalyzerTestKind.ShadowLoad)
                 {
                     // This works in CoreClr because we have full control over assembly loading.
+                    // This works in ShadowLoad because the unregistered dependency is not copied hence can't be 
+                    // implicitly loaded
                     VerifyDependencyAssemblies(
                         loader,
-                        copyCount: 3,
-                        testFixture.Delta2B,
-                        testFixture.Epsilon);
-
-                    Assert.Equal(
-    @"Delta.2B: Epsilon: Test E
-",
-                        actual);
+                        copyCount: 2,
+                        registeredDeltaPath,
+                        epsilonPath);
                 }
                 else
                 {
-                    // See limitation 2
-                    Assert.Throws<InvalidOperationException>(() => loader.GetRealAnalyzerPath(testFixture.Delta2));
+                    // On desktop without shadow load then the desktop loader will grab the unregistered
+                    // dependency because it's in the same directory as the main assembly and LoadFrom
+                    // rules will pick it without a chance to intervene
 
-                    // Fake the dependency so we can verify the rest of the load
-                    loader.AddDependencyLocation(testFixture.Delta2);
+                    // Add the dependency location just so we can run the verify below
+                    loader.AddDependencyLocation(unregisteredDeltaPath);
                     VerifyDependencyAssemblies(
                         loader,
-                        copyCount: 3,
-                        testFixture.Delta2,
-                        testFixture.Epsilon);
-
-                    Assert.Equal(
-                        @"Delta.2: Epsilon: Test E
-",
-                        actual);
+                        copyCount: 2,
+                        unregisteredDeltaPath,
+                        epsilonPath);
                 }
             });
         }
@@ -1043,8 +1042,8 @@ Delta: Epsilon: Test E
                 StringBuilder sb = new StringBuilder();
 
                 var tempDir = temp.CreateDirectory();
-                var tempDir1 = tempDir.CreateDirectory("a");
-                var tempDir2 = tempDir.CreateDirectory("b");
+                var tempDir1 = tempDir.CreateDirectory("1");
+                var tempDir2 = tempDir.CreateDirectory("2");
                 var epsilonFile = tempDir1.CreateFile("Epsilon.dll").CopyContentFrom(testFixture.Epsilon).Path;
                 var delta1File = tempDir1.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1).Path;
                 var delta2File = tempDir2.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta2).Path;
@@ -1057,39 +1056,18 @@ Delta: Epsilon: Test E
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
-                if (ExecutionConditionUtil.IsDesktop && state is AnalyzerTestKind.ShadowLoad)
-                {
-                    // In desktop + shadow load the dependencies are in different directories with 
-                    // no context available when the load for Delta comes in. So we pick the best 
-                    // option.
-                    // Epsilon wants Delta2, but since Delta1 is in the same directory, we prefer Delta1 over Delta2.
-                    VerifyDependencyAssemblies(
-                        loader,
-                        copyCount: 3,
-                        delta2File,
-                        epsilonFile);
+                // See limitation 2
+                VerifyDependencyAssemblies(
+                    loader,
+                    copyCount: 3,
+                    delta1File,
+                    epsilonFile);
 
-                    var actual = sb.ToString();
-                    Assert.Equal(
-        @"Delta.2: Epsilon: Test E
+                var actual = sb.ToString();
+                Assert.Equal(
+    @"Delta: Epsilon: Test E
 ",
-                        actual);
-                }
-                else
-                {
-                    // See limitation 2
-                    VerifyDependencyAssemblies(
-                        loader,
-                        copyCount: 3,
-                        delta1File,
-                        epsilonFile);
-
-                    var actual = sb.ToString();
-                    Assert.Equal(
-        @"Delta: Epsilon: Test E
-",
-                        actual);
-                }
+                    actual);
             });
         }
 

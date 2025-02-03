@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AnalyzerTestKind kind,
             string typeName,
             string methodName,
-            ImmutableArray<IAnalyzerPathResolver> pathResolvers,
+            IAnalyzerPathResolver[] pathResolvers,
             object? state)
         {
             using var tempRoot = new TempRoot();
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 _ => throw ExceptionUtilities.Unreachable(),
             };
 
-            var loader = new AnalyzerAssemblyLoader(pathResolvers);
+            var loader = new AnalyzerAssemblyLoader(pathResolvers.ToImmutableArray());
 
             try
             {

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
     public class RemoteAnalyzerAssemblyLoaderTests
     {
-        private AnalyzerAssemblyLoader Create(string baseDirectory) => new(
+        private static AnalyzerAssemblyLoader Create(string baseDirectory) => new(
             [new RemoteAnalyzerPathResolver(baseDirectory)],
             [AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver]);
 
