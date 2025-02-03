@@ -37,18 +37,27 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal interface IAnalyzerPathResolver
     {
+        /// <summary>
+        /// Is this path handled by this instance?
+        /// </summary>
         bool IsAnalyzerPathHandled(string analyzerPath);
 
         /// <summary>
         /// This method is used to allow compiler hosts to intercept an analyzer path and redirect it to a
-        /// a different location. The path returned must point to a real file on disk.
+        /// a different location.
         /// </summary>
+        /// <remarks>
+        /// This will only be called for paths that return true from <see cref="IsAnalyzerPathHandled(string)"/>.
+        /// </remarks>
         string GetRealAnalyzerPath(string analyzerPath);
 
         /// <summary>
         /// This method is used to allow compiler hosts to intercept an analyzer satellite path and redirect it to a
-        /// a different location. The path returned must point to a real file on disk.
+        /// a different location.
         /// </summary>
+        /// <remarks>
+        /// This will only be called for paths that return true from <see cref="IsAnalyzerPathHandled(string)"/>.
+        /// </remarks>
         string? GetRealSatellitePath(string analyzerPath, CultureInfo cultureInfo);
     }
 

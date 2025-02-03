@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Note: this is using real paths, not the original file paths
         /// </summary>
-        private bool IsKnownAnalyzerPath(string analyzerPath)
+        private bool IsRegisteredAnalyzerPath(string analyzerPath)
         {
             CheckIfDisposed();
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis
             // Prefer registered dependencies in the same directory first.
             var simpleName = assemblyName.Name!;
             var assemblyPath = Path.Combine(directory, simpleName + ".dll");
-            if (IsKnownAnalyzerPath(assemblyPath))
+            if (IsRegisteredAnalyzerPath(assemblyPath))
             {
                 return assemblyPath;
             }
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis
             protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
             {
                 var assemblyPath = Path.Combine(Directory, unmanagedDllName + ".dll");
-                if (_loader.IsKnownAnalyzerPath(assemblyPath))
+                if (_loader.IsRegisteredAnalyzerPath(assemblyPath))
                 {
                     return LoadUnmanagedDllFromPath(assemblyPath);
                 }

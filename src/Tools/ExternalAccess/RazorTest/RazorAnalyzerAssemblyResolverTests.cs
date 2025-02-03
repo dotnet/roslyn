@@ -1,0 +1,139 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+#if NET
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
+using System.Text;
+using System.Threading.Tasks;
+using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Xunit;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests;
+
+public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
+{
+    private TempRoot TempRoot { get; } = new TempRoot();
+    private int InitialAassemblyCount { get; }
+
+    public RazorAnalyzerAssemblyResolverTests()
+    {
+        InitialAassemblyCount = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.Count();
+    }
+
+    public void Dispose()
+    {
+        TempRoot.Dispose();
+
+        // This test should not change the set of assemblies loaded in the current context.
+        var count = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.Count();
+        Assert.Equal(InitialAassemblyCount, count);
+    }
+
+    internal void CreateRazorAssemblies(string directory, string versionNumber = "1.0.0.0")
+    {
+        foreach (var simpleName in RazorAnalyzerAssemblyResolver.RazorAssemblyNames)
+        {
+            BuildOne(simpleName);
+        }
+
+        void BuildOne(string simpleName)
+        {
+            var i = simpleName.LastIndexOf('.');
+            var typeName = simpleName[(i + 1)..];
+            var source = $$"""
+                using System.Reflection;
+
+                [assembly: AssemblyVersion("{{versionNumber}}")]
+                [assembly: AssemblyFileVersion("{{versionNumber}}")]
+
+                public sealed class {{typeName}} { }
+                """;
+
+            var compilation = CSharpCompilation.Create(
+                simpleName,
+                [CSharpSyntaxTree.ParseText(source)],
+                NetStandard20.References.All,
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var result = compilation.Emit(Path.Combine(directory, $"{simpleName}.dll"));
+            Assert.True(result.Success);
+        }
+    }
+
+    private static void RunWithLoader(Action<RazorAnalyzerAssemblyResolver, AnalyzerAssemblyLoader, AssemblyLoadContext> action)
+    {
+        var compilerLoadContext = new AssemblyLoadContext("Compiler", isCollectible: true);
+        var currentLoadContext = new AssemblyLoadContext("Current", isCollectible: true);
+        var loader = new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], compilerLoadContext);
+#pragma warning disable 612 
+        var resolver = CreateResolver();
+#pragma warning restore 612 
+        action(resolver, loader, currentLoadContext);
+
+        Assert.Empty(currentLoadContext.Assemblies);
+        currentLoadContext.Unload();
+        compilerLoadContext.Unload();
+    }
+
+    [Obsolete]
+    internal static RazorAnalyzerAssemblyResolver CreateResolver() => new RazorAnalyzerAssemblyResolver();
+
+    [Fact]
+    public void OneLoadsAll()
+    {
+        var dir = TempRoot.CreateDirectory().Path;
+        CreateRazorAssemblies(dir);
+        foreach (var name in RazorAnalyzerAssemblyResolver.RazorAssemblyNames)
+        {
+            RunWithLoader((resolver, loader, currentLoadContext) =>
+            {
+                var assembly = resolver.Resolve(
+                    loader,
+                    currentLoadContext,
+                    new AssemblyName(name),
+                    dir);
+                Assert.NotNull(assembly);
+                Assert.Equal(name, assembly.GetName().Name);
+
+                foreach (var n in RazorAnalyzerAssemblyResolver.RazorAssemblyNames)
+                {
+                    var a = loader.CompilerLoadContext.Assemblies.Single(x => x.GetName().Name == n);
+                    Assert.NotNull(a);
+                }
+            });
+        }
+    }
+
+    [Fact]
+    public void FirstLoadWins()
+    {
+        var dir1 = TempRoot.CreateDirectory().Path;
+        CreateRazorAssemblies(dir1, versionNumber: "1.0.0.0");
+        var dir2 = TempRoot.CreateDirectory().Path;
+        CreateRazorAssemblies(dir2, versionNumber: "2.0.0.0");
+
+        RunWithLoader((resolver, loader, currentLoadContext) =>
+        {
+            var assembly1 = resolver.Resolve(
+                loader,
+                currentLoadContext,
+                new AssemblyName(RazorAnalyzerAssemblyResolver.RazorCompilerAssemblyName),
+                dir1);
+            var assembly2 = resolver.Resolve(
+                loader,
+                currentLoadContext,
+                new AssemblyName(RazorAnalyzerAssemblyResolver.RazorCompilerAssemblyName),
+                dir2);
+            Assert.Same(assembly1, assembly2);
+        });
+    }
+}
+#endif

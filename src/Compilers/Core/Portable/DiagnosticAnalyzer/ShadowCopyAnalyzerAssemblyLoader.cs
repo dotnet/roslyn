@@ -55,6 +55,8 @@ namespace Microsoft.CodeAnalysis
 
         internal string BaseDirectory => _baseDirectory;
 
+        internal string ShadowDirectory => _shadowDirectory;
+
         internal int CopyCount => _copyMap.Count;
 
         public ShadowCopyAnalyzerPathResolver(string baseDirectory)
