@@ -48,6 +48,11 @@ internal sealed class SolutionChecksumUpdater
     private readonly IThreadingContext _threadingContext;
     private readonly CancellationToken _shutdownToken;
 
+    private const string SynchronizeTextChangesStatusSucceededMetricName = "SucceededCount";
+    private const string SynchronizeTextChangesStatusFailedMetricName = "FailedCount";
+    private const string SynchronizeTextChangesStatusSucceededKeyName = nameof(SolutionChecksumUpdater) + "." + SynchronizeTextChangesStatusSucceededMetricName;
+    private const string SynchronizeTextChangesStatusFailedKeyName = nameof(SolutionChecksumUpdater) + "." + SynchronizeTextChangesStatusFailedMetricName;
+
     public SolutionChecksumUpdater(
         Workspace workspace,
         IAsynchronousOperationListenerProvider listenerProvider,
@@ -215,22 +220,29 @@ internal sealed class SolutionChecksumUpdater
         _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
         {
             var wasSynchronized = await DispatchSynchronizeTextChangesHelperAsync().ConfigureAwait(false);
+            if (wasSynchronized == null)
+                return;
 
-            var metricName = wasSynchronized ? "SucceededCount" : "FailedCount";
+            var metricName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededMetricName : SynchronizeTextChangesStatusFailedMetricName;
+            var keyName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededKeyName : SynchronizeTextChangesStatusFailedKeyName;
             TelemetryLogging.LogAggregatedCounter(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, KeyValueLogMessage.Create(m =>
             {
-                m[TelemetryLogging.KeyName] = nameof(SolutionChecksumUpdater) + "." + metricName;
+                m[TelemetryLogging.KeyName] = keyName;
                 m[TelemetryLogging.KeyValue] = 1L;
                 m[TelemetryLogging.KeyMetricName] = metricName;
             }));
 
             return;
 
-            async Task<bool> DispatchSynchronizeTextChangesHelperAsync()
+            async Task<bool?> DispatchSynchronizeTextChangesHelperAsync()
             {
                 var client = await RemoteHostClient.TryGetClientAsync(_workspace, _shutdownToken).ConfigureAwait(false);
                 if (client == null)
-                    return false;
+                {
+                    // null return value indicates that we were unable to synchronize the text changes, but to not log
+                    // telemetry against that inability as turning off OOP is not a failure.
+                    return null;
+                }
 
                 // this pushes text changes to the remote side if it can. this is purely perf optimization. whether this
                 // pushing text change worked or not doesn't affect feature's functionality.
