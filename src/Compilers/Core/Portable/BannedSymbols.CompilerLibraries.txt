@@ -1,5 +1,2 @@
 M:System.IO.Path.GetTempPath(); Cannot be used safely in APIs or compiler server as underlying environment variables can change during build.
 P:System.Environment.CurrentDirectory; Cannot be used safely in APIs or compiler server as underlying environment variables can change during build.
-M:Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder`1.GetInstance(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{`0}@)"; Explicitly free ArrayBuilder instance instead. Implicit try-finally blocks might negatively affect performance.
-M:Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder`1.GetInstance(System.Int32,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{`0}@)"; Explicitly free ArrayBuilder instance instead. Implicit try-finally blocks might negatively affect performance.
-M:Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder`1.GetInstance(System.Int32,`0,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{`0}@)"; Explicitly free ArrayBuilder instance instead. Implicit try-finally blocks might negatively affect performance.

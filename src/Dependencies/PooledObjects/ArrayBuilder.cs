@@ -721,6 +721,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return result.ToImmutableAndFree();
         }
 
+#if !MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER
         public static PooledDisposer<ArrayBuilder<T>> GetInstance(out ArrayBuilder<T> instance)
         {
             instance = GetInstance();
@@ -738,6 +739,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             instance = GetInstance(capacity, fillWithValue);
             return new PooledDisposer<ArrayBuilder<T>>(instance);
         }
+#endif
     }
-
 }
