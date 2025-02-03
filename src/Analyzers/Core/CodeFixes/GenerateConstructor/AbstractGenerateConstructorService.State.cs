@@ -195,8 +195,8 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
             for (var i = allParameters.Length; i > 0; i--)
             {
-                var parameters = allParameters.TakeAsArray(i);
-                var expressions = allExpressions.TakeAsArray(i);
+                var parameters = allParameters[0..i];
+                var expressions = allExpressions[0..i];
                 var result = FindConstructorToDelegateTo(parameters, expressions, TypeToGenerateIn.InstanceConstructors, cancellationToken) ??
                              FindConstructorToDelegateTo(parameters, expressions, TypeToGenerateIn.BaseType.InstanceConstructors, cancellationToken);
                 if (result != null)
