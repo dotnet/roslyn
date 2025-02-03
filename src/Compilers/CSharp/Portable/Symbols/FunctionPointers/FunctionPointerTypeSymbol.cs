@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsValueType => true;
         public override TypeKind TypeKind => TypeKind.FunctionPointer;
         public override bool IsRefLikeType => false;
+        internal override string ExtensionName => throw ExceptionUtilities.Unreachable();
         public override bool IsReadOnly => false;
         public override SymbolKind Kind => SymbolKind.FunctionPointerType;
         public override Symbol? ContainingSymbol => null;

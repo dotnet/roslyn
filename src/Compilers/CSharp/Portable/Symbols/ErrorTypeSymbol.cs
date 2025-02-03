@@ -113,6 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override string ExtensionName
+            => throw ExceptionUtilities.Unreachable();
+
         public sealed override bool IsReadOnly
         {
             get

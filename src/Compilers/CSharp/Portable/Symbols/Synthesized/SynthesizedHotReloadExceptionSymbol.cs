@@ -96,6 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => [];
         public override bool IsStatic => false;
         public override bool IsRefLikeType => false;
+
+        internal override string ExtensionName
+            => throw ExceptionUtilities.Unreachable();
+
         public override bool IsReadOnly => false;
         public override bool IsAbstract => false;
         public override bool IsSealed => true;

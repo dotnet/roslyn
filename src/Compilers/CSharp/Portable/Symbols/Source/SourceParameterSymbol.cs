@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var name = identifier.ValueText;
             var location = new SourceLocation(identifier);
 
-            if (hasParamsModifier && parameterType.IsSZArray() && !identifier.IsKind(SyntaxKind.None))
+            if (hasParamsModifier && parameterType.IsSZArray())
             {
                 // touch the constructor in order to generate proper use-site diagnostics
                 // Note: params is disallowed in scenarios where the parameter lacks an identifier

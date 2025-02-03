@@ -1402,7 +1402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declarationSpan = extensionDeclaration.Span;
             foreach (var symbol in collection)
             {
-                if (symbol.HasLocationContainedWithin(this.SyntaxTree, declarationSpan, out var wasZeroWidthMatch))
+                if (symbol is NamedTypeSymbol { IsExtension: true } && symbol.HasLocationContainedWithin(this.SyntaxTree, declarationSpan, out var wasZeroWidthMatch))
                 {
                     if (!wasZeroWidthMatch)
                         return (NamedTypeSymbol)symbol;

@@ -1820,7 +1820,7 @@ next:;
             get
             {
                 return IsExtension
-                    ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, this.ExtensionName)
+                    ? MetadataHelpers.ComposeAritySuffixedMetadataName(this.ExtensionName, Arity, associatedFileIdentifier: null)
                     : base.MetadataName;
             }
         }

@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var typeOpt = p.Type is not null ? BindType(p.Type, diagnostics) : default;
 
-                    var refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out var scope);
+                    var refKind = ParameterHelpers.GetModifiers(p.Modifiers, ignoreParams: false, out _, out var paramsKeyword, out _, out var scope);
                     var isParams = paramsKeyword.Kind() != SyntaxKind.None;
 
                     ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false,

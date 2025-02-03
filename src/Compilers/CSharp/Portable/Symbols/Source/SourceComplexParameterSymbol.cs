@@ -1544,9 +1544,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     validateParamsType(diagnostics);
                 }
 
-                if (DeclaredScope == ScopedKind.ScopedValue && !Type.IsErrorOrRefLikeOrAllowsRefLikeType() && (!inExtension || this.Ordinal == 0))
+                if (DeclaredScope == ScopedKind.ScopedValue && !Type.IsErrorOrRefLikeOrAllowsRefLikeType())
                 {
-                    // An error is already reported for extensions for parameters beyond the first
                     Debug.Assert(ParameterSyntax is not null);
                     diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, ParameterSyntax);
                 }

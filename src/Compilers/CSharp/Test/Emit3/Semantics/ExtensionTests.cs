@@ -555,7 +555,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,9): error CS9501: Extension declarations can only include methods or properties
+            // (5,9): error CS9501: Extension declarations can include only methods or properties
             //         extension(string) { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(5, 9));
 
@@ -1116,7 +1116,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,13): error CS9501: Extension declarations can only include methods or properties
+            // (5,13): error CS9501: Extension declarations can include only methods or properties
             //         int Property { get; set; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Property").WithLocation(5, 13));
 
@@ -1237,7 +1237,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,20): error CS9501: Extension declarations can only include methods or properties
+            // (5,20): error CS9501: Extension declarations can include only methods or properties
             //         static int Property { get; set; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Property").WithLocation(5, 20));
 
@@ -1368,7 +1368,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,15): error CS9501: Extension declarations can only include methods or properties
+            // (5,15): error CS9501: Extension declarations can include only methods or properties
             //         class Nested { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(5, 15));
 
@@ -1397,7 +1397,7 @@ public static class Extensions
             // (3,25): error CS1520: Method must have a return type
             //     extension(object) { Extensions() { } }
             Diagnostic(ErrorCode.ERR_MemberNeedsType, "Extensions").WithLocation(3, 25),
-            // (3,25): error CS9501: Extension declarations can only include methods or properties
+            // (3,25): error CS9501: Extension declarations can include only methods or properties
             //     extension(object) { Extensions() { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Extensions").WithLocation(3, 25));
 
@@ -1425,7 +1425,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,26): error CS9501: Extension declarations can only include methods or properties
+            // (3,26): error CS9501: Extension declarations can include only methods or properties
             //     extension(object) { ~Extensions() { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Extensions").WithLocation(3, 26));
 
@@ -1451,7 +1451,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,29): error CS9501: Extension declarations can only include methods or properties
+            // (3,29): error CS9501: Extension declarations can include only methods or properties
             //     extension(object) { int field = 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "field").WithLocation(3, 29),
             // (3,29): warning CS0169: The field 'Extensions.extension.field' is never used
@@ -1480,7 +1480,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,35): error CS9501: Extension declarations can only include methods or properties
+            // (3,35): error CS9501: Extension declarations can include only methods or properties
             //     extension(object) { const int i = 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "i").WithLocation(3, 35));
 
@@ -1516,13 +1516,13 @@ public static class Extensions
             // (9,31): error CS0541: 'Extensions.extension.E': explicit interface declaration can only be declared in a class, record, struct or interface
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "E").WithArguments("Extensions.extension.E").WithLocation(9, 31),
-            // (9,31): error CS9501: Extension declarations can only include methods or properties
+            // (9,31): error CS9501: Extension declarations can include only methods or properties
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "E").WithLocation(9, 31),
-            // (9,35): error CS9501: Extension declarations can only include methods or properties
+            // (9,35): error CS9501: Extension declarations can include only methods or properties
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "add").WithLocation(9, 35),
-            // (9,43): error CS9501: Extension declarations can only include methods or properties
+            // (9,43): error CS9501: Extension declarations can include only methods or properties
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "remove").WithLocation(9, 43));
     }
@@ -1646,7 +1646,7 @@ public static class Extensions
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        Assert.Equal(["System.Object"], internalSymbol.ExtensionParameters.ToTestDisplayStrings());
+        Assert.Equal("System.Object", internalSymbol.ExtensionParameter.ToTestDisplayString());
     }
 
     [Fact]
@@ -1666,7 +1666,7 @@ public static class Extensions
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        Assert.Equal(["System.Object o"], internalSymbol.ExtensionParameters.ToTestDisplayStrings());
+        Assert.Equal("System.Object o", internalSymbol.ExtensionParameter.ToTestDisplayString());
     }
 
     [Fact]
@@ -1675,36 +1675,37 @@ public static class Extensions
         var src = """
 public static class Extensions
 {
-    extension(int i, int j) { }
+    extension(int i, int j, C c) { }
 }
+class C { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,22): error CS9504: An extension container can only have one receiver parameter
-            //     extension(int i, int j) { }
-            Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "int j").WithLocation(3, 22));
+            // (3,22): error CS9504: An extension container can have only one receiver parameter
+            //     extension(int i, int j, C c) { }
+            Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "int j").WithLocation(3, 22),
+            // (3,29): error CS9504: An extension container can have only one receiver parameter
+            //     extension(int i, int j, C c) { }
+            Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "C c").WithLocation(3, 29));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        var parameters = internalSymbol.ExtensionParameters;
+        var parameter = internalSymbol.ExtensionParameter;
 
-        var parameter1 = parameters[0];
+        var parameter1 = parameter;
         Assert.Equal("System.Int32 i", parameter1.ToTestDisplayString());
-
-        var parameter2 = parameters[1];
-        Assert.Equal("System.Int32 j", parameter2.ToTestDisplayString());
-
         Assert.True(parameter1.Equals(parameter1));
-        Assert.False(parameter1.Equals(parameter2));
 
         var parameterSyntaxes = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
         // PROTOTYPE semantic model is undone
         Assert.Null(model.GetDeclaredSymbol(parameterSyntaxes[0]));
         //Assert.Same(parameter1, model.GetDeclaredSymbol(parameterSyntaxes[0]));
-        //Assert.Same(parameter2, model.GetDeclaredSymbol(parameterSyntaxes[1]));
+
+        Assert.Equal("System.Int32", model.GetTypeInfo(parameterSyntaxes[1].Type).Type.ToTestDisplayString());
+        Assert.Equal("C", model.GetTypeInfo(parameterSyntaxes[2].Type).Type.ToTestDisplayString());
     }
 
     [Fact]
@@ -1718,7 +1719,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,22): error CS9504: An extension container can only have one receiver parameter
+            // (3,22): error CS9504: An extension container can have only one receiver parameter
             //     extension(int i, Type) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "Type").WithLocation(3, 22));
     }
@@ -1740,9 +1741,9 @@ public static class Extensions
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        var extensionParameters = internalSymbol.ExtensionParameters;
-        Assert.Equal(["T"], extensionParameters.ToTestDisplayStrings());
-        Assert.Same(extensionParameters[0].Type, internalSymbol.TypeParameters[0]);
+        var extensionParameter = internalSymbol.ExtensionParameter;
+        Assert.Equal("T", extensionParameter.ToTestDisplayString());
+        Assert.Same(extensionParameter.Type, internalSymbol.TypeParameters[0]);
     }
 
     [Fact]
@@ -1765,10 +1766,9 @@ public static class Extensions<T>
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        var parameters = internalSymbol.ExtensionParameters;
-        var extensionParameters = internalSymbol.ExtensionParameters;
-        Assert.Equal(["T"], extensionParameters.ToTestDisplayStrings());
-        Assert.Same(extensionParameters[0].Type, internalSymbol.ContainingType.TypeParameters[0]);
+        var extensionParameter = internalSymbol.ExtensionParameter;
+        Assert.Equal("T", extensionParameter.ToTestDisplayString());
+        Assert.Same(extensionParameter.Type, internalSymbol.ContainingType.TypeParameters[0]);
     }
 
     [Fact]
@@ -1793,9 +1793,9 @@ public static class Extensions
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        var parameters = internalSymbol.ExtensionParameters;
-        Assert.Equal(["T"], parameters.ToTestDisplayStrings());
-        Assert.True(parameters[0].Type.IsErrorType());
+        var parameter = internalSymbol.ExtensionParameter;
+        Assert.Equal("T", parameter.ToTestDisplayString());
+        Assert.True(parameter.Type.IsErrorType());
     }
 
     [Fact]
@@ -1831,6 +1831,15 @@ public static class Extensions
             // (3,15): error CS1670: params is not valid in this context
             //     extension(params int[] i) { }
             Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(3, 15));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var type1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var symbol1 = model.GetDeclaredSymbol(type1);
+        var internalSymbol1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
+        var parameter = internalSymbol1.ExtensionParameter;
+        Assert.Equal("System.Int32[] i", parameter.ToTestDisplayString());
+        Assert.False(parameter.IsParams);
     }
 
     [Fact]
@@ -1863,7 +1872,7 @@ public static class Extensions
             // (3,15): error CS1670: params is not valid in this context
             //     extension(params int[] i, int j) { }
             Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(3, 15),
-            // (3,31): error CS9504: An extension container can only have one receiver parameter
+            // (3,31): error CS9504: An extension container can have only one receiver parameter
             //     extension(params int[] i, int j) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "int j").WithLocation(3, 31));
     }
@@ -1890,8 +1899,8 @@ public class C<T> where T : struct { }
         var type1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(type1);
         var internalSymbol1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        var parameters = internalSymbol1.ExtensionParameters;
-        Assert.Equal(["C<T>"], parameters.ToTestDisplayStrings());
+        var parameter = internalSymbol1.ExtensionParameter;
+        Assert.Equal("C<T>", parameter.ToTestDisplayString());
     }
 
     [Fact]
@@ -1914,8 +1923,8 @@ public static class Extensions
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        var parameters = internalSymbol.ExtensionParameters;
-        Assert.True(parameters[0].HasExplicitDefaultValue);
+        var parameter = internalSymbol.ExtensionParameter;
+        Assert.True(parameter.HasExplicitDefaultValue);
     }
 
     [Fact]
@@ -1932,7 +1941,7 @@ public static class Extensions
             // (3,15): error CS9503: The receiver parameter of an extension cannot have a default value
             //     extension(int i = 0, object) { }
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "int i = 0").WithLocation(3, 15),
-            // (3,26): error CS9504: An extension container can only have one receiver parameter
+            // (3,26): error CS9504: An extension container can have only one receiver parameter
             //     extension(int i = 0, object) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "object").WithLocation(3, 26));
     }
@@ -2080,7 +2089,7 @@ public class MyAttribute : System.Attribute { }
 
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var extensionSymbol = model.GetDeclaredSymbol(type);
-        var parameterSymbol2 = extensionSymbol.GetSymbol<SourceNamedTypeSymbol>().ExtensionParameters[0];
+        var parameterSymbol2 = extensionSymbol.GetSymbol<SourceNamedTypeSymbol>().ExtensionParameter;
         AssertEx.SetEqual(["MyAttribute"], parameterSymbol2.GetAttributes().Select(a => a.ToString()));
     }
 
@@ -2111,7 +2120,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,22): error CS9504: An extension container can only have one receiver parameter
+            // (3,22): error CS9504: An extension container can have only one receiver parameter
             //     extension(int i, this int j) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "this int j").WithLocation(3, 22));
     }
@@ -2186,6 +2195,15 @@ public static class Extensions
             // (4,24): error CS8328:  The parameter modifier 'out' cannot be used with 'this'
             //     static void M(this out int i) { }
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(4, 24));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var type1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var symbol1 = model.GetDeclaredSymbol(type1);
+        var internalSymbol1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
+        var parameter = internalSymbol1.ExtensionParameter;
+        Assert.Equal("out System.Int32 i", parameter.ToTestDisplayString());
+        Assert.Equal(RefKind.Out, parameter.RefKind);
     }
 
     [Fact]
@@ -2199,7 +2217,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,22): error CS9504: An extension container can only have one receiver parameter
+            // (3,22): error CS9504: An extension container can have only one receiver parameter
             //     extension(int i, out int j) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "out int j").WithLocation(3, 22));
     }
@@ -2286,6 +2304,7 @@ public static class Extensions
             //     static void M(this readonly ref int i) { }
             Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(4, 24));
     }
+
     [Fact]
     public void ReceiverParameter_ArgList_01()
     {
@@ -2315,7 +2334,10 @@ public static class Extensions
         comp.VerifyEmitDiagnostics(
             // (3,15): error CS1669: __arglist is not valid in this context
             //     extension(__arglist, int i) { }
-            Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15));
+            Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15),
+            // (3,26): error CS9504: An extension container can have only one receiver parameter
+            //     extension(__arglist, int i) { }
+            Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "int i").WithLocation(3, 26));
     }
 
     [Fact]
@@ -2342,7 +2364,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,25): error CS9504: An extension container can only have one receiver parameter
+            // (3,25): error CS9504: An extension container can have only one receiver parameter
             //     extension(object o, Extensions e) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "Extensions e").WithLocation(3, 25));
     }
@@ -2385,6 +2407,21 @@ static class C { }
     }
 
     [Fact]
+    public void ReceiverParameter_InstanceType_01()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(C c) { }
+    extension(C) { }
+}
+class C { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
     public void ReceiverParameter_Ref()
     {
         var src = """
@@ -2424,7 +2461,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,22): error CS9504: An extension container can only have one receiver parameter
+            // (3,22): error CS9504: An extension container can have only one receiver parameter
             //     extension(int i, scoped int j) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "scoped int j").WithLocation(3, 22));
     }

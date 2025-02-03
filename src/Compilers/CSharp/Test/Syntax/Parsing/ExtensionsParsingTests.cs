@@ -935,7 +935,7 @@ static class C
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,26): error CS9504: An extension container can only have one receiver parameter
+            // (3,26): error CS9504: An extension container can have only one receiver parameter
             //     extension(object x1, string x2) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "string x2").WithLocation(3, 26));
 
@@ -995,7 +995,7 @@ static class C
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,23): error CS9504: An extension container can only have one receiver parameter
+            // (3,23): error CS9504: An extension container can have only one receiver parameter
             //     extension(object, string) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "string").WithLocation(3, 23));
 
@@ -1286,7 +1286,7 @@ static class C
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,23): error CS9504: An extension container can only have one receiver parameter
+            // (3,23): error CS9504: An extension container can have only one receiver parameter
             //     extension(object, params object[]) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "params object[]").WithLocation(3, 23));
 
@@ -1569,7 +1569,7 @@ static class C
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,9): error CS9501: Extension declarations can only include methods or properties
+            // (5,9): error CS9501: Extension declarations can include only methods or properties
             //         extension(Type2) { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(5, 9));
 
@@ -2142,7 +2142,7 @@ static class C
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,19): error CS9501: Extension declarations can only include methods or properties
+            // (5,19): error CS9501: Extension declarations can include only methods or properties
             //         const int i = 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "i").WithLocation(5, 19));
 
@@ -2225,7 +2225,7 @@ static class C
             // (5,19): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //         fixed int field[10];
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "field[10]").WithLocation(5, 19),
-            // (5,19): error CS9501: Extension declarations can only include methods or properties
+            // (5,19): error CS9501: Extension declarations can include only methods or properties
             //         fixed int field[10];
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "field").WithLocation(5, 19));
 
@@ -2307,13 +2307,13 @@ static class C
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,35): error CS9501: Extension declarations can only include methods or properties
+            // (5,35): error CS9501: Extension declarations can include only methods or properties
             //         event System.EventHandler eventField;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "eventField").WithLocation(5, 35),
-            // (5,35): error CS9501: Extension declarations can only include methods or properties
+            // (5,35): error CS9501: Extension declarations can include only methods or properties
             //         event System.EventHandler eventField;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "eventField").WithLocation(5, 35),
-            // (5,35): error CS9501: Extension declarations can only include methods or properties
+            // (5,35): error CS9501: Extension declarations can include only methods or properties
             //         event System.EventHandler eventField;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "eventField").WithLocation(5, 35),
             // (5,35): warning CS0067: The event 'C.extension.eventField' is never used
@@ -2394,13 +2394,13 @@ static class C
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,35): error CS9501: Extension declarations can only include methods or properties
+            // (5,35): error CS9501: Extension declarations can include only methods or properties
             //         event System.EventHandler Event { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Event").WithLocation(5, 35),
-            // (5,43): error CS9501: Extension declarations can only include methods or properties
+            // (5,43): error CS9501: Extension declarations can include only methods or properties
             //         event System.EventHandler Event { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "add").WithLocation(5, 43),
-            // (5,51): error CS9501: Extension declarations can only include methods or properties
+            // (5,51): error CS9501: Extension declarations can include only methods or properties
             //         event System.EventHandler Event { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "remove").WithLocation(5, 51));
 
@@ -2582,7 +2582,7 @@ static class C
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,15): error CS9501: Extension declarations can only include methods or properties
+            // (5,15): error CS9501: Extension declarations can include only methods or properties
             //         class Nested { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(5, 15));
 
@@ -2645,7 +2645,7 @@ static class C
             // (5,9): error CS1520: Method must have a return type
             //         Constructor() { }
             Diagnostic(ErrorCode.ERR_MemberNeedsType, "Constructor").WithLocation(5, 9),
-            // (5,9): error CS9501: Extension declarations can only include methods or properties
+            // (5,9): error CS9501: Extension declarations can include only methods or properties
             //         Constructor() { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Constructor").WithLocation(5, 9));
 
@@ -2716,7 +2716,7 @@ static class C
             // (5,16): error CS1520: Method must have a return type
             //         static Constructor() { }
             Diagnostic(ErrorCode.ERR_MemberNeedsType, "Constructor").WithLocation(5, 16),
-            // (5,16): error CS9501: Extension declarations can only include methods or properties
+            // (5,16): error CS9501: Extension declarations can include only methods or properties
             //         static Constructor() { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Constructor").WithLocation(5, 16));
 
@@ -2784,7 +2784,7 @@ static class C
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,10): error CS9501: Extension declarations can only include methods or properties
+            // (5,10): error CS9501: Extension declarations can include only methods or properties
             //         ~Finalizer() { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Finalizer").WithLocation(5, 10));
 
@@ -2853,7 +2853,7 @@ static class C
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,13): error CS9501: Extension declarations can only include methods or properties
+            // (5,13): error CS9501: Extension declarations can include only methods or properties
             //         int field;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "field").WithLocation(5, 13),
             // (5,13): warning CS0169: The field 'C.extension.field' is never used
@@ -3023,7 +3023,7 @@ static class C
             // (5,39): error CS0563: One of the parameters of a binary operator must be the containing type
             //         public static object operator +(object a, object b) => a;
             Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(5, 39),
-            // (5,39): error CS9501: Extension declarations can only include methods or properties
+            // (5,39): error CS9501: Extension declarations can include only methods or properties
             //         public static object operator +(object a, object b) => a;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "+").WithLocation(5, 39));
 
@@ -3120,7 +3120,7 @@ static class C
             // (5,41): error CS0556: User-defined conversion must convert to or from the enclosing type
             //         public static implicit operator int(object t) => 0;
             Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(5, 41),
-            // (5,41): error CS9501: Extension declarations can only include methods or properties
+            // (5,41): error CS9501: Extension declarations can include only methods or properties
             //         public static implicit operator int(object t) => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "int").WithLocation(5, 41));
 

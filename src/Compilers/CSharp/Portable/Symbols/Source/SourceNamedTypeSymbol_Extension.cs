@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal partial class SourceNamedTypeSymbol
     {
-        private ImmutableArray<ParameterSymbol> _lazyExtensionParameters;
+        private StrongBox<ParameterSymbol?> _lazyExtensionParameter;
 
         internal override string ExtensionName
         {
@@ -36,27 +38,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ImmutableArray<ParameterSymbol> ExtensionParameters
+        internal ParameterSymbol? ExtensionParameter
         {
             get
             {
-                if (_lazyExtensionParameters.IsDefault)
+                if (_lazyExtensionParameter == null)
                 {
                     var diagnostics = BindingDiagnosticBag.GetInstance();
-                    var extensionParameters = makeExtensionParameters(this, diagnostics);
-                    if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyExtensionParameters, extensionParameters, default(ImmutableArray<ParameterSymbol>)).IsDefault)
+                    var extensionParameter = makeExtensionParameter(this, diagnostics);
+                    if (Interlocked.CompareExchange(ref _lazyExtensionParameter, new StrongBox<ParameterSymbol?>(extensionParameter), null) == null)
                     {
                         AddDeclarationDiagnostics(diagnostics);
                     }
                     diagnostics.Free();
                 }
 
-                return _lazyExtensionParameters;
+                return _lazyExtensionParameter.Value;
 
-                static ImmutableArray<ParameterSymbol> makeExtensionParameters(SourceNamedTypeSymbol symbol, BindingDiagnosticBag diagnostics)
+                static ParameterSymbol? makeExtensionParameter(SourceNamedTypeSymbol symbol, BindingDiagnosticBag diagnostics)
                 {
                     var syntax = (ExtensionDeclarationSyntax)symbol.GetNonNullSyntaxNode();
                     var parameterList = syntax.ParameterList;
+                    Debug.Assert(parameterList is not null);
+
+                    int count = parameterList.Parameters.Count;
+                    Debug.Assert(count > 0);
+
+                    if (parameterList is null || count == 0)
+                    {
+                        return null;
+                    }
 
                     BinderFactory binderFactory = symbol.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
                     var withTypeParamsBinder = binderFactory.GetBinder(parameterList);
@@ -64,17 +75,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Constraints are checked later
                     var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, symbol);
 
-                    ImmutableArray<ParameterSymbol> parameters = ParameterHelpers.MakeParameters(
-                        withTypeParametersBinder: signatureBinder,
-                        owner: symbol,
-                        syntax.ParameterList,
-                        arglistToken: out _,
-                        allowRefOrOut: true,
-                        allowThis: false,
-                        addRefReadOnlyModifier: false,
-                        diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
+                    for (int parameterIndex = 1; parameterIndex < count; parameterIndex++)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ReceiverParameterOnlyOne, parameterList.Parameters[parameterIndex].GetLocation());
+                    }
 
-                    return parameters;
+                    return ParameterHelpers.MakeExtensionReceiverParameter(withTypeParametersBinder: signatureBinder, owner: symbol, parameterList, diagnostics);
                 }
             }
         }

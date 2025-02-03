@@ -763,8 +763,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
-        <source>Extension declarations can only include methods or properties</source>
-        <target state="new">Extension declarations can only include methods or properties</target>
+        <source>Extension declarations can include only methods or properties</source>
+        <target state="new">Extension declarations can include only methods or properties</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsName">
@@ -1863,8 +1863,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReceiverParameterOnlyOne">
-        <source>An extension container can only have one receiver parameter</source>
-        <target state="new">An extension container can only have one receiver parameter</target>
+        <source>An extension container can have only one receiver parameter</source>
+        <target state="new">An extension container can have only one receiver parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
