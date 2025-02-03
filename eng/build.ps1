@@ -221,6 +221,14 @@ function Process-Arguments() {
   }
 }
 
+function RestoreInternalTooling() {
+  $internalToolingProject = Join-Path $RepoRoot 'eng/common/internal/Tools.csproj'
+  # The restore config file might be set via env var. Ignore that for this operation,
+  # as the internal nuget.config should be used.
+  $restoreConfigFile = Join-Path $RepoRoot 'eng/common/internal/NuGet.config'
+  MSBuild $internalToolingProject /t:Restore /p:RestoreConfigFile=$restoreConfigFile
+}
+
 function BuildSolution() {
   $solution = "Roslyn.sln"
 
@@ -332,6 +340,9 @@ function GetIbcDropName() {
     if (!$applyOptimizationData -or !$officialBuildId) {
         return ""
     }
+
+    # Ensure that we have the internal tooling restored before attempting to load the powershell module.
+    RestoreInternalTooling
 
     # Bring in the ibc tools
     $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net472"

@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
         <source>_Always add new line on enter</source>
-        <target state="new">_Always add new line on enter</target>
+        <target state="translated">Toujours _ajouter une nouvelle ligne après Entrée</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Automatically_reload_updated_analyzers_and_generators">
         <source>Automatically reload updated analyzers and generators (requires restart)</source>
-        <target state="new">Automatically reload updated analyzers and generators (requires restart)</target>
+        <target state="translated">Recharger automatiquement les analyseurs et les générateurs mis à jour (redémarrage nécessaire)</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
@@ -394,7 +394,7 @@
       </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
-        <target state="new">Editor Help</target>
+        <target state="translated">Aide de l'éditeur</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -434,12 +434,12 @@
       </trans-unit>
       <trans-unit id="Enter_key_behavior">
         <source>Enter key behavior</source>
-        <target state="new">Enter key behavior</target>
+        <target state="translated">Entrer le comportement de la touche</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_key_behavior_colon">
         <source>Enter key behavior:</source>
-        <target state="new">Enter key behavior:</target>
+        <target state="translated">Comportement de la touche Entrée :</target>
         <note />
       </trans-unit>
       <trans-unit id="Entire_repository">
@@ -464,7 +464,7 @@
       </trans-unit>
       <trans-unit id="Experimental_feature">
         <source>Experimental feature</source>
-        <target state="new">Experimental feature</target>
+        <target state="translated">Fonctionnalité expérimentale</target>
         <note />
       </trans-unit>
       <trans-unit id="External_sources">
@@ -484,7 +484,7 @@
       </trans-unit>
       <trans-unit id="Fade_out_unused_members">
         <source>Fade out unused members</source>
-        <target state="new">Fade out unused members</target>
+        <target state="translated">Supprimer les membres inutilisés</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -539,12 +539,12 @@
       </trans-unit>
       <trans-unit id="Highlight_matching_portions_of_completion_list_items">
         <source>Highlight matching portions of completion list items</source>
-        <target state="new">Highlight matching portions of completion list items</target>
+        <target state="translated">Mettre en surbrillance les parties correspondantes des éléments de liste de saisie semi-automatique</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
         <source>_Highlight references to symbol under cursor</source>
-        <target state="new">_Highlight references to symbol under cursor</target>
+        <target state="translated">_Surligner les références jusqu'au symbole sous le curseur</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -554,12 +554,12 @@
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related _keywords under cursor</source>
-        <target state="new">Highlight related _keywords under cursor</target>
+        <target state="translated">Surligner les mots clés liés sous le _curseur</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
         <source>Highlighting</source>
-        <target state="new">Highlighting</target>
+        <target state="translated">Mise en surbrillance</target>
         <note />
       </trans-unit>
       <trans-unit id="Id">
@@ -619,7 +619,7 @@
       </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
-        <target state="new">Insert Snippet</target>
+        <target state="translated">Insérer un extrait</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -664,7 +664,7 @@
       </trans-unit>
       <trans-unit id="Large">
         <source>Large</source>
-        <target state="new">Large</target>
+        <target state="translated">Grande</target>
         <note />
       </trans-unit>
       <trans-unit id="Loaded_items">
@@ -914,12 +914,12 @@
       </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
-        <target state="new">Never</target>
+        <target state="translated">Jamais</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
         <source>_Never add new line on enter</source>
-        <target state="new">_Never add new line on enter</target>
+        <target state="translated">_Ne jamais ajouter de nouvelle ligne après Entrée</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -929,7 +929,7 @@
       </trans-unit>
       <trans-unit id="Never_include_snippets">
         <source>Never include snippets</source>
-        <target state="new">Never include snippets</target>
+        <target state="translated">Ne jamais inclure d'extrait de code</target>
         <note />
       </trans-unit>
       <trans-unit id="New_Type_Name_colon">
@@ -979,7 +979,7 @@
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>Only add new line on enter after end of fully typed word</source>
-        <target state="new">Only add new line on enter after end of fully typed word</target>
+        <target state="translated">Ajouter une nouvelle ligne en appuyant sur Entrée seulement après la fin d'un mot entièrement tapé</target>
         <note />
       </trans-unit>
       <trans-unit id="Open_documents">
@@ -994,7 +994,7 @@
       </trans-unit>
       <trans-unit id="Optimize_for_solution_size">
         <source>Optimize for solution size</source>
-        <target state="new">Optimize for solution size</target>
+        <target state="translated">Optimiser pour la taille de la solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
@@ -1079,7 +1079,7 @@
       </trans-unit>
       <trans-unit id="Performance">
         <source>Performance</source>
-        <target state="new">Performance</target>
+        <target state="translated">Performances</target>
         <note />
       </trans-unit>
       <trans-unit id="Please_enter_a_type_name">
@@ -1189,7 +1189,7 @@
       </trans-unit>
       <trans-unit id="Prefer_unbound_generic_type_in_nameof">
         <source>Prefer unbound generic type in 'nameof'</source>
-        <target state="new">Prefer unbound generic type in 'nameof'</target>
+        <target state="translated">Préférer le type générique indépendant dans 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects">
@@ -1214,7 +1214,7 @@
       </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
-        <target state="new">Regular</target>
+        <target state="translated">Normal</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -1384,7 +1384,7 @@
       </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer">
         <source>Show "Remove Unused References" command in Solution Explorer</source>
-        <target state="new">Show "Remove Unused References" command in Solution Explorer</target>
+        <target state="translated">Afficher la commande « Supprimer les références inutilisées » dans l’Explorateur de solutions</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_UI_as_dashboard_in_top_right">
@@ -1404,12 +1404,12 @@
       </trans-unit>
       <trans-unit id="Show_completion_item__filters">
         <source>Show completion item _filters</source>
-        <target state="new">Show completion item _filters</target>
+        <target state="translated">Afficher les _filtres d'éléments de saisie semi-automatique</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_item_filters">
         <source>Show completion item filters</source>
-        <target state="new">Show completion item filters</target>
+        <target state="translated">Afficher les filtres d'éléments de complétion</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list">
@@ -1419,17 +1419,17 @@
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is__deleted">
         <source>Show completion list after a character is _deleted</source>
-        <target state="new">Show completion list after a character is _deleted</target>
+        <target state="translated">Afficher la liste de saisie semi-automatique après la suppression d'un _caractère</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_deleted">
         <source>Show completion list after a character is deleted</source>
-        <target state="new">Show completion list after a character is deleted</target>
+        <target state="translated">Afficher la liste de complétion après la suppression d'un caractère</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
         <source>Show completion list after a character is typed</source>
-        <target state="new">Show completion list after a character is typed</target>
+        <target state="translated">Afficher la liste de saisie semi-automatique après l'entrée d'un caractère</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
@@ -1479,22 +1479,22 @@
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
-        <target state="new">Show items from unimported namespaces</target>
+        <target state="translated">Afficher les éléments des espaces de noms qui ne sont pas importés</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename _tracking</source>
-        <target state="new">Show preview for rename _tracking</target>
+        <target state="translated">Affiche_r un aperçu pour le suivi des renommages</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
-        <target state="new">_Show procedure line separators</target>
+        <target state="translated">_Afficher les séparateurs de ligne de procédure</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
-        <target state="new">Show remarks in Quick Info</target>
+        <target state="translated">Afficher les notes dans Info express</target>
         <note />
       </trans-unit>
       <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
@@ -1504,12 +1504,12 @@
       </trans-unit>
       <trans-unit id="Small">
         <source>Small</source>
-        <target state="new">Small</target>
+        <target state="translated">Petite</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
-        <target state="new">Snippets behavior</target>
+        <target state="translated">Comportement des extraits de code</target>
         <note />
       </trans-unit>
       <trans-unit id="Source_Generators">
@@ -1579,12 +1579,12 @@
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments</source>
-        <target state="needs-review-translation">Appuyer deux fois sur Tab pour insérer des arguments (expérimental)</target>
+        <target state="translated">Appuyez deux fois sur Tabulation pour insérer des arguments</target>
         <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments_experimental">
         <source>Tab twice to insert arguments (experimental)</source>
-        <target state="new">Tab twice to insert arguments (experimental)</target>
+        <target state="translated">Appuyer deux fois sur Tab pour insérer des arguments (expérimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -1629,7 +1629,7 @@
       </trans-unit>
       <trans-unit id="Title">
         <source>Title</source>
-        <target state="new">Title</target>
+        <target state="translated">Titre</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Name">
@@ -1659,7 +1659,7 @@
       </trans-unit>
       <trans-unit id="Unused_local">
         <source>Unused local</source>
-        <target state="new">Unused local</target>
+        <target state="translated">Local inutilisé</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -1884,17 +1884,17 @@
       </trans-unit>
       <trans-unit id="_Highlight_matching_portions_of_completion_list_items">
         <source>_Highlight matching portions of completion list items</source>
-        <target state="new">_Highlight matching portions of completion list items</target>
+        <target state="translated">_Mettre en surbrillance les parties correspondantes des éléments de liste de saisie semi-automatique</target>
         <note />
       </trans-unit>
       <trans-unit id="_Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="new">_Only add new line on enter after end of fully typed word</target>
+        <target state="translated">Aj_outer uniquement une nouvelle ligne après Entrée à la fin d'un mot complet tapé</target>
         <note />
       </trans-unit>
       <trans-unit id="_Show_completion_list_after_a_character_is_typed">
         <source>_Show completion list after a character is typed</source>
-        <target state="new">_Show completion list after a character is typed</target>
+        <target state="translated">_Afficher la liste de saisie semi-automatique après la saisie d'un caractère</target>
         <note />
       </trans-unit>
       <trans-unit id="at_the_end_of_the_line_of_code">

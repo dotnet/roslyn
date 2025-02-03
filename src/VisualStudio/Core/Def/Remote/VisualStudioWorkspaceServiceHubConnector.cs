@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class VisualStudioWorkspaceServiceHubConnector(
-    IAsynchronousOperationListenerProvider listenerProvider, IThreadingContext threadingContext) : IEventListener<object>, IEventListenerStoppable
+    IAsynchronousOperationListenerProvider listenerProvider) : IEventListener
 {
     private readonly IAsynchronousOperationListenerProvider _listenerProvider = listenerProvider;
     private readonly CancellationTokenSource _disposalCancellationSource = new();
@@ -32,7 +32,7 @@ internal sealed class VisualStudioWorkspaceServiceHubConnector(
     private Task<RemoteHostClient?>? _remoteClientInitializationTask;
     private SolutionChecksumUpdater? _checksumUpdater;
 
-    public void StartListening(Workspace workspace, object serviceOpt)
+    public void StartListening(Workspace workspace)
     {
         if (workspace is not VisualStudioWorkspace)
         {
