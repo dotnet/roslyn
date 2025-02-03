@@ -2528,6 +2528,29 @@ public static class Extensions
     }
 
     [Fact]
+    public void ReceiverParameter_Empty()
+    {
+        var src = """
+public static class Extensions
+{
+    extension() { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS1031: Type expected
+            //     extension() { }
+            Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(3, 15));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var symbol = model.GetDeclaredSymbol(type);
+        var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
+        Assert.Equal("?", internalSymbol.ExtensionParameter.ToTestDisplayString());
+    }
+
+    [Fact]
     public void Skeleton()
     {
         var src = """

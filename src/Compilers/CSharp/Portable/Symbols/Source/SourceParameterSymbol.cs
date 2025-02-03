@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (hasParamsModifier && parameterType.IsSZArray())
             {
                 // touch the constructor in order to generate proper use-site diagnostics
-                // Note: params is disallowed in scenarios where the parameter lacks an identifier
                 Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(context.Compilation,
                     WellKnownMember.System_ParamArrayAttribute__ctor,
                     declarationDiagnostics,

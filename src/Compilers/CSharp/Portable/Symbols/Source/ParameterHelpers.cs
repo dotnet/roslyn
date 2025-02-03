@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         BindingDiagnosticBag declarationDiagnostics) =>
                 {
                     Debug.Assert(ordinal == 0);
+                    Debug.Assert(paramsKeyword.Kind() == SyntaxKind.None);
 
                     return SourceParameterSymbol.Create(
                         context,
@@ -611,7 +612,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.ParamsKeyword when !parsingFunctionPointerParams:
-                        // `params` on extension parameters was already reported elsewhere
                         if (parsingAnonymousMethodParams || extensionReceiverParameter)
                         {
                             diagnostics.Add(ErrorCode.ERR_IllegalParams, modifier.GetLocation());
@@ -755,7 +755,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int parameterIndex = ordinal;
             bool isDefault = syntax is ParameterSyntax { Default: { } };
-            bool inExtension = owner is NamedTypeSymbol { IsExtension: true };
 
             if (thisKeyword.Kind() == SyntaxKind.ThisKeyword && parameterIndex != 0)
             {
@@ -772,7 +771,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (!typeWithAnnotations.IsDefault && typeWithAnnotations.IsStatic)
             {
-                Debug.Assert(containingSymbol is null || (containingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null }) || inExtension);
+                bool inExtension = owner is NamedTypeSymbol { IsExtension: true };
+
+                Debug.Assert(containingSymbol is null
+                    || (containingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null })
+                    || inExtension);
 
                 if (!inExtension || isNamed)
                 {
@@ -797,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, syntax.Location, typeWithAnnotations.Type);
             }
 
-            if (isParams && ordinal != lastParameterIndex && !inExtension)
+            if (isParams && ordinal != lastParameterIndex)
             {
                 // error CS0231: A params parameter must be the last parameter in a parameter list
                 diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
@@ -846,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Conversion conversion = binder.Conversions.ClassifyImplicitConversionFromExpression(defaultExpression, parameterType, ref useSiteInfo);
             diagnostics.Add(defaultExpression.Syntax, useSiteInfo);
 
-            var refKind = GetModifiers(parameterSyntax.Modifiers, inExtension, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out _);
+            var refKind = GetModifiers(parameterSyntax.Modifiers, ignoreParams: inExtension, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out _);
 
             // CONSIDER: We are inconsistent here regarding where the error is reported; is it
             // CONSIDER: reported on the parameter name, or on the value of the initializer?

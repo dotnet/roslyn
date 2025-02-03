@@ -1537,9 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var diagnostics = BindingDiagnosticBag.GetInstance();
 
-                bool inExtension = this.ContainingSymbol is NamedTypeSymbol { IsExtension: true };
-                // An error is already reported for `params` in extensions
-                if (IsParams && ParameterSyntax?.Modifiers.Any(SyntaxKind.ParamsKeyword) == true && !inExtension)
+                if (IsParams && ParameterSyntax?.Modifiers.Any(SyntaxKind.ParamsKeyword) == true)
                 {
                     validateParamsType(diagnostics);
                 }
