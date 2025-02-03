@@ -146,7 +146,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Create driver that holds onto compilation and associated analyzers
             var filteredProjectAnalyzers = projectAnalyzers.WhereAsArray(static a => !a.IsWorkspaceDiagnosticAnalyzer());
             var filteredHostAnalyzers = hostAnalyzers.WhereAsArray(static a => !a.IsWorkspaceDiagnosticAnalyzer());
-            var filteredProjectSuppressors = filteredProjectAnalyzers.WhereAsArray(static a => a is DiagnosticSuppressor);
+            var hostAnalyzersSegmentWithSuppressors = filteredHostAnalyzers.AsMemory()[filteredHostAnalyzers.FindRange(static a => a is DiagnosticSuppressor)];
+
+            // Add any project suppressors which are not already included in filteredHostAnalyzers
+            var filteredProjectSuppressors = filteredProjectAnalyzers.WhereAsArray(
+                static (a, hostAnalyzersSegmentWithSuppressors) =>
+                {
+                    if (a is not DiagnosticSuppressor)
+                        return false;
+
+                    foreach (var existing in hostAnalyzersSegmentWithSuppressors.Span)
+                    {
+                        if (Equals(existing, a))
+                            return false;
+                    }
+
+                    return true;
+                },
+                hostAnalyzersSegmentWithSuppressors);
             filteredHostAnalyzers = filteredHostAnalyzers.AddRange(filteredProjectSuppressors);
 
             // PERF: there is no analyzers for this compilation.

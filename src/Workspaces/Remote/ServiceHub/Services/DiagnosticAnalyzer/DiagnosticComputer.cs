@@ -489,6 +489,7 @@ internal class DiagnosticComputer
         // TODO: this probably need to be cached as well in analyzer service?
         var projectBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
         var hostBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+        var hostBuilderSuppressorRange = default(Range);
 
         foreach (var analyzerId in projectAnalyzerIds)
         {
@@ -503,6 +504,14 @@ internal class DiagnosticComputer
             if (analyzerMap.TryGetValue(analyzerId, out var analyzer))
             {
                 hostBuilder.Add(analyzer);
+
+                if (analyzer is DiagnosticSuppressor)
+                {
+                    if (hostBuilderSuppressorRange.Equals(default))
+                        hostBuilderSuppressorRange = new Range(hostBuilder.Count - 1, hostBuilder.Count);
+                    else
+                        hostBuilderSuppressorRange = new Range(hostBuilderSuppressorRange.Start, hostBuilder.Count);
+                }
             }
         }
 
@@ -511,7 +520,22 @@ internal class DiagnosticComputer
         if (hostAnalyzerIds.Any())
         {
             // If any host analyzers are active, make sure to also include any project diagnostic suppressors
-            hostBuilder.AddRange(projectAnalyzers.WhereAsArray(static a => a is DiagnosticSuppressor));
+            hostBuilder.AddRange(projectAnalyzers.WhereAsArray(
+                static (a, arg) =>
+                {
+                    if (a is not DiagnosticSuppressor)
+                        return false;
+
+                    var (offset, length) = arg.hostBuilderSuppressorRange.GetOffsetAndLength(arg.hostBuilder.Count);
+                    for (var i = 0; i < length; i++)
+                    {
+                        if (Equals(arg.hostBuilder[i + offset], a))
+                            return false;
+                    }
+
+                    return true;
+                },
+                (hostBuilder, hostBuilderSuppressorRange)));
         }
 
         return (projectAnalyzers, hostBuilder.ToImmutableAndClear());
@@ -561,6 +585,7 @@ internal class DiagnosticComputer
         // This follows what we do in DiagnosticAnalyzerInfoCache.CheckAnalyzerReferenceIdentity
         using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var projectAnalyzerBuilder);
         using var _2 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var hostAnalyzerBuilder);
+        var hostBuilderSuppressorRange = default(Range);
         foreach (var reference in _project.Solution.AnalyzerReferences)
         {
             if (!referenceSet.Add(reference.Id))
@@ -579,7 +604,16 @@ internal class DiagnosticComputer
             }
             else
             {
+                var startingCount = hostAnalyzerBuilder.Count;
                 hostAnalyzerBuilder.AddRange(analyzers);
+                var suppressorRange = analyzers.FindRange(static a => a is DiagnosticSuppressor);
+                if (!suppressorRange.Equals(default))
+                {
+                    if (hostBuilderSuppressorRange.Equals(default))
+                        hostBuilderSuppressorRange = new Range(suppressorRange.Start.Value + startingCount, suppressorRange.End.Value + startingCount);
+                    else
+                        hostBuilderSuppressorRange = new Range(hostBuilderSuppressorRange.Start, suppressorRange.End.Value + startingCount);
+                }
             }
             analyzerMapBuilder.AppendAnalyzerMap(analyzers);
         }
@@ -595,7 +629,22 @@ internal class DiagnosticComputer
 
             var analyzers = reference.GetAnalyzers(_project.Language);
             projectAnalyzerBuilder.AddRange(analyzers);
-            hostAnalyzerBuilder.AddRange(analyzers.WhereAsArray(static a => a is DiagnosticSuppressor));
+            hostAnalyzerBuilder.AddRange(analyzers.WhereAsArray(
+                static (a, arg) =>
+                {
+                    if (a is not DiagnosticSuppressor)
+                        return false;
+
+                    var (offset, length) = arg.hostBuilderSuppressorRange.GetOffsetAndLength(arg.hostAnalyzerBuilder.Count);
+                    for (var i = 0; i < length; i++)
+                    {
+                        if (Equals(arg.hostAnalyzerBuilder[i + offset], a))
+                            return false;
+                    }
+
+                    return true;
+                },
+                (hostAnalyzerBuilder, hostBuilderSuppressorRange)));
             analyzerMapBuilder.AppendAnalyzerMap(analyzers);
         }
 
