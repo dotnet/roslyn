@@ -27,8 +27,6 @@ using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using System.Diagnostics;
 using System.ComponentModel;
 
-
-
 #if NET
 using Roslyn.Test.Utilities.CoreClr;
 using System.Runtime.Loader;
@@ -94,79 +92,74 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AnalyzerTestKind kind,
             Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction,
             ImmutableArray<IAnalyzerPathResolver> pathResolvers = default,
-            ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers = default,
-            [CallerMemberName] string? memberName = null) =>
+            ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers = default) =>
             Run(
                 kind,
-                static (_, _) => { },
-                testAction,
+                state: null,
+                testAction.Method,
                 pathResolvers.NullToEmpty(),
-                assemblyResolvers.NullToEmpty(),
-                memberName);
+                assemblyResolvers.NullToEmpty());
 
         private void Run(
             AnalyzerTestKind kind,
             object state,
             Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture, object> testAction,
             ImmutableArray<IAnalyzerPathResolver> pathResolvers = default,
-            ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers = default,
-            [CallerMemberName] string? memberName = null) =>
+            ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers = default) =>
             Run(
                 kind,
                 state,
-                static (_, _) => { },
                 testAction.Method,
                 pathResolvers.NullToEmpty(),
-                assemblyResolvers.NullToEmpty(),
-                memberName);
-
-        private void Run(
-            AnalyzerTestKind kind,
-            Action<AssemblyLoadContext, AssemblyLoadTestFixture> prepLoadContextAction,
-            Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction,
-            ImmutableArray<IAnalyzerPathResolver> pathResolvers = default,
-            ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers = default,
-            [CallerMemberName] string? memberName = null) =>
-            Run(
-                kind,
-                state: null,
-                prepLoadContextAction,
-                testAction.Method,
-                pathResolvers.NullToEmpty(),
-                assemblyResolvers.NullToEmpty(),
-                memberName);
+                assemblyResolvers.NullToEmpty());
 
         private void Run(
             AnalyzerTestKind kind,
             object? state,
-            Action<AssemblyLoadContext, AssemblyLoadTestFixture> prepLoadContextAction,
             MethodInfo method,
             ImmutableArray<IAnalyzerPathResolver> pathResolvers,
-            ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers,
-            string? memberName)
+            ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers)
         {
-            var alc = new AssemblyLoadContext($"Test {memberName}", isCollectible: true);
-            try
-            {
-                prepLoadContextAction(alc, TestFixture);
-                var util = new InvokeUtil();
-                util.Exec(
-                    TestOutputHelper,
-                    alc,
-                    TestFixture,
-                    kind,
-                    method.DeclaringType!.FullName!,
-                    method.Name,
-                    pathResolvers,
-                    assemblyResolvers,
-                    state);
-            }
-            finally
-            {
-                alc.Unload();
-            }
+            var util = new InvokeUtil();
+            util.Exec(
+                TestOutputHelper,
+                pathResolvers,
+                assemblyResolvers,
+                TestFixture,
+                kind,
+                method.DeclaringType!.FullName!,
+                method.Name,
+                state);
         }
 
+        private void Run(
+            AnalyzerAssemblyLoader loader,
+            Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction)
+        {
+            var util = new InvokeUtil();
+            util.Exec(
+                TestOutputHelper,
+                TestFixture,
+                loader,
+                testAction.Method.DeclaringType!.FullName!,
+                testAction.Method.Name,
+                state: null);
+        }
+
+        private void Run(
+            AnalyzerAssemblyLoader loader,
+            object state,
+            Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture, object> testAction)
+        {
+            var util = new InvokeUtil();
+            util.Exec(
+                TestOutputHelper,
+                TestFixture,
+                loader,
+                testAction.Method.DeclaringType!.FullName!,
+                testAction.Method.Name,
+                state: state);
+        }
 #else
 
         private void Run(
@@ -1657,28 +1650,25 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoadingInNonDefaultContext_AnalyzerReferencesSystemCollectionsImmutable(AnalyzerTestKind kind)
         {
-            Run(kind,
-                static (AssemblyLoadContext compilerContext, AssemblyLoadTestFixture testFixture) =>
-                {
-                    // Load the compiler assembly and a modified version of S.C.I into the compiler load context. We
-                    // expect the analyzer will use the bogus S.C.I in the compiler context instead of the one 
-                    // in the host context.
-                    _ = compilerContext.LoadFromAssemblyPath(testFixture.UserSystemCollectionsImmutable);
-                    _ = compilerContext.LoadFromAssemblyPath(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location);
-                },
-                static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
-                {
-                    StringBuilder sb = new StringBuilder();
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                // Load the compiler assembly and a modified version of S.C.I into the compiler load context. We
+                // expect the analyzer will use the bogus S.C.I in the compiler context instead of the one 
+                // in the host context.
+                _ = loader.CompilerLoadContext.LoadFromAssemblyPath(testFixture.UserSystemCollectionsImmutable);
+                _ = loader.CompilerLoadContext.LoadFromAssemblyPath(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location);
 
-                    loader.AddDependencyLocation(testFixture.UserSystemCollectionsImmutable);
-                    loader.AddDependencyLocation(testFixture.AnalyzerReferencesSystemCollectionsImmutable1);
+                StringBuilder sb = new StringBuilder();
 
-                    Assembly analyzerAssembly = loader.LoadFromPath(testFixture.AnalyzerReferencesSystemCollectionsImmutable1);
-                    var analyzer = analyzerAssembly.CreateInstance("Analyzer")!;
-                    analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb });
+                loader.AddDependencyLocation(testFixture.UserSystemCollectionsImmutable);
+                loader.AddDependencyLocation(testFixture.AnalyzerReferencesSystemCollectionsImmutable1);
 
-                    Assert.Equal("42", sb.ToString());
-                });
+                Assembly analyzerAssembly = loader.LoadFromPath(testFixture.AnalyzerReferencesSystemCollectionsImmutable1);
+                var analyzer = analyzerAssembly.CreateInstance("Analyzer")!;
+                analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb });
+
+                Assert.Equal("42", sb.ToString());
+            });
         }
 #endif
 
@@ -1756,6 +1746,48 @@ Delta.2: Test D2
             }, assemblyResolvers: [resolver, AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver]);
         }
 
+        [Fact]
+        public void AssemblyResolver_FirstOneWins()
+        {
+            var alc = new AssemblyLoadContext(nameof(AssemblyResolver_FirstOneWins), isCollectible: true);
+            var name = Path.GetFileNameWithoutExtension(TestFixture.Delta1);
+            var resolver1 = new TestAnalyzerAssemblyResolver((_, current, assemblyName, _) =>
+                assemblyName.Name == name ? current.LoadFromAssemblyPath(TestFixture.Delta1) : null);
+            var resolver2 = new TestAnalyzerAssemblyResolver((_, _, assemblyName, _) => null);
+            var loader = new AnalyzerAssemblyLoader([], [resolver1, resolver2], alc);
+
+            Run(loader, state: name, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
+            {
+                // net core assembly loader checks that the resolved assembly name is the same as the requested one
+                // so we use the assembly the tests are contained in as its already be loaded
+                loader.AddDependencyLocation(testFixture.Delta1);
+                Assembly loaded = loader.LoadFromPath(testFixture.Delta1);
+                Assert.Equal((string)state, loaded.GetName().Name);
+            });
+
+            Assert.Equal([name], resolver1.CalledFor.Select(x => x.Name));
+            Assert.Empty(resolver2.CalledFor);
+            alc.Unload();
+        }
+
+        [Fact]
+        public void AssemblyResolver_ThrowOnNoMatch()
+        {
+            var name = Path.GetFileNameWithoutExtension(TestFixture.Delta1);
+            var alc = new AssemblyLoadContext(nameof(AssemblyResolver_FirstOneWins), isCollectible: true);
+            var resolver = new TestAnalyzerAssemblyResolver((_, _, assemblyName, _) => null);
+            var loader = new AnalyzerAssemblyLoader([], [resolver], alc);
+
+            Run(loader, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                // net core assembly loader checks that the resolved assembly name is the same as the requested one
+                // so we use the assembly the tests are contained in as its already be loaded
+                loader.AddDependencyLocation(testFixture.Delta1);
+                Assert.Throws<InvalidOperationException>(() => loader.LoadFromPath(testFixture.Delta1));
+            });
+
+            Assert.Equal([Path.GetFileNameWithoutExtension(TestFixture.Delta1)], resolver.CalledFor.Select(x => x.Name));
+        }
 #endif
 
         private class TestAnalyzerPathResolver(Func<string, string?> getRealFilePathFunc) : MarshalByRefObject, IAnalyzerPathResolver

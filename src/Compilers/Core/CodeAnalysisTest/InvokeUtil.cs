@@ -37,24 +37,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         internal void Exec(
             ITestOutputHelper testOutputHelper,
-            AssemblyLoadContext compilerContext,
+            ImmutableArray<IAnalyzerPathResolver> pathResolvers,
+            ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers,
             AssemblyLoadTestFixture fixture,
             AnalyzerTestKind kind,
             string typeName,
             string methodName,
-            ImmutableArray<IAnalyzerPathResolver> pathResolvers,
-            ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers,
             object? state = null)
         {
-            // Ensure that the test did not load any of the test fixture assemblies into 
-            // the default load context. That should never happen. Assemblies should either 
-            // load into the compiler or directory load context.
-            //
-            // Not only is this bad behavior it also pollutes future test results.
-            var defaultContextCount = AssemblyLoadContext.Default.Assemblies.Count();
-            var compilerContextCount = compilerContext.Assemblies.Count();
             using var tempRoot = new TempRoot();
-
             switch (kind)
             {
                 case AnalyzerTestKind.LoadDirect:
@@ -71,7 +62,34 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     throw ExceptionUtilities.Unreachable();
             }
 
+            var compilerContext = new AssemblyLoadContext($"Test {methodName}", isCollectible: true);
             var loader = new AnalyzerAssemblyLoader(pathResolvers, assemblyResolvers, compilerContext);
+            try
+            {
+                Exec(testOutputHelper, fixture, loader, typeName, methodName, state);
+            }
+            finally
+            {
+                compilerContext.Unload();
+            }
+        }
+
+        internal void Exec(
+            ITestOutputHelper testOutputHelper,
+            AssemblyLoadTestFixture fixture,
+            AnalyzerAssemblyLoader loader,
+            string typeName,
+            string methodName,
+            object? state = null)
+        {
+            // Ensure that the test did not load any of the test fixture assemblies into 
+            // the default load context. That should never happen. Assemblies should either 
+            // load into the compiler or directory load context.
+            //
+            // Not only is this bad behavior it also pollutes future test results.
+            var defaultContextCount = AssemblyLoadContext.Default.Assemblies.Count();
+            using var tempRoot = new TempRoot();
+
             try
             {
                 AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName, state);
@@ -101,7 +119,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
 
                 Assert.Equal(defaultContextCount, AssemblyLoadContext.Default.Assemblies.Count());
-                Assert.Equal(compilerContextCount, compilerContext.Assemblies.Count());
             }
         }
     }
