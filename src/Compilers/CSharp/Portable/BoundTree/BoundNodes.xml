@@ -1958,6 +1958,14 @@
     <Field Name="Value" Type="BoundExpression"/>
   </Node>
 
+  <!-- Unconverted collection expression arguments. -->
+  <Node Name="BoundCollectionExpressionWithElement" Base="BoundNode">
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;(string Name, Location Location)?&gt;" Null="allow"/>
+    <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
+    <Field Name="Binder" Type="Binder" Null="disallow"/>
+  </Node>
+  
   <!-- 
   Tuple literals can exist in two forms - literal and converted literal.
   This is the base node for both forms.

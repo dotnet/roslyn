@@ -895,13 +895,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, diagnostics);
-                Debug.Assert((collectionCreation is BoundNewT && !isExpanded && constructor is null) ||
-                             (collectionCreation is BoundObjectCreationExpression creation && creation.Expanded == isExpanded && creation.Constructor == constructor));
 
-                if (collectionCreation.HasErrors)
+                // Bind collection creation with arguments.
+                foreach (var element in elements)
                 {
-                    return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
+                    if (element is BoundCollectionExpressionWithElement withElement)
+                    {
+                        var analyzedArguments = AnalyzedArguments.GetInstance();
+                        withElement.GetArguments(analyzedArguments);
+                        // PROTOTYPE: If there are multiple with() elements, should with() elements after
+                        // the first be bound for error recovery only rather than as a constructor call?
+                        var collectionWithArguments = BindCollectionExpressionConstructor(syntax, targetType, constructor, analyzedArguments, diagnostics);
+                        analyzedArguments.Free();
+                        collectionCreation ??= collectionWithArguments;
+                    }
+                }
+
+                // Bind collection creation with no arguments if necessary.
+                if (collectionCreation is null)
+                {
+                    var analyzedArguments = AnalyzedArguments.GetInstance();
+                    collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, analyzedArguments, diagnostics);
+                    analyzedArguments.Free();
+                    Debug.Assert((collectionCreation is BoundNewT && !isExpanded && constructor is null) ||
+                                 (collectionCreation is BoundObjectCreationExpression creation && creation.Expanded == isExpanded && creation.Constructor == constructor));
+
+                    if (collectionCreation.HasErrors)
+                    {
+                        return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
+                    }
                 }
 
                 if (!elements.IsDefaultOrEmpty && HasCollectionInitializerTypeInProgress(syntax, targetType))
@@ -913,20 +935,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var collectionInitializerAddMethodBinder = new CollectionInitializerAddMethodBinder(syntax, targetType, this);
                 foreach (var element in elements)
                 {
-                    BoundNode convertedElement = element is BoundCollectionExpressionSpreadElement spreadElement ?
-                        (BoundNode)BindCollectionExpressionSpreadElementAddMethod(
-                            (SpreadElementSyntax)spreadElement.Syntax,
-                            spreadElement,
-                            collectionInitializerAddMethodBinder,
-                            implicitReceiver,
-                            diagnostics) :
-                        BindCollectionInitializerElementAddMethod(
-                            element.Syntax,
-                            ImmutableArray.Create((BoundExpression)element),
-                            hasEnumerableInitializerType: true,
-                            collectionInitializerAddMethodBinder,
-                            diagnostics,
-                            implicitReceiver);
+                    BoundNode convertedElement;
+                    switch (element)
+                    {
+                        case BoundCollectionExpressionWithElement:
+                            // Handled above.
+                            continue;
+                        case BoundCollectionExpressionSpreadElement spreadElement:
+                            convertedElement = BindCollectionExpressionSpreadElementAddMethod(
+                                (SpreadElementSyntax)spreadElement.Syntax,
+                                spreadElement,
+                                collectionInitializerAddMethodBinder,
+                                implicitReceiver,
+                                diagnostics);
+                            break;
+                        case BoundKeyValuePairElement:
+                            throw ExceptionUtilities.UnexpectedValue(element);
+                        default:
+                            convertedElement = BindCollectionInitializerElementAddMethod(
+                                element.Syntax,
+                                ImmutableArray.Create((BoundExpression)element),
+                                hasEnumerableInitializerType: true,
+                                collectionInitializerAddMethodBinder,
+                                diagnostics,
+                                implicitReceiver);
+                            break;
+                    }
                     builder.Add(convertedElement);
                 }
             }
@@ -964,7 +998,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var elementConversions = conversion.UnderlyingConversions;
 
                 Debug.Assert(elementType is { });
-                Debug.Assert(elements.Length <= elementConversions.Length);
                 Debug.Assert(elementConversions.All(c => c.Exists));
 
                 int conversionIndex = 0;
@@ -973,6 +1006,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundNode convertedElement;
                     switch (element)
                     {
+                        case BoundCollectionExpressionWithElement withElement:
+                            if (withElement.Arguments.Length > 0)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, ((WithElementSyntax)withElement.Syntax).WithKeyword, targetType);
+                            }
+                            continue;
                         case BoundCollectionExpressionSpreadElement spreadElement:
                             convertedElement = bindSpreadElement(
                                 spreadElement,
@@ -1105,8 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(result);
 
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            Conversion collectionBuilderReturnTypeConversion;
-            collectionBuilderMethod = GetCollectionBuilderMethod(namedType, elementTypeOriginalDefinition.Type, builderType, methodName, ref useSiteInfo, out collectionBuilderReturnTypeConversion);
+            collectionBuilderMethod = GetCollectionBuilderMethod(namedType, elementTypeOriginalDefinition.Type, builderType, methodName, ref useSiteInfo);
             diagnostics.Add(syntax, useSiteInfo);
             if (collectionBuilderMethod is null)
             {
@@ -1114,8 +1152,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = null;
                 return null;
             }
-
-            Debug.Assert(collectionBuilderReturnTypeConversion.Exists);
 
             ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
 
@@ -1134,7 +1170,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionBuilderMethod;
         }
 
-        internal BoundExpression BindCollectionExpressionConstructor(SyntaxNode syntax, TypeSymbol targetType, MethodSymbol? constructor, BindingDiagnosticBag diagnostics)
+        internal BoundExpression BindCollectionExpressionConstructor(
+            SyntaxNode syntax,
+            TypeSymbol targetType,
+            MethodSymbol? constructorNoArguments,
+            AnalyzedArguments analyzedArguments,
+            BindingDiagnosticBag diagnostics)
         {
             //
             // !!! ATTENTION !!!
@@ -1144,10 +1185,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
 
             BoundExpression collectionCreation;
-            var analyzedArguments = AnalyzedArguments.GetInstance();
             if (targetType is NamedTypeSymbol namedType)
             {
-                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, constructor);
+                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, constructorNoArguments);
                 collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
                 collectionCreation.WasCompilerGenerated = true;
             }
@@ -1160,7 +1200,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 throw ExceptionUtilities.UnexpectedValue(targetType);
             }
-            analyzedArguments.Free();
             return collectionCreation;
         }
 
@@ -1787,6 +1826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         keyValuePairElement.Update(
                             BindToNaturalType(keyValuePairElement.Key, diagnostics, reportNoTargetType),
                             BindToNaturalType(keyValuePairElement.Value, diagnostics, reportNoTargetType)),
+                    BoundCollectionExpressionWithElement withElement => bindArgumentsToNaturalType(withElement, diagnostics, reportNoTargetType),
                     _ => BindToNaturalType((BoundExpression)element, diagnostics, reportNoTargetType)
                 };
                 builder.Add(result);
@@ -1805,6 +1845,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetType,
                 hasErrors: true)
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
+
+            BoundCollectionExpressionWithElement bindArgumentsToNaturalType(BoundCollectionExpressionWithElement withElement, BindingDiagnosticBag diagnostics, bool reportNoTargetType)
+            {
+                var arguments = withElement.Arguments;
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
+                foreach (var argument in arguments)
+                {
+                    builder.Add(BindToNaturalType(argument, diagnostics, reportNoTargetType));
+                }
+                return withElement.Update(
+                    builder.ToImmutableAndFree(),
+                    withElement.ArgumentNamesOpt,
+                    withElement.ArgumentRefKindsOpt,
+                    withElement.Binder);
+            }
         }
 
         internal void GenerateImplicitConversionErrorForCollectionExpression(
@@ -1861,6 +1916,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (element)
                     {
+                        case BoundCollectionExpressionWithElement:
+                            // Collection arguments do not affect convertibility.
+                            break;
                         case BoundCollectionExpressionSpreadElement spreadElement:
                             {
                                 var enumeratorInfo = spreadElement.EnumeratorInfoOpt;
@@ -1928,11 +1986,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol elementTypeOriginalDefinition,
             TypeSymbol? builderType,
             string? methodName,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            out Conversion returnTypeConversion)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            returnTypeConversion = default;
-
             if (!SourceNamedTypeSymbol.IsValidCollectionBuilderType(builderType))
             {
                 return null;
@@ -2004,7 +2059,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 useSiteInfo.AddDiagnostics(candidateUseSiteInfo.Diagnostics);
-                returnTypeConversion = conversion;
                 return method;
             }
 

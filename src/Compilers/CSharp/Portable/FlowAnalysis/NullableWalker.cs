@@ -3758,6 +3758,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (element)
                 {
+                    case BoundCollectionExpressionWithElement withElement:
+                        // We only get here if the conversion of the collection expression to the
+                        // target type failed. In this case, simply visit each argument.
+                        VisitArgumentsEvaluate(withElement.Arguments, withElement.ArgumentRefKindsOpt, parameterAnnotationsOpt: default, defaultArguments: default);
+                        break;
                     case BoundCollectionElementInitializer initializer:
                         // We don't visit the Add methods
                         // But we should check conversion to the iteration type

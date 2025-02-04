@@ -96,7 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Syntax = previousSyntax;
             }
 
-            // If the collection type is List<T> and items are added using the expected List<T>.Add(T) method,
+            // If the collection type is List<T>, and the list is created with the parameterless constructor,
+            // and items are added using the expected List<T>.Add(T) method,
             // then construction can be optimized to use CollectionsMarshal methods.
             static bool useListOptimization(CSharpCompilation compilation, BoundCollectionExpression node)
             {
@@ -105,12 +106,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return true;
                 }
+                var ctor = (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor);
+                if (ctor is null)
+                {
+                    return false;
+                }
+                if (!canOptimizeListConstructor(node.CollectionCreation, ctor))
+                {
+                    return false;
+                }
                 var addMethod = (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add);
                 if (addMethod is null)
                 {
                     return false;
                 }
                 return elements.All(canOptimizeListElement, addMethod);
+            }
+
+            static bool canOptimizeListConstructor(BoundExpression? collectionCreation, MethodSymbol constructor)
+            {
+                return collectionCreation is BoundObjectCreationExpression { Constructor: var objectCreate } &&
+                    constructor.Equals(objectCreate.OriginalDefinition);
             }
 
             static bool canOptimizeListElement(BoundNode element, MethodSymbol addMethod)

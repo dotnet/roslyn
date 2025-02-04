@@ -297,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUnboundGenericTypesInNameof = MessageBase + 12850,
         IDS_FeatureSimpleLambdaParameterModifiers = MessageBase + 12851,
         IDS_FeatureDictionaryExpressions = MessageBase + 12852,
+        IDS_FeatureCollectionExpressionArguments = MessageBase + 12853,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -482,6 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureUnboundGenericTypesInNameof:
                 case MessageID.IDS_FeatureSimpleLambdaParameterModifiers:
                 case MessageID.IDS_FeatureDictionaryExpressions: // semantic check
+                case MessageID.IDS_FeatureCollectionExpressionArguments:
                     return LanguageVersion.Preview;
 
                 // C# 13.0 features.
