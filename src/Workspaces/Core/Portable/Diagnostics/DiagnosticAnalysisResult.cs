@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 /// </summary>
 internal readonly struct DiagnosticAnalysisResult
 {
-    public readonly bool FromBuild;
     public readonly ProjectId ProjectId;
     public readonly VersionStamp Version;
 
@@ -50,13 +49,16 @@ internal readonly struct DiagnosticAnalysisResult
     /// </summary>
     private readonly ImmutableArray<DiagnosticData> _others;
 
-    private DiagnosticAnalysisResult(ProjectId projectId, VersionStamp version, ImmutableHashSet<DocumentId>? documentIds, bool isEmpty, bool fromBuild)
+    private DiagnosticAnalysisResult(
+        ProjectId projectId,
+        VersionStamp version,
+        ImmutableHashSet<DocumentId>? documentIds,
+        bool isEmpty)
     {
         ProjectId = projectId;
         Version = version;
         DocumentIds = documentIds;
         IsEmpty = isEmpty;
-        FromBuild = fromBuild;
 
         _syntaxLocals = null;
         _semanticLocals = null;
@@ -71,8 +73,7 @@ internal readonly struct DiagnosticAnalysisResult
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocals,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocals,
         ImmutableArray<DiagnosticData> others,
-        ImmutableHashSet<DocumentId>? documentIds,
-        bool fromBuild)
+        ImmutableHashSet<DocumentId>? documentIds)
     {
         Debug.Assert(!others.IsDefault);
         Debug.Assert(!syntaxLocals.Values.Any(item => item.IsDefault));
@@ -81,7 +82,6 @@ internal readonly struct DiagnosticAnalysisResult
 
         ProjectId = projectId;
         Version = version;
-        FromBuild = fromBuild;
 
         _syntaxLocals = syntaxLocals;
         _semanticLocals = semanticLocals;
@@ -101,8 +101,7 @@ internal readonly struct DiagnosticAnalysisResult
             syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
             semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
             nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-            others: [],
-            fromBuild: false);
+            others: []);
     }
 
     public static DiagnosticAnalysisResult CreateInitialResult(ProjectId projectId)
@@ -111,47 +110,7 @@ internal readonly struct DiagnosticAnalysisResult
             projectId,
             version: VersionStamp.Default,
             documentIds: null,
-            isEmpty: true,
-            fromBuild: false);
-    }
-
-    public static DiagnosticAnalysisResult CreateFromBuild(Project project, ImmutableArray<DiagnosticData> diagnostics, IEnumerable<DocumentId> initialDocuments)
-    {
-        // we can't distinguish locals and non locals from build diagnostics nor determine right snapshot version for the build.
-        // so we put everything in as semantic local with default version. this lets us to replace those to live diagnostics when needed easily.
-        var version = VersionStamp.Default;
-
-        var documentIds = ImmutableHashSet.CreateBuilder<DocumentId>();
-        documentIds.AddRange(initialDocuments);
-
-        var diagnosticsWithDocumentId = PooledDictionary<DocumentId, ArrayBuilder<DiagnosticData>>.GetInstance();
-        var diagnosticsWithoutDocumentId = ArrayBuilder<DiagnosticData>.GetInstance();
-
-        foreach (var data in diagnostics)
-        {
-            var documentId = data.DocumentId;
-            if (documentId != null)
-            {
-                documentIds.Add(documentId);
-                diagnosticsWithDocumentId.MultiAdd(documentId, data);
-            }
-            else
-            {
-                diagnosticsWithoutDocumentId.Add(data);
-            }
-        }
-
-        var result = new DiagnosticAnalysisResult(
-            project.Id,
-            version,
-            documentIds: documentIds.ToImmutable(),
-            syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-            semanticLocals: diagnosticsWithDocumentId.ToImmutableMultiDictionaryAndFree(),
-            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-            others: diagnosticsWithoutDocumentId.ToImmutableAndFree(),
-            fromBuild: true);
-
-        return result;
+            isEmpty: true);
     }
 
     public static DiagnosticAnalysisResult Create(
@@ -174,8 +133,7 @@ internal readonly struct DiagnosticAnalysisResult
             semanticLocalMap,
             nonLocalMap,
             others,
-            documentIds,
-            fromBuild: false);
+            documentIds);
     }
 
     public static DiagnosticAnalysisResult CreateFromBuilder(DiagnosticAnalysisResultBuilder builder)
@@ -261,13 +219,13 @@ internal readonly struct DiagnosticAnalysisResult
         => (IsAggregatedForm || IsEmpty) ? [] : _others;
 
     public DiagnosticAnalysisResult ToAggregatedForm()
-        => new(ProjectId, Version, DocumentIds, IsEmpty, FromBuild);
+        => new(ProjectId, Version, DocumentIds, IsEmpty);
 
-    public DiagnosticAnalysisResult UpdateAggregatedResult(VersionStamp version, DocumentId documentId, bool fromBuild)
-        => new(ProjectId, version, DocumentIdsOrEmpty.Add(documentId), isEmpty: false, fromBuild: fromBuild);
+    public DiagnosticAnalysisResult UpdateAggregatedResult(VersionStamp version, DocumentId documentId)
+        => new(ProjectId, version, DocumentIdsOrEmpty.Add(documentId), isEmpty: false);
 
     public DiagnosticAnalysisResult Reset()
-        => new(ProjectId, VersionStamp.Default, DocumentIds, IsEmpty, FromBuild);
+        => new(ProjectId, VersionStamp.Default, DocumentIds, IsEmpty);
 
     public DiagnosticAnalysisResult DropExceptSyntax()
     {
@@ -285,8 +243,7 @@ internal readonly struct DiagnosticAnalysisResult
            semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
            others: [],
-           documentIds: null,
-           fromBuild: false);
+           documentIds: null);
     }
 
     private static ImmutableHashSet<DocumentId> GetDocumentIds(
