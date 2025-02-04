@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
@@ -45,9 +47,12 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
     private readonly EditorOptionsService _editorOptionsService;
     private readonly SuggestionServiceBase? _suggestionServiceBase;
+    private readonly IAsynchronousOperationListener _asyncListener;
+
     private SuggestionManagerBase? _suggestionManagerBase;
-    internal SuggestionSessionBase? _suggestionSession;
     private VisualStudio.Threading.IAsyncDisposable? _intellicodeLineCompletionsDisposable;
+
+    internal SuggestionSessionBase? _suggestionSession;
 
     public readonly IThreadingContext? ThreadingContext;
 
@@ -57,7 +62,8 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         IEditorOperationsFactoryService editorOperationsFactoryService,
         EditorOptionsService editorOptionsService,
         SuggestionServiceBase? suggestionServiceBase,
-        IThreadingContext? threadingContext)
+        IThreadingContext? threadingContext,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
         Contract.ThrowIfNull(uiThreadOperationExecutor);
         Contract.ThrowIfNull(undoHistoryRegistry);
@@ -68,6 +74,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         _editorOperationsFactoryService = editorOperationsFactoryService;
         _editorOptionsService = editorOptionsService;
         _suggestionServiceBase = suggestionServiceBase;
+        _asyncListener = listenerProvider.GetListener(FeatureAttribute.GenerateDocumentation);
         ThreadingContext = threadingContext;
     }
 
@@ -130,52 +137,55 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                 {
                     ThreadingContext.ThrowIfNotOnUIThread();
 
-                    ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
-                    {
-                        await Task.Run(async () =>
-                        {
-                            // Bailing out if copilot is not available or the option is not enabled.
-                            if (document.GetRequiredLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
-                                await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
-                            {
-                                return;
-                            }
-
-                            if (document.GetLanguageService<ICopilotOptionsService>() is not { } copilotOptionService ||
-                                !await copilotOptionService.IsGenerateDocumentationCommentOptionEnabledAsync().ConfigureAwait(false))
-                            {
-                                return;
-                            }
-
-                            var snippetProposal = GetSnippetProposal(snippet.SnippetText, snippet.MemberNode, snippet.Position, snippet.CaretOffset);
-
-                            if (snippetProposal is null)
-                            {
-                                return;
-                            }
-
-                            // Do not do IntelliCode line completions if we're about to generate a documentation comment
-                            // so that won't have interfering grey text.
-                            _intellicodeLineCompletionsDisposable = await _suggestionManagerBase.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
-
-                            var proposalEdits = await GetProposedEditsAsync(snippetProposal, copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
-
-                            var proposal = new DocumentationCommentHandlerProposal(oldCaret, proposalEdits);
-                            var suggestion = new DocumentationCommentSuggestion(this, proposal);
-
-                            var session = this._suggestionSession = await (_suggestionManagerBase.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
-
-                            if (session != null)
-                            {
-                                await TryDisplaySuggestionAsync(session, suggestion, cancellationToken).ConfigureAwait(false);
-                            }
-                        }).ConfigureAwait(false);
-                    });
+                    var token = _asyncListener.BeginAsyncOperation(nameof(GenerateDocumentationProposalAsync));
+                    _ = GenerateDocumentationProposalAsync(document, snippet, oldSnapshot, oldCaret, cancellationToken).CompletesAsyncOperation(token);
                 }
             }
         }
 
         return returnValue;
+    }
+
+    private async Task GenerateDocumentationProposalAsync(Document document, DocumentationCommentSnippet snippet,
+        ITextSnapshot oldSnapshot, VirtualSnapshotPoint oldCaret, CancellationToken cancellationToken)
+    {
+        await Task.Yield().ConfigureAwait(false);
+
+        // Bailing out if copilot is not available or the option is not enabled.
+        if (document.GetRequiredLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+                await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+        {
+            return;
+        }
+
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } copilotOptionService ||
+            !await copilotOptionService.IsGenerateDocumentationCommentOptionEnabledAsync().ConfigureAwait(false))
+        {
+            return;
+        }
+
+        var snippetProposal = GetSnippetProposal(snippet.SnippetText, snippet.MemberNode, snippet.Position, snippet.CaretOffset);
+
+        if (snippetProposal is null)
+        {
+            return;
+        }
+
+        // Do not do IntelliCode line completions if we're about to generate a documentation comment
+        // so that won't have interfering grey text.
+        _intellicodeLineCompletionsDisposable = await _suggestionManagerBase!.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
+
+        var proposalEdits = await GetProposedEditsAsync(snippetProposal, copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
+
+        var proposal = new DocumentationCommentHandlerProposal(oldCaret, proposalEdits);
+        var suggestion = new DocumentationCommentSuggestion(this, proposal);
+
+        var session = this._suggestionSession = await (_suggestionManagerBase.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
+
+        if (session != null)
+        {
+            await TryDisplaySuggestionAsync(session, suggestion, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -320,7 +330,8 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
                 copilotStatement = exception;
             }
 
-            var proposedEdit = new ProposedEdit(new SnapshotSpan(oldSnapshot, textSpan.Start, textSpan.Length), AddNewLinesToCopilotText(copilotStatement!, indentText, characterLimit: 120 - indentText!.Length - 4));
+            var proposedEdit = new ProposedEdit(new SnapshotSpan(oldSnapshot, textSpan.Start, textSpan.Length),
+                AddNewLinesToCopilotText(copilotStatement!, indentText, characterLimit: 120));
             list.Add(proposedEdit);
         }
 
@@ -331,7 +342,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
             var builder = new StringBuilder();
             var words = copilotText.Split(' ');
             var currentLineLength = 0;
-
+            characterLimit -= (indentText!.Length + "/// ".Length);
             foreach (var word in words)
             {
                 if (currentLineLength + word.Length >= characterLimit)
@@ -344,7 +355,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
 
                 if (currentLineLength > 0)
                 {
-                    builder.Append(" ");
+                    builder.Append(' ');
                     currentLineLength++;
                 }
 

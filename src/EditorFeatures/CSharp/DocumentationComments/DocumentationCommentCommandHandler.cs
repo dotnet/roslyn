@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Suggestions;
@@ -30,8 +31,10 @@ internal sealed class DocumentationCommentCommandHandler(
     IEditorOperationsFactoryService editorOperationsFactoryService,
     EditorOptionsService editorOptionsService,
     SuggestionServiceBase suggestionServiceBase,
-    IThreadingContext threadingContext)
-            : AbstractDocumentationCommentCommandHandler(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService, suggestionServiceBase, threadingContext)
+    IThreadingContext threadingContext,
+    IAsynchronousOperationListenerProvider listenerProvider)
+            : AbstractDocumentationCommentCommandHandler(uiThreadOperationExecutor, undoHistoryRegistry,
+                editorOperationsFactoryService, editorOptionsService, suggestionServiceBase, threadingContext, listenerProvider)
 {
     protected override string ExteriorTriviaText => "///";
 }
