@@ -97,8 +97,8 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
             {
                 var assembly = resolver.Resolve(
                     loader,
-                    currentLoadContext,
                     new AssemblyName(name),
+                    currentLoadContext,
                     dir);
                 Assert.NotNull(assembly);
                 Assert.Equal(name, assembly.GetName().Name);
@@ -124,13 +124,13 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         {
             var assembly1 = resolver.Resolve(
                 loader,
-                currentLoadContext,
                 new AssemblyName(RazorAnalyzerAssemblyResolver.RazorCompilerAssemblyName),
+                currentLoadContext,
                 dir1);
             var assembly2 = resolver.Resolve(
                 loader,
-                currentLoadContext,
                 new AssemblyName(RazorAnalyzerAssemblyResolver.RazorCompilerAssemblyName),
+                currentLoadContext,
                 dir2);
             Assert.Same(assembly1, assembly2);
         });
