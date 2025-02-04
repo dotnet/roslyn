@@ -21,8 +21,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    [Export(typeof(IDiagnosticAnalyzerService))]
-    [Shared]
+    [Export(typeof(IDiagnosticAnalyzerService)), Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
         private static readonly Option2<bool> s_crashOnAnalyzerException = new("dotnet_crash_on_analyzer_exception", defaultValue: false);
