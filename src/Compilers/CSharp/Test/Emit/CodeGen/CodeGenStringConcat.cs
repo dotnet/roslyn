@@ -2177,5 +2177,25 @@ class Test
                 }
                 """);
         }
+
+        [Fact]
+        public void ConstantCharPlusNull()
+        {
+            var source = """
+                const char c = 'a';
+                System.Console.WriteLine(c + (string)null);
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "a");
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  call       "void System.Console.WriteLine(string)"
+                  IL_000a:  ret
+                }
+                """);
+        }
     }
 }
