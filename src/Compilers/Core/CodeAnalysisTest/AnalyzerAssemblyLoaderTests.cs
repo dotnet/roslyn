@@ -1759,7 +1759,7 @@ Delta.2: Test D2
         {
             var alc = new AssemblyLoadContext(nameof(AssemblyResolver_FirstOneWins), isCollectible: true);
             var name = Path.GetFileNameWithoutExtension(TestFixture.Delta1);
-            var resolver1 = new TestAnalyzerAssemblyResolver((_, current, assemblyName, _) =>
+            var resolver1 = new TestAnalyzerAssemblyResolver((_, assemblyName, current, _) =>
                 assemblyName.Name == name ? current.LoadFromAssemblyPath(TestFixture.Delta1) : null);
             var resolver2 = new TestAnalyzerAssemblyResolver((_, _, assemblyName, _) => null);
             var loader = new AnalyzerAssemblyLoader([], [resolver1, resolver2], alc);
@@ -1817,16 +1817,16 @@ Delta.2: Test D2
 
 #if NET
 
-        private class TestAnalyzerAssemblyResolver(Func<AnalyzerAssemblyLoader, AssemblyLoadContext, AssemblyName, string, Assembly?> resolveFunc) : IAnalyzerAssemblyResolver
+        private class TestAnalyzerAssemblyResolver(Func<AnalyzerAssemblyLoader, AssemblyName, AssemblyLoadContext, string, Assembly?> resolveFunc) : IAnalyzerAssemblyResolver
         {
-            private readonly Func<AnalyzerAssemblyLoader, AssemblyLoadContext, AssemblyName, string, Assembly?> _resolveFunc = resolveFunc;
+            private readonly Func<AnalyzerAssemblyLoader, AssemblyName, AssemblyLoadContext, string, Assembly?> _resolveFunc = resolveFunc;
 
             public List<AssemblyName> CalledFor { get; } = [];
 
-            public Assembly? Resolve(AnalyzerAssemblyLoader loader, AssemblyLoadContext current, AssemblyName assemblyName, string directory)
+            public Assembly? Resolve(AnalyzerAssemblyLoader loader, AssemblyName assemblyName, AssemblyLoadContext directoryContext, string directory)
             {
                 CalledFor.Add(assemblyName);
-                return _resolveFunc(loader, current, assemblyName, directory);
+                return _resolveFunc(loader, assemblyName, directoryContext, directory);
             }
         }
 

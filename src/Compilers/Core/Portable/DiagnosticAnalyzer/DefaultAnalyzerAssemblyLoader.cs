@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new AnalyzerAssemblyLoader(
-                [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(windowsShadowPath)],
+                [.. pathResolvers, new ProgramFilesAnalyzerPathResolver(), new ShadowCopyAnalyzerPathResolver(windowsShadowPath)],
                 [.. assemblyResolvers, DiskResolver.Instance],
                 compilerLoadContext);
         }
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException("Must be a full path.", nameof(windowsShadowPath));
             }
 
-            return new AnalyzerAssemblyLoader([.. pathResolvers, new ShadowCopyAnalyzerPathResolver(windowsShadowPath)]);
+            return new AnalyzerAssemblyLoader([.. pathResolvers, new ProgramFilesAnalyzerPathResolver(), new ShadowCopyAnalyzerPathResolver(windowsShadowPath)]);
         }
 #endif
     }
