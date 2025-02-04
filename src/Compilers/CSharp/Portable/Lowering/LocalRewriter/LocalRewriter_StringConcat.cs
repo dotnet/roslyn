@@ -587,18 +587,9 @@ fallbackStrings:
                 }
             }
 
-            // If expression is of form `constantChar.ToString()` then unwrap it from a `ToString()` call so we can lower it to a constant later
-            // NOTE: We get `object.ToString()` from a compilation because we just need to compare symbols and don't need all error recovery of `TryGetSpecialTypeMethod`
-            if (expr is BoundCall { Type.SpecialType: SpecialType.System_String, Method: { Name: "ToString" } method, ReceiverOpt: { Type: NamedTypeSymbol { SpecialType: SpecialType.System_Char } charType, ConstantValueOpt.IsChar: true } } call &&
-                method.GetLeastOverriddenMember(charType) == _compilation.GetSpecialTypeMember(SpecialMember.System_Object__ToString))
-            {
-                expr = call.ReceiverOpt;
-            }
-
             // Is the expression a constant char?  If so, we can
             // simply make it a literal string instead and avoid any 
             // allocations for converting the char to a string at run time.
-            // Similarly if it's a literal null, don't do anything special.
             if (expr is { ConstantValueOpt: { } cv })
             {
                 if (cv.SpecialType == SpecialType.System_Char)
@@ -607,7 +598,8 @@ fallbackStrings:
                 }
                 else if (cv.IsNull)
                 {
-                    return expr;
+                    // Should have been dropped by now.
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
