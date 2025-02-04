@@ -66,15 +66,16 @@ internal partial class CodeGenerator
         // to determine whether a `ref` can be captured by the method.
         // The emit layer then uses this information to avoid reusing temporaries that are passed by ref to such methods.
 
-        // number of outputs that can capture `ref`s
-        int refTargets = 0;
-        // number of inputs that can contain `ref`s
-        int refSources = 0;
+        // whether we have any outputs that can capture `ref`s
+        bool anyRefTargets = false;
+        // whether we have any inputs that can contain `ref`s
+        bool anyRefSources = false;
+        // NOTE: If there is at least one output and at least one input, a `ref` can be captured.
 
         if (used && (returnRefKind != RefKind.None || returnType.IsRefLikeOrAllowsRefLikeType()))
         {
             // If returning by ref or returning a ref struct, the result might capture `ref`s.
-            refTargets++;
+            anyRefTargets = true;
         }
 
         if (receiverType is not null)
@@ -82,19 +83,19 @@ internal partial class CodeGenerator
             receiverScope ??= ScopedKind.None;
             if (receiverType.IsRefLikeOrAllowsRefLikeType() && receiverScope != ScopedKind.ScopedValue)
             {
-                refSources++;
+                anyRefSources = true;
                 if (!isReceiverReadOnly && !receiverType.IsReadOnly)
                 {
-                    refTargets++;
+                    anyRefTargets = true;
                 }
             }
             else if (receiverAddressKind != null && receiverScope == ScopedKind.None)
             {
-                refSources++;
+                anyRefSources = true;
             }
         }
 
-        if (shouldReturnTrue(refTargets, refSources))
+        if (anyRefTargets && anyRefSources)
         {
             return true;
         }
@@ -103,29 +104,23 @@ internal partial class CodeGenerator
         {
             if (parameter.Type.IsRefLikeOrAllowsRefLikeType() && parameter.EffectiveScope != ScopedKind.ScopedValue)
             {
-                refSources++;
+                anyRefSources = true;
                 if (!parameter.Type.IsReadOnly && parameter.RefKind.IsWritableReference())
                 {
-                    refTargets++;
+                    anyRefTargets = true;
                 }
             }
             else if (parameter.RefKind != RefKind.None && parameter.EffectiveScope == ScopedKind.None)
             {
-                refSources++;
+                anyRefSources = true;
             }
 
-            if (shouldReturnTrue(refTargets, refSources))
+            if (anyRefTargets && anyRefSources)
             {
                 return true;
             }
         }
 
         return false;
-
-        static bool shouldReturnTrue(int writableRefs, int readableRefs)
-        {
-            // If there is at least one output and at least one input, a `ref` can be captured.
-            return writableRefs > 0 && readableRefs > 0;
-        }
     }
 }
