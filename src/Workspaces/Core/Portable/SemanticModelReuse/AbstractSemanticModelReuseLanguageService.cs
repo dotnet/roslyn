@@ -117,6 +117,13 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
             {
                 var childIndex = indexPath[i];
                 var children = previousNode.ChildNodesAndTokens();
+
+                if (children.Count <= childIndex)
+                {
+                    Debug.Fail("Member count shouldn't have changed as there were no top level edits.");
+                    return null;
+                }
+
                 previousNode = children[childIndex].AsNode()!;
             }
 
