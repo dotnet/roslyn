@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _lastResult = DiagnosticAnalysisResult.CreateInitialResult(projectId);
             }
 
-            public bool FromBuild => _lastResult.FromBuild;
-
             public ImmutableHashSet<DocumentId> GetDocumentsWithDiagnostics()
                 => _lastResult.DocumentIdsOrEmpty;
 
@@ -256,9 +254,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var fullAnalysis = _owner.Analyzer.IsFullSolutionAnalysisEnabled(globalOptions, project.Language) &&
                                    await project.HasSuccessfullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
 
-                // keep from build flag if full analysis is off
-                var fromBuild = fullAnalysis ? false : lastResult.FromBuild;
-
                 // if it is allowed to keep project state, check versions and if they are same, bail out.
                 // if full solution analysis is off or we are asked to reset document state, we always merge.
                 if (fullAnalysis &&
@@ -281,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 AddToInMemoryStorage(serializerVersion, project, document, document.Id, SemanticStateName, semantic.Items);
 
                 // save last aggregated form of analysis result
-                _lastResult = _lastResult.UpdateAggregatedResult(version, state.DocumentId, fromBuild);
+                _lastResult = _lastResult.UpdateAggregatedResult(version, state.DocumentId);
             }
 
             public bool OnDocumentRemoved(DocumentId id)
