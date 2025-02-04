@@ -15,19 +15,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, CancellationToken cancellationToken)
+        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId? documentId, CancellationToken cancellationToken)
             => new IdeCachedDiagnosticGetter(this, solution, projectId, documentId).GetDiagnosticsAsync(cancellationToken);
 
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocuments, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocuments, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
             => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, getDocuments, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
 
-        public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
             => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId: null, diagnosticIds, shouldIncludeAnalyzer, getDocuments: null, includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics).GetProjectDiagnosticsAsync(cancellationToken);
 
         private abstract class DiagnosticGetter(
             DiagnosticIncrementalAnalyzer owner,
             Solution solution,
-            ProjectId? projectId,
+            ProjectId projectId,
             DocumentId? documentId,
             Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocuments,
             bool includeLocalDocumentDiagnostics,
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             protected readonly DiagnosticIncrementalAnalyzer Owner = owner;
 
             protected readonly Solution Solution = solution;
-            protected readonly ProjectId? ProjectId = projectId ?? documentId?.ProjectId;
+            protected readonly ProjectId ProjectId = projectId;
             protected readonly DocumentId? DocumentId = documentId;
             protected readonly bool IncludeLocalDocumentDiagnostics = includeLocalDocumentDiagnostics;
             protected readonly bool IncludeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private sealed class IdeCachedDiagnosticGetter(
             DiagnosticIncrementalAnalyzer owner,
             Solution solution,
-            ProjectId? projectId,
+            ProjectId projectId,
             DocumentId? documentId)
             : DiagnosticGetter(
                 owner, solution, projectId, documentId, getDocuments: null,
@@ -197,13 +197,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private sealed class IdeLatestDiagnosticGetter(
             DiagnosticIncrementalAnalyzer owner,
             Solution solution,
-            ProjectId? projectId,
+            ProjectId projectId,
             DocumentId? documentId,
             ImmutableHashSet<string>? diagnosticIds,
             Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
             Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocuments,
             bool includeLocalDocumentDiagnostics,
-            bool includeNonLocalDocumentDiagnostics) : DiagnosticGetter(
+            bool includeNonLocalDocumentDiagnostics)
+            : DiagnosticGetter(
                 owner, solution, projectId, documentId, getDocuments, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics)
         {
             private readonly ImmutableHashSet<string>? _diagnosticIds = diagnosticIds;
