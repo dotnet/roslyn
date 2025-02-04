@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-            => new IdeCachedDiagnosticGetter(this, solution, projectId, documentId, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
+        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, CancellationToken cancellationToken)
+            => new IdeCachedDiagnosticGetter(this, solution, projectId, documentId).GetDiagnosticsAsync(cancellationToken);
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocuments, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
             => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, getDocuments, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
@@ -98,10 +98,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             DiagnosticIncrementalAnalyzer owner,
             Solution solution,
             ProjectId? projectId,
-            DocumentId? documentId,
-            bool includeLocalDocumentDiagnostics,
-            bool includeNonLocalDocumentDiagnostics) : DiagnosticGetter(
-                owner, solution, projectId, documentId, getDocuments: null, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics)
+            DocumentId? documentId)
+            : DiagnosticGetter(
+                owner, solution, projectId, documentId, getDocuments: null,
+                includeLocalDocumentDiagnostics: documentId != null,
+                includeNonLocalDocumentDiagnostics: documentId != null)
         {
             protected override async Task ProduceDiagnosticsAsync(
                 Project project, IReadOnlyList<DocumentId> documentIds, bool includeProjectNonLocalResult,

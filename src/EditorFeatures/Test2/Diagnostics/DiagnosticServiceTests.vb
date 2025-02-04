@@ -2132,10 +2132,7 @@ class MyClass
 
                 ' Get cached project diagnostics.
                 Dim diagnostics = Await diagnosticService.GetCachedDiagnosticsAsync(
-                    workspace, project.Id, documentId:=Nothing,
-                    includeLocalDocumentDiagnostics:=True,
-                    includeNonLocalDocumentDiagnostics:=True,
-                    CancellationToken.None)
+                    workspace, project.Id, documentId:=Nothing, CancellationToken.None)
 
                 ' in v2, solution crawler never creates non-local hidden diagnostics.
                 ' v2 still creates those for LB and explicit queries such as FixAll.
