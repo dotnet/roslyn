@@ -1824,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         keyValuePairElement.Update(
                             BindToNaturalType(keyValuePairElement.Key, diagnostics, reportNoTargetType),
                             BindToNaturalType(keyValuePairElement.Value, diagnostics, reportNoTargetType)),
-                    BoundCollectionExpressionWithElement withElement => bindToNaturalType(withElement, diagnostics, reportNoTargetType),
+                    BoundCollectionExpressionWithElement withElement => bindArgumentsToNaturalType(withElement, diagnostics, reportNoTargetType),
                     _ => BindToNaturalType((BoundExpression)element, diagnostics, reportNoTargetType)
                 };
                 builder.Add(result);
@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: true)
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
 
-            BoundCollectionExpressionWithElement bindToNaturalType(BoundCollectionExpressionWithElement withElement, BindingDiagnosticBag diagnostics, bool reportNoTargetType)
+            BoundCollectionExpressionWithElement bindArgumentsToNaturalType(BoundCollectionExpressionWithElement withElement, BindingDiagnosticBag diagnostics, bool reportNoTargetType)
             {
                 var arguments = withElement.Arguments;
                 var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
