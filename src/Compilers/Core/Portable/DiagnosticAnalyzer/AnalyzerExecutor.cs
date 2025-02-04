@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void ExecuteSyntaxNodeAction<TLanguageKindEnum>(
             SyntaxNodeAnalyzerAction<TLanguageKindEnum> syntaxNodeAction,
             SyntaxNode node,
-            ExecutionData executionData,
+            AnalyzerExecutionData executionData,
             Action<Diagnostic> addDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void ExecuteOperationAction(
             OperationAnalyzerAction operationAction,
             IOperation operation,
-            ExecutionData executionData,
+            AnalyzerExecutionData executionData,
             Action<Diagnostic> addDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken);
         }
 
-        private readonly record struct ExecutionData(
+        internal readonly record struct AnalyzerExecutionData(
             DiagnosticAnalyzer Analyzer,
             ISymbol DeclaredSymbol,
             SemanticModel SemanticModel,
@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 actions,
                 endActions,
                 declaredNode,
-                new ExecutionData(analyzer, declaredSymbol, semanticModel, filterSpan, isGeneratedCode),
+                new AnalyzerExecutionData(analyzer, declaredSymbol, semanticModel, filterSpan, isGeneratedCode),
                 addActions: static (startAction, endActions, executionData, args, cancellationToken) =>
                 {
                     var (@this, startActions, executableCodeBlocks, declaredNode, getKind, ephemeralActions) = args;
@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 actions,
                 endActions,
                 declaredNode,
-                new ExecutionData(analyzer, declaredSymbol, semanticModel, filterSpan, isGeneratedCode),
+                new AnalyzerExecutionData(analyzer, declaredSymbol, semanticModel, filterSpan, isGeneratedCode),
                 addActions: static (startAction, endActions, executionData, args, cancellationToken) =>
                 {
                     var (@this, startActions, declaredNode, operationBlocks, operations, ephemeralActions) = args;
@@ -908,10 +908,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<TBlockAction> actions,
             ImmutableArray<TBlockAction> endActions,
             SyntaxNode declaredNode,
-            ExecutionData executionData,
-            Action<TBlockStartAction, HashSet<TBlockAction>, ExecutionData, TArgs, CancellationToken> addActions,
-            Action<AnalyzerDiagnosticReporter, Func<Diagnostic, CancellationToken, bool>, ExecutionData, TArgs, CancellationToken> executeActions,
-            Action<HashSet<TBlockAction>, AnalyzerDiagnosticReporter, Func<Diagnostic, CancellationToken, bool>, ExecutionData, TArgs, CancellationToken> executeBlockActions,
+            AnalyzerExecutionData executionData,
+            Action<TBlockStartAction, HashSet<TBlockAction>, AnalyzerExecutionData, TArgs, CancellationToken> addActions,
+            Action<AnalyzerDiagnosticReporter, Func<Diagnostic, CancellationToken, bool>, AnalyzerExecutionData, TArgs, CancellationToken> executeActions,
+            Action<HashSet<TBlockAction>, AnalyzerDiagnosticReporter, Func<Diagnostic, CancellationToken, bool>, AnalyzerExecutionData, TArgs, CancellationToken> executeBlockActions,
             TArgs argument,
             CancellationToken cancellationToken)
             where TBlockStartAction : AnalyzerAction
@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             ExecuteSyntaxNodeActions(
                 nodesToAnalyze, nodeActionsByKind,
-                new ExecutionData(analyzer, declaredSymbol, model, filterSpan, isGeneratedCode),
+                new AnalyzerExecutionData(analyzer, declaredSymbol, model, filterSpan, isGeneratedCode),
                 getKind, diagReporter, isSupportedDiagnostic, hasCodeBlockStartOrSymbolStartActions, cancellationToken);
 
             diagReporter.Free();
@@ -1023,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
             ArrayBuilder<SyntaxNode> nodesToAnalyze,
             ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
-            ExecutionData executionData,
+            AnalyzerExecutionData executionData,
             Func<SyntaxNode, TLanguageKindEnum> getKind,
             AnalyzerDiagnosticReporter diagReporter,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
@@ -1113,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             ExecuteOperationActions(
                 operationsToAnalyze, operationActionsByKind,
-                new ExecutionData(analyzer, declaredSymbol, model, filterSpan, isGeneratedCode),
+                new AnalyzerExecutionData(analyzer, declaredSymbol, model, filterSpan, isGeneratedCode),
                 diagReporter, isSupportedDiagnostic, hasOperationBlockStartOrSymbolStartActions, cancellationToken);
 
             diagReporter.Free();
@@ -1122,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void ExecuteOperationActions(
             ImmutableArray<IOperation> operationsToAnalyze,
             ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
-            ExecutionData executionData,
+            AnalyzerExecutionData executionData,
             AnalyzerDiagnosticReporter diagReporter,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
             bool hasOperationBlockStartOrSymbolStartActions,
