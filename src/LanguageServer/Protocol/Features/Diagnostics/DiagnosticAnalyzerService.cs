@@ -94,10 +94,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 priorityProvider, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(
+            Workspace workspace, ProjectId? projectId, DocumentId? documentId, CancellationToken cancellationToken)
         {
             var analyzer = CreateIncrementalAnalyzer(workspace);
-            return analyzer.GetCachedDiagnosticsAsync(workspace.CurrentSolution, projectId, documentId, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
+            return analyzer.GetCachedDiagnosticsAsync(workspace.CurrentSolution, projectId, documentId, cancellationToken);
         }
 
         public async Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
