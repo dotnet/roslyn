@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -75,30 +74,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private ImmutableArray<StateSet> GetStateSetsForFullSolutionAnalysis(ImmutableArray<StateSet> stateSets, Project project)
         {
-            // If full analysis is off, remove state that is created from build.
-            // this will make sure diagnostics from build (converted from build to live) will never be cleared
-            // until next build.
-            _ = GlobalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullSolutionAnalysisEnabled, out var analyzersFullSolutionAnalysisEnabled);
-            if (!compilerFullSolutionAnalysisEnabled)
-            {
-                // Full solution analysis is not enabled for compiler diagnostics,
-                // so we remove the compiler analyzer state sets that are from build.
-                // We do so by retaining only those state sets that are
-                // either not for compiler analyzer or those which are for compiler
-                // analyzer, but not from build.
-                stateSets = stateSets.WhereAsArray(s => !s.Analyzer.IsCompilerAnalyzer() || !s.FromBuild(project.Id));
-            }
-
-            if (!analyzersFullSolutionAnalysisEnabled)
-            {
-                // Full solution analysis is not enabled for analyzer diagnostics,
-                // so we remove the analyzer state sets that are from build.
-                // We do so by retaining only those state sets that are
-                // either for the special compiler/workspace analyzers or those which are for
-                // other analyzers, but not from build.
-                stateSets = stateSets.WhereAsArray(s => s.Analyzer.IsCompilerAnalyzer() || s.Analyzer.IsWorkspaceDiagnosticAnalyzer() || !s.FromBuild(project.Id));
-            }
-
             // Include only analyzers we want to run for full solution analysis.
             // Analyzers not included here will never be saved because result is unknown.
             return stateSets.WhereAsArray(static (s, arg) => arg.self.IsCandidateForFullSolutionAnalysis(s.Analyzer, s.IsHostAnalyzer, arg.project), (self: this, project));

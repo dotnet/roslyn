@@ -86,9 +86,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public bool IsActiveFile(DocumentId documentId)
                 => _activeFileStates.ContainsKey(documentId);
 
-            public bool FromBuild(ProjectId projectId)
-                => _projectStates.TryGetValue(projectId, out var projectState) && projectState.FromBuild;
-
             public bool TryGetActiveFileState(DocumentId documentId, [NotNullWhen(true)] out ActiveFileState? state)
                 => _activeFileStates.TryGetValue(documentId, out state);
 

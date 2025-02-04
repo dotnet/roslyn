@@ -704,7 +704,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph,
                 executionData.FilterSpan, executionData.IsGeneratedCode, cancellationToken);
 
-
             ExecuteAndCatchIfThrows(
                 operationAction.Analyzer,
                 static data => data.operationAction.Action(data.operationContext),
@@ -747,7 +746,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 startActions,
                 actions,
                 endActions,
-                operationBlocks: [],
                 declaredNode,
                 new ExecutionData(analyzer, declaredSymbol, semanticModel, filterSpan, isGeneratedCode),
                 addActions: static (startAction, endActions, executionData, args, cancellationToken) =>
@@ -850,7 +848,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 startActions,
                 actions,
                 endActions,
-                operationBlocks,
                 declaredNode,
                 new ExecutionData(analyzer, declaredSymbol, semanticModel, filterSpan, isGeneratedCode),
                 addActions: static (startAction, endActions, executionData, args, cancellationToken) =>
@@ -911,7 +908,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<TBlockStartAction> startActions,
             ImmutableArray<TBlockAction> actions,
             ImmutableArray<TBlockAction> endActions,
-            ImmutableArray<IOperation> operationBlocks,
             SyntaxNode declaredNode,
             ExecutionData executionData,
             Action<TBlockStartAction, HashSet<TBlockAction>, ExecutionData, TArgs, CancellationToken> addActions,
