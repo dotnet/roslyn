@@ -21,7 +21,7 @@ internal partial class DiagnosticAnalyzerService
         // subscribe to active context changed event for new workspace
         workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
 
-        return new DiagnosticIncrementalAnalyzer(this, workspace, AnalyzerInfoCache);
+        return new DiagnosticIncrementalAnalyzer(this, workspace, AnalyzerInfoCache, this.GlobalOptions);
     }
 
     private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
 
         public IAsynchronousOperationListener Listener { get; }
-        public IGlobalOptionService GlobalOptions { get; }
+        private IGlobalOptionService GlobalOptions { get; }
 
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map = new();
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
