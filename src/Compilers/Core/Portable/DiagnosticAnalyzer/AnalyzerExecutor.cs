@@ -712,13 +712,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken);
         }
 
-        internal readonly record struct AnalyzerExecutionData(
-            DiagnosticAnalyzer Analyzer,
-            ISymbol DeclaredSymbol,
-            SemanticModel SemanticModel,
-            TextSpan? FilterSpan,
-            bool IsGeneratedCode);
-
         /// <summary>
         /// Execute code block actions for the given analyzer for the given declaration.
         /// </summary>
@@ -726,14 +719,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> startActions,
             ImmutableArray<CodeBlockAnalyzerAction> actions,
             ImmutableArray<CodeBlockAnalyzerAction> endActions,
-            DiagnosticAnalyzer analyzer,
+            AnalyzerExecutionData executionData,
             SyntaxNode declaredNode,
-            ISymbol declaredSymbol,
             ImmutableArray<SyntaxNode> executableCodeBlocks,
-            SemanticModel semanticModel,
             Func<SyntaxNode, TLanguageKindEnum> getKind,
-            TextSpan? filterSpan,
-            bool isGeneratedCode,
             CancellationToken cancellationToken)
             where TLanguageKindEnum : struct
         {
@@ -746,7 +735,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 actions,
                 endActions,
                 declaredNode,
-                new AnalyzerExecutionData(analyzer, declaredSymbol, semanticModel, filterSpan, isGeneratedCode),
+                executionData,
                 addActions: static (startAction, endActions, executionData, args, cancellationToken) =>
                 {
                     var (@this, startActions, executableCodeBlocks, declaredNode, getKind, ephemeralActions) = args;
@@ -829,14 +818,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<OperationBlockStartAnalyzerAction> startActions,
             ImmutableArray<OperationBlockAnalyzerAction> actions,
             ImmutableArray<OperationBlockAnalyzerAction> endActions,
-            DiagnosticAnalyzer analyzer,
+            AnalyzerExecutionData executionData,
             SyntaxNode declaredNode,
-            ISymbol declaredSymbol,
             ImmutableArray<IOperation> operationBlocks,
             ImmutableArray<IOperation> operations,
-            SemanticModel semanticModel,
-            TextSpan? filterSpan,
-            bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
             Debug.Assert(!operationBlocks.IsEmpty);
@@ -848,7 +833,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 actions,
                 endActions,
                 declaredNode,
-                new AnalyzerExecutionData(analyzer, declaredSymbol, semanticModel, filterSpan, isGeneratedCode),
+                executionData,
                 addActions: static (startAction, endActions, executionData, args, cancellationToken) =>
                 {
                     var (@this, startActions, declaredNode, operationBlocks, operations, ephemeralActions) = args;
@@ -988,33 +973,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
            ArrayBuilder<SyntaxNode> nodesToAnalyze,
            ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
-           DiagnosticAnalyzer analyzer,
-           SemanticModel model,
+           AnalyzerExecutionData executionData,
            Func<SyntaxNode, TLanguageKindEnum> getKind,
            TextSpan spanForContainingTopmostNodeForAnalysis,
-           ISymbol declaredSymbol,
-           TextSpan? filterSpan,
-           bool isGeneratedCode,
            bool hasCodeBlockStartOrSymbolStartActions,
            CancellationToken cancellationToken)
            where TLanguageKindEnum : struct
         {
-            if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
-                IsAnalyzerSuppressedForTree(analyzer, model.SyntaxTree, cancellationToken))
+            if (executionData.IsGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(executionData.Analyzer) ||
+                IsAnalyzerSuppressedForTree(executionData.Analyzer, executionData.SemanticModel.SyntaxTree, cancellationToken))
             {
                 return;
             }
 
-            var diagReporter = GetAddSemanticDiagnostic(model.SyntaxTree, spanForContainingTopmostNodeForAnalysis, analyzer, cancellationToken);
+            var diagReporter = GetAddSemanticDiagnostic(
+                executionData.SemanticModel.SyntaxTree, spanForContainingTopmostNodeForAnalysis, executionData.Analyzer, cancellationToken);
 
             using var _ = PooledDelegates.GetPooledFunction(
-                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
-                (self: this, analyzer),
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.Analyzer, d, ct),
+                (self: this, executionData.Analyzer),
                 out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
             ExecuteSyntaxNodeActions(
                 nodesToAnalyze, nodeActionsByKind,
-                new AnalyzerExecutionData(analyzer, declaredSymbol, model, filterSpan, isGeneratedCode),
+                executionData,
                 getKind, diagReporter, isSupportedDiagnostic, hasCodeBlockStartOrSymbolStartActions, cancellationToken);
 
             diagReporter.Free();
@@ -1089,31 +1071,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void ExecuteOperationActions(
             ImmutableArray<IOperation> operationsToAnalyze,
             ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
-            DiagnosticAnalyzer analyzer,
-            SemanticModel model,
+            AnalyzerExecutionData executionData,
             TextSpan spanForContainingOperationBlock,
-            ISymbol declaredSymbol,
-            TextSpan? filterSpan,
-            bool isGeneratedCode,
             bool hasOperationBlockStartOrSymbolStartActions,
             CancellationToken cancellationToken)
         {
-            if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
-                IsAnalyzerSuppressedForTree(analyzer, model.SyntaxTree, cancellationToken))
+            if (executionData.IsGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(executionData.Analyzer) ||
+                IsAnalyzerSuppressedForTree(executionData.Analyzer, executionData.SemanticModel.SyntaxTree, cancellationToken))
             {
                 return;
             }
 
-            var diagReporter = GetAddSemanticDiagnostic(model.SyntaxTree, spanForContainingOperationBlock, analyzer, cancellationToken);
+            var diagReporter = GetAddSemanticDiagnostic(
+                executionData.SemanticModel.SyntaxTree, spanForContainingOperationBlock, executionData.Analyzer, cancellationToken);
 
             using var _ = PooledDelegates.GetPooledFunction(
-                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
-                (self: this, analyzer),
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.Analyzer, d, ct),
+                (self: this, executionData.Analyzer),
                 out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
             ExecuteOperationActions(
-                operationsToAnalyze, operationActionsByKind,
-                new AnalyzerExecutionData(analyzer, declaredSymbol, model, filterSpan, isGeneratedCode),
+                operationsToAnalyze, operationActionsByKind, executionData,
                 diagReporter, isSupportedDiagnostic, hasOperationBlockStartOrSymbolStartActions, cancellationToken);
 
             diagReporter.Free();
