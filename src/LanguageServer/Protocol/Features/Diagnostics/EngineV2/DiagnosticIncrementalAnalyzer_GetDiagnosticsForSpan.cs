@@ -68,8 +68,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly bool _incrementalAnalysis;
             private readonly DiagnosticKind _diagnosticKind;
 
-            private delegate Task<IEnumerable<DiagnosticData>> DiagnosticsGetterAsync(DiagnosticAnalyzer analyzer, DocumentAnalysisExecutor executor, CancellationToken cancellationToken);
-
             public static async Task<LatestDiagnosticsForSpanGetter> CreateAsync(
                  DiagnosticIncrementalAnalyzer owner,
                  TextDocument document,

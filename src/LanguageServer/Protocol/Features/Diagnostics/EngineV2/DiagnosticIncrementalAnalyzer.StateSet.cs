@@ -38,51 +38,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
             }
 
-            public IEnumerable<ProjectId> GetProjectsWithDiagnostics()
-            {
-                // quick bail out
-                if (_activeFileStates.IsEmpty && _projectStates.IsEmpty)
-                    return [];
-
-                if (_activeFileStates.Count == 1 && _projectStates.IsEmpty)
-                {
-                    // see whether we actually have diagnostics
-                    var (documentId, state) = _activeFileStates.First();
-                    if (state.IsEmpty)
-                        return [];
-
-                    // we do have diagnostics
-                    return [documentId.ProjectId];
-                }
-
-                return new HashSet<ProjectId>(
-                    _activeFileStates.Where(kv => !kv.Value.IsEmpty)
-                                     .Select(kv => kv.Key.ProjectId)
-                                     .Concat(_projectStates.Where(kv => !kv.Value.IsEmpty())
-                                                           .Select(kv => kv.Key)));
-            }
-
-            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
-            public void CollectDocumentsWithDiagnostics(ProjectId projectId, HashSet<DocumentId> set)
-            {
-                RoslynDebug.Assert(set != null);
-
-                // Collect active documents with diagnostics
-
-                foreach (var (documentId, state) in _activeFileStates)
-                {
-                    if (documentId.ProjectId == projectId && !state.IsEmpty)
-                    {
-                        set.Add(documentId);
-                    }
-                }
-
-                if (_projectStates.TryGetValue(projectId, out var projectState) && !projectState.IsEmpty())
-                {
-                    set.UnionWith(projectState.GetDocumentsWithDiagnostics());
-                }
-            }
-
             public bool IsActiveFile(DocumentId documentId)
                 => _activeFileStates.ContainsKey(documentId);
 
