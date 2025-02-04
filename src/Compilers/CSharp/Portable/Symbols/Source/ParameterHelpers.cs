@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (!typeWithAnnotations.IsDefault && typeWithAnnotations.IsStatic)
             {
-                bool inExtension = owner is NamedTypeSymbol { IsExtension: true };
+                bool inExtension = owner is TypeSymbol { IsExtension: true };
 
                 Debug.Assert(containingSymbol is null
                     || (containingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null })
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // stick it in the parameter because we want to be able to analyze it for
             // IntelliSense purposes.
 
-            bool inExtension = parameter.ContainingSymbol is NamedTypeSymbol { IsExtension: true };
+            bool inExtension = parameter.ContainingSymbol is TypeSymbol { IsExtension: true };
             if (inExtension)
             {
                 diagnostics.Add(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, parameterSyntax.GetLocation());

@@ -6648,7 +6648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private FlowAnalysisAnnotations GetParameterAnnotations(ParameterSymbol parameter)
         {
-            if (parameter.ContainingSymbol is NamedTypeSymbol { IsExtension: true })
+            if (parameter.ContainingSymbol is TypeSymbol { IsExtension: true })
             {
                 // PROTOTYPE revisit when doing nullability analysis
                 return FlowAnalysisAnnotations.None;

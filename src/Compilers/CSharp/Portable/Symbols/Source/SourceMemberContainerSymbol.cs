@@ -624,8 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if (IsExtension)
                             {
-                                var parameter = ((SourceNamedTypeSymbol)this).ExtensionParameter;
-                                if (parameter is not null)
+                                if (((SourceNamedTypeSymbol)this).ExtensionParameter is { } parameter)
                                 {
                                     parameter.ForceComplete(locationOpt, filter: null, cancellationToken);
                                     // PROTOTYPE once we emit the parameter, we'll need to ensure we have the supporting attributes (for example, ParameterHelpers.EnsureNullableAttributeExists)
@@ -1816,8 +1815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckExtensionMembers(this.GetMembers(), diagnostics);
 
                 var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
-                var parameter = ((SourceNamedTypeSymbol)this).ExtensionParameter;
-                if (parameter is not null)
+                if (((SourceNamedTypeSymbol)this).ExtensionParameter is { } parameter)
                 {
                     parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics);
                 }

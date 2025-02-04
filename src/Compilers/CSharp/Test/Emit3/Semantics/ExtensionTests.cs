@@ -1033,6 +1033,26 @@ public static class Extensions
     }
 
     [Fact]
+    public void Member_InstanceMethod_ShadowingTypeParameter()
+    {
+        var src = """
+public static class Extensions
+{
+    extension<T>(object o)
+    {
+        void M<T>() { }
+        void M2(int T) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,16): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Extensions.extension<T>'
+            //         void M<T>() { }
+            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Extensions.extension<T>").WithLocation(5, 16));
+    }
+
+    [Fact]
     public void Member_InstanceProperty()
     {
         var src = """
@@ -2419,6 +2439,22 @@ class C { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ReceiverParameter_ShadowingTypeParameter()
+    {
+        var src = """
+public static class Extensions<T>
+{
+    extension(object T) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(object T) { }
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5));
     }
 
     [Fact]
