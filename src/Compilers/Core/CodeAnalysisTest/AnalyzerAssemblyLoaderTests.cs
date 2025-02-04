@@ -1650,14 +1650,22 @@ Delta.2: Test D2
         [CombinatorialData]
         public void AssemblyLoadingInNonDefaultContext_AnalyzerReferencesSystemCollectionsImmutable(AnalyzerTestKind kind)
         {
-            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            // Load the compiler assembly and a modified version of S.C.I into the compiler load context. We
+            // expect the analyzer will use the bogus S.C.I in the compiler context instead of the one 
+            // in the host context.
+            var alc = new AssemblyLoadContext(nameof(AssemblyResolver_FirstOneWins), isCollectible: true);
+            _ = alc.LoadFromAssemblyPath(TestFixture.UserSystemCollectionsImmutable);
+            _ = alc.LoadFromAssemblyPath(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location);
+            var loader = kind switch
             {
-                // Load the compiler assembly and a modified version of S.C.I into the compiler load context. We
-                // expect the analyzer will use the bogus S.C.I in the compiler context instead of the one 
-                // in the host context.
-                _ = loader.CompilerLoadContext.LoadFromAssemblyPath(testFixture.UserSystemCollectionsImmutable);
-                _ = loader.CompilerLoadContext.LoadFromAssemblyPath(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location);
+                AnalyzerTestKind.LoadStream => new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver], alc),
+                AnalyzerTestKind.LoadDirect => new AnalyzerAssemblyLoader([], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], alc),
+                AnalyzerTestKind.ShadowLoad => new AnalyzerAssemblyLoader([new ShadowCopyAnalyzerPathResolver(Temp.CreateDirectory().Path)], [AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver], alc),
+                _ => throw ExceptionUtilities.UnexpectedValue(kind)
+            };
 
+            Run(loader, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
                 StringBuilder sb = new StringBuilder();
 
                 loader.AddDependencyLocation(testFixture.UserSystemCollectionsImmutable);
