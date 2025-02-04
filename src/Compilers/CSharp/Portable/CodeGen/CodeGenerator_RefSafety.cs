@@ -80,7 +80,7 @@ internal partial class CodeGenerator
 
         if (receiverType is not null)
         {
-            receiverScope ??= ScopedKind.None;
+            Debug.Assert(receiverScope != null);
             if (receiverType.IsRefLikeOrAllowsRefLikeType() && receiverScope != ScopedKind.ScopedValue)
             {
                 anyRefSources = true;
