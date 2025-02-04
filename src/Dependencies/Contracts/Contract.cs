@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if !MICROSOFT_CODEANALYSIS_CONTRACTS_NO_CONTRACT
+
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -157,3 +159,5 @@ internal static partial class Contract
         throw new InvalidOperationException($"{message} - file {fileName} line {lineNumber}");
     }
 }
+
+#endif
