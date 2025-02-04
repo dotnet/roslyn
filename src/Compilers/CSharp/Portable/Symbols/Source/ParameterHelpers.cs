@@ -106,10 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 suppressUseSiteDiagnostics: false,
                 lastIndex: syntax.Parameters.Count - 1,
                 parameterCreationFunc: parameterCreationFunc,
-                parsingFunctionPointer: false,
                 parameterIndex: 0,
-                ref firstDefault,
-                inExtension: true);
+                firstDefault: ref firstDefault,
+                ParameterContext.ExtensionReceiverParameter);
         }
 #nullable disable
 
@@ -188,6 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int firstDefault = -1;
 
             var builder = ArrayBuilder<TParameterSymbol>.GetInstance();
+            var parameterContext = parsingFunctionPointer ? ParameterContext.FunctionPointer : ParameterContext.Default;
 
             foreach (var parameterSyntax in parametersList)
             {
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 TParameterSymbol? parameter = MakeParameter(withTypeParametersBinder, owner, parameterSyntax, ref arglistToken, diagnostics,
                     allowRefOrOut, allowThis, addRefReadOnlyModifier, suppressUseSiteDiagnostics, lastIndex, parameterCreationFunc,
-                    parsingFunctionPointer, parameterIndex, ref firstDefault, inExtension: false);
+                    parameterIndex, ref firstDefault, parameterContext);
 
                 if (parameter is null) continue;
 
@@ -222,6 +222,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters;
         }
 
+        internal enum ParameterContext
+        {
+            Default,
+            FunctionPointer,
+            Lambda,
+            AnonymousMethod,
+            ExtensionReceiverParameter
+        }
+
         private static TParameterSymbol? MakeParameter<TParameterSyntax, TParameterSymbol, TOwningSymbol>(
             Binder withTypeParametersBinder,
             TOwningSymbol owner,
@@ -234,17 +243,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool suppressUseSiteDiagnostics,
             int lastIndex,
             Func<Binder, TOwningSymbol, TypeWithAnnotations, TParameterSyntax, RefKind, int, SyntaxToken, SyntaxToken, bool, ScopedKind, BindingDiagnosticBag, TParameterSymbol> parameterCreationFunc,
-            bool parsingFunctionPointer,
             int parameterIndex,
             ref int firstDefault,
-            bool inExtension)
+            ParameterContext parameterContext)
             where TParameterSyntax : BaseParameterSyntax
             where TParameterSymbol : ParameterSymbol
             where TOwningSymbol : Symbol
         {
-            CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer, parsingLambdaParams: false, parsingAnonymousMethodParams: false, extensionReceiverParameter: inExtension);
+            Debug.Assert(parameterContext is ParameterContext.Default or ParameterContext.FunctionPointer or ParameterContext.ExtensionReceiverParameter);
+            CheckParameterModifiers(parameterSyntax, diagnostics, parameterContext);
 
+            bool inExtension = parameterContext is ParameterContext.ExtensionReceiverParameter;
             var refKind = GetModifiers(parameterSyntax.Modifiers, ignoreParams: inExtension, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out ScopedKind scope);
+
             if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
             {
                 diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
@@ -296,8 +307,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(parameter is SourceComplexParameterSymbolBase || !parameter.IsParams); // Only SourceComplexParameterSymbolBase validates 'params' type.
             Debug.Assert(parameter is SourceComplexParameterSymbolBase || parameter is not SourceParameterSymbol s || s.DeclaredScope == ScopedKind.None); // Only SourceComplexParameterSymbolBase validates 'scope'.
-            ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, lastParameterIndex: lastIndex, parameter.IsParams, parameter.TypeWithAnnotations,
-                                  parameter.RefKind, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, isNamed: parameter.Name != "", diagnostics);
+            ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, lastParameterIndex: lastIndex, isParams: parameter.IsParams, typeWithAnnotations: parameter.TypeWithAnnotations,
+                                  refKind: parameter.RefKind, containingSymbol: parameter.ContainingSymbol, thisKeyword: thisKeyword, paramsKeyword: paramsKeyword, firstDefault: firstDefault, diagnostics: diagnostics);
             return parameter;
         }
 
@@ -501,13 +512,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static void CheckParameterModifiers(
             BaseParameterSyntax parameter,
             BindingDiagnosticBag diagnostics,
-            bool parsingFunctionPointerParams,
-            bool parsingLambdaParams,
-            bool parsingAnonymousMethodParams,
-            bool extensionReceiverParameter)
+            ParameterContext parameterContext)
         {
-            Debug.Assert(!parsingLambdaParams || !parsingAnonymousMethodParams);
-
             var seenThis = false;
             var seenRef = false;
             var seenOut = false;
@@ -530,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
 
                         // `this` on extension parameters was already reported elsewhere
-                        if (parsingLambdaParams || parsingAnonymousMethodParams)
+                        if (parameterContext is ParameterContext.Lambda or ParameterContext.AnonymousMethod)
                         {
                             diagnostics.Add(ErrorCode.ERR_ThisInBadContext, modifier.GetLocation());
                         }
@@ -589,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             addERR_BadParameterModifiers(diagnostics, modifier, SyntaxKind.ThisKeyword);
                         }
-                        else if (extensionReceiverParameter)
+                        else if (parameterContext is ParameterContext.ExtensionReceiverParameter)
                         {
                             addERR_BadParameterModifiers(diagnostics, modifier, SyntaxKind.ExtensionKeyword);
                         }
@@ -611,8 +617,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
 
-                    case SyntaxKind.ParamsKeyword when !parsingFunctionPointerParams:
-                        if (parsingAnonymousMethodParams || extensionReceiverParameter)
+                    case SyntaxKind.ParamsKeyword when parameterContext is not ParameterContext.FunctionPointer:
+                        if (parameterContext is ParameterContext.AnonymousMethod or ParameterContext.ExtensionReceiverParameter)
                         {
                             diagnostics.Add(ErrorCode.ERR_IllegalParams, modifier.GetLocation());
                         }
@@ -641,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             seenParams = true;
                         }
 
-                        if (parsingLambdaParams)
+                        if (parameterContext is ParameterContext.Lambda)
                         {
                             MessageID.IDS_FeatureLambdaParamsArray.CheckFeatureAvailability(diagnostics, modifier);
 
@@ -682,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
 
-                    case SyntaxKind.ScopedKeyword when !parsingFunctionPointerParams:
+                    case SyntaxKind.ScopedKeyword when parameterContext is not ParameterContext.FunctionPointer:
                         ModifierUtils.CheckScopedModifierAvailability(parameter, modifier, diagnostics);
                         Debug.Assert(!seenIn);
                         Debug.Assert(!seenOut);
@@ -708,8 +714,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
 
-                    case SyntaxKind.ParamsKeyword when parsingFunctionPointerParams:
-                    case SyntaxKind.ScopedKeyword when parsingFunctionPointerParams:
+                    case SyntaxKind.ParamsKeyword when parameterContext is ParameterContext.FunctionPointer:
+                    case SyntaxKind.ScopedKeyword when parameterContext is ParameterContext.FunctionPointer:
                         diagnostics.Add(ErrorCode.ERR_BadFuncPointerParamModifier, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()));
                         break;
 
@@ -750,7 +756,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken thisKeyword,
             SyntaxToken paramsKeyword,
             int firstDefault,
-            bool isNamed,
             BindingDiagnosticBag diagnostics)
         {
             int parameterIndex = ordinal;
@@ -772,6 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (!typeWithAnnotations.IsDefault && typeWithAnnotations.IsStatic)
             {
                 bool inExtension = owner is TypeSymbol { IsExtension: true };
+                bool isNamed = syntax is ParameterSyntax parameterSyntax && parameterSyntax.Identifier.Kind() != SyntaxKind.None;
 
                 Debug.Assert(containingSymbol is null
                     || (containingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null })
