@@ -807,14 +807,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsPartial => (this.Modifiers & DeclarationModifiers.Partial) != 0;
 
         /// <summary>
-        /// <see langword="true"/> if this symbol corresponds to a semi-colon body declaration.
-        /// <see langword="false"/> if this symbol corresponds to a declaration with custom <see langword="add"/> and <see langword="remove"/> accessors.
+        /// <see langword="false"/> if this symbol corresponds to a semi-colon body declaration.
+        /// <see langword="true"/> if this symbol corresponds to a declaration with custom <see langword="add"/> and <see langword="remove"/> accessors.
         /// </summary>
-        protected abstract bool IsFieldLike { get; }
+        protected abstract bool AccessorsHaveImplementation { get; }
 
-        internal bool IsPartialDefinition => IsPartial && IsFieldLike && !HasExternModifier;
+        internal bool IsPartialDefinition => IsPartial && !AccessorsHaveImplementation && !HasExternModifier;
 
-        internal bool IsPartialImplementation => IsPartial && (!IsFieldLike || HasExternModifier);
+        internal bool IsPartialImplementation => IsPartial && (AccessorsHaveImplementation || HasExternModifier);
 
         internal SourceEventSymbol? OtherPartOfPartial => _otherPartOfPartial;
 

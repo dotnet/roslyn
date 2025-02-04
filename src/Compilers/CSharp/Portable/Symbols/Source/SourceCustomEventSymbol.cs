@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create<EventSymbol>(explicitlyImplementedEvent);
         }
 
-        protected override bool IsFieldLike => false;
+        protected override bool AccessorsHaveImplementation => true;
 
         public override TypeWithAnnotations TypeWithAnnotations
         {

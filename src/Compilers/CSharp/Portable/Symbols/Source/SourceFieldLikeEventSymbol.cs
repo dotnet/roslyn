@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             declaratorDiagnostics.Free();
         }
 
-        protected override bool IsFieldLike => true;
+        protected override bool AccessorsHaveImplementation => false;
 
         /// <summary>
         /// Backing field for field-like event. Will be null if the event
