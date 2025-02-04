@@ -899,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Bind collection creation with arguments.
                 foreach (var element in elements)
                 {
-                    if (element is BoundWithElement withElement)
+                    if (element is BoundCollectionExpressionWithElement withElement)
                     {
                         var analyzedArguments = AnalyzedArguments.GetInstance();
                         withElement.GetArguments(analyzedArguments);
@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundNode convertedElement;
                     switch (element)
                     {
-                        case BoundWithElement:
+                        case BoundCollectionExpressionWithElement:
                             // Handled above.
                             continue;
                         case BoundCollectionExpressionSpreadElement spreadElement:
@@ -1004,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundNode convertedElement;
                     switch (element)
                     {
-                        case BoundWithElement withElement:
+                        case BoundCollectionExpressionWithElement withElement:
                             if (withElement.Arguments.Length > 0)
                             {
                                 diagnostics.Add(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, ((WithElementSyntax)withElement.Syntax).WithKeyword, targetType);
@@ -1824,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         keyValuePairElement.Update(
                             BindToNaturalType(keyValuePairElement.Key, diagnostics, reportNoTargetType),
                             BindToNaturalType(keyValuePairElement.Value, diagnostics, reportNoTargetType)),
-                    BoundWithElement withElement => bindToNaturalType(withElement, diagnostics, reportNoTargetType),
+                    BoundCollectionExpressionWithElement withElement => bindToNaturalType(withElement, diagnostics, reportNoTargetType),
                     _ => BindToNaturalType((BoundExpression)element, diagnostics, reportNoTargetType)
                 };
                 builder.Add(result);
@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: true)
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
 
-            BoundWithElement bindToNaturalType(BoundWithElement withElement, BindingDiagnosticBag diagnostics, bool reportNoTargetType)
+            BoundCollectionExpressionWithElement bindToNaturalType(BoundCollectionExpressionWithElement withElement, BindingDiagnosticBag diagnostics, bool reportNoTargetType)
             {
                 var arguments = withElement.Arguments;
                 var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
@@ -1914,7 +1914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (element)
                     {
-                        case BoundWithElement:
+                        case BoundCollectionExpressionWithElement:
                             // Collection arguments do not affect convertibility.
                             break;
                         case BoundCollectionExpressionSpreadElement spreadElement:

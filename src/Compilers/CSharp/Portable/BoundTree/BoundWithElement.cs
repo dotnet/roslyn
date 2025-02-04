@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundWithElement
+    internal partial class BoundCollectionExpressionWithElement
     {
         internal void GetArguments(AnalyzedArguments analyzedArguments)
         {

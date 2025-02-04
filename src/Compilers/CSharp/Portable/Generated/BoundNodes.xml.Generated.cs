@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CollectionExpressionSpreadExpressionPlaceholder,
         CollectionExpressionSpreadElement,
         KeyValuePairElement,
-        WithElement,
+        CollectionExpressionWithElement,
         TupleLiteral,
         ConvertedTupleLiteral,
         DynamicObjectCreationExpression,
@@ -6575,10 +6575,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundWithElement : BoundNode
+    internal sealed partial class BoundCollectionExpressionWithElement : BoundNode
     {
-        public BoundWithElement(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<(string Name, Location Location)?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, Binder binder, bool hasErrors = false)
-            : base(BoundKind.WithElement, syntax, hasErrors || arguments.HasErrors())
+        public BoundCollectionExpressionWithElement(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<(string Name, Location Location)?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, Binder binder, bool hasErrors = false)
+            : base(BoundKind.CollectionExpressionWithElement, syntax, hasErrors || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -6596,13 +6596,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Binder Binder { get; }
 
         [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitWithElement(this);
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionExpressionWithElement(this);
 
-        public BoundWithElement Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<(string Name, Location Location)?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, Binder binder)
+        public BoundCollectionExpressionWithElement Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<(string Name, Location Location)?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, Binder binder)
         {
             if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || binder != this.Binder)
             {
-                var result = new BoundWithElement(this.Syntax, arguments, argumentNamesOpt, argumentRefKindsOpt, binder, this.HasErrors);
+                var result = new BoundCollectionExpressionWithElement(this.Syntax, arguments, argumentNamesOpt, argumentRefKindsOpt, binder, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9278,8 +9278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCollectionExpressionSpreadElement((BoundCollectionExpressionSpreadElement)node, arg);
                 case BoundKind.KeyValuePairElement:
                     return VisitKeyValuePairElement((BoundKeyValuePairElement)node, arg);
-                case BoundKind.WithElement:
-                    return VisitWithElement((BoundWithElement)node, arg);
+                case BoundKind.CollectionExpressionWithElement:
+                    return VisitCollectionExpressionWithElement((BoundCollectionExpressionWithElement)node, arg);
                 case BoundKind.TupleLiteral:
                     return VisitTupleLiteral((BoundTupleLiteral)node, arg);
                 case BoundKind.ConvertedTupleLiteral:
@@ -9582,7 +9582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitKeyValuePairElement(BoundKeyValuePairElement node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitWithElement(BoundWithElement node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitCollectionExpressionWithElement(BoundCollectionExpressionWithElement node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitTupleLiteral(BoundTupleLiteral node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node, A arg) => this.DefaultVisit(node, arg);
@@ -9820,7 +9820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitKeyValuePairElement(BoundKeyValuePairElement node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitWithElement(BoundWithElement node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitCollectionExpressionWithElement(BoundCollectionExpressionWithElement node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitTupleLiteral(BoundTupleLiteral node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node) => this.DefaultVisit(node);
@@ -10619,7 +10619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Value);
             return null;
         }
-        public override BoundNode? VisitWithElement(BoundWithElement node)
+        public override BoundNode? VisitCollectionExpressionWithElement(BoundCollectionExpressionWithElement node)
         {
             this.VisitList(node.Arguments);
             return null;
@@ -11930,7 +11930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
             return node.Update(key, value);
         }
-        public override BoundNode? VisitWithElement(BoundWithElement node)
+        public override BoundNode? VisitCollectionExpressionWithElement(BoundCollectionExpressionWithElement node)
         {
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             return node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Binder);
@@ -16642,7 +16642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
-        public override TreeDumperNode VisitWithElement(BoundWithElement node, object? arg) => new TreeDumperNode("withElement", null, new TreeDumperNode[]
+        public override TreeDumperNode VisitCollectionExpressionWithElement(BoundCollectionExpressionWithElement node, object? arg) => new TreeDumperNode("collectionExpressionWithElement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),

@@ -5315,13 +5315,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: false);
         }
 
-        private BoundNode BindCollectionArguments(WithElementSyntax syntax, BindingDiagnosticBag diagnostics)
+        private BoundCollectionExpressionWithElement BindCollectionArguments(WithElementSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureCollectionExpressionArguments.CheckFeatureAvailability(diagnostics, syntax.WithKeyword);
 
             var arguments = AnalyzedArguments.GetInstance();
             BindArgumentsAndNames(syntax.ArgumentList, diagnostics, arguments, allowArglist: true);
-            var result = new BoundWithElement(
+            var result = new BoundCollectionExpressionWithElement(
                 syntax,
                 arguments.Arguments.ToImmutable(),
                 arguments.Names.ToImmutableOrNull(),

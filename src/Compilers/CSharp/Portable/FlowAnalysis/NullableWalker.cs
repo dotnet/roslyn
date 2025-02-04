@@ -3758,7 +3758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (element)
                 {
-                    case BoundWithElement withElement:
+                    case BoundCollectionExpressionWithElement withElement:
                         // We only get here if the conversion of the collection expression to the
                         // target type failed. In this case, simply visit each argument.
                         VisitArgumentsEvaluate(withElement.Arguments, withElement.ArgumentRefKindsOpt, parameterAnnotationsOpt: default, defaultArguments: default);

@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (element)
                 {
-                    case BoundWithElement:
+                    case BoundCollectionExpressionWithElement:
                         // Collection arguments do not affect convertibility.
                         continue;
                     case BoundCollectionExpressionSpreadElement spreadElement:
