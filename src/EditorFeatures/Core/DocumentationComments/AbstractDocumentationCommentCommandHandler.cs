@@ -422,16 +422,13 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         if (args.SubjectBuffer.IsInLspEditorContext())
             return;
 
-        if (ThreadingContext is not null)
-        {
-            ThreadingContext.JoinableTaskFactory.Run(async () =>
+        ThreadingContext?.JoinableTaskFactory.Run(async () =>
             {
                 if (_suggestionServiceBase is not null)
                 {
                     _suggestionManagerBase = await _suggestionServiceBase.TryRegisterProviderAsync(this, args.TextView, "AmbientAIDocumentationComments", context.OperationContext.UserCancellationToken).ConfigureAwait(false);
                 }
             });
-        }
 
         CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCharacterTyped, CancellationToken.None);
     }
