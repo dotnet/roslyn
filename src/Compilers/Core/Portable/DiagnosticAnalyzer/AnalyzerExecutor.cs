@@ -677,8 +677,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(!IsAnalyzerSuppressedForTree(syntaxNodeAction.Analyzer, node.SyntaxTree, cancellationToken));
 
             var syntaxNodeContext = new SyntaxNodeAnalysisContext(
-                node, executionData.DeclaredSymbol, executionData.SemanticModel, AnalyzerOptions, addDiagnostic,
-                isSupportedDiagnostic, executionData.FilterSpan, executionData.IsGeneratedCode, cancellationToken);
+                node, executionData, AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, cancellationToken);
 
             ExecuteAndCatchIfThrows(
                 syntaxNodeAction.Analyzer,
@@ -700,9 +699,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(!IsAnalyzerSuppressedForTree(operationAction.Analyzer, executionData.SemanticModel.SyntaxTree, cancellationToken));
 
             var operationContext = new OperationAnalysisContext(
-                operation, executionData.DeclaredSymbol, executionData.SemanticModel.Compilation,
-                AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph,
-                executionData.FilterSpan, executionData.IsGeneratedCode, cancellationToken);
+                operation, executionData, AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, cancellationToken);
 
             ExecuteAndCatchIfThrows(
                 operationAction.Analyzer,

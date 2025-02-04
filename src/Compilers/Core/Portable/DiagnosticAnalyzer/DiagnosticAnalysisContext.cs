@@ -1658,8 +1658,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public readonly struct SyntaxNodeAnalysisContext
     {
         private readonly SyntaxNode _node;
-        private readonly ISymbol? _containingSymbol;
-        private readonly SemanticModel _semanticModel;
+        private readonly AnalyzerExecutionData _executionData;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, CancellationToken, bool> _isSupportedDiagnostic;
@@ -1673,17 +1672,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="ISymbol"/> for the declaration containing the syntax node.
         /// </summary>
-        public ISymbol? ContainingSymbol => _containingSymbol;
+        public ISymbol? ContainingSymbol => _executionData.DeclaredSymbol;
 
         /// <summary>
         /// <see cref="CodeAnalysis.SemanticModel"/> that can provide semantic information about the <see cref="SyntaxNode"/>.
         /// </summary>
-        public SemanticModel SemanticModel => _semanticModel;
+        public SemanticModel SemanticModel => _executionData.SemanticModel;
 
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="SyntaxNode"/>.
         /// </summary>
-        public Compilation Compilation => _semanticModel?.Compilation ?? throw new InvalidOperationException();
+        public Compilation Compilation => this.SemanticModel?.Compilation ?? throw new InvalidOperationException();
 
         /// <summary>
         /// Options specified for the analysis.
@@ -1700,12 +1699,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
         /// or the entire compilation.
         /// </summary>
-        public TextSpan? FilterSpan { get; }
+        public TextSpan? FilterSpan => _executionData.FilterSpan;
 
         /// <summary>
         /// Indicates if the <see cref="Node"/> is generated code.
         /// </summary>
-        public bool IsGeneratedCode { get; }
+        public bool IsGeneratedCode => _executionData.IsGeneratedCode;
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
@@ -1726,24 +1725,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal SyntaxNodeAnalysisContext(
             SyntaxNode node,
-            ISymbol? containingSymbol,
-            SemanticModel semanticModel,
+            AnalyzerExecutionData executionData,
             AnalyzerOptions options,
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
-            TextSpan? filterSpan,
-            bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
             _node = node;
-            _containingSymbol = containingSymbol;
-            _semanticModel = semanticModel;
+            _executionData = executionData;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             FilterTree = node.SyntaxTree;
-            FilterSpan = filterSpan;
-            IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
 
@@ -1753,7 +1746,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _semanticModel.Compilation, _isSupportedDiagnostic, _cancellationToken);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, this.Compilation, _isSupportedDiagnostic, _cancellationToken);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
@@ -1768,8 +1761,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public readonly struct OperationAnalysisContext
     {
         private readonly IOperation _operation;
-        private readonly ISymbol _containingSymbol;
-        private readonly Compilation _compilation;
+        private readonly AnalyzerExecutionData _executionData;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, CancellationToken, bool> _isSupportedDiagnostic;
@@ -1784,12 +1776,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="ISymbol"/> for the declaration containing the operation.
         /// </summary>
-        public ISymbol ContainingSymbol => _containingSymbol;
+        public ISymbol ContainingSymbol => _executionData.DeclaredSymbol;
 
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="IOperation"/>.
         /// </summary>
-        public Compilation Compilation => _compilation;
+        public Compilation Compilation => _executionData.SemanticModel.Compilation;
 
         /// <summary>
         /// Options specified for the analysis.
@@ -1806,12 +1798,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <see langword="null"/> if we are analyzing the entire <see cref="FilterTree"/>
         /// or the entire compilation.
         /// </summary>
-        public TextSpan? FilterSpan { get; }
+        public TextSpan? FilterSpan => _executionData.FilterSpan;
 
         /// <summary>
         /// Indicates if the <see cref="Operation"/> is generated code.
         /// </summary>
-        public bool IsGeneratedCode { get; }
+        public bool IsGeneratedCode => _executionData.IsGeneratedCode;
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
@@ -1833,26 +1825,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal OperationAnalysisContext(
             IOperation operation,
-            ISymbol containingSymbol,
-            Compilation compilation,
+            AnalyzerExecutionData executionData,
             AnalyzerOptions options,
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
             Func<IOperation, ControlFlowGraph>? getControlFlowGraph,
-            TextSpan? filterSpan,
-            bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
             _operation = operation;
-            _containingSymbol = containingSymbol;
-            _compilation = compilation;
+            _executionData = executionData;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _getControlFlowGraph = getControlFlowGraph;
             FilterTree = operation.Syntax.SyntaxTree;
-            FilterSpan = filterSpan;
-            IsGeneratedCode = isGeneratedCode;
             _cancellationToken = cancellationToken;
         }
 
@@ -1862,7 +1848,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _compilation, _isSupportedDiagnostic, _cancellationToken);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, this.Compilation, _isSupportedDiagnostic, _cancellationToken);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
