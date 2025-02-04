@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="assemblyName">The name of the assembly to be loaded</param>
         /// <param name="directory">The directory where the assembly is being loaded from</param>
         /// <returns></returns>
-        Assembly? Resolve(AnalyzerAssemblyLoader loader,  AssemblyName assemblyName, AssemblyLoadContext directoryContext, string directory);
+        Assembly? Resolve(AnalyzerAssemblyLoader loader, AssemblyName assemblyName, AssemblyLoadContext directoryContext, string directory);
     }
 
     internal sealed partial class AnalyzerAssemblyLoader
