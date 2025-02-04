@@ -5237,9 +5237,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
-                if (element is WithElementSyntax collectionArgumentsSyntax && builder.Any())
+                if (element is WithElementSyntax withElementSyntax && builder.Any())
                 {
-                    diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, collectionArgumentsSyntax.WithKeyword);
+                    diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
                 }
                 builder.Add(bindElement(element, diagnostics, this, nestingLevel));
             }
@@ -5253,7 +5253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ExpressionElementSyntax expressionElementSyntax => @this.BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
                     KeyValuePairElementSyntax kvpElementSyntax => @this.BindKeyValuePair(kvpElementSyntax, diagnostics),
                     SpreadElementSyntax spreadElementSyntax => @this.BindSpreadElement(spreadElementSyntax, diagnostics),
-                    WithElementSyntax collectionArgumentsSyntax => @this.BindCollectionArguments(collectionArgumentsSyntax, diagnostics),
+                    WithElementSyntax withElementSyntax => @this.BindCollectionArguments(withElementSyntax, diagnostics),
                     _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
                 };
             }
