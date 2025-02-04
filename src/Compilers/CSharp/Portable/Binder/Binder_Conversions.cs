@@ -903,6 +903,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var analyzedArguments = AnalyzedArguments.GetInstance();
                         withElement.GetArguments(analyzedArguments);
+                        // PROTOTYPE: If there are multiple with() elements, should with() elements after
+                        // the first be bound for error recovery only rather than as a constructor call?
                         var collectionWithArguments = BindCollectionExpressionConstructor(syntax, targetType, constructor, analyzedArguments, diagnostics);
                         analyzedArguments.Free();
                         collectionCreation ??= collectionWithArguments;
