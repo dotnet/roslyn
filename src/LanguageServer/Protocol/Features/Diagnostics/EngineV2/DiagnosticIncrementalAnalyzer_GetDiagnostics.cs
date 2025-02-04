@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToImmutableAndClear();
             }
 
-            protected void InvokeCallback(ArrayBuilder<DiagnosticData> builder, ImmutableArray<DiagnosticData> diagnostics)
+            protected void AddIncludedDiagnostics(ArrayBuilder<DiagnosticData> builder, ImmutableArray<DiagnosticData> diagnostics)
             {
                 foreach (var diagnostic in diagnostics)
                 {
@@ -104,18 +104,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         if (IncludeLocalDocumentDiagnostics)
                         {
-                            InvokeCallback(builder, await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false));
-                            InvokeCallback(builder, await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false));
+                            AddIncludedDiagnostics(builder, await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false));
+                            AddIncludedDiagnostics(builder, await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.Semantic, cancellationToken).ConfigureAwait(false));
                         }
 
                         if (IncludeNonLocalDocumentDiagnostics)
-                            InvokeCallback(builder, await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.NonLocal, cancellationToken).ConfigureAwait(false));
+                            AddIncludedDiagnostics(builder, await GetDiagnosticsAsync(stateSet, project, documentId, AnalysisKind.NonLocal, cancellationToken).ConfigureAwait(false));
                     }
 
                     if (includeProjectNonLocalResult)
                     {
                         // include project diagnostics if there is no target document
-                        InvokeCallback(builder, await GetProjectStateDiagnosticsAsync(stateSet, project, documentId: null, AnalysisKind.NonLocal, cancellationToken).ConfigureAwait(false));
+                        AddIncludedDiagnostics(builder, await GetProjectStateDiagnosticsAsync(stateSet, project, documentId: null, AnalysisKind.NonLocal, cancellationToken).ConfigureAwait(false));
                     }
                 }
             }
@@ -237,18 +237,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         if (IncludeLocalDocumentDiagnostics)
                         {
-                            InvokeCallback(builder, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Syntax));
-                            InvokeCallback(builder, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Semantic));
+                            AddIncludedDiagnostics(builder, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Syntax));
+                            AddIncludedDiagnostics(builder, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Semantic));
                         }
 
                         if (IncludeNonLocalDocumentDiagnostics)
-                            InvokeCallback(builder, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal));
+                            AddIncludedDiagnostics(builder, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal));
                     }
 
                     if (includeProjectNonLocalResult)
                     {
                         // include project diagnostics if there is no target document
-                        InvokeCallback(builder, analysisResult.GetOtherDiagnostics());
+                        AddIncludedDiagnostics(builder, analysisResult.GetOtherDiagnostics());
                     }
                 }
             }
