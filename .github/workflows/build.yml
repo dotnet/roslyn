@@ -78,4 +78,4 @@ jobs:
     - name: 🔗 Markup Link Checker (mlc)
       uses: becheran/mlc@v0.19.1
       with:
-        args: --do-not-warn-for-redirect-to https://learn.microsoft.com*,https://dev.azure.com/*,https://app.codecov.io/* -p docfx
+        args: --do-not-warn-for-redirect-to https://learn.microsoft.com*,https://dotnet.microsoft.com/*,https://dev.azure.com/*,https://app.codecov.io/* -p docfx
