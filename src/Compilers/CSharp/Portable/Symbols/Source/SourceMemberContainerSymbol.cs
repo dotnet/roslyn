@@ -622,13 +622,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishMemberChecks:
                         if (state.NotePartComplete(CompletionPart.StartMemberChecks))
                         {
-                            if (IsExtension)
+                            if (IsExtension && ((SourceNamedTypeSymbol)this).ExtensionParameter is { } parameter)
                             {
-                                if (((SourceNamedTypeSymbol)this).ExtensionParameter is { } parameter)
-                                {
-                                    parameter.ForceComplete(locationOpt, filter: null, cancellationToken);
-                                    // PROTOTYPE once we emit the parameter, we'll need to ensure we have the supporting attributes (for example, ParameterHelpers.EnsureNullableAttributeExists)
-                                }
+                                parameter.ForceComplete(locationOpt, filter: null, cancellationToken);
+                                // PROTOTYPE once we emit the parameter, we'll need to ensure we have the supporting attributes (for example, ParameterHelpers.EnsureNullableAttributeExists)
                             }
 
                             var diagnostics = BindingDiagnosticBag.GetInstance();

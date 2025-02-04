@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
                 {
                     var extensionIdentifier = underlyingTypeSymbol!.ExtensionName;
-                    Builder.Add(CreatePart(SymbolDisplayPartKind.ModuleName, symbol, extensionIdentifier));
+                    Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, extensionIdentifier)); // PROTOTYPE revisit when displaying extensions in the IDE
                 }
                 else
                 {

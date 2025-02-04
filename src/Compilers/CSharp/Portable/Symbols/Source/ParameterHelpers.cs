@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier,
                 suppressUseSiteDiagnostics: false,
                 lastIndex: syntax.Parameters.Count - 1,
-                parameterCreationFunc: (Binder context, Symbol owner, TypeWithAnnotations parameterType,
+                parameterCreationFunc: static (Binder context, Symbol owner, TypeWithAnnotations parameterType,
                                         ParameterSyntax syntax, RefKind refKind, int ordinal,
                                         SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
                                         ScopedKind scope,
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterListSyntax syntax,
             BindingDiagnosticBag diagnostics)
         {
-            var parameterCreationFunc = (Binder context, Symbol owner, TypeWithAnnotations parameterType,
+            var parameterCreationFunc = static (Binder context, Symbol owner, TypeWithAnnotations parameterType,
                                         ParameterSyntax syntax, RefKind refKind, int ordinal,
                                         SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
                                         ScopedKind scope,
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier: true,
                 suppressUseSiteDiagnostics,
                 parametersList.Count - 2,
-                parameterCreationFunc: (Binder binder, FunctionPointerMethodSymbol owner, TypeWithAnnotations parameterType,
+                parameterCreationFunc: static (Binder binder, FunctionPointerMethodSymbol owner, TypeWithAnnotations parameterType,
                                         FunctionPointerParameterSyntax syntax, RefKind refKind, int ordinal,
                                         SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
                                         ScopedKind scope,

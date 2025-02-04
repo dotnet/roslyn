@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 [CompilerTrait(CompilerFeature.Extensions)]
-public class ExtensionsTests : CompilingTestBase
+public class ExtensionTests : CompilingTestBase
 {
     private static void VerifyTypeIL(CompilationVerifier compilation, string typeName, string expected)
     {
