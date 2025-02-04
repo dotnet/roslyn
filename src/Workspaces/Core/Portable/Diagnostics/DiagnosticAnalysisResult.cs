@@ -224,9 +224,6 @@ internal readonly struct DiagnosticAnalysisResult
     public DiagnosticAnalysisResult UpdateAggregatedResult(VersionStamp version, DocumentId documentId)
         => new(ProjectId, version, DocumentIdsOrEmpty.Add(documentId), isEmpty: false);
 
-    public DiagnosticAnalysisResult Reset()
-        => new(ProjectId, VersionStamp.Default, DocumentIds, IsEmpty);
-
     public DiagnosticAnalysisResult DropExceptSyntax()
     {
         // quick bail out
