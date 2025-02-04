@@ -59,18 +59,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // return diagnostics specific to one project or document
                 var includeProjectNonLocalResult = DocumentId == null;
                 return await ProduceProjectDiagnosticsAsync(
-                    project, project => _getDocuments(project, DocumentId), includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
+                    project, _getDocuments(project, DocumentId), includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
             }
 
             protected async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
-                Project project, Func<Project, IReadOnlyList<DocumentId>> getDocumentIds,
+                Project project, IReadOnlyList<DocumentId> documentIds,
                 bool includeProjectNonLocalResult, CancellationToken cancellationToken)
             {
                 // PERF: run projects in parallel rather than running CompilationWithAnalyzer with concurrency == true.
                 // We do this to not get into thread starvation causing hundreds of threads to be spawned.
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
                 await this.ProduceDiagnosticsAsync(
-                    project, getDocumentIds(project), includeProjectNonLocalResult, builder, cancellationToken).ConfigureAwait(false);
+                    project, documentIds, includeProjectNonLocalResult, builder, cancellationToken).ConfigureAwait(false);
                 return builder.ToImmutableAndClear();
             }
 
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return [];
 
                 return await ProduceProjectDiagnosticsAsync(
-                    project, static _ => [], includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
+                    project, documentIds: [], includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
             }
 
             protected override bool ShouldIncludeDiagnostic(DiagnosticData diagnostic)
