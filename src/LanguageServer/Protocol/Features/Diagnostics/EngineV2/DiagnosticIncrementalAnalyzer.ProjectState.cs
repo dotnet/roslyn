@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private async Task<DiagnosticAnalysisResult> LoadInitialProjectAnalysisDataAsync(Project project, CancellationToken cancellationToken)
             {
                 // loading data can be canceled any time.
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+                var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
                 var serializerVersion = version;
                 var builder = new Builder(project, version);
 
@@ -438,23 +438,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 => !result.DocumentIdsOrEmpty.Contains(documentId);
 
             // we have this builder to avoid allocating collections unnecessarily.
-            private sealed class Builder
+            private sealed class Builder(Project project, Checksum checksum, ImmutableHashSet<DocumentId>? documentIds = null)
             {
-                private readonly Project _project;
-                private readonly VersionStamp _version;
-                private readonly ImmutableHashSet<DocumentId>? _documentIds;
+                private readonly Project _project = project;
+                private readonly Checksum _checksum = checksum;
+                private readonly ImmutableHashSet<DocumentId>? _documentIds = documentIds;
 
                 private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _syntaxLocals;
                 private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _semanticLocals;
                 private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _nonLocals;
                 private ImmutableArray<DiagnosticData> _others;
-
-                public Builder(Project project, VersionStamp version, ImmutableHashSet<DocumentId>? documentIds = null)
-                {
-                    _project = project;
-                    _version = version;
-                    _documentIds = documentIds;
-                }
 
                 public void AddSyntaxLocals(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
                     => Add(ref _syntaxLocals, documentId, diagnostics);
@@ -481,7 +474,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 public DiagnosticAnalysisResult ToResult()
                 {
-                    return DiagnosticAnalysisResult.Create(_project, _version,
+                    return DiagnosticAnalysisResult.Create(
+                        _project,
+                        _checksum,
                         _syntaxLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _semanticLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _nonLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,

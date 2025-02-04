@@ -216,21 +216,21 @@ internal readonly struct DiagnosticAnalysisResult
     public DiagnosticAnalysisResult ToAggregatedForm()
         => new(ProjectId, Checksum, DocumentIds, IsEmpty);
 
-    public DiagnosticAnalysisResult UpdateAggregatedResult(VersionStamp version, DocumentId documentId)
-        => new(ProjectId, version, DocumentIdsOrEmpty.Add(documentId), isEmpty: false);
+    public DiagnosticAnalysisResult UpdateAggregatedResult(Checksum checksum, DocumentId documentId)
+        => new(ProjectId, checksum, DocumentIdsOrEmpty.Add(documentId), isEmpty: false);
 
     public DiagnosticAnalysisResult DropExceptSyntax()
     {
         // quick bail out
         if (_syntaxLocals == null || _syntaxLocals.Count == 0)
         {
-            return CreateEmpty(ProjectId, Version);
+            return CreateEmpty(ProjectId, Checksum);
         }
 
         // keep only syntax errors
         return new DiagnosticAnalysisResult(
            ProjectId,
-           Version,
+           Checksum,
            _syntaxLocals,
            semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
