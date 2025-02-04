@@ -269,13 +269,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (analyzer is DocumentDiagnosticAnalyzer)
                         return true;
 
-                    // Special case GeneratorDiagnosticsPlaceholderAnalyzer to never skip it based on
-                    // 'shouldIncludeDiagnostic' predicate. More specifically, this is a placeholder analyzer
-                    // for threading through all source generator reported diagnostics, but this special analyzer
-                    // reports 0 supported diagnostics, and we always want to execute it.
-                    if (analyzer is GeneratorDiagnosticsPlaceholderAnalyzer)
-                        return true;
-
                     // Skip analyzer if none of its reported diagnostics should be included.
                     if (shouldIncludeDiagnostic != null &&
                         !owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer).Any(static (a, shouldIncludeDiagnostic) => shouldIncludeDiagnostic(a.Id), shouldIncludeDiagnostic))

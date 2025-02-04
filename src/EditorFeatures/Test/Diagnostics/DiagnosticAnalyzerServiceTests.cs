@@ -69,7 +69,7 @@ public class DiagnosticAnalyzerServiceTests
 
         var diagnostics = await analyzer.GetDiagnosticsForIdsAsync(
             workspace.CurrentSolution, projectId: null, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null, getDocuments: null,
-            includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
+            includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
         Assert.NotEmpty(diagnostics);
     }
 
@@ -273,7 +273,6 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         AssertEx.Equal(
         [
             typeof(FileContentLoadAnalyzer),
-            typeof(GeneratorDiagnosticsPlaceholderAnalyzer),
             typeof(CSharpCompilerDiagnosticAnalyzer),
             typeof(Analyzer),
             typeof(Priority0Analyzer),
@@ -847,9 +846,8 @@ class A
         Assert.Equal(CancellationTestAnalyzer.DiagnosticId, diagnostic.Id);
     }
 
-    [Theory, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1909806")]
-    [CombinatorialData]
-    internal async Task TestGeneratorProducedDiagnostics(bool fullSolutionAnalysis, bool analyzeProject, TestHost testHost)
+    [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1909806")]
+    internal async Task TestGeneratorDoesNotProduceDiagnostics(bool fullSolutionAnalysis, bool analyzeProject, TestHost testHost)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp("// This file will get a diagnostic", composition: s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.WithTestHostParts(testHost));
 
@@ -875,7 +873,7 @@ class A
         var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
         var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
-        Assert.NotEmpty(diagnostics);
+        Assert.Empty(diagnostics);
     }
 
     private static Document GetDocumentFromIncompleteProject(AdhocWorkspace workspace)

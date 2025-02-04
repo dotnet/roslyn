@@ -108,7 +108,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             // PERF: Don't query descriptors for compiler analyzer or workspace load analyzer, always execute them.
             if (analyzer == FileContentLoadAnalyzer.Instance ||
-                analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance ||
                 analyzer.IsCompilerAnalyzer())
             {
                 return true;
