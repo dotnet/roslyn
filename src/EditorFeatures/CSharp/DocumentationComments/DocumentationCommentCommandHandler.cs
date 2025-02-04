@@ -30,7 +30,7 @@ internal sealed class DocumentationCommentCommandHandler(
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,
     EditorOptionsService editorOptionsService,
-    SuggestionServiceBase suggestionServiceBase,
+    [Import(AllowDefault = true)] SuggestionServiceBase suggestionServiceBase,
     IThreadingContext threadingContext,
     IAsynchronousOperationListenerProvider listenerProvider)
             : AbstractDocumentationCommentCommandHandler(uiThreadOperationExecutor, undoHistoryRegistry,
