@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _lastResult = DiagnosticAnalysisResult.CreateInitialResult(projectId);
             }
 
-            public bool FromBuild => _lastResult.FromBuild;
-
             public ImmutableHashSet<DocumentId> GetDocumentsWithDiagnostics()
                 => _lastResult.DocumentIdsOrEmpty;
 
