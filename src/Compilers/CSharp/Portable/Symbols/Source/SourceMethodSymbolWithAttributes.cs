@@ -1497,7 +1497,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                // PROTOTYPE: This should be reported for partial constructors after attributes are merged.
                 if (IsExtern
                     && !IsAbstract
                     && !this.IsPartialMember()

@@ -348,22 +348,22 @@ namespace N1
             // Verify symbol declared events fired for all symbols declared in the first source file.
             Assert.True(compilationStartedFired);
 
-            // NB: NonPartialEvent2 is missing here because we only asked for diagnostics in tree1
+            // NB: NonPartialEvent2 is missing here because we only asked for diagnostics in tree1.
+            // PartialEvent2 is missing because it is the implementation part and that is removed (only the definition part is kept).
             AssertEx.Equal([
                 "",
                 "add_ImplOnlyPartialEvent",
                 "add_NonPartialEvent1",
-                "add_PartialEvent2",
+                "add_PartialEvent1",
                 "Class",
                 "DefOnlyPartialEvent",
                 "ImplOnlyPartialEvent",
                 "N1",
                 "NonPartialEvent1",
                 "PartialEvent1",
-                "PartialEvent2",
                 "remove_ImplOnlyPartialEvent",
                 "remove_NonPartialEvent1",
-                "remove_PartialEvent2",
+                "remove_PartialEvent1",
             ], declaredSymbolNames.OrderBy(name => name));
 
             AssertEx.Equal(["file1"], completedCompilationUnits.OrderBy(name => name));

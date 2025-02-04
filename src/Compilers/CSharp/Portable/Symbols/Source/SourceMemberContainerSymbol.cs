@@ -3714,13 +3714,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 break;
 
                             case (SourcePropertyAccessorSymbol, SourcePropertyAccessorSymbol):
-                                break; // accessor symbols and their diagnostics are handled by processing the associated property
+                            case (SourceEventAccessorSymbol, SourceEventAccessorSymbol):
+                                break; // accessor symbols and their diagnostics are handled by processing the associated member
 
                             default:
                                 // This is an error scenario. We simply don't merge the symbols in this case and a duplicate name diagnostic is reported separately.
-                                // One way this case can be reached is if type contains both `public partial int P { get; }` and `public partial int P_get();`.
-                                Debug.Assert(symbol is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol);
-                                Debug.Assert(prev is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol);
+                                // One way this case can be reached is if type contains both `public partial int P { get; }` and `public partial int get_P();`.
+                                Debug.Assert(symbol is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol or SourceEventAccessorSymbol);
+                                Debug.Assert(prev is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol or SourceEventAccessorSymbol);
                                 break;
                         }
                     }
@@ -3778,8 +3779,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             break;
 
+                        case SourceEventAccessorSymbol:
                         case SourcePropertyAccessorSymbol:
-                            break; // diagnostics for missing partial accessors are handled in 'mergePartialProperties'.
+                            break; // diagnostics for missing partial accessors are handled in 'mergePartialProperties'/'mergePartialEvents'.
 
                         default:
                             throw ExceptionUtilities.UnexpectedValue(symbol);
@@ -3916,7 +3918,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
+                    mergeAccessors(nonTypeMembers, (SourceEventAccessorSymbol?)currentEvent.AddMethod, (SourceEventAccessorSymbol?)prevEvent.AddMethod);
+                    mergeAccessors(nonTypeMembers, (SourceEventAccessorSymbol?)currentEvent.RemoveMethod, (SourceEventAccessorSymbol?)prevEvent.RemoveMethod);
                     FixPartialEvent(nonTypeMembers, prevEvent, currentEvent);
+                }
+
+                static void mergeAccessors(ArrayBuilder<Symbol> nonTypeMembers, SourceEventAccessorSymbol? currentAccessor, SourceEventAccessorSymbol? prevAccessor)
+                {
+                    if (currentAccessor?.IsPartialImplementation == true)
+                    {
+                        Remove(nonTypeMembers, currentAccessor);
+                    }
+                    else if (prevAccessor?.IsPartialImplementation == true)
+                    {
+                        Remove(nonTypeMembers, prevAccessor);
+                    }
                 }
             }
         }

@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly string _name;
         private readonly TypeWithAnnotations _type;
-        private readonly SynthesizedEventAccessorSymbol? _addMethod;
-        private readonly SynthesizedEventAccessorSymbol? _removeMethod;
+        private readonly SourceEventAccessorSymbol? _addMethod;
+        private readonly SourceEventAccessorSymbol? _removeMethod;
 
         internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, BindingDiagnosticBag diagnostics)
             : base(containingType, declaratorSyntax, modifiers, isFieldLike: true, interfaceSpecifierSyntaxOpt: null,
@@ -118,7 +118,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!this.IsPartialDefinition)
+            if (this.IsPartialDefinition)
+            {
+                _addMethod = new SourceEventDefinitionAccessorSymbol(this, isAdder: true, diagnostics);
+                _removeMethod = new SourceEventDefinitionAccessorSymbol(this, isAdder: false, diagnostics);
+            }
+            else
             {
                 _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true, isExpressionBodied: false);
                 _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false, isExpressionBodied: false);
@@ -155,12 +160,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override MethodSymbol? AddMethod
         {
-            get { return PartialImplementationPart?.AddMethod ?? _addMethod; }
+            get { return _addMethod; }
         }
 
         public override MethodSymbol? RemoveMethod
         {
-            get { return PartialImplementationPart?.RemoveMethod ?? _removeMethod; }
+            get { return _removeMethod; }
         }
 
         internal override bool IsExplicitInterfaceImplementation

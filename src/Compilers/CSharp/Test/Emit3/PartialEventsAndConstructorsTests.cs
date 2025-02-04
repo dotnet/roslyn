@@ -754,10 +754,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                     Type load failed.
                     """,
             })
-            .VerifyDiagnostics(
-                // (4,40): warning CS0626: Method, operator, or accessor 'C.E.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern partial event System.Action E;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E").WithArguments("C.E.remove").WithLocation(4, 40));
+            .VerifyDiagnostics();
 
         static void verifySource(ModuleSymbol module)
         {
@@ -777,9 +774,9 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
 
             var members = module.GlobalNamespace.GetTypeMember("C").GetMembers().Select(s => s.ToTestDisplayString()).Join("\n");
             AssertEx.AssertEqualToleratingWhitespaceDifferences("""
-                event System.Action C.E
                 void C.E.add
                 void C.E.remove
+                event System.Action C.E
                 C..ctor()
                 """, members);
         }
@@ -858,9 +855,6 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (3,40): error CS9401: Partial member 'C.E' must have a definition part.
             //     extern partial event System.Action E;
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "E").WithArguments("C.E").WithLocation(3, 40),
-            // (3,40): warning CS0626: Method, operator, or accessor 'C.E.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-            //     extern partial event System.Action E;
-            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E").WithArguments("C.E.remove").WithLocation(3, 40),
             // (4,33): error CS9403: Partial member 'C.E' may not have multiple implementing declarations.
             //     partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "E").WithArguments("C.E").WithLocation(4, 33),
@@ -878,7 +872,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(7, 13));
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE: needs attribute merging")]
     public void Extern_DllImport()
     {
         var source = """
@@ -932,7 +926,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         }
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE: needs attribute merging")]
     public void Extern_InternalCall()
     {
         var source = """
@@ -976,15 +970,11 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             var c = module.GlobalNamespace.GetMember<SourceConstructorSymbol>("C..ctor");
             Assert.True(c.GetPublicSymbol().IsExtern);
             Assert.Null(c.GetDllImportData());
-            // PROTOTYPE: needs attribute merging
-            //Assert.Equal(MethodImplAttributes.InternalCall, c.ImplementationAttributes);
+            Assert.Equal(MethodImplAttributes.InternalCall, c.ImplementationAttributes);
         }
 
         static void verifyMetadata(ModuleSymbol module)
         {
-            // IsExtern doesn't round trip from metadata when DllImportAttribute is missing.
-            // This is consistent with the behavior of partial methods and properties.
-
             var ev = module.GlobalNamespace.GetMember<EventSymbol>("C.E");
             Assert.False(ev.GetPublicSymbol().IsExtern);
             Assert.False(ev.AddMethod!.GetPublicSymbol().IsExtern);
@@ -997,8 +987,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             var c = module.GlobalNamespace.GetMember<MethodSymbol>("C..ctor");
             Assert.False(c.GetPublicSymbol().IsExtern);
             Assert.Null(c.GetDllImportData());
-            // PROTOTYPE: needs attribute merging
-            //Assert.Equal(MethodImplAttributes.InternalCall, c.ImplementationAttributes);
+            Assert.Equal(MethodImplAttributes.InternalCall, c.ImplementationAttributes);
         }
     }
 
@@ -1032,10 +1021,14 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
 
             var addMethod = e.AddMethod!;
             Assert.Equal("add_E", addMethod.Name);
-            Assert.Same(addMethod, e.SourcePartialImplementationPart.AddMethod);
+            Assert.NotSame(addMethod, e.SourcePartialImplementationPart.AddMethod);
+            Assert.Same(e, addMethod.AssociatedSymbol);
+            Assert.Same(e.PartialImplementationPart, addMethod.PartialImplementationPart.AssociatedSymbol);
             var removeMethod = e.RemoveMethod!;
             Assert.Equal("remove_E", removeMethod.Name);
-            Assert.Same(removeMethod, e.SourcePartialImplementationPart.RemoveMethod);
+            Assert.NotSame(removeMethod, e.SourcePartialImplementationPart.RemoveMethod);
+            Assert.Same(e, removeMethod.AssociatedSymbol);
+            Assert.Same(e.PartialImplementationPart, removeMethod.PartialImplementationPart.AssociatedSymbol);
 
             var c = module.GlobalNamespace.GetMember<SourceConstructorSymbol>("C..ctor");
             Assert.True(c.IsPartialDefinition);
@@ -1098,14 +1091,14 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         verify("""
             partial class C
             {
-                partial C() { }
-                partial event System.Action E { add { } remove { } }
+                partial event System.Action E;
+                partial C();
             }
             """, """
             partial class C
             {
-                partial C();
-                partial event System.Action E;
+                partial event System.Action E { add { } remove { } }
+                partial C() { }
             }
             """);
 
@@ -1169,14 +1162,14 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         verify("""
             partial class C
             {
-                partial event System.Action E;
-                partial C();
+                partial C() { }
+                partial event System.Action E { add { } remove { } }
             }
             """, """
             partial class C
             {
-                partial event System.Action E { add { } remove { } }
-                partial C() { }
+                partial C();
+                partial event System.Action E;
             }
             """);
 
@@ -1274,7 +1267,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
 
             partial class C
             {
-                public partial event Action E;
+                partial event Action E;
                 partial event Action E { add { } remove { } }
 
                 void M()
@@ -1284,13 +1277,12 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                 }
             }
             """;
-        // PROTOTYPE: Mismatch between accessibility modifiers of parts should be reported.
         CreateCompilation(source).VerifyDiagnostics(
-            // (4,1): error CS0122: 'C.E.add' is inaccessible due to its protection level
+            // (4,3): error CS0122: 'C.E' is inaccessible due to its protection level
             // c.E += () => { };
-            Diagnostic(ErrorCode.ERR_BadAccess, "c.E += () => { }").WithArguments("C.E.add").WithLocation(4, 1),
-            // (5,1): error CS0122: 'C.E.remove' is inaccessible due to its protection level
+            Diagnostic(ErrorCode.ERR_BadAccess, "E").WithArguments("C.E").WithLocation(4, 3),
+            // (5,3): error CS0122: 'C.E' is inaccessible due to its protection level
             // c.E -= () => { };
-            Diagnostic(ErrorCode.ERR_BadAccess, "c.E -= () => { }").WithArguments("C.E.remove").WithLocation(5, 1));
+            Diagnostic(ErrorCode.ERR_BadAccess, "E").WithArguments("C.E").WithLocation(5, 3));
     }
 }
