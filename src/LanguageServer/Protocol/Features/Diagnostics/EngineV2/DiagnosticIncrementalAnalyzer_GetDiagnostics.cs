@@ -66,8 +66,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Project project, IReadOnlyList<DocumentId> documentIds,
                 bool includeProjectNonLocalResult, CancellationToken cancellationToken)
             {
-                // PERF: run projects in parallel rather than running CompilationWithAnalyzer with concurrency == true.
-                // We do this to not get into thread starvation causing hundreds of threads to be spawned.
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
                 await this.ProduceDiagnosticsAsync(
                     project, documentIds, includeProjectNonLocalResult, builder, cancellationToken).ConfigureAwait(false);
