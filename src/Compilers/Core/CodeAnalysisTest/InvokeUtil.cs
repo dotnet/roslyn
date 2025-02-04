@@ -62,15 +62,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     throw ExceptionUtilities.Unreachable();
             }
 
-            var compilerContext = new AssemblyLoadContext($"Test {methodName}", isCollectible: true);
-            var loader = new AnalyzerAssemblyLoader(pathResolvers, assemblyResolvers, compilerContext);
+            var loader = new AnalyzerAssemblyLoader(pathResolvers, assemblyResolvers);
+            var compilerContextAsssemblyCount = loader.CompilerLoadContext.Assemblies.Count();
             try
             {
                 Exec(testOutputHelper, fixture, loader, typeName, methodName, state);
             }
             finally
             {
-                compilerContext.Unload();
+                // When using the actual compiler load context (the one shared by all of our unit tests) the test
+                // did not load any additional assemblies that could interfere with later tests.
+                Assert.Equal(compilerContextAsssemblyCount, loader.CompilerLoadContext.Assemblies.Count());
             }
         }
 

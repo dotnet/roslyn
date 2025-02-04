@@ -38,6 +38,15 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        /// <summary>
+        /// Create a new <see cref="AnalyzerAssemblyLoader"/> with the given resolvers.
+        /// </summary>
+        /// <param name="pathResolvers"></param>
+        /// <param name="assemblyResolvers"></param>
+        /// <param name="compilerLoadContext">This is the <see cref="AssemblyLoadContext"/> where the compiler resides. This parameter
+        /// is primarily used for testing purposes but is also useful in hosted scenarios where the compiler may be loaded outside
+        /// the default context.</param>
+        /// <exception cref="ArgumentException"></exception>
         internal AnalyzerAssemblyLoader(
             ImmutableArray<IAnalyzerPathResolver> pathResolvers,
             ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers = default,
@@ -48,7 +57,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException("Cannot be default", nameof(assemblyResolvers));
             }
 
-            CompilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
+            CompilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(SyntaxTree).GetTypeInfo().Assembly)!;
             AnalyzerPathResolvers = pathResolvers;
             AnalyzerAssemblyResolvers = [new CompilerResolver(CompilerLoadContext), .. assemblyResolvers];
         }
