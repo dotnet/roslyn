@@ -62,32 +62,28 @@ internal partial class DiagnosticIncrementalAnalyzer
     /// <summary>
     /// Data holder for all diagnostics for a project for an analyzer
     /// </summary>
-    private readonly struct ProjectAnalysisData
+    private readonly struct ProjectAnalysisData(
+        ProjectId projectId,
+        Checksum checksum,
+        ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
     {
         /// <summary>
         /// ProjectId of this data
         /// </summary>
-        public readonly ProjectId ProjectId;
+        public readonly ProjectId ProjectId = projectId;
 
         /// <summary>
-        /// Version of the Items
+        /// Checksum of the project when the diagnostics were created.
         /// </summary>
-        public readonly VersionStamp Version;
+        public readonly Checksum Checksum = checksum;
 
         /// <summary>
         /// Current data that matches the version
         /// </summary>
-        public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result;
-
-        public ProjectAnalysisData(ProjectId projectId, VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
-        {
-            ProjectId = projectId;
-            Version = version;
-            Result = result;
-        }
+        public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result = result;
 
         public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
-            => GetResultOrEmpty(Result, analyzer, ProjectId, Version);
+            => GetResultOrEmpty(Result, analyzer, ProjectId, Checksum);
 
         public bool TryGetResult(DiagnosticAnalyzer analyzer, out DiagnosticAnalysisResult result)
             => Result.TryGetValue(analyzer, out result);
