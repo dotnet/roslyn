@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckUnsafeModifier(declarationModifiers, diagnostics);
 
-            bool isIncrementDecrement = syntax is OperatorDeclarationSyntax { OperatorToken.RawKind: (int)SyntaxKind.PlusPlusToken or (int)SyntaxKind.MinusMinusToken };
+            bool isIncrementDecrement = IsIncrementDecrementDeclaration(syntax);
 
             if (isIncrementDecrement)
             {
@@ -176,6 +176,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false, diagnostics, location);
         }
 
+        private static bool IsIncrementDecrementDeclaration(CSharpSyntaxNode syntax)
+        {
+            return syntax is OperatorDeclarationSyntax { OperatorToken.RawKind: (int)SyntaxKind.PlusPlusToken or (int)SyntaxKind.MinusMinusToken };
+        }
+
         protected static DeclarationModifiers MakeDeclarationModifiers(MethodKind methodKind, SourceMemberContainerTypeSymbol containingType, BaseMethodDeclarationSyntax syntax, Location location, BindingDiagnosticBag diagnostics)
         {
             bool inInterface = containingType.IsInterface;
@@ -200,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (syntax is OperatorDeclarationSyntax { OperatorToken.RawKind: (int)SyntaxKind.PlusPlusToken or (int)SyntaxKind.MinusMinusToken })
+                if (IsIncrementDecrementDeclaration(syntax))
                 {
                     if (inInterface)
                     {
@@ -267,8 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
                     }
                 }
-                else if (!isExplicitInterfaceImplementation &&
-                         syntax is OperatorDeclarationSyntax { OperatorToken.RawKind: (int)SyntaxKind.PlusPlusToken or (int)SyntaxKind.MinusMinusToken })
+                else if (!isExplicitInterfaceImplementation && IsIncrementDecrementDeclaration(syntax))
                 {
                     if (syntax.HasAnyBody())
                     {

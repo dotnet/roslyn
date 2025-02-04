@@ -167,13 +167,13 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (3,25): error CS9502: Overloaded instance increment operator '++' takes no parameters
+                // (3,25): error CS9502: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator++(C1 x) {} 
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(3, 25),
                 // (4,25): error CS1020: Overloadable binary operator expected
                 //     public void operator++(C1 x, C1 y) {} 
                 Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, op).WithLocation(4, 25),
-                // (5,25): error CS9502: Overloaded instance increment operator '++' takes no parameters
+                // (5,25): error CS9502: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator++(C1 x, C1 y, C1 z) {} 
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(5, 25)
                 );
@@ -193,7 +193,7 @@ typeKeyword + @" C1
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
             comp.VerifyDiagnostics(
-                // (3,34): error CS9502: Overloaded instance increment operator '++' takes no parameters
+                // (3,34): error CS9502: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator checked ++(C1 x) {} 
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(3, 34),
                 // (3,34): error CS9025: The operator 'C1.operator checked ++(C1)' requires a matching non-checked version of the operator to also be defined
@@ -205,7 +205,7 @@ typeKeyword + @" C1
                 // (4,34): error CS9025: The operator 'C1.operator checked ++(C1, C1)' requires a matching non-checked version of the operator to also be defined
                 //     public void operator checked ++(C1 x, C1 y) {} 
                 Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("C1.operator checked " + op + "(C1, C1)").WithLocation(4, 34),
-                // (5,34): error CS9502: Overloaded instance increment operator '++' takes no parameters
+                // (5,34): error CS9502: Overloaded instance increment operator '++' must take no parameters
                 //     public void operator checked ++(C1 x, C1 y, C1 z) {} 
                 Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, op).WithArguments(op).WithLocation(5, 34),
                 // (5,34): error CS9025: The operator 'C1.operator checked ++(C1, C1, C1)' requires a matching non-checked version of the operator to also be defined

@@ -238,8 +238,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIncrementOpArgs">
-        <source>Overloaded instance increment operator '{0}' takes no parameters</source>
-        <target state="new">Overloaded instance increment operator '{0}' takes no parameters</target>
+        <source>Overloaded instance increment operator '{0}' must take no parameters</source>
+        <target state="new">Overloaded instance increment operator '{0}' must take no parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInheritanceFromRecord">
