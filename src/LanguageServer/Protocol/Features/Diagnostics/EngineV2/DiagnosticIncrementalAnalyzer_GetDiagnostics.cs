@@ -52,23 +52,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(CancellationToken cancellationToken)
             {
-                if (ProjectId != null)
-                {
-                    var project = Solution.GetProject(ProjectId);
-                    if (project == null)
-                        return [];
+                var project = Solution.GetProject(ProjectId);
+                if (project == null)
+                    return [];
 
-                    // return diagnostics specific to one project or document
-                    var includeProjectNonLocalResult = DocumentId == null;
-                    return await ProduceProjectDiagnosticsAsync(
-                        [project], project => _getDocuments(project, DocumentId), includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
-                }
-
-                return await ProduceSolutionDiagnosticsAsync(Solution, cancellationToken).ConfigureAwait(false);
+                // return diagnostics specific to one project or document
+                var includeProjectNonLocalResult = DocumentId == null;
+                return await ProduceProjectDiagnosticsAsync(
+                    [project], project => _getDocuments(project, DocumentId), includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
             }
-
-            protected Task<ImmutableArray<DiagnosticData>> ProduceSolutionDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
-                => ProduceProjectDiagnosticsAsync(solution.Projects, static project => project.DocumentIds, includeProjectNonLocalResult: true, cancellationToken);
 
             protected async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
                 IEnumerable<Project> projects, Func<Project, IReadOnlyList<DocumentId>> getDocumentIds,
@@ -212,17 +204,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(CancellationToken cancellationToken)
             {
-                if (ProjectId != null)
-                {
-                    var project = Solution.GetProject(ProjectId);
-                    if (project is null)
-                        return [];
+                var project = Solution.GetProject(ProjectId);
+                if (project is null)
+                    return [];
 
-                    return await ProduceProjectDiagnosticsAsync(
-                        [project], static _ => [], includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
-                }
-
-                return await ProduceSolutionDiagnosticsAsync(Solution, cancellationToken).ConfigureAwait(false);
+                return await ProduceProjectDiagnosticsAsync(
+                    [project], static _ => [], includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
             }
 
             protected override bool ShouldIncludeDiagnostic(DiagnosticData diagnostic)
