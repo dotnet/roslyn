@@ -714,7 +714,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly record struct ExecutionData(
             DiagnosticAnalyzer Analyzer,
-            // SyntaxNode DeclaredNode,
             ISymbol DeclaredSymbol,
             SemanticModel SemanticModel,
             TextSpan? FilterSpan,
