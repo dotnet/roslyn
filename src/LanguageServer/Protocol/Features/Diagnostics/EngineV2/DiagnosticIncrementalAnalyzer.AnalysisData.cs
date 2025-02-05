@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -15,76 +13,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 internal partial class DiagnosticIncrementalAnalyzer
 {
     /// <summary>
-    /// Simple data holder for local diagnostics for an analyzer
-    /// </summary>
-    private readonly struct DocumentAnalysisData
-    {
-        public static readonly DocumentAnalysisData Empty = new(checksum: default, lineCount: 0, []);
-
-        /// <summary>
-        /// Checksum of the project diagnostics were computed for.
-        /// </summary>
-        public readonly Checksum Checksum;
-
-        /// <summary>
-        /// Number of lines in the document.
-        /// </summary>
-        public readonly int LineCount;
-
-        /// <summary>
-        /// Current data that matches the version.
-        /// </summary>
-        public readonly ImmutableArray<DiagnosticData> Items;
-
-        /// <summary>
-        /// Last set of data we broadcasted to outer world, or <see langword="default"/>.
-        /// </summary>
-        public readonly ImmutableArray<DiagnosticData> OldItems;
-
-        public DocumentAnalysisData(Checksum checksum, int lineCount, ImmutableArray<DiagnosticData> items)
-        {
-            Debug.Assert(!items.IsDefault);
-
-            Checksum = checksum;
-            LineCount = lineCount;
-            Items = items;
-            OldItems = default;
-        }
-
-        public DocumentAnalysisData(Checksum checksum, int lineCount, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
-            : this(checksum, lineCount, newItems)
-        {
-            Debug.Assert(!oldItems.IsDefault);
-            OldItems = oldItems;
-        }
-    }
-
-    /// <summary>
     /// Data holder for all diagnostics for a project for an analyzer
     /// </summary>
-    private readonly struct ProjectAnalysisData
+    private readonly struct ProjectAnalysisData(
+        ProjectId projectId,
+        Checksum checksum,
+        ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
     {
         /// <summary>
         /// ProjectId of this data
         /// </summary>
-        public readonly ProjectId ProjectId;
+        public readonly ProjectId ProjectId = projectId;
 
         /// <summary>
         /// Checksum of the project diagnostics were computed for.
         /// </summary>
-        public readonly Checksum Checksum;
+        public readonly Checksum Checksum = checksum;
 
         /// <summary>
         /// Current data that matches the version
         /// </summary>
-        public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result;
-
-        public ProjectAnalysisData(ProjectId projectId, Checksum checksum, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
-        {
-            ProjectId = projectId;
-            Checksum = checksum;
-            Result = result;
-        }
+        public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result = result;
 
         public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
             => GetResultOrEmpty(Result, analyzer, ProjectId, Checksum);
