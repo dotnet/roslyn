@@ -126,6 +126,13 @@ internal sealed class SolutionCompilationStateChecksums
         if (searchingChecksumsLeft.Count == 0)
             return;
 
+        if (assetPath.IncludeSolutionSynchronization)
+        {
+            // Wait for the workspace to finish synchronizing changes before continuing
+            var workspace = compilationState.Services.GetRequiredService<IWorkspaceAccessorService>().Workspace;
+            await workspace.WaitForScheduledTasksAsync().ConfigureAwait(false);
+        }
+
         if (assetPath.IncludeSolutionCompilationState)
         {
             if (assetPath.IncludeSolutionCompilationStateChecksums && searchingChecksumsLeft.Remove(this.Checksum))

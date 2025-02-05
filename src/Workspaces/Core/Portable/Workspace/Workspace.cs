@@ -587,6 +587,9 @@ public abstract partial class Workspace : IDisposable
             WorkspaceChangeKind.SolutionChanged);
     }
 
+    internal Task WaitForScheduledTasksAsync()
+        => _workQueue.WaitUntilCurrentBatchCompletesAsync();
+
     /// <summary>
     /// Executes an action as a background task, as part of a sequential queue of tasks.
     /// </summary>
