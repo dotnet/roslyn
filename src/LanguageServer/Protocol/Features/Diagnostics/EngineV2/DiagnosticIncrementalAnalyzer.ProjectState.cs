@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -228,12 +229,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax));
-                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic));
-                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal));
+                    AddToInMemoryStorage(serializerVersion, new(document.Id), SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax));
+                    AddToInMemoryStorage(serializerVersion, new(document.Id), SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic));
+                    AddToInMemoryStorage(serializerVersion, new(document.Id), NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal));
                 }
 
-                AddToInMemoryStorage(serializerVersion, project, document: null, result.ProjectId, NonLocalStateName, result.GetOtherDiagnostics());
+                AddToInMemoryStorage(serializerVersion, new(result.ProjectId), NonLocalStateName, result.GetOtherDiagnostics());
             }
 
             public async ValueTask MergeAsync(ActiveFileState state, TextDocument document, IGlobalOptionService globalOptions)
@@ -270,8 +271,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = version;
 
                 // save active file diagnostics back to project state
-                AddToInMemoryStorage(serializerVersion, project, document, document.Id, SyntaxStateName, syntax.Items);
-                AddToInMemoryStorage(serializerVersion, project, document, document.Id, SemanticStateName, semantic.Items);
+                AddToInMemoryStorage(serializerVersion, new(document.Id), SyntaxStateName, syntax.Items);
+                AddToInMemoryStorage(serializerVersion, new(document.Id), SemanticStateName, semantic.Items);
 
                 // save last aggregated form of analysis result
                 _lastResult = _lastResult.UpdateAggregatedResult(version, state.DocumentId);
@@ -329,10 +330,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private void AddToInMemoryStorage(
-                VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
+                VersionStamp serializerVersion, ProjectOrDocumentId key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
             {
-                Contract.ThrowIfFalse(document == null || document.Project == project);
-
                 // if serialization fail, hold it in the memory
                 InMemoryStorage.Cache(_owner.Analyzer, (key, stateKey), new CacheEntry(serializerVersion, diagnostics));
             }
@@ -343,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var project = document.Project;
                 var documentId = document.Id;
 
-                var diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, project, document, documentId, SyntaxStateName);
+                var diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, new(documentId), SyntaxStateName);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddSyntaxLocals(documentId, diagnostics);
@@ -353,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     success = false;
                 }
 
-                diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, project, document, documentId, SemanticStateName);
+                diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, new(documentId), SemanticStateName);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddSemanticLocals(documentId, diagnostics);
@@ -363,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     success = false;
                 }
 
-                diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, project, document, documentId, NonLocalStateName);
+                diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, new(documentId), NonLocalStateName);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddNonLocals(documentId, diagnostics);
@@ -378,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private bool TryGetProjectDiagnosticsFromInMemoryStorage(VersionStamp serializerVersion, Project project, Builder builder)
             {
-                var diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, project, document: null, project.Id, NonLocalStateName);
+                var diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, new(project.Id), NonLocalStateName);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddOthers(diagnostics);
@@ -389,10 +388,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private ImmutableArray<DiagnosticData> GetDiagnosticsFromInMemoryStorage(
-                VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey)
+                VersionStamp serializerVersion, ProjectOrDocumentId key, string stateKey)
             {
-                Contract.ThrowIfFalse(document == null || document.Project == project);
-
                 return InMemoryStorage.TryGetValue(_owner.Analyzer, (key, stateKey), out var entry) && serializerVersion == entry.Version
                     ? entry.Diagnostics
                     : default;

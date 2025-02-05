@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 /// Wrapper around project and document ids for convenience in caching diagnostic results and
 /// use in the <see cref="IDiagnosticSource"/>
 /// </summary>
-internal readonly struct ProjectOrDocumentId
+internal readonly record struct ProjectOrDocumentId
 {
     /// <summary>
     /// Non-null if this represents a documentId.  Used for equality comparisons.
