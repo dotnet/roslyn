@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal interface IDiagnosticAnalyzerService
 {
-    public IGlobalOptionService GlobalOptions { get; }
-
     /// <summary>
     /// Provides and caches analyzer information.
     /// </summary>
@@ -31,21 +29,21 @@ internal interface IDiagnosticAnalyzerService
     /// Get diagnostics currently stored in the source. returned diagnostic might be out-of-date if solution has changed but analyzer hasn't run for the new solution.
     /// </summary>
     /// <param name="workspace">Workspace for the document/project/solution to compute diagnostics for.</param>
-    /// <param name="projectId">Optional project to scope the returned diagnostics.</param>
-    /// <param name="documentId">Optional document to scope the returned diagnostics.</param>
-    /// <param name="includeLocalDocumentDiagnostics">
-    /// Indicates if local document diagnostics must be returned.
+    /// <param name="projectId">Required project to scope the returned diagnostics.</param>
+    /// <param name="documentId">Optional document to scope the returned diagnostics. When provided, only local
+    /// diagnostics to that document are returned and non-local diagnostics are not returned. When absent, only
+    /// non-local diagnostics are included and local diagnostics are not returned.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <remarks>
     /// Local diagnostics are the ones that are reported by analyzers on the same file for which the callback was received
     /// and hence can be computed by analyzing a single file in isolation.
-    /// </param>
-    /// <param name="includeNonLocalDocumentDiagnostics">
-    /// Indicates if non-local document diagnostics must be returned.
+    /// <para/>
     /// Non-local diagnostics are the ones reported by analyzers either at compilation end callback OR
     /// in a different file from which the callback was made. Entire project must be analyzed to get the
     /// complete set of non-local document diagnostics.
-    /// </param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
+    /// </remarks>
+    Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(
+        Workspace workspace, ProjectId projectId, DocumentId? documentId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Force analyzes the given project by running all applicable analyzers on the project and caching the reported analyzer diagnostics.

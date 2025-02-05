@@ -35,22 +35,24 @@ internal partial class DiagnosticIncrementalAnalyzer
     public DiagnosticIncrementalAnalyzer(
         DiagnosticAnalyzerService analyzerService,
         Workspace workspace,
-        DiagnosticAnalyzerInfoCache analyzerInfoCache)
+        DiagnosticAnalyzerInfoCache analyzerInfoCache,
+        IGlobalOptionService globalOptionService)
     {
         Contract.ThrowIfNull(analyzerService);
 
         AnalyzerService = analyzerService;
         Workspace = workspace;
+        GlobalOptions = globalOptionService;
 
         _stateManager = new StateManager(workspace, analyzerInfoCache);
         _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
-        var enabled = this.AnalyzerService.GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler);
+        var enabled = globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler);
         _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(
             enabled, analyzerInfoCache, analyzerService.Listener);
     }
 
-    internal IGlobalOptionService GlobalOptions => AnalyzerService.GlobalOptions;
+    internal IGlobalOptionService GlobalOptions { get; }
     internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
 
     private void OnProjectAnalyzerReferenceChanged(object? sender, ProjectAnalyzerReferenceChangedEventArgs e)

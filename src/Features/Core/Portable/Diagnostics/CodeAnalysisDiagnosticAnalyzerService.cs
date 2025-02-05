@@ -147,8 +147,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
                 return [];
 
             var diagnostics = await _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(
-                _workspace, documentId.ProjectId, documentId, includeLocalDocumentDiagnostics: true,
-                includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                _workspace, documentId.ProjectId, documentId, cancellationToken).ConfigureAwait(false);
             return diagnostics.WhereAsArray(d => !d.IsSuppressed);
         }
 
@@ -166,8 +165,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
                 return [];
 
             var diagnostics = await _diagnosticAnalyzerService.GetCachedDiagnosticsAsync(
-                _workspace, projectId, documentId: null, includeLocalDocumentDiagnostics: false,
-                includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
+                _workspace, projectId, documentId: null, cancellationToken).ConfigureAwait(false);
             return diagnostics.WhereAsArray(d => !d.IsSuppressed);
         }
     }

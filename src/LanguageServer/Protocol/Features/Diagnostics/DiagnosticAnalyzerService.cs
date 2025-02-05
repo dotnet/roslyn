@@ -21,8 +21,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    [Export(typeof(IDiagnosticAnalyzerService))]
-    [Shared]
+    [Export(typeof(IDiagnosticAnalyzerService)), Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
         private static readonly Option2<bool> s_crashOnAnalyzerException = new("dotnet_crash_on_analyzer_exception", defaultValue: false);
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
 
         public IAsynchronousOperationListener Listener { get; }
-        public IGlobalOptionService GlobalOptions { get; }
+        private IGlobalOptionService GlobalOptions { get; }
 
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map = new();
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
@@ -94,10 +93,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 priorityProvider, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(
+            Workspace workspace, ProjectId? projectId, DocumentId? documentId, CancellationToken cancellationToken)
         {
             var analyzer = CreateIncrementalAnalyzer(workspace);
-            return analyzer.GetCachedDiagnosticsAsync(workspace.CurrentSolution, projectId, documentId, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
+            return analyzer.GetCachedDiagnosticsAsync(workspace.CurrentSolution, projectId, documentId, cancellationToken);
         }
 
         public async Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
