@@ -26,17 +26,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ActiveFileState(DocumentId documentId)
                 => DocumentId = documentId;
 
-            public bool IsEmpty
-            {
-                get
-                {
-                    lock (_gate)
-                    {
-                        return _syntax.Items.IsEmpty && _semantic.Items.IsEmpty;
-                    }
-                }
-            }
-
             public void ResetVersion()
             {
                 lock (_gate)
