@@ -124,7 +124,14 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
                     return null;
                 }
 
-                previousNode = children[childIndex].AsNode()!;
+                var childAsNode = children[childIndex].AsNode();
+                if (childAsNode is null)
+                {
+                    Debug.Fail("Child at indicated index should be a node as there were no top level edits.");
+                    return null;
+                }
+
+                previousNode = childAsNode;
             }
 
             return previousNode;
