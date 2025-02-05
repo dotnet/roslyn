@@ -391,7 +391,6 @@ public sealed class NavigateToSearcherTests
         var project = workspace.CurrentSolution.Projects.Single();
         var searchService = project.GetRequiredLanguageService<INavigateToSearchService>();
 
-        // Ensure that returning null for the search service doesn't crash.
         hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(() => searchService);
 
         var callback = new TestNavigateToSearchCallback();
@@ -452,7 +451,6 @@ public sealed class NavigateToSearcherTests
         var project = workspace.CurrentSolution.Projects.Single();
         var searchService = project.GetRequiredLanguageService<INavigateToSearchService>();
 
-        // Ensure that returning null for the search service doesn't crash.
         hostMock.Setup(h => h.GetNavigateToSearchService(It.IsAny<Project>())).Returns(() => searchService);
 
         var callback = new TestNavigateToSearchCallback();
