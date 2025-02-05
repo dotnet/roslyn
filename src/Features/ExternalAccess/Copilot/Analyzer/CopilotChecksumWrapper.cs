@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
 
 /// <summary>
 /// Exposed to provide an efficient checksum implementation.
-/// Intended usage including cahching responses w/o retaining potentially long strings.
+/// Intended usage including caching responses w/o retaining potentially long strings.
 /// </summary>
 internal sealed class CopilotChecksumWrapper
 {
