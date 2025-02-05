@@ -47,7 +47,7 @@ internal class MockDiagnosticAnalyzerService() : IDiagnosticAnalyzerService
     public Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         => throw new NotImplementedException();
 
-    public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, CancellationToken cancellationToken)
+    public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId? documentId, CancellationToken cancellationToken)
         => throw new NotImplementedException();
 
     public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
