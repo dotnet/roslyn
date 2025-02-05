@@ -7147,7 +7147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Applies the member postconditions of <paramref name="method"/> to members of <see cref="receiverOpt"/> or to the appropriate static members.
+        /// Applies the member postconditions of <paramref name="method"/> to members of <paramref name="receiverOpt"/> or to the appropriate static members.
         /// Used for the "use-site" analysis of MemberNotNullAttributes.
         /// </summary>
         private void ApplyMemberPostConditions(BoundExpression? receiverOpt, MethodSymbol? method)
