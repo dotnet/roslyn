@@ -1766,7 +1766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore, MightEscapeTemporaryRefs(
                         call,
-                        used: useKind != UseKind.Unused,
+                        used: true,
                         receiverAddressKind: receiverUseKind != UseKind.UsedAsAddress ? null : addressKind));
 
                     countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
