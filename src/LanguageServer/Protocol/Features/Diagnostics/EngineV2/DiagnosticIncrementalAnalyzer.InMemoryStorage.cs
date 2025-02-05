@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -13,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private static class InMemoryStorage
         {
             // the reason using nested map rather than having tuple as key is so that I dont have a gigantic map
-            private static readonly ConcurrentDictionary<DiagnosticAnalyzer, ConcurrentDictionary<(object key, string stateKey), CacheEntry>> s_map =
+            private static readonly ConcurrentDictionary<DiagnosticAnalyzer, ConcurrentDictionary<(ProjectOrDocumentId key, string stateKey), CacheEntry>> s_map =
                 new(concurrencyLevel: 2, capacity: 10);
 
-            public static bool TryGetValue(DiagnosticAnalyzer analyzer, (object key, string stateKey) key, out CacheEntry entry)
+            public static bool TryGetValue(DiagnosticAnalyzer analyzer, (ProjectOrDocumentId key, string stateKey) key, out CacheEntry entry)
             {
                 AssertKey(key);
 
@@ -25,16 +26,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     analyzerMap.TryGetValue(key, out entry);
             }
 
-            public static void Cache(DiagnosticAnalyzer analyzer, (object key, string stateKey) key, CacheEntry entry)
+            public static void Cache(DiagnosticAnalyzer analyzer, (ProjectOrDocumentId key, string stateKey) key, CacheEntry entry)
             {
                 AssertKey(key);
 
                 // add new cache entry
-                var analyzerMap = s_map.GetOrAdd(analyzer, _ => new ConcurrentDictionary<(object key, string stateKey), CacheEntry>(concurrencyLevel: 2, capacity: 10));
+                var analyzerMap = s_map.GetOrAdd(analyzer, _ => new ConcurrentDictionary<(ProjectOrDocumentId key, string stateKey), CacheEntry>(concurrencyLevel: 2, capacity: 10));
                 analyzerMap[key] = entry;
             }
 
-            public static void Remove(DiagnosticAnalyzer analyzer, (object key, string stateKey) key)
+            public static void Remove(DiagnosticAnalyzer analyzer, (ProjectOrDocumentId key, string stateKey) key)
             {
                 AssertKey(key);
                 // remove the entry
@@ -63,16 +64,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         // in memory cache entry
-        private readonly struct CacheEntry
-        {
-            public readonly VersionStamp Version;
-            public readonly ImmutableArray<DiagnosticData> Diagnostics;
-
-            public CacheEntry(VersionStamp version, ImmutableArray<DiagnosticData> diagnostics)
-            {
-                Version = version;
-                Diagnostics = diagnostics;
-            }
-        }
+        private readonly record struct CacheEntry(VersionStamp Version, ImmutableArray<DiagnosticData> Diagnostics);
     }
 }
