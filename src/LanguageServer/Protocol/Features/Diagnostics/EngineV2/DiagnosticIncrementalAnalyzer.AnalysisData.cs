@@ -19,12 +19,12 @@ internal partial class DiagnosticIncrementalAnalyzer
     /// </summary>
     private readonly struct DocumentAnalysisData
     {
-        public static readonly DocumentAnalysisData Empty = new(VersionStamp.Default, lineCount: 0, []);
+        public static readonly DocumentAnalysisData Empty = new(checksum: default, lineCount: 0, []);
 
         /// <summary>
-        /// Version of the diagnostic data.
+        /// Checksum of the project diagnostics were computed for.
         /// </summary>
-        public readonly VersionStamp Version;
+        public readonly Checksum Checksum;
 
         /// <summary>
         /// Number of lines in the document.
@@ -45,14 +45,14 @@ internal partial class DiagnosticIncrementalAnalyzer
         {
             Debug.Assert(!items.IsDefault);
 
-            Version = version;
+            Checksum = checksum;
             LineCount = lineCount;
             Items = items;
             OldItems = default;
         }
 
-        public DocumentAnalysisData(VersionStamp version, int lineCount, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
-            : this(version, lineCount, newItems)
+        public DocumentAnalysisData(Checksum checksum, int lineCount, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
+            : this(checksum, lineCount, newItems)
         {
             Debug.Assert(!oldItems.IsDefault);
             OldItems = oldItems;
