@@ -26,16 +26,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ActiveFileState(DocumentId documentId)
                 => DocumentId = documentId;
 
-            public void ResetVersion()
-            {
-                lock (_gate)
-                {
-                    // reset version of cached data so that we can recalculate new data (ex, OnDocumentReset)
-                    _syntax = new DocumentAnalysisData(VersionStamp.Default, _syntax.LineCount, _syntax.Items);
-                    _semantic = new DocumentAnalysisData(VersionStamp.Default, _semantic.LineCount, _semantic.Items);
-                }
-            }
-
             public DocumentAnalysisData GetAnalysisData(AnalysisKind kind)
             {
                 lock (_gate)
