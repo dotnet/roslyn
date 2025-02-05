@@ -1052,6 +1052,71 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void SequencePoints()
+    {
+        var source = """
+            partial class C
+            {
+                partial C(int i);
+                partial C(int i)
+                {
+                    System.Console.Write(i);
+                }
+                partial event System.Action E;
+                partial event System.Action E
+                {
+                    add
+                    {
+                        System.Console.Write(value);
+                    }
+                    remove
+                    {
+                        value();
+                    }
+                }
+            }
+            """;
+        CompileAndVerify(source)
+            .VerifyDiagnostics()
+            .VerifyMethodBody("C..ctor", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  1
+                  // sequence point: partial C(int i)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "object..ctor()"
+                  // sequence point: System.Console.Write(i);
+                  IL_0006:  ldarg.1
+                  IL_0007:  call       "void System.Console.Write(int)"
+                  // sequence point: }
+                  IL_000c:  ret
+                }
+                """)
+            .VerifyMethodBody("C.E.add", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  // sequence point: System.Console.Write(value);
+                  IL_0000:  ldarg.1
+                  IL_0001:  call       "void System.Console.Write(object)"
+                  // sequence point: }
+                  IL_0006:  ret
+                }
+                """)
+            .VerifyMethodBody("C.E.remove", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  // sequence point: value();
+                  IL_0000:  ldarg.1
+                  IL_0001:  callvirt   "void System.Action.Invoke()"
+                  // sequence point: }
+                  IL_0006:  ret
+                }
+                """);
+    }
+
+    [Fact]
     public void EmitOrder_01()
     {
         verify("""
