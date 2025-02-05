@@ -6,9 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -22,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly string _name;
         private readonly TypeWithAnnotations _type;
-        private readonly SourceEventAccessorSymbol? _addMethod;
-        private readonly SourceEventAccessorSymbol? _removeMethod;
+        private readonly SourceEventAccessorSymbol _addMethod;
+        private readonly SourceEventAccessorSymbol _removeMethod;
 
         internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, BindingDiagnosticBag diagnostics)
             : base(containingType, declaratorSyntax, modifiers, isFieldLike: true, interfaceSpecifierSyntaxOpt: null,
@@ -158,12 +156,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _type; }
         }
 
-        public override MethodSymbol? AddMethod
+        public override MethodSymbol AddMethod
         {
             get { return _addMethod; }
         }
 
-        public override MethodSymbol? RemoveMethod
+        public override MethodSymbol RemoveMethod
         {
             get { return _removeMethod; }
         }
@@ -204,6 +202,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             base.ForceComplete(locationOpt, filter, cancellationToken);
+        }
+
+        /// <summary>
+        /// Accessor of a <see cref="SourceFieldLikeEventSymbol"/> which is a partial definition.
+        /// </summary>
+        private sealed class SourceEventDefinitionAccessorSymbol : SourceEventAccessorSymbol
+        {
+            internal SourceEventDefinitionAccessorSymbol(
+                SourceFieldLikeEventSymbol ev,
+                bool isAdder,
+                BindingDiagnosticBag diagnostics)
+                : base(
+                    @event: ev,
+                    syntaxReference: ev.SyntaxReference,
+                    location: ev.Location,
+                    explicitlyImplementedEventOpt: null,
+                    aliasQualifierOpt: null,
+                    isAdder: isAdder,
+                    isIterator: false,
+                    isNullableAnalysisEnabled: ev.DeclaringCompilation.IsNullableAnalysisEnabledIn(ev.CSharpSyntaxNode),
+                    isExpressionBodied: false)
+            {
+                CheckFeatureAvailabilityAndRuntimeSupport(ev.CSharpSyntaxNode, ev.Location, hasBody: false, diagnostics: diagnostics);
+            }
+
+            public override Accessibility DeclaredAccessibility => AssociatedEvent.DeclaredAccessibility;
+
+            public override bool IsImplicitlyDeclared => true;
+
+            internal override bool GenerateDebugInfo => true;
+
+            internal override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false)
+            {
+                return null;
+            }
         }
     }
 }
