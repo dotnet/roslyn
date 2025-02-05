@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 try
                 {
-                    // PERF: We need to flip this to false when we do actual diffing.
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                     var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, cancellationToken).ConfigureAwait(false);
 
