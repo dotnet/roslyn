@@ -38,28 +38,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     };
                 }
             }
-
-            public void Save(AnalysisKind kind, DocumentAnalysisData data)
-            {
-                Contract.ThrowIfFalse(data.OldItems.IsDefault);
-
-                lock (_gate)
-                {
-                    switch (kind)
-                    {
-                        case AnalysisKind.Syntax:
-                            _syntax = data;
-                            return;
-
-                        case AnalysisKind.Semantic:
-                            _semantic = data;
-                            return;
-
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(kind);
-                    }
-                }
-            }
         }
     }
 }
