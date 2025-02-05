@@ -27,7 +27,7 @@ internal sealed class ProgramFilesAnalyzerPathResolver : IAnalyzerPathResolver
 
     public ProgramFilesAnalyzerPathResolver()
     {
-        ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
+        ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
         DotNetPath = Path.Combine(ProgramFilesPath, "dotnet");
         VisualStudioPath = Path.Combine(ProgramFilesPath, "Microsoft Visual Studio");
     }
