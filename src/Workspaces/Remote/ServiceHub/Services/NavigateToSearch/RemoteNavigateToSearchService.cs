@@ -44,7 +44,7 @@ internal sealed class RemoteNavigateToSearchService(
         return RunServiceAsync(solutionChecksum, solution => ValueTaskFactory.CompletedTask, cancellationToken);
     }
 
-    public ValueTask SearchDocumentAsync(
+    public ValueTask SearchDocumentAndRelatedDocumentsAsync(
         Checksum solutionChecksum,
         DocumentId documentId,
         string searchPattern,
@@ -57,7 +57,7 @@ internal sealed class RemoteNavigateToSearchService(
             var document = solution.GetRequiredDocument(documentId);
             var (onItemsFound, onProjectCompleted) = GetCallbacks(callbackId, cancellationToken);
 
-            await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
+            await AbstractNavigateToSearchService.SearchDocumentAndRelatedDocumentsInCurrentProcessAsync(
                 document, searchPattern, kinds.ToImmutableHashSet(), onItemsFound, cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }

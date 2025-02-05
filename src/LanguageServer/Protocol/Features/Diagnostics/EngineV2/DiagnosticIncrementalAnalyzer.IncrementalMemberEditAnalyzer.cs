@@ -201,8 +201,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                using var pooledMembers = syntaxFacts.GetMethodLevelMembers(root);
-                var members = pooledMembers.Object;
+
+                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var members);
+                syntaxFacts.AddMethodLevelMembers(root, members);
 
                 var memberSpans = members.SelectAsArray(member => member.FullSpan);
                 var changedMemberId = members.IndexOf(changedMember);
