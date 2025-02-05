@@ -97,8 +97,9 @@
     <UsingToolPdbConverter>false</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
-    <UsingToolIbcOptimization>true</UsingToolIbcOptimization>
-    <UsingToolVisualStudioIbcTraining>true</UsingToolVisualStudioIbcTraining>
+    <!-- Avoid attempting IBC on platforms where ngen won't work, or the IBC tooling won't work -->
+    <UsingToolIbcOptimization Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolIbcOptimization>
+    <UsingToolVisualStudioIbcTraining Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolVisualStudioIbcTraining>
     <UsingToolXliff>true</UsingToolXliff>
     <UsingToolXUnit>false</UsingToolXUnit>
     <UseVSTestRunner>true</UseVSTestRunner>

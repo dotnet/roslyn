@@ -201,11 +201,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var context = new AnalyzerAnalysisContext(sessionScope, severityFilter);
 
-            // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
             ExecuteAndCatchIfThrows(
                 sessionScope.Analyzer,
-                data => data.analyzer.Initialize(data.context),
-                (analyzer: sessionScope.Analyzer, context),
+                static data => data.sessionScope.Analyzer.Initialize(data.context),
+                (sessionScope, context),
                 contextInfo: null,
                 cancellationToken);
         }
@@ -218,18 +217,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="cancellationToken">Cancellation token.</param>
         public void ExecuteCompilationStartActions(ImmutableArray<CompilationStartAnalyzerAction> actions, HostCompilationStartAnalysisScope compilationScope, CancellationToken cancellationToken)
         {
+            // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
+            // can use the same instance across all actions.
+            var context = new AnalyzerCompilationStartAnalysisContext(compilationScope,
+                Compilation, AnalyzerOptions, _compilationAnalysisValueProviderFactory, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation);
+
             foreach (var startAction in actions)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var context = new AnalyzerCompilationStartAnalysisContext(compilationScope,
-                    Compilation, AnalyzerOptions, _compilationAnalysisValueProviderFactory, cancellationToken);
-
                 ExecuteAndCatchIfThrows(
                     startAction.Analyzer,
-                    data => data.action(data.context),
-                    (action: startAction.Action, context),
-                    new AnalysisContextInfo(Compilation),
+                    static data => data.startAction.Action(data.context),
+                    (startAction, context),
+                    contextInfo,
                     cancellationToken);
             }
         }
@@ -257,19 +257,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
+            // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
+            // can use the same instance across all actions.
+            var context = new AnalyzerSymbolStartAnalysisContext(symbolScope,
+                symbol, Compilation, AnalyzerOptions, isGeneratedCodeSymbol, filterTree, filterSpan, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation, symbol);
+
             foreach (var startAction in actions)
             {
                 Debug.Assert(startAction.Analyzer == symbolScope.Analyzer);
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var context = new AnalyzerSymbolStartAnalysisContext(symbolScope,
-                    symbol, Compilation, AnalyzerOptions, isGeneratedCodeSymbol, filterTree, filterSpan, cancellationToken);
 
                 ExecuteAndCatchIfThrows(
                     startAction.Analyzer,
-                    data => data.action(data.context),
-                    (action: startAction.Action, context),
-                    new AnalysisContextInfo(Compilation, symbol),
+                    static data => data.startAction.Action(data.context),
+                    (startAction, context),
+                    contextInfo,
                     cancellationToken);
             }
         }
@@ -292,15 +294,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             cancellationToken.ThrowIfCancellationRequested();
 
             var supportedSuppressions = _analyzerManager.GetSupportedSuppressionDescriptors(suppressor, this, cancellationToken);
-            Func<SuppressionDescriptor, bool> isSupportedSuppression = supportedSuppressions.Contains;
-            Action<SuppressionAnalysisContext> action = suppressor.ReportSuppressions;
+
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, supportedSuppressions) => supportedSuppressions.Contains(d),
+                supportedSuppressions,
+                out Func<SuppressionDescriptor, bool> isSupportedSuppression);
+
             var context = new SuppressionAnalysisContext(Compilation, AnalyzerOptions,
                 reportedDiagnostics, _addSuppression, isSupportedSuppression, _getSemanticModel, cancellationToken);
 
             ExecuteAndCatchIfThrows(
                 suppressor,
-                data => data.action(data.context),
-                (action, context),
+                static data => data.suppressor.ReportSuppressions(data.context),
+                (suppressor, context),
                 new AnalysisContextInfo(Compilation),
                 cancellationToken);
         }
@@ -322,21 +328,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var addDiagnostic = GetAddCompilationDiagnostic(analyzer, cancellationToken);
 
-            using var _ = PooledDelegates.GetPooledFunction((d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct), (self: this, analyzer), out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
+                (self: this, analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+
+            // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
+            // can use the same instance across all actions.
+            var context = new CompilationAnalysisContext(
+                Compilation, AnalyzerOptions, addDiagnostic,
+                isSupportedDiagnostic, _compilationAnalysisValueProviderFactory, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation);
 
             foreach (var endAction in compilationActions)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var context = new CompilationAnalysisContext(
-                        Compilation, AnalyzerOptions, addDiagnostic,
-                        isSupportedDiagnostic, _compilationAnalysisValueProviderFactory, cancellationToken);
-
                 ExecuteAndCatchIfThrows(
                     endAction.Analyzer,
-                    data => data.action(data.context),
-                    (action: endAction.Action, context),
-                    new AnalysisContextInfo(Compilation),
+                    static data => data.endAction.Action(data.context),
+                    (endAction, context),
+                    contextInfo,
                     cancellationToken);
             }
         }
@@ -372,25 +382,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var symbol = symbolDeclaredEvent.Symbol;
             var addDiagnostic = GetAddDiagnostic(symbol, symbolDeclaredEvent.DeclaringSyntaxReferences, analyzer, getTopMostNodeForAnalysis, cancellationToken);
 
-            using var _ = PooledDelegates.GetPooledFunction((d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct), (self: this, analyzer), out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
+                (self: this, analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+
+            // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
+            // can use the same instance across all actions.
+            var context = new SymbolAnalysisContext(
+                symbol, Compilation, AnalyzerOptions, addDiagnostic,
+                isSupportedDiagnostic, isGeneratedCodeSymbol, filterTree,
+                filterSpan, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation, symbol);
 
             foreach (var symbolAction in symbolActions)
             {
-                var action = symbolAction.Action;
-                var kinds = symbolAction.Kinds;
+                cancellationToken.ThrowIfCancellationRequested();
 
-                if (kinds.Contains(symbol.Kind))
+                if (symbolAction.Kinds.Contains(symbol.Kind))
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var context = new SymbolAnalysisContext(symbol, Compilation, AnalyzerOptions, addDiagnostic,
-                        isSupportedDiagnostic, isGeneratedCodeSymbol, filterTree, filterSpan, cancellationToken);
-
                     ExecuteAndCatchIfThrows(
                         symbolAction.Analyzer,
-                        data => data.action(data.context),
-                        (action, context),
-                        new AnalysisContextInfo(Compilation, symbol),
+                        static data => data.symbolAction.Action(data.context),
+                        (symbolAction, context),
+                        contextInfo,
                         cancellationToken);
                 }
             }
@@ -477,22 +492,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var symbol = symbolDeclaredEvent.Symbol;
             var addDiagnostic = GetAddDiagnostic(symbol, symbolDeclaredEvent.DeclaringSyntaxReferences, analyzer, getTopMostNodeForAnalysis, cancellationToken);
 
-            using var _ = PooledDelegates.GetPooledFunction((d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct), (self: this, analyzer), out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
+                (self: this, analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+
+            // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
+            // can use the same instance across all actions.
+            var context = new SymbolAnalysisContext(symbol, Compilation, AnalyzerOptions, addDiagnostic,
+                isSupportedDiagnostic, isGeneratedCode, filterTree, filterSpan, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation, symbol);
 
             foreach (var symbolAction in symbolEndActions)
             {
-                var action = symbolAction.Action;
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var context = new SymbolAnalysisContext(symbol, Compilation, AnalyzerOptions, addDiagnostic,
-                    isSupportedDiagnostic, isGeneratedCode, filterTree, filterSpan, cancellationToken);
-
                 ExecuteAndCatchIfThrows(
                     symbolAction.Analyzer,
-                    data => data.action(data.context),
-                    (action, context),
-                    new AnalysisContextInfo(Compilation, symbol),
+                    static data => data.symbolAction.Action(data.context),
+                    (symbolAction, context),
+                    contextInfo,
                     cancellationToken);
             }
 
@@ -524,21 +541,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var diagReporter = GetAddSemanticDiagnostic(semanticModel.SyntaxTree, analyzer, cancellationToken);
 
-            using var _ = PooledDelegates.GetPooledFunction((d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct), (self: this, analyzer), out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
+                (self: this, analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+
+            // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
+            // can use the same instance across all actions.
+            var context = new SemanticModelAnalysisContext(
+                semanticModel, AnalyzerOptions, diagReporter.AddDiagnosticAction,
+                isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(semanticModel);
 
             foreach (var semanticModelAction in semanticModelActions)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var context = new SemanticModelAnalysisContext(semanticModel, AnalyzerOptions, diagReporter.AddDiagnosticAction,
-                    isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
-
-                // Catch Exception from action.
                 ExecuteAndCatchIfThrows(
                     semanticModelAction.Analyzer,
-                    data => data.action(data.context),
-                    (action: semanticModelAction.Action, context),
-                    new AnalysisContextInfo(semanticModel),
+                    static data => data.semanticModelAction.Action(data.context),
+                    (semanticModelAction, context),
+                    contextInfo,
                     cancellationToken);
             }
 
@@ -573,20 +594,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var diagReporter = GetAddSyntaxDiagnostic(file, analyzer, cancellationToken);
 
-            using var _ = PooledDelegates.GetPooledFunction((d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct), (self: this, analyzer), out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
+                (self: this, analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+
+            // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
+            // can use the same instance across all actions.
+            var context = new SyntaxTreeAnalysisContext(
+                tree, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic,
+                Compilation, filterSpan, isGeneratedCode, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation, file);
 
             foreach (var syntaxTreeAction in syntaxTreeActions)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var context = new SyntaxTreeAnalysisContext(tree, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, Compilation, filterSpan, isGeneratedCode, cancellationToken);
-
-                // Catch Exception from action.
                 ExecuteAndCatchIfThrows(
                     syntaxTreeAction.Analyzer,
-                    data => data.action(data.context),
-                    (action: syntaxTreeAction.Action, context),
-                    new AnalysisContextInfo(Compilation, file),
+                    static data => data.syntaxTreeAction.Action(data.context),
+                    (syntaxTreeAction, context),
+                    contextInfo,
                     cancellationToken);
             }
 
@@ -613,19 +639,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var diagReporter = GetAddSyntaxDiagnostic(file, analyzer, cancellationToken);
 
-            using var _ = PooledDelegates.GetPooledFunction((d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct), (self: this, analyzer), out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
+                (self: this, analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+
+            // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
+            // can use the same instance across all actions.
+            var context = new AdditionalFileAnalysisContext(
+                additionalFile, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic,
+                Compilation, filterSpan, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation, file);
+
             foreach (var additionalFileAction in additionalFileActions)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var context = new AdditionalFileAnalysisContext(additionalFile, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, Compilation, filterSpan, cancellationToken);
-
-                // Catch Exception from action.
                 ExecuteAndCatchIfThrows(
                     additionalFileAction.Analyzer,
-                    data => data.action(data.context),
-                    (action: additionalFileAction.Action, context),
-                    new AnalysisContextInfo(Compilation, file),
+                    static data => data.additionalFileAction.Action(data.context),
+                    (additionalFileAction, context),
+                    contextInfo,
                     cancellationToken);
             }
 
@@ -647,13 +679,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(!isGeneratedCode || !_shouldSkipAnalysisOnGeneratedCode(syntaxNodeAction.Analyzer));
             Debug.Assert(!IsAnalyzerSuppressedForTree(syntaxNodeAction.Analyzer, node.SyntaxTree, cancellationToken));
 
-            var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, containingSymbol, semanticModel, AnalyzerOptions, addDiagnostic,
-                    isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
+            var syntaxNodeContext = new SyntaxNodeAnalysisContext(
+                node, containingSymbol, semanticModel, AnalyzerOptions, addDiagnostic,
+                isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
 
             ExecuteAndCatchIfThrows(
                 syntaxNodeAction.Analyzer,
-                data => data.action(data.context),
-                (action: syntaxNodeAction.Action, context: syntaxNodeContext),
+                static data => data.syntaxNodeAction.Action(data.syntaxNodeContext),
+                (syntaxNodeAction, syntaxNodeContext),
                 new AnalysisContextInfo(Compilation, node),
                 cancellationToken);
         }
@@ -672,12 +705,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(!isGeneratedCode || !_shouldSkipAnalysisOnGeneratedCode(operationAction.Analyzer));
             Debug.Assert(!IsAnalyzerSuppressedForTree(operationAction.Analyzer, semanticModel.SyntaxTree, cancellationToken));
 
-            var operationContext = new OperationAnalysisContext(operation, containingSymbol, semanticModel.Compilation,
-                    AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, filterSpan, isGeneratedCode, cancellationToken);
+            var operationContext = new OperationAnalysisContext(
+                operation, containingSymbol, semanticModel.Compilation,
+                AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph,
+                filterSpan, isGeneratedCode, cancellationToken);
+
             ExecuteAndCatchIfThrows(
                 operationAction.Analyzer,
-                data => data.action(data.context),
-                (action: operationAction.Action, context: operationContext),
+                static data => data.operationAction.Action(data.operationContext),
+                (operationAction, operationContext),
                 new AnalysisContextInfo(Compilation, operation),
                 cancellationToken);
         }
@@ -686,9 +722,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Execute code block actions for the given analyzer for the given declaration.
         /// </summary>
         public void ExecuteCodeBlockActions<TLanguageKindEnum>(
-            IEnumerable<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> codeBlockStartActions,
-            IEnumerable<CodeBlockAnalyzerAction> codeBlockActions,
-            IEnumerable<CodeBlockAnalyzerAction> codeBlockEndActions,
+            ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> startActions,
+            ImmutableArray<CodeBlockAnalyzerAction> actions,
+            ImmutableArray<CodeBlockAnalyzerAction> endActions,
             DiagnosticAnalyzer analyzer,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
@@ -700,32 +736,101 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CancellationToken cancellationToken)
             where TLanguageKindEnum : struct
         {
-            ExecuteBlockActionsCore<CodeBlockStartAnalyzerAction<TLanguageKindEnum>, CodeBlockAnalyzerAction, SyntaxNodeAnalyzerAction<TLanguageKindEnum>, SyntaxNode, TLanguageKindEnum>(
-                codeBlockStartActions, codeBlockActions, codeBlockEndActions, analyzer,
-                declaredNode, declaredSymbol, executableCodeBlocks, (codeBlocks) => codeBlocks.SelectMany(
-                    cb =>
-                    {
-                        var filter = semanticModel.GetSyntaxNodesToAnalyzeFilter(cb, declaredSymbol);
+            Debug.Assert(!executableCodeBlocks.IsEmpty);
 
-                        if (filter is object)
+            // The actions we discover in 'addActions' and then execute in 'executeActions'.
+            var ephemeralActions = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance();
+            ExecuteBlockActionsCore(
+                startActions,
+                actions,
+                endActions,
+                analyzer,
+                declaredNode,
+                declaredSymbol,
+                semanticModel,
+                isGeneratedCode,
+                addActions: static (startAction, endActions, args, cancellationToken) =>
+                {
+                    var (@this, startActions, analyzer, declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind, filterSpan, isGeneratedCode, ephemeralActions) = args;
+
+                    var scope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>(startAction.Analyzer);
+                    var startContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(
+                        scope, declaredNode, declaredSymbol, semanticModel, @this.AnalyzerOptions, filterSpan, isGeneratedCode, cancellationToken);
+
+                    // Catch Exception from the start action.
+                    @this.ExecuteAndCatchIfThrows(
+                        startAction.Analyzer,
+                        static args => args.startAction.Action(args.startContext),
+                        argument: (startAction, startContext),
+                        new AnalysisContextInfo(@this.Compilation, declaredSymbol, declaredNode),
+                        cancellationToken);
+
+                    endActions.AddAll(scope.CodeBlockEndActions);
+                    ephemeralActions.AddRange(scope.SyntaxNodeActions);
+                },
+                executeActions: static (diagReporter, isSupportedDiagnostic, args, cancellationToken) =>
+                {
+                    var (@this, startActions, analyzer, declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind, filterSpan, isGeneratedCode, ephemeralActions) = args;
+                    if (ephemeralActions.Any())
+                    {
+                        var executableNodeActionsByKind = GetNodeActionsByKind(ephemeralActions);
+                        var syntaxNodesToAnalyze = ArrayBuilder<SyntaxNode>.GetInstance();
+
+                        foreach (var block in executableCodeBlocks)
                         {
-                            return cb.DescendantNodesAndSelf(descendIntoChildren: filter).Where(filter);
+                            var filter = semanticModel.GetSyntaxNodesToAnalyzeFilter(block, declaredSymbol);
+                            if (filter is not null)
+                            {
+                                foreach (var descendantNode in block.DescendantNodesAndSelf(descendIntoChildren: filter))
+                                {
+                                    if (filter(descendantNode))
+                                        syntaxNodesToAnalyze.Add(descendantNode);
+                                }
+                            }
+                            else
+                            {
+                                syntaxNodesToAnalyze.AddRange(block.DescendantNodesAndSelf());
+                            }
                         }
-                        else
-                        {
-                            return cb.DescendantNodesAndSelf();
-                        }
-                    }),
-                semanticModel, getKind, filterSpan, isGeneratedCode, cancellationToken);
+
+                        @this.ExecuteSyntaxNodeActions(
+                            syntaxNodesToAnalyze, executableNodeActionsByKind,
+                            analyzer, declaredSymbol, semanticModel, getKind, diagReporter,
+                            isSupportedDiagnostic, filterSpan, isGeneratedCode,
+                            hasCodeBlockStartOrSymbolStartActions: startActions.Any(),
+                            cancellationToken);
+                        syntaxNodesToAnalyze.Free();
+                    }
+                },
+                executeBlockActions: static (blockActions, diagReporter, isSupportedDiagnostic, args, cancellationToken) =>
+                {
+                    var (@this, startActions, analyzer, declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind, filterSpan, isGeneratedCode, ephemeralActions) = args;
+
+                    var context = new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel,
+                        @this.AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
+
+                    foreach (var blockAction in blockActions)
+                    {
+                        @this.ExecuteAndCatchIfThrows(
+                            blockAction.Analyzer,
+                            static data => data.blockAction.Action(data.context),
+                            (blockAction, context),
+                            new AnalysisContextInfo(@this.Compilation, declaredSymbol, declaredNode),
+                            cancellationToken);
+                    }
+                },
+                argument: (@this: this, startActions, analyzer, declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind, filterSpan, isGeneratedCode, ephemeralActions),
+                cancellationToken);
+            ephemeralActions.Free();
         }
 
         /// <summary>
         /// Execute operation block actions for the given analyzer for the given declaration.
         /// </summary>
         public void ExecuteOperationBlockActions(
-            IEnumerable<OperationBlockStartAnalyzerAction> operationBlockStartActions,
-            IEnumerable<OperationBlockAnalyzerAction> operationBlockActions,
-            IEnumerable<OperationBlockAnalyzerAction> operationBlockEndActions,
+            ImmutableArray<OperationBlockStartAnalyzerAction> startActions,
+            ImmutableArray<OperationBlockAnalyzerAction> actions,
+            ImmutableArray<OperationBlockAnalyzerAction> endActions,
             DiagnosticAnalyzer analyzer,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
@@ -736,36 +841,95 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool isGeneratedCode,
             CancellationToken cancellationToken)
         {
-            ExecuteBlockActionsCore<OperationBlockStartAnalyzerAction, OperationBlockAnalyzerAction, OperationAnalyzerAction, IOperation, int>(
-                operationBlockStartActions, operationBlockActions, operationBlockEndActions, analyzer,
-                declaredNode, declaredSymbol, operationBlocks, (blocks) => operations, semanticModel,
-                getKind: null, filterSpan, isGeneratedCode, cancellationToken);
+            Debug.Assert(!operationBlocks.IsEmpty);
+
+            // The actions we discover in 'addActions' and then execute in 'executeActions'.
+            var ephemeralActions = ArrayBuilder<OperationAnalyzerAction>.GetInstance();
+            ExecuteBlockActionsCore(
+                startActions,
+                actions,
+                endActions,
+                analyzer,
+                declaredNode,
+                declaredSymbol,
+                semanticModel,
+                isGeneratedCode,
+                addActions: static (startAction, endActions, args, cancellationToken) =>
+                {
+                    var (@this, startActions, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode, ephemeralActions) = args;
+                    var scope = new HostOperationBlockStartAnalysisScope(startAction.Analyzer);
+                    var startContext = new AnalyzerOperationBlockStartAnalysisContext(
+                        scope, operationBlocks, declaredSymbol, semanticModel.Compilation, @this.AnalyzerOptions,
+                        @this.GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
+
+                    // Catch Exception from the start action.
+                    @this.ExecuteAndCatchIfThrows(
+                        startAction.Analyzer,
+                        static args => args.startAction.Action(args.startContext),
+                        argument: (startAction, startContext),
+                        new AnalysisContextInfo(@this.Compilation, declaredSymbol),
+                        cancellationToken);
+
+                    endActions.AddAll(scope.OperationBlockEndActions);
+                    ephemeralActions.AddRange(scope.OperationActions);
+                },
+                executeActions: static (diagReporter, isSupportedDiagnostic, args, cancellationToken) =>
+                {
+                    var (@this, startActions, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode, ephemeralActions) = args;
+                    if (ephemeralActions.Any())
+                    {
+                        @this.ExecuteOperationActions(
+                            operations, GetOperationActionsByKind(ephemeralActions),
+                            analyzer, declaredSymbol, semanticModel, diagReporter,
+                            isSupportedDiagnostic, filterSpan, isGeneratedCode,
+                            hasOperationBlockStartOrSymbolStartActions: startActions.Any(),
+                            cancellationToken);
+                    }
+                },
+                executeBlockActions: static (blockActions, diagReporter, isSupportedDiagnostic, args, cancellationToken) =>
+                {
+                    var (@this, startActions, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode, ephemeralActions) = args;
+
+                    var context = new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, semanticModel.Compilation,
+                        @this.AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, @this.GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
+
+                    foreach (var blockAction in blockActions)
+                    {
+                        @this.ExecuteAndCatchIfThrows(
+                            blockAction.Analyzer,
+                            static data => data.blockAction.Action(data.context),
+                            (blockAction, context),
+                            new AnalysisContextInfo(@this.Compilation, declaredSymbol),
+                            cancellationToken);
+                    }
+                },
+                argument: (@this: this, startActions, analyzer, declaredNode, operationBlocks, declaredSymbol, operations, semanticModel, filterSpan, isGeneratedCode, ephemeralActions),
+                cancellationToken);
+            ephemeralActions.Free();
         }
 
-        private void ExecuteBlockActionsCore<TBlockStartAction, TBlockAction, TNodeAction, TNode, TLanguageKindEnum>(
-           IEnumerable<TBlockStartAction> startActions,
-           IEnumerable<TBlockAction> actions,
-           IEnumerable<TBlockAction> endActions,
-           DiagnosticAnalyzer analyzer,
-           SyntaxNode declaredNode,
-           ISymbol declaredSymbol,
-           ImmutableArray<TNode> executableBlocks,
-           Func<ImmutableArray<TNode>, IEnumerable<TNode>> getNodesToAnalyze,
-           SemanticModel semanticModel,
-           Func<SyntaxNode, TLanguageKindEnum>? getKind,
-           TextSpan? filterSpan,
-           bool isGeneratedCode,
-           CancellationToken cancellationToken)
-           where TLanguageKindEnum : struct
-           where TBlockStartAction : AnalyzerAction
-           where TBlockAction : AnalyzerAction
-           where TNodeAction : AnalyzerAction
+        private void ExecuteBlockActionsCore<TBlockStartAction, TBlockAction, TArgs>(
+            ImmutableArray<TBlockStartAction> startActions,
+            ImmutableArray<TBlockAction> actions,
+            ImmutableArray<TBlockAction> endActions,
+            DiagnosticAnalyzer analyzer,
+            SyntaxNode declaredNode,
+            ISymbol declaredSymbol,
+            SemanticModel semanticModel,
+            bool isGeneratedCode,
+            Action<TBlockStartAction, HashSet<TBlockAction>, TArgs, CancellationToken> addActions,
+            Action<AnalyzerDiagnosticReporter, Func<Diagnostic, CancellationToken, bool>, TArgs, CancellationToken> executeActions,
+            Action<HashSet<TBlockAction>, AnalyzerDiagnosticReporter, Func<Diagnostic, CancellationToken, bool>, TArgs, CancellationToken> executeBlockActions,
+            TArgs argument,
+            CancellationToken cancellationToken)
+            where TBlockStartAction : AnalyzerAction
+            where TBlockAction : AnalyzerAction
+            where TArgs : struct
         {
             Debug.Assert(declaredNode != null);
             Debug.Assert(declaredSymbol != null);
             Debug.Assert(CanHaveExecutableCodeBlock(declaredSymbol));
             Debug.Assert(startActions.Any() || endActions.Any() || actions.Any());
-            Debug.Assert(!executableBlocks.IsEmpty);
 
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
                 IsAnalyzerSuppressedForTree(analyzer, declaredNode.SyntaxTree, cancellationToken))
@@ -777,10 +941,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var blockEndActions = PooledHashSet<TBlockAction>.GetInstance();
             var blockActions = PooledHashSet<TBlockAction>.GetInstance();
-            var executableNodeActions = ArrayBuilder<TNodeAction>.GetInstance();
-            var syntaxNodeActions = executableNodeActions as ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>;
-            var operationActions = executableNodeActions as ArrayBuilder<OperationAnalyzerAction>;
-            ImmutableArray<IOperation> operationBlocks = executableBlocks[0] is IOperation ? (ImmutableArray<IOperation>)(object)executableBlocks : ImmutableArray<IOperation>.Empty;
 
             // Include the code block actions.
             blockActions.AddAll(actions);
@@ -792,140 +952,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Include the stateful actions.
             foreach (var startAction in startActions)
-            {
-                if (startAction is CodeBlockStartAnalyzerAction<TLanguageKindEnum> codeBlockStartAction)
-                {
-                    var codeBlockEndActions = blockEndActions as PooledHashSet<CodeBlockAnalyzerAction>;
-                    var codeBlockScope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>(startAction.Analyzer);
-                    var blockStartContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(
-                        codeBlockScope, declaredNode, declaredSymbol, semanticModel, AnalyzerOptions, filterSpan, isGeneratedCode, cancellationToken);
+                addActions(startAction, blockEndActions, argument, cancellationToken);
 
-                    // Catch Exception from the start action.
-                    ExecuteAndCatchIfThrows(
-                        startAction.Analyzer,
-                        data =>
-                        {
-                            data.action(data.context);
-                            data.blockEndActions?.AddAll(data.scope.CodeBlockEndActions);
-                            data.syntaxNodeActions?.AddRange(data.scope.SyntaxNodeActions);
-                        },
-                        (action: codeBlockStartAction.Action, context: blockStartContext, scope: codeBlockScope, blockEndActions: codeBlockEndActions, syntaxNodeActions),
-                        new AnalysisContextInfo(Compilation, declaredSymbol, declaredNode),
-                        cancellationToken);
-                }
-                else
-                {
-                    if (startAction is OperationBlockStartAnalyzerAction operationBlockStartAction)
-                    {
-                        var operationBlockEndActions = blockEndActions as PooledHashSet<OperationBlockAnalyzerAction>;
-                        var operationBlockScope = new HostOperationBlockStartAnalysisScope(startAction.Analyzer);
-                        var operationStartContext = new AnalyzerOperationBlockStartAnalysisContext(
-                            operationBlockScope, operationBlocks, declaredSymbol, semanticModel.Compilation, AnalyzerOptions,
-                            GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
-
-                        // Catch Exception from the start action.
-                        ExecuteAndCatchIfThrows(
-                            startAction.Analyzer,
-                            data =>
-                            {
-                                data.action(data.context);
-                                data.blockEndActions?.AddAll(data.scope.OperationBlockEndActions);
-                                data.operationActions?.AddRange(data.scope.OperationActions);
-                            },
-                            (action: operationBlockStartAction.Action, context: operationStartContext, scope: operationBlockScope, blockEndActions: operationBlockEndActions, operationActions: operationActions),
-                            new AnalysisContextInfo(Compilation, declaredSymbol),
-                            cancellationToken);
-                    }
-                }
-            }
-
-            using var _ = PooledDelegates.GetPooledFunction((d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct), (self: this, analyzer), out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
+                (self: this, analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
             // Execute stateful executable node analyzers, if any.
-            if (executableNodeActions.Any())
-            {
-                if (syntaxNodeActions != null)
-                {
-                    Debug.Assert(getKind != null);
+            executeActions(diagReporter, isSupportedDiagnostic, argument, cancellationToken);
 
-                    var executableNodeActionsByKind = GetNodeActionsByKind(syntaxNodeActions);
-                    var syntaxNodesToAnalyze = (IEnumerable<SyntaxNode>)getNodesToAnalyze(executableBlocks);
-                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
-                }
-                else if (operationActions != null)
-                {
-                    var operationActionsByKind = GetOperationActionsByKind(operationActions);
-                    var operationsToAnalyze = (IEnumerable<IOperation>)getNodesToAnalyze(executableBlocks);
-                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
-                }
-            }
-
-            executableNodeActions.Free();
-
-            ExecuteBlockActions(blockActions, declaredNode, declaredSymbol, analyzer, semanticModel, operationBlocks, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
-            ExecuteBlockActions(blockEndActions, declaredNode, declaredSymbol, analyzer, semanticModel, operationBlocks, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
+            executeBlockActions(blockActions, diagReporter, isSupportedDiagnostic, argument, cancellationToken);
+            executeBlockActions(blockEndActions, diagReporter, isSupportedDiagnostic, argument, cancellationToken);
 
             diagReporter.Free();
-        }
-
-        private void ExecuteBlockActions<TBlockAction>(
-            PooledHashSet<TBlockAction> blockActions,
-            SyntaxNode declaredNode,
-            ISymbol declaredSymbol,
-            DiagnosticAnalyzer analyzer,
-            SemanticModel semanticModel,
-            ImmutableArray<IOperation> operationBlocks,
-            Action<Diagnostic> addDiagnostic,
-            Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic,
-            TextSpan? filterSpan,
-            bool isGeneratedCode,
-            CancellationToken cancellationToken)
-            where TBlockAction : AnalyzerAction
-        {
-            Debug.Assert(!isGeneratedCode || !_shouldSkipAnalysisOnGeneratedCode(analyzer));
-            Debug.Assert(!IsAnalyzerSuppressedForTree(analyzer, declaredNode.SyntaxTree, cancellationToken));
-
-            foreach (var blockAction in blockActions)
-            {
-                var codeBlockAction = blockAction as CodeBlockAnalyzerAction;
-                if (codeBlockAction != null)
-                {
-                    var context = new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel,
-                        AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
-
-                    ExecuteAndCatchIfThrows(
-                        codeBlockAction.Analyzer,
-                        data => data.action(data.context),
-                        (action: codeBlockAction.Action, context: context),
-                        new AnalysisContextInfo(Compilation, declaredSymbol, declaredNode),
-                        cancellationToken);
-                }
-                else
-                {
-                    var operationBlockAction = blockAction as OperationBlockAnalyzerAction;
-                    if (operationBlockAction != null)
-                    {
-                        var context = new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, semanticModel.Compilation,
-                            AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, declaredNode.SyntaxTree, filterSpan, isGeneratedCode, cancellationToken);
-
-                        ExecuteAndCatchIfThrows(
-                            operationBlockAction.Analyzer,
-                            data => data.action(data.context),
-                            (action: operationBlockAction.Action, context),
-                            new AnalysisContextInfo(Compilation, declaredSymbol),
-                            cancellationToken);
-                    }
-                }
-            }
-
             blockActions.Free();
+            blockEndActions.Free();
         }
 
         internal static ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> GetNodeActionsByKind<TLanguageKindEnum>(
-            IEnumerable<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> nodeActions)
+            ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> nodeActions)
             where TLanguageKindEnum : struct
         {
-            Debug.Assert(nodeActions != null && nodeActions.Any());
+            if (nodeActions.IsEmpty)
+                return ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.Empty;
 
             var nodeActionsByKind = PooledDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.GetInstance();
             foreach (var nodeAction in nodeActions)
@@ -943,7 +993,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Execute syntax node actions for the given analyzer for the given declaration.
         /// </summary>
         public void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
-           IEnumerable<SyntaxNode> nodesToAnalyze,
+           ArrayBuilder<SyntaxNode> nodesToAnalyze,
            ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
            DiagnosticAnalyzer analyzer,
            SemanticModel model,
@@ -964,13 +1014,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var diagReporter = GetAddSemanticDiagnostic(model.SyntaxTree, spanForContainingTopmostNodeForAnalysis, analyzer, cancellationToken);
 
-            using var _ = PooledDelegates.GetPooledFunction((d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct), (self: this, analyzer), out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
+                (self: this, analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
             ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind, analyzer, declaredSymbol, model, getKind, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions, cancellationToken);
             diagReporter.Free();
         }
 
         private void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
-            IEnumerable<SyntaxNode> nodesToAnalyze,
+            ArrayBuilder<SyntaxNode> nodesToAnalyze,
             ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
             DiagnosticAnalyzer analyzer,
             ISymbol containingSymbol,
@@ -1014,9 +1067,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> GetOperationActionsByKind(IEnumerable<OperationAnalyzerAction> operationActions)
+        internal static ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> GetOperationActionsByKind(
+            ArrayBuilder<OperationAnalyzerAction> operationActions)
         {
-            Debug.Assert(operationActions.Any());
+            if (operationActions.IsEmpty)
+                return ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>.Empty;
 
             var operationActionsByKind = PooledDictionary<OperationKind, ArrayBuilder<OperationAnalyzerAction>>.GetInstance();
             foreach (var operationAction in operationActions)
@@ -1038,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// False, if there are some pending actions that are currently being executed on another thread.
         /// </returns>
         public void ExecuteOperationActions(
-            IEnumerable<IOperation> operationsToAnalyze,
+            ImmutableArray<IOperation> operationsToAnalyze,
             ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
             DiagnosticAnalyzer analyzer,
             SemanticModel model,
@@ -1057,13 +1112,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var diagReporter = GetAddSemanticDiagnostic(model.SyntaxTree, spanForContainingOperationBlock, analyzer, cancellationToken);
 
-            using var _ = PooledDelegates.GetPooledFunction((d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct), (self: this, analyzer), out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
+                (self: this, analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
             ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, model, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions, cancellationToken);
             diagReporter.Free();
         }
 
         private void ExecuteOperationActions(
-            IEnumerable<IOperation> operationsToAnalyze,
+            ImmutableArray<IOperation> operationsToAnalyze,
             ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
             DiagnosticAnalyzer analyzer,
             ISymbol containingSymbol,
@@ -1128,6 +1186,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void ExecuteAndCatchIfThrows<TArg>(DiagnosticAnalyzer analyzer, Action<TArg> analyze, TArg argument, AnalysisContextInfo? contextInfo, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             SharedStopwatch timer = default;
             if (_analyzerExecutionTimeMap != null)
             {
@@ -1191,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Exception, bool>? analyzerExceptionFilter,
             CancellationToken cancellationToken)
         {
-            if (!ExceptionFilter(exception, analyzerExceptionFilter, cancellationToken))
+            if (!exceptionFilter(exception, analyzerExceptionFilter, cancellationToken))
             {
                 return false;
             }
@@ -1209,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return true;
 
-            static bool ExceptionFilter(Exception ex, Func<Exception, bool>? analyzerExceptionFilter, CancellationToken cancellationToken)
+            static bool exceptionFilter(Exception ex, Func<Exception, bool>? analyzerExceptionFilter, CancellationToken cancellationToken)
             {
                 if ((ex as OperationCanceledException)?.CancellationToken == cancellationToken)
                 {
