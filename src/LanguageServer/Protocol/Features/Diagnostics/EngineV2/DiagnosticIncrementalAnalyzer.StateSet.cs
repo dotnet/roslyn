@@ -155,34 +155,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return changed;
             }
 
-            public bool OnDocumentRemoved(DocumentId id)
-            {
-                // remove active file state for removed document
-                var removed = false;
-                if (_activeFileStates.TryRemove(id, out _))
-                {
-                    removed = true;
-                }
-                // remove state for the file that got removed.
-                if (_projectStates.TryGetValue(id.ProjectId, out var state))
-                {
-                    removed |= state.OnDocumentRemoved(id);
-                }
-
-                return removed;
-            }
-
-            public bool OnProjectRemoved(ProjectId id)
-            {
-                // remove state for project that got removed.
-                if (_projectStates.TryRemove(id, out var state))
-                {
-                    return state.OnProjectRemoved(id);
-                }
-
-                return false;
-            }
-
             public void OnRemoved()
             {
                 // ths stateset is being removed.
