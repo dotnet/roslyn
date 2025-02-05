@@ -2,5 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Reflection;
+#if NET
 
+using System.Reflection;
+using System.Runtime.Loader;
+
+namespace Microsoft.CodeAnalysis
+{
+    /// <summary>
+    /// This interface allows hosts to control exactly how a given <see cref="AssemblyName"/> is resolved to an
+    /// <see cref="Assembly"/> instance. This is useful for hosts that need to load assemblies in a custom way like
+    /// Razor or stream based loading.
+    /// </summary>
+    internal interface IAnalyzerAssemblyResolver
+    {
+        /// <summary>
+        /// Resolve a <see cref="Assembly"/> for the given parameters.
+        /// </summary>
+        /// <param name="loader">The <see cref="AnalyzerAssemblyLoader"/> instance that is performing the load</param>
+        /// <param name="directoryContext">The <see cref="AssemblyLoadContext"/> for the current directory</param>
+        /// <param name="assemblyName">The name of the assembly to be loaded</param>
+        /// <param name="directory">The directory where the assembly is being loaded from</param>
+        /// <returns></returns>
+        Assembly? Resolve(AnalyzerAssemblyLoader loader, AssemblyName assemblyName, AssemblyLoadContext directoryContext, string directory);
+    }
+}
+
+#endif

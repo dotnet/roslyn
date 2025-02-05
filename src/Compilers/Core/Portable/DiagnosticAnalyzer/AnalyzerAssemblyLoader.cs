@@ -5,12 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis.ErrorReporting;
+using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -32,9 +31,14 @@ namespace Microsoft.CodeAnalysis
     }
 
     /// <summary>
+    /// This interface allows hosts to control where an analyzer is loaded from. It can redirect the path 
+    /// originally passed to the compiler to a new path. Or it can take ownership of a path to prevent 
+    /// other instances of <see cref="IAnalyzerPathResolver"/> from redirecting it.
+    /// </summary>
+    /// <remarks>
     /// Instances of this type will be accessed from multiple threads. All method implementations are expected 
     /// to be idempotent.
-    /// </summary>
+    /// </remarks>
     internal interface IAnalyzerPathResolver
     {
         /// <summary>
@@ -74,8 +78,7 @@ namespace Microsoft.CodeAnalysis
         private readonly object _guard = new();
 
         /// <summary>
-        /// This is a map between the original full path and what <see cref="IAnalyzerPathResolver"/>, if
-        /// any, handles it.
+        /// This is a map between the original full path and how it is represented in this loader.
         /// </summary>
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<string, (IAnalyzerPathResolver? Resolver, string RealPath, AssemblyName? AssemblyName)> _originalPathInfoMap = new();
 
         /// <summary>
-        /// This is a map between assembly simple names and the collection of original paths that map to them
+        /// This is a map between assembly simple names and the collection of original paths that map to them.
         /// </summary>
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
@@ -99,7 +102,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<string, string> _realToOriginalPathMap = new();
 
         /// <summary>
-        /// Whether or not we're disposed.  Once disposed, all functionality on this type should throw.
+        /// Whether or not we're disposed. Once disposed, all functionality on this type should throw.
         /// </summary>
         private bool _isDisposed;
 
@@ -171,7 +174,7 @@ namespace Microsoft.CodeAnalysis
                     //
                     // An example reason to map multiple original paths to the same real path would be to
                     // unify references.
-                    _realToOriginalPathMap.TryAdd(realPath, originalPath);
+                    _ = _realToOriginalPathMap.TryAdd(realPath, originalPath);
 
                     if (!_assemblySimpleNameToOriginalPathListMap.TryGetValue(simpleName, out var set))
                     {
@@ -228,7 +231,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public (string RealPath, AssemblyName? AssemblyName) GetRealAnalyzerPathAndName(string originalPath)
+        private (string RealPath, AssemblyName? AssemblyName) GetRealAnalyzerPathAndName(string originalPath)
         {
             lock (_guard)
             {
@@ -383,5 +386,69 @@ namespace Microsoft.CodeAnalysis
                 return _realToOriginalPathMap.Select(x => (x.Value, x.Key)).ToArray();
             }
         }
+
+#if NET
+        /// <summary>
+        /// Return an <see cref="IAnalyzerAssemblyLoader"/> which does not lock assemblies on disk that is
+        /// most appropriate for the current platform.
+        /// </summary>
+        /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
+        /// will be the base directory where shadow copy assemblies are stored. </param>
+        internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(
+            string windowsShadowPath,
+            ImmutableArray<IAnalyzerPathResolver> pathResolvers = default,
+            ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers = default,
+            System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null)
+        {
+            pathResolvers = pathResolvers.NullToEmpty();
+            assemblyResolvers = assemblyResolvers.NullToEmpty();
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return new AnalyzerAssemblyLoader(
+                    pathResolvers,
+                    [.. assemblyResolvers, StreamResolver.Instance],
+                    compilerLoadContext);
+            }
+
+            // The shadow copy analyzer should only be created on Windows. To create on Linux we cannot use 
+            // GetTempPath as it's not per-user. Generally there is no need as LoadFromStream achieves the same
+            // effect
+            if (!Path.IsPathRooted(windowsShadowPath))
+            {
+                throw new ArgumentException("Must be a full path.", nameof(windowsShadowPath));
+            }
+
+            return new AnalyzerAssemblyLoader(
+                [.. pathResolvers, new ProgramFilesAnalyzerPathResolver(), new ShadowCopyAnalyzerPathResolver(windowsShadowPath)],
+                [.. assemblyResolvers, DiskResolver.Instance],
+                compilerLoadContext);
+        }
+
+#else
+
+        /// <summary>
+        /// Return an <see cref="IAnalyzerAssemblyLoader"/> which does not lock assemblies on disk that is
+        /// most appropriate for the current platform.
+        /// </summary>
+        /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
+        /// will be the base directory where shadow copy assemblies are stored. </param>
+        internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(
+            string windowsShadowPath,
+            ImmutableArray<IAnalyzerPathResolver> pathResolvers = default)
+        {
+            pathResolvers = pathResolvers.NullToEmpty();
+
+            // The shadow copy analyzer should only be created on Windows. To create on Linux we cannot use 
+            // GetTempPath as it's not per-user. Generally there is no need as LoadFromStream achieves the same
+            // effect
+            if (!Path.IsPathRooted(windowsShadowPath))
+            {
+                throw new ArgumentException("Must be a full path.", nameof(windowsShadowPath));
+            }
+
+            return new AnalyzerAssemblyLoader([.. pathResolvers, new ProgramFilesAnalyzerPathResolver(), new ShadowCopyAnalyzerPathResolver(windowsShadowPath)]);
+        }
+#endif
     }
 }
