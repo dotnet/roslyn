@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -233,12 +232,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 AddToInMemoryStorage(serializerVersion, project, document: null, result.ProjectId, NonLocalStateName, result.GetOtherDiagnostics());
-            }
-
-            public void ResetVersion()
-            {
-                // reset version of cached data so that we can recalculate new data (ex, OnDocumentReset)
-                _lastResult = _lastResult.Reset();
             }
 
             public async ValueTask MergeAsync(ActiveFileState state, TextDocument document, IGlobalOptionService globalOptions)
