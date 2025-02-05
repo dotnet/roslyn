@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool IsBinaryStringConcatenation(BinaryOperatorKind binaryOperator)
             => binaryOperator is BinaryOperatorKind.StringConcatenation or BinaryOperatorKind.StringAndObjectConcatenation or BinaryOperatorKind.ObjectAndStringConcatenation;
 
-        private BoundExpression VisitCompoundAssignmentStringConcatenation(BoundExpression left, BoundExpression unvisitedRight, BinaryOperatorKind operatorKind, TypeSymbol resultType, SyntaxNode syntax)
+        private BoundExpression VisitCompoundAssignmentStringConcatenation(BoundExpression left, BoundExpression unvisitedRight, BinaryOperatorKind operatorKind, SyntaxNode syntax)
         {
             Debug.Assert(IsBinaryStringConcatenation(operatorKind));
             Debug.Assert(!_inExpressionLambda);

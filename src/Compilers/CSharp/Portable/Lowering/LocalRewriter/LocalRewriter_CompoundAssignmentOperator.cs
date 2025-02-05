@@ -145,7 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IsBinaryStringConcatenation(node.Operator.Kind))
                 {
                     Debug.Assert(!rightIsVisited);
-                    operand = VisitCompoundAssignmentStringConcatenation(opLHS, right, node.Operator.Kind, node.Operator.ReturnType, node.Syntax);
+                    Debug.Assert(node.Operator.ReturnType is { SpecialType: SpecialType.System_String });
+                    operand = VisitCompoundAssignmentStringConcatenation(opLHS, right, node.Operator.Kind, node.Syntax);
                 }
                 else
                 {
