@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(
-            Workspace workspace, ProjectId? projectId, DocumentId? documentId, CancellationToken cancellationToken)
+            Workspace workspace, ProjectId projectId, DocumentId? documentId, CancellationToken cancellationToken)
         {
             var analyzer = CreateIncrementalAnalyzer(workspace);
             return analyzer.GetCachedDiagnosticsAsync(workspace.CurrentSolution, projectId, documentId, cancellationToken);
@@ -107,14 +107,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-            Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocuments, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+            Solution solution, ProjectId projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocuments, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
         {
             var analyzer = CreateIncrementalAnalyzer(solution.Workspace);
             return analyzer.GetDiagnosticsForIdsAsync(solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, getDocuments, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
-            Solution solution, ProjectId? projectId, ImmutableHashSet<string>? diagnosticIds,
+            Solution solution, ProjectId projectId, ImmutableHashSet<string>? diagnosticIds,
             Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
             bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
         {
