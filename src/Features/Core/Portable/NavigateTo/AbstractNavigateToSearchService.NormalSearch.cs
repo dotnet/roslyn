@@ -8,8 +8,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -35,16 +38,16 @@ internal abstract partial class AbstractNavigateToSearchService
             await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                 document.Project,
                 (service, solutionInfo, callbackId, cancellationToken) =>
-                service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, [.. kinds], callbackId, cancellationToken),
+                service.SearchDocumentAndRelatedDocumentsAsync(solutionInfo, document.Id, searchPattern, [.. kinds], callbackId, cancellationToken),
                 callback, cancellationToken).ConfigureAwait(false);
 
             return;
         }
 
-        await SearchDocumentInCurrentProcessAsync(document, searchPattern, kinds, onItemsFound, cancellationToken).ConfigureAwait(false);
+        await SearchDocumentAndRelatedDocumentsInCurrentProcessAsync(document, searchPattern, kinds, onItemsFound, cancellationToken).ConfigureAwait(false);
     }
 
-    public static async Task SearchDocumentInCurrentProcessAsync(
+    public static Task SearchDocumentAndRelatedDocumentsInCurrentProcessAsync(
         Document document,
         string searchPattern,
         IImmutableSet<string> kinds,
@@ -54,12 +57,60 @@ internal abstract partial class AbstractNavigateToSearchService
         var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(searchPattern);
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-        var results = new ConcurrentSet<RoslynNavigateToItem>();
-        await SearchSingleDocumentAsync(
-            document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, t => results.Add(t), cancellationToken).ConfigureAwait(false);
+        // In parallel, search both the document requested, and any relevant 'related documents' we find for it.
 
-        if (results.Count > 0)
-            await onItemsFound([.. results], default, cancellationToken).ConfigureAwait(false);
+        return Task.WhenAll(
+            SearchDocumentsInCurrentProcessAsync([document]),
+            SearchRelatedDocumentsInCurrentProcessAsync());
+
+        Task SearchDocumentsInCurrentProcessAsync(ImmutableArray<Document> documents)
+            => ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
+                documents,
+                async (document, onItemFound, args, cancellationToken) => await SearchSingleDocumentAsync(
+                    document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken).ConfigureAwait(false),
+                onItemsFound,
+                args: default,
+                cancellationToken);
+
+        async Task SearchRelatedDocumentsInCurrentProcessAsync()
+        {
+            var relatedDocuments = await GetRelatedDocumentsAsync().ConfigureAwait(false);
+            await SearchDocumentsInCurrentProcessAsync(relatedDocuments).ConfigureAwait(false);
+        }
+
+        async Task<ImmutableArray<Document>> GetRelatedDocumentsAsync()
+        {
+            // For C#/VB we define 'related documents' as those containing types in the inheritance chain of types in
+            // the originating file (as well as all partial parts of the original and inheritance types).  This way a
+            // user can search for symbols scoped to the 'current document' and still get results for the members found
+            // in partial parts 
+
+            var solution = document.Project.Solution;
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var topLevelNodes);
+            using var _2 = PooledHashSet<Document>.GetInstance(out var relatedDocuments);
+
+            syntaxFacts.AddTopLevelMembers(root, topLevelNodes);
+
+            foreach (var topLevelMember in topLevelNodes)
+            {
+                if (semanticModel.GetDeclaredSymbol(topLevelMember, cancellationToken) is not INamedTypeSymbol namedTypeSymbol)
+                    continue;
+
+                foreach (var type in namedTypeSymbol.GetBaseTypesAndThis())
+                {
+                    foreach (var reference in type.DeclaringSyntaxReferences)
+                        relatedDocuments.AddIfNotNull(solution.GetDocument(reference.SyntaxTree));
+                }
+            }
+
+            // Ensure we don't search the original document we were already searching.
+            relatedDocuments.Remove(document);
+            return [.. relatedDocuments];
+        }
     }
 
     public async Task SearchProjectsAsync(
