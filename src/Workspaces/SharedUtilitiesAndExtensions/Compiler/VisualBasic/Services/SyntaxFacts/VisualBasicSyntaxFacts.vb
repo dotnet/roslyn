@@ -21,14 +21,12 @@ Imports Microsoft.CodeAnalysis.Editing
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
     Friend Class VisualBasicSyntaxFacts
+        Inherits AbstractSyntaxFacts
         Implements ISyntaxFacts
 
         Private Const DoesNotExistInVBErrorMessage = "This feature does not exist in VB"
 
         Public Shared ReadOnly Property Instance As New VisualBasicSyntaxFacts
-
-        ' Specifies false for trimOnFree as these objects commonly exceed the default ObjectPool threshold
-        Private Shared ReadOnly s_syntaxNodeListPool As ObjectPool(Of List(Of SyntaxNode)) = New ObjectPool(Of List(Of SyntaxNode))(Function() New List(Of SyntaxNode), trimOnFree:=False)
 
         Protected Sub New()
         End Sub
@@ -888,24 +886,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
         End Function
 
-        Public Function GetTopLevelAndMethodLevelMembers(root As SyntaxNode) As PooledObject(Of List(Of SyntaxNode)) Implements ISyntaxFacts.GetTopLevelAndMethodLevelMembers
-            Dim pooledList = PooledObject(Of List(Of SyntaxNode)).Create(s_syntaxNodeListPool)
-            Dim list = pooledList.Object
-
-            AppendMembers(root, list, topLevel:=True, methodLevel:=True)
-
-            Return pooledList
-        End Function
-
-        Public Function GetMethodLevelMembers(root As SyntaxNode) As PooledObject(Of List(Of SyntaxNode)) Implements ISyntaxFacts.GetMethodLevelMembers
-            Dim pooledList = PooledObject(Of List(Of SyntaxNode)).Create(s_syntaxNodeListPool)
-            Dim list = pooledList.Object
-
-            AppendMembers(root, list, topLevel:=False, methodLevel:=True)
-
-            Return pooledList
-        End Function
-
         Public Function GetMembersOfTypeDeclaration(typeDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfTypeDeclaration
             Return DirectCast(typeDeclaration, TypeBlockSyntax).Members
         End Function
@@ -1050,7 +1030,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             End If
         End Sub
 
-        Private Sub AppendMembers(node As SyntaxNode, list As List(Of SyntaxNode), topLevel As Boolean, methodLevel As Boolean)
+        Protected Overrides Sub AppendMembers(node As SyntaxNode, list As ArrayBuilder(Of SyntaxNode), topLevel As Boolean, methodLevel As Boolean)
             Debug.Assert(topLevel OrElse methodLevel)
 
             For Each member In node.GetMembers()
@@ -1997,6 +1977,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public Function GetTokenOfLiteralExpression(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetTokenOfLiteralExpression
             Return DirectCast(node, LiteralExpressionSyntax).Token
         End Function
+
+        Private Sub ISyntaxFacts_AddTopLevelAndMethodLevelMembers(root As SyntaxNode, result As ArrayBuilder(Of SyntaxNode)) Implements ISyntaxFacts.AddTopLevelAndMethodLevelMembers
+            AddTopLevelAndMethodLevelMembers(root, result)
+        End Sub
+
+        Private Sub ISyntaxFacts_AddTopLevelMembers(root As SyntaxNode, result As ArrayBuilder(Of SyntaxNode)) Implements ISyntaxFacts.AddTopLevelMembers
+            AddTopLevelMembers(root, result)
+        End Sub
+
+        Private Sub ISyntaxFacts_AddMethodLevelMembers(root As SyntaxNode, result As ArrayBuilder(Of SyntaxNode)) Implements ISyntaxFacts.AddMethodLevelMembers
+            AddMethodLevelMembers(root, result)
+        End Sub
 
 #End Region
 
