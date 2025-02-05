@@ -57,18 +57,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private async Task TextDocumentOpenAsync(TextDocument document, CancellationToken cancellationToken)
-        {
-            using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
-            {
-                var stateSets = _stateManager.GetStateSets(document.Project);
-
-                // can not be canceled
-                foreach (var stateSet in stateSets)
-                    await stateSet.OnDocumentOpenedAsync(document).ConfigureAwait(false);
-            }
-        }
-
         /// <summary>
         /// Return list of <see cref="StateSet"/> to be used for full solution analysis.
         /// </summary>
@@ -120,15 +108,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
             return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.CompilationOptions, arg.isHostAnalyzer ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project.CompilationOptions, isHostAnalyzer, analyzerConfigOptions));
-        }
-
-        public TestAccessor GetTestAccessor()
-            => new(this);
-
-        public readonly struct TestAccessor(DiagnosticIncrementalAnalyzer diagnosticIncrementalAnalyzer)
-        {
-            public Task TextDocumentOpenAsync(TextDocument document)
-                => diagnosticIncrementalAnalyzer.TextDocumentOpenAsync(document, CancellationToken.None);
         }
     }
 }

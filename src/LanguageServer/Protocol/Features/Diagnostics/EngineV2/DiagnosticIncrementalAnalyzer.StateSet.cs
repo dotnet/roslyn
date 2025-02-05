@@ -53,28 +53,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ProjectState GetOrCreateProjectState(ProjectId projectId)
                 => _projectStates.GetOrAdd(projectId, static (id, self) => new ProjectState(self, id), this);
 
-            public async Task<bool> OnDocumentOpenedAsync(TextDocument document)
-            {
-                // can not be cancelled
-                if (!TryGetProjectState(document.Project.Id, out var projectState) ||
-                    projectState.IsEmpty(document.Id))
-                {
-                    // nothing to do
-                    return false;
-                }
-
-                var result = await projectState.GetAnalysisDataAsync(document, avoidLoadingData: false, CancellationToken.None).ConfigureAwait(false);
-                var text = await document.GetValueTextAsync(CancellationToken.None).ConfigureAwait(false);
-
-                // store analysis result to active file state:
-                var activeFileState = GetOrCreateActiveFileState(document.Id);
-
-                activeFileState.Save(AnalysisKind.Syntax, new DocumentAnalysisData(result.Version, text.Lines.Count, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax)));
-                activeFileState.Save(AnalysisKind.Semantic, new DocumentAnalysisData(result.Version, text.Lines.Count, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic)));
-
-                return true;
-            }
-
             public void OnRemoved()
             {
                 // ths stateset is being removed.
