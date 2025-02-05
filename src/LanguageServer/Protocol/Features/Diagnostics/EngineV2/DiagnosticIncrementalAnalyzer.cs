@@ -40,7 +40,6 @@ internal partial class DiagnosticIncrementalAnalyzer
         Contract.ThrowIfNull(analyzerService);
 
         AnalyzerService = analyzerService;
-        Workspace = workspace;
         GlobalOptions = globalOptionService;
 
         _stateManager = new StateManager(workspace, analyzerInfoCache);
