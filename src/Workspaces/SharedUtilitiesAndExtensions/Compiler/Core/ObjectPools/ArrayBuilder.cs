@@ -6,6 +6,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects;
 
 internal sealed partial class ArrayBuilder<T> : IPooled
 {
+    private static readonly ObjectPool<ArrayBuilder<T>> s_keepLargeInstancesPool = CreatePool();
+
     public static PooledDisposer<ArrayBuilder<T>> GetInstance(out ArrayBuilder<T> instance)
         => GetInstance(discardLargeInstances: true, out instance);
 
@@ -23,28 +25,24 @@ internal sealed partial class ArrayBuilder<T> : IPooled
 
     public static PooledDisposer<ArrayBuilder<T>> GetInstance(bool discardLargeInstances, out ArrayBuilder<T> instance)
     {
-        instance = GetInstance();
+        // If we're discarding large instances (the default behavior), then just use the normal pool.  If we're not, use
+        // a specific pool so that *other* normal callers don't accidentally get it and discard it.
+        instance = discardLargeInstances ? GetInstance() : s_keepLargeInstancesPool.Allocate();
         return new PooledDisposer<ArrayBuilder<T>>(instance, discardLargeInstances);
     }
 
     void IPooled.Free(bool discardLargeInstances)
     {
-        var pool = _pool;
-        if (pool != null)
+        // If we're discarding large instances, use the default behavior (which already does that).  Otherwise, always
+        // clear and free the instance back to its originating pool.
+        if (discardLargeInstances)
         {
-            if (!discardLargeInstances || _builder.Capacity < PooledArrayLengthLimitExclusive)
-            {
-                if (this.Count != 0)
-                {
-                    this.Clear();
-                }
-
-                pool.Free(this);
-            }
-            else
-            {
-                pool.ForgetTrackedObject(this);
-            }
+            Free();
+        }
+        else
+        {
+            this.Clear();
+            _pool?.Free(this);
         }
     }
 }
