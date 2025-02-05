@@ -29,7 +29,6 @@ internal partial class DiagnosticIncrementalAnalyzer
     private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
 
     internal DiagnosticAnalyzerService AnalyzerService { get; }
-    internal Workspace Workspace { get; }
 
     [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
     public DiagnosticIncrementalAnalyzer(
