@@ -740,7 +740,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                 extern partial C();
             }
             """;
-        CompileAndVerify(source,
+        CompileAndVerifyWithMscorlib46(source,
             options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
             sourceSymbolValidator: verifySource,
             symbolValidator: verifyMetadata,
@@ -754,7 +754,36 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                     Type load failed.
                     """,
             })
-            .VerifyDiagnostics();
+            .VerifyDiagnostics()
+            .VerifyTypeIL("C", """
+                .class private auto ansi beforefieldinit C
+                    extends [mscorlib]System.Object
+                {
+                    // Methods
+                    .method private hidebysig specialname 
+                        instance void add_E (
+                            class [mscorlib]System.Action 'value'
+                        ) cil managed 
+                    {
+                    } // end of method C::add_E
+                    .method private hidebysig specialname 
+                        instance void remove_E (
+                            class [mscorlib]System.Action 'value'
+                        ) cil managed 
+                    {
+                    } // end of method C::remove_E
+                    .method private hidebysig specialname rtspecialname 
+                        instance void .ctor () cil managed 
+                    {
+                    } // end of method C::.ctor
+                    // Events
+                    .event [mscorlib]System.Action E
+                    {
+                        .addon instance void C::add_E(class [mscorlib]System.Action)
+                        .removeon instance void C::remove_E(class [mscorlib]System.Action)
+                    }
+                } // end of class C
+                """);
 
         static void verifySource(ModuleSymbol module)
         {
