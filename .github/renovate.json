@@ -37,6 +37,10 @@
 		},
 		{
 			"matchPackageNames": ["Microsoft.VisualStudio.*"],
+			"groupName": "Visual Studio SDK"
+		},
+		{
+			"matchPackageNames": ["Microsoft.VisualStudio.*"],
 			"matchUpdateTypes": ["patch"],
 			"enabled": false
 		}
