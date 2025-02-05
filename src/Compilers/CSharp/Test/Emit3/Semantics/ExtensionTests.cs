@@ -2104,6 +2104,7 @@ public class MyAttribute : System.Attribute { }
         var model = comp.GetSemanticModel(tree);
         var parameter = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
         var parameterSymbol = model.GetDeclaredSymbol(parameter);
+        // PROTOTYPE semantic model is undone
         Assert.Null(parameterSymbol);
         //AssertEx.SetEqual(["MyAttribute"], parameterSymbol.GetAttributes().Select(a => a.ToString()));
 

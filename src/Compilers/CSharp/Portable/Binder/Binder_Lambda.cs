@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using static Microsoft.CodeAnalysis.CSharp.Symbols.ParameterHelpers;
 
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
