@@ -8053,4 +8053,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExtensionDisallowsName" xml:space="preserve">
     <value>Extension declarations may not have a name.</value>
   </data>
+  <data name="ERR_ExtensionDisallowsMember" xml:space="preserve">
+    <value>Extension declarations can include only methods or properties</value>
+  </data>
+  <data name="ERR_BadExtensionContainingType" xml:space="preserve">
+    <value>Extensions must be declared in a top-level, non-generic, static class</value>
+  </data>
+  <data name="ERR_ExtensionParameterDisallowsDefaultValue" xml:space="preserve">
+    <value>The receiver parameter of an extension cannot have a default value</value>
+  </data>
+  <data name="ERR_ReceiverParameterOnlyOne" xml:space="preserve">
+    <value>An extension container can have only one receiver parameter</value>
+  </data>
 </root>

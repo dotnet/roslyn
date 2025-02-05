@@ -2480,6 +2480,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_ImplicitlyTypedParamsParameter
                 or ErrorCode.ERR_VariableDeclarationNamedField
                 or ErrorCode.ERR_ExtensionDisallowsName
+                or ErrorCode.ERR_ExtensionDisallowsMember
+                or ErrorCode.ERR_BadExtensionContainingType
+                or ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue
+                or ErrorCode.ERR_ReceiverParameterOnlyOne
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

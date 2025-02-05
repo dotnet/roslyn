@@ -2362,6 +2362,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PROTOTYPE compact error codes
         ERR_ExtensionDisallowsName = 9500,
+        ERR_ExtensionDisallowsMember = 9501,
+        ERR_BadExtensionContainingType = 9502,
+        ERR_ExtensionParameterDisallowsDefaultValue = 9503,
+        ERR_ReceiverParameterOnlyOne = 9504,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

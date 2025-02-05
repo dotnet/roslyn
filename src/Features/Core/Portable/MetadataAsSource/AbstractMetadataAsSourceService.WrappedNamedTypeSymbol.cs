@@ -144,6 +144,8 @@ internal abstract partial class AbstractMetadataAsSourceService
 
         public bool IsNativeIntegerType => _symbol.IsNativeIntegerType;
 
+        public bool IsExtension => _symbol.IsExtension;
+
         public bool IsFileLocal => _symbol.IsFileLocal;
 
         public INamedTypeSymbol NativeIntegerUnderlyingType => _symbol.NativeIntegerUnderlyingType;

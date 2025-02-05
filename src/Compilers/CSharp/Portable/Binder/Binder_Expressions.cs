@@ -497,7 +497,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundExpression valueBeforeConversion)
         {
             Debug.Assert(this.InParameterDefaultValue);
-            Debug.Assert(this.ContainingMemberOrLambda.Kind == SymbolKind.Method || this.ContainingMemberOrLambda.Kind == SymbolKind.Property);
+            Debug.Assert(this.ContainingMemberOrLambda.Kind == SymbolKind.Method
+                || this.ContainingMemberOrLambda.Kind == SymbolKind.Property
+                || this.ContainingMemberOrLambda is TypeSymbol { IsExtension: true });
 
             // UNDONE: The binding and conversion has to be executed in a checked context.
             Binder defaultValueBinder = this.GetBinder(defaultValueSyntax);

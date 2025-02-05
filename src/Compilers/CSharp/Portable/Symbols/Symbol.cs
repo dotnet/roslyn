@@ -648,10 +648,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case SymbolKind.NamedType:
-                        if (((NamedTypeSymbol)this).IsSubmissionClass)
+                        var namedType = (NamedTypeSymbol)this;
+                        if (namedType.IsSubmissionClass || namedType.IsExtension)
                         {
                             return false;
                         }
+
                         break;
 
                     case SymbolKind.Property:

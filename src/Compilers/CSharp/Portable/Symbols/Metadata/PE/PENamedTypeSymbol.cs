@@ -2323,6 +2323,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        // PROTOTYPE PE symbol is undone
+        internal override string ExtensionName
+            => throw ExceptionUtilities.Unreachable();
+
         public override bool IsReadOnly
         {
             get

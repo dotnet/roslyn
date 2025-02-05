@@ -201,6 +201,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        internal override string ExtensionName
+            => throw ExceptionUtilities.Unreachable();
+
         public sealed override bool IsReadOnly
         {
             get

@@ -494,6 +494,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
 
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the type: "&lt;E>__N".
+        /// </summary>
+        internal abstract string ExtensionName { get; }
 #nullable disable
 
         /// <summary>

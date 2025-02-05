@@ -205,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case TypeKind.Pointer:
                 case TypeKind.FunctionPointer:
+                case TypeKind.Extension:
                     result.Clear();
                     break;
 

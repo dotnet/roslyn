@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CompilationUnit:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.ClassDeclaration:
+                    // PROTOTYPE likely needs work for semantic model
                     return binder.BindMethodBody(node, diagnostics);
             }
 

@@ -292,54 +292,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers defaultAccess;
 
             // note: we give a specific diagnostic when a file-local type is nested
-            var allowedModifiers = DeclarationModifiers.AccessibilityMask | DeclarationModifiers.File;
-
-            if (containingSymbol.Kind == SymbolKind.Namespace)
+            DeclarationModifiers allowedModifiers;
+            if (typeKind == TypeKind.Extension)
             {
-                defaultAccess = DeclarationModifiers.Internal;
+                allowedModifiers = DeclarationModifiers.None;
+                defaultAccess = DeclarationModifiers.Public;
             }
             else
             {
-                allowedModifiers |= DeclarationModifiers.New;
+                allowedModifiers = DeclarationModifiers.AccessibilityMask | DeclarationModifiers.File;
 
-                if (((NamedTypeSymbol)containingSymbol).IsInterface)
+                if (containingSymbol.Kind == SymbolKind.Namespace)
                 {
-                    defaultAccess = DeclarationModifiers.Public;
+                    defaultAccess = DeclarationModifiers.Internal;
                 }
                 else
                 {
-                    defaultAccess = DeclarationModifiers.Private;
+                    allowedModifiers |= DeclarationModifiers.New;
+
+                    if (((NamedTypeSymbol)containingSymbol).IsInterface)
+                    {
+                        defaultAccess = DeclarationModifiers.Public;
+                    }
+                    else
+                    {
+                        defaultAccess = DeclarationModifiers.Private;
+                    }
                 }
-            }
 
-            switch (typeKind)
-            {
-                case TypeKind.Class:
-                case TypeKind.Submission:
-                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract
-                        | DeclarationModifiers.Unsafe;
+                switch (typeKind)
+                {
+                    case TypeKind.Class:
+                    case TypeKind.Submission:
+                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract
+                            | DeclarationModifiers.Unsafe;
 
-                    if (!this.IsRecord)
-                    {
-                        allowedModifiers |= DeclarationModifiers.Static;
-                    }
+                        if (!this.IsRecord)
+                        {
+                            allowedModifiers |= DeclarationModifiers.Static;
+                        }
 
-                    break;
-                case TypeKind.Struct:
-                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
+                        break;
+                    case TypeKind.Struct:
+                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
 
-                    if (!this.IsRecordStruct)
-                    {
-                        allowedModifiers |= DeclarationModifiers.Ref;
-                    }
+                        if (!this.IsRecordStruct)
+                        {
+                            allowedModifiers |= DeclarationModifiers.Ref;
+                        }
 
-                    break;
-                case TypeKind.Interface:
-                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
-                    break;
-                case TypeKind.Delegate:
-                    allowedModifiers |= DeclarationModifiers.Unsafe;
-                    break;
+                        break;
+                    case TypeKind.Interface:
+                        allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+                        break;
+                    case TypeKind.Delegate:
+                        allowedModifiers |= DeclarationModifiers.Unsafe;
+                        break;
+                }
             }
 
             bool modifierErrors;
@@ -371,9 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
                 case TypeKind.Struct:
                 case TypeKind.Enum:
-                    mods |= DeclarationModifiers.Sealed;
-                    break;
                 case TypeKind.Delegate:
+                case TypeKind.Extension:
                     mods |= DeclarationModifiers.Sealed;
                     break;
             }
@@ -614,6 +622,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishMemberChecks:
                         if (state.NotePartComplete(CompletionPart.StartMemberChecks))
                         {
+                            if (IsExtension && ((SourceNamedTypeSymbol)this).ExtensionParameter is { } parameter)
+                            {
+                                parameter.ForceComplete(locationOpt, filter: null, cancellationToken);
+                                // PROTOTYPE once we emit the parameter, we'll need to ensure we have the supporting attributes (for example, ParameterHelpers.EnsureNullableAttributeExists)
+                            }
+
                             var diagnostics = BindingDiagnosticBag.GetInstance();
                             AfterMembersChecks(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
@@ -1329,27 +1343,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var childDeclaration in declaration.Children)
                 {
                     var t = new SourceNamedTypeSymbol(this, childDeclaration, diagnostics);
-                    this.CheckMemberNameDistinctFromType(t, diagnostics);
-
-                    var key = (t.Name, t.Arity, t.AssociatedSyntaxTree);
-                    SourceNamedTypeSymbol? other;
-                    if (conflictDict.TryGetValue(key, out other))
+                    if (!t.IsExtension)
                     {
-                        if (Locations.Length == 1 || IsPartial)
+                        this.CheckMemberNameDistinctFromType(t, diagnostics);
+
+                        var key = (t.Name, t.Arity, t.AssociatedSyntaxTree);
+                        SourceNamedTypeSymbol? other;
+                        if (conflictDict.TryGetValue(key, out other))
                         {
-                            if (t.IsPartial && other.IsPartial)
+                            if (Locations.Length == 1 || IsPartial)
                             {
-                                diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, t.GetFirstLocation(), t);
-                            }
-                            else
-                            {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, t.GetFirstLocation(), this, t.Name);
+                                if (t.IsPartial && other.IsPartial)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, t.GetFirstLocation(), t);
+                                }
+                                else
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_DuplicateNameInClass, t.GetFirstLocation(), this, t.Name);
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        conflictDict.Add(key, t);
+                        else
+                        {
+                            conflictDict.Add(key, t);
+                        }
                     }
 
                     symbols.Add(t);
@@ -1785,9 +1802,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void AfterMembersChecks(BindingDiagnosticBag diagnostics)
         {
+            var compilation = DeclaringCompilation;
             if (IsInterface)
             {
                 CheckInterfaceMembers(this.GetMembersAndInitializers().NonTypeMembers, diagnostics);
+            }
+            else if (IsExtension)
+            {
+                CheckExtensionMembers(this.GetMembers(), diagnostics);
+
+                var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
+                if (((SourceNamedTypeSymbol)this).ExtensionParameter is { } parameter)
+                {
+                    parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics);
+                }
             }
 
             CheckMemberNamesDistinctFromType(diagnostics);
@@ -1810,7 +1838,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var location = GetFirstLocation();
-            var compilation = DeclaringCompilation;
 
             if (this.IsRefLikeType)
             {
@@ -2830,13 +2857,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool All<T>(SyntaxList<T> list, Func<T, bool> predicate) where T : CSharpSyntaxNode
         {
-            foreach (var t in list) { if (predicate(t)) return true; };
+            foreach (var t in list) { if (predicate(t)) return true; }
             return false;
         }
 
         private static bool ContainsModifier(SyntaxTokenList modifiers, SyntaxKind modifier)
         {
-            foreach (var m in modifiers) { if (m.IsKind(modifier)) return true; };
+            foreach (var m in modifiers) { if (m.IsKind(modifier)) return true; }
             return false;
         }
 
@@ -3558,6 +3585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
+                    case SyntaxKind.ExtensionDeclaration:
                         var typeDecl = (TypeDeclarationSyntax)syntax;
                         noteTypeParameters(typeDecl, builder, diagnostics);
                         AddNonTypeMembers(builder, typeDecl.Members, diagnostics);
@@ -3577,28 +3605,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
                 }
 
-                if (builder.DeclarationWithParameters is null)
+                if (!this.IsExtension)
                 {
-                    builder.DeclarationWithParameters = syntax;
-                    var ctor = new SynthesizedPrimaryConstructor(this, syntax);
-
-                    if (this.IsStatic)
+                    if (builder.DeclarationWithParameters is null)
                     {
-                        diagnostics.Add(ErrorCode.ERR_ConstructorInStaticClass, syntax.Identifier.GetLocation());
+                        builder.DeclarationWithParameters = syntax;
+                        var ctor = new SynthesizedPrimaryConstructor(this, syntax);
+
+                        if (this.IsStatic)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ConstructorInStaticClass, syntax.Identifier.GetLocation());
+                        }
+
+                        builder.PrimaryConstructor = ctor;
+
+                        var compilation = DeclaringCompilation;
+                        builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, parameterList);
+                        if (syntax is { PrimaryConstructorBaseTypeIfClass: { ArgumentList: { } baseParamList } })
+                        {
+                            builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, baseParamList);
+                        }
                     }
-
-                    builder.PrimaryConstructor = ctor;
-
-                    var compilation = DeclaringCompilation;
-                    builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, parameterList);
-                    if (syntax is { PrimaryConstructorBaseTypeIfClass: { ArgumentList: { } baseParamList } })
+                    else
                     {
-                        builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, baseParamList);
+                        diagnostics.Add(ErrorCode.ERR_MultipleRecordParameterLists, parameterList.Location);
                     }
-                }
-                else
-                {
-                    diagnostics.Add(ErrorCode.ERR_MultipleRecordParameterLists, parameterList.Location);
                 }
             }
         }
@@ -4100,6 +4131,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
+            }
+        }
+
+        private static void CheckExtensionMembers(ImmutableArray<Symbol> members, BindingDiagnosticBag diagnostics)
+        {
+            foreach (var member in members)
+            {
+                checkExtensionMember(member, diagnostics);
+            }
+
+            return;
+
+            static void checkExtensionMember(Symbol member, BindingDiagnosticBag diagnostics)
+            {
+                switch (member.Kind)
+                {
+                    case SymbolKind.Method:
+                        var meth = (MethodSymbol)member;
+                        switch (meth.MethodKind)
+                        {
+                            case MethodKind.Constructor:
+                            case MethodKind.Conversion:
+                            case MethodKind.UserDefinedOperator:
+                            case MethodKind.Destructor:
+                            case MethodKind.EventAdd:
+                            case MethodKind.EventRemove:
+                            case MethodKind.StaticConstructor:
+                                break;
+                            case MethodKind.ExplicitInterfaceImplementation:
+                                // error, but reported elsewhere
+                                return;
+                            case MethodKind.Ordinary:
+                            case MethodKind.PropertyGet:
+                            case MethodKind.PropertySet:
+                                return;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(meth.MethodKind);
+                        }
+                        break;
+
+                    case SymbolKind.Property:
+                        return;
+
+                    case SymbolKind.Field:
+                    case SymbolKind.Event:
+                    case SymbolKind.NamedType:
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                }
+
+                diagnostics.Add(ErrorCode.ERR_ExtensionDisallowsMember, member.GetFirstLocation());
             }
         }
 

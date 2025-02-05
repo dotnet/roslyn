@@ -5332,7 +5332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
                         SplitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: false);
                         return;
-                };
+                }
             }
         }
 
@@ -6648,6 +6648,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private FlowAnalysisAnnotations GetParameterAnnotations(ParameterSymbol parameter)
         {
+            if (parameter.ContainingSymbol is TypeSymbol { IsExtension: true })
+            {
+                // PROTOTYPE revisit when doing nullability analysis
+                return FlowAnalysisAnnotations.None;
+            }
+
             // Annotations are ignored when binding an attribute to avoid cycles. (Members used
             // in attributes are error scenarios, so missing warnings should not be important.)
             if (IsAnalyzingAttribute)

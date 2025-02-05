@@ -555,6 +555,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual bool IsNativeIntegerWrapperType => false;
 
+        public bool IsExtension
+            => TypeKind == TypeKind.Extension;
+
         internal bool IsNativeIntegerType => IsNativeIntegerWrapperType
             || (SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr && this.ContainingAssembly.RuntimeSupportsNumericIntPtr);
 
