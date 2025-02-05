@@ -571,7 +571,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Lang
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Threading", "src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.shproj", "{967723E8-4FDD-447B-99F6-4F8C47CB5433}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Threading.Package", "src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.Package.csproj", "{2559DAF9-784E-4C29-E0E1-70204B1FD56E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Threading.Package", "src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.Package.csproj", "{2559DAF9-784E-4C29-E0E1-70204B1FD56E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
