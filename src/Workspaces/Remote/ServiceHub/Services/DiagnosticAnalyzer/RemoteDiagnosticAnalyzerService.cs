@@ -73,7 +73,7 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
 
                     // save log for debugging
                     var diagnosticCount = result.Diagnostics.Sum(
-                        entry => entry.diagnosticMap.Syntax.Length + entry.diagnosticMap.Semantic.Length + entry.diagnosticMap.NonLocal.Length + entry.diagnosticMap.Other.Length);
+                        entry => entry.diagnosticMap.Syntax.Length + entry.diagnosticMap.Semantic.Length + entry.diagnosticMap.NonLocal.Length);
 
                     Log(TraceEventType.Information, $"diagnostics: {diagnosticCount}, telemetry: {result.Telemetry.Length}");
 

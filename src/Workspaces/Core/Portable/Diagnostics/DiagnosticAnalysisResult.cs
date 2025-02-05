@@ -44,11 +44,6 @@ internal readonly struct DiagnosticAnalysisResult
     /// </summary>
     private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? _nonLocals;
 
-    /// <summary>
-    /// Diagnostics that don't have locations.
-    /// </summary>
-    private readonly ImmutableArray<DiagnosticData> _others;
-
     private DiagnosticAnalysisResult(
         ProjectId projectId,
         VersionStamp version,
@@ -63,7 +58,6 @@ internal readonly struct DiagnosticAnalysisResult
         _syntaxLocals = null;
         _semanticLocals = null;
         _nonLocals = null;
-        _others = default;
     }
 
     private DiagnosticAnalysisResult(
@@ -72,10 +66,8 @@ internal readonly struct DiagnosticAnalysisResult
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocals,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocals,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocals,
-        ImmutableArray<DiagnosticData> others,
         ImmutableHashSet<DocumentId>? documentIds)
     {
-        Debug.Assert(!others.IsDefault);
         Debug.Assert(!syntaxLocals.Values.Any(item => item.IsDefault));
         Debug.Assert(!semanticLocals.Values.Any(item => item.IsDefault));
         Debug.Assert(!nonLocals.Values.Any(item => item.IsDefault));
@@ -86,10 +78,9 @@ internal readonly struct DiagnosticAnalysisResult
         _syntaxLocals = syntaxLocals;
         _semanticLocals = semanticLocals;
         _nonLocals = nonLocals;
-        _others = others;
 
         DocumentIds = documentIds ?? GetDocumentIds(syntaxLocals, semanticLocals, nonLocals);
-        IsEmpty = DocumentIds.IsEmpty && _others.IsEmpty;
+        IsEmpty = DocumentIds.IsEmpty;
     }
 
     public static DiagnosticAnalysisResult CreateEmpty(ProjectId projectId, VersionStamp version)
@@ -100,8 +91,7 @@ internal readonly struct DiagnosticAnalysisResult
             documentIds: [],
             syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
             semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-            others: []);
+            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty);
     }
 
     public static DiagnosticAnalysisResult CreateInitialResult(ProjectId projectId)
@@ -119,7 +109,6 @@ internal readonly struct DiagnosticAnalysisResult
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocalMap,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocalMap,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocalMap,
-        ImmutableArray<DiagnosticData> others,
         ImmutableHashSet<DocumentId>? documentIds)
     {
         VerifyDocumentMap(project, syntaxLocalMap);
@@ -132,7 +121,6 @@ internal readonly struct DiagnosticAnalysisResult
             syntaxLocalMap,
             semanticLocalMap,
             nonLocalMap,
-            others,
             documentIds);
     }
 
@@ -144,7 +132,6 @@ internal readonly struct DiagnosticAnalysisResult
             builder.SyntaxLocals,
             builder.SemanticLocals,
             builder.NonLocals,
-            builder.Others,
             builder.DocumentIds);
     }
 
@@ -177,7 +164,6 @@ internal readonly struct DiagnosticAnalysisResult
         Contract.ThrowIfNull(_syntaxLocals);
         Contract.ThrowIfNull(_semanticLocals);
         Contract.ThrowIfNull(_nonLocals);
-        Contract.ThrowIfTrue(_others.IsDefault);
 
         using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
 
@@ -188,9 +174,6 @@ internal readonly struct DiagnosticAnalysisResult
             builder.AddRange(data);
 
         foreach (var data in _nonLocals.Values)
-            builder.AddRange(data);
-
-        foreach (var data in _others)
             builder.AddRange(data);
 
         return builder.ToImmutableAndClear();
@@ -215,9 +198,6 @@ internal readonly struct DiagnosticAnalysisResult
         return [];
     }
 
-    public ImmutableArray<DiagnosticData> GetOtherDiagnostics()
-        => (IsAggregatedForm || IsEmpty) ? [] : _others;
-
     public DiagnosticAnalysisResult ToAggregatedForm()
         => new(ProjectId, Version, DocumentIds, IsEmpty);
 
@@ -239,7 +219,6 @@ internal readonly struct DiagnosticAnalysisResult
            _syntaxLocals,
            semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-           others: [],
            documentIds: null);
     }
 
