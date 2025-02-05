@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     // PERF: We need to flip this to false when we do actual diffing.
                     var avoidLoadingData = true;
-                    var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+                    var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
                     var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
 
-                    if (existingData.Version == version)
+                    if (existingData.Checksum == checksum)
                         return existingData;
 
                     var result = await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, stateSets, existingData.Result, cancellationToken).ConfigureAwait(false);
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // Now we run analyzers but filter out some information. So on such projects, there will be some perf degradation.
                     result = await RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(result, project, cancellationToken).ConfigureAwait(false);
 
-                    return new ProjectAnalysisData(project.Id, version, result);
+                    return new ProjectAnalysisData(project.Id, checksum, result);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
@@ -128,11 +128,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // PERF: check whether we can reduce number of analyzers we need to run.
                 //       this can happen since caller could have created the driver with different set of analyzers that are different
                 //       than what we used to create the cache.
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+                var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
 
                 var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
 
-                if (compilationWithAnalyzers != null && TryReduceAnalyzersToRun(compilationWithAnalyzers, version, existing, out var projectAnalyzersToRun, out var hostAnalyzersToRun))
+                if (compilationWithAnalyzers != null && TryReduceAnalyzersToRun(compilationWithAnalyzers, checksum, existing, out var projectAnalyzersToRun, out var hostAnalyzersToRun))
                 {
                     // it looks like we can reduce the set. create new CompilationWithAnalyzer.
                     // if we reduced to 0, we just pass in null for analyzer drvier. it could be reduced to 0
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             cancellationToken).ConfigureAwait(false);
 
                     var result = await ComputeDiagnosticsAsync(compilationWithReducedAnalyzers, project, ideAnalyzers, cancellationToken).ConfigureAwait(false);
-                    return MergeExistingDiagnostics(version, existing, result);
+                    return MergeExistingDiagnostics(checksum, existing, result);
                 }
 
                 // we couldn't reduce the set.
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private static ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> MergeExistingDiagnostics(
-            VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
+            Checksum checksum, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
         {
             // quick bail out.
             if (existing.IsEmpty)
@@ -171,10 +171,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             foreach (var (analyzer, results) in existing)
             {
-                if (results.Version != version)
-                {
+                if (results.Checksum != checksum)
                     continue;
-                }
 
                 result = result.SetItem(analyzer, results);
             }
@@ -183,7 +181,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private static bool TryReduceAnalyzersToRun(
-            CompilationWithAnalyzersPair compilationWithAnalyzers, VersionStamp version,
+            CompilationWithAnalyzersPair compilationWithAnalyzers,
+            Checksum checksum,
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
             out ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
             out ImmutableArray<DiagnosticAnalyzer> hostAnalyzers)
@@ -192,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 static (analyzer, arg) =>
                 {
                     if (arg.existing.TryGetValue(analyzer, out var analysisResult) &&
-                        analysisResult.Version == arg.version)
+                        analysisResult.Checksum == arg.checksum)
                     {
                         // we already have up to date result.
                         return false;
@@ -202,13 +201,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // open file only analyzer is always out of date for project wide data
                     return true;
                 },
-                (existing, version));
+                (existing, checksum));
 
             hostAnalyzers = compilationWithAnalyzers.HostAnalyzers.WhereAsArray(
                 static (analyzer, arg) =>
                 {
                     if (arg.existing.TryGetValue(analyzer, out var analysisResult) &&
-                        analysisResult.Version == arg.version)
+                        analysisResult.Checksum == arg.checksum)
                     {
                         // we already have up to date result.
                         return false;
@@ -218,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // open file only analyzer is always out of date for project wide data
                     return true;
                 },
-                (existing, version));
+                (existing, checksum));
 
             if (projectAnalyzers.Length == compilationWithAnalyzers.ProjectAnalyzers.Length
                 && hostAnalyzers.Length == compilationWithAnalyzers.HostAnalyzers.Length)
@@ -241,13 +240,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+                var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
 
-                (result, var failedDocuments) = await UpdateWithDocumentLoadAndGeneratorFailuresAsync(result, project, version, cancellationToken).ConfigureAwait(false);
+                (result, var failedDocuments) = await UpdateWithDocumentLoadAndGeneratorFailuresAsync(result, project, checksum, cancellationToken).ConfigureAwait(false);
 
                 foreach (var analyzer in ideAnalyzers)
                 {
-                    var builder = new DiagnosticAnalysisResultBuilder(project, version);
+                    var builder = new DiagnosticAnalysisResultBuilder(project, checksum);
 
                     switch (analyzer)
                     {
@@ -295,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private async Task<(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results, ImmutableHashSet<Document>? failedDocuments)> UpdateWithDocumentLoadAndGeneratorFailuresAsync(
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results,
             Project project,
-            VersionStamp version,
+            Checksum checksum,
             CancellationToken cancellationToken)
         {
             ImmutableHashSet<Document>.Builder? failedDocuments = null;
@@ -318,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 FileContentLoadAnalyzer.Instance,
                 DiagnosticAnalysisResult.Create(
                     project,
-                    version,
+                    checksum,
                     syntaxLocalMap: lazyLoadDiagnostics?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                     semanticLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                     nonLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
@@ -326,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     documentIds: null));
 
             var generatorDiagnostics = await _diagnosticAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-            var diagnosticResultBuilder = new DiagnosticAnalysisResultBuilder(project, version);
+            var diagnosticResultBuilder = new DiagnosticAnalysisResultBuilder(project, checksum);
             foreach (var generatorDiagnostic in generatorDiagnostics)
             {
                 // We'll always treat generator diagnostics that are associated with a tree as a local diagnostic, because
