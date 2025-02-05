@@ -143,10 +143,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // active file diagnostics:
-                if (documentId != null && kind != AnalysisKind.NonLocal && stateSet.TryGetActiveFileState(documentId, out var state))
-                {
-                    return state.GetAnalysisData(kind).Items;
-                }
+                if (documentId != null && kind != AnalysisKind.NonLocal && stateSet.IsActiveFile(documentId))
+                    return [];
 
                 // project diagnostics:
                 return await GetProjectStateDiagnosticsAsync(stateSet, project, documentId, kind, cancellationToken).ConfigureAwait(false);
@@ -172,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return [];
                     }
 
-                    var result = await state.GetAnalysisDataAsync(document, avoidLoadingData: false, cancellationToken).ConfigureAwait(false);
+                    var result = await state.GetAnalysisDataAsync(document, cancellationToken).ConfigureAwait(false);
                     return result.GetDocumentDiagnostics(documentId, kind);
                 }
 
