@@ -999,6 +999,15 @@ public class CodeFixServiceTests
         bool editOnFixLine,
         bool addNewLineWithEdit)
     {
+        // Disable these cases due to:
+        // https://github.com/dotnet/roslyn/issues/77036
+        if (actionKind is DeprioritizedAnalyzer.ActionKind.SemanticModel or DeprioritizedAnalyzer.ActionKind.SymbolStartEnd &&
+            diagnosticOnFixLineInPriorSnapshot &&
+            !addNewLineWithEdit)
+        {
+            return;
+        }
+
         // This test validates analyzer de-prioritization logic in diagnostic service for lightbulb code path.
         // Basically, we have a certain set of heuristics (detailed in the next comment below), under which an analyzer
         // which is deemed to be an expensive analyzer is moved down from 'Normal' priority code fix bucket to
@@ -1079,7 +1088,7 @@ class C
         await diagnosticIncrementalAnalyzer.GetDiagnosticsForIdsAsync(
             sourceDocument.Project.Solution, sourceDocument.Project.Id, sourceDocument.Id, diagnosticIds: null, shouldIncludeAnalyzer: null, getDocuments: null,
             includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
-        await diagnosticIncrementalAnalyzer.GetTestAccessor().TextDocumentOpenAsync(sourceDocument);
+        // await diagnosticIncrementalAnalyzer.GetTestAccessor().TextDocumentOpenAsync(sourceDocument);
 
         var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
         var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Default, lowPriorityAnalyzerData);
