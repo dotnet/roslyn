@@ -67,8 +67,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // PERF: avoid loading data if version is not right one.
                 // avoid loading data flag is there as a strictly perf optimization.
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                if (avoidLoadingData && lastResult.Version != version)
+                var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                if (avoidLoadingData && lastResult.Checksum != checksum)
                 {
                     return lastResult;
                 }
@@ -76,12 +76,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // if given project doesnt have any diagnostics, return empty.
                 if (lastResult.IsEmpty)
                 {
-                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
+                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Checksum);
                 }
 
                 // loading data can be canceled any time.
-                var serializerVersion = lastResult.Version;
-                var builder = new Builder(project, lastResult.Version, lastResult.DocumentIds);
+                var builder = new Builder(project, lastResult.Checksum, lastResult.DocumentIds);
 
                 foreach (var documentId in lastResult.DocumentIds)
                 {
@@ -91,9 +90,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (document == null)
                         continue;
 
-                    if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder))
+                    if (!TryGetDiagnosticsFromInMemoryStorage(lastResult.Checksum, document, builder))
                     {
-                        Debug.Assert(lastResult.Version == VersionStamp.Default);
+                        Debug.Assert(lastResult.Checksum == default);
 
                         // this can happen if we merged back active file diagnostics back to project state but
                         // project state didn't have diagnostics for the file yet. (since project state was staled)
@@ -101,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
 
-                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder))
+                if (!TryGetProjectDiagnosticsFromInMemoryStorage(lastResult.Checksum, project, builder))
                 {
                     // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
                     // analysis happened.
@@ -124,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return await LoadInitialAnalysisDataAsync(document, cancellationToken).ConfigureAwait(false);
                 }
 
-                var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                var version = await GetDiagnosticChecksumAsync(document.Project, cancellationToken).ConfigureAwait(false);
                 if (avoidLoadingData && lastResult.Version != version)
                 {
                     return lastResult;
