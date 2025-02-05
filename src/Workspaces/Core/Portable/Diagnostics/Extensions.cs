@@ -98,12 +98,14 @@ internal static partial class Extensions
           fileNameSpan.Equals("Microsoft.CodeAnalysis.VisualBasic.Features.dll".AsSpan(), StringComparison.OrdinalIgnoreCase);
     }
 
+    public static Task<Checksum> GetDiagnosticChecksumAsync(Project project, CancellationToken cancellationToken)
+        => project.GetDependentChecksumAsync(cancellationToken);
+
     public static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>> ToResultBuilderMapAsync(
         this AnalysisResultPair analysisResult,
         ImmutableArray<Diagnostic> additionalPragmaSuppressionDiagnostics,
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
-        Checksum checksum,
         ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
         ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
         SkippedHostAnalyzersInfo skippedAnalyzersInfo,
@@ -122,6 +124,8 @@ internal static partial class Extensions
                 additionalFileToAnalyze = documentAnalysisScope.AdditionalFile;
             }
         }
+
+        var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
 
         var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>();
         foreach (var analyzer in projectAnalyzers.ConcatFast(hostAnalyzers))

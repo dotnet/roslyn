@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 try
                 {
-                    var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                    var checksum = await Extensions.GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
                     var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, cancellationToken).ConfigureAwait(false);
 
                     if (existingData.Checksum == checksum)
@@ -126,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // PERF: check whether we can reduce number of analyzers we need to run.
                 //       this can happen since caller could have created the driver with different set of analyzers that are different
                 //       than what we used to create the cache.
-                var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                var checksum = await Extensions.GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
 
                 var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
 
@@ -238,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                var checksum = await Extensions.GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
 
                 (result, var failedDocuments) = await UpdateWithDocumentLoadAndGeneratorFailuresAsync(result, project, checksum, cancellationToken).ConfigureAwait(false);
 

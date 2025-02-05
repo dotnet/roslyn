@@ -55,9 +55,6 @@ internal partial class DiagnosticIncrementalAnalyzer
     public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
         => project.GetDependentVersionAsync(cancellationToken);
 
-    public static Task<Checksum> GetDiagnosticChecksumAsync(Project project, CancellationToken cancellationToken)
-        => project.GetDependentChecksumAsync(cancellationToken);
-
     private static DiagnosticAnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, Checksum checksum)
         => map.TryGetValue(analyzer, out var result) ? result : DiagnosticAnalysisResult.CreateEmpty(projectId, checksum);
 

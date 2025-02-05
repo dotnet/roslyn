@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // PERF: avoid loading data if version is not right one.
                 // avoid loading data flag is there as a strictly perf optimization.
-                var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                var checksum = await Extensions.GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
                 if (lastResult.Checksum != checksum)
                 {
                     return lastResult;
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return await LoadInitialAnalysisDataAsync(document, cancellationToken).ConfigureAwait(false);
                 }
 
-                var version = await GetDiagnosticChecksumAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                var version = await Extensions.GetDiagnosticChecksumAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
                 // if given document doesnt have any diagnostics, return empty.
                 if (IsEmpty(lastResult, document.Id))
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return await LoadInitialProjectAnalysisDataAsync(project, cancellationToken).ConfigureAwait(false);
                 }
 
-                var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                var checksum = await Extensions.GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
                 if (avoidLoadingData && lastResult.Checksum != checksum)
                 {
                     return lastResult;
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(Project project, CancellationToken cancellationToken)
             {
                 // loading data can be canceled any time.
-                var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                var checksum = await Extensions.GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
                 var builder = new Builder(project, checksum);
 
                 foreach (var document in project.Documents)
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // loading data can be canceled any time.
                 var project = document.Project;
 
-                var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                var checksum = await Extensions.GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
                 var builder = new Builder(project, checksum);
 
                 if (!TryGetDiagnosticsFromInMemoryStorage(checksum, document, builder))
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private async Task<DiagnosticAnalysisResult> LoadInitialProjectAnalysisDataAsync(Project project, CancellationToken cancellationToken)
             {
                 // loading data can be canceled any time.
-                var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                var checksum = await Extensions.GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
                 var builder = new Builder(project, checksum);
 
                 if (!TryGetProjectDiagnosticsFromInMemoryStorage(checksum, project, builder))
