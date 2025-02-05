@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Return all diagnostics for the given project stored in this state
             /// </summary>
-            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(Project project, bool avoidLoadingData, CancellationToken cancellationToken)
+            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(Project project, CancellationToken cancellationToken)
             {
                 // make a copy of last result.
                 var lastResult = _lastResult;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // PERF: avoid loading data if version is not right one.
                 // avoid loading data flag is there as a strictly perf optimization.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                if (avoidLoadingData && lastResult.Version != version)
+                if (lastResult.Version != version)
                 {
                     return lastResult;
                 }
