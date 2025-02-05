@@ -29,7 +29,6 @@ internal partial class DiagnosticIncrementalAnalyzer
     private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
 
     internal DiagnosticAnalyzerService AnalyzerService { get; }
-    internal Workspace Workspace { get; }
 
     [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
     public DiagnosticIncrementalAnalyzer(
@@ -41,7 +40,6 @@ internal partial class DiagnosticIncrementalAnalyzer
         Contract.ThrowIfNull(analyzerService);
 
         AnalyzerService = analyzerService;
-        Workspace = workspace;
         GlobalOptions = globalOptionService;
 
         _stateManager = new StateManager(workspace, analyzerInfoCache);
@@ -90,7 +88,4 @@ internal partial class DiagnosticIncrementalAnalyzer
 
     private static string GetProjectLogMessage(Project project, ImmutableArray<StateSet> stateSets)
         => $"project: ({project.Id}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
-
-    private static string GetOpenLogMessage(TextDocument document)
-        => $"document open: ({document.FilePath ?? document.Name})";
 }
