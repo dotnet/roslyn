@@ -13,9 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Test;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
@@ -35,7 +33,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 [Trait(Traits.Feature, Traits.Features.RemoteHost)]
 public class SolutionServiceTests
 {
-    private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
+    private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
     private static readonly TestComposition s_compositionWithFirstDocumentIsActiveAndVisible =
         s_composition.AddParts(typeof(FirstDocumentIsActiveAndVisibleDocumentTrackingService.Factory));
 
@@ -1153,7 +1151,7 @@ public class SolutionServiceTests
     {
         var code = @"class Test { void Method() { } }";
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_compositionWithFirstDocumentIsActiveAndVisible);
+        using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithFirstDocumentIsActiveAndVisible);
         using var remoteWorkspace = CreateRemoteWorkspace();
 
         var solution = workspace.CurrentSolution;
@@ -1167,8 +1165,7 @@ public class SolutionServiceTests
 
         // By creating a checksum updater, we should notify the remote workspace of the active document.
         var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
-        var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, threadingContext, CancellationToken.None);
+        var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
 
         var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 
@@ -1222,8 +1219,7 @@ public class SolutionServiceTests
         objectReference2_step1.AssertReleased();
 
         var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
-        var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, threadingContext, CancellationToken.None);
+        var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
 
         var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 

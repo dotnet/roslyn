@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -45,7 +44,6 @@ internal sealed class SolutionChecksumUpdater
     private readonly object _gate = new();
     private bool _isSynchronizeWorkspacePaused;
 
-    private readonly IThreadingContext _threadingContext;
     private readonly CancellationToken _shutdownToken;
 
     private const string SynchronizeTextChangesStatusSucceededMetricName = "SucceededCount";
@@ -56,7 +54,6 @@ internal sealed class SolutionChecksumUpdater
     public SolutionChecksumUpdater(
         Workspace workspace,
         IAsynchronousOperationListenerProvider listenerProvider,
-        IThreadingContext threadingContext,
         CancellationToken shutdownToken)
     {
         var listener = listenerProvider.GetListener(FeatureAttribute.SolutionChecksumUpdater);
@@ -66,7 +63,6 @@ internal sealed class SolutionChecksumUpdater
         _workspace = workspace;
         _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
-        _threadingContext = threadingContext;
         _shutdownToken = shutdownToken;
 
         _synchronizeWorkspaceQueue = new AsyncBatchingWorkQueue(
@@ -158,8 +154,10 @@ internal sealed class SolutionChecksumUpdater
             var newDocument = e.NewSolution.GetDocument(e.DocumentId);
 
             Debug.Assert(oldDocument != null && newDocument != null);
+
+            // Fire-and-forget to notify remote side of this document change event as quickly as possible.
             if (oldDocument != null && newDocument != null)
-                DispatchSynchronizeTextChanges(oldDocument, newDocument);
+                _ = DispatchSynchronizeTextChangesAsync(oldDocument, newDocument).ReportNonFatalErrorAsync();
         }
     }
 
@@ -205,7 +203,7 @@ internal sealed class SolutionChecksumUpdater
             cancellationToken).ConfigureAwait(false);
     }
 
-    private void DispatchSynchronizeTextChanges(
+    private async Task DispatchSynchronizeTextChangesAsync(
         Document oldDocument,
         Document newDocument)
     {
@@ -217,71 +215,69 @@ internal sealed class SolutionChecksumUpdater
         // execute DispatchSynchronizeTextChangesHelperAsync synchronously until no longer
         // possible. The hopefully common occurrence is that it is able to run synchronously
         // all the way until it fires off the RPC call notifying the remote side of the changes.
-        _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
-        {
-            var wasSynchronized = await DispatchSynchronizeTextChangesHelperAsync().ConfigureAwait(false);
-            if (wasSynchronized == null)
-                return;
-
-            var metricName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededMetricName : SynchronizeTextChangesStatusFailedMetricName;
-            var keyName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededKeyName : SynchronizeTextChangesStatusFailedKeyName;
-            TelemetryLogging.LogAggregatedCounter(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, KeyValueLogMessage.Create(m =>
-            {
-                m[TelemetryLogging.KeyName] = keyName;
-                m[TelemetryLogging.KeyValue] = 1L;
-                m[TelemetryLogging.KeyMetricName] = metricName;
-            }));
-
+        var wasSynchronized = await DispatchSynchronizeTextChangesHelperAsync().ConfigureAwait(false);
+        if (wasSynchronized == null)
             return;
 
-            async Task<bool?> DispatchSynchronizeTextChangesHelperAsync()
+        // Update aggregated telemetry with success status of sending the synchronization data.
+        var metricName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededMetricName : SynchronizeTextChangesStatusFailedMetricName;
+        var keyName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededKeyName : SynchronizeTextChangesStatusFailedKeyName;
+        TelemetryLogging.LogAggregatedCounter(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, KeyValueLogMessage.Create(m =>
+        {
+            m[TelemetryLogging.KeyName] = keyName;
+            m[TelemetryLogging.KeyValue] = 1L;
+            m[TelemetryLogging.KeyMetricName] = metricName;
+        }));
+
+        return;
+
+        async Task<bool?> DispatchSynchronizeTextChangesHelperAsync()
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, _shutdownToken).ConfigureAwait(false);
+            if (client == null)
             {
-                var client = await RemoteHostClient.TryGetClientAsync(_workspace, _shutdownToken).ConfigureAwait(false);
-                if (client == null)
-                {
-                    // null return value indicates that we were unable to synchronize the text changes, but to not log
-                    // telemetry against that inability as turning off OOP is not a failure.
-                    return null;
-                }
-
-                // this pushes text changes to the remote side if it can. this is purely perf optimization. whether this
-                // pushing text change worked or not doesn't affect feature's functionality.
-                //
-                // this basically see whether it can cheaply find out text changes between 2 snapshots, if it can, it will
-                // send out that text changes to remote side.
-                //
-                // the remote side, once got the text change, will again see whether it can use that text change information
-                // without any high cost and create new snapshot from it.
-                //
-                // otherwise, it will do the normal behavior of getting full text from VS side. this optimization saves
-                // times we need to do full text synchronization for typing scenario.
-                if (!oldDocument.TryGetText(out var oldText) ||
-                    !newDocument.TryGetText(out var newText))
-                {
-                    // we only support case where text already exist
-                    return false;
-                }
-
-                // Avoid allocating text before seeing if we can bail out.
-                var changeRanges = newText.GetChangeRanges(oldText).AsImmutable();
-                if (changeRanges.Length == 0)
-                    return true;
-
-                // no benefit here. pulling from remote host is more efficient
-                if (changeRanges is [{ Span.Length: var singleChangeLength }] && singleChangeLength == oldText.Length)
-                    return true;
-
-                var state = await oldDocument.State.GetStateChecksumsAsync(_shutdownToken).ConfigureAwait(false);
-                var newState = await newDocument.State.GetStateChecksumsAsync(_shutdownToken).ConfigureAwait(false);
-
-                var textChanges = newText.GetTextChanges(oldText).AsImmutable();
-
-                await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-                    (service, cancellationToken) => service.SynchronizeTextChangesAsync(oldDocument.Id, state.Text, textChanges, newState.Text, cancellationToken),
-                    _shutdownToken).ConfigureAwait(false);
-
-                return true;
+                // null return value indicates that we were unable to synchronize the text changes, but to not log
+                // telemetry against that inability as turning off OOP is not a failure.
+                return null;
             }
-        });
+
+            // this pushes text changes to the remote side if it can. this is purely perf optimization. whether this
+            // pushing text change worked or not doesn't affect feature's functionality.
+            //
+            // this basically see whether it can cheaply find out text changes between 2 snapshots, if it can, it will
+            // send out that text changes to remote side.
+            //
+            // the remote side, once got the text change, will again see whether it can use that text change information
+            // without any high cost and create new snapshot from it.
+            //
+            // otherwise, it will do the normal behavior of getting full text from VS side. this optimization saves
+            // times we need to do full text synchronization for typing scenario.
+            if (!oldDocument.TryGetText(out var oldText) ||
+                !newDocument.TryGetText(out var newText))
+            {
+                // we only support case where text already exist
+                return false;
+            }
+
+            // Avoid allocating text before seeing if we can bail out.
+            var changeRanges = newText.GetChangeRanges(oldText).AsImmutable();
+            if (changeRanges.Length == 0)
+                return true;
+
+            // no benefit here. pulling from remote host is more efficient
+            if (changeRanges is [{ Span.Length: var singleChangeLength }] && singleChangeLength == oldText.Length)
+                return true;
+
+            var state = await oldDocument.State.GetStateChecksumsAsync(_shutdownToken).ConfigureAwait(false);
+            var newState = await newDocument.State.GetStateChecksumsAsync(_shutdownToken).ConfigureAwait(false);
+
+            var textChanges = newText.GetTextChanges(oldText).AsImmutable();
+
+            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+                (service, cancellationToken) => service.SynchronizeTextChangesAsync(oldDocument.Id, state.Text, textChanges, newState.Text, cancellationToken),
+                _shutdownToken).ConfigureAwait(false);
+
+            return true;
+        }
     }
 }

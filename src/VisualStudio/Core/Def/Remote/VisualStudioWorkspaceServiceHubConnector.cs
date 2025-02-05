@@ -7,7 +7,6 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
@@ -23,11 +22,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class VisualStudioWorkspaceServiceHubConnector(
-    IAsynchronousOperationListenerProvider listenerProvider, IThreadingContext threadingContext) : IEventListener
+    IAsynchronousOperationListenerProvider listenerProvider) : IEventListener
 {
     private readonly IAsynchronousOperationListenerProvider _listenerProvider = listenerProvider;
     private readonly CancellationTokenSource _disposalCancellationSource = new();
-    private readonly IThreadingContext _threadingContext = threadingContext;
 
     private Task<RemoteHostClient?>? _remoteClientInitializationTask;
     private SolutionChecksumUpdater? _checksumUpdater;
@@ -40,7 +38,7 @@ internal sealed class VisualStudioWorkspaceServiceHubConnector(
         }
 
         // only push solution snapshot from primary (VS) workspace:
-        _checksumUpdater = new SolutionChecksumUpdater(workspace, _listenerProvider, _threadingContext, _disposalCancellationSource.Token);
+        _checksumUpdater = new SolutionChecksumUpdater(workspace, _listenerProvider, _disposalCancellationSource.Token);
 
         // start launching remote process, so that the first service that needs it doesn't need to wait for it:
         var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();

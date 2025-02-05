@@ -8,8 +8,6 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class RemoteHostClientServiceFactoryTests
     {
-        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
+        private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
 
         private static AdhocWorkspace CreateWorkspace()
             => new(s_composition.GetHostServices());
@@ -37,9 +35,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var exportProvider = workspace.Services.SolutionServices.ExportProvider;
             var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
-            var threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
 
-            var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, threadingContext, CancellationToken.None);
+            var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 
             // make sure client is ready
