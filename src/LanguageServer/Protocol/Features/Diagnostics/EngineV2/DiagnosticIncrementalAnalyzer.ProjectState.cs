@@ -42,12 +42,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ImmutableHashSet<DocumentId> GetDocumentsWithDiagnostics()
                 => _lastResult.DocumentIdsOrEmpty;
 
-            public bool IsEmpty()
-                => _lastResult.IsEmpty;
-
-            public bool IsEmpty(DocumentId documentId)
-                => IsEmpty(_lastResult, documentId);
-
             /// <summary>
             /// Return all diagnostics for the given project stored in this state
             /// </summary>
