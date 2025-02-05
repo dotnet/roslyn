@@ -73,7 +73,7 @@ internal interface IDiagnosticAnalyzerService
     /// project must be analyzed to get the complete set of non-local document diagnostics.
     /// </param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocumentIds, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
+    Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocumentIds, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
     /// Get project diagnostics (diagnostics with no source location) of the given diagnostic ids and/or analyzers from
@@ -91,7 +91,7 @@ internal interface IDiagnosticAnalyzerService
     /// Entire project must be analyzed to get the complete set of non-local diagnostics.
     /// </param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
+    Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
     /// Return up to date diagnostics for the given span for the document
@@ -149,7 +149,7 @@ internal static class IDiagnosticAnalyzerServiceExtensions
     }
 
     public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-        this IDiagnosticAnalyzerService service, Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+        this IDiagnosticAnalyzerService service, Solution solution, ProjectId projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
     {
         return service.GetDiagnosticsForIdsAsync(
             solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, getDocumentIds: null,
