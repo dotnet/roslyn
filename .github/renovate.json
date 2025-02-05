@@ -34,6 +34,11 @@
 		{
 			"matchPackageNames": ["Microsoft.VisualStudio.Internal.MicroBuild*"],
 			"groupName": "microbuild"
+		},
+		{
+			"matchPackageNames": ["Microsoft.VisualStudio.*"],
+			"matchUpdateTypes": ["patch"],
+			"enabled": false
 		}
 	]
 }
