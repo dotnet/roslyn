@@ -10892,6 +10892,46 @@ public struct Vec4
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_InstanceMethod_Chained()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                scoped var r1 = new R();
+                scoped var r2 = new R();
+                new C().Set(111).To(ref r1);
+                new C().Set(222).To(ref r2);
+                Report(r1.F, r2.F);
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                class C
+                {
+                    public R Set([UnscopedRef] in int x)
+                    {
+                        var r = new R();
+                        r.F = ref x;
+                        return r;
+                    }
+                }
+
+                ref struct R
+                {
+                    public ref readonly int F;
+                    public void To(ref R r)
+                    {
+                        r.F = ref F;
+                    }
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.Fails)
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
         public void RefTemp_Escapes_FunctionPointer()
         {
             var source = """
