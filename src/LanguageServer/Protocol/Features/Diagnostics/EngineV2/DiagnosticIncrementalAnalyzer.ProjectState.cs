@@ -279,18 +279,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _lastResult = _lastResult.UpdateAggregatedResult(version, state.DocumentId);
             }
 
-            public bool OnDocumentRemoved(DocumentId id)
-            {
-                RemoveInMemoryCacheEntries(id);
-                return !IsEmpty(id);
-            }
-
-            public bool OnProjectRemoved(ProjectId id)
-            {
-                RemoveInMemoryCacheEntry(id, NonLocalStateName);
-                return !IsEmpty();
-            }
-
             private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(Project project, CancellationToken cancellationToken)
             {
                 // loading data can be canceled any time.

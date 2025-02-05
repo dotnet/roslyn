@@ -51,11 +51,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            public static void DropCache(DiagnosticAnalyzer analyzer)
-            {
-                // drop any cache related to given analyzer
-                s_map.TryRemove(analyzer, out _);
-            }
 
             // make sure key is either documentId or projectId
             private static void AssertKey((object key, string stateKey) key)

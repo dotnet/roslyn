@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,123 +69,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 => TryGetProjectStateSets(project) ?? await UpdateProjectStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
 
             /// <summary>
-            /// Creates a new project state sets.
-            /// </summary>
-            private ProjectAnalyzerStateSets CreateProjectStateSets(Project project)
-            {
-                if (project.AnalyzerReferences.Count == 0)
-                {
-                    return ProjectAnalyzerStateSets.Default;
-                }
-
-                var hostAnalyzers = project.Solution.SolutionState.Analyzers;
-                var analyzersPerReference = hostAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project);
-                if (analyzersPerReference.Count == 0)
-                {
-                    return ProjectAnalyzerStateSets.Default;
-                }
-
-                var newMap = CreateStateSetMap(project.Language, analyzersPerReference.Values, [], includeWorkspacePlaceholderAnalyzers: false);
-                var skippedAnalyzersInfo = project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
-                return new ProjectAnalyzerStateSets(project.AnalyzerReferences, analyzersPerReference, newMap, skippedAnalyzersInfo);
-            }
-
-            /// <summary>
             /// Updates the map to the given project snapshot.
             /// </summary>
             private async Task<ProjectAnalyzerStateSets> UpdateProjectStateSetsAsync(Project project, CancellationToken cancellationToken)
             {
-                ProjectAnalyzerReferenceChangedEventArgs? analyzerReferenceChangedEventArgs = null;
-                ProjectAnalyzerStateSets? projectStateSets;
-
                 // This code is called concurrently for a project, so the guard prevents duplicated effort calculating StateSets.
                 using (await _projectAnalyzerStateMapGuard.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    projectStateSets = TryGetProjectStateSets(project);
+                    var projectStateSets = TryGetProjectStateSets(project);
 
                     if (projectStateSets == null)
                     {
                         projectStateSets = CreateProjectStateSets(project);
 
-                        analyzerReferenceChangedEventArgs = GetProjectAnalyzerReferenceChangedEventArgs(project, projectStateSets.Value.MapPerReferences, projectStateSets.Value.StateSetMap);
-
                         // update cache. 
                         _projectAnalyzerStateMap = _projectAnalyzerStateMap.SetItem(project.Id, projectStateSets.Value);
                     }
+
+                    return projectStateSets.Value;
                 }
 
-                if (analyzerReferenceChangedEventArgs != null)
-                    RaiseProjectAnalyzerReferenceChanged(analyzerReferenceChangedEventArgs);
-
-                return projectStateSets.Value;
-            }
-
-            private ProjectAnalyzerReferenceChangedEventArgs? GetProjectAnalyzerReferenceChangedEventArgs(
-                Project project,
-                ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> newMapPerReference,
-                ImmutableDictionary<DiagnosticAnalyzer, StateSet> newMap)
-            {
-                // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
-                if (!_projectAnalyzerStateMap.TryGetValue(project.Id, out var entry))
+                ProjectAnalyzerStateSets CreateProjectStateSets(Project project)
                 {
-                    // no previous references and we still don't have any references
-                    if (newMap.Count == 0)
-                    {
-                        return null;
-                    }
+                    if (project.AnalyzerReferences.Count == 0)
+                        return ProjectAnalyzerStateSets.Default;
 
-                    // new reference added
-                    return new ProjectAnalyzerReferenceChangedEventArgs(project, newMap.Values.ToImmutableArrayOrEmpty(), []);
+                    var hostAnalyzers = project.Solution.SolutionState.Analyzers;
+                    var analyzersPerReference = hostAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project);
+                    if (analyzersPerReference.Count == 0)
+                        return ProjectAnalyzerStateSets.Default;
+
+                    var newMap = CreateStateSetMap(project.Language, analyzersPerReference.Values, [], includeWorkspacePlaceholderAnalyzers: false);
+                    var skippedAnalyzersInfo = project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
+                    return new ProjectAnalyzerStateSets(project.AnalyzerReferences, analyzersPerReference, newMap, skippedAnalyzersInfo);
                 }
-
-                Debug.Assert(!entry.AnalyzerReferences.Equals(project.AnalyzerReferences));
-
-                // there has been change. find out what has changed
-                var addedStates = DiffStateSets(project.AnalyzerReferences.Except(entry.AnalyzerReferences), newMapPerReference, newMap);
-                var removedStates = DiffStateSets(entry.AnalyzerReferences.Except(project.AnalyzerReferences), entry.MapPerReferences, entry.StateSetMap);
-
-                // nothing has changed
-                if (addedStates.Length == 0 && removedStates.Length == 0)
-                {
-                    return null;
-                }
-
-                return new ProjectAnalyzerReferenceChangedEventArgs(project, addedStates, removedStates);
-            }
-
-            private static ImmutableArray<StateSet> DiffStateSets(
-                IEnumerable<AnalyzerReference> references,
-                ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> mapPerReference,
-                ImmutableDictionary<DiagnosticAnalyzer, StateSet> map)
-            {
-                if (mapPerReference.Count == 0 || map.Count == 0)
-                {
-                    // nothing to diff
-                    return [];
-                }
-
-                var builder = ImmutableArray.CreateBuilder<StateSet>();
-                foreach (var reference in references)
-                {
-                    // check duplication
-                    if (!mapPerReference.TryGetValue(reference.Id, out var analyzers))
-                    {
-                        continue;
-                    }
-
-                    // okay, this is real reference. get stateset
-                    foreach (var analyzer in analyzers)
-                    {
-                        if (!map.TryGetValue(analyzer, out var set))
-                        {
-                            continue;
-                        }
-
-                        builder.Add(set);
-                    }
-                }
-
-                return builder.ToImmutableAndClear();
             }
         }
     }
