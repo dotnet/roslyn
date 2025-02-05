@@ -110,13 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.GetFirstLocation());
                     }
                 }
-                else if (!this.IsAbstract)
+                else if (!this.IsAbstract && !this.IsPartial)
                 {
                     diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.GetFirstLocation(), this);
                 }
             }
 
-            if (this.IsPartialDefinition)
+            if (this.IsPartial)
             {
                 _addMethod = new SourceEventDefinitionAccessorSymbol(this, isAdder: true, diagnostics);
                 _removeMethod = new SourceEventDefinitionAccessorSymbol(this, isAdder: false, diagnostics);

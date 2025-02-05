@@ -663,6 +663,38 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void InInterface()
+    {
+        var source = """
+            partial interface I
+            {
+                partial event System.Action E;
+                partial event System.Action E { add { } remove { } }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,37): error CS8701: Target runtime doesn't support default interface implementation.
+            //     partial event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(4, 37),
+            // (4,45): error CS8701: Target runtime doesn't support default interface implementation.
+            //     partial event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(4, 45));
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net60, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            // (3,33): error CS8703: The modifier 'partial' is not valid for this item in C# 7.0. Please use language version 'preview' or greater.
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "E").WithArguments("partial", "7.0", "preview").WithLocation(3, 33),
+            // (4,37): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
+            //     partial event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(4, 37),
+            // (4,45): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
+            //     partial event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "8.0").WithLocation(4, 45));
+    }
+
+    [Fact]
     public void Abstract()
     {
         var source = """
