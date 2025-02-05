@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private string GetAnalyzerShadowDirectory(string analyzerFilePath)
         {
-            var orignalDirName = Path.GetFileName(Path.GetDirectoryName(analyzerFilePath))!;
+            var orignalDirName = Path.GetDirectoryName(analyzerFilePath)!;
             var shadowDirName = _directoryMap.GetOrAdd(orignalDirName, _ => Interlocked.Increment(ref _directoryCount)).ToString();
             return Path.Combine(_shadowDirectory, shadowDirName);
         }

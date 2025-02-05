@@ -86,4 +86,26 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
         var shadow2Path = PathResolver.GetRealAnalyzerPath(analyzer2Path);
         Assert.Equal(Path.GetDirectoryName(shadow1Path), Path.GetDirectoryName(shadow2Path));
     }
+
+    [Fact]
+    public void GetRealPath_GroupOnDirectory()
+    {
+        var dir = TempRoot.CreateDirectory().Path;
+        var group1AnalyzerPath = createAnalyzer("group1", "analyzer.dll");
+        var group2AnalyzerPath = createAnalyzer("group2", "analyzer.dll");
+        var group1ShadowPath = PathResolver.GetRealAnalyzerPath(group1AnalyzerPath);
+        var group2ShadowPath = PathResolver.GetRealAnalyzerPath(group2AnalyzerPath);
+        Assert.NotEqual(group1ShadowPath, group2ShadowPath);
+        Assert.Equal("group1-analyzer.dll", File.ReadAllText(group1ShadowPath));
+        Assert.Equal("group2-analyzer.dll", File.ReadAllText(group2ShadowPath));
+
+        string createAnalyzer(string groupName, string name)
+        {
+            var groupDir = Path.Combine(dir, groupName, "analyzers");
+            _ = Directory.CreateDirectory(groupDir);
+            var filePath = Path.Combine(groupDir, name);
+            File.WriteAllText(filePath, $"{Path.GetFileName(groupName)}-{name}");
+            return filePath;
+        }
+    }
 }
