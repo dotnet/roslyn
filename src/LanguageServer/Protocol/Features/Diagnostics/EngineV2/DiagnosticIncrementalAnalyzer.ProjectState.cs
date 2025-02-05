@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var version = await GetDiagnosticChecksumAsync(document.Project, cancellationToken).ConfigureAwait(false);
-                if (avoidLoadingData && lastResult.Version != version)
+                if (avoidLoadingData && lastResult.Checksum != version)
                 {
                     return lastResult;
                 }
@@ -132,16 +132,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // if given document doesnt have any diagnostics, return empty.
                 if (IsEmpty(lastResult, document.Id))
                 {
-                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
+                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Checksum);
                 }
 
                 // loading data can be canceled any time.
-                var serializerVersion = lastResult.Version;
-                var builder = new Builder(document.Project, lastResult.Version);
+                var serializerChecksum = lastResult.Checksum;
+                var builder = new Builder(document.Project, lastResult.Checksum);
 
-                if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder))
+                if (!TryGetDiagnosticsFromInMemoryStorage(serializerChecksum, document, builder))
                 {
-                    Debug.Assert(lastResult.Version == VersionStamp.Default);
+                    Debug.Assert(lastResult.Checksum == default);
 
                     // this can happen if we merged back active file diagnostics back to project state but
                     // project state didn't have diagnostics for the file yet. (since project state was staled)
@@ -164,8 +164,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return await LoadInitialProjectAnalysisDataAsync(project, cancellationToken).ConfigureAwait(false);
                 }
 
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                if (avoidLoadingData && lastResult.Version != version)
+                var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                if (avoidLoadingData && lastResult.Checksum != checksum)
                 {
                     return lastResult;
                 }
@@ -173,14 +173,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // if given document doesn't have any diagnostics, return empty.
                 if (lastResult.IsEmpty)
                 {
-                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
+                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Checksum);
                 }
 
                 // loading data can be canceled any time.
-                var serializerVersion = lastResult.Version;
-                var builder = new Builder(project, lastResult.Version);
+                var serializerChecksum = lastResult.Checksum;
+                var builder = new Builder(project, lastResult.Checksum);
 
-                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder))
+                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerChecksum, project, builder))
                 {
                     // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
                     // analysis happened.
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _lastResult = result.ToAggregatedForm();
 
                 // serialization can't be canceled.
-                var serializerVersion = result.Version;
+                var checksum = result.Checksum;
 
                 foreach (var documentId in documentIdsToProcess)
                 {
@@ -228,21 +228,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    AddToInMemoryStorage(serializerVersion, new(document.Id), SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax));
-                    AddToInMemoryStorage(serializerVersion, new(document.Id), SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic));
-                    AddToInMemoryStorage(serializerVersion, new(document.Id), NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal));
+                    AddToInMemoryStorage(checksum, new(document.Id), SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax));
+                    AddToInMemoryStorage(checksum, new(document.Id), SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic));
+                    AddToInMemoryStorage(checksum, new(document.Id), NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal));
                 }
 
-                AddToInMemoryStorage(serializerVersion, new(result.ProjectId), NonLocalStateName, result.GetOtherDiagnostics());
+                AddToInMemoryStorage(checksum, new(result.ProjectId), NonLocalStateName, result.GetOtherDiagnostics());
             }
 
             private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(Project project, CancellationToken cancellationToken)
             {
                 // loading data can be canceled any time.
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                var builder = new Builder(project, version);
-
                 var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                var builder = new Builder(project, checksum);
+
                 foreach (var document in project.Documents)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -252,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 if (!TryGetProjectDiagnosticsFromInMemoryStorage(checksum, project, builder))
-                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
+                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, checksum: default);
 
                 return builder.ToResult();
             }
@@ -262,12 +261,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // loading data can be canceled any time.
                 var project = document.Project;
 
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                var builder = new Builder(project, version);
-
                 var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                var builder = new Builder(project, checksum);
+
                 if (!TryGetDiagnosticsFromInMemoryStorage(checksum, document, builder))
-                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
+                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, default);
 
                 return builder.ToResult();
             }
@@ -275,12 +273,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private async Task<DiagnosticAnalysisResult> LoadInitialProjectAnalysisDataAsync(Project project, CancellationToken cancellationToken)
             {
                 // loading data can be canceled any time.
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                var builder = new Builder(project, version);
-
                 var checksum = await GetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                var builder = new Builder(project, checksum);
+
                 if (!TryGetProjectDiagnosticsFromInMemoryStorage(checksum, project, builder))
-                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
+                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, checksum: default);
 
                 return builder.ToResult();
             }
@@ -358,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private sealed class Builder
             {
                 private readonly Project _project;
-                private readonly VersionStamp _version;
+                private readonly Checksum _checksum;
                 private readonly ImmutableHashSet<DocumentId>? _documentIds;
 
                 private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _syntaxLocals;
@@ -366,10 +363,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _nonLocals;
                 private ImmutableArray<DiagnosticData> _others;
 
-                public Builder(Project project, VersionStamp version, ImmutableHashSet<DocumentId>? documentIds = null)
+                public Builder(Project project, Checksum checksum, ImmutableHashSet<DocumentId>? documentIds = null)
                 {
                     _project = project;
-                    _version = version;
+                    _checksum = checksum;
                     _documentIds = documentIds;
                 }
 
@@ -398,7 +395,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 public DiagnosticAnalysisResult ToResult()
                 {
-                    return DiagnosticAnalysisResult.Create(_project, _version,
+                    return DiagnosticAnalysisResult.Create(
+                        _project,
+                        _checksum,
                         _syntaxLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _semanticLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _nonLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,

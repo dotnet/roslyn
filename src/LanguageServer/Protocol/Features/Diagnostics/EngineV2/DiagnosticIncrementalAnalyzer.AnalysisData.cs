@@ -41,7 +41,7 @@ internal partial class DiagnosticIncrementalAnalyzer
         /// </summary>
         public readonly ImmutableArray<DiagnosticData> OldItems;
 
-        public DocumentAnalysisData(VersionStamp version, int lineCount, ImmutableArray<DiagnosticData> items)
+        public DocumentAnalysisData(Checksum checksum, int lineCount, ImmutableArray<DiagnosticData> items)
         {
             Debug.Assert(!items.IsDefault);
 

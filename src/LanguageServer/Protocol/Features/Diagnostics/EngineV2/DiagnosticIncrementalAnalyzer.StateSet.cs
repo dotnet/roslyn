@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // store analysis result to active file state:
                 var activeFileState = GetOrCreateActiveFileState(document.Id);
 
-                activeFileState.Save(AnalysisKind.Syntax, new DocumentAnalysisData(result.Version, text.Lines.Count, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax)));
-                activeFileState.Save(AnalysisKind.Semantic, new DocumentAnalysisData(result.Version, text.Lines.Count, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic)));
+                activeFileState.Save(AnalysisKind.Syntax, new DocumentAnalysisData(result.Checksum, text.Lines.Count, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax)));
+                activeFileState.Save(AnalysisKind.Semantic, new DocumentAnalysisData(result.Checksum, text.Lines.Count, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic)));
 
                 return true;
             }
