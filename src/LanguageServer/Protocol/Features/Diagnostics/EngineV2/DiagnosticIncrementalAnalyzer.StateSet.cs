@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public readonly DiagnosticAnalyzer Analyzer;
             public readonly bool IsHostAnalyzer;
 
-            private readonly ConcurrentDictionary<DocumentId, ActiveFileState> _activeFileStates;
+            private readonly ConcurrentSet<DocumentId> _activeDocuments;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
 
             public StateSet(string language, DiagnosticAnalyzer analyzer, bool isHostAnalyzer)
@@ -34,21 +34,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Analyzer = analyzer;
                 IsHostAnalyzer = isHostAnalyzer;
 
-                _activeFileStates = new ConcurrentDictionary<DocumentId, ActiveFileState>(concurrencyLevel: 2, capacity: 10);
+                _activeDocuments = [];
                 _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
             }
 
             public bool IsActiveFile(DocumentId documentId)
-                => _activeFileStates.ContainsKey(documentId);
-
-            public bool TryGetActiveFileState(DocumentId documentId, [NotNullWhen(true)] out ActiveFileState? state)
-                => _activeFileStates.TryGetValue(documentId, out state);
+                => _activeDocuments.Contains(documentId);
 
             public bool TryGetProjectState(ProjectId projectId, [NotNullWhen(true)] out ProjectState? state)
                 => _projectStates.TryGetValue(projectId, out state);
 
-            public ActiveFileState GetOrCreateActiveFileState(DocumentId documentId)
-                => _activeFileStates.GetOrAdd(documentId, id => new ActiveFileState(id));
+            public void AddActiveDocument(DocumentId documentId)
+                => _activeDocuments.Add(documentId);
 
             public ProjectState GetOrCreateProjectState(ProjectId projectId)
                 => _projectStates.GetOrAdd(projectId, static (id, self) => new ProjectState(self, id), this);

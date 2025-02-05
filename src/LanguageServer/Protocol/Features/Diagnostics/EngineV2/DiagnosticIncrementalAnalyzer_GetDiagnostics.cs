@@ -143,10 +143,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // active file diagnostics:
-                if (documentId != null && kind != AnalysisKind.NonLocal && stateSet.TryGetActiveFileState(documentId, out var state))
-                {
-                    return state.GetAnalysisData(kind).Items;
-                }
+                if (documentId != null && kind != AnalysisKind.NonLocal && stateSet.IsActiveFile(documentId))
+                    return [];
 
                 // project diagnostics:
                 return await GetProjectStateDiagnosticsAsync(stateSet, project, documentId, kind, cancellationToken).ConfigureAwait(false);
