@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return [];
                     }
 
-                    var result = await state.GetAnalysisDataAsync(document, avoidLoadingData: false, cancellationToken).ConfigureAwait(false);
+                    var result = await state.GetAnalysisDataAsync(document, cancellationToken).ConfigureAwait(false);
                     return result.GetDocumentDiagnostics(documentId, kind);
                 }
 

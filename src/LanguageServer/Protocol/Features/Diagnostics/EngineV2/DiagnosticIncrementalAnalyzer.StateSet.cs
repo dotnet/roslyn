@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return false;
                 }
 
-                var result = await projectState.GetAnalysisDataAsync(document, avoidLoadingData: false, CancellationToken.None).ConfigureAwait(false);
+                var result = await projectState.GetAnalysisDataAsync(document, CancellationToken.None).ConfigureAwait(false);
                 var text = await document.GetValueTextAsync(CancellationToken.None).ConfigureAwait(false);
 
                 // store analysis result to active file state:
