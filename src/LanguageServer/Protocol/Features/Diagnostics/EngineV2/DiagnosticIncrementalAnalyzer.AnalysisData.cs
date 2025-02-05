@@ -70,31 +70,31 @@ internal partial class DiagnosticIncrementalAnalyzer
         public readonly ProjectId ProjectId;
 
         /// <summary>
-        /// Version of the Items
+        /// Checksum of the project diagnostics were computed for.
         /// </summary>
-        public readonly VersionStamp Version;
+        public readonly Checksum Checksum;
 
         /// <summary>
         /// Current data that matches the version
         /// </summary>
         public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result;
 
-        public ProjectAnalysisData(ProjectId projectId, VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
+        public ProjectAnalysisData(ProjectId projectId, Checksum checksum, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
         {
             ProjectId = projectId;
-            Version = version;
+            Checksum = checksum;
             Result = result;
         }
 
         public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
-            => GetResultOrEmpty(Result, analyzer, ProjectId, Version);
+            => GetResultOrEmpty(Result, analyzer, ProjectId, Checksum);
 
         public bool TryGetResult(DiagnosticAnalyzer analyzer, out DiagnosticAnalysisResult result)
             => Result.TryGetValue(analyzer, out result);
 
         public static async Task<ProjectAnalysisData> CreateAsync(Project project, ImmutableArray<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
         {
-            VersionStamp? version = null;
+            Checksum? checksum = null;
 
             var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
             foreach (var stateSet in stateSets)
@@ -103,28 +103,28 @@ internal partial class DiagnosticIncrementalAnalyzer
                 var result = await state.GetAnalysisDataAsync(project, avoidLoadingData, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfFalse(project.Id == result.ProjectId);
 
-                if (!version.HasValue)
+                if (!checksum.HasValue)
                 {
-                    version = result.Version;
+                    checksum = result.Checksum;
                 }
-                else if (version.Value != VersionStamp.Default && version.Value != result.Version)
+                else if (checksum.Value != default && checksum.Value != result.Checksum)
                 {
                     // if not all version is same, set version as default.
                     // this can happen at the initial data loading or
                     // when document is closed and we put active file state to project state
-                    version = VersionStamp.Default;
+                    checksum = default(Checksum);
                 }
 
                 builder.Add(stateSet.Analyzer, result);
             }
 
-            if (!version.HasValue)
+            if (!checksum.HasValue)
             {
                 // there is no saved data to return.
-                return new ProjectAnalysisData(project.Id, VersionStamp.Default, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
+                return new ProjectAnalysisData(project.Id, checksum: default, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
             }
 
-            return new ProjectAnalysisData(project.Id, version.Value, builder.ToImmutable());
+            return new ProjectAnalysisData(project.Id, checksum.Value, builder.ToImmutable());
         }
     }
 }

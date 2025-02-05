@@ -67,7 +67,7 @@ internal partial class DiagnosticIncrementalAnalyzer
     {
         var analyzers = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
 
-        return analyzers.Select(s => s.Analyzer);
+        return analyzers.Select(static s => s.Analyzer);
     }
 
     private static string GetProjectLogMessage(Project project, ImmutableArray<StateSet> stateSets)
