@@ -4,11 +4,9 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.TestHooks;
+namespace Microsoft.CodeAnalysis.Threading;
 
 internal static class ValueTaskExtensions
 {
