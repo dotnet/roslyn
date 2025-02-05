@@ -738,6 +738,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private BoundExpression GetExtensionMemberAccess(SyntaxNode syntax, BoundExpression? receiver, Symbol extensionMember, BindingDiagnosticBag diagnostics)
+        {
+            receiver = ReplaceTypeOrValueReceiver(receiver, useType: extensionMember.IsStatic, diagnostics);
+
+            switch (extensionMember)
+            {
+                case PropertySymbol propertySymbol:
+                    return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
+
+                case NamedTypeSymbol namedTypeSymbol:
+                    Debug.Assert(namedTypeSymbol is ExtendedErrorTypeSymbol); // An error type is used to represent a bad result symbol (so we don't deal with type arguments)
+                    bool wasError = true;
+                    return BindTypeMemberOfType(receiver, namedTypeSymbol.Name, namedTypeSymbol, syntax, right: syntax, diagnostics, ref wasError);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(extensionMember.Kind);
+            }
+        }
+
         private static BoundExpression ConvertObjectCreationExpression(
             SyntaxNode syntax, BoundUnconvertedObjectCreationExpression node, Conversion conversion, bool isCast, TypeSymbol destination,
             ConversionGroup? conversionGroupOpt, bool wasCompilerGenerated, BindingDiagnosticBag diagnostics)
@@ -1297,11 +1316,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindingDiagnosticBag diagnostics,
                 out ImmutableArray<MethodSymbol> addMethods)
             {
-                var boundExpression = addMethodBinder.BindInstanceMemberAccess(
+                var boundExpression = addMethodBinder.BindMemberAccessWithBoundLeftCore(
                     node, node, receiver, WellKnownMemberNames.CollectionInitializerAddMethodName, rightArity: 0,
                     typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
                     typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
-                    invoked: true, indexed: false, diagnostics, searchExtensionMethodsIfNecessary: true);
+                    invoked: true, indexed: false, diagnostics, searchExtensionsIfNecessary: true);
 
                 // require the target member to be a method.
                 if (boundExpression.Kind == BoundKind.FieldAccess || boundExpression.Kind == BoundKind.PropertyAccess)
@@ -1367,7 +1386,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
 
-                if (resolution.HasAnyErrors)
+                if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
+                {
+                    ReportMakeInvocationExpressionBadMemberKind(syntax, WellKnownMemberNames.CollectionInitializerAddMethodName, methodGroup, diagnostics);
+                    addMethods = [];
+                    result = false;
+                }
+                else if (resolution.HasAnyErrors)
                 {
                     addMethods = [];
                     result = false;

@@ -103,6 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override ParameterSymbol ExtensionParameter => throw new System.NotImplementedException(); // PROTOTYPE undone
+
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return _underlyingType.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);

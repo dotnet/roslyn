@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal ParameterSymbol? ExtensionParameter
+        internal sealed override ParameterSymbol? ExtensionParameter
         {
             get
             {

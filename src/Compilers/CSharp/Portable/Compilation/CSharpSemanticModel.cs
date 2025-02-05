@@ -4606,7 +4606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var name = node.Name;
 
             // Extension methods, all scopes.
-            if (node.SearchExtensionMethods)
+            if (node.SearchExtensions)
             {
                 Debug.Assert(receiver != null);
                 int arity;
@@ -4623,7 +4623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 binder = binder.WithAdditionalFlags(BinderFlags.SemanticModel);
-                foreach (var scope in new ExtensionMethodScopes(binder))
+                foreach (var scope in new ExtensionScopes(binder))
                 {
                     var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
                     var otherBinder = scope.Binder;

@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -82,6 +83,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return (this.MethodGroup != null) && this.MethodGroup.IsExtensionMethodGroup; }
         }
+
+#nullable enable
+        /// <summary>
+        /// Indicates that we have a viable result that is a non-method extension member.
+        /// </summary>
+        public bool IsNonMethodExtensionMember([NotNullWhen(true)] out Symbol? extensionMember)
+        {
+            bool isExtensionMember = ResultKind == LookupResultKind.Viable && MethodGroup is null;
+            extensionMember = isExtensionMember ? OtherSymbol : null;
+            Debug.Assert((extensionMember is not null) || !isExtensionMember);
+
+            return isExtensionMember;
+        }
+#nullable disable
 
         public bool IsLocalFunctionInvocation =>
             MethodGroup?.Methods.Count == 1 && // Local functions cannot be overloaded

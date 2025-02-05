@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
         internal override bool HasCompilerLoweringPreserveAttribute => false;
         internal override bool IsInterpolatedStringHandlerType => false;
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
         internal override bool HasSpecialName => false;
         internal override bool IsComImport => false;
         internal override bool IsWindowsRuntimeImport => false;

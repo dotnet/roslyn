@@ -1500,7 +1500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
 
-            var methodGroupResolutionResult = this.BindExtensionMethod(
+            var methodGroupResolutionResult = this.ResolveExtension(
                 collectionSyntax,
                 methodName,
                 analyzedArguments,

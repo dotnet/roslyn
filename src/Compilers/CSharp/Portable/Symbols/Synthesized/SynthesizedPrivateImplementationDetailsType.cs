@@ -90,6 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsInterpolatedStringHandlerType => false;
 
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
+
         internal override bool HasSpecialName => _privateImplementationDetails.IsSpecialName;
 
         internal override bool IsComImport => false;
