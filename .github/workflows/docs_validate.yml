@@ -3,6 +3,10 @@ name: 📃 Docfx Validate
 on:
   pull_request:
   workflow_dispatch:
+  push:
+    branches:
+    - main
+    - microbuild
 
 jobs:
   build:
@@ -15,7 +19,7 @@ jobs:
     - name: 🔗 Markup Link Checker (mlc)
       uses: becheran/mlc@v0.19.2
       with:
-        args: --do-not-warn-for-redirect-to https://learn.microsoft.com*,https://dotnet.microsoft.com/*,https://dev.azure.com/*,https://app.codecov.io/*,https://msrc.microsoft.com/*,https://www.microsoft.com/en-us/msrc* -p docfx -i https://aka.ms/onboardsupport,https://aka.ms/spot,https://www.microsoft.com/msrc/cvd,https://www.microsoft.com/msrc
+        args: --do-not-warn-for-redirect-to https://learn.microsoft.com*,https://dotnet.microsoft.com/*,https://dev.azure.com/*,https://app.codecov.io/* -p docfx -i https://aka.ms/onboardsupport,https://aka.ms/spot,https://msrc.microsoft.com/*,https://www.microsoft.com/msrc*,https://microsoft.com/msrc*
     - name: ⚙ Install prerequisites
       run: |
         ./init.ps1 -UpgradePrerequisites
