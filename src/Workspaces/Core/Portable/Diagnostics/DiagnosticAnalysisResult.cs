@@ -218,9 +218,6 @@ internal readonly struct DiagnosticAnalysisResult
     public DiagnosticAnalysisResult ToAggregatedForm()
         => new(ProjectId, Checksum, DocumentIds, IsEmpty);
 
-    public DiagnosticAnalysisResult UpdateAggregatedResult(Checksum checksum, DocumentId documentId)
-        => new(ProjectId, checksum, DocumentIdsOrEmpty.Add(documentId), isEmpty: false);
-
     public DiagnosticAnalysisResult DropExceptSyntax()
     {
         // quick bail out

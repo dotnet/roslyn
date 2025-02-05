@@ -11,7 +11,7 @@
 using System;
 using System.Threading;
 
-namespace Roslyn.Utilities;
+namespace Microsoft.CodeAnalysis.Threading;
 
 /// <summary>
 /// Produces a series of <see cref="CancellationToken"/> objects such that requesting a new token

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             public static void Cache(DiagnosticAnalyzer analyzer, (ProjectOrDocumentId key, string stateKey) key, CacheEntry entry)
-                => s_map.GetOrAdd(analyzer, static_ => [])[key] = entry;
+                => s_map.GetOrAdd(analyzer, static _ => [])[key] = entry;
         }
 
         private readonly record struct CacheEntry(Checksum Checksum, ImmutableArray<DiagnosticData> Diagnostics);
