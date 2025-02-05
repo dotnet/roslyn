@@ -537,6 +537,11 @@
         <target state="translated">Um construtor de cópia '{0}' precisa ser público ou protegido porque o registro não está selado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
+        <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
+        <target state="new">Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">O nome '{0}' não corresponde ao parâmetro 'Deconstruct' '{1}'.</target>

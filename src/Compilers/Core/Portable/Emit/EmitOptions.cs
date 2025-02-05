@@ -120,6 +120,8 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private bool _testOnly_AllowLocalStateTracing;
 
+        internal Func<ImmutableArray<byte>, string>? TestOnly_DataToHexViaXxHash128 { get; init; }
+
         // 1.2 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         public EmitOptions(
             bool metadataOnly,
@@ -297,7 +299,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 IncludePrivateMembers == other.IncludePrivateMembers &&
                 InstrumentationKinds.NullToEmpty().SequenceEqual(other.InstrumentationKinds.NullToEmpty(), (a, b) => a == b) &&
                 DefaultSourceFileEncoding == other.DefaultSourceFileEncoding &&
-                FallbackSourceFileEncoding == other.FallbackSourceFileEncoding;
+                FallbackSourceFileEncoding == other.FallbackSourceFileEncoding &&
+                TestOnly_DataToHexViaXxHash128 == other.TestOnly_DataToHexViaXxHash128;
         }
 
         public override int GetHashCode()
@@ -316,7 +319,8 @@ namespace Microsoft.CodeAnalysis.Emit
                    Hash.Combine(IncludePrivateMembers,
                    Hash.Combine(Hash.CombineValues(InstrumentationKinds),
                    Hash.Combine(DefaultSourceFileEncoding,
-                   Hash.Combine(FallbackSourceFileEncoding, 0)))))))))))))));
+                   Hash.Combine(FallbackSourceFileEncoding,
+                   Hash.Combine(TestOnly_DataToHexViaXxHash128, 0))))))))))))))));
         }
 
         public static bool operator ==(EmitOptions? left, EmitOptions? right)

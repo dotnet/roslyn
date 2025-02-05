@@ -37,6 +37,11 @@
         <target state="translated">行連結文字の後のコメントを使用するには、言語バージョン {0} 以上をご使用ください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
+        <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
+        <target state="new">Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">型 '{0}' には非抽象メンバーがあるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することをご検討ください。</target>

@@ -1788,7 +1788,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_EmbeddedAttributeMustFollowPattern = 37335
 
-        ERR_NextAvailable = 37336
+        ERR_DataSectionStringLiteralHashCollision = 37336
+
+        ERR_NextAvailable = 37337
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

@@ -37,6 +37,11 @@
         <target state="translated">Použijte prosím verzi jazyka {0} nebo vyšší, abyste mohli používat komentáře za znakem pro pokračování řádku.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
+        <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
+        <target state="new">Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Typ {0} nemůže být vložený, protože má neabstraktní člen. Zvažte nastavení vlastnosti Vložit typy spolupráce na hodnotu false.</target>
