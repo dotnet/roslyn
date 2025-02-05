@@ -136,7 +136,8 @@ albeit with a disclaimer during the experimental phase of the feature.
 Throughput of `ldstr` vs `ldsfld` is very similar (both result in one or two move instructions).
 
 In the `ldsfld` emit strategy, the `string` instances won't ever be collected by the GC once the generated class is initialized.
-`ldstr` has similar behavior, but there are some optimizations in the runtime around `ldstr`,
+`ldstr` has similar behavior (GC does not collect the string literals either until the assembly is unloaded),
+but there are some optimizations in the runtime around `ldstr`,
 e.g., they are loaded into a different frozen heap so machine codegen can be more efficient (no need to worry about pointer moves).
 
 Generating new types by the compiler means more type loads and hence runtime impact,
@@ -168,7 +169,7 @@ but that seems to require similar amount of implemented abstract properties/meth
 as the implementations of `Cci` interfaces require.
 But implementing `Cci` directly allows us to reuse the same implementation for VB if needed in the future.
 
-## Future work
+## Future work and alternatives
 
 ### Edit and Continue
 
@@ -209,7 +210,7 @@ We would generate a single `__StaticArrayInitTypeSize=*` structure for the entir
 add a single `.data` field to `<PrivateImplementationDetails>` that points to the blob.
 At runtime, we would do an offset to where the required data reside in the blob and decode the required length from UTF-8 to UTF-16.
 
-## Alternatives
+However, this would be unfriendly to IL trimming.
 
 ### Configuration/emit granularity
 
@@ -221,7 +222,8 @@ The idea is that strings from one class are likely used "together" so there is n
 
 ### GC
 
-To avoid rooting the `string` references forever, we could turn the fields into `WeakReference<string>`s.
+To avoid rooting the `string` references forever, we could turn the fields into `WeakReference<string>`s
+(note that this would be quite expensive for both direct overhead and indirectly for the GC due to longer GC pause times).
 Or we could avoid the caching altogether (each eligible `ldstr` would be replaced with a direct call to `Encoding.UTF8.GetString`).
 This could be configurable as well.
 
@@ -246,6 +248,12 @@ static class <PrivateImplementationDetails>
 ```
 
 However, that would likely result in worse machine code due to more branches and function calls.
+
+### String interning
+
+The compiler should report a diagnostic when the feature is enabled together with
+`[assembly: System.Runtime.CompilerServices.CompilationRelaxations(0)]`, i.e., string interning enabled,
+because that is incompatible with the feature.
 
 <!-- links -->
 [u8-literals]: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-11.0/utf8-string-literals
