@@ -194,8 +194,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Contract.ThrowIfTrue(result.IsAggregatedForm);
                 Contract.ThrowIfNull(result.DocumentIds);
 
-                RemoveInMemoryCache(_lastResult);
-
                 using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentIdsToProcess);
                 documentIdsToProcess.AddRange(_lastResult.DocumentIdsOrEmpty);
                 documentIdsToProcess.AddRange(result.DocumentIdsOrEmpty);
@@ -398,28 +396,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return InMemoryStorage.TryGetValue(_owner.Analyzer, (key, stateKey), out var entry) && serializerVersion == entry.Version
                     ? entry.Diagnostics
                     : default;
-            }
-
-            private void RemoveInMemoryCache(DiagnosticAnalysisResult lastResult)
-            {
-                // remove old cache
-                foreach (var documentId in lastResult.DocumentIdsOrEmpty)
-                {
-                    RemoveInMemoryCacheEntries(documentId);
-                }
-            }
-
-            private void RemoveInMemoryCacheEntries(DocumentId id)
-            {
-                RemoveInMemoryCacheEntry(id, SyntaxStateName);
-                RemoveInMemoryCacheEntry(id, SemanticStateName);
-                RemoveInMemoryCacheEntry(id, NonLocalStateName);
-            }
-
-            private void RemoveInMemoryCacheEntry(object key, string stateKey)
-            {
-                // remove in memory cache if entry exist
-                InMemoryStorage.Remove(_owner.Analyzer, (key, stateKey));
             }
 
             private static bool IsEmpty(DiagnosticAnalysisResult result, DocumentId documentId)
