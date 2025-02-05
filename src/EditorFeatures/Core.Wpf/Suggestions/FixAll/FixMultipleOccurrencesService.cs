@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 internal sealed class FixMultipleOccurrencesService() : IFixMultipleOccurrencesService
 {
     public Task<Solution> GetFixAsync(
-        ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFix,
+        ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>> diagnosticsToFix,
         Workspace workspace,
         CodeFixProvider fixProvider,
         FixAllProvider fixAllProvider,

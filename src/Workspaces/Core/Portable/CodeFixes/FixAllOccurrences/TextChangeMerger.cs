@@ -24,13 +24,13 @@ internal sealed class TextChangeMerger
             => value.Span;
     }
 
-    private readonly Document _oldDocument;
+    private readonly TextDocument _oldDocument;
     private readonly IDocumentTextDifferencingService _differenceService;
 
     private readonly SimpleMutableIntervalTree<TextChange, IntervalIntrospector> _totalChangesIntervalTree =
         SimpleMutableIntervalTree.Create(new IntervalIntrospector(), Array.Empty<TextChange>());
 
-    public TextChangeMerger(Document document)
+    public TextChangeMerger(TextDocument document)
     {
         _oldDocument = document;
         _differenceService = document.Project.Solution.Services.GetRequiredService<IDocumentTextDifferencingService>();
@@ -40,7 +40,7 @@ internal sealed class TextChangeMerger
     /// Try to merge the changes made to <paramref name="newDocument"/> into the tracked changes. If there is any
     /// conflicting change in <paramref name="newDocument"/> with existing changes, then no changes are added.
     /// </summary>
-    public async Task TryMergeChangesAsync(Document newDocument, CancellationToken cancellationToken)
+    public async Task TryMergeChangesAsync(TextDocument newDocument, CancellationToken cancellationToken)
     {
         Debug.Assert(newDocument.Id == _oldDocument.Id);
 
@@ -60,7 +60,7 @@ internal sealed class TextChangeMerger
     /// tracked changes. If there is any conflicting changes with existing changes for a particular document, then
     /// no changes will be added for it.
     /// </summary>
-    public async Task TryMergeChangesAsync(ImmutableArray<Document> newDocuments, CancellationToken cancellationToken)
+    public async Task TryMergeChangesAsync(ImmutableArray<TextDocument> newDocuments, CancellationToken cancellationToken)
     {
         foreach (var newDocument in newDocuments)
             await TryMergeChangesAsync(newDocument, cancellationToken).ConfigureAwait(false);

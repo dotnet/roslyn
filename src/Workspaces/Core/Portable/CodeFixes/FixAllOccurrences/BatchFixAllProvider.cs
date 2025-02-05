@@ -83,7 +83,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
         await AddDocumentChangesAsync(fixAllContext, progressTracker, docIdToTextMerger, documentToDiagnostics).ConfigureAwait(false);
     }
 
-    private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
+    private static async Task<ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
     {
         using var _ = progressTracker.ItemCompletedScope();
 
@@ -94,7 +94,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
             if (kvp.Key.Project != fixAllContext.Project)
                 return false;
 
-            if (fixAllContext.Document != null && fixAllContext.Document != kvp.Key)
+            if (fixAllContext.TextDocument != null && fixAllContext.TextDocument != kvp.Key)
                 return false;
 
             return true;
@@ -107,12 +107,15 @@ internal sealed class BatchFixAllProvider : FixAllProvider
         FixAllContext fixAllContext,
         IProgress<CodeAnalysisProgress> progressTracker,
         Dictionary<DocumentId, TextChangeMerger> docIdToTextMerger,
-        ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentToDiagnostics)
+        ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>> documentToDiagnostics)
     {
         using var _ = progressTracker.ItemCompletedScope();
 
         // First, order the diagnostics so we process them in a consistent manner and get the same results given the
         // same input solution.
+        //
+        // This condition will need to be updated to support locating diagnostics in additional files
+        // https://github.com/dotnet/roslyn/issues/77016
         var orderedDiagnostics = documentToDiagnostics.SelectMany(kvp => kvp.Value)
                                                       .Where(d => d.Location.IsInSource)
                                                       .OrderBy(d => d.Location.SourceTree!.FilePath)
@@ -133,7 +136,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
     /// name="orderedDiagnostics"/>.  The documents will be returned such that fixed documents for a later
     /// diagnostic will appear later than those for an earlier diagnostic.
     /// </summary>
-    private static async Task<ImmutableArray<Document>> GetAllChangedDocumentsInDiagnosticsOrderAsync(
+    private static async Task<ImmutableArray<TextDocument>> GetAllChangedDocumentsInDiagnosticsOrderAsync(
         FixAllContext fixAllContext, ImmutableArray<Diagnostic> orderedDiagnostics)
     {
         var solution = fixAllContext.Solution;
@@ -141,9 +144,11 @@ internal sealed class BatchFixAllProvider : FixAllProvider
 
         // Process each diagnostic, determine the code actions to fix it, then figure out the document changes
         // produced by that code action.
-        using var _1 = ArrayBuilder<Task<ImmutableArray<Document>>>.GetInstance(out var tasks);
+        using var _1 = ArrayBuilder<Task<ImmutableArray<TextDocument>>>.GetInstance(out var tasks);
         foreach (var diagnostic in orderedDiagnostics)
         {
+            // This will need to be updated to support additional file types
+            // https://github.com/dotnet/roslyn/issues/77016
             var document = solution.GetRequiredDocument(diagnostic.Location.SourceTree!);
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -159,7 +164,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
                 await registerTask.ConfigureAwait(false);
 
                 // Now, process each code action and find out all the document changes caused by it.
-                using var _3 = ArrayBuilder<Document>.GetInstance(out var changedDocuments);
+                using var _3 = ArrayBuilder<TextDocument>.GetInstance(out var changedDocuments);
 
                 foreach (var codeAction in codeActions)
                 {
@@ -167,6 +172,8 @@ internal sealed class BatchFixAllProvider : FixAllProvider
                         solution, fixAllContext.Progress, cancellationToken: cancellationToken).ConfigureAwait(false);
                     if (changedSolution != null)
                     {
+                        // This code will need to be updated to support applying changes to additional files
+                        // https://github.com/dotnet/roslyn/issues/77016
                         var changedDocumentIds = new SolutionChanges(changedSolution, solution).GetProjectChanges().SelectMany(p => p.GetChangedDocuments());
                         changedDocuments.AddRange(changedDocumentIds.Select(id => changedSolution.GetRequiredDocument(id)));
                     }
@@ -181,7 +188,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
 
         // Flatten the set of changed documents.  These will naturally still be ordered by the diagnostic that
         // caused the change.
-        using var _4 = ArrayBuilder<Document>.GetInstance(out var result);
+        using var _4 = ArrayBuilder<TextDocument>.GetInstance(out var result);
         foreach (var task in tasks)
             result.AddRange(await task.ConfigureAwait(false));
 
@@ -195,7 +202,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
     /// </summary>
     private static async Task MergeTextChangesAsync(
         FixAllContext fixAllContext,
-        ImmutableArray<Document> allChangedDocumentsInDiagnosticsOrder,
+        ImmutableArray<TextDocument> allChangedDocumentsInDiagnosticsOrder,
         Dictionary<DocumentId, TextChangeMerger> docIdToTextMerger)
     {
         var cancellationToken = fixAllContext.CancellationToken;
@@ -212,7 +219,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
             // If we don't have an text merger for this doc yet, create one to keep track of all the changes.
             if (!docIdToTextMerger.TryGetValue(docId, out var textMerger))
             {
-                var originalDocument = fixAllContext.Solution.GetRequiredDocument(docId);
+                var originalDocument = fixAllContext.Solution.GetRequiredTextDocument(docId);
                 textMerger = new TextChangeMerger(originalDocument);
                 docIdToTextMerger.Add(docId, textMerger);
             }
@@ -254,6 +261,6 @@ internal sealed class BatchFixAllProvider : FixAllProvider
         CancellationToken cancellationToken)
     {
         var docIdsAndTexts = await docIdsAndMerger.SelectAsArrayAsync(async t => (t.documentId, await t.merger.GetFinalMergedTextAsync(cancellationToken).ConfigureAwait(false))).ConfigureAwait(false);
-        return currentSolution.WithDocumentTexts(docIdsAndTexts);
+        return currentSolution.WithTextDocumentTexts(docIdsAndTexts);
     }
 }

@@ -17,7 +17,7 @@ internal abstract partial class CommonFixAllState<TProvider, TFixAllProvider, TF
     public TFixAllProvider FixAllProvider { get; }
     public string? CodeActionEquivalenceKey { get; }
     public TProvider Provider { get; }
-    public Document? Document { get; }
+    public TextDocument? Document { get; }
     public Project Project { get; }
     public Solution Solution => Project.Solution;
     public FixAllScope Scope { get; }
@@ -25,7 +25,7 @@ internal abstract partial class CommonFixAllState<TProvider, TFixAllProvider, TF
 
     protected CommonFixAllState(
         TFixAllProvider fixAllProvider,
-        Document? document,
+        TextDocument? document,
         Project project,
         TProvider provider,
         FixAllScope scope,
@@ -41,10 +41,10 @@ internal abstract partial class CommonFixAllState<TProvider, TFixAllProvider, TF
         CodeActionEquivalenceKey = codeActionEquivalenceKey;
     }
 
-    protected abstract TFixAllState With(Document? document, Project project, FixAllScope scope, string? codeActionEquivalenceKey);
+    protected abstract TFixAllState With(TextDocument? document, Project project, FixAllScope scope, string? codeActionEquivalenceKey);
 
     public TFixAllState With(
-        Optional<(Document? document, Project project)> documentAndProject = default,
+        Optional<(TextDocument? document, Project project)> documentAndProject = default,
         Optional<FixAllScope> scope = default,
         Optional<string?> codeActionEquivalenceKey = default)
     {
@@ -69,7 +69,7 @@ internal abstract partial class CommonFixAllState<TProvider, TFixAllProvider, TF
     object IFixAllState.Provider => this.Provider!;
 
     IFixAllState IFixAllState.With(
-        Optional<(Document? document, Project project)> documentAndProject,
+        Optional<(TextDocument? document, Project project)> documentAndProject,
         Optional<FixAllScope> scope,
         Optional<string?> codeActionEquivalenceKey)
         => this.With(documentAndProject, scope, codeActionEquivalenceKey);

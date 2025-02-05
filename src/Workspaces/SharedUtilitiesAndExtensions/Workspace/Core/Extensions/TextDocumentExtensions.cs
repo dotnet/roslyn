@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -11,6 +13,55 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class TextDocumentExtensions
 {
+    public static TLanguageService? GetLanguageService<TLanguageService>(this TextDocument? document) where TLanguageService : class, ILanguageService
+        => document?.Project?.GetLanguageService<TLanguageService>();
+
+    public static TLanguageService GetRequiredLanguageService<TLanguageService>(this TextDocument document) where TLanguageService : class, ILanguageService
+        => document.Project.GetRequiredLanguageService<TLanguageService>();
+
+#if !CODE_STYLE
+    public static bool IsGeneratedCode(this TextDocument textDocument, CancellationToken cancellationToken)
+    {
+        var generatedCodeRecognitionService = textDocument.GetLanguageService<IGeneratedCodeRecognitionService>();
+        if (textDocument is Document document)
+        {
+            return generatedCodeRecognitionService?.IsGeneratedCode(document, cancellationToken) == true;
+        }
+        else if (textDocument is AdditionalDocument additionalDocument)
+        {
+            var additionalText = textDocument.Project.AnalyzerOptions.AdditionalFiles.FirstOrDefault(static (text, additionalDocument) => true, additionalDocument);
+            if (additionalText is not null)
+                return generatedCodeRecognitionService?.IsGeneratedCode(additionalText, additionalDocument) == true;
+            else
+                return GeneratedCodeUtilities.IsGeneratedCodeFile(additionalDocument.FilePath);
+        }
+
+        return GeneratedCodeUtilities.IsGeneratedCodeFile(textDocument.FilePath);
+    }
+#endif
+
+    public static async Task<bool> IsGeneratedCodeAsync(this TextDocument textDocument, CancellationToken cancellationToken)
+    {
+        var generatedCodeRecognitionService = textDocument.GetLanguageService<IGeneratedCodeRecognitionService>();
+        if (generatedCodeRecognitionService is null)
+            return false;
+
+        if (textDocument is Document document)
+        {
+            return await generatedCodeRecognitionService.IsGeneratedCodeAsync(document, cancellationToken).ConfigureAwait(false);
+        }
+        else if (textDocument is AdditionalDocument additionalDocument)
+        {
+            var additionalText = textDocument.Project.AnalyzerOptions.AdditionalFiles.FirstOrDefault(static (text, additionalDocument) => true, additionalDocument);
+            if (additionalText is not null)
+                return generatedCodeRecognitionService.IsGeneratedCode(additionalText, additionalDocument);
+            else
+                return GeneratedCodeUtilities.IsGeneratedCodeFile(additionalDocument.FilePath);
+        }
+
+        return GeneratedCodeUtilities.IsGeneratedCodeFile(textDocument.FilePath);
+    }
+
 #if CODE_STYLE
     public static ValueTask<SourceText> GetValueTextAsync(this TextDocument document, CancellationToken cancellationToken)
     {

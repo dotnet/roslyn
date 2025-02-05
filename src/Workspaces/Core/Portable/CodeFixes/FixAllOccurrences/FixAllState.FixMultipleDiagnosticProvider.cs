@@ -18,10 +18,10 @@ internal sealed partial class FixAllState
     /// </summary>
     internal sealed class FixMultipleDiagnosticProvider : FixAllContext.DiagnosticProvider
     {
-        public ImmutableDictionary<Document, ImmutableArray<Diagnostic>> DocumentDiagnosticsMap { get; }
+        public ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>> DocumentDiagnosticsMap { get; }
         public ImmutableDictionary<Project, ImmutableArray<Diagnostic>> ProjectDiagnosticsMap { get; }
 
-        public FixMultipleDiagnosticProvider(ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsMap)
+        public FixMultipleDiagnosticProvider(ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>> diagnosticsMap)
         {
             DocumentDiagnosticsMap = diagnosticsMap;
             ProjectDiagnosticsMap = ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty;
@@ -30,7 +30,7 @@ internal sealed partial class FixAllState
         public FixMultipleDiagnosticProvider(ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsMap)
         {
             ProjectDiagnosticsMap = diagnosticsMap;
-            DocumentDiagnosticsMap = ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
+            DocumentDiagnosticsMap = ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>>.Empty;
         }
 
         public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
