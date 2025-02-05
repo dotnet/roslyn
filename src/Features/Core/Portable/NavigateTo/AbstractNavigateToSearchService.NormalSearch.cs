@@ -61,15 +61,16 @@ internal abstract partial class AbstractNavigateToSearchService
         var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
         // In parallel, search both the document requested, and any relevant 'related documents' we find for it. For the
-        // original document, search the entirety of it.  For related documents, only search the spans of the
-        // partial-types/inheriting-types that we find for the types in this starting document.
+        // original document, search the entirety of it (by passing 'null' in for the 'spans' argument).  For related
+        // documents, only search the spans of the partial-types/inheriting-types that we find for the types in this
+        // starting document.
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
         await Task.WhenAll(
-            SearchDocumentsInCurrentProcessAsync([(document, new NormalizedTextSpanCollection(new TextSpan(0, text.Length)))]),
+            SearchDocumentsInCurrentProcessAsync([(document, spans: null)]),
             SearchRelatedDocumentsInCurrentProcessAsync()).ConfigureAwait(false);
 
-        Task SearchDocumentsInCurrentProcessAsync(ImmutableArray<(Document document, NormalizedTextSpanCollection spans)> documentAndSpans)
+        Task SearchDocumentsInCurrentProcessAsync(ImmutableArray<(Document document, NormalizedTextSpanCollection? spans)> documentAndSpans)
             => ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
                 documentAndSpans,
                 async (documentAndSpan, onItemFound, args, cancellationToken) => await SearchSingleDocumentAsync(
@@ -80,7 +81,7 @@ internal abstract partial class AbstractNavigateToSearchService
                         // subrange of the document we're searching in.  For the primary document this will always
                         // succeed (since we're searching the full document).  But for related documents this may fail
                         // if the results is not in the span of any of the types in those files we're searching.
-                        if (documentAndSpan.spans.IntersectsWith(item.DeclaredSymbolInfo.Span))
+                        if (documentAndSpan.spans is null || documentAndSpan.spans.IntersectsWith(item.DeclaredSymbolInfo.Span))
                             onItemFound(item);
                     },
                     cancellationToken).ConfigureAwait(false),
@@ -94,7 +95,7 @@ internal abstract partial class AbstractNavigateToSearchService
             await SearchDocumentsInCurrentProcessAsync(relatedDocuments).ConfigureAwait(false);
         }
 
-        async Task<ImmutableArray<(Document document, NormalizedTextSpanCollection spans)>> GetRelatedDocumentsAsync()
+        async Task<ImmutableArray<(Document document, NormalizedTextSpanCollection? spans)>> GetRelatedDocumentsAsync()
         {
             // For C#/VB we define 'related documents' as those containing types in the inheritance chain of types in
             // the originating file (as well as all partial parts of the original and inheritance types).  This way a
@@ -134,7 +135,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
             // Ensure we don't search the original document we were already searching.
             documentToTextSpans.Remove(document);
-            return documentToTextSpans.SelectAsArray(kvp => (kvp.Key, new NormalizedTextSpanCollection(kvp.Value)));
+            return documentToTextSpans.SelectAsArray(kvp => (kvp.Key, new NormalizedTextSpanCollection(kvp.Value)))!;
         }
     }
 
