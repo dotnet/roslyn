@@ -261,9 +261,13 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Next
 
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
-                Dim actualDiagnostics = diagnosticProvider.GetDiagnosticsForIdsAsync(
-                    workspace.CurrentSolution, projectId:=Nothing, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
-                    includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None).Result
+                Dim actualDiagnostics = New List(Of DiagnosticData)
+
+                For Each project In workspace.CurrentSolution.Projects
+                    actualDiagnostics.AddRange(diagnosticProvider.GetDiagnosticsForIdsAsync(
+                        workspace.CurrentSolution, project.Id, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
+                        includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None).Result)
+                Next
 
                 If diagnostics Is Nothing Then
                     Assert.Empty(actualDiagnostics)

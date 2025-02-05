@@ -79,28 +79,11 @@ internal partial class DiagnosticIncrementalAnalyzer
         /// </summary>
         public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result;
 
-        /// <summary>
-        /// When present, holds onto last data we broadcasted to outer world.
-        /// </summary>
-        public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>? OldResult;
-
         public ProjectAnalysisData(ProjectId projectId, VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
         {
             ProjectId = projectId;
             Version = version;
             Result = result;
-
-            OldResult = null;
-        }
-
-        public ProjectAnalysisData(
-            ProjectId projectId,
-            VersionStamp version,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> oldResult,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult)
-            : this(projectId, version, newResult)
-        {
-            OldResult = oldResult;
         }
 
         public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
