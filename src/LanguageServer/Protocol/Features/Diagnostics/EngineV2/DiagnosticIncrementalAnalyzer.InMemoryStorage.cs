@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 => s_map.GetOrAdd(analyzer, static_ => [])[key] = entry;
         }
 
-        private readonly struct CacheEntry(VersionStamp version, ImmutableArray<DiagnosticData> diagnostics)
+        private readonly struct CacheEntry(Checksum checksum, ImmutableArray<DiagnosticData> diagnostics)
         {
-            public readonly VersionStamp Version = version;
+            public readonly Checksum Checksum = checksum;
             public readonly ImmutableArray<DiagnosticData> Diagnostics = diagnostics;
         }
     }
