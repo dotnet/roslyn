@@ -745,7 +745,8 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
             return false;
         }
 
-        using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var declarationNodes);
+        // Specifies false for discardLargeInstances as these objects commonly exceed the default ArrayBuilder capacity threshold.
+        using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(discardLargeInstances: false, out var declarationNodes);
         this.SyntaxFacts.AddTopLevelAndMethodLevelMembers(root, declarationNodes);
 
         using var _2 = PooledHashSet<ISymbol>.GetInstance(out var processedPartialSymbols);

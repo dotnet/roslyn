@@ -14,4 +14,19 @@ internal sealed partial class PooledStringBuilder : IPooled
         instance = pooledInstance;
         return new PooledDisposer<PooledStringBuilder>(pooledInstance);
     }
+
+    void IPooled.Free(bool discardLargeInstance)
+    {
+        var builder = this.Builder;
+
+        if (!discardLargeInstance || builder.Capacity <= 1024)
+        {
+            builder.Clear();
+            _pool.Free(this);
+        }
+        else
+        {
+            _pool.ForgetTrackedObject(this);
+        }
+    }
 }

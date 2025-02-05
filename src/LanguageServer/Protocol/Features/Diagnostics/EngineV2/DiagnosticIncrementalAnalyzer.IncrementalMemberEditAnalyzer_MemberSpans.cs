@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var service = document.GetRequiredLanguageService<ISyntaxFactsService>();
                     var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                    using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var members);
+                    // Specifies false for discardLargeInstances as these objects commonly exceed the default ArrayBuilder capacity threshold.
+                    using var _ = ArrayBuilder<SyntaxNode>.GetInstance(discardLargeInstances: false, out var members);
                     service.AddMethodLevelMembers(root, members);
 
                     return members.SelectAsArray(m => m.FullSpan);

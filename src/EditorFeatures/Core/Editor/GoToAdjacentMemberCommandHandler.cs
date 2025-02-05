@@ -104,7 +104,8 @@ internal class GoToAdjacentMemberCommandHandler(IOutliningManagerService outlini
     /// </summary>
     internal static int? GetTargetPosition(ISyntaxFactsService service, SyntaxNode root, int caretPosition, bool next)
     {
-        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var members);
+        // Specifies false for discardLargeInstances as these objects commonly exceed the default ArrayBuilder capacity threshold.
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(discardLargeInstances: false, out var members);
         service.AddMethodLevelMembers(root, members);
         if (members.Count == 0)
             return null;
