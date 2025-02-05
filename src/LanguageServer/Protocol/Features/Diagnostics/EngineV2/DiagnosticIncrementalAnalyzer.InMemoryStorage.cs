@@ -5,7 +5,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
@@ -27,10 +26,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 => s_map.GetOrAdd(analyzer, static_ => [])[key] = entry;
         }
 
-        private readonly struct CacheEntry(Checksum checksum, ImmutableArray<DiagnosticData> diagnostics)
-        {
-            public readonly Checksum Checksum = checksum;
-            public readonly ImmutableArray<DiagnosticData> Diagnostics = diagnostics;
-        }
+        private readonly record struct CacheEntry(Checksum Checksum, ImmutableArray<DiagnosticData> Diagnostics);
     }
 }

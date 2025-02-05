@@ -575,6 +575,7 @@ internal class DiagnosticComputer
             {
                 hostAnalyzerBuilder.AddRange(analyzers);
             }
+
             analyzerMapBuilder.AppendAnalyzerMap(analyzers);
         }
 
