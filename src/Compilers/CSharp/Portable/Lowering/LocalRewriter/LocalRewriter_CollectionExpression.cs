@@ -237,11 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             spreadExpression = null;
 
-            if (node is
-                {
-                    CollectionBuilderMethod: { } builder,
-                    Elements: [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr }],
-                } &&
+            if (node.Elements is [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr }] &&
+                Binder.GetCollectionBuilderMethod(node) is { } builder &&
                 ConversionsBase.HasIdentityConversion(builder.Parameters[0].Type, spreadType) &&
                 (!builder.ReturnType.IsRefLikeType || builder.Parameters[0].EffectiveScope == ScopedKind.ScopedValue))
             {

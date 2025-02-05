@@ -18024,7 +18024,6 @@ partial class Program
                 expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
         }
 
-        // PROTOTYPE: Disallow ref return?
         [CombinatorialData]
         [Theory]
         public void CollectionBuilder_UnexpectedSignature_03(

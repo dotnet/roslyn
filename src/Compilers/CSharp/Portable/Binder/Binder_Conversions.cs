@@ -861,7 +861,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundNode>.GetInstance(elements.Length);
             BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
-            MethodSymbol? collectionBuilderMethod = null;
             BoundValuePlaceholder? collectionBuilderSpanPlaceholder = null;
 
             if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
@@ -1039,8 +1038,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedArguments.Free();
                     }
 
-                    // PROTOTYPE: Remove collectionBuilderMethod, or fix it to use the correct candidate.
-                    collectionBuilderMethod = collectionBuilderCandidates[0];
                     collectionCreation = CreateConversion(collectionCreation, targetType, diagnostics);
 
                     collectionBuilderCandidates.Free();
@@ -1102,7 +1099,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind,
                 implicitReceiver,
                 collectionCreation,
-                collectionBuilderMethod,
                 collectionBuilderSpanPlaceholder,
                 wasTargetTyped: true,
                 node,
@@ -1875,6 +1871,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        internal static MethodSymbol? GetCollectionBuilderMethod(BoundCollectionExpression node)
+        {
+            if (node.CollectionTypeKind != CollectionExpressionTypeKind.CollectionBuilder)
+            {
+                return null;
+            }
+
+            Debug.Assert(node.CollectionCreation is { });
+
+            return getBuilderMethod(node.CollectionCreation);
+
+            static MethodSymbol? getBuilderMethod(BoundExpression? expr)
+            {
+                return expr switch
+                {
+                    BoundCall call => call.Method,
+                    BoundConversion conversion => getBuilderMethod(conversion.Operand),
+                    _ => null,
+                };
+            }
+        }
+
         private BoundCollectionExpression BindCollectionExpressionForErrorRecovery(
             BoundUnconvertedCollectionExpression node,
             TypeSymbol targetType,
@@ -1903,7 +1921,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind: CollectionExpressionTypeKind.None,
                 placeholder: null,
                 collectionCreation: null,
-                collectionBuilderMethod: null,
                 collectionBuilderSpanPlaceholder: null,
                 wasTargetTyped: inConversion,
                 node,

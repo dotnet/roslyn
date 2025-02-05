@@ -1326,6 +1326,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void CollectionBuilder_SpreadElement_BoxingConversion()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                interface IMyCollection<T> : IEnumerable<T>
+                {
+                }
+                class MyCollectionBuilder
+                {
+                    public struct MyCollection<T> : IMyCollection<T>
+                    {
+                        private readonly List<T> _list;
+                        public MyCollection(ReadOnlySpan<T> items, T arg)
+                        {
+                            _list = new(items.ToArray());
+                            _list.Add(arg);
+                        }
+                        public IEnumerator<T> GetEnumerator() => _list.GetEnumerator();
+                        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    }
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg) => new(items, arg);
+                }
+                """;
+            string sourceB = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IMyCollection<string?> x = F<string>([], default);
+                        x.Report();
+                        IMyCollection<int> y = F<int>([1, 2], 3);
+                        y.Report();
+                    }
+                    static IMyCollection<T?> F<T>(ReadOnlySpan<T> items, T arg) => [with(arg), ..items];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[null], [1, 2, 3], "));
+            verifier.VerifyIL("Program.F<T>", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  call       "MyCollectionBuilder.MyCollection<T> MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>, T)"
+                  IL_0007:  box        "MyCollectionBuilder.MyCollection<T>"
+                  IL_000c:  ret
+                }
+                """);
+        }
+
+        [Fact]
         public void CollectionBuilder_ObsoleteBuilderMethod_01()
         {
             string sourceA = """

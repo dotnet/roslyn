@@ -921,6 +921,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
+        {
+            if (node.CollectionCreation is { } collectionCreation)
+            {
+                if (node.CollectionBuilderSpanPlaceholder is { } spanPlaceholder)
+                {
+                    var elementType = ((NamedTypeSymbol)spanPlaceholder.Type!).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                    var safeContext = LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type) ? SafeContext.ReturnOnly : _localScopeDepth;
+                    var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)>.GetInstance();
+                    placeholders.Add((spanPlaceholder, safeContext));
+                    using var _ = new PlaceholderRegion(this, placeholders);
+                }
+                Visit(collectionCreation);
+            }
+            VisitList(node.Elements);
+            return null;
+        }
+
         public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
         {
             // Verify we're only skipping placeholders for int values, where the escape scope is always CallingMethod.
