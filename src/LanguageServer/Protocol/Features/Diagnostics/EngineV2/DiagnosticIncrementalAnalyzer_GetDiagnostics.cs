@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 // get analyzers that are not suppressed.
                 var stateSetsForProject = await StateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
-                var stateSets = stateSetsForProject.Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
+                var stateSets = stateSetsForProject.WhereAsArray(s => ShouldIncludeStateSet(project, s));
 
                 // unlike the suppressed (disabled) analyzer, we will include hidden diagnostic only analyzers here.
                 var compilation = await CreateCompilationWithAnalyzersAsync(project, stateSets, Owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);

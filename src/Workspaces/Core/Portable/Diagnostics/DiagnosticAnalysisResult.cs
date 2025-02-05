@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 internal readonly struct DiagnosticAnalysisResult
 {
     public readonly ProjectId ProjectId;
-    public readonly VersionStamp Version;
+    public readonly Checksum Checksum;
 
     /// <summary>
     /// The set of documents that has any kind of diagnostics on it.
@@ -51,12 +51,12 @@ internal readonly struct DiagnosticAnalysisResult
 
     private DiagnosticAnalysisResult(
         ProjectId projectId,
-        VersionStamp version,
+        Checksum checksum,
         ImmutableHashSet<DocumentId>? documentIds,
         bool isEmpty)
     {
         ProjectId = projectId;
-        Version = version;
+        Checksum = checksum;
         DocumentIds = documentIds;
         IsEmpty = isEmpty;
 
@@ -68,7 +68,7 @@ internal readonly struct DiagnosticAnalysisResult
 
     private DiagnosticAnalysisResult(
         ProjectId projectId,
-        VersionStamp version,
+        Checksum checksum,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocals,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocals,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocals,
@@ -81,7 +81,7 @@ internal readonly struct DiagnosticAnalysisResult
         Debug.Assert(!nonLocals.Values.Any(item => item.IsDefault));
 
         ProjectId = projectId;
-        Version = version;
+        Checksum = checksum;
 
         _syntaxLocals = syntaxLocals;
         _semanticLocals = semanticLocals;
@@ -92,30 +92,27 @@ internal readonly struct DiagnosticAnalysisResult
         IsEmpty = DocumentIds.IsEmpty && _others.IsEmpty;
     }
 
-    public static DiagnosticAnalysisResult CreateEmpty(ProjectId projectId, VersionStamp version)
-    {
-        return new DiagnosticAnalysisResult(
+    public static DiagnosticAnalysisResult CreateEmpty(ProjectId projectId, Checksum checksum)
+        => new(
             projectId,
-            version,
+            checksum,
             documentIds: [],
             syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
             semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
             nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
             others: []);
-    }
 
     public static DiagnosticAnalysisResult CreateInitialResult(ProjectId projectId)
-    {
-        return new DiagnosticAnalysisResult(
+        => new(
             projectId,
-            version: VersionStamp.Default,
+            // Default checksum will never match a real checksum produced for a project (even an empty project).
+            checksum: default,
             documentIds: null,
             isEmpty: true);
-    }
 
     public static DiagnosticAnalysisResult Create(
         Project project,
-        VersionStamp version,
+        Checksum checksum,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocalMap,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocalMap,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocalMap,
@@ -128,7 +125,7 @@ internal readonly struct DiagnosticAnalysisResult
 
         return new DiagnosticAnalysisResult(
             project.Id,
-            version,
+            checksum,
             syntaxLocalMap,
             semanticLocalMap,
             nonLocalMap,
@@ -140,7 +137,7 @@ internal readonly struct DiagnosticAnalysisResult
     {
         return Create(
             builder.Project,
-            builder.Version,
+            builder.Checksum,
             builder.SyntaxLocals,
             builder.SemanticLocals,
             builder.NonLocals,
@@ -219,23 +216,23 @@ internal readonly struct DiagnosticAnalysisResult
         => (IsAggregatedForm || IsEmpty) ? [] : _others;
 
     public DiagnosticAnalysisResult ToAggregatedForm()
-        => new(ProjectId, Version, DocumentIds, IsEmpty);
+        => new(ProjectId, Checksum, DocumentIds, IsEmpty);
 
-    public DiagnosticAnalysisResult UpdateAggregatedResult(VersionStamp version, DocumentId documentId)
-        => new(ProjectId, version, DocumentIdsOrEmpty.Add(documentId), isEmpty: false);
+    public DiagnosticAnalysisResult UpdateAggregatedResult(Checksum checksum, DocumentId documentId)
+        => new(ProjectId, checksum, DocumentIdsOrEmpty.Add(documentId), isEmpty: false);
 
     public DiagnosticAnalysisResult DropExceptSyntax()
     {
         // quick bail out
         if (_syntaxLocals == null || _syntaxLocals.Count == 0)
         {
-            return CreateEmpty(ProjectId, Version);
+            return CreateEmpty(ProjectId, Checksum);
         }
 
         // keep only syntax errors
         return new DiagnosticAnalysisResult(
            ProjectId,
-           Version,
+           Checksum,
            _syntaxLocals,
            semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,

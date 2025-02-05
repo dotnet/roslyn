@@ -13,13 +13,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 
 /// <summary>
-/// We have this builder to avoid creating collections unnecessarily.
-/// Expectation is that, most of time, most of analyzers doesn't have any diagnostics. so no need to actually create any objects.
+/// We have this builder to avoid creating collections unnecessarily. Expectation is that, most of time, most of
+/// analyzers doesn't have any diagnostics. so no need to actually create any objects.
 /// </summary>
-internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp version)
+internal struct DiagnosticAnalysisResultBuilder(Project project, Checksum checksum)
 {
     public readonly Project Project = project;
-    public readonly VersionStamp Version = version;
+    public readonly Checksum Checksum = checksum;
 
     private HashSet<DocumentId>? _lazyDocumentsWithDiagnostics = null;
 
