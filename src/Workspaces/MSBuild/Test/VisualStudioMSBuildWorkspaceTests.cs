@@ -30,12 +30,17 @@ using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.Threading;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     public class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
     {
+        public VisualStudioMSBuildWorkspaceTests(ITestOutputHelper testOutput) : base(testOutput)
+        {
+        }
+
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         public void TestCreateMSBuildWorkspace()
         {
@@ -1132,7 +1137,7 @@ class C1
             Assert.Equal(expected, e.Message);
         }
 
-        private readonly IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
+        private static readonly IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/3931")]
