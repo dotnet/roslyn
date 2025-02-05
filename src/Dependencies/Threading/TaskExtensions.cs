@@ -3,13 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.TestHooks;
+namespace Microsoft.CodeAnalysis.Threading;
 
 internal static partial class TaskExtensions
 {
@@ -50,7 +47,6 @@ internal static partial class TaskExtensions
         /// <param name="captureContext">Whether the continuation should be scheduled on the current sync context.</param>
         public NoThrowTaskAwaitable(Task task, bool captureContext)
         {
-            Contract.ThrowIfNull(task, nameof(task));
             _task = task;
             _captureContext = captureContext;
         }
@@ -87,7 +83,6 @@ internal static partial class TaskExtensions
         /// <param name="captureContext">if set to <c>true</c> [capture context].</param>
         public NoThrowTaskAwaiter(Task task, bool captureContext)
         {
-            Contract.ThrowIfNull(task, nameof(task));
             _task = task;
             _captureContext = captureContext;
         }

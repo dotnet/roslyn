@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Workspaces.ProjectSystem.ProjectSystemProjectFactory;
 
