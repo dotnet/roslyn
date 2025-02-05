@@ -107,8 +107,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (projectStateSets == null)
                     {
                         projectStateSets = CreateProjectStateSets(project);
-
-                        analyzerReferenceChangedEventArgs = GetProjectAnalyzerReferenceChangedEventArgs(project, projectStateSets.Value.MapPerReferences, projectStateSets.Value.StateSetMap);
+                        analyzerReferenceChangedEventArgs = GetProjectAnalyzerReferenceChangedEventArgs(project);
 
                         // update cache. 
                         _projectAnalyzerStateMap = _projectAnalyzerStateMap.SetItem(project.Id, projectStateSets.Value);
@@ -121,37 +120,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return projectStateSets.Value;
             }
 
-            private ProjectAnalyzerReferenceChangedEventArgs? GetProjectAnalyzerReferenceChangedEventArgs(
-                Project project,
-                ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> newMapPerReference,
-                ImmutableDictionary<DiagnosticAnalyzer, StateSet> newMap)
+            private ProjectAnalyzerReferenceChangedEventArgs? GetProjectAnalyzerReferenceChangedEventArgs(Project project)
             {
                 // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
                 if (!_projectAnalyzerStateMap.TryGetValue(project.Id, out var entry))
                 {
-                    // no previous references and we still don't have any references
-                    if (newMap.Count == 0)
-                    {
-                        return null;
-                    }
-
                     // new reference added
-                    return new ProjectAnalyzerReferenceChangedEventArgs(project, newMap.Values.ToImmutableArrayOrEmpty(), []);
-                }
-
-                Debug.Assert(!entry.AnalyzerReferences.Equals(project.AnalyzerReferences));
-
-                // there has been change. find out what has changed
-                var addedStates = DiffStateSets(project.AnalyzerReferences.Except(entry.AnalyzerReferences), newMapPerReference, newMap);
-                var removedStates = DiffStateSets(entry.AnalyzerReferences.Except(project.AnalyzerReferences), entry.MapPerReferences, entry.StateSetMap);
-
-                // nothing has changed
-                if (addedStates.Length == 0 && removedStates.Length == 0)
-                {
                     return null;
                 }
 
-                return new ProjectAnalyzerReferenceChangedEventArgs(project, addedStates, removedStates);
+                // there has been change. find out what has changed
+                var removedStates = DiffStateSets(entry.AnalyzerReferences.Except(project.AnalyzerReferences), entry.MapPerReferences, entry.StateSetMap);
+
+                if (removedStates.Length == 0)
+                    return null;
+
+                return new ProjectAnalyzerReferenceChangedEventArgs(removedStates);
             }
 
             private static ImmutableArray<StateSet> DiffStateSets(
