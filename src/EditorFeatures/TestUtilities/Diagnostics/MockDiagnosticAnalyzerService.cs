@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -44,10 +43,7 @@ internal class MockDiagnosticAnalyzerService() : IDiagnosticAnalyzerService
     public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
         => throw new NotImplementedException();
 
-    public Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
-
-    public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId? documentId, CancellationToken cancellationToken)
+    public Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         => throw new NotImplementedException();
 
     public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
