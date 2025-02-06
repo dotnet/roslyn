@@ -71,20 +71,24 @@ internal abstract partial class AbstractNavigateToSearchService
         Task SearchDocumentsInCurrentProcessAsync(ImmutableArray<(Document document, NormalizedTextSpanCollection? spans)> documentAndSpans)
             => ProducerConsumer<RoslynNavigateToItem>.RunParallelAsync(
                 documentAndSpans,
-                async (documentAndSpan, onItemFound, args, cancellationToken) => await SearchSingleDocumentAsync(
-                    documentAndSpan.document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet,
-                    item =>
-                    {
-                        // Ensure that the results found while searching the single document intersect the desired
-                        // subrange of the document we're searching in.  For the primary document this will always
-                        // succeed (since we're searching the full document).  But for related documents this may fail
-                        // if the results is not in the span of any of the types in those files we're searching.
-                        if (documentAndSpan.spans is null || documentAndSpan.spans.IntersectsWith(item.DeclaredSymbolInfo.Span))
-                            onItemFound(item);
-                    },
-                    cancellationToken).ConfigureAwait(false),
-                onItemsFound,
-                args: default,
+                produceItems: static async (documentAndSpan, onItemFound, args, cancellationToken) =>
+                {
+                    var (patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemsFound) = args;
+                    await SearchSingleDocumentAsync(
+                        documentAndSpan.document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet,
+                        item =>
+                        {
+                            // Ensure that the results found while searching the single document intersect the desired
+                            // subrange of the document we're searching in.  For the primary document this will always
+                            // succeed (since we're searching the full document).  But for related documents this may fail
+                            // if the results is not in the span of any of the types in those files we're searching.
+                            if (documentAndSpan.spans is null || documentAndSpan.spans.IntersectsWith(item.DeclaredSymbolInfo.Span))
+                                onItemFound(item);
+                        },
+                        cancellationToken).ConfigureAwait(false);
+                },
+                consumeItems: static (values, args, cancellationToken) => args.onItemsFound(values, default, cancellationToken),
+                args: (patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemsFound),
                 cancellationToken);
 
         async Task SearchRelatedDocumentsInCurrentProcessAsync()
