@@ -10662,7 +10662,7 @@ Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("x.ii.
             comp.VerifyDiagnostics(
 // (75): error CS0558: User-defined operator 'x.ii.iii.implicit operator int(x.ii.iii)' must be declared static and public
 //          static implicit operator int(iii aa)   // CS0558, add public
-Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("x.ii.iii.implicit operator int(x.ii.iii)")
+Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "int").WithArguments("x.ii.iii.implicit operator int(x.ii.iii)")
                 );
         }
 
@@ -10812,7 +10812,7 @@ interface IA
             comp.VerifyDiagnostics(
                 // (4,17): error CS0558: User-defined operator 'IA.operator +(int, int)' must be declared static and public
                 //    int operator +(int aa, int bb);   // CS0567
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "+").WithArguments("IA.operator +(int, int)").WithLocation(4, 17),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "+").WithArguments("IA.operator +(int, int)").WithLocation(4, 17),
                 // (4,17): error CS0501: 'IA.operator +(int, int)' must declare a body because it is not marked abstract, extern, or partial
                 //    int operator +(int aa, int bb);   // CS0567
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("IA.operator +(int, int)").WithLocation(4, 17),

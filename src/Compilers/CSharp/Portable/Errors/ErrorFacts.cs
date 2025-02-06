@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_IdentityConversion
                 or ErrorCode.ERR_ConversionNotInvolvingContainedType
                 or ErrorCode.ERR_DuplicateConversionInClass
-                or ErrorCode.ERR_OperatorsMustBeStatic
+                or ErrorCode.ERR_OperatorsMustBeStaticAndPublic
                 or ErrorCode.ERR_BadIncDecSignature
                 or ErrorCode.ERR_BadUnaryOperatorSignature
                 or ErrorCode.ERR_BadBinaryOperatorSignature
@@ -2479,6 +2479,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature
                 or ErrorCode.ERR_ImplicitlyTypedParamsParameter
                 or ErrorCode.ERR_VariableDeclarationNamedField
+                or ErrorCode.ERR_OperatorsMustBePublic
+                or ErrorCode.ERR_BadIncrementOpArgs
+                or ErrorCode.ERR_OperatorMustReturnVoid
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
