@@ -49,16 +49,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var lastResult = _lastResult;
                 Contract.ThrowIfFalse(lastResult.ProjectId == project.Id);
 
+                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                 if (lastResult.IsDefault)
-                {
-                    return await LoadInitialAnalysisDataAsync(project, cancellationToken).ConfigureAwait(false);
-                }
+                    return LoadInitialAnalysisData(project, version, cancellationToken);
 
                 RoslynDebug.Assert(lastResult.DocumentIds != null);
 
                 // PERF: avoid loading data if version is not right one.
                 // avoid loading data flag is there as a strictly perf optimization.
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                 if (lastResult.Version != version)
                 {
                     return lastResult;
@@ -226,22 +224,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 AddToInMemoryStorage(serializerVersion, new(result.ProjectId), NonLocalStateName, result.GetOtherDiagnostics());
             }
 
-            private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(Project project, CancellationToken cancellationToken)
+            private DiagnosticAnalysisResult LoadInitialAnalysisData(
+                Project project, VersionStamp version, CancellationToken cancellationToken)
             {
                 // loading data can be canceled any time.
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                var serializerVersion = version;
                 var builder = new Builder(project, version);
 
                 foreach (var document in project.Documents)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder))
+                    if (!TryGetDiagnosticsFromInMemoryStorage(version, document, builder))
                         continue;
                 }
 
-                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder))
+                if (!TryGetProjectDiagnosticsFromInMemoryStorage(version, project, builder))
                     return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
 
                 return builder.ToResult();
