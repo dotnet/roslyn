@@ -20,7 +20,8 @@ internal interface IDocumentationCommentSnippetService : ILanguageService
         int position,
         in DocumentationCommentOptions options,
         CancellationToken cancellationToken,
-        bool addIndentation = true);
+        bool addIndentation = true,
+        bool addGreyText = false);
 
     DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(
         ParsedDocument document,

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
@@ -23,10 +25,13 @@ internal sealed class DocumentationCommentSnippet
     /// </summary>
     public int CaretOffset { get; }
 
-    internal DocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset)
+    public DocumentationCommentProposal? Proposal { get; }
+
+    internal DocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset, DocumentationCommentProposal? proposal = null)
     {
         SpanToReplace = spanToReplace;
         SnippetText = snippetText;
         CaretOffset = caretOffset;
+        Proposal = proposal;
     }
 }

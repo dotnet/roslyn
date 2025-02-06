@@ -3,24 +3,32 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Copilot;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.Proposals;
+using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
-internal abstract class AbstractDocumentationCommentCommandHandler :
+internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionProviderBase,
     IChainedCommandHandler<TypeCharCommandArgs>,
     ICommandHandler<ReturnKeyCommandArgs>,
     ICommandHandler<InsertCommentCommandArgs>,
@@ -31,21 +39,30 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
     private readonly EditorOptionsService _editorOptionsService;
+    private readonly SuggestionServiceBase? _suggestionServiceBase;
+    private SuggestionManagerBase? _suggestionManagerBase;
+    internal SuggestionSessionBase? _suggestionSession;
+    public readonly IThreadingContext _threadingContext;
 
     protected AbstractDocumentationCommentCommandHandler(
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         ITextUndoHistoryRegistry undoHistoryRegistry,
         IEditorOperationsFactoryService editorOperationsFactoryService,
-        EditorOptionsService editorOptionsService)
+        EditorOptionsService editorOptionsService,
+        SuggestionServiceBase? suggestionServiceBase,
+        IThreadingContext? threadingContext)
     {
         Contract.ThrowIfNull(uiThreadOperationExecutor);
         Contract.ThrowIfNull(undoHistoryRegistry);
         Contract.ThrowIfNull(editorOperationsFactoryService);
+        Contract.ThrowIfNull(threadingContext);
 
         _uiThreadOperationExecutor = uiThreadOperationExecutor;
         _undoHistoryRegistry = undoHistoryRegistry;
         _editorOperationsFactoryService = editorOperationsFactoryService;
         _editorOptionsService = editorOptionsService;
+        _suggestionServiceBase = suggestionServiceBase;
+        _threadingContext = threadingContext;
     }
 
     protected abstract string ExteriorTriviaText { get; }
@@ -55,7 +72,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     public string DisplayName => EditorFeaturesResources.Documentation_Comment;
 
     private static DocumentationCommentSnippet? InsertOnCharacterTyped(IDocumentationCommentSnippetService service, ParsedDocument document, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
-        => service.GetDocumentationCommentSnippetOnCharacterTyped(document, position, options, cancellationToken);
+        => service.GetDocumentationCommentSnippetOnCharacterTyped(document, position, options, cancellationToken, addGreyText: true);
 
     private static DocumentationCommentSnippet? InsertOnEnterTyped(IDocumentationCommentSnippetService service, ParsedDocument document, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
         => service.GetDocumentationCommentSnippetOnEnterTyped(document, position, options, cancellationToken);
@@ -98,10 +115,83 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
             {
                 ApplySnippet(snippet, subjectBuffer, textView);
                 returnValue = true;
+
+                // Retrieve the locations for the proposals here
+                if (snippet.Proposal != null && _suggestionManagerBase != null)
+                {
+                    _threadingContext.ThrowIfNotOnUIThread();
+
+                    _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                    {
+                        await Task.Run(async () =>
+                        {
+                            await _suggestionManagerBase.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
+                            if (document.GetRequiredLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+                                await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+                            {
+                                return;
+                            }
+
+                            var list = new List<ProposedEdit>();
+
+                            var proposalEdits = await GetProposedEditsAsync(snippet.Proposal, subjectBuffer, copilotService, cancellationToken).ConfigureAwait(false);
+
+                            var proposal = new DocumentationCommentHandlerProposal(textView.Caret.Position.VirtualBufferPosition, proposalEdits);
+                            var suggestion = new DocumentationCommentSuggestion(this, proposal);
+
+                            var session = this._suggestionSession = await (_suggestionManagerBase.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
+
+                            if (session != null)
+                            {
+                                await TryDisplaySuggestionAsync(session, suggestion, cancellationToken).ConfigureAwait(false);
+                            }
+                        }).ConfigureAwait(false);
+                    });
+                }
             }
         }
 
         return returnValue;
+    }
+
+    private static async Task<IReadOnlyList<ProposedEdit>> GetProposedEditsAsync(
+        DocumentationCommentProposal proposal, ITextBuffer textBuffer, ICopilotCodeAnalysisService copilotService, CancellationToken cancellationToken)
+    {
+        var list = new List<ProposedEdit>();
+        foreach (var edit in proposal.ProposedEdits)
+        {
+            var textSpan = edit.SpanToReplace;
+            var copilotText = await copilotService.GetDocumentationCommentAsync(proposal.SymbolToAnalyze, edit.SymbolName, edit.TagType.ToString(), cancellationToken).ConfigureAwait(false);
+            var proposedEdit = new ProposedEdit(new SnapshotSpan(textBuffer.CurrentSnapshot, textSpan.Start, textSpan.Length), copilotText);
+            list.Add(proposedEdit);
+        }
+
+        return list;
+    }
+
+    private async Task<bool> TryDisplaySuggestionAsync(SuggestionSessionBase session, DocumentationCommentSuggestion suggestion, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await session.DisplayProposalAsync(suggestion.Proposal, cancellationToken).ConfigureAwait(false);
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+        }
+
+        return false;
+    }
+
+    public async Task ClearSuggestionAsync(ReasonForDismiss reason, CancellationToken cancellationToken)
+    {
+        if (_suggestionSession != null)
+        {
+            await _suggestionSession.DismissAsync(reason, cancellationToken).ConfigureAwait(false);
+        }
+
+        _suggestionSession = null;
     }
 
     public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
@@ -118,6 +208,14 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         // Don't execute in cloud environment, as we let LSP handle that
         if (args.SubjectBuffer.IsInLspEditorContext())
             return;
+
+        _threadingContext.JoinableTaskFactory.Run(async () =>
+        {
+            if (_suggestionServiceBase != null)
+            {
+                _suggestionManagerBase = await _suggestionServiceBase.TryRegisterProviderAsync(this, args.TextView, "AmbientAIDocumentationComments", context.OperationContext.UserCancellationToken).ConfigureAwait(false);
+            }
+        });
 
         CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCharacterTyped, CancellationToken.None);
     }

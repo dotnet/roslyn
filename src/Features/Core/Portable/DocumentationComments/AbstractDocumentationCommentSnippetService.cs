@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -68,7 +69,8 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         int position,
         in DocumentationCommentOptions options,
         CancellationToken cancellationToken,
-        bool addIndentation = true)
+        bool addIndentation = true,
+        bool addGreyText = false)
     {
         if (!options.AutoXmlDocCommentGeneration)
             return null;
@@ -101,6 +103,14 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
         var comments = string.Join(string.Empty, lines);
 
         var replaceSpan = new TextSpan(token.Span.Start, spanToReplaceLength);
+
+        var memberNode = GetContainingMember(syntaxTree, position, cancellationToken);
+        var proposal = GetProposal(replaceSpan, comments, memberNode, position, caretOffset);
+
+        if (addGreyText)
+        {
+            return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset, proposal);
+        }
 
         return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset);
     }
@@ -455,5 +465,10 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
             : " ";
 
         return firstNonWhitespaceColumn.CreateIndentationString(options.UseTabs, options.TabSize) + ExteriorTriviaText + extraIndent;
+    }
+
+    protected virtual DocumentationCommentProposal? GetProposal(TextSpan textSpan, string? comments, TMemberNode? memberNode, int startIndex, int caret)
+    {
+        return null;
     }
 }

@@ -82,4 +82,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService : AbstractCopilot
 
     protected override Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken)
         => _lazyExternalCopilotService.Value.IsFileExcludedAsync(filePath, cancellationToken);
+
+    protected override Task<string> GetDocumentationCommentCoreAsync(string memberDeclaration, string? symbolName, string tagType, CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.GetDocumentationCommentAsync(memberDeclaration, symbolName, tagType, cancellationToken);
 }

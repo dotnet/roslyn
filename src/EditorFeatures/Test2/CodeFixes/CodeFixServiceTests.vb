@@ -315,7 +315,11 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.FromResult(True)
             End Function
 
-            Public Function IsOnTheFlyDocsOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsOnTheFlyDocsOptionEnabledASync
+            Public Function IsOnTheFlyDocsOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsOnTheFlyDocsOptionEnabledAsync
+                Return Task.FromResult(True)
+            End Function
+
+            Public Function IsGenerateDocumentationCommentOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsGenerateDocumentationCommentOptionEnabledAsync
                 Return Task.FromResult(True)
             End Function
         End Class
@@ -357,6 +361,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
             Public Function IsFileExcludedAsync(filePath As String, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsFileExcludedAsync
                 Return Task.FromResult(False)
+            End Function
+
+            Public Function GetDocumentationCommentAsync(memberDeclaration As String, symbolName As String, tagType As String, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetDocumentationCommentAsync
+                Return Task.FromResult("")
             End Function
         End Class
     End Class

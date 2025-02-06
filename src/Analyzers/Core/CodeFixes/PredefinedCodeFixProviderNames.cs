@@ -68,6 +68,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string GenerateVariable = nameof(GenerateVariable);
     public const string ImplementAbstractClass = nameof(ImplementAbstractClass);
     public const string ImplementInterface = nameof(ImplementInterface);
+    public const string ImplementNotImplementedException = nameof(ImplementNotImplementedException);
     public const string InlineDeclaration = nameof(InlineDeclaration);
     public const string InvokeDelegateWithConditionalAccess = nameof(InvokeDelegateWithConditionalAccess);
     public const string JsonDetection = nameof(JsonDetection);
