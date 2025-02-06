@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -12,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -21,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 [Export(typeof(IDiagnosticAnalyzerService)), Shared, PartNotDiscoverable]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class MockDiagnosticAnalyzerService() : IDiagnosticAnalyzerService
+internal sealed class MockDiagnosticAnalyzerService() : IDiagnosticAnalyzerService
 {
     private readonly ArrayBuilder<(DiagnosticData Diagnostic, DiagnosticKind KindFilter)> _diagnosticsWithKindFilter = ArrayBuilder<(DiagnosticData Diagnostic, DiagnosticKind KindFilter)>.GetInstance();
     public bool RequestedRefresh;
 
-    public void AddDiagnostic(DiagnosticData diagnostic, DiagnosticKind diagnosticKind)
+    private void AddDiagnostic(DiagnosticData diagnostic, DiagnosticKind diagnosticKind)
         => _diagnosticsWithKindFilter.Add((diagnostic, diagnosticKind));
 
     public void AddDiagnostics(ImmutableArray<DiagnosticData> diagnostics, DiagnosticKind diagnosticKind)
@@ -53,7 +51,7 @@ internal class MockDiagnosticAnalyzerService() : IDiagnosticAnalyzerService
     public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
         => throw new NotImplementedException();
 
-    public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocuments, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+    public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
         => throw new NotImplementedException();
 
     public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(TextDocument document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic, bool includeCompilerDiagnostics, ICodeActionRequestPriorityProvider priorityProvider, DiagnosticKind diagnosticKind, bool isExplicit, CancellationToken cancellationToken)

@@ -18,18 +18,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId? documentId, CancellationToken cancellationToken)
             => new IdeCachedDiagnosticGetter(this, solution, projectId, documentId).GetDiagnosticsAsync(cancellationToken);
 
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocuments, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-            => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, getDocuments, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+            => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
 
         public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-            => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId: null, diagnosticIds, shouldIncludeAnalyzer, getDocuments: null, includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics).GetProjectDiagnosticsAsync(cancellationToken);
+            => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId: null, diagnosticIds, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics).GetProjectDiagnosticsAsync(cancellationToken);
 
         private abstract class DiagnosticGetter(
             DiagnosticIncrementalAnalyzer owner,
             Solution solution,
             ProjectId projectId,
             DocumentId? documentId,
-            Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocuments,
             bool includeLocalDocumentDiagnostics,
             bool includeNonLocalDocumentDiagnostics)
         {
@@ -40,8 +39,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             protected readonly DocumentId? DocumentId = documentId;
             protected readonly bool IncludeLocalDocumentDiagnostics = includeLocalDocumentDiagnostics;
             protected readonly bool IncludeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
-
-            private readonly Func<Project, DocumentId?, IReadOnlyList<DocumentId>> _getDocuments = getDocuments ?? (static (project, documentId) => documentId != null ? [documentId] : project.DocumentIds);
 
             protected StateManager StateManager => Owner._stateManager;
 
@@ -59,7 +56,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // return diagnostics specific to one project or document
                 var includeProjectNonLocalResult = DocumentId == null;
                 return await ProduceProjectDiagnosticsAsync(
-                    project, _getDocuments(project, DocumentId), includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
+                    project,
+                    // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this
+                    // project if no specific document id was requested.
+                    this.DocumentId != null ? [this.DocumentId] : [.. project.DocumentIds, .. project.AdditionalDocumentIds],
+                    includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
             }
 
             protected async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             ProjectId projectId,
             DocumentId? documentId)
             : DiagnosticGetter(
-                owner, solution, projectId, documentId, getDocuments: null,
+                owner, solution, projectId, documentId,
                 includeLocalDocumentDiagnostics: documentId != null,
                 includeNonLocalDocumentDiagnostics: documentId != null)
         {
@@ -187,11 +188,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             DocumentId? documentId,
             ImmutableHashSet<string>? diagnosticIds,
             Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
-            Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocuments,
             bool includeLocalDocumentDiagnostics,
             bool includeNonLocalDocumentDiagnostics)
             : DiagnosticGetter(
-                owner, solution, projectId, documentId, getDocuments, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics)
+                owner, solution, projectId, documentId, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics)
         {
             private readonly ImmutableHashSet<string>? _diagnosticIds = diagnosticIds;
             private readonly Func<DiagnosticAnalyzer, bool>? _shouldIncludeAnalyzer = shouldIncludeAnalyzer;
