@@ -8,8 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Utilities;
 
-namespace Roslyn.Utilities;
+namespace Microsoft.CodeAnalysis.Threading;
 
 /// <inheritdoc cref="AsyncBatchingWorkQueue{TItem, TResult}"/>
 internal sealed class AsyncBatchingWorkQueue(
@@ -22,5 +23,5 @@ internal sealed class AsyncBatchingWorkQueue(
         => (items, ct) => processBatchAsync(ct);
 
     public void AddWork(bool cancelExistingWork = false)
-        => base.AddWork(default(VoidResult), cancelExistingWork);
+        => AddWork(default(VoidResult), cancelExistingWork);
 }

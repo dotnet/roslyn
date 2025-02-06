@@ -11,8 +11,9 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Utilities;
 
-namespace Roslyn.Utilities;
+namespace Microsoft.CodeAnalysis.Threading;
 
 /// <summary>
 /// A queue where items can be added to to be processed in batches after some delay has passed. When processing
@@ -140,10 +141,16 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
 
     public void AddWork(TItem item, bool cancelExistingWork = false)
     {
-        using var _ = ArrayBuilder<TItem>.GetInstance(out var items);
-        items.Add(item);
-
-        AddWork(items, cancelExistingWork);
+        var items = ArrayBuilder<TItem>.GetInstance();
+        try
+        {
+            items.Add(item);
+            AddWork(items, cancelExistingWork);
+        }
+        finally
+        {
+            items.Free();
+        }
     }
 
     public void AddWork(IEnumerable<TItem> items, bool cancelExistingWork = false)
@@ -254,9 +261,7 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
             var batchResultTask = _processBatchAsync(nextBatch, batchCancellationToken).Preserve();
             await batchResultTask.NoThrowAwaitableInternal(false);
             if (batchResultTask.IsCompletedSuccessfully)
-            {
                 return batchResultTask.Result;
-            }
             else if (batchResultTask.IsCanceled && !_entireQueueCancellationToken.IsCancellationRequested)
             {
                 // Don't bubble up cancellation to the queue for the nested batch cancellation.  Just because we decided
@@ -265,8 +270,11 @@ internal class AsyncBatchingWorkQueue<TItem, TResult>
             }
             else
             {
+                Contract.ThrowIfFalse(batchResultTask.IsCompleted);
+
                 // Realize the completed result to force the exception to be thrown.
-                batchResultTask.VerifyCompleted();
+                batchResultTask.GetAwaiter().GetResult();
+
                 throw ExceptionUtilities.Unreachable();
             }
         }

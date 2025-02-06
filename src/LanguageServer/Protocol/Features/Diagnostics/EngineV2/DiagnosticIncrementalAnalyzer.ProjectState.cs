@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -38,15 +39,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _owner = owner;
                 _lastResult = DiagnosticAnalysisResult.CreateInitialResult(projectId);
             }
-
-            public ImmutableHashSet<DocumentId> GetDocumentsWithDiagnostics()
-                => _lastResult.DocumentIdsOrEmpty;
-
-            public bool IsEmpty()
-                => _lastResult.IsEmpty;
-
-            public bool IsEmpty(DocumentId documentId)
-                => IsEmpty(_lastResult, documentId);
 
             /// <summary>
             /// Return all diagnostics for the given project stored in this state
@@ -90,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (document == null)
                         continue;
 
-                    if (!await TryGetDiagnosticsFromInMemoryStorageAsync(serializerVersion, document, builder, cancellationToken).ConfigureAwait(false))
+                    if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder, cancellationToken))
                     {
                         Debug.Assert(lastResult.Version == VersionStamp.Default);
 
@@ -129,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = lastResult.Version;
                 var builder = new Builder(document.Project, lastResult.Version);
 
-                if (!await TryGetDiagnosticsFromInMemoryStorageAsync(serializerVersion, document, builder, cancellationToken).ConfigureAwait(false))
+                if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder, cancellationToken))
                 {
                     Debug.Assert(lastResult.Version == VersionStamp.Default);
 
@@ -214,9 +206,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax));
-                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic));
-                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal));
+                    AddToInMemoryStorage(serializerVersion, new(document.Id), SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax));
+                    AddToInMemoryStorage(serializerVersion, new(document.Id), SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic));
+                    AddToInMemoryStorage(serializerVersion, new(document.Id), NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal));
                 }
             }
 
@@ -231,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!await TryGetDiagnosticsFromInMemoryStorageAsync(serializerVersion, document, builder, cancellationToken).ConfigureAwait(false))
+                    if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder, cancellationToken))
                         continue;
                 }
 
@@ -247,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = version;
                 var builder = new Builder(project, version);
 
-                if (!await TryGetDiagnosticsFromInMemoryStorageAsync(serializerVersion, document, builder, cancellationToken).ConfigureAwait(false))
+                if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder, cancellationToken))
                 {
                     return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
                 }
@@ -266,21 +258,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private void AddToInMemoryStorage(
-                VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
+                VersionStamp serializerVersion, ProjectOrDocumentId key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
             {
-                Contract.ThrowIfFalse(document == null || document.Project == project);
-
-                // if serialization fail, hold it in the memory
                 InMemoryStorage.Cache(_owner.Analyzer, (key, stateKey), new CacheEntry(serializerVersion, diagnostics));
             }
 
-            private async ValueTask<bool> TryGetDiagnosticsFromInMemoryStorageAsync(VersionStamp serializerVersion, TextDocument document, Builder builder, CancellationToken cancellationToken)
+            private bool TryGetDiagnosticsFromInMemoryStorage(VersionStamp serializerVersion, TextDocument document, Builder builder, CancellationToken cancellationToken)
             {
                 var success = true;
                 var project = document.Project;
                 var documentId = document.Id;
 
-                var diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, SyntaxStateName, cancellationToken).ConfigureAwait(false);
+                var diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, new(documentId), SyntaxStateName, cancellationToken);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddSyntaxLocals(documentId, diagnostics);
@@ -290,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     success = false;
                 }
 
-                diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, SemanticStateName, cancellationToken).ConfigureAwait(false);
+                diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, new(documentId), SemanticStateName, cancellationToken);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddSemanticLocals(documentId, diagnostics);
@@ -300,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     success = false;
                 }
 
-                diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, NonLocalStateName, cancellationToken).ConfigureAwait(false);
+                diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, new(documentId), NonLocalStateName, cancellationToken);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddNonLocals(documentId, diagnostics);
@@ -313,13 +302,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return success;
             }
 
-            private ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsFromInMemoryStorageAsync(
-                VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey, CancellationToken _)
+            private ImmutableArray<DiagnosticData> GetDiagnosticsFromInMemoryStorage(
+                VersionStamp serializerVersion, ProjectOrDocumentId key, string stateKey, CancellationToken _)
             {
-                Contract.ThrowIfFalse(document == null || document.Project == project);
-
                 return InMemoryStorage.TryGetValue(_owner.Analyzer, (key, stateKey), out var entry) && serializerVersion == entry.Version
-                    ? new(entry.Diagnostics)
+                    ? entry.Diagnostics
                     : default;
             }
 
@@ -334,12 +321,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private void RemoveInMemoryCacheEntries(DocumentId id)
             {
-                RemoveInMemoryCacheEntry(id, SyntaxStateName);
-                RemoveInMemoryCacheEntry(id, SemanticStateName);
-                RemoveInMemoryCacheEntry(id, NonLocalStateName);
+                RemoveInMemoryCacheEntry(new(id), SyntaxStateName);
+                RemoveInMemoryCacheEntry(new(id), SemanticStateName);
+                RemoveInMemoryCacheEntry(new(id), NonLocalStateName);
             }
 
-            private void RemoveInMemoryCacheEntry(object key, string stateKey)
+            private void RemoveInMemoryCacheEntry(ProjectOrDocumentId key, string stateKey)
             {
                 // remove in memory cache if entry exist
                 InMemoryStorage.Remove(_owner.Analyzer, (key, stateKey));

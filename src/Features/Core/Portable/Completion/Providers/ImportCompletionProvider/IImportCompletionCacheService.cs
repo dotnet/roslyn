@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
