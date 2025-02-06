@@ -8,9 +8,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.PooledObjects;
 
 [NonCopyable]
-internal readonly struct PooledDisposer<TPoolable>(TPoolable instance) : IDisposable
+internal readonly struct PooledDisposer<TPoolable>(TPoolable instance, bool discardLargeInstances = true) : IDisposable
     where TPoolable : class, IPooled
 {
     void IDisposable.Dispose()
-        => instance?.Free();
+        => instance?.Free(discardLargeInstances);
 }

@@ -12,6 +12,7 @@ using System.Xml.Linq;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -36,7 +37,11 @@ public class SymbolFinderTests : TestBase
             projectName,
             languageName,
             metadataReferences: [metadataReference],
-            projectReferences: projectReferences.Select(p => new ProjectReference(p)));
+            projectReferences: projectReferences.Select(p => new ProjectReference(p)),
+            compilationOptions: solution.Services
+                .GetRequiredLanguageService<ICompilationFactoryService>(languageName)
+                .GetDefaultCompilationOptions()
+                .WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
         return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
     }
 
