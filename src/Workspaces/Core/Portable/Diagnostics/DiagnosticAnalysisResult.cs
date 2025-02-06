@@ -221,12 +221,6 @@ internal readonly struct DiagnosticAnalysisResult
     public DiagnosticAnalysisResult ToAggregatedForm()
         => new(ProjectId, Version, DocumentIds, IsEmpty);
 
-    public DiagnosticAnalysisResult UpdateAggregatedResult(VersionStamp version, DocumentId documentId)
-        => new(ProjectId, version, DocumentIdsOrEmpty.Add(documentId), isEmpty: false);
-
-    public DiagnosticAnalysisResult Reset()
-        => new(ProjectId, VersionStamp.Default, DocumentIds, IsEmpty);
-
     public DiagnosticAnalysisResult DropExceptSyntax()
     {
         // quick bail out

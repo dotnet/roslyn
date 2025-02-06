@@ -129,9 +129,7 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
 
         var preference = info.Options.PreferExpressionBodiedProperties.Value;
         if (preference == ExpressionBodyPreference.Never)
-        {
-            return propertyDeclaration.WithSemicolonToken(default);
-        }
+            return propertyDeclaration;
 
         // if there is a get accessors only, we can move the expression body to the property
         if (propertyDeclaration.AccessorList?.Accessors.Count == 1 &&
@@ -146,7 +144,7 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
             }
         }
 
-        return propertyDeclaration.WithSemicolonToken(default);
+        return propertyDeclaration;
     }
 
     protected override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode)

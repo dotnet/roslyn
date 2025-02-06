@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;

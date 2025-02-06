@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public readonly DiagnosticAnalyzer Analyzer;
             public readonly bool IsHostAnalyzer;
 
-            private readonly ConcurrentDictionary<DocumentId, ActiveFileState> _activeFileStates;
+            private readonly ConcurrentSet<DocumentId> _activeDocuments;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
 
             public StateSet(string language, DiagnosticAnalyzer analyzer, bool isHostAnalyzer)
@@ -34,154 +34,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Analyzer = analyzer;
                 IsHostAnalyzer = isHostAnalyzer;
 
-                _activeFileStates = new ConcurrentDictionary<DocumentId, ActiveFileState>(concurrencyLevel: 2, capacity: 10);
+                _activeDocuments = [];
                 _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
             }
 
-            public IEnumerable<ProjectId> GetProjectsWithDiagnostics()
-            {
-                // quick bail out
-                if (_activeFileStates.IsEmpty && _projectStates.IsEmpty)
-                    return [];
-
-                if (_activeFileStates.Count == 1 && _projectStates.IsEmpty)
-                {
-                    // see whether we actually have diagnostics
-                    var (documentId, state) = _activeFileStates.First();
-                    if (state.IsEmpty)
-                        return [];
-
-                    // we do have diagnostics
-                    return [documentId.ProjectId];
-                }
-
-                return new HashSet<ProjectId>(
-                    _activeFileStates.Where(kv => !kv.Value.IsEmpty)
-                                     .Select(kv => kv.Key.ProjectId)
-                                     .Concat(_projectStates.Where(kv => !kv.Value.IsEmpty())
-                                                           .Select(kv => kv.Key)));
-            }
-
-            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
-            public void CollectDocumentsWithDiagnostics(ProjectId projectId, HashSet<DocumentId> set)
-            {
-                RoslynDebug.Assert(set != null);
-
-                // Collect active documents with diagnostics
-
-                foreach (var (documentId, state) in _activeFileStates)
-                {
-                    if (documentId.ProjectId == projectId && !state.IsEmpty)
-                    {
-                        set.Add(documentId);
-                    }
-                }
-
-                if (_projectStates.TryGetValue(projectId, out var projectState) && !projectState.IsEmpty())
-                {
-                    set.UnionWith(projectState.GetDocumentsWithDiagnostics());
-                }
-            }
-
             public bool IsActiveFile(DocumentId documentId)
-                => _activeFileStates.ContainsKey(documentId);
-
-            public bool TryGetActiveFileState(DocumentId documentId, [NotNullWhen(true)] out ActiveFileState? state)
-                => _activeFileStates.TryGetValue(documentId, out state);
+                => _activeDocuments.Contains(documentId);
 
             public bool TryGetProjectState(ProjectId projectId, [NotNullWhen(true)] out ProjectState? state)
                 => _projectStates.TryGetValue(projectId, out state);
 
-            public ActiveFileState GetOrCreateActiveFileState(DocumentId documentId)
-                => _activeFileStates.GetOrAdd(documentId, id => new ActiveFileState(id));
+            public void AddActiveDocument(DocumentId documentId)
+                => _activeDocuments.Add(documentId);
 
             public ProjectState GetOrCreateProjectState(ProjectId projectId)
                 => _projectStates.GetOrAdd(projectId, static (id, self) => new ProjectState(self, id), this);
-
-            public async Task<bool> OnDocumentOpenedAsync(TextDocument document)
-            {
-                // can not be cancelled
-                if (!TryGetProjectState(document.Project.Id, out var projectState) ||
-                    projectState.IsEmpty(document.Id))
-                {
-                    // nothing to do
-                    return false;
-                }
-
-                var result = await projectState.GetAnalysisDataAsync(document, avoidLoadingData: false, CancellationToken.None).ConfigureAwait(false);
-                var text = await document.GetValueTextAsync(CancellationToken.None).ConfigureAwait(false);
-
-                // store analysis result to active file state:
-                var activeFileState = GetOrCreateActiveFileState(document.Id);
-
-                activeFileState.Save(AnalysisKind.Syntax, new DocumentAnalysisData(result.Version, text.Lines.Count, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax)));
-                activeFileState.Save(AnalysisKind.Semantic, new DocumentAnalysisData(result.Version, text.Lines.Count, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic)));
-
-                return true;
-            }
-
-            public async Task<bool> OnDocumentClosedAsync(TextDocument document, IGlobalOptionService globalOptions)
-            {
-                // can not be cancelled
-                // remove active file state and put it in project state
-                if (!_activeFileStates.TryRemove(document.Id, out var activeFileState))
-                {
-                    return false;
-                }
-
-                // active file exist, put it in the project state
-                var projectState = GetOrCreateProjectState(document.Project.Id);
-                await projectState.MergeAsync(activeFileState, document, globalOptions).ConfigureAwait(false);
-                return true;
-            }
-
-            public bool OnDocumentReset(TextDocument document)
-            {
-                var changed = false;
-                // can not be cancelled
-                // remove active file state and put it in project state
-                if (TryGetActiveFileState(document.Id, out var activeFileState))
-                {
-                    activeFileState.ResetVersion();
-                    changed |= true;
-                }
-
-                if (TryGetProjectState(document.Project.Id, out var projectState))
-                {
-                    projectState.ResetVersion();
-                    changed |= true;
-                }
-
-                return changed;
-            }
-
-            public bool OnDocumentRemoved(DocumentId id)
-            {
-                // remove active file state for removed document
-                var removed = false;
-                if (_activeFileStates.TryRemove(id, out _))
-                {
-                    removed = true;
-                }
-                // remove state for the file that got removed.
-                if (_projectStates.TryGetValue(id.ProjectId, out var state))
-                {
-                    removed |= state.OnDocumentRemoved(id);
-                }
-
-                return removed;
-            }
-
-            public bool OnProjectRemoved(ProjectId id)
-            {
-                // remove state for project that got removed.
-                if (_projectStates.TryRemove(id, out var state))
-                {
-                    return state.OnProjectRemoved(id);
-                }
-
-                return false;
-            }
 
             public void OnRemoved()
             {
