@@ -112,6 +112,46 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         }
     }
 
+    /// <summary>
+    /// When running in Visual Studio the razor generator will be redirected to the razor language 
+    /// services directory. That will not contain all of the necessary DLLs. Anything that is a 
+    /// platform DLL, like the object pool, will be in the VS platform directory. Need to fall back
+    /// to the compiler context to find those.
+    /// </summary>
+    [Fact]
+    public void FallbackToCompilerContext()
+    {
+        var dir1 = TempRoot.CreateDirectory().Path;
+        CreateRazorAssemblies(dir1);
+        var dir2 = TempRoot.CreateDirectory().Path;
+        var fileName = $"{RazorAnalyzerAssemblyResolver.ObjectPoolAssemblyName}.dll";
+        File.Move(Path.Combine(dir1, fileName), Path.Combine(dir2, fileName));
+
+        RunWithLoader((resolver, loader, currentLoadContext) =>
+        {
+            Assembly? expectedAssembly = null;
+            loader.CompilerLoadContext.Resolving += (context, name) =>
+            {
+                if (name.Name == RazorAnalyzerAssemblyResolver.ObjectPoolAssemblyName)
+                {
+                    expectedAssembly = context.LoadFromAssemblyPath(Path.Combine(dir2, fileName));
+                    return expectedAssembly;
+                }
+
+                return null;
+            };
+
+            var actualAssembly = resolver.Resolve(
+                loader,
+                new AssemblyName(RazorAnalyzerAssemblyResolver.ObjectPoolAssemblyName),
+                currentLoadContext,
+                dir1);
+            Assert.NotNull(expectedAssembly);
+            Assert.NotNull(actualAssembly);
+            Assert.Same(expectedAssembly, actualAssembly);
+        });
+    }
+
     [Fact]
     public void FirstLoadWins()
     {
