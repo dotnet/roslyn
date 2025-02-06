@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 }
 
                 var assemblyFileName = $"{assemblyName.Name}.dll";
-                var assemblyPath = Path.Combine(directory, $"{assemblyFileName}.dll");
+                var assemblyPath = Path.Combine(directory, assemblyFileName);
                 if (File.Exists(assemblyPath))
                 {
                     // https://github.com/dotnet/roslyn/issues/76868
