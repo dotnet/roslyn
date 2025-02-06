@@ -325,7 +325,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 
-            Public Function ForceAnalyzeProjectAsync(project As Project, cancellationToken As CancellationToken) As Task(Of  Implements IDiagnosticAnalyzerService.ForceAnalyzeProjectAsync
+            Public Function ForceAnalyzeProjectAsync(project As Project, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.ForceAnalyzeProjectAsync
                 Throw New NotImplementedException()
             End Function
         End Class
