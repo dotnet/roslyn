@@ -36,19 +36,4 @@ internal sealed partial class PooledStringBuilder : IPooled
             _pool.Free(this);
         }
     }
-
-    void IPooled.Free(bool discardLargeInstances)
-    {
-        // If we're discarding large instances, use the default behavior (which already does that).  Otherwise, always
-        // clear and free the instance back to its originating pool.
-        if (discardLargeInstances)
-        {
-            Free();
-        }
-        else
-        {
-            this.Builder.Clear();
-            _pool.Free(this);
-        }
-    }
 }
