@@ -10801,10 +10801,12 @@ public struct Vec4
                 .VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
-        public void RefTemp_Escapes_ViaOutParameter()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_ViaOutParameter(
+            [CombinatorialValues("", "scoped")] string scoped,
+            [CombinatorialValues("", "readonly")] string ro)
         {
-            var source = """
+            var source = $$"""
                 scoped R r1, r2;
                 M(111, out r1);
                 M(222, out r2);
@@ -10812,11 +10814,11 @@ public struct Vec4
 
                 static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
 
-                static void M(in int x, out R r) => r = new R(x);
+                static void M(in int x, {{scoped}} out R r) => r = new R(x);
 
-                ref struct R(in int x)
+                {{ro}} ref struct R(in int x)
                 {
-                    public ref readonly int F = ref x;
+                    public {{ro}} ref readonly int F = ref x;
                 }
                 """;
             CompileAndVerify(source,
@@ -10824,6 +10826,150 @@ public struct Vec4
                 targetFramework: TargetFramework.Net70,
                 verify: Verification.FailsPEVerify)
                 .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_CannotEscape_ViaOutParameter()
+        {
+            var source = """
+                scoped R r1, r2;
+                M(111, out r1);
+                M(222, out r2);
+
+                static void M(scoped in int x, scoped out R r) { }
+
+                ref struct R;
+                """;
+            CompileAndVerify(source)
+                .VerifyDiagnostics()
+                // One int temp would be enough, but currently the scope difference between input/output is not recognized by the heuristic.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       28 (0x1c)
+                      .maxstack  2
+                      .locals init (R V_0, //r1
+                                    R V_1, //r2
+                                    int V_2,
+                                    int V_3)
+                      IL_0000:  ldc.i4.s   111
+                      IL_0002:  stloc.2
+                      IL_0003:  ldloca.s   V_2
+                      IL_0005:  ldloca.s   V_0
+                      IL_0007:  call       "void Program.<<Main>$>g__M|0_0(scoped in int, out R)"
+                      IL_000c:  ldc.i4     0xde
+                      IL_0011:  stloc.3
+                      IL_0012:  ldloca.s   V_3
+                      IL_0014:  ldloca.s   V_1
+                      IL_0016:  call       "void Program.<<Main>$>g__M|0_0(scoped in int, out R)"
+                      IL_001b:  ret
+                    }
+                    """);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_ViaRefParameter(
+            [CombinatorialValues("", "scoped")] string scoped)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                scoped var r1 = new R();
+                scoped var r2 = new R();
+                M(111, ref r1);
+                M(222, ref r2);
+                Report(r1.F, r2.F);
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                static void M([UnscopedRef] in int x, {{scoped}} ref R r)
+                {
+                    r.F = ref x;
+                }
+
+                ref struct R
+                {
+                    public ref readonly int F;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_Escapes_ViaRefParameter_Readonly(
+            [CombinatorialValues("", "scoped")] string scoped)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                scoped var r1 = new R();
+                scoped var r2 = new R();
+                M(111, ref r1);
+                M(222, ref r2);
+                Report(r1.F, r2.F);
+
+                static void Report(int x, int y) => System.Console.WriteLine($"{x} {y}");
+
+                static void M([UnscopedRef] in int x, {{scoped}} ref R r)
+                {
+                    r = new R(in x);
+                }
+
+                readonly ref struct R(ref readonly int x)
+                {
+                    public readonly ref readonly int F = ref x;
+                }
+                """;
+            CompileAndVerify(source,
+                expectedOutput: RefFieldTests.IncludeExpectedOutput("111 222"),
+                targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_CannotEscape_ViaRefParameter()
+        {
+            var source = """
+                scoped R r1 = new(), r2 = new();
+                M(111, ref r1);
+                M(222, ref r2);
+
+                static void M(in int x, ref R r) { }
+
+                ref struct R;
+                """;
+            CompileAndVerify(source)
+                .VerifyDiagnostics()
+                // One int temp would be enough, but currently the scope difference between input/output is not recognized by the heuristic.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       44 (0x2c)
+                      .maxstack  2
+                      .locals init (R V_0, //r1
+                                    R V_1, //r2
+                                    int V_2,
+                                    int V_3)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "R"
+                      IL_0008:  ldloca.s   V_1
+                      IL_000a:  initobj    "R"
+                      IL_0010:  ldc.i4.s   111
+                      IL_0012:  stloc.2
+                      IL_0013:  ldloca.s   V_2
+                      IL_0015:  ldloca.s   V_0
+                      IL_0017:  call       "void Program.<<Main>$>g__M|0_0(in int, ref R)"
+                      IL_001c:  ldc.i4     0xde
+                      IL_0021:  stloc.3
+                      IL_0022:  ldloca.s   V_3
+                      IL_0024:  ldloca.s   V_1
+                      IL_0026:  call       "void Program.<<Main>$>g__M|0_0(in int, ref R)"
+                      IL_002b:  ret
+                    }
+                    """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
@@ -10859,6 +11005,41 @@ public struct Vec4
                       IL_0014:  ldloca.s   V_2
                       IL_0016:  call       "void Program.<<Main>$>g__M|0_0(in int, out R)"
                       IL_001b:  ret
+                    }
+                    """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67435")]
+        public void RefTemp_CannotEscape_Scoped()
+        {
+            var source = """
+                var r1 = new R(111);
+                var r2 = new R(222);
+
+                ref struct R
+                {
+                    public R(scoped in int x) { }
+                }
+                """;
+            CompileAndVerify(source)
+                .VerifyDiagnostics()
+                // One int temp is enough.
+                .VerifyIL("<top-level-statements-entry-point>", """
+                    {
+                      // Code size       26 (0x1a)
+                      .maxstack  1
+                      .locals init (int V_0)
+                      IL_0000:  ldc.i4.s   111
+                      IL_0002:  stloc.0
+                      IL_0003:  ldloca.s   V_0
+                      IL_0005:  newobj     "R..ctor(scoped in int)"
+                      IL_000a:  pop
+                      IL_000b:  ldc.i4     0xde
+                      IL_0010:  stloc.0
+                      IL_0011:  ldloca.s   V_0
+                      IL_0013:  newobj     "R..ctor(scoped in int)"
+                      IL_0018:  pop
+                      IL_0019:  ret
                     }
                     """);
         }

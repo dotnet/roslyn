@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen;
 
 internal partial class CodeGenerator
 {
+    /// <inheritdoc cref="MightEscapeTemporaryRefs(bool, TypeSymbol, RefKind, ParameterSymbol?, AddressKind?, ImmutableArray{ParameterSymbol})"/>
     private static bool MightEscapeTemporaryRefs(BoundCall node, bool used, AddressKind? receiverAddressKind)
     {
         return MightEscapeTemporaryRefs(
@@ -21,6 +22,7 @@ internal partial class CodeGenerator
             parameters: node.Method.Parameters);
     }
 
+    /// <inheritdoc cref="MightEscapeTemporaryRefs(bool, TypeSymbol, RefKind, ParameterSymbol?, AddressKind?, ImmutableArray{ParameterSymbol})"/>
     private static bool MightEscapeTemporaryRefs(BoundObjectCreationExpression node, bool used)
     {
         return MightEscapeTemporaryRefs(
@@ -32,6 +34,7 @@ internal partial class CodeGenerator
             parameters: node.Constructor.Parameters);
     }
 
+    /// <inheritdoc cref="MightEscapeTemporaryRefs(bool, TypeSymbol, RefKind, ParameterSymbol?, AddressKind?, ImmutableArray{ParameterSymbol})"/>
     private static bool MightEscapeTemporaryRefs(BoundFunctionPointerInvocation node, bool used)
     {
         FunctionPointerMethodSymbol method = node.FunctionPointer.Signature;
@@ -44,6 +47,21 @@ internal partial class CodeGenerator
             parameters: method.Parameters);
     }
 
+    /// <summary>
+    /// Determines whether a 'ref' can be captured by the call (considering only its signature).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The emit layer consults this to avoid reusing temporaries that are passed by ref to such methods.
+    /// </para>
+    /// <para>
+    /// This is a heuristic which might have false positives, i.e.,
+    /// it might not recognize that a call cannot capture a 'ref'
+    /// even if the binding-time ref safety analysis would recognize that.
+    /// That is fine, the IL will be correct, albeit less optimal (it might use more temps).
+    /// But we still want some heuristic to avoid regressing IL of common safe cases.
+    /// </para>
+    /// </remarks>
     private static bool MightEscapeTemporaryRefs(
         bool used,
         TypeSymbol returnType,
@@ -53,10 +71,6 @@ internal partial class CodeGenerator
         ImmutableArray<ParameterSymbol> parameters)
     {
         Debug.Assert(receiverAddressKind is null || thisParameterSymbol is not null);
-
-        // We check the signature of the method, counting potential `ref` sources and destinations
-        // to determine whether a `ref` can be captured by the method.
-        // The emit layer then uses this information to avoid reusing temporaries that are passed by ref to such methods.
 
         // whether we have any outputs that can capture `ref`s
         bool anyRefTargets = false;
@@ -90,7 +104,7 @@ internal partial class CodeGenerator
             if (parameter.Type.IsRefLikeOrAllowsRefLikeType() && parameter.EffectiveScope != ScopedKind.ScopedValue)
             {
                 anyRefSources = true;
-                if (!parameter.Type.IsReadOnly && parameter.RefKind.IsWritableReference())
+                if (parameter.RefKind.IsWritableReference())
                 {
                     anyRefTargets = true;
                 }
