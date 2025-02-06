@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Roslyn.Utilities;
@@ -150,14 +150,13 @@ internal sealed class SolutionChecksumUpdater
     {
         if (e.Kind == WorkspaceChangeKind.DocumentChanged)
         {
-            var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
-            var newDocument = e.NewSolution.GetDocument(e.DocumentId);
+            var documentId = e.DocumentId!;
+            var oldDocument = e.OldSolution.GetRequiredDocument(documentId);
+            var newDocument = e.NewSolution.GetRequiredDocument(documentId);
 
-            Debug.Assert(oldDocument != null && newDocument != null);
-
-            // Fire-and-forget to notify remote side of this document change event as quickly as possible.
-            if (oldDocument != null && newDocument != null)
-                _ = DispatchSynchronizeTextChangesAsync(oldDocument, newDocument).ReportNonFatalErrorAsync();
+            // Fire-and-forget to dispatch notification of this document change event to the remote side
+            // and return to the caller as quickly as possible.
+            _ = DispatchSynchronizeTextChangesAsync(oldDocument, newDocument).ReportNonFatalErrorAsync();
         }
     }
 
@@ -207,14 +206,14 @@ internal sealed class SolutionChecksumUpdater
         Document oldDocument,
         Document newDocument)
     {
-        // Attempt to inform the remote asset synchronization service as quickly as possible
+        // Explicitly force a yield point here to ensure this method returns to the caller immediately and that
+        // all work is done off the calling thread.
+        await Task.Yield().ConfigureAwait(false);
+
+        // Inform the remote asset synchronization service as quickly as possible
         // about the text changes between oldDocument and newDocument. By doing this, we can
         // reduce the likelihood of the remote side encountering an unknown checksum and
         // requiring a synchronization of the full document contents.
-        // This method uses JTF.RunAsync to create a fire-and-forget task. JTF.RunAsync will
-        // execute DispatchSynchronizeTextChangesHelperAsync synchronously until no longer
-        // possible. The hopefully common occurrence is that it is able to run synchronously
-        // all the way until it fires off the RPC call notifying the remote side of the changes.
         var wasSynchronized = await DispatchSynchronizeTextChangesHelperAsync().ConfigureAwait(false);
         if (wasSynchronized == null)
             return;

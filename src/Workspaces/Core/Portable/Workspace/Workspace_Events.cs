@@ -78,20 +78,16 @@ public abstract partial class Workspace
             projectId = documentId.ProjectId;
         }
 
+        var args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
+
         var ev = GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangedImmediateEventName);
-        WorkspaceChangeEventArgs args = null;
-        if (ev.HasHandlers)
-        {
-            args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-            RaiseEventForHandlers(ev, args, FunctionId.Workspace_EventsImmediate);
-        }
+        RaiseEventForHandlers(ev, args, FunctionId.Workspace_EventsImmediate);
 
         ev = GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangeEventName);
         if (ev.HasHandlers)
         {
             return this.ScheduleTask(() =>
             {
-                args ??= new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
                 RaiseEventForHandlers(ev, args, FunctionId.Workspace_Events);
             }, WorkspaceChangeEventName);
         }
