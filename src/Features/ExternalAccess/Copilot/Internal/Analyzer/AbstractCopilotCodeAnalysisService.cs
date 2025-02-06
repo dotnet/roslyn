@@ -161,7 +161,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
 
     protected virtual Task<ImmutableArray<Diagnostic>> GetDiagnosticsIntersectWithSpanAsync(Document document, IReadOnlyList<Diagnostic> diagnostics, TextSpan span, CancellationToken cancellationToken)
     {
-        return Task.FromResult(diagnostics.WhereAsArray((diagnostic, _) => diagnostic.Location.SourceSpan.IntersectsWith(span), state: (object)null));
+        return Task.FromResult(diagnostics.WhereAsArray((diagnostic, _) => diagnostic.Location.SourceSpan.IntersectsWith(span), state: (object?)null));
     }
 
     public async Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
