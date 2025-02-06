@@ -2589,7 +2589,7 @@ public class ConvertSwitchStatementToExpressionTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77081")]
-    public async Task VerifyTupleSwitch()
+    public async Task TestTupleSwitch()
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
