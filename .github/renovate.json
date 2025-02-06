@@ -18,6 +18,11 @@
 			"groupName": "Dockerfile and global.json updates"
 		},
 		{
+			"matchPackageNames": ["*"],
+			"allowedVersions": "!/-g[a-f0-9]+$/",
+			"groupName": "Ignore versions built from non-release branches"
+		},
+		{
 			"matchPackageNames": [
 				"System.Collections.Immutable",
 				"System.Composition*",
