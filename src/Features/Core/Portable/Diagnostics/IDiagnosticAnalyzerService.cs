@@ -73,7 +73,7 @@ internal interface IDiagnosticAnalyzerService
     /// project must be analyzed to get the complete set of non-local document diagnostics.
     /// </param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocumentIds, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
+    Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
     /// Get project diagnostics (diagnostics with no source location) of the given diagnostic ids and/or analyzers from
@@ -146,13 +146,5 @@ internal static class IDiagnosticAnalyzerServiceExtensions
         return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
             includeCompilerDiagnostics: true, priorityProvider,
             diagnosticKind, isExplicit, cancellationToken);
-    }
-
-    public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-        this IDiagnosticAnalyzerService service, Solution solution, ProjectId projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-    {
-        return service.GetDiagnosticsForIdsAsync(
-            solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, getDocumentIds: null,
-            includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
     }
 }
