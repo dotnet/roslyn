@@ -92,12 +92,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
 
-                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder, cancellationToken))
-                {
-                    // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
-                    // analysis happened.
-                }
-
                 return builder.ToResult();
             }
 
@@ -168,12 +162,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = lastResult.Version;
                 var builder = new Builder(project, lastResult.Version);
 
-                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder, cancellationToken))
-                {
-                    // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
-                    // analysis happened.
-                }
-
                 return builder.ToResult();
             }
 
@@ -222,8 +210,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     AddToInMemoryStorage(serializerVersion, new(document.Id), SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic));
                     AddToInMemoryStorage(serializerVersion, new(document.Id), NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal));
                 }
-
-                AddToInMemoryStorage(serializerVersion, new(result.ProjectId), NonLocalStateName, result.GetOtherDiagnostics());
             }
 
             private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(Project project, CancellationToken cancellationToken)
@@ -240,9 +226,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder, cancellationToken))
                         continue;
                 }
-
-                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder, cancellationToken))
-                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
 
                 return builder.ToResult();
             }
@@ -270,9 +253,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                 var serializerVersion = version;
                 var builder = new Builder(project, version);
-
-                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder, cancellationToken))
-                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
 
                 return builder.ToResult();
             }
@@ -322,18 +302,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return success;
             }
 
-            private bool TryGetProjectDiagnosticsFromInMemoryStorage(VersionStamp serializerVersion, Project project, Builder builder, CancellationToken cancellationToken)
-            {
-                var diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, new(project.Id), NonLocalStateName, cancellationToken);
-                if (!diagnostics.IsDefault)
-                {
-                    builder.AddOthers(diagnostics);
-                    return true;
-                }
-
-                return false;
-            }
-
             private ImmutableArray<DiagnosticData> GetDiagnosticsFromInMemoryStorage(
                 VersionStamp serializerVersion, ProjectOrDocumentId key, string stateKey, CancellationToken _)
             {
@@ -377,7 +345,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _syntaxLocals;
                 private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _semanticLocals;
                 private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? _nonLocals;
-                private ImmutableArray<DiagnosticData> _others;
 
                 public Builder(Project project, VersionStamp version, ImmutableHashSet<DocumentId>? documentIds = null)
                 {
@@ -394,9 +361,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 public void AddNonLocals(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
                     => Add(ref _nonLocals, documentId, diagnostics);
-
-                public void AddOthers(ImmutableArray<DiagnosticData> diagnostics)
-                    => _others = diagnostics;
 
                 private void Add(ref ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? locals, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
                 {
@@ -415,7 +379,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         _syntaxLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _semanticLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         _nonLocals?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                        _others.NullToEmpty(),
                         _documentIds);
                 }
             }

@@ -27,13 +27,10 @@ internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp ve
     private Dictionary<DocumentId, List<DiagnosticData>>? _lazySemanticLocals = null;
     private Dictionary<DocumentId, List<DiagnosticData>>? _lazyNonLocals = null;
 
-    private List<DiagnosticData>? _lazyOthers = null;
-
     public readonly ImmutableHashSet<DocumentId> DocumentIds => _lazyDocumentsWithDiagnostics == null ? [] : [.. _lazyDocumentsWithDiagnostics];
     public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SyntaxLocals => Convert(_lazySyntaxLocals);
     public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> SemanticLocals => Convert(_lazySemanticLocals);
     public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> NonLocals => Convert(_lazyNonLocals);
-    public readonly ImmutableArray<DiagnosticData> Others => _lazyOthers == null ? [] : [.. _lazyOthers];
 
     public void AddExternalSyntaxDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
     {
@@ -58,6 +55,7 @@ internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp ve
             {
                 case LocationKind.ExternalFile:
                     {
+                        // Drop diagnostics for files that are not part of the solution.
                         var diagnosticDocumentId = Project.GetDocumentForExternalLocation(diagnostic.Location);
                         if (documentId == diagnosticDocumentId)
                         {
@@ -69,17 +67,12 @@ internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp ve
                             // non local diagnostics to a file
                             AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetTextDocument(diagnosticDocumentId), diagnostic);
                         }
-                        else
-                        {
-                            // non local diagnostics without location
-                            AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
-                        }
 
                         break;
                     }
 
                 case LocationKind.None:
-                    AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
+                    // Drop diagnostics without location.
                     break;
 
                 case LocationKind.SourceFile:
@@ -108,12 +101,6 @@ internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp ve
         _lazyDocumentsWithDiagnostics.Add(document.Id);
     }
 
-    private void AddOtherDiagnostic(DiagnosticData data)
-    {
-        _lazyOthers ??= [];
-        _lazyOthers.Add(data);
-    }
-
     public void AddSyntaxDiagnostics(SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
         => AddDiagnostics(ref _lazySyntaxLocals, tree, diagnostics);
 
@@ -139,23 +126,21 @@ internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp ve
         switch (diagnostic.Location.Kind)
         {
             case LocationKind.ExternalFile:
+                // Drop diagnostics for files that are not part of the solution.
                 var diagnosticDocumentId = Project.GetDocumentForExternalLocation(diagnostic.Location);
                 if (diagnosticDocumentId != null)
                 {
                     AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetRequiredTextDocument(diagnosticDocumentId), diagnostic);
                 }
-                else
-                {
-                    AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
-                }
 
                 break;
 
             case LocationKind.None:
-                AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
+                // Drop diagnostics without location.
                 break;
 
             case LocationKind.SourceFile:
+                // Drop diagnostics for files that are not part of the solution.
                 var diagnosticTree = diagnostic.Location.SourceTree;
                 if (tree != null && diagnosticTree == tree)
                 {
@@ -166,11 +151,6 @@ internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp ve
                 {
                     // non local diagnostics to a file
                     AddDocumentDiagnostic(ref _lazyNonLocals, Project.GetDocument(diagnosticTree), diagnostic);
-                }
-                else
-                {
-                    // non local diagnostics without location
-                    AddOtherDiagnostic(DiagnosticData.Create(Project.Solution, diagnostic, Project));
                 }
 
                 break;

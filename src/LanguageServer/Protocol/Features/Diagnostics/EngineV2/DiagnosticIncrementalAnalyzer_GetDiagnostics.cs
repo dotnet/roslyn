@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 Contract.ThrowIfFalse(kind == AnalysisKind.NonLocal);
                 var nonLocalResult = await state.GetProjectAnalysisDataAsync(project, avoidLoadingData: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                return nonLocalResult.GetOtherDiagnostics();
+                return [];
             }
         }
 
@@ -239,12 +239,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                         if (IncludeNonLocalDocumentDiagnostics)
                             AddIncludedDiagnostics(builder, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal));
-                    }
-
-                    if (includeProjectNonLocalResult)
-                    {
-                        // include project diagnostics if there is no target document
-                        AddIncludedDiagnostics(builder, analysisResult.GetOtherDiagnostics());
                     }
                 }
             }

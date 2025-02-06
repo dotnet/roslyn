@@ -251,7 +251,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         syntaxLocalMap: Hydrate(entry.diagnosticMap.Syntax, project),
                         semanticLocalMap: Hydrate(entry.diagnosticMap.Semantic, project),
                         nonLocalMap: Hydrate(entry.diagnosticMap.NonLocal, project),
-                        others: entry.diagnosticMap.Other,
                         documentIds)),
                 result.Value.Telemetry.ToImmutableDictionary(
                     entry => IReadOnlyDictionaryExtensions.GetValueOrDefault(projectAnalyzerMap, entry.analyzerId) ?? hostAnalyzerMap[entry.analyzerId],
