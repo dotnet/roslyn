@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Roslyn.Utilities;
@@ -102,7 +103,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     // LSP server doesn't have the pieces yet to support 'balanced' mode for source-generators.  Hardcode us to
     // 'automatic' for now.
-    var globalOptionService = exportProvider.GetExportedValue<Microsoft.CodeAnalysis.Options.IGlobalOptionService>();
+    var globalOptionService = exportProvider.GetExportedValue<IGlobalOptionService>();
     globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
@@ -180,79 +181,79 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     }
 }
 
-static RootCommand CreateCommandLineParser()
+static CliRootCommand CreateCommandLineParser()
 {
-    var debugOption = new Option<bool>("--debug")
+    var debugOption = new CliOption<bool>("--debug")
     {
         Description = "Flag indicating if the debugger should be launched on startup.",
         Required = false,
         DefaultValueFactory = _ => false,
     };
-    var brokeredServicePipeNameOption = new Option<string?>("--brokeredServicePipeName")
+    var brokeredServicePipeNameOption = new CliOption<string?>("--brokeredServicePipeName")
     {
         Description = "The name of the pipe used to connect to a remote process (if one exists).",
         Required = false,
     };
 
-    var logLevelOption = new Option<LogLevel>("--logLevel")
+    var logLevelOption = new CliOption<LogLevel>("--logLevel")
     {
         Description = "The minimum log verbosity.",
         Required = true,
     };
-    var starredCompletionsPathOption = new Option<string?>("--starredCompletionComponentPath")
+    var starredCompletionsPathOption = new CliOption<string?>("--starredCompletionComponentPath")
     {
         Description = "The location of the starred completion component (if one exists).",
         Required = false,
     };
 
-    var telemetryLevelOption = new Option<string?>("--telemetryLevel")
+    var telemetryLevelOption = new CliOption<string?>("--telemetryLevel")
     {
         Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
         Required = false,
     };
-    var extensionLogDirectoryOption = new Option<string>("--extensionLogDirectory")
+    var extensionLogDirectoryOption = new CliOption<string>("--extensionLogDirectory")
     {
         Description = "The directory where we should write log files to",
         Required = true,
     };
 
-    var sessionIdOption = new Option<string?>("--sessionId")
+    var sessionIdOption = new CliOption<string?>("--sessionId")
     {
         Description = "Session Id to use for telemetry",
         Required = false
     };
 
-    var extensionAssemblyPathsOption = new Option<string[]?>("--extension")
+    var extensionAssemblyPathsOption = new CliOption<string[]?>("--extension")
     {
         Description = "Full paths of extension assemblies to load (optional).",
         Required = false
     };
 
-    var devKitDependencyPathOption = new Option<string?>("--devKitDependencyPath")
+    var devKitDependencyPathOption = new CliOption<string?>("--devKitDependencyPath")
     {
         Description = "Full path to the Roslyn dependency used with DevKit (optional).",
         Required = false
     };
 
-    var razorSourceGeneratorOption = new Option<string?>("--razorSourceGenerator")
+    var razorSourceGeneratorOption = new CliOption<string?>("--razorSourceGenerator")
     {
         Description = "Full path to the Razor source generator (optional).",
         Required = false
     };
 
-    var razorDesignTimePathOption = new Option<string?>("--razorDesignTimePath")
+    var razorDesignTimePathOption = new CliOption<string?>("--razorDesignTimePath")
     {
         Description = "Full path to the Razor design time target path (optional).",
         Required = false
     };
 
-    var serverPipeNameOption = new Option<string?>("--pipe")
+    var serverPipeNameOption = new CliOption<string?>("--pipe")
     {
         Description = "The name of the pipe the server will connect to.",
         Required = false
     };
 
-    var useStdIoOption = new Option<bool>("--stdio")
+    var useStdIoOption = new CliOption<bool>("--stdio")
     {
         Description = "Use stdio for communication with the client.",
         Required = false,
@@ -260,7 +261,7 @@ static RootCommand CreateCommandLineParser()
 
     };
 
-    var rootCommand = new RootCommand()
+    var rootCommand = new CliRootCommand()
     {
         debugOption,
         brokeredServicePipeNameOption,
