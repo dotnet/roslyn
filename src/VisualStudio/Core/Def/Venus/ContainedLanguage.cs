@@ -139,8 +139,6 @@ internal partial class ContainedLanguage
         this.DataBuffer.Changed += OnDataBufferChanged;
     }
 
-    public IGlobalOptionService GlobalOptions => _diagnosticAnalyzerService.GlobalOptions;
-
     private void OnDisconnect()
     {
         this.DataBuffer.Changed -= OnDataBufferChanged;

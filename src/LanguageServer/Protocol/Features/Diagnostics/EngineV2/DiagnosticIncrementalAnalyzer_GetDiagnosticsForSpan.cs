@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             TextDocument document,
             TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
-            bool includeCompilerDiagnostics,
             ICodeActionRequestPriorityProvider priorityProvider,
             DiagnosticKind diagnosticKinds,
             bool isExplicit,
@@ -35,8 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
 
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(
-                this, document, range, includeCompilerDiagnostics,
-                priorityProvider, shouldIncludeDiagnostic, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
+                this, document, range, priorityProvider, shouldIncludeDiagnostic, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
             await getter.GetAsync(list, cancellationToken).ConfigureAwait(false);
 
             return list.ToImmutableAndClear();
@@ -62,19 +60,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly TextSpan? _range;
             private readonly ICodeActionRequestPriorityProvider _priorityProvider;
             private readonly Func<string, bool>? _shouldIncludeDiagnostic;
-            private readonly bool _includeCompilerDiagnostics;
             private readonly bool _isExplicit;
             private readonly bool _logPerformanceInfo;
             private readonly bool _incrementalAnalysis;
             private readonly DiagnosticKind _diagnosticKind;
 
-            private delegate Task<IEnumerable<DiagnosticData>> DiagnosticsGetterAsync(DiagnosticAnalyzer analyzer, DocumentAnalysisExecutor executor, CancellationToken cancellationToken);
-
             public static async Task<LatestDiagnosticsForSpanGetter> CreateAsync(
                  DiagnosticIncrementalAnalyzer owner,
                  TextDocument document,
                  TextSpan? range,
-                 bool includeCompilerDiagnostics,
                  ICodeActionRequestPriorityProvider priorityProvider,
                  Func<string, bool>? shouldIncludeDiagnostic,
                  DiagnosticKind diagnosticKinds,
@@ -104,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     && document is Document { SupportsSyntaxTree: true };
 
                 return new LatestDiagnosticsForSpanGetter(
-                    owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,
+                    owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic,
                     range, priorityProvider, isExplicit, logPerformanceInfo, incrementalAnalysis, diagnosticKinds);
             }
 
@@ -153,7 +147,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 SourceText text,
                 ImmutableArray<StateSet> stateSets,
                 Func<string, bool>? shouldIncludeDiagnostic,
-                bool includeCompilerDiagnostics,
                 TextSpan? range,
                 ICodeActionRequestPriorityProvider priorityProvider,
                 bool isExplicit,
@@ -167,7 +160,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _text = text;
                 _stateSets = stateSets;
                 _shouldIncludeDiagnostic = shouldIncludeDiagnostic;
-                _includeCompilerDiagnostics = includeCompilerDiagnostics;
                 _range = range;
                 _priorityProvider = priorityProvider;
                 _isExplicit = isExplicit;
@@ -216,26 +208,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                         if (includeSyntax || includeSemantic)
                         {
-                            var state = stateSet.GetOrCreateActiveFileState(_document.Id);
-
+                            stateSet.AddActiveDocument(_document.Id);
                             if (includeSyntax)
                             {
-                                var existingData = state.GetAnalysisData(AnalysisKind.Syntax);
-                                if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet.Analyzer, AnalysisKind.Syntax, existingData, list, cancellationToken).ConfigureAwait(false))
-                                    syntaxAnalyzers.Add(new AnalyzerWithState(stateSet.Analyzer, stateSet.IsHostAnalyzer, state, existingData));
+                                syntaxAnalyzers.Add(new AnalyzerWithState(stateSet.Analyzer, stateSet.IsHostAnalyzer));
                             }
 
                             if (includeSemantic)
                             {
-                                var existingData = state.GetAnalysisData(AnalysisKind.Semantic);
-                                if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet.Analyzer, AnalysisKind.Semantic, existingData, list, cancellationToken).ConfigureAwait(false))
-                                {
-                                    var stateSets = GetSemanticAnalysisSelectedStates(
-                                        stateSet.Analyzer, _incrementalAnalysis,
-                                        semanticSpanBasedAnalyzers, semanticDocumentBasedAnalyzers);
+                                var stateSets = GetSemanticAnalysisSelectedStates(
+                                    stateSet.Analyzer, _incrementalAnalysis,
+                                    semanticSpanBasedAnalyzers, semanticDocumentBasedAnalyzers);
 
-                                    stateSets.Add(new AnalyzerWithState(stateSet.Analyzer, stateSet.IsHostAnalyzer, state, existingData));
-                                }
+                                stateSets.Add(new AnalyzerWithState(stateSet.Analyzer, stateSet.IsHostAnalyzer));
                             }
                         }
                     }
@@ -309,35 +294,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            /// <summary>
-            /// Returns <see langword="true"/> if we were able to add the cached diagnostics and we do not need to compute them fresh.
-            /// </summary>
-            private async Task<bool> TryAddCachedDocumentDiagnosticsAsync(
-                DiagnosticAnalyzer analyzer,
-                AnalysisKind kind,
-                DocumentAnalysisData existingData,
-                ArrayBuilder<DiagnosticData> list,
-                CancellationToken cancellationToken)
-            {
-                Debug.Assert(analyzer.SupportAnalysisKind(kind));
-                Debug.Assert(_priorityProvider.MatchesPriority(analyzer));
-
-                // see whether we can use existing info
-                var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
-                if (existingData.Version == version)
-                {
-                    foreach (var item in existingData.Items)
-                    {
-                        if (ShouldInclude(item))
-                            list.Add(item);
-                    }
-
-                    return true;
-                }
-
-                return false;
-            }
-
             private async Task ComputeDocumentDiagnosticsAsync(
                 ImmutableArray<AnalyzerWithState> analyzersWithState,
                 AnalysisKind kind,
@@ -357,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // Check if this is an expensive analyzer that needs to be de-prioritized to a lower priority bucket.
                     // If so, we skip this analyzer from execution in the current priority bucket.
                     // We will subsequently execute this analyzer in the lower priority bucket.
-                    if (await TryDeprioritizeAnalyzerAsync(analyzerWithState.Analyzer, analyzerWithState.ExistingData).ConfigureAwait(false))
+                    if (await TryDeprioritizeAnalyzerAsync(analyzerWithState.Analyzer).ConfigureAwait(false))
                     {
                         continue;
                     }
@@ -405,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (incrementalAnalysis)
                     _owner._incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)_document);
 
-                async Task<bool> TryDeprioritizeAnalyzerAsync(DiagnosticAnalyzer analyzer, DocumentAnalysisData existingData)
+                async Task<bool> TryDeprioritizeAnalyzerAsync(DiagnosticAnalyzer analyzer)
                 {
                     // PERF: In order to improve lightbulb performance, we perform de-prioritization optimization for certain analyzers
                     // that moves the analyzer to a lower priority bucket. However, to ensure that de-prioritization happens for very rare cases,
@@ -431,30 +387,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (!await IsCandidateForDeprioritizationBasedOnRegisteredActionsAsync(analyzer).ConfigureAwait(false))
                     {
                         return false;
-                    }
-
-                    // Condition 4.
-                    // We do not want to de-prioritize this analyzer if it reported a diagnostic on a prior document snapshot,
-                    // such that diagnostic's start/end lines intersect the current analysis span's start/end lines.
-                    // If an analyzer reported such a diagnostic, it is highly likely that the user intends to invoke the code fix
-                    // for this diagnostic. Additionally, it is also highly likely that this analyzer will report a diagnostic
-                    // on the current snapshot. So, we deem this as an important analyzer that should not be de-prioritized here.
-                    // Note that we only perform this analysis if the prior document, whose existingData is cached, had same number
-                    // of source lines as the current document snapshot. Otherwise, the start/end lines comparison across
-                    // snapshots is not meaningful.
-                    if (existingData.LineCount == _text.Lines.Count &&
-                        !existingData.Items.IsEmpty)
-                    {
-                        _text.GetLinesAndOffsets(span.Value, out var startLineNumber, out var _, out var endLineNumber, out var _);
-
-                        foreach (var diagnostic in existingData.Items)
-                        {
-                            if (diagnostic.DataLocation.UnmappedFileSpan.StartLinePosition.Line <= endLineNumber &&
-                                diagnostic.DataLocation.UnmappedFileSpan.EndLinePosition.Line >= startLineNumber)
-                            {
-                                return false;
-                            }
-                        }
                     }
 
                     // 'LightbulbSkipExecutingDeprioritizedAnalyzers' option determines if we want to execute this analyzer
@@ -524,11 +456,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 return diagnostic.DocumentId == _document.Id &&
                     (_range == null || _range.Value.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(_text)))
-                    && (_includeCompilerDiagnostics || !diagnostic.CustomTags.Any(static t => t is WellKnownDiagnosticTags.Compiler))
                     && (_shouldIncludeDiagnostic == null || _shouldIncludeDiagnostic(diagnostic.Id));
             }
         }
 
-        private sealed record class AnalyzerWithState(DiagnosticAnalyzer Analyzer, bool IsHostAnalyzer, ActiveFileState State, DocumentAnalysisData ExistingData);
+        private sealed record class AnalyzerWithState(DiagnosticAnalyzer Analyzer, bool IsHostAnalyzer);
     }
 }
