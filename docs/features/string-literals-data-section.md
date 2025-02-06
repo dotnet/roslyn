@@ -180,14 +180,14 @@ When the feature is off, ~550 bytes cost of 100 char string literal is composed 
 - The string allocated on the GC heap (~200 bytes).
 - Fixed overheads: metadata encoding, runtime hashtable of all allocated string literals, code that referenced the string in the benchmark (~150 bytes).
 
-When the feature is on, ~1050 bytes. cost of 100 char string literal is composed from:
+When the feature is on, ~1050 bytes cost of 100 char string literal is composed from:
 - The string in the binary (~100 bytes).
 - The string allocated on the GC heap (~200 bytes).
 - Fixed overheads: metadata encoding, the extra types, code that referenced the string in the benchmark (~750 bytes).
 
 750 - 150 = 600. Vast majority of it are the extra types.
 
-A bit of the extra fixed overheads when the feature is probably in the non-private working set.
+A bit of the extra fixed overheads with the feature on is probably in the non-private working set.
 It is difficult to measure it since there is no managed API to get private vs. non-private working set.
 It does not impact the estimate of the break-even point for the total working set.
 
