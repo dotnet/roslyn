@@ -22,7 +22,32 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     [Export(typeof(IDiagnosticAnalyzerService)), Shared]
-    internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class ConcreteDiagnosticAnalyzerService(
+        IAsynchronousOperationListenerProvider listenerProvider,
+        DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
+        IGlobalOptionService globalOptions,
+        IDiagnosticsRefresher diagnosticsRefresher)
+        : DiagnosticAnalyzerService(listenerProvider, globalCache, globalOptions, diagnosticsRefresher),
+        IDiagnosticAnalyzerService
+    {
+    }
+
+    [Export(typeof(ICachedDiagnosticAnalyzerService)), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class CachedDiagnosticAnalyzerService(
+        IAsynchronousOperationListenerProvider listenerProvider,
+        DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
+        IGlobalOptionService globalOptions,
+        IDiagnosticsRefresher diagnosticsRefresher)
+        : DiagnosticAnalyzerService(listenerProvider, globalCache, globalOptions, diagnosticsRefresher),
+        ICachedDiagnosticAnalyzerService
+    {
+    }
+
+    internal abstract partial class DiagnosticAnalyzerService
     {
         private static readonly Option2<bool> s_crashOnAnalyzerException = new("dotnet_crash_on_analyzer_exception", defaultValue: false);
 
