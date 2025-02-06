@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -103,7 +101,6 @@ internal interface IDiagnosticAnalyzerService
     /// </summary>
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
         TextDocument document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic,
-        bool includeCompilerDiagnostics,
         ICodeActionRequestPriorityProvider priorityProvider,
         DiagnosticKind diagnosticKind,
         bool isExplicit,
@@ -144,7 +141,6 @@ internal static class IDiagnosticAnalyzerServiceExtensions
     {
         Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
         return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
-            includeCompilerDiagnostics: true, priorityProvider,
-            diagnosticKind, isExplicit, cancellationToken);
+            priorityProvider, diagnosticKind, isExplicit, cancellationToken);
     }
 }

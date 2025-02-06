@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             TextDocument document,
             TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
-            bool includeCompilerDiagnostics,
             ICodeActionRequestPriorityProvider priorityProvider,
             DiagnosticKind diagnosticKinds,
             bool isExplicit,
@@ -89,8 +88,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
 
             return await analyzer.GetDiagnosticsForSpanAsync(
-                document, range, shouldIncludeDiagnostic, includeCompilerDiagnostics,
-                priorityProvider, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
+                document, range, shouldIncludeDiagnostic, priorityProvider, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(
