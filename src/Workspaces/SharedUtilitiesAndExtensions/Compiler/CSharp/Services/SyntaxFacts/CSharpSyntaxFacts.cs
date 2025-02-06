@@ -23,12 +23,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
-internal class CSharpSyntaxFacts : ISyntaxFacts
+internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 {
     internal static readonly CSharpSyntaxFacts Instance = new();
-
-    // Specifies false for trimOnFree as these objects commonly exceed the default ObjectPool threshold
-    private static readonly ObjectPool<List<SyntaxNode>> s_syntaxNodeListPool = new ObjectPool<List<SyntaxNode>>(() => [], trimOnFree: false);
 
     protected CSharpSyntaxFacts()
     {
@@ -732,11 +729,7 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     }
 
     public bool IsTopLevelNodeWithMembers([NotNullWhen(true)] SyntaxNode? node)
-    {
-        return node is BaseNamespaceDeclarationSyntax or
-               TypeDeclarationSyntax or
-               EnumDeclarationSyntax;
-    }
+        => node is BaseNamespaceDeclarationSyntax or BaseTypeDeclarationSyntax;
 
     private const string dotToken = ".";
 
@@ -889,30 +882,10 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
         }
     }
 
-    public PooledObject<List<SyntaxNode>> GetTopLevelAndMethodLevelMembers(SyntaxNode? root)
-    {
-        var pooledObject = s_syntaxNodeListPool.GetPooledObject();
-        var list = pooledObject.Object;
-
-        AppendMembers(root, list, topLevel: true, methodLevel: true);
-
-        return pooledObject;
-    }
-
-    public PooledObject<List<SyntaxNode>> GetMethodLevelMembers(SyntaxNode? root)
-    {
-        var pooledObject = s_syntaxNodeListPool.GetPooledObject();
-        var list = pooledObject.Object;
-
-        AppendMembers(root, list, topLevel: false, methodLevel: true);
-
-        return pooledObject;
-    }
-
     public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
         => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
-    private void AppendMembers(SyntaxNode? node, List<SyntaxNode> list, bool topLevel, bool methodLevel)
+    protected override void AppendMembers(SyntaxNode? node, ArrayBuilder<SyntaxNode> list, bool topLevel, bool methodLevel)
     {
         Debug.Assert(topLevel || methodLevel);
 

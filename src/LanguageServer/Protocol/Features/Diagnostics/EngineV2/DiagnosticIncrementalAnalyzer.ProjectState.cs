@@ -7,10 +7,10 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -40,21 +40,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _lastResult = DiagnosticAnalysisResult.CreateInitialResult(projectId);
             }
 
-            public bool FromBuild => _lastResult.FromBuild;
-
-            public ImmutableHashSet<DocumentId> GetDocumentsWithDiagnostics()
-                => _lastResult.DocumentIdsOrEmpty;
-
-            public bool IsEmpty()
-                => _lastResult.IsEmpty;
-
-            public bool IsEmpty(DocumentId documentId)
-                => IsEmpty(_lastResult, documentId);
-
             /// <summary>
             /// Return all diagnostics for the given project stored in this state
             /// </summary>
-            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(Project project, bool avoidLoadingData, CancellationToken cancellationToken)
+            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(Project project, CancellationToken cancellationToken)
             {
                 // make a copy of last result.
                 var lastResult = _lastResult;
@@ -70,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // PERF: avoid loading data if version is not right one.
                 // avoid loading data flag is there as a strictly perf optimization.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                if (avoidLoadingData && lastResult.Version != version)
+                if (lastResult.Version != version)
                 {
                     return lastResult;
                 }
@@ -115,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Return all diagnostics for the given document stored in this state including non local diagnostics for this document
             /// </summary>
-            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(TextDocument document, bool avoidLoadingData, CancellationToken cancellationToken)
+            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(TextDocument document, CancellationToken cancellationToken)
             {
                 // make a copy of last result.
                 var lastResult = _lastResult;
@@ -127,10 +116,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
-                if (avoidLoadingData && lastResult.Version != version)
-                {
-                    return lastResult;
-                }
 
                 // if given document doesnt have any diagnostics, return empty.
                 if (IsEmpty(lastResult, document.Id))
@@ -233,74 +218,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax));
-                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic));
-                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal));
+                    AddToInMemoryStorage(serializerVersion, new(document.Id), SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax));
+                    AddToInMemoryStorage(serializerVersion, new(document.Id), SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic));
+                    AddToInMemoryStorage(serializerVersion, new(document.Id), NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal));
                 }
 
-                AddToInMemoryStorage(serializerVersion, project, document: null, result.ProjectId, NonLocalStateName, result.GetOtherDiagnostics());
-            }
-
-            public void ResetVersion()
-            {
-                // reset version of cached data so that we can recalculate new data (ex, OnDocumentReset)
-                _lastResult = _lastResult.Reset();
-            }
-
-            public async ValueTask MergeAsync(ActiveFileState state, TextDocument document, IGlobalOptionService globalOptions)
-            {
-                Contract.ThrowIfFalse(state.DocumentId == document.Id);
-
-                // merge active file state to project state
-                var lastResult = _lastResult;
-
-                var syntax = state.GetAnalysisData(AnalysisKind.Syntax);
-                var semantic = state.GetAnalysisData(AnalysisKind.Semantic);
-
-                var project = document.Project;
-
-                // if project didn't successfully loaded, then it is same as FSA off
-                var fullAnalysis = _owner.Analyzer.IsFullSolutionAnalysisEnabled(globalOptions, project.Language) &&
-                                   await project.HasSuccessfullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
-
-                // keep from build flag if full analysis is off
-                var fromBuild = fullAnalysis ? false : lastResult.FromBuild;
-
-                // if it is allowed to keep project state, check versions and if they are same, bail out.
-                // if full solution analysis is off or we are asked to reset document state, we always merge.
-                if (fullAnalysis &&
-                    syntax.Version != VersionStamp.Default &&
-                    syntax.Version == semantic.Version &&
-                    syntax.Version == lastResult.Version)
-                {
-                    // all data is in sync already.
-                    return;
-                }
-
-                // we have mixed versions or full analysis is off, set it to default so that it can be re-calculated next time so data can be in sync.
-                var version = VersionStamp.Default;
-
-                // serialization can't be canceled.
-                var serializerVersion = version;
-
-                // save active file diagnostics back to project state
-                AddToInMemoryStorage(serializerVersion, project, document, document.Id, SyntaxStateName, syntax.Items);
-                AddToInMemoryStorage(serializerVersion, project, document, document.Id, SemanticStateName, semantic.Items);
-
-                // save last aggregated form of analysis result
-                _lastResult = _lastResult.UpdateAggregatedResult(version, state.DocumentId, fromBuild);
-            }
-
-            public bool OnDocumentRemoved(DocumentId id)
-            {
-                RemoveInMemoryCacheEntries(id);
-                return !IsEmpty(id);
-            }
-
-            public bool OnProjectRemoved(ProjectId id)
-            {
-                RemoveInMemoryCacheEntry(id, NonLocalStateName);
-                return !IsEmpty();
+                AddToInMemoryStorage(serializerVersion, new(result.ProjectId), NonLocalStateName, result.GetOtherDiagnostics());
             }
 
             private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(Project project, CancellationToken cancellationToken)
@@ -355,11 +278,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private void AddToInMemoryStorage(
-                VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
+                VersionStamp serializerVersion, ProjectOrDocumentId key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
             {
-                Contract.ThrowIfFalse(document == null || document.Project == project);
-
-                // if serialization fail, hold it in the memory
                 InMemoryStorage.Cache(_owner.Analyzer, (key, stateKey), new CacheEntry(serializerVersion, diagnostics));
             }
 
@@ -369,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var project = document.Project;
                 var documentId = document.Id;
 
-                var diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, SyntaxStateName, cancellationToken).ConfigureAwait(false);
+                var diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, new(documentId), SyntaxStateName, cancellationToken).ConfigureAwait(false);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddSyntaxLocals(documentId, diagnostics);
@@ -379,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     success = false;
                 }
 
-                diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, SemanticStateName, cancellationToken).ConfigureAwait(false);
+                diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, new(documentId), SemanticStateName, cancellationToken).ConfigureAwait(false);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddSemanticLocals(documentId, diagnostics);
@@ -389,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     success = false;
                 }
 
-                diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, NonLocalStateName, cancellationToken).ConfigureAwait(false);
+                diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, new(documentId), NonLocalStateName, cancellationToken).ConfigureAwait(false);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddNonLocals(documentId, diagnostics);
@@ -404,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private async ValueTask<bool> TryGetProjectDiagnosticsFromInMemoryStorageAsync(VersionStamp serializerVersion, Project project, Builder builder, CancellationToken cancellationToken)
             {
-                var diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document: null, project.Id, NonLocalStateName, cancellationToken).ConfigureAwait(false);
+                var diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, new(project.Id), NonLocalStateName, cancellationToken).ConfigureAwait(false);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddOthers(diagnostics);
@@ -415,10 +335,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsFromInMemoryStorageAsync(
-                VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey, CancellationToken _)
+                VersionStamp serializerVersion, ProjectOrDocumentId key, string stateKey, CancellationToken _)
             {
-                Contract.ThrowIfFalse(document == null || document.Project == project);
-
                 return InMemoryStorage.TryGetValue(_owner.Analyzer, (key, stateKey), out var entry) && serializerVersion == entry.Version
                     ? new(entry.Diagnostics)
                     : default;
@@ -435,12 +353,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private void RemoveInMemoryCacheEntries(DocumentId id)
             {
-                RemoveInMemoryCacheEntry(id, SyntaxStateName);
-                RemoveInMemoryCacheEntry(id, SemanticStateName);
-                RemoveInMemoryCacheEntry(id, NonLocalStateName);
+                RemoveInMemoryCacheEntry(new(id), SyntaxStateName);
+                RemoveInMemoryCacheEntry(new(id), SemanticStateName);
+                RemoveInMemoryCacheEntry(new(id), NonLocalStateName);
             }
 
-            private void RemoveInMemoryCacheEntry(object key, string stateKey)
+            private void RemoveInMemoryCacheEntry(ProjectOrDocumentId key, string stateKey)
             {
                 // remove in memory cache if entry exist
                 InMemoryStorage.Remove(_owner.Analyzer, (key, stateKey));

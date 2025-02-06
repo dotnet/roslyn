@@ -8,8 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Utilities;
 
-namespace Roslyn.Utilities;
+namespace Microsoft.CodeAnalysis.Threading;
 
 /// <inheritdoc cref="AsyncBatchingWorkQueue{TItem, TResult}"/>
 internal class AsyncBatchingWorkQueue<TItem>(

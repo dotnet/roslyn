@@ -52,6 +52,10 @@ internal class DiagnosticReporterLoggerProvider : ILoggerProvider
             if (!string.IsNullOrEmpty(categoryName))
                 message = $"[{categoryName}] {message}";
 
+            // The standard formatters don't actually include the exception, so let's include it ourselves
+            if (exception is not null)
+                message += Environment.NewLine + exception.ToString();
+
             reporter.Report(new WorkspaceDiagnostic(kind, message));
         }
     }

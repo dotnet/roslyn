@@ -7,10 +7,12 @@ using System;
 
 namespace Microsoft.CodeAnalysis.PooledObjects;
 
-internal readonly partial struct PooledDisposer<TPoolable>(TPoolable instance) : IDisposable
+internal readonly partial struct PooledDisposer<TPoolable>(
+    TPoolable instance,
+    bool discardLargeInstances = true) : IDisposable
     where TPoolable : class, IPooled
 {
     void IDisposable.Dispose()
-        => instance?.Free();
+        => instance?.Free(discardLargeInstances);
 }
 #endif
