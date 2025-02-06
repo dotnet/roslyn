@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -201,8 +200,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                using var pooledMembers = syntaxFacts.GetMethodLevelMembers(root);
-                var members = pooledMembers.Object;
+
+                // Specifies false for discardLargeInstances as these objects commonly exceed the default ArrayBuilder capacity threshold.
+                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(discardLargeInstances: false, out var members);
+                syntaxFacts.AddMethodLevelMembers(root, members);
 
                 var memberSpans = members.SelectAsArray(member => member.FullSpan);
                 var changedMemberId = members.IndexOf(changedMember);

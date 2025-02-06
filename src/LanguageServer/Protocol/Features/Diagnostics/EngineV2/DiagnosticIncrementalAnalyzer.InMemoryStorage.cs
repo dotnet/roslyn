@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public static bool TryGetValue(DiagnosticAnalyzer analyzer, (ProjectOrDocumentId key, string stateKey) key, out CacheEntry entry)
             {
-                AssertKey(key);
-
                 entry = default;
                 return s_map.TryGetValue(analyzer, out var analyzerMap) &&
                     analyzerMap.TryGetValue(key, out entry);
@@ -28,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public static void Cache(DiagnosticAnalyzer analyzer, (ProjectOrDocumentId key, string stateKey) key, CacheEntry entry)
             {
-                AssertKey(key);
-
                 // add new cache entry
                 var analyzerMap = s_map.GetOrAdd(analyzer, _ => new ConcurrentDictionary<(ProjectOrDocumentId key, string stateKey), CacheEntry>(concurrencyLevel: 2, capacity: 10));
                 analyzerMap[key] = entry;
@@ -37,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public static void Remove(DiagnosticAnalyzer analyzer, (ProjectOrDocumentId key, string stateKey) key)
             {
-                AssertKey(key);
                 // remove the entry
                 if (!s_map.TryGetValue(analyzer, out var analyzerMap))
                 {
@@ -57,10 +52,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // drop any cache related to given analyzer
                 s_map.TryRemove(analyzer, out _);
             }
-
-            // make sure key is either documentId or projectId
-            private static void AssertKey((object key, string stateKey) key)
-                => Contract.ThrowIfFalse(key.key is DocumentId or ProjectId);
         }
 
         // in memory cache entry
