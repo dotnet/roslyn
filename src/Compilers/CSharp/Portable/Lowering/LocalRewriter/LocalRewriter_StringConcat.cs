@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression CreateStringConcat(SyntaxNode originalSyntax, ArrayBuilder<BoundExpression> visitedArguments)
         {
             Debug.Assert(!_inExpressionLambda);
+            Debug.Assert(visitedArguments.All(arg => arg.Type!.SpecialType is SpecialType.System_String or SpecialType.System_Char or SpecialType.System_Object));
             // There are a few different lowering patterns that we take:
             //
             // 1. If all the added expressions were folded into a single constant, we can just return that.
@@ -286,8 +287,7 @@ fallbackStrings:
             {
                 argument = operand;
             }
-
-            if (argument is BoundCall call)
+            else if (argument is BoundCall call)
             {
                 if (wellKnownConcatOptimizationMethods.IsWellKnownConcatMethod(call, out var concatArguments))
                 {
@@ -303,9 +303,8 @@ fallbackStrings:
                     argument = charExpression;
                 }
             }
-
             // This is `strValue ?? ""`, possibly from a nested binary addition of an interpolated string. We can just directly use the left operand
-            if (argument is BoundNullCoalescingOperator { LeftOperand: { Type.SpecialType: SpecialType.System_String } left, RightOperand: BoundLiteral { ConstantValueOpt: { IsString: true, RopeValue.IsEmpty: true } } })
+            else if (argument is BoundNullCoalescingOperator { LeftOperand: { Type.SpecialType: SpecialType.System_String } left, RightOperand: BoundLiteral { ConstantValueOpt: { IsString: true, RopeValue.IsEmpty: true } } })
             {
                 argument = left;
             }
