@@ -49,7 +49,7 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\EditorFeatures\ExternalAccess\Copilot\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj">
+    <ProjectReference Include="..\..\Features\ExternalAccess\Copilot\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.Copilot</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>

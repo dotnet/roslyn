@@ -4,13 +4,13 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Copilot</RootNamespace>
-    <TargetFrameworks>net472</TargetFrameworks>
+    <TargetFrameworks>$(NetVSShared);net472</TargetFrameworks>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Copilot</PackageId>
     <PackageDescription>
-      A supporting package for Copilot Chat:
+      A supporting package for GitHub Copilot:
       https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_git/VisualStudio.Conversations
     </PackageDescription>
   </PropertyGroup>
@@ -24,11 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
+    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
   </ItemGroup>
 
   <ItemGroup>
