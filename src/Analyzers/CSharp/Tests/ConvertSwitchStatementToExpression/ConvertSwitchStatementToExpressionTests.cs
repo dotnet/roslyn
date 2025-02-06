@@ -2626,5 +2626,4 @@ public class ConvertSwitchStatementToExpressionTests
             }
             """);
     }
-
 }
