@@ -1137,36 +1137,31 @@ internal sealed partial class ProjectSystemProject
 
     private string? TryRedirectAnalyzerAssembly(string fullPath)
     {
-        if (!_hostInfo.AnalyzerAssemblyRedirectors.IsDefaultOrEmpty)
-        {
-            string? redirectedPath = null;
+        string? redirectedPath = null;
 
-            foreach (var redirector in _hostInfo.AnalyzerAssemblyRedirectors)
+        foreach (var redirector in _hostInfo.AnalyzerAssemblyRedirectors)
+        {
+            try
             {
-                try
+                if (redirector.RedirectPath(fullPath) is { } currentlyRedirectedPath)
                 {
-                    if (redirector.RedirectPath(fullPath) is { } currentlyRedirectedPath)
+                    if (redirectedPath == null)
                     {
-                        if (redirectedPath == null)
-                        {
-                            redirectedPath = currentlyRedirectedPath;
-                        }
-                        else if (redirectedPath != currentlyRedirectedPath)
-                        {
-                            throw new InvalidOperationException($"Multiple redirectors disagree on the path to redirect '{fullPath}' to ('{redirectedPath}' vs '{currentlyRedirectedPath}').");
-                        }
+                        redirectedPath = currentlyRedirectedPath;
+                    }
+                    else if (redirectedPath != currentlyRedirectedPath)
+                    {
+                        throw new InvalidOperationException($"Multiple redirectors disagree on the path to redirect '{fullPath}' to ('{redirectedPath}' vs '{currentlyRedirectedPath}').");
                     }
                 }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Diagnostic))
-                {
-                    // Ignore if the external redirector throws.
-                }
             }
-
-            return redirectedPath;
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
+            {
+                // Ignore if the external redirector throws.
+            }
         }
 
-        return null;
+        return redirectedPath;
     }
 
     private static readonly string s_csharpCodeStyleAnalyzerSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk", "codestyle", "cs");

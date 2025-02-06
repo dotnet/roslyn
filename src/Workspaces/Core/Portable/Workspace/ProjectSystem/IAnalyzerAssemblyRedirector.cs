@@ -22,7 +22,12 @@ internal interface IAnalyzerAssemblyRedirector
     /// or <see langword="null"/> if this instance cannot redirect the given assembly.
     /// </returns>
     /// <remarks>
-    /// If two redirects return different paths for the same assembly, no redirection will be performed.
+    /// <para>
+    /// If two redirectors return different paths for the same assembly, no redirection will be performed.
+    /// </para>
+    /// <para>
+    /// No thread switching inside this method is allowed.
+    /// </para>
     /// </remarks>
     string? RedirectPath(string fullPath);
 }
