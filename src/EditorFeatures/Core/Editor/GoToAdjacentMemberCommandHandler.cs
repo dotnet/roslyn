@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -103,12 +104,11 @@ internal class GoToAdjacentMemberCommandHandler(IOutliningManagerService outlini
     /// </summary>
     internal static int? GetTargetPosition(ISyntaxFactsService service, SyntaxNode root, int caretPosition, bool next)
     {
-        using var pooledMembers = service.GetMethodLevelMembers(root);
-        var members = pooledMembers.Object;
+        // Specifies false for discardLargeInstances as these objects commonly exceed the default ArrayBuilder capacity threshold.
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(discardLargeInstances: false, out var members);
+        service.AddMethodLevelMembers(root, members);
         if (members.Count == 0)
-        {
             return null;
-        }
 
         var starts = members.Select(m => MemberStart(m)).ToArray();
         var index = Array.BinarySearch(starts, caretPosition);
