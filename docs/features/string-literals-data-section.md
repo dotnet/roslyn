@@ -165,12 +165,33 @@ The startup time overhead does depend on the length of the string literal.
 It is cost of the type loads and JITing the static constructor.
 
 The working set has two components: private working set (r/w pages) and non-private working set (r/o pages backed by the binary).
-The private working set overhead (~500 bytes) does not depend on the length of the string literal.
+The private working set overhead (~600 bytes) does not depend on the length of the string literal.
 Again, it is the cost of the type loads and the static constructor code.
 Non-private working set is reduced by this feature since the binary is smaller.
 Once the string literal is about 600 characters,
 the private working set overhead and non-private working set improvement will break even.
 For string literals longer than 600 characters, this feature is total working set improvement.
+
+<details>
+<summary>Why 600 bytes?</summary>
+
+When the feature is off, ~550 bytes cost of 100 char string literal is composed from:
+- The string in the binary (~200 bytes).
+- The string allocated on the GC heap (~200 bytes).
+- Fixed overheads: metadata encoding, runtime hashtable of all allocated string literals, code that referenced the string in the benchmark (~150 bytes).
+
+When the feature is on, ~1050 bytes. cost of 100 char string literal is composed from:
+- The string in the binary (~100 bytes).
+- The string allocated on the GC heap (~200 bytes).
+- Fixed overheads: metadata encoding, the extra types, code that referenced the string in the benchmark (~750 bytes).
+
+750 - 150 = 600. Vast majority of it are the extra types.
+
+A bit of the extra fixed overheads when the feature is probably in the non-private working set.
+It is difficult to measure it since there is no managed API to get private vs. non-private working set.
+It does not impact the estimate of the break-even point for the total working set.
+
+</details>
 
 ## Implementation
 
