@@ -57,7 +57,7 @@ internal partial class CodeFixService
         {
             bool shouldIncludeDiagnostic(string id) => _diagnosticIds == null || _diagnosticIds.Contains(id);
             var diagnostics = Filter(await _diagnosticService.GetDiagnosticsForSpanAsync(
-                document, fixAllSpan, shouldIncludeDiagnostic, includeCompilerDiagnostics: true,
+                document, fixAllSpan, shouldIncludeDiagnostic,
                 priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
                 DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false));
             Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));

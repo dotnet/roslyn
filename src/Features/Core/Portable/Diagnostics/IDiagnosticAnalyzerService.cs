@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -53,7 +51,7 @@ internal interface IDiagnosticAnalyzerService
     /// project must be analyzed to get the complete set of non-local document diagnostics.
     /// </param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocumentIds, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
+    Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken);
 
     /// <summary>
     /// Get project diagnostics (diagnostics with no source location) of the given diagnostic ids and/or analyzers from
@@ -83,7 +81,6 @@ internal interface IDiagnosticAnalyzerService
     /// </summary>
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
         TextDocument document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic,
-        bool includeCompilerDiagnostics,
         ICodeActionRequestPriorityProvider priorityProvider,
         DiagnosticKind diagnosticKind,
         bool isExplicit,
@@ -124,15 +121,6 @@ internal static class IDiagnosticAnalyzerServiceExtensions
     {
         Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
         return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
-            includeCompilerDiagnostics: true, priorityProvider,
-            diagnosticKind, isExplicit, cancellationToken);
-    }
-
-    public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-        this IDiagnosticAnalyzerService service, Solution solution, ProjectId projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-    {
-        return service.GetDiagnosticsForIdsAsync(
-            solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, getDocumentIds: null,
-            includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
+            priorityProvider, diagnosticKind, isExplicit, cancellationToken);
     }
 }
