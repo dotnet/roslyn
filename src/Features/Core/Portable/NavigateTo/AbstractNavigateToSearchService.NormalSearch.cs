@@ -64,8 +64,6 @@ internal abstract partial class AbstractNavigateToSearchService
         // original document, search the entirety of it (by passing 'null' in for the 'spans' argument).  For related
         // documents, only search the spans of the partial-types/inheriting-types that we find for the types in this
         // starting document.
-        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
         await Task.WhenAll(
             SearchDocumentsInCurrentProcessAsync([(document, spans: null)]),
             SearchRelatedDocumentsInCurrentProcessAsync()).ConfigureAwait(false);
