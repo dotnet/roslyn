@@ -19,8 +19,7 @@
 		},
 		{
 			"matchPackageNames": ["*"],
-			"allowedVersions": "!/-g[a-f0-9]+$/",
-			"groupName": "Ignore versions built from non-release branches"
+			"allowedVersions": "!/-g[a-f0-9]+$/"
 		}
 	]
 }
