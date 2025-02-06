@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal interface ICachedDiagnosticAnalyzerService
 {
     /// <summary>
+    /// Re-analyze all projects and documents.  This will cause an LSP diagnostic refresh request to be sent.
+    /// </summary>
+    void RequestDiagnosticRefresh();
+
+    /// <summary>
     /// Get diagnostics currently stored in the source. returned diagnostic might be out-of-date if solution has changed but analyzer hasn't run for the new solution.
     /// </summary>
     /// <param name="workspace">Workspace for the document/project/solution to compute diagnostics for.</param>
