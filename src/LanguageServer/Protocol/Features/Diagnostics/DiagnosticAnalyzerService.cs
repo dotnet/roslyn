@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                option == s_crashOnAnalyzerException;
 
         public void RequestDiagnosticRefresh()
-            => _diagnosticsRefresher?.RequestWorkspaceRefresh();
+            => _diagnosticsRefresher.RequestWorkspaceRefresh();
 
         public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
             TextDocument document,
