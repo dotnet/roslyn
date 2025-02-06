@@ -63,11 +63,10 @@ public class DiagnosticAnalyzerServiceTests
         var document = GetDocumentFromIncompleteProject(workspace);
 
         var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-        var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
-        var analyzer = service.CreateIncrementalAnalyzer(workspace);
+        var service = exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
         var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
-        var diagnostics = await analyzer.GetDiagnosticsForIdsAsync(
+        var diagnostics = await service.GetDiagnosticsForIdsAsync(
             workspace.CurrentSolution, projectId: workspace.CurrentSolution.ProjectIds.Single(), documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null,
             includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
         Assert.NotEmpty(diagnostics);

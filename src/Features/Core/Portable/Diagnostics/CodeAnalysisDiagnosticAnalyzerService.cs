@@ -136,9 +136,9 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         }
 
         /// <summary>
-        /// Running code analysis on the project force computes and caches the diagnostics on the
-        /// DiagnosticAnalyzerService. We return these cached document diagnostics here, including both local and
-        /// non-local document diagnostics.
+        /// Running code analysis on the project force computes and caches the diagnostics in <see
+        /// cref="_analyzedProjectToDiagnostics"/>. We return these cached document diagnostics here, including both
+        /// local and non-local document diagnostics.
         /// </summary>
         /// <remarks>
         /// Only returns non-suppressed diagnostics.
@@ -156,9 +156,9 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         }
 
         /// <summary>
-        /// Running code analysis on the project force computes and caches the diagnostics on the
-        /// DiagnosticAnalyzerService. We return these cached project diagnostics here, i.e. diagnostics with no
-        /// location, by excluding all local and non-local document diagnostics.
+        /// Running code analysis on the project force computes and caches the diagnostics in <see
+        /// cref="_analyzedProjectToDiagnostics"/>. We return these cached project diagnostics here, i.e. diagnostics
+        /// with no location, by excluding all local and non-local document diagnostics.
         /// </summary>
         /// <remarks>
         /// Only returns non-suppressed diagnostics.

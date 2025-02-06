@@ -43,7 +43,7 @@ public class CodeFixServiceTests
 ";
         using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
 
-        var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
+        var diagnosticService = workspace.GetService<IDiagnosticAnalyzerService>();
 
         var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
@@ -323,7 +323,7 @@ public class CodeFixServiceTests
         Assert.True(errorReported);
     }
 
-    private static (EditorTestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+    private static (EditorTestWorkspace workspace, IDiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
         CodeFixProvider codefix,
         bool includeConfigurationFixProviders = false,
         bool throwExceptionInFixerCreation = false,
@@ -331,7 +331,7 @@ public class CodeFixServiceTests
         string code = "class Program { }")
         => ServiceSetup([codefix], includeConfigurationFixProviders, throwExceptionInFixerCreation, additionalDocument, code);
 
-    private static (EditorTestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+    private static (EditorTestWorkspace workspace, IDiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
         ImmutableArray<CodeFixProvider> codefixers,
         bool includeConfigurationFixProviders = false,
         bool throwExceptionInFixerCreation = false,
@@ -355,7 +355,7 @@ public class CodeFixServiceTests
         var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
-        var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
+        var diagnosticService = workspace.GetService<IDiagnosticAnalyzerService>();
         var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => new TestErrorLogger()));
         var errorLogger = logger.First().Value;
 
@@ -754,7 +754,7 @@ public class CodeFixServiceTests
 
         using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
 
-        var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
+        var diagnosticService = workspace.GetService<IDiagnosticAnalyzerService>();
 
         var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
         var fixService = new CodeFixService(
