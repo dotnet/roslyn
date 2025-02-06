@@ -336,15 +336,24 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             var @this = moduleBuilder.GetPrivateImplClass(syntaxNode, diagnostics);
-            var holder = @this._dataSectionStringLiteralTypes.GetOrAdd(text, static (key, arg) =>
+            return @this._dataSectionStringLiteralTypes.GetOrAdd(text, static (text, arg) =>
             {
-                var (@this, data, diagnostics) = arg;
+                var (@this, data, syntaxNode, diagnostics) = arg;
 
                 string name = "<S>" + @this.DataToHexViaXxHash128(data);
 
                 MappedField dataField = @this.GetOrAddDataField(data, alignment: 1);
 
                 Cci.IMethodDefinition bytesToStringHelper = @this.GetOrSynthesizeBytesToStringHelper(diagnostics);
+
+                var previousText = @this._dataSectionStringLiteralNames.GetOrAdd(name, text);
+                if (previousText != text)
+                {
+                    // If there is a hash collision, we cannot fallback to normal string literal emit strategy
+                    // because the selection of which literal would get which emit strategy would not be deterministic.
+                    var messageProvider = @this.ModuleBuilder.CommonCompilation.MessageProvider;
+                    diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_DataSectionStringLiteralHashCollision, syntaxNode.GetLocation(), previousText));
+                }
 
                 return new DataSectionStringType(
                     name: name,
@@ -353,18 +362,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     bytesToStringHelper: bytesToStringHelper,
                     diagnostics: diagnostics);
             },
-            (@this, ImmutableCollectionsMarshal.AsImmutableArray(data), diagnostics));
-
-            var previousText = @this._dataSectionStringLiteralNames.GetOrAdd(holder.Name, text);
-            if (previousText != text)
-            {
-                // If there is a hash collision, we cannot fallback to normal string literal emit strategy
-                // because the selection of which literal would get which emit strategy would not be deterministic.
-                var messageProvider = @this.ModuleBuilder.CommonCompilation.MessageProvider;
-                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_DataSectionStringLiteralHashCollision, syntaxNode.GetLocation(), previousText));
-            }
-
-            return holder.Field;
+            (@this, ImmutableCollectionsMarshal.AsImmutableArray(data), syntaxNode, diagnostics)).Field;
         }
 
         /// <summary>
