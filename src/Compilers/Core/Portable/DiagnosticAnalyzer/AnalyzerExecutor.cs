@@ -712,12 +712,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken);
         }
 
-        private readonly record struct ExecutionData(
-            DiagnosticAnalyzer Analyzer,
-            ISymbol DeclaredSymbol,
-            SemanticModel SemanticModel,
-            TextSpan? FilterSpan,
-            bool IsGeneratedCode);
+        private readonly struct ExecutionData(
+            DiagnosticAnalyzer analyzer,
+            ISymbol declaredSymbol,
+            SemanticModel semanticModel,
+            TextSpan? filterSpan,
+            bool isGeneratedCode)
+        {
+            public readonly DiagnosticAnalyzer Analyzer = analyzer;
+            public readonly ISymbol DeclaredSymbol = declaredSymbol;
+            public readonly SemanticModel SemanticModel = semanticModel;
+            public readonly TextSpan? FilterSpan = filterSpan;
+            public readonly bool IsGeneratedCode = isGeneratedCode;
+        }
 
         /// <summary>
         /// Execute code block actions for the given analyzer for the given declaration.
