@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 Contract.ThrowIfFalse(kind == AnalysisKind.NonLocal);
-                var nonLocalResult = await state.GetProjectAnalysisDataAsync(project, avoidLoadingData: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var nonLocalResult = await state.GetProjectAnalysisDataAsync(project, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return nonLocalResult.GetOtherDiagnostics();
             }
         }
