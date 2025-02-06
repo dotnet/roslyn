@@ -142,9 +142,35 @@ e.g., they are loaded into a different frozen heap so machine codegen can be mor
 
 Generating new types by the compiler means more type loads and hence runtime impact,
 e.g., startup performance and the overhead of keeping track of these types.
+On the other hand, the PE size might be smaller due to UTF-8 vs UTF-16 encoding,
+which can result in memory savings since the binary is also loaded to memory by the runtime.
+See [below](#runtime-overhead-benchmark) for a more detailed analysis.
 
 The generated types are returned from reflection like `Assembly.GetTypes()`
 which might impact the performance of Dependency Injection and similar systems.
+
+### Runtime overhead benchmark
+
+| [cost per string literal](https://github.com/jkotas/stringliteralperf) | feature on | feature off |
+| --- | --- | --- |
+| bytes | 1037 | 550 |
+| microseconds | 20.3 | 3.1 |
+
+The benchmark results above [show](https://github.com/dotnet/roslyn/pull/76139#discussion_r1944144978)
+that the runtime overhead of this feature per 100 char string literal
+is ~500 bytes of working set memory (~2x of regular string literal)
+and ~17 microseconds of startup time (~7x of regular string literal).
+
+The startup time overhead does depend on the length of the string literal.
+It is cost of the type loads and JITing the static constructor.
+
+The working set has two components: private working set (r/w pages) and non-private working set (r/o pages backed by the binary).
+The private working set overhead (~500 bytes) does not depend on the length of the string literal.
+Again, it is the cost of the type loads and the static constructor code.
+Non-private working set is reduced by this feature since the binary is smaller.
+Once the string literal is about 600 characters,
+the private working set overhead and non-private working set improvement will break even.
+For string literals longer than 600 characters, this feature is total working set improvement.
 
 ## Implementation
 
