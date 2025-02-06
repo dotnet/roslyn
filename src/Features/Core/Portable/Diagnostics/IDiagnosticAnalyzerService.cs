@@ -8,23 +8,12 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal interface IDiagnosticAnalyzerService
+internal interface ICachedDiagnosticAnalyzerService
 {
-    /// <summary>
-    /// Provides and caches analyzer information.
-    /// </summary>
-    DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
-
-    /// <summary>
-    /// Re-analyze all projects and documents.  This will cause an LSP diagnostic refresh request to be sent.
-    /// </summary>
-    void RequestDiagnosticRefresh();
-
     /// <summary>
     /// Get diagnostics currently stored in the source. returned diagnostic might be out-of-date if solution has changed but analyzer hasn't run for the new solution.
     /// </summary>
@@ -49,6 +38,19 @@ internal interface IDiagnosticAnalyzerService
     /// Force analyzes the given project by running all applicable analyzers on the project and caching the reported analyzer diagnostics.
     /// </summary>
     Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken);
+}
+
+internal interface IDiagnosticAnalyzerService
+{
+    /// <summary>
+    /// Provides and caches analyzer information.
+    /// </summary>
+    DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
+
+    /// <summary>
+    /// Re-analyze all projects and documents.  This will cause an LSP diagnostic refresh request to be sent.
+    /// </summary>
+    void RequestDiagnosticRefresh();
 
     /// <summary>
     /// Get diagnostics of the given diagnostic ids and/or analyzers from the given solution. all diagnostics returned

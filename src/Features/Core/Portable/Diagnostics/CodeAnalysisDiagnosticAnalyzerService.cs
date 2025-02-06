@@ -29,8 +29,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
 
     private sealed class CodeAnalysisDiagnosticAnalyzerService : ICodeAnalysisDiagnosticAnalyzerService
     {
-        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-        private readonly IDiagnosticsRefresher _diagnosticsRefresher;
+        private readonly ICachedDiagnosticAnalyzerService _diagnosticAnalyzerService;
         private readonly Workspace _workspace;
 
         /// <summary>
