@@ -133,10 +133,6 @@ internal readonly struct DiagnosticAnalysisResult
 
     public ImmutableArray<DiagnosticData> GetAllDiagnostics()
     {
-        // PERF: don't allocation anything if not needed
-        if (IsEmpty)
-            return [];
-
         Contract.ThrowIfNull(_syntaxLocals);
         Contract.ThrowIfNull(_semanticLocals);
         Contract.ThrowIfNull(_nonLocals);
@@ -144,13 +140,13 @@ internal readonly struct DiagnosticAnalysisResult
 
         using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
 
-        foreach (var data in _syntaxLocals.Values)
+        foreach (var (_, data) in _syntaxLocals)
             builder.AddRange(data);
 
-        foreach (var data in _semanticLocals.Values)
+        foreach (var (_, data) in _semanticLocals)
             builder.AddRange(data);
 
-        foreach (var data in _nonLocals.Values)
+        foreach (var (_, data) in _nonLocals)
             builder.AddRange(data);
 
         foreach (var data in _others)
