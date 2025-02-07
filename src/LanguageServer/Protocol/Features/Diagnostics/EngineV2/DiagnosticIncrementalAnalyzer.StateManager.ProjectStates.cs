@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ProjectAnalyzerStateSets.Default;
                 }
 
-                var newMap = CreateStateSetMap(project.Language, analyzersPerReference.Values, [], includeWorkspacePlaceholderAnalyzers: false);
+                var newMap = CreateStateSetMap(analyzersPerReference.Values, [], includeWorkspacePlaceholderAnalyzers: false);
                 var skippedAnalyzersInfo = project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
                 return new ProjectAnalyzerStateSets(project.AnalyzerReferences, analyzersPerReference, newMap, skippedAnalyzersInfo);
             }
