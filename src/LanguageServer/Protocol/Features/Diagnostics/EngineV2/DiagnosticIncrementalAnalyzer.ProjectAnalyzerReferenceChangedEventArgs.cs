@@ -5,23 +5,26 @@
 using System;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2;
+namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticIncrementalAnalyzer
+internal partial class DiagnosticAnalyzerService
 {
-    /// <summary>
-    /// EventArgs for <see cref="StateManager.ProjectAnalyzerReferenceChanged"/>
-    /// 
-    /// this event args contains information such as <see cref="Project"/> the <see cref="AnalyzerReference"/> has changed
-    /// and what <see cref="StateSet"/> has changed.
-    /// </summary>
-    private sealed class ProjectAnalyzerReferenceChangedEventArgs : EventArgs
+    private partial class DiagnosticIncrementalAnalyzer
     {
-        public readonly ImmutableArray<StateSet> Removed;
-
-        public ProjectAnalyzerReferenceChangedEventArgs(ImmutableArray<StateSet> removed)
+        /// <summary>
+        /// EventArgs for <see cref="StateManager.ProjectAnalyzerReferenceChanged"/>
+        /// 
+        /// this event args contains information such as <see cref="Project"/> the <see cref="AnalyzerReference"/> has changed
+        /// and what <see cref="StateSet"/> has changed.
+        /// </summary>
+        private sealed class ProjectAnalyzerReferenceChangedEventArgs : EventArgs
         {
-            Removed = removed;
+            public readonly ImmutableArray<StateSet> Removed;
+
+            public ProjectAnalyzerReferenceChangedEventArgs(ImmutableArray<StateSet> removed)
+            {
+                Removed = removed;
+            }
         }
     }
 }
