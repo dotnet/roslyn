@@ -2421,7 +2421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ordinaryName: kind is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PostfixIncrement ?
                                       WellKnownMemberNames.IncrementOperatorName :
                                       WellKnownMemberNames.DecrementOperatorName,
-                    ref useSiteInfo, diagnostics);
+                    ref useSiteInfo);
 
                 if (methods?.IsEmpty != false)
                 {
@@ -2508,7 +2508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return inPlaceResult;
             }
 
-            ArrayBuilder<MethodSymbol>? lookupUserDefinedInstanceOperators(TypeSymbol lookupInType, string? checkedName, string ordinaryName, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, BindingDiagnosticBag diagnostics)
+            ArrayBuilder<MethodSymbol>? lookupUserDefinedInstanceOperators(TypeSymbol lookupInType, string? checkedName, string ordinaryName, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 var lookupResult = LookupResult.GetInstance();
                 ArrayBuilder<MethodSymbol>? methods = null;
