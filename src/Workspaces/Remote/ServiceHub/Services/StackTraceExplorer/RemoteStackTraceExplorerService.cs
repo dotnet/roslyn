@@ -8,38 +8,37 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed class RemoteStackTraceExplorerService : BrokeredServiceBase, IRemoteStackTraceExplorerService
 {
-    internal sealed class RemoteStackTraceExplorerService : BrokeredServiceBase, IRemoteStackTraceExplorerService
+    internal sealed class Factory : FactoryBase<IRemoteStackTraceExplorerService>
     {
-        internal sealed class Factory : FactoryBase<IRemoteStackTraceExplorerService>
-        {
-            protected override IRemoteStackTraceExplorerService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteStackTraceExplorerService(arguments);
-        }
+        protected override IRemoteStackTraceExplorerService CreateService(in ServiceConstructionArguments arguments)
+            => new RemoteStackTraceExplorerService(arguments);
+    }
 
-        public RemoteStackTraceExplorerService(in ServiceConstructionArguments arguments) : base(arguments)
-        {
-        }
+    public RemoteStackTraceExplorerService(in ServiceConstructionArguments arguments) : base(arguments)
+    {
+    }
 
-        public ValueTask<SerializableDefinitionItem?> TryFindDefinitionAsync(Checksum solutionChecksum, string frameString, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)
+    public ValueTask<SerializableDefinitionItem?> TryFindDefinitionAsync(Checksum solutionChecksum, string frameString, StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(solutionChecksum, async solution =>
         {
-            return RunServiceAsync(solutionChecksum, async solution =>
+            var result = await StackTraceAnalyzer.AnalyzeAsync(frameString, cancellationToken).ConfigureAwait(false);
+            if (result.ParsedFrames.Length != 1 || result.ParsedFrames[0] is not ParsedStackFrame parsedFrame)
             {
-                var result = await StackTraceAnalyzer.AnalyzeAsync(frameString, cancellationToken).ConfigureAwait(false);
-                if (result.ParsedFrames.Length != 1 || result.ParsedFrames[0] is not ParsedStackFrame parsedFrame)
-                {
-                    throw new InvalidOperationException();
-                }
+                throw new InvalidOperationException();
+            }
 
-                var definition = await StackTraceExplorerUtilities.GetDefinitionAsync(solution, parsedFrame.Root, symbolPart, cancellationToken).ConfigureAwait(false);
-                if (definition is null)
-                {
-                    return (SerializableDefinitionItem?)null;
-                }
+            var definition = await StackTraceExplorerUtilities.GetDefinitionAsync(solution, parsedFrame.Root, symbolPart, cancellationToken).ConfigureAwait(false);
+            if (definition is null)
+            {
+                return (SerializableDefinitionItem?)null;
+            }
 
-                return SerializableDefinitionItem.Dehydrate(id: 0, definition);
-            }, cancellationToken);
-        }
+            return SerializableDefinitionItem.Dehydrate(id: 0, definition);
+        }, cancellationToken);
     }
 }

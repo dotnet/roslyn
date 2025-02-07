@@ -177,7 +177,7 @@ internal static partial class ValueTracker
         CancellationToken cancellationToken)
     {
         var containingSymbol = parameterSymbol.ContainingSymbol;
-        var findReferenceProgressCollector = new FindReferencesProgress(collector);
+        var findReferenceProgressCollector = new FindReferencesProgress(collector, parameterSymbol);
         await SymbolFinder.FindReferencesAsync(
             containingSymbol,
             collector.Solution,

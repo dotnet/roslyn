@@ -8,14 +8,15 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Represents a response from a semantic tokens Document provider Edits request.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensDelta">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     internal class SemanticTokensDelta
     {
         /// <summary>
-        /// Gets or sets the Id for the client's new version after applying all
-        /// edits to their current semantic tokens data.
+        /// The ID of this result, which can then be used as a base for future deltas.
         /// </summary>
         [JsonPropertyName("resultId")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

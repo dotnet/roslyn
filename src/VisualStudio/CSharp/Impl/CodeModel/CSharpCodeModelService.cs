@@ -1280,7 +1280,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 var builder = new StringBuilder();
 
-                foreach (var line in value.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                foreach (var line in value.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
                 {
                     builder.Append("// ");
                     builder.Append(line);
@@ -1354,7 +1354,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var text = memberDeclaration.SyntaxTree.GetText(CancellationToken.None);
             var newLine = GetNewLineCharacter(text);
 
-            var lines = documentationComment.ToString().Split(new[] { newLine }, StringSplitOptions.None);
+            var lines = documentationComment.ToString().Split([newLine], StringSplitOptions.None);
 
             // trim off leading whitespace and exterior trivia.
             var lengthToStrip = lines[0].GetLeadingWhitespace().Length;
@@ -1415,7 +1415,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             foreach (var child in docElement.Elements())
             {
-                foreach (var line in child.ToString().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                foreach (var line in child.ToString().Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
                 {
                     builder.Append("/// ");
                     builder.Append(line);
@@ -3596,7 +3596,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             => methodDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword);
 
         public override string[] GetFunctionExtenderNames()
-            => new[] { ExtenderNames.ExtensionMethod, ExtenderNames.PartialMethod };
+            => [ExtenderNames.ExtensionMethod, ExtenderNames.PartialMethod];
 
         public override object GetFunctionExtender(string name, SyntaxNode node, ISymbol symbol)
         {
@@ -3636,7 +3636,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override string[] GetPropertyExtenderNames()
-            => new[] { ExtenderNames.AutoImplementedProperty };
+            => [ExtenderNames.AutoImplementedProperty];
 
         public override object GetPropertyExtender(string name, SyntaxNode node, ISymbol symbol)
         {
@@ -3658,7 +3658,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override string[] GetExternalTypeExtenderNames()
-            => new[] { ExtenderNames.ExternalLocation };
+            => [ExtenderNames.ExternalLocation];
 
         public override object GetExternalTypeExtender(string name, string externalLocation)
         {
@@ -3673,7 +3673,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override string[] GetTypeExtenderNames()
-            => Array.Empty<string>();
+            => [];
 
         public override object GetTypeExtender(string name, AbstractCodeType symbol)
             => throw Exceptions.ThrowEFail();

@@ -108,8 +108,12 @@ internal sealed class EditSession
         Capabilities = AsyncLazy.Create(static (self, cancellationToken) =>
             self.GetCapabilitiesAsync(cancellationToken),
             arg: this);
-        Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements, Capabilities);
+
+        Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements, Capabilities, debuggingSession.AnalysisLog);
     }
+
+    public TraceLog Log
+        => DebuggingSession.SessionLog;
 
     /// <summary>
     /// The compiler has various scenarios that will cause it to synthesize things that might not be covered
@@ -423,7 +427,7 @@ internal sealed class EditSession
         return false;
     }
 
-    internal static async Task PopulateChangedAndAddedDocumentsAsync(Project oldProject, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
+    internal static async Task PopulateChangedAndAddedDocumentsAsync(TraceLog log, Project oldProject, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, ArrayBuilder<ProjectDiagnostics> diagnostics, CancellationToken cancellationToken)
     {
         changedOrAddedDocuments.Clear();
 
@@ -432,13 +436,11 @@ internal sealed class EditSession
             return;
         }
 
+        var oldSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(log, oldProject, diagnostics, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var oldSourceGeneratedDocumentStates = await oldProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
-
+        var newSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(log, newProject, diagnostics, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-
-        var newSourceGeneratedDocumentStates = await newProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
 
         foreach (var documentId in newSourceGeneratedDocumentStates.GetChangedStateIds(oldSourceGeneratedDocumentStates, ignoreUnchangedContent: true))
         {
@@ -463,10 +465,32 @@ internal sealed class EditSession
         }
     }
 
+    private static async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(TraceLog log, Project project, ArrayBuilder<ProjectDiagnostics>? diagnostics, CancellationToken cancellationToken)
+    {
+        var generatorDiagnostics = await project.Solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, cancellationToken).ConfigureAwait(false);
+
+        if (generatorDiagnostics is not [])
+        {
+            diagnostics?.Add(new ProjectDiagnostics(project.Id, generatorDiagnostics));
+        }
+
+        foreach (var generatorDiagnostic in generatorDiagnostics)
+        {
+            log.Write($"Source generator failed: {generatorDiagnostic}", generatorDiagnostic.Severity switch
+            {
+                DiagnosticSeverity.Warning => LogMessageSeverity.Warning,
+                DiagnosticSeverity.Error => LogMessageSeverity.Error,
+                _ => LogMessageSeverity.Info
+            });
+        }
+
+        return await project.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
+    }
+
     /// <summary>
     /// Enumerates <see cref="DocumentId"/>s of changed (not added or removed) <see cref="Document"/>s (not additional nor analyzer config).
     /// </summary>
-    internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(Project oldProject, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
+    internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(TraceLog log, Project oldProject, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         Debug.Assert(oldProject.Id == newProject.Id);
 
@@ -496,13 +520,11 @@ internal sealed class EditSession
             yield break;
         }
 
+        var oldSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(log, oldProject, diagnostics: null, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var oldSourceGeneratedDocumentStates = await oldProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
-
+        var newSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(log, newProject, diagnostics: null, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-
-        var newSourceGeneratedDocumentStates = await newProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
 
         foreach (var documentId in newSourceGeneratedDocumentStates.GetChangedStateIds(oldSourceGeneratedDocumentStates, ignoreUnchangedContent: true))
         {
@@ -530,7 +552,7 @@ internal sealed class EditSession
                 case CommittedSolution.DocumentState.OutOfSync:
                     var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor((oldDocumentState == CommittedSolution.DocumentState.Indeterminate) ?
                         EditAndContinueErrorCode.UnableToReadSourceFileOrPdb : EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee);
-                    documentDiagnostics.Add(Diagnostic.Create(descriptor, Location.Create(newDocument.FilePath!, textSpan: default, lineSpan: default), new[] { newDocument.FilePath }));
+                    documentDiagnostics.Add(Diagnostic.Create(descriptor, Location.Create(newDocument.FilePath!, textSpan: default, lineSpan: default), [newDocument.FilePath]));
                     break;
 
                 case CommittedSolution.DocumentState.MatchesBuildOutput:
@@ -785,11 +807,9 @@ internal sealed class EditSession
 
     public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, UpdateId updateId, CancellationToken cancellationToken)
     {
-        var log = EditAndContinueService.Log;
-
         try
         {
-            log.Write("EmitSolutionUpdate {0}.{1}: '{2}'", updateId.SessionId.Ordinal, updateId.Ordinal, solution.FilePath);
+            Log.Write($"Found {updateId.SessionId} potentially changed document(s) in project {updateId.Ordinal} '{solution.FilePath}'");
 
             using var _1 = ArrayBuilder<ManagedHotReloadUpdate>.GetInstance(out var deltas);
             using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
@@ -805,16 +825,15 @@ internal sealed class EditSession
             var hasEmitErrors = false;
             foreach (var newProject in solution.Projects)
             {
-                if (newProject.FilePath == null)
+                if (!newProject.SupportsEditAndContinue(Log))
                 {
-                    log.Write("Skipping project '{0}' without a file path", newProject.Name);
                     continue;
                 }
 
                 var oldProject = oldSolution.GetProject(newProject.Id);
                 if (oldProject == null)
                 {
-                    log.Write("EnC state of {0} '{1}' queried: project not loaded", newProject.Name, newProject.FilePath);
+                    Log.Write($"EnC state of {newProject.Name} '{newProject.FilePath}' queried: project not loaded");
 
                     // TODO (https://github.com/dotnet/roslyn/issues/1204):
                     //
@@ -830,13 +849,13 @@ internal sealed class EditSession
                     continue;
                 }
 
-                await PopulateChangedAndAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
+                await PopulateChangedAndAddedDocumentsAsync(Log, oldProject, newProject, changedOrAddedDocuments, diagnostics, cancellationToken).ConfigureAwait(false);
                 if (changedOrAddedDocuments.IsEmpty)
                 {
                     continue;
                 }
 
-                log.Write("Found {0} potentially changed document(s) in project {1} '{2}'", changedOrAddedDocuments.Count, newProject.Name, newProject.FilePath);
+                Log.Write($"Found {changedOrAddedDocuments.Count} potentially changed document(s) in project {newProject.Name} '{newProject.FilePath}'");
 
                 var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
                 if (mvidReadError != null)
@@ -853,7 +872,7 @@ internal sealed class EditSession
 
                 if (mvid == Guid.Empty)
                 {
-                    log.Write("Emitting update of {0} '{1}': project not built", newProject.Name, newProject.FilePath);
+                    Log.Write($"Emitting update of {newProject.Name} '{newProject.FilePath}': project not built");
                     continue;
                 }
 
@@ -889,18 +908,18 @@ internal sealed class EditSession
                         // only remember the first syntax error we encounter:
                         syntaxError ??= changedDocumentAnalysis.SyntaxError;
 
-                        log.Write("Changed document '{0}' has syntax error: {1}", changedDocumentAnalysis.FilePath, changedDocumentAnalysis.SyntaxError);
+                        Log.Write($"Changed document '{changedDocumentAnalysis.FilePath}' has syntax error: {changedDocumentAnalysis.SyntaxError}");
                     }
                     else if (changedDocumentAnalysis.HasChanges)
                     {
-                        log.Write("Document changed, added, or deleted: '{0}'", changedDocumentAnalysis.FilePath);
+                        Log.Write($"Document changed, added, or deleted: '{changedDocumentAnalysis.FilePath}'");
                     }
 
                     Telemetry.LogAnalysisTime(changedDocumentAnalysis.ElapsedTime);
                 }
 
                 var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
-                log.Write("Project summary for {0} '{1}': {2}", newProject.Name, newProject.FilePath, projectSummary);
+                Log.Write($"Project summary for {newProject.Name} '{newProject.FilePath}': {projectSummary}");
 
                 if (projectSummary == ProjectAnalysisSummary.NoChanges)
                 {
@@ -945,25 +964,153 @@ internal sealed class EditSession
                 var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(oldCompilation);
 
-                if (!DebuggingSession.TryGetOrCreateEmitBaseline(oldProject, oldCompilation, out var createBaselineDiagnostics, out var projectBaseline, out var baselineAccessLock))
+                var projectBaselines = DebuggingSession.GetOrCreateEmitBaselines(mvid, oldProject, oldCompilation, out var createBaselineErrors, out var baselineAccessLock);
+                if (!createBaselineErrors.IsEmpty)
                 {
-                    Debug.Assert(!createBaselineDiagnostics.IsEmpty);
-
                     // Report diagnosics even when the module is never going to be loaded (e.g. in multi-targeting scenario, where only one framework being debugged).
                     // This is consistent with reporting compilation errors - the IDE reports them for all TFMs regardless of what framework the app is running on.
-                    diagnostics.Add(new(newProject.Id, createBaselineDiagnostics));
-                    Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, createBaselineDiagnostics);
-                    isBlocked = true;
+                    diagnostics.Add(new(newProject.Id, createBaselineErrors));
+                    Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, createBaselineErrors);
 
+                    isBlocked = true;
                     await LogDocumentChangesAsync(generation: null, cancellationToken).ConfigureAwait(false);
                     continue;
                 }
 
-                await LogDocumentChangesAsync(projectBaseline.Generation + 1, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfTrue(projectBaselines.IsEmpty);
+
+                Log.Write($"Emitting update of {newProject.Name} '{newProject.FilePath}': project not built");
+
+                var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                // project must support compilations since it supports EnC
+                Contract.ThrowIfNull(newCompilation);
+
+                var oldActiveStatementsMap = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var projectChanges = await GetProjectChangesAsync(oldActiveStatementsMap, oldCompilation, newCompilation, oldProject, newProject, changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
+
+                // The compiler only uses this predicate to determine if CS7101: "Member 'X' added during the current debug session
+                // can only be accessed from within its declaring assembly 'Lib'" should be reported. 
+                // Prior to .NET 8 Preview 4 the runtime failed to apply such edits.
+                // This was fixed in Preview 4 along with support for generics. If we see a generic capability we can disable reporting
+                // this compiler error. Otherwise, we leave the check as is in order to detect at least some runtime failures on .NET Framework.
+                // Note that the analysis in the compiler detecting the circumstances under which the runtime fails
+                // to apply the change has both false positives (flagged generic updates that shouldn't be flagged) and negatives
+                // (didn't flag cases like https://github.com/dotnet/roslyn/issues/68293).
+                var capabilities = await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var requiredCapabilities = projectChanges.RequiredCapabilities.ToStringArray();
+
+                var isAddedSymbolPredicate = capabilities.HasFlag(EditAndContinueCapabilities.GenericAddMethodToExistingType) ?
+                    static _ => false : (Func<ISymbol, bool>)projectChanges.AddedSymbols.Contains;
+
+                var emitDiagnostics = ImmutableArray<Diagnostic>.Empty;
+
+                foreach (var projectBaseline in projectBaselines)
+                {
+                    await LogDocumentChangesAsync(projectBaseline.Generation + 1, cancellationToken).ConfigureAwait(false);
+
+                    using var pdbStream = SerializableBytes.CreateWritableStream();
+                    using var metadataStream = SerializableBytes.CreateWritableStream();
+                    using var ilStream = SerializableBytes.CreateWritableStream();
+
+                    EmitDifferenceResult emitResult;
+
+                    // The lock protects underlying baseline readers from being disposed while emitting delta.
+                    // If the lock is disposed at this point the session has been incorrectly disposed while operations on it are in progress.
+                    using (baselineAccessLock.DisposableRead())
+                    {
+                        DebuggingSession.ThrowIfDisposed();
+
+                        var emitDifferenceTimer = SharedStopwatch.StartNew();
+
+                        emitResult = newCompilation.EmitDifference(
+                            projectBaseline.EmitBaseline,
+                            projectChanges.SemanticEdits,
+                            isAddedSymbolPredicate,
+                            metadataStream,
+                            ilStream,
+                            pdbStream,
+                            cancellationToken);
+
+                        Telemetry.LogEmitDifferenceTime(emitDifferenceTimer.Elapsed);
+                    }
+
+                    // TODO: https://github.com/dotnet/roslyn/issues/36061
+                    // We should only report diagnostics from emit phase.
+                    // Syntax and semantic diagnostics are already reported by the diagnostic analyzer.
+                    // Currently we do not have means to distinguish between diagnostics reported from compilation and emit phases.
+                    // Querying diagnostics of the entire compilation or just the updated files migth be slow.
+                    // In fact, it is desirable to allow emitting deltas for symbols affected by the change while allowing untouched
+                    // method bodies to have errors.
+                    if (!emitResult.Diagnostics.IsEmpty)
+                    {
+                        diagnostics.Add(new(newProject.Id, emitResult.Diagnostics));
+                    }
+
+                    if (!emitResult.Success)
+                    {
+                        // error
+                        isBlocked = hasEmitErrors = true;
+                        emitDiagnostics = emitResult.Diagnostics;
+                        break;
+                    }
+
+                    Contract.ThrowIfNull(emitResult.Baseline);
+
+                    var unsupportedChangesDiagnostic = await GetUnsupportedChangesDiagnosticAsync(emitResult, cancellationToken).ConfigureAwait(false);
+                    if (unsupportedChangesDiagnostic is not null)
+                    {
+                        emitDiagnostics = [unsupportedChangesDiagnostic];
+                        diagnostics.Add(new(newProject.Id, emitDiagnostics));
+                        isBlocked = true;
+                        break;
+                    }
+
+                    var updatedMethodTokens = emitResult.UpdatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
+                    var changedTypeTokens = emitResult.ChangedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
+
+                    // Determine all active statements whose span changed and exception region span deltas.
+                    GetActiveStatementAndExceptionRegionSpans(
+                        projectBaseline.ModuleId,
+                        oldActiveStatementsMap,
+                        updatedMethodTokens,
+                        NonRemappableRegions,
+                        projectChanges.ActiveStatementChanges,
+                        out var activeStatementsInUpdatedMethods,
+                        out var moduleNonRemappableRegions,
+                        out var exceptionRegionUpdates);
+
+                    var delta = new ManagedHotReloadUpdate(
+                        projectBaseline.ModuleId,
+                        newCompilation.AssemblyName ?? newProject.Name, // used for display in debugger diagnostics
+                        newProject.Id,
+                        ilStream.ToImmutableArray(),
+                        metadataStream.ToImmutableArray(),
+                        pdbStream.ToImmutableArray(),
+                        changedTypeTokens,
+                        requiredCapabilities,
+                        updatedMethodTokens,
+                        projectChanges.LineChanges,
+                        activeStatementsInUpdatedMethods,
+                        exceptionRegionUpdates);
+
+                    deltas.Add(delta);
+
+                    nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
+                    newProjectBaselines.Add(new ProjectBaseline(mvid, projectBaseline.ProjectId, emitResult.Baseline, projectBaseline.Generation + 1));
+
+                    var fileLog = Log.FileLog;
+                    if (fileLog != null)
+                    {
+                        await LogDeltaFilesAsync(fileLog, delta, projectBaseline.Generation, oldProject, newProject, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+
+                Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, emitDiagnostics);
 
                 async ValueTask LogDocumentChangesAsync(int? generation, CancellationToken cancellationToken)
                 {
-                    var fileLog = log.FileLog;
+                    var fileLog = Log.FileLog;
                     if (fileLog != null)
                     {
                         foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
@@ -977,127 +1124,6 @@ internal sealed class EditSession
                         }
                     }
                 }
-
-                log.Write("Emitting update of '{0}' {1}", newProject.Name, newProject.FilePath);
-
-                var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfNull(newCompilation);
-
-                var oldActiveStatementsMap = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                var projectChanges = await GetProjectChangesAsync(oldActiveStatementsMap, oldCompilation, newCompilation, oldProject, newProject, changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
-
-                using var pdbStream = SerializableBytes.CreateWritableStream();
-                using var metadataStream = SerializableBytes.CreateWritableStream();
-                using var ilStream = SerializableBytes.CreateWritableStream();
-
-                // project must support compilations since it supports EnC
-                Contract.ThrowIfNull(newCompilation);
-
-                // The compiler only uses this predicate to determine if CS7101: "Member 'X' added during the current debug session
-                // can only be accessed from within its declaring assembly 'Lib'" should be reported. 
-                // Prior to .NET 8 Preview 4 the runtime failed to apply such edits.
-                // This was fixed in Preview 4 along with support for generics. If we see a generic capability we can disable reporting
-                // this compiler error. Otherwise, we leave the check as is in order to detect at least some runtime failures on .NET Framework.
-                // Note that the analysis in the compiler detecting the circumstances under which the runtime fails
-                // to apply the change has both false positives (flagged generic updates that shouldn't be flagged) and negatives
-                // (didn't flag cases like https://github.com/dotnet/roslyn/issues/68293).
-                var capabilities = await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                var isAddedSymbolPredicate = capabilities.HasFlag(EditAndContinueCapabilities.GenericAddMethodToExistingType) ?
-                    static _ => false : (Func<ISymbol, bool>)projectChanges.AddedSymbols.Contains;
-
-                EmitDifferenceResult emitResult;
-
-                // The lock protects underlying baseline readers from being disposed while emitting delta.
-                // If the lock is disposed at this point the session has been incorrectly disposed while operations on it are in progress.
-                using (baselineAccessLock.DisposableRead())
-                {
-                    DebuggingSession.ThrowIfDisposed();
-
-                    var emitDifferenceTimer = SharedStopwatch.StartNew();
-
-                    emitResult = newCompilation.EmitDifference(
-                        projectBaseline.EmitBaseline,
-                        projectChanges.SemanticEdits,
-                        isAddedSymbolPredicate,
-                        metadataStream,
-                        ilStream,
-                        pdbStream,
-                        cancellationToken);
-
-                    Telemetry.LogEmitDifferenceTime(emitDifferenceTimer.Elapsed);
-                }
-
-                if (emitResult.Success)
-                {
-                    Contract.ThrowIfNull(emitResult.Baseline);
-
-                    var unsupportedChangesDiagnostic = await GetUnsupportedChangesDiagnosticAsync(emitResult, cancellationToken).ConfigureAwait(false);
-                    if (unsupportedChangesDiagnostic is not null)
-                    {
-                        diagnostics.Add(new(newProject.Id, [unsupportedChangesDiagnostic]));
-                        isBlocked = true;
-                    }
-                    else
-                    {
-                        var updatedMethodTokens = emitResult.UpdatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
-                        var changedTypeTokens = emitResult.ChangedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
-
-                        // Determine all active statements whose span changed and exception region span deltas.
-                        GetActiveStatementAndExceptionRegionSpans(
-                            mvid,
-                            oldActiveStatementsMap,
-                            updatedMethodTokens,
-                            NonRemappableRegions,
-                            projectChanges.ActiveStatementChanges,
-                            out var activeStatementsInUpdatedMethods,
-                            out var moduleNonRemappableRegions,
-                            out var exceptionRegionUpdates);
-
-                        var delta = new ManagedHotReloadUpdate(
-                            mvid,
-                            newCompilation.AssemblyName ?? newProject.Name, // used for display in debugger diagnostics
-                            newProject.Id,
-                            ilStream.ToImmutableArray(),
-                            metadataStream.ToImmutableArray(),
-                            pdbStream.ToImmutableArray(),
-                            changedTypeTokens,
-                            projectChanges.RequiredCapabilities.ToStringArray(),
-                            updatedMethodTokens,
-                            projectChanges.LineChanges,
-                            activeStatementsInUpdatedMethods,
-                            exceptionRegionUpdates);
-
-                        deltas.Add(delta);
-
-                        nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
-                        newProjectBaselines.Add(new ProjectBaseline(projectBaseline.ProjectId, emitResult.Baseline, projectBaseline.Generation + 1));
-
-                        var fileLog = log.FileLog;
-                        if (fileLog != null)
-                        {
-                            await LogDeltaFilesAsync(fileLog, delta, projectBaseline.Generation, oldProject, newProject, cancellationToken).ConfigureAwait(false);
-                        }
-                    }
-                }
-                else
-                {
-                    // error
-                    isBlocked = hasEmitErrors = true;
-                }
-
-                // TODO: https://github.com/dotnet/roslyn/issues/36061
-                // We should only report diagnostics from emit phase.
-                // Syntax and semantic diagnostics are already reported by the diagnostic analyzer.
-                // Currently we do not have means to distinguish between diagnostics reported from compilation and emit phases.
-                // Querying diagnostics of the entire compilation or just the updated files migth be slow.
-                // In fact, it is desirable to allow emitting deltas for symbols affected by the change while allowing untouched
-                // method bodies to have errors.
-                if (!emitResult.Diagnostics.IsEmpty)
-                {
-                    diagnostics.Add(new(newProject.Id, emitResult.Diagnostics));
-                }
-
-                Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, emitResult.Diagnostics);
             }
 
             // log capabilities for edit sessions with changes or reported errors:
@@ -1127,7 +1153,7 @@ internal sealed class EditSession
 
         bool LogException(Exception e)
         {
-            log.Write("Exception while emitting update: {0}", e.ToString());
+            Log.Write($"Exception while emitting update: {e}", LogMessageSeverity.Error);
             return true;
         }
     }

@@ -5,20 +5,19 @@
 using System;
 using Microsoft.ServiceHub.Framework;
 
-namespace Microsoft.CodeAnalysis.Remote
-{
-    internal abstract partial class BrokeredServiceBase
-    {
-        internal readonly struct ServiceConstructionArguments
-        {
-            public readonly IServiceProvider ServiceProvider;
-            public readonly IServiceBroker ServiceBroker;
+namespace Microsoft.CodeAnalysis.Remote;
 
-            public ServiceConstructionArguments(IServiceProvider serviceProvider, IServiceBroker serviceBroker)
-            {
-                ServiceProvider = serviceProvider;
-                ServiceBroker = serviceBroker;
-            }
+internal abstract partial class BrokeredServiceBase
+{
+    internal readonly struct ServiceConstructionArguments
+    {
+        public readonly IServiceProvider ServiceProvider;
+        public readonly IServiceBroker ServiceBroker;
+
+        public ServiceConstructionArguments(IServiceProvider serviceProvider, IServiceBroker serviceBroker)
+        {
+            ServiceProvider = serviceProvider;
+            ServiceBroker = serviceBroker;
         }
     }
 }

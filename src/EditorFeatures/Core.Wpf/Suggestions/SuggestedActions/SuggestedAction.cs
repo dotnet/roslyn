@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             try
             {
-                using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Application_Summary, $"Total");
+                using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Application_Summary, $"Total");
 
                 using var token = SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}");
                 using var context = SourceProvider.UIThreadOperationExecutor.BeginExecute(
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         Workspace,
                         OriginalSolution,
                         document,
-                        operations.ToImmutableArray(),
+                        [.. operations],
                         CodeAction.Title,
                         progressTracker,
                         cancellationToken).ConfigureAwait(false);

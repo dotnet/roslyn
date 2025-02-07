@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -2829,7 +2830,7 @@ class Test
 ";
             #endregion
 
-            var comp1 = CreateEmptyCompilation(src1, new[] { TestMetadata.Net40.mscorlib });
+            var comp1 = CreateEmptyCompilation(src1, new[] { Net40.References.mscorlib });
             var comp2 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp1) });
 
             var typeSymbol = comp1.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("IGoo");

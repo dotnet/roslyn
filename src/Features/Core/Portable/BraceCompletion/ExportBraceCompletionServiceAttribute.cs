@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion;
 
 [MetadataAttribute]
 [AttributeUsage(AttributeTargets.Class)]
-internal class ExportBraceCompletionServiceAttribute(string language) : ExportAttribute(typeof(IBraceCompletionService))
+internal sealed class ExportBraceCompletionServiceAttribute(string language) : ExportAttribute(typeof(IBraceCompletionService))
 {
     public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
 }

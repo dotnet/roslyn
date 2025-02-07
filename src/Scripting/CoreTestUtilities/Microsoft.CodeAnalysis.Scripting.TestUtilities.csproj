@@ -7,7 +7,7 @@
     <TargetFrameworks>net472;$(NetRoslyn)</TargetFrameworks>
     <NoStdLib>true</NoStdLib>
     <IsShipping>false</IsShipping>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup Label="Project References">

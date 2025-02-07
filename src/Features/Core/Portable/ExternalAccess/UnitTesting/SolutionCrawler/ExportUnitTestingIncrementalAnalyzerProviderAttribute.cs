@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
 [MetadataAttribute]
 [AttributeUsage(AttributeTargets.Class)]
-internal class ExportUnitTestingIncrementalAnalyzerProviderAttribute : ExportAttribute
+internal sealed class ExportUnitTestingIncrementalAnalyzerProviderAttribute : ExportAttribute
 {
     public string Name { get; }
     public string[] WorkspaceKinds { get; }

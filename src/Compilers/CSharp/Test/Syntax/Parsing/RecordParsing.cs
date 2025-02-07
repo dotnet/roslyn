@@ -2099,6 +2099,156 @@ class C
             EOF();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void WithParsingInConditionalExpression1()
+        {
+            var text = "x is X ? record with { } : record with { }";
+
+            UsingExpression(text);
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.WithExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "record");
+                    }
+                    N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.WithInitializerExpression);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.WithExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "record");
+                    }
+                    N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.WithInitializerExpression);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void WithParsingInConditionalExpression2()
+        {
+            var text = "x is X.Y ? record with { } : record with { }";
+
+            UsingExpression(text);
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.WithExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "record");
+                    }
+                    N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.WithInitializerExpression);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.WithExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "record");
+                    }
+                    N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.WithInitializerExpression);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void WithParsingInConditionalExpression_Incomplete()
+        {
+            var text = "x is X ? record with";
+
+            UsingExpression(text,
+                // (1,17): error CS1003: Syntax error, ':' expected
+                // x is X ? record with
+                Diagnostic(ErrorCode.ERR_SyntaxError, "with").WithArguments(":").WithLocation(1, 17));
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "record");
+                }
+                M(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "with");
+                }
+            }
+            EOF();
+        }
+
         [Fact]
         public void ParameterListAndBaseListOnClass()
         {

@@ -8,28 +8,28 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
-internal partial class UnitTestingSolutionCrawlerRegistrationService
+internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 {
     internal sealed partial class UnitTestingWorkCoordinator : IUnitTestingWorkCoordinator
     {
-        private readonly UnitTestingRegistration _registration;
-
         private readonly CountLogAggregator<WorkspaceChangeKind> _logAggregator = new();
         private readonly IAsynchronousOperationListener _listener;
         private readonly Microsoft.CodeAnalysis.SolutionCrawler.ISolutionCrawlerOptionsService? _solutionCrawlerOptionsService;
 
         private readonly CancellationTokenSource _shutdownNotificationSource = new();
         private readonly CancellationToken _shutdownToken;
-        private readonly TaskQueue _eventProcessingQueue;
+        private readonly AsyncBatchingWorkQueue<Func<Task>> _eventProcessingQueue;
 
         // points to processor task
         private readonly UnitTestingIncrementalAnalyzerProcessor _documentAndProjectWorkerProcessor;
@@ -40,15 +40,19 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
              IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders,
              UnitTestingRegistration registration)
         {
-            _registration = registration;
+            Registration = registration;
 
             _listener = listener;
-            _solutionCrawlerOptionsService = _registration.Services.GetService<Microsoft.CodeAnalysis.SolutionCrawler.ISolutionCrawlerOptionsService>();
+            _solutionCrawlerOptionsService = Registration.Services.GetService<Microsoft.CodeAnalysis.SolutionCrawler.ISolutionCrawlerOptionsService>();
 
             // event and worker queues
             _shutdownToken = _shutdownNotificationSource.Token;
 
-            _eventProcessingQueue = new TaskQueue(listener, TaskScheduler.Default);
+            _eventProcessingQueue = new(
+                TimeSpan.Zero,
+                ProcessWorkQueueAsync,
+                listener,
+                _shutdownToken);
 
             var allFilesWorkerBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.AllFilesWorkerBackOff;
             var entireProjectWorkerBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.EntireProjectWorkerBackOff;
@@ -56,7 +60,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
             _documentAndProjectWorkerProcessor = new UnitTestingIncrementalAnalyzerProcessor(
                 listener,
                 analyzerProviders,
-                _registration,
+                Registration,
                 allFilesWorkerBackOffTimeSpan,
                 entireProjectWorkerBackOffTimeSpan,
                 _shutdownToken);
@@ -64,11 +68,23 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
             var semanticBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.SemanticChangeBackOff;
             var projectBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.ProjectPropagationBackOff;
 
-            _semanticChangeProcessor = new UnitTestingSemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
+            _semanticChangeProcessor = new UnitTestingSemanticChangeProcessor(listener, Registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
         }
 
-        public UnitTestingRegistration Registration => _registration;
-        public int CorrelationId => _registration.CorrelationId;
+        private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<Func<Task>> list, CancellationToken cancellationToken)
+        {
+            foreach (var taskCreator in list)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var task = Task.Run(taskCreator, cancellationToken);
+                _ = task.ReportNonFatalErrorAsync();
+                await task.NoThrowAwaitableInternal(captureContext: false);
+            }
+        }
+
+        public UnitTestingRegistration Registration { get; }
+        public int CorrelationId => Registration.CorrelationId;
 
         public void AddAnalyzer(IUnitTestingIncrementalAnalyzer analyzer)
         {
@@ -76,20 +92,19 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
             _documentAndProjectWorkerProcessor.AddAnalyzer(analyzer);
 
             // and ask to re-analyze whole solution for the given analyzer
-            var scope = new UnitTestingReanalyzeScope(_registration.GetSolutionToAnalyze().Id);
+            var scope = new UnitTestingReanalyzeScope(Registration.GetSolutionToAnalyze().Id);
             Reanalyze(analyzer, scope);
         }
 
         public void Reanalyze(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope)
         {
-            _eventProcessingQueue.ScheduleTask("Reanalyze",
-                () => EnqueueWorkItemAsync(analyzer, scope), _shutdownToken);
+            _eventProcessingQueue.AddWork(() => EnqueueWorkItemAsync(analyzer, scope));
 
             if (scope.HasMultipleDocuments)
             {
                 // log big reanalysis request from things like fix all, suppress all or option changes
                 // we are not interested in 1 file re-analysis request which can happen from like venus typing
-                var solution = _registration.GetSolutionToAnalyze();
+                var solution = Registration.GetSolutionToAnalyze();
                 UnitTestingSolutionCrawlerLogger.LogReanalyze(
                     CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution));
             }
@@ -100,7 +115,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
             // guard us from cancellation
             try
             {
-                ProcessEvent(args, "OnWorkspaceChanged");
+                ProcessEvent(args);
             }
             catch (OperationCanceledException oce)
             {
@@ -130,7 +145,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
         private bool NotOurShutdownToken(OperationCanceledException oce)
             => oce.CancellationToken == _shutdownToken;
 
-        private void ProcessEvent(WorkspaceChangeEventArgs args, string eventName)
+        private void ProcessEvent(WorkspaceChangeEventArgs args)
         {
             UnitTestingSolutionCrawlerLogger.LogWorkspaceEvent(_logAggregator, args.Kind);
 
@@ -138,12 +153,12 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
             switch (args.Kind)
             {
                 case WorkspaceChangeKind.SolutionAdded:
-                    EnqueueFullSolutionEvent(args.NewSolution, UnitTestingInvocationReasons.DocumentAdded, eventName);
+                    EnqueueFullSolutionEvent(args.NewSolution, UnitTestingInvocationReasons.DocumentAdded);
                     break;
 
                 case WorkspaceChangeKind.SolutionChanged:
                 case WorkspaceChangeKind.SolutionReloaded:
-                    EnqueueSolutionChangedEvent(args.OldSolution, args.NewSolution, eventName);
+                    EnqueueSolutionChangedEvent(args.OldSolution, args.NewSolution);
                     break;
 
                 case WorkspaceChangeKind.SolutionCleared:
@@ -153,34 +168,34 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
 
                 case WorkspaceChangeKind.ProjectAdded:
                     Contract.ThrowIfNull(args.ProjectId);
-                    EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, UnitTestingInvocationReasons.DocumentAdded, eventName);
+                    EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, UnitTestingInvocationReasons.DocumentAdded);
                     break;
 
                 case WorkspaceChangeKind.ProjectChanged:
                 case WorkspaceChangeKind.ProjectReloaded:
                     Contract.ThrowIfNull(args.ProjectId);
-                    EnqueueProjectChangedEvent(args.OldSolution, args.NewSolution, args.ProjectId, eventName);
+                    EnqueueProjectChangedEvent(args.OldSolution, args.NewSolution, args.ProjectId);
                     break;
 
                 case WorkspaceChangeKind.ProjectRemoved:
                     Contract.ThrowIfNull(args.ProjectId);
-                    EnqueueFullProjectEvent(args.OldSolution, args.ProjectId, UnitTestingInvocationReasons.DocumentRemoved, eventName);
+                    EnqueueFullProjectEvent(args.OldSolution, args.ProjectId, UnitTestingInvocationReasons.DocumentRemoved);
                     break;
 
                 case WorkspaceChangeKind.DocumentAdded:
                     Contract.ThrowIfNull(args.DocumentId);
-                    EnqueueFullDocumentEvent(args.NewSolution, args.DocumentId, UnitTestingInvocationReasons.DocumentAdded, eventName);
+                    EnqueueFullDocumentEvent(args.NewSolution, args.DocumentId, UnitTestingInvocationReasons.DocumentAdded);
                     break;
 
                 case WorkspaceChangeKind.DocumentReloaded:
                 case WorkspaceChangeKind.DocumentChanged:
                     Contract.ThrowIfNull(args.DocumentId);
-                    EnqueueDocumentChangedEvent(args.OldSolution, args.NewSolution, args.DocumentId, eventName);
+                    EnqueueDocumentChangedEvent(args.OldSolution, args.NewSolution, args.DocumentId);
                     break;
 
                 case WorkspaceChangeKind.DocumentRemoved:
                     Contract.ThrowIfNull(args.DocumentId);
-                    EnqueueFullDocumentEvent(args.OldSolution, args.DocumentId, UnitTestingInvocationReasons.DocumentRemoved, eventName);
+                    EnqueueFullDocumentEvent(args.OldSolution, args.DocumentId, UnitTestingInvocationReasons.DocumentRemoved);
                     break;
 
                 case WorkspaceChangeKind.AdditionalDocumentAdded:
@@ -193,7 +208,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
                 case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     // If an additional file or .editorconfig has changed we need to reanalyze the entire project.
                     Contract.ThrowIfNull(args.ProjectId);
-                    EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, UnitTestingInvocationReasons.AdditionalDocumentChanged, eventName);
+                    EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, UnitTestingInvocationReasons.AdditionalDocumentChanged);
                     break;
 
                 default:
@@ -201,10 +216,9 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
             }
         }
 
-        private void EnqueueSolutionChangedEvent(Solution oldSolution, Solution newSolution, string eventName)
+        private void EnqueueSolutionChangedEvent(Solution oldSolution, Solution newSolution)
         {
-            _eventProcessingQueue.ScheduleTask(
-                eventName,
+            _eventProcessingQueue.AddWork(
                 async () =>
                 {
                     var solutionChanges = newSolution.GetChanges(oldSolution);
@@ -224,61 +238,53 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
                     {
                         await EnqueueFullProjectWorkItemAsync(removedProject, UnitTestingInvocationReasons.DocumentRemoved).ConfigureAwait(false);
                     }
-                },
-                _shutdownToken);
+                });
         }
 
-        private void EnqueueFullSolutionEvent(Solution solution, UnitTestingInvocationReasons invocationReasons, string eventName)
+        private void EnqueueFullSolutionEvent(Solution solution, UnitTestingInvocationReasons invocationReasons)
         {
-            _eventProcessingQueue.ScheduleTask(
-                eventName,
+            _eventProcessingQueue.AddWork(
                 async () =>
                 {
                     foreach (var projectId in solution.ProjectIds)
                     {
                         await EnqueueFullProjectWorkItemAsync(solution.GetRequiredProject(projectId), invocationReasons).ConfigureAwait(false);
                     }
-                },
-                _shutdownToken);
+                });
         }
 
-        private void EnqueueProjectChangedEvent(Solution oldSolution, Solution newSolution, ProjectId projectId, string eventName)
+        private void EnqueueProjectChangedEvent(Solution oldSolution, Solution newSolution, ProjectId projectId)
         {
-            _eventProcessingQueue.ScheduleTask(
-                eventName,
+            _eventProcessingQueue.AddWork(
                 async () =>
                 {
                     var oldProject = oldSolution.GetRequiredProject(projectId);
                     var newProject = newSolution.GetRequiredProject(projectId);
 
                     await EnqueueWorkItemAsync(newProject.GetChanges(oldProject)).ConfigureAwait(false);
-                },
-                _shutdownToken);
+                });
         }
 
-        private void EnqueueFullProjectEvent(Solution solution, ProjectId projectId, UnitTestingInvocationReasons invocationReasons, string eventName)
+        private void EnqueueFullProjectEvent(Solution solution, ProjectId projectId, UnitTestingInvocationReasons invocationReasons)
         {
-            _eventProcessingQueue.ScheduleTask(eventName,
-                () => EnqueueFullProjectWorkItemAsync(solution.GetRequiredProject(projectId), invocationReasons), _shutdownToken);
+            _eventProcessingQueue.AddWork(
+                () => EnqueueFullProjectWorkItemAsync(solution.GetRequiredProject(projectId), invocationReasons));
         }
 
-        private void EnqueueFullDocumentEvent(Solution solution, DocumentId documentId, UnitTestingInvocationReasons invocationReasons, string eventName)
+        private void EnqueueFullDocumentEvent(Solution solution, DocumentId documentId, UnitTestingInvocationReasons invocationReasons)
         {
-            _eventProcessingQueue.ScheduleTask(
-                eventName,
+            _eventProcessingQueue.AddWork(
                 () =>
                 {
                     var project = solution.GetRequiredProject(documentId.ProjectId);
                     return EnqueueDocumentWorkItemAsync(project, documentId, document: null, invocationReasons);
-                },
-                _shutdownToken);
+                });
         }
 
-        private void EnqueueDocumentChangedEvent(Solution oldSolution, Solution newSolution, DocumentId documentId, string eventName)
+        private void EnqueueDocumentChangedEvent(Solution oldSolution, Solution newSolution, DocumentId documentId)
         {
             // document changed event is the special one.
-            _eventProcessingQueue.ScheduleTask(
-                eventName,
+            _eventProcessingQueue.AddWork(
                 async () =>
                 {
                     var oldProject = oldSolution.GetRequiredProject(documentId.ProjectId);
@@ -302,7 +308,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
                             if (!newProjectSourceGeneratedDocumentsById.ContainsKey(oldDocumentId))
                             {
                                 // This source generated document was removed
-                                EnqueueFullDocumentEvent(oldSolution, oldDocumentId, UnitTestingInvocationReasons.DocumentRemoved, "OnWorkspaceChanged");
+                                EnqueueFullDocumentEvent(oldSolution, oldDocumentId, UnitTestingInvocationReasons.DocumentRemoved);
                             }
                         }
 
@@ -311,7 +317,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
                             if (!oldProjectSourceGeneratedDocumentsById.TryGetValue(newDocumentId, out var oldDocument))
                             {
                                 // This source generated document was added
-                                EnqueueFullDocumentEvent(newSolution, newDocumentId, UnitTestingInvocationReasons.DocumentAdded, "OnWorkspaceChanged");
+                                EnqueueFullDocumentEvent(newSolution, newDocumentId, UnitTestingInvocationReasons.DocumentAdded);
                             }
                             else
                             {
@@ -320,8 +326,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
                             }
                         }
                     }
-                },
-                _shutdownToken);
+                });
         }
 
         private async Task EnqueueDocumentWorkItemAsync(Project project, DocumentId documentId, TextDocument? document, UnitTestingInvocationReasons invocationReasons, SyntaxNode? changedMember = null)
@@ -386,7 +391,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
 
         private async Task EnqueueWorkItemAsync(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope)
         {
-            var solution = _registration.GetSolutionToAnalyze();
+            var solution = Registration.GetSolutionToAnalyze();
             var invocationReasons =
                 UnitTestingInvocationReasons.Reanalyze;
 
@@ -441,6 +446,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
                 !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
                 !object.Equals(oldProject.Name, newProject.Name) ||
                 !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
+                !object.Equals(oldProject.HostAnalyzerOptions, newProject.HostAnalyzerOptions) ||
                 !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
                 !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
                 !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath) ||
@@ -491,7 +497,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
 
             internal void WaitUntilCompletion(ImmutableArray<IUnitTestingIncrementalAnalyzer> workers)
             {
-                var solution = _workCoordinator._registration.GetSolutionToAnalyze();
+                var solution = _workCoordinator.Registration.GetSolutionToAnalyze();
                 var list = new List<UnitTestingWorkItem>();
 
                 foreach (var project in solution.Projects)

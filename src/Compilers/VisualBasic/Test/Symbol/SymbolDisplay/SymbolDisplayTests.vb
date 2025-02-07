@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -1551,7 +1552,7 @@ end class
             Dim format = New SymbolDisplayFormat(
                 memberOptions:=SymbolDisplayMemberOptions.IncludeType,
                 kindOptions:=SymbolDisplayKindOptions.IncludeMemberKeyword,
-                compilerInternalOptions:=SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames)
+                compilerInternalOptions:=SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)
 
             TestSymbolDescription(
                 text,
@@ -4976,7 +4977,7 @@ Class C
     Private f As (Integer, String)
 End Class
                     </file>
-                </compilation>, references:={TestMetadata.Net40.SystemCore})
+                </compilation>, references:={Net40.References.SystemCore})
 
             Dim format = New SymbolDisplayFormat(memberOptions:=SymbolDisplayMemberOptions.IncludeType, miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.CollapseTupleTypes)
 
@@ -5013,13 +5014,13 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation},
-                references:={MetadataReference.CreateFromImage(TestResources.NetFX.ValueTuple.tuplelib)})
+                references:={Net461.ExtraReferences.SystemValueTuple})
         End Sub
 
         <Fact()>
@@ -6000,6 +6001,37 @@ end class"
                 SymbolDisplayPartKind.Punctuation)
         End Sub
 
+        <Fact>
+        Public Sub PreprocessingSymbol()
+            Dim source =
+"
+#If NET5_0_OR_GREATER
+#End If"
+            Dim format = New SymbolDisplayFormat(
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeModifiers,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            Dim comp = CreateCompilation(source)
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim preprocessingNameSyntax = tree.GetRoot().DescendantNodes(descendIntoTrivia:=True).OfType(Of IdentifierNameSyntax).First()
+            Dim preprocessingSymbolInfo = model.GetPreprocessingSymbolInfo(preprocessingNameSyntax)
+            Dim preprocessingSymbol = preprocessingSymbolInfo.Symbol
+
+            Assert.Equal(
+                "NET5_0_OR_GREATER",
+                SymbolDisplay.ToDisplayString(preprocessingSymbol, format))
+
+            Dim displayParts = preprocessingSymbol.ToDisplayParts(format)
+            Dim expectedDisplayParts =
+            {
+                New SymbolDisplayPart(SymbolDisplayPartKind.Text, preprocessingSymbol, "NET5_0_OR_GREATER")
+            }
+            Assert.Equal(
+                expected:=expectedDisplayParts,
+                actual:=displayParts)
+        End Sub
+
 #Region "Helpers"
 
         Private Shared Sub TestSymbolDescription(
@@ -6053,7 +6085,7 @@ end class"
             expectedText As String,
             ParamArray kinds As SymbolDisplayPartKind())
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(text, references:={TestMetadata.Net40.SystemCore})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(text, references:={Net40.References.SystemCore})
 
             ' symbol:
             Dim symbol = findSymbol(comp.GlobalNamespace)

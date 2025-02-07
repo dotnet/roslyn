@@ -440,11 +440,6 @@ Enter キーで常に新しい行を追加する;
         <target state="translated">スニペットを含めない</target>
         <note />
       </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>Only add new line on enter after end of fully typed word</source>
-        <target state="translated">単語を完全に入力した後 Enter キーで新しい行のみを追加する</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

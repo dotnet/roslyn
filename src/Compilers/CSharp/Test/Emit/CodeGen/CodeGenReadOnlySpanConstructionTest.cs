@@ -135,10 +135,10 @@ class Test
   .locals init (System.ReadOnlySpan<char> V_0, //s1
                 System.ReadOnlySpan<char> V_1) //s2
   IL_0000:  ldstr      """"
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldstr      """"
-  IL_0010:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0010:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0015:  stloc.1
   IL_0016:  ldloca.s   V_0
   IL_0018:  call       ""int System.ReadOnlySpan<char>.Length.get""
@@ -147,10 +147,10 @@ class Test
   IL_0024:  ceq
   IL_0026:  call       ""void System.Console.Write(bool)""
   IL_002b:  ldnull
-  IL_002c:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_002c:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0031:  stloc.0
   IL_0032:  ldnull
-  IL_0033:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0033:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0038:  stloc.1
   IL_0039:  ldloca.s   V_0
   IL_003b:  call       ""int System.ReadOnlySpan<char>.Length.get""
@@ -612,7 +612,7 @@ class Test
   // Code size       28 (0x1c)
   .maxstack  3
   IL_0000:  ldstr      ""QWERTYUIOP""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=10 <PrivateImplementationDetails>.C848E1013F9F04A9D63FA43CE7FD4AF035152C7C669A4A404B67107CEE5F2E4E""
   IL_000f:  ldc.i4.s   10
   IL_0011:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""

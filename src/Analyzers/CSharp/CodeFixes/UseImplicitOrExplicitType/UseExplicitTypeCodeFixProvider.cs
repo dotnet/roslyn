@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -125,16 +126,23 @@ internal sealed class UseExplicitTypeCodeFixProvider() : SyntaxEditorBasedCodeFi
             varDecl.Variables.Single().Identifier.Parent!,
             cancellationToken);
 
-    private static async Task UpdateTypeSyntaxAsync(Document document, SyntaxEditor editor, TypeSyntax typeSyntax, SyntaxNode declarationSyntax, CancellationToken cancellationToken)
+    private static async Task UpdateTypeSyntaxAsync(
+        Document document,
+        SyntaxEditor editor,
+        TypeSyntax typeSyntax,
+        SyntaxNode declarationSyntax,
+        CancellationToken cancellationToken)
     {
         typeSyntax = typeSyntax.StripRefIfNeeded();
 
+        var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var typeSymbol = GetConvertedType(semanticModel, typeSyntax, cancellationToken);
 
         typeSymbol = AdjustNullabilityOfTypeSymbol(
-            typeSymbol,
+            semanticFacts,
             semanticModel,
+            typeSymbol,
             declarationSyntax,
             cancellationToken);
 
@@ -142,8 +150,9 @@ internal sealed class UseExplicitTypeCodeFixProvider() : SyntaxEditorBasedCodeFi
     }
 
     private static ITypeSymbol AdjustNullabilityOfTypeSymbol(
-        ITypeSymbol typeSymbol,
+        ISemanticFacts semanticFacts,
         SemanticModel semanticModel,
+        ITypeSymbol typeSymbol,
         SyntaxNode declarationSyntax,
         CancellationToken cancellationToken)
     {
@@ -151,7 +160,7 @@ internal sealed class UseExplicitTypeCodeFixProvider() : SyntaxEditorBasedCodeFi
         {
             // It's possible that the var shouldn't be annotated nullable, check assignments to the variable and 
             // determine if it needs to be null
-            var isPossiblyAssignedNull = NullableHelpers.IsDeclaredSymbolAssignedPossiblyNullValue(semanticModel, declarationSyntax, cancellationToken);
+            var isPossiblyAssignedNull = NullableHelpers.IsDeclaredSymbolAssignedPossiblyNullValue(semanticFacts, semanticModel, declarationSyntax, cancellationToken);
             if (!isPossiblyAssignedNull)
             {
                 // If the symbol is never assigned null we can update the type symbol to also be non-null

@@ -18,125 +18,104 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 internal static partial class EditorConfigNamingStyleParser
 {
-    internal static bool TryGetSymbolSpec(
+    internal static bool TryGetSymbolSpecification(
         Section section,
         string namingRuleTitle,
-        IReadOnlyDictionary<string, (string value, TextLine? line)> properties,
+        IReadOnlyDictionary<string, string> entries,
+        IReadOnlyDictionary<string, TextLine> lines,
         [NotNullWhen(true)] out ApplicableSymbolInfo? applicableSymbolInfo)
     {
-        return TryGetSymbolSpec(
+        if (TryGetSymbolProperties(
             namingRuleTitle,
-            properties,
-            s => (s.value, s.line),
-            () => null,
-            (nameTuple, kindsTuple, accessibilitiesTuple, modifiersTuple) =>
-            {
-                var (name, nameTextLine) = nameTuple;
-                var (kinds, kindsTextLine) = kindsTuple;
-                var (accessibilities, accessibilitiesTextLine) = accessibilitiesTuple;
-                var (modifiers, modifiersTextLine) = modifiersTuple;
-                return new ApplicableSymbolInfo(
-                    OptionName: (section, nameTextLine?.Span, name),
-                    SymbolKinds: (section, kindsTextLine?.Span, kinds),
-                    Accessibilities: (section, accessibilitiesTextLine?.Span, accessibilities),
-                    Modifiers: (section, modifiersTextLine?.Span, modifiers));
-            },
-            out applicableSymbolInfo);
-    }
-
-    private static bool TryGetSymbolSpec(
-        string namingRuleTitle,
-        IReadOnlyDictionary<string, string> conventionsDictionary,
-        [NotNullWhen(true)] out SymbolSpecification? symbolSpec)
-    {
-        return TryGetSymbolSpec<string, object?, SymbolSpecification>(
-            namingRuleTitle,
-            conventionsDictionary,
-            s => (s, null),
-            () => null,
-            (t0, t1, t2, t3) => new SymbolSpecification(
-                    Guid.NewGuid(),
-                    t0.name,
-                    t1.kinds,
-                    t2.accessibilities,
-                    t3.modifiers),
-            out symbolSpec);
-    }
-
-    private static bool TryGetSymbolSpec<T, TData, TResult>(
-        string namingRuleTitle,
-        IReadOnlyDictionary<string, T> conventionsDictionary,
-        Func<T, (string value, TData data)> tupleSelector,
-        Func<TData> defaultValue,
-        Func<(string name, TData data),
-             (ImmutableArray<SymbolKindOrTypeKind> kinds, TData data),
-             (ImmutableArray<Accessibility> accessibilities, TData data),
-             (ImmutableArray<ModifierKind> modifiers, TData data),
-            TResult> constructor,
-        [NotNullWhen(true)] out TResult? symbolSpec)
-    {
-        symbolSpec = default;
-        if (!TryGetSymbolSpecNameForNamingRule(namingRuleTitle, conventionsDictionary, tupleSelector, out var symbolSpecName))
+            entries,
+            out var specification,
+            out var kinds,
+            out var accessibilities,
+            out var modifiers))
         {
-            return false;
+            applicableSymbolInfo = new ApplicableSymbolInfo(
+                OptionName: new(section, specification.GetSpan(lines), specification.Value),
+                SymbolKinds: new(section, kinds.GetSpan(lines), kinds.Value),
+                Accessibilities: new(section, accessibilities.GetSpan(lines), accessibilities.Value),
+                Modifiers: new(section, modifiers.GetSpan(lines), modifiers.Value));
+
+            return true;
         }
 
-        var applicableKinds = GetSymbolsApplicableKinds(symbolSpecName.name, conventionsDictionary, tupleSelector, defaultValue);
-        var applicableAccessibilities = GetSymbolsApplicableAccessibilities(symbolSpecName.name, conventionsDictionary, tupleSelector, defaultValue);
-        var requiredModifiers = GetSymbolsRequiredModifiers(symbolSpecName.name, conventionsDictionary, tupleSelector, defaultValue);
-
-        symbolSpec = constructor(symbolSpecName, applicableKinds, applicableAccessibilities, requiredModifiers);
-        return symbolSpec is not null;
-    }
-
-    private static bool TryGetSymbolSpecNameForNamingRule<T, TData>(
-        string namingRuleName,
-        IReadOnlyDictionary<string, T> conventionsDictionary,
-        Func<T, (string symbolSpecName, TData data)> tupleSelector,
-        out (string name, TData data) result)
-    {
-        if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.symbols", out var symbolSpecName))
-        {
-            result = tupleSelector(symbolSpecName);
-            return result.name != null;
-        }
-
-        result = default;
+        applicableSymbolInfo = null;
         return false;
     }
 
-    private static (ImmutableArray<SymbolKindOrTypeKind> kinds, TData data) GetSymbolsApplicableKinds<T, TData>(
-        string symbolSpecName,
-        IReadOnlyDictionary<string, T> conventionsDictionary,
-        Func<T, (string value, TData data)> tupleSelector,
-        Func<TData> defaultValue)
+    private static bool TryGetSymbolSpecification(
+        string namingRuleTitle,
+        IReadOnlyDictionary<string, string> entries,
+        [NotNullWhen(true)] out SymbolSpecification? symbolSpec)
     {
-        if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_kinds", out var result))
+        if (TryGetSymbolProperties(
+            namingRuleTitle,
+            entries,
+            out var specification,
+            out var kinds,
+            out var accessibilities,
+            out var modifiers))
         {
-            var (symbolSpecApplicableKinds, data) = tupleSelector(result);
-            var kinds = ParseSymbolKindList(symbolSpecApplicableKinds ?? string.Empty);
-            return (kinds, data);
+            symbolSpec = new SymbolSpecification(
+                id: Guid.NewGuid(),
+                specification.Value,
+                kinds.Value,
+                accessibilities.Value,
+                modifiers.Value);
+
+            return true;
         }
 
-        return (_all, defaultValue());
+        symbolSpec = null;
+        return false;
     }
 
-    private static readonly SymbolKindOrTypeKind _namespace = new(SymbolKind.Namespace);
-    private static readonly SymbolKindOrTypeKind _class = new(TypeKind.Class);
-    private static readonly SymbolKindOrTypeKind _struct = new(TypeKind.Struct);
-    private static readonly SymbolKindOrTypeKind _interface = new(TypeKind.Interface);
-    private static readonly SymbolKindOrTypeKind _enum = new(TypeKind.Enum);
-    private static readonly SymbolKindOrTypeKind _property = new(SymbolKind.Property);
-    private static readonly SymbolKindOrTypeKind _method = new(MethodKind.Ordinary);
-    private static readonly SymbolKindOrTypeKind _localFunction = new(MethodKind.LocalFunction);
-    private static readonly SymbolKindOrTypeKind _field = new(SymbolKind.Field);
-    private static readonly SymbolKindOrTypeKind _event = new(SymbolKind.Event);
-    private static readonly SymbolKindOrTypeKind _delegate = new(TypeKind.Delegate);
-    private static readonly SymbolKindOrTypeKind _parameter = new(SymbolKind.Parameter);
-    private static readonly SymbolKindOrTypeKind _typeParameter = new(SymbolKind.TypeParameter);
-    private static readonly SymbolKindOrTypeKind _local = new(SymbolKind.Local);
-    private static readonly ImmutableArray<SymbolKindOrTypeKind> _all =
-        [_namespace, _class, _struct, _interface, _enum, _property, _method, _localFunction, _field, _event, _delegate, _parameter, _typeParameter, _local];
+    private static bool TryGetSymbolProperties(
+        string namingRuleTitle,
+        IReadOnlyDictionary<string, string> entries,
+        out Property<string> specification,
+        out Property<ImmutableArray<SymbolKindOrTypeKind>> kinds,
+        out Property<ImmutableArray<Accessibility>> accessibilities,
+        out Property<ImmutableArray<ModifierKind>> modifiers)
+    {
+        var key = $"dotnet_naming_rule.{namingRuleTitle}.symbols";
+        if (!entries.TryGetValue(key, out var name))
+        {
+            specification = default;
+            kinds = default;
+            accessibilities = default;
+            modifiers = default;
+            return false;
+        }
+
+        specification = new Property<string>(key, name);
+
+        const string group = "dotnet_naming_symbols";
+        kinds = GetProperty(entries, group, name, "applicable_kinds", ParseSymbolKindList, s_allApplicableKinds);
+        accessibilities = GetProperty(entries, group, name, "applicable_accessibilities", ParseAccessibilityKindList, s_allAccessibility);
+        modifiers = GetProperty(entries, group, name, "required_modifiers", ParseModifiers, []);
+        return true;
+    }
+
+    private static readonly SymbolKindOrTypeKind s_namespace = new(SymbolKind.Namespace);
+    private static readonly SymbolKindOrTypeKind s_class = new(TypeKind.Class);
+    private static readonly SymbolKindOrTypeKind s_struct = new(TypeKind.Struct);
+    private static readonly SymbolKindOrTypeKind s_interface = new(TypeKind.Interface);
+    private static readonly SymbolKindOrTypeKind s_enum = new(TypeKind.Enum);
+    private static readonly SymbolKindOrTypeKind s_property = new(SymbolKind.Property);
+    private static readonly SymbolKindOrTypeKind s_method = new(MethodKind.Ordinary);
+    private static readonly SymbolKindOrTypeKind s_localFunction = new(MethodKind.LocalFunction);
+    private static readonly SymbolKindOrTypeKind s_field = new(SymbolKind.Field);
+    private static readonly SymbolKindOrTypeKind s_event = new(SymbolKind.Event);
+    private static readonly SymbolKindOrTypeKind s_delegate = new(TypeKind.Delegate);
+    private static readonly SymbolKindOrTypeKind s_parameter = new(SymbolKind.Parameter);
+    private static readonly SymbolKindOrTypeKind s_typeParameter = new(SymbolKind.TypeParameter);
+    private static readonly SymbolKindOrTypeKind s_local = new(SymbolKind.Local);
+    private static readonly ImmutableArray<SymbolKindOrTypeKind> s_allApplicableKinds =
+        [s_namespace, s_class, s_struct, s_interface, s_enum, s_property, s_method, s_localFunction, s_field, s_event, s_delegate, s_parameter, s_typeParameter, s_local];
 
     private static ImmutableArray<SymbolKindOrTypeKind> ParseSymbolKindList(string symbolSpecApplicableKinds)
     {
@@ -147,7 +126,7 @@ internal static partial class EditorConfigNamingStyleParser
 
         if (symbolSpecApplicableKinds.Trim() == "*")
         {
-            return _all;
+            return s_allApplicableKinds;
         }
 
         var builder = ArrayBuilder<SymbolKindOrTypeKind>.GetInstance();
@@ -156,46 +135,46 @@ internal static partial class EditorConfigNamingStyleParser
             switch (symbolSpecApplicableKind)
             {
                 case "class":
-                    builder.Add(_class);
+                    builder.Add(s_class);
                     break;
                 case "struct":
-                    builder.Add(_struct);
+                    builder.Add(s_struct);
                     break;
                 case "interface":
-                    builder.Add(_interface);
+                    builder.Add(s_interface);
                     break;
                 case "enum":
-                    builder.Add(_enum);
+                    builder.Add(s_enum);
                     break;
                 case "property":
-                    builder.Add(_property);
+                    builder.Add(s_property);
                     break;
                 case "method":
-                    builder.Add(_method);
+                    builder.Add(s_method);
                     break;
                 case "local_function":
-                    builder.Add(_localFunction);
+                    builder.Add(s_localFunction);
                     break;
                 case "field":
-                    builder.Add(_field);
+                    builder.Add(s_field);
                     break;
                 case "event":
-                    builder.Add(_event);
+                    builder.Add(s_event);
                     break;
                 case "delegate":
-                    builder.Add(_delegate);
+                    builder.Add(s_delegate);
                     break;
                 case "parameter":
-                    builder.Add(_parameter);
+                    builder.Add(s_parameter);
                     break;
                 case "type_parameter":
-                    builder.Add(_typeParameter);
+                    builder.Add(s_typeParameter);
                     break;
                 case "namespace":
-                    builder.Add(_namespace);
+                    builder.Add(s_namespace);
                     break;
                 case "local":
-                    builder.Add(_local);
+                    builder.Add(s_local);
                     break;
                 default:
                     break;
@@ -203,21 +182,6 @@ internal static partial class EditorConfigNamingStyleParser
         }
 
         return builder.ToImmutableAndFree();
-    }
-
-    private static (ImmutableArray<Accessibility> accessibilities, TData data) GetSymbolsApplicableAccessibilities<T, TData>(
-        string symbolSpecName,
-        IReadOnlyDictionary<string, T> conventionsDictionary,
-        Func<T, (string value, TData data)> tupleSelector,
-        Func<TData> defaultValue)
-    {
-        if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_accessibilities", out var result))
-        {
-            var (symbolSpecApplicableAccessibilities, data) = tupleSelector(result);
-            return (ParseAccessibilityKindList(symbolSpecApplicableAccessibilities ?? string.Empty), data);
-        }
-
-        return (s_allAccessibility, defaultValue());
     }
 
     private static readonly ImmutableArray<Accessibility> s_allAccessibility =
@@ -279,21 +243,6 @@ internal static partial class EditorConfigNamingStyleParser
         return builder.ToImmutableAndFree();
     }
 
-    private static (ImmutableArray<ModifierKind> modifiers, TData data) GetSymbolsRequiredModifiers<T, TData>(
-        string symbolSpecName,
-        IReadOnlyDictionary<string, T> conventionsDictionary,
-        Func<T, (string value, TData data)> tupleSelector,
-        Func<TData> defaultValue)
-    {
-        if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.required_modifiers", out var result))
-        {
-            var (symbolSpecRequiredModifiers, data) = tupleSelector(result);
-            return (ParseModifiers(symbolSpecRequiredModifiers ?? string.Empty), data);
-        }
-
-        return (ImmutableArray<ModifierKind>.Empty, defaultValue());
-    }
-
     private static readonly ModifierKind s_abstractModifierKind = new(ModifierKindEnum.IsAbstract);
     private static readonly ModifierKind s_asyncModifierKind = new(ModifierKindEnum.IsAsync);
     private static readonly ModifierKind s_constModifierKind = new(ModifierKindEnum.IsConst);
@@ -350,7 +299,7 @@ internal static partial class EditorConfigNamingStyleParser
             return "";
         }
 
-        if (_all.All(symbols.Contains) && symbols.All(_all.Contains))
+        if (s_allApplicableKinds.All(symbols.Contains) && symbols.All(s_allApplicableKinds.Contains))
         {
             return "*";
         }

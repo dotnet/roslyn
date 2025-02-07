@@ -5,14 +5,12 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CSharp.Binder;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -466,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// such cases it is possible to get a reference without loading into a temporary.
         /// </summary>
         private bool HasHome(BoundExpression expression, AddressKind addressKind)
-            => Binder.HasHome(expression, addressKind, _method, IsPeVerifyCompatEnabled(), _stackLocals);
+            => HasHome(expression, addressKind, _method, IsPeVerifyCompatEnabled(), _stackLocals);
 
         private LocalDefinition EmitParameterAddress(BoundParameter parameter, AddressKind addressKind)
         {

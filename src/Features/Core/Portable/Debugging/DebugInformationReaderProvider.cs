@@ -92,7 +92,7 @@ internal abstract class DebugInformationReaderProvider : IDisposable
             var symReader = Interlocked.Exchange(ref _symReader, null);
             if (symReader != null && Marshal.IsComObject(symReader))
             {
-#if NETCOREAPP
+#if NET
                 Debug.Assert(OperatingSystem.IsWindows());
 #endif
                 Marshal.ReleaseComObject(symReader);
@@ -130,7 +130,7 @@ internal abstract class DebugInformationReaderProvider : IDisposable
 
         if (!stream.CanRead || !stream.CanSeek)
         {
-            throw new ArgumentException(FeaturesResources.StreamMustSupportReadAndSeek, nameof(stream));
+            throw new ArgumentException(CompilerExtensionsResources.StreamMustSupportReadAndSeek, nameof(stream));
         }
 
         var isPortable = stream.ReadByte() == 'B' && stream.ReadByte() == 'S' && stream.ReadByte() == 'J' && stream.ReadByte() == 'B';

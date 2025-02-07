@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,9 +12,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
         private sealed partial class IncrementalMemberEditAnalyzer
         {
@@ -47,8 +50,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var service = document.GetRequiredLanguageService<ISyntaxFactsService>();
                     var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                    using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var members);
+                    // Specifies false for discardLargeInstances as these objects commonly exceed the default ArrayBuilder capacity threshold.
+                    using var _ = ArrayBuilder<SyntaxNode>.GetInstance(discardLargeInstances: false, out var members);
                     service.AddMethodLevelMembers(root, members);
+
                     return members.SelectAsArray(m => m.FullSpan);
                 }
             }

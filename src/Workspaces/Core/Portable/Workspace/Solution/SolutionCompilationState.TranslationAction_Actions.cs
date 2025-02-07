@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -9,11 +10,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     private abstract partial class TranslationAction
     {
@@ -126,7 +128,7 @@ internal partial class SolutionCompilationState
             public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
 
             public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
-                => generatorDriver.WithUpdatedAnalyzerConfigOptions(NewProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider);
+                => generatorDriver.WithUpdatedAnalyzerConfigOptions(NewProjectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider);
         }
 
         internal sealed class RemoveDocumentsAction(
@@ -235,12 +237,11 @@ internal partial class SolutionCompilationState
 
         internal sealed class ProjectCompilationOptionsAction(
             ProjectState oldProjectState,
-            ProjectState newProjectState)
-            : TranslationAction(oldProjectState, newProjectState)
+            ProjectState newProjectState) : TranslationAction(oldProjectState, newProjectState)
         {
             public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
-                RoslynDebug.AssertNotNull(this.NewProjectState.CompilationOptions);
+                Contract.ThrowIfNull(this.NewProjectState.CompilationOptions);
                 return Task.FromResult(oldCompilation.WithOptions(this.NewProjectState.CompilationOptions));
             }
 
@@ -364,7 +365,7 @@ internal partial class SolutionCompilationState
                 var generatorDriver = oldGeneratorDriver
                     .ReplaceAdditionalTexts(this.NewProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText))
                     .WithUpdatedParseOptions(this.NewProjectState.ParseOptions!)
-                    .WithUpdatedAnalyzerConfigOptions(this.NewProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider)
+                    .WithUpdatedAnalyzerConfigOptions(this.NewProjectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider)
                     .ReplaceGenerators(GetSourceGenerators(this.NewProjectState));
 
                 return generatorDriver;

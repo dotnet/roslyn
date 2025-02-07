@@ -70,7 +70,7 @@ public class PreviewWorkspaceTests
         Assert.True(previewWorkspace.TryApplyChanges(project.Solution));
 
         var addedSolution = previewWorkspace.CurrentSolution.Projects.First()
-                                            .AddMetadataReference(TestMetadata.Net451.mscorlib)
+                                            .AddMetadataReference(NetFramework.mscorlib)
                                             .AddDocument("document", "").Project.Solution;
         Assert.True(previewWorkspace.TryApplyChanges(addedSolution));
         Assert.Equal(1, previewWorkspace.CurrentSolution.Projects.First().MetadataReferences.Count);
@@ -162,7 +162,7 @@ public class PreviewWorkspaceTests
 
     private static void ExecuteAnalyzers(PreviewWorkspace previewWorkspace, ImmutableArray<DiagnosticAnalyzer> analyzers)
     {
-        var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty);
+        var analyzerOptions = new AnalyzerOptions(additionalFiles: []);
         var project = previewWorkspace.CurrentSolution.Projects.Single();
         var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(analyzerOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false);
         var compilation = project.GetRequiredCompilationAsync(CancellationToken.None).Result;

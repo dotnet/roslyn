@@ -18,6 +18,8 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.EditAndContinue.AbstractEditAndContinueAnalyzer;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
@@ -44,13 +46,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EditAndContinueCapabilities.GenericUpdateMethod |
             EditAndContinueCapabilities.GenericAddFieldToExistingType;
 
-        public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
+        public AbstractEditAndContinueAnalyzer Analyzer { get; }
+
+        protected EditAndContinueTestVerifier(Action<SyntaxNode>? faultInjector)
+        {
+            Analyzer = CreateAnalyzer(faultInjector, LanguageName);
+        }
 
         public abstract ImmutableArray<SyntaxNode> GetDeclarators(ISymbol method);
         public abstract string LanguageName { get; }
         public abstract string ProjectFileExtension { get; }
         public abstract TreeComparer<SyntaxNode> TopSyntaxComparer { get; }
         public abstract string? TryGetResource(string keyword);
+
+        internal static AbstractEditAndContinueAnalyzer CreateAnalyzer(Action<SyntaxNode>? faultInjector, string languageName)
+        {
+            var exportProvider = FeaturesTestCompositions.Features.ExportProviderFactory.CreateExportProvider();
+
+            var analyzer = (AbstractEditAndContinueAnalyzer)exportProvider
+                .GetExports<ILanguageService, LanguageServiceMetadata>()
+                .Single(e => e.Metadata.Language == languageName && e.Metadata.ServiceType == typeof(IEditAndContinueAnalyzer).AssemblyQualifiedName)
+                .Value;
+
+            analyzer.GetTestAccessor().FaultInjector = faultInjector;
+            return analyzer;
+        }
 
         private void VerifyDocumentActiveStatementsAndExceptionRegions(
             ActiveStatementsDescription description,
@@ -90,7 +110,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         internal void VerifyLineEdits(
-            EditScript<SyntaxNode> editScript,
+            EditScriptDescription editScript,
             SequencePointUpdates[] expectedLineEdits,
             SemanticEditDescription[]? expectedSemanticEdits,
             RudeEditDiagnosticDescription[]? expectedDiagnostics,
@@ -104,7 +124,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         internal void VerifySemantics(
-            EditScript<SyntaxNode>[] editScripts,
+            EditScriptDescription[] editScripts,
             TargetFramework targetFramework,
             DocumentAnalysisResultsDescription[] expectedResults,
             EditAndContinueCapabilities? capabilities = null)
@@ -134,6 +154,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var lazyCapabilities = AsyncLazy.Create(requiredCapabilities);
             var actualRequiredCapabilities = EditAndContinueCapabilities.None;
             var hasValidChanges = false;
+            var log = new TraceLog("Test");
 
             for (var documentIndex = 0; documentIndex < documentCount; documentIndex++)
             {
@@ -159,7 +180,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 Contract.ThrowIfNull(newModel);
 
                 var lazyOldActiveStatementMap = AsyncLazy.Create(expectedResult.ActiveStatements.OldStatementsMap);
-                var result = Analyzer.AnalyzeDocumentAsync(oldProject, lazyOldActiveStatementMap, newDocument, newActiveStatementSpans, lazyCapabilities, CancellationToken.None).Result;
+                var result = Analyzer.AnalyzeDocumentAsync(oldProject, lazyOldActiveStatementMap, newDocument, newActiveStatementSpans, lazyCapabilities, log, CancellationToken.None).Result;
                 var oldText = oldDocument.GetTextSynchronously(default);
                 var newText = newDocument.GetTextSynchronously(default);
 
@@ -412,13 +433,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var actualOldNode = actualSyntaxMaps.MatchingNodes(newNode);
                 Assert.Equal(expectedOldNode, actualOldNode);
 
-                AssertEx.Equal(
-                    expectedRuntimeRudeEdit?.GetMessage(newRoot.SyntaxTree),
-                    actualSyntaxMaps.RuntimeRudeEdits?.Invoke(newNode)?.Message);
+                var expected = expectedRuntimeRudeEdit?.GetMessage(newRoot.SyntaxTree);
+                var actual = actualSyntaxMaps.RuntimeRudeEdits?.Invoke(newNode)?.Message;
+
+                if (expected != actual)
+                {
+                    Assert.Fail($"""
+                        Unexpected runtime rude edit.
+
+                        Expected message:
+                        '{expected}'
+                        Actual message:
+                        '{actual}'
+                        Node ({newNode.GetType().Name}):
+                        `{newNode}`
+                        """);
+                }
             }
         }
 
-        private void CreateProjects(EditScript<SyntaxNode>[] editScripts, AdhocWorkspace workspace, TargetFramework targetFramework, out Project oldProject, out Project newProject)
+        private void CreateProjects(EditScriptDescription[] editScripts, AdhocWorkspace workspace, TargetFramework targetFramework, out Project oldProject, out Project newProject)
         {
             var projectInfo = ProjectInfo.Create(
                 new ProjectInfo.ProjectAttributes(
@@ -517,11 +551,5 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
             }
         }
-    }
-
-    internal static class EditScriptTestUtils
-    {
-        public static void VerifyEdits<TNode>(this EditScript<TNode> actual, params string[] expected)
-            => AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
     }
 }

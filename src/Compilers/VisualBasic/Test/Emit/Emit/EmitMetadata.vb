@@ -7,11 +7,13 @@ Imports System.IO
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
+Imports System.Reflection.PortableExecutable
+Imports Basic.Reference.Assemblies
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
@@ -26,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
         <Fact>
         Public Sub InstantiatedGenerics()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim source As String = <text> 
 Class A(Of T)
 
@@ -218,7 +220,7 @@ Public Class D
     Shared arrayField As String()
 End Class 
 </file>
-</compilation>, {Net40.mscorlib}, TestOptions.ReleaseExe)
+</compilation>, {Net40.References.mscorlib}, TestOptions.ReleaseExe)
 
             CompileAndVerify(comp,
                              expectedOutput:=
@@ -229,7 +231,7 @@ End Class
 
         <Fact>
         Public Sub AssemblyRefs()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim metadataTestLib1 = TestReferences.SymbolsTests.MDTestLib1
             Dim metadataTestLib2 = TestReferences.SymbolsTests.MDTestLib2
 
@@ -289,7 +291,7 @@ End Class
 
         <Fact>
         Public Sub AddModule()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim netModule1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1)
             Dim netModule2 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule2)
 
@@ -346,7 +348,7 @@ End Class
 
         <Fact>
         Public Sub ImplementingAnInterface()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
 
             Dim source As String = <text>
 Public Interface I1
@@ -403,7 +405,7 @@ End Class
 
         <Fact>
         Public Sub Types()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim source As String = <text>
 Public MustInherit Class A
 
@@ -551,7 +553,7 @@ End Class
 
         <Fact>
         Public Sub Fields()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim source As String = <text> 
 Public Class A
     public F1 As Integer
@@ -972,6 +974,191 @@ End Class
         Private Sub VerifyEmitWithNoResources(comp As VisualBasicCompilation, platform As Platform)
             Dim options = TestOptions.ReleaseExe.WithPlatform(platform)
             CompileAndVerify(comp.WithOptions(options))
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
+        Public Sub EmitMetadataOnly_Exe()
+            CompileAndVerify(
+                <compilation>
+                    <file>
+Module Program
+    Sub Main()
+        System.Console.WriteLine("a")
+    End Sub
+End Module
+                    </file>
+                </compilation>,
+                options:=TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True),
+                symbolValidator:=Sub(m)
+                                     Assert.NotEqual(0, m.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress)
+                                     Dim main = m.GlobalNamespace.GetMember(Of MethodSymbol)("Program.Main")
+                                     Assert.Equal(Accessibility.Public, main.DeclaredAccessibility)
+                                 End Sub
+            ).VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
+        Public Sub EmitMetadataOnly_Exe_AsyncMain()
+            Dim emitResult = CreateCompilation(
+                <compilation>
+                    <file>
+Imports System.Threading.Tasks
+Module Program
+    Public Async Function Main() As Task
+        Await Task.Yield()
+        System.Console.WriteLine("a")
+    End Function
+End Module
+                    </file>
+                </compilation>,
+                options:=TestOptions.ReleaseExe,
+                assemblyName:="MyLib"
+            ).Emit(New MemoryStream(), options:=EmitOptions.Default.WithEmitMetadataOnly(True))
+            Assert.False(emitResult.Success)
+            emitResult.Diagnostics.AssertTheseDiagnostics(<errors>
+BC30737: No accessible 'Main' method with an appropriate signature was found in 'MyLib'.
+                                                          </errors>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
+        Public Sub EmitMetadataOnly_Exe_AsyncMain_Void()
+            Dim emitResult = CreateCompilation(
+                <compilation>
+                    <file>
+Imports System.Threading.Tasks
+Module Program
+    Public Async Sub Main()
+        Await Task.Yield()
+        System.Console.WriteLine("a")
+    End Sub
+End Module
+                    </file>
+                </compilation>,
+                options:=TestOptions.ReleaseExe,
+                assemblyName:="MyLib"
+            ).Emit(New MemoryStream(), options:=EmitOptions.Default.WithEmitMetadataOnly(True))
+            Assert.False(emitResult.Success)
+            emitResult.Diagnostics.AssertTheseDiagnostics(<errors>
+BC36934: The 'Main' method cannot be marked 'Async'.
+    Public Async Sub Main()
+                     ~~~~
+                                                          </errors>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
+        Public Sub EmitMetadataOnly_Exe_NoMain()
+            Dim emitResult = CreateCompilation(
+                <compilation>
+                    <file>
+Module Program
+End Module
+                    </file>
+                </compilation>,
+                options:=TestOptions.ReleaseExe,
+                assemblyName:="MyLib"
+            ).Emit(New MemoryStream(), options:=EmitOptions.Default.WithEmitMetadataOnly(True))
+            Assert.False(emitResult.Success)
+            emitResult.Diagnostics.AssertTheseDiagnostics(<errors>
+BC30420: 'Sub Main' was not found in 'MyLib'.
+                                                          </errors>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
+        Public Sub EmitMetadataOnly_Exe_FriendMain_ExcludePrivateMembers()
+            CompileAndVerify(
+                <compilation>
+                    <file>
+Module Program
+    Friend Sub Main()
+    End Sub
+End Module
+                    </file>
+                </compilation>,
+                options:=TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False),
+                symbolValidator:=Sub(m)
+                                     Assert.NotEqual(0, m.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress)
+                                     Dim main = m.GlobalNamespace.GetMember(Of MethodSymbol)("Program.Main")
+                                     Assert.Equal(Accessibility.Internal, main.DeclaredAccessibility)
+                                 End Sub
+            ).VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
+        Public Sub ExcludePrivateMembers_FriendMain()
+            Using peStream As New MemoryStream()
+                Using metadataStream As New MemoryStream()
+                    Dim comp = CreateCompilation(
+                        <compilation>
+                            <file>
+Module Program
+    Friend Sub Main()
+    End Sub
+End Module
+                            </file>
+                        </compilation>,
+                        options:=TestOptions.ReleaseExe
+                    )
+                    Dim emitResult = comp.Emit(
+                        peStream:=peStream,
+                        metadataPEStream:=metadataStream,
+                        options:=EmitOptions.Default.WithIncludePrivateMembers(False))
+                    Assert.True(emitResult.Success)
+                    emitResult.Diagnostics.Verify()
+
+                    Verify(peStream)
+                    Verify(metadataStream)
+
+                    CompileAndVerify(comp).VerifyDiagnostics()
+                End Using
+            End Using
+        End Sub
+
+        Private Shared Sub Verify(stream As Stream)
+            stream.Position = 0
+            Assert.NotEqual(0, New PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress)
+
+            stream.Position = 0
+            Dim reference = AssemblyMetadata.CreateFromStream(stream).GetReference()
+            Dim comp = CreateCompilation("", references:={reference}, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim main = comp.GetMember(Of MethodSymbol)("Program.Main")
+            Assert.Equal(Accessibility.Internal, main.DeclaredAccessibility)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")>
+        Public Sub ExcludePrivateMembers_DebugEntryPoint()
+            Using peStream As New MemoryStream()
+                Using metadataStream As New MemoryStream()
+                    Dim comp = CreateCompilation(
+                        <compilation>
+                            <file>
+Module Program
+    Private Sub M1()
+    End Sub
+    Private Sub M2()
+    End Sub
+End Module
+                            </file>
+                        </compilation>).VerifyDiagnostics()
+                    Dim emitResult = comp.Emit(
+                        peStream:=peStream,
+                        metadataPEStream:=metadataStream,
+                        debugEntryPoint:=comp.GetMember(Of MethodSymbol)("Program.M1"),
+                        options:=EmitOptions.Default.WithIncludePrivateMembers(False))
+                    Assert.True(emitResult.Success)
+                    emitResult.Diagnostics.Verify()
+
+                    ' M1 should be emitted (it's the debug entry-point), M2 shouldn't (private members are excluded).
+                    metadataStream.Position = 0
+                    Dim reference = AssemblyMetadata.CreateFromStream(metadataStream).GetReference()
+                    Dim comp2 = CreateCompilation("", references:={reference},
+                        options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+                    Dim m1 = comp2.GetMember(Of MethodSymbol)("Program.M1")
+                    Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility)
+                    Assert.Null(comp2.GetMember(Of MethodSymbol)("Program.M2"))
+                End Using
+            End Using
         End Sub
     End Class
 End Namespace

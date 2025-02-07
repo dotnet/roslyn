@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
                 compilerInternalOptions:
                     SymbolDisplayCompilerInternalOptions.IncludeScriptType |
-                    SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames |
+                    SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames |
                     SymbolDisplayCompilerInternalOptions.FlagMissingMetadataTypes |
                     SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers |
                     SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes);
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.ExpandValueTuple,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames);
 
         /// <summary>
         /// Used to normalize explicit interface implementation member names.

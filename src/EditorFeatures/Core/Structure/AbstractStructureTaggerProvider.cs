@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
@@ -51,9 +50,9 @@ internal abstract partial class AbstractStructureTaggerProvider(
     protected readonly EditorOptionsService EditorOptionsService = editorOptionsService;
     protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService = projectionBufferFactoryService;
 
-    protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
+    protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
 
-    protected override bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer)
+    protected sealed override bool ComputeInitialTagsSynchronously(ITextBuffer subjectBuffer)
     {
         // If we can't find this doc, or outlining is not enabled for it, no need to computed anything synchronously.
 
@@ -206,32 +205,57 @@ internal abstract partial class AbstractStructureTaggerProvider(
         ImmutableArray<BlockSpan> spans)
     {
         var snapshot = snapshotSpan.Snapshot;
-        spans = GetMultiLineRegions(outliningService, spans, snapshot);
 
-        foreach (var span in spans)
+        // Use the returned enumerable directly instead of allocating into an array. The returned
+        // enumeration can contain a fairly large number of items for large files, so even
+        // using an ArrayBuilder could result in allocation issues without using a custom pool.
+        var multiLineSpans = GetMultiLineRegions(outliningService, spans, snapshot);
+
+        foreach (var span in multiLineSpans)
         {
             var tag = new StructureTag(this, span, snapshot);
             context.AddTag(new TagSpan<IContainerStructureTag>(span.TextSpan.ToSnapshotSpan(snapshot), tag));
         }
     }
 
-    protected override bool TagEquals(IContainerStructureTag tag1, IContainerStructureTag tag2)
+    protected sealed override bool TagEquals(IContainerStructureTag latestTag, IContainerStructureTag previousTag)
     {
-        Contract.ThrowIfFalse(tag1 is StructureTag);
-        Contract.ThrowIfFalse(tag2 is StructureTag);
-        return tag1.Equals(tag2);
+        if (latestTag is not StructureTag latestStructureTag || previousTag is not StructureTag previousStructureTag)
+        {
+            Contract.Fail("Tags were the wrong type");
+            return latestTag == previousTag;
+        }
+
+        var latestSnapshot = latestStructureTag.Snapshot;
+        var previousSnapshot = previousStructureTag.Snapshot;
+
+        var previousStructureStart = new SnapshotPoint(previousSnapshot, previousStructureTag.HeaderSpan.Start);
+        if (previousStructureStart.TranslateTo(latestSnapshot, PointTrackingMode.Negative) !=
+            previousStructureStart.TranslateTo(latestSnapshot, PointTrackingMode.Positive))
+        {
+            // We can't know that how we think this block moved is actually how the editor actually moved it.
+            // Specifically, the tracking mode is an implementation detail.  As such, we don't want to reuse this tag as
+            // its stale data (as mapped by the editor) may not be where we'd expect the new block's data to be.  This
+            // can happen when the user types right at the start of a structure tag, causing it to move inwards
+            // undesirably.
+
+            // Only consider these tags the same if they are the same object in memory.  Otherwise, consider them
+            // different so that we remove the old one and add the new one.
+            return latestTag == previousTag;
+        }
+
+        return latestTag.Equals(previousTag);
     }
 
     internal abstract object? GetCollapsedHintForm(StructureTag structureTag);
 
     private static bool s_exceptionReported = false;
 
-    private static ImmutableArray<BlockSpan> GetMultiLineRegions(
+    private static IEnumerable<BlockSpan> GetMultiLineRegions(
         BlockStructureService service,
         ImmutableArray<BlockSpan> regions, ITextSnapshot snapshot)
     {
         // Remove any spans that aren't multiline.
-        var multiLineRegions = ArrayBuilder<BlockSpan>.GetInstance();
         foreach (var region in regions)
         {
             if (region.TextSpan.Length > 0)
@@ -262,12 +286,10 @@ internal abstract partial class AbstractStructureTaggerProvider(
                 var endLine = snapshot.GetLineNumberFromPosition(region.TextSpan.End);
                 if (startLine != endLine)
                 {
-                    multiLineRegions.Add(region);
+                    yield return region;
                 }
             }
         }
-
-        return multiLineRegions.ToImmutableAndFree();
     }
 
     #region Creating Preview Buffers

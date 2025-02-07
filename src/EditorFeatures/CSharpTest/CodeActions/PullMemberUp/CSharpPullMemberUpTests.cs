@@ -4644,7 +4644,7 @@ namespace PushUpTest
         }
     }
 }";
-        await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("TestMethod", true) }, index: 1);
+        await TestWithPullMemberDialogAsync(testText, expected, [("TestMethod", true)], index: 1);
     }
 
     [Fact]
@@ -4675,7 +4675,7 @@ namespace PushUpTest
     {
     }
 }";
-        await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("TestMethod", true) }, index: 0);
+        await TestWithPullMemberDialogAsync(testText, expected, [("TestMethod", true)], index: 0);
     }
 
     [Fact]
@@ -4780,7 +4780,7 @@ namespace PushUpTest
     }
 }";
 
-        await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("Event3", false) });
+        await TestWithPullMemberDialogAsync(testText, expected, [("Event3", false)]);
     }
 
     [Fact]
@@ -4814,7 +4814,7 @@ namespace PushUpTest
     }
 }";
 
-        await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("Event3", false) });
+        await TestWithPullMemberDialogAsync(testText, expected, [("Event3", false)]);
     }
 
     [Fact]
@@ -4848,7 +4848,7 @@ namespace PushUpTest
     }
 }";
 
-        await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("Event3", false) });
+        await TestWithPullMemberDialogAsync(testText, expected, [("Event3", false)]);
     }
 
     [Fact]
@@ -4903,7 +4903,7 @@ namespace PushUpTest
     }
 }";
 
-        await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("Event1", false) });
+        await TestWithPullMemberDialogAsync(testText, expected, [("Event1", false)]);
     }
 
     [Fact]
@@ -5079,7 +5079,7 @@ class D : B
 {
     override int X => 7;
 }";
-        await TestWithPullMemberDialogAsync(testText, expected, selection: new[] { ("X", true) }, index: 1);
+        await TestWithPullMemberDialogAsync(testText, expected, selection: [("X", true)], index: 1);
     }
 
     [Fact]
@@ -5114,7 +5114,7 @@ namespace PushUpTest
         private event EventHandler Event4;
     }
 }";
-        await TestWithPullMemberDialogAsync(testText, expected, selection: new[] { ("Event3", true) }, index: 1);
+        await TestWithPullMemberDialogAsync(testText, expected, selection: [("Event3", true)], index: 1);
     }
 
     [Fact]
@@ -5169,7 +5169,7 @@ namespace PushUpTest
     }
 }";
 
-        await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("Event1", true) }, index: 1);
+        await TestWithPullMemberDialogAsync(testText, expected, [("Event1", true)], index: 1);
     }
 
     #endregion Dialog

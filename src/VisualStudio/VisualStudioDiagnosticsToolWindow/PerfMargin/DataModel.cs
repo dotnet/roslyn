@@ -22,7 +22,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
                          where !field.IsSpecialName
                          select field;
 
-            var builder = new ArrayBuilder<ActivityLevel?>();
+            using var _ = ArrayBuilder<ActivityLevel?>.GetInstance(out var builder);
 
             var features = new Dictionary<string, ActivityLevel>();
             var root = new ActivityLevel("All");

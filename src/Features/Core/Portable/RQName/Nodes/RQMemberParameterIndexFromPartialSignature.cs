@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-internal class RQMemberParameterIndexFromPartialSignature(
+internal sealed class RQMemberParameterIndexFromPartialSignature(
     RQMember containingMember,
     int parameterIndex) : RQMemberParameterIndex(containingMember, parameterIndex)
 {

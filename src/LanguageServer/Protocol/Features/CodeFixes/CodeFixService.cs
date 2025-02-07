@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             [ImportMany] IEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> configurationProviders)
         {
             _diagnosticService = diagnosticAnalyzerService;
-            _errorLoggers = loggers.ToImmutableArray();
+            _errorLoggers = [.. loggers];
 
-            _fixers = fixers.ToImmutableArray();
+            _fixers = [.. fixers];
             _fixersPerLanguageMap = _fixers.ToPerLanguageMapWithMultipleLanguages();
 
             _configurationProvidersMap = GetConfigurationProvidersPerLanguageMap(configurationProviders);
@@ -101,15 +101,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public async Task<CodeFixCollection?> GetMostSevereFixAsync(
             TextDocument document, TextSpan range, ICodeActionRequestPriorityProvider priorityProvider, CancellationToken cancellationToken)
         {
-            using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
+            using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
 
             ImmutableArray<DiagnosticData> allDiagnostics;
 
-            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+            using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
             {
                 allDiagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                    includeCompilerDiagnostics: true, includeSuppressedDiagnostics: false, priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
+                    priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
+
+                // NOTE(cyrusn): We do not include suppressed diagnostics here as they are effectively hidden from the
+                // user in the editor.  As far as the user is concerned, there is no squiggle for it and no lightbulb
+                // entries either.
+                allDiagnostics = allDiagnostics.WhereAsArray(d => !d.IsSuppressed);
             }
 
             var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
@@ -172,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ICodeActionRequestPriorityProvider priorityProvider,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}");
+            using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}");
 
             // We only need to compute suppression/configuration fixes when request priority is
             // 'CodeActionPriorityRequest.Lowest' or no priority was provided at all (so all providers should run).
@@ -190,12 +195,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // user-invoked diagnostic requests, for example, user invoked Ctrl + Dot operation for lightbulb.
             ImmutableArray<DiagnosticData> diagnostics;
 
-            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+            using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
             {
                 diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                    includeCompilerDiagnostics: true, includeSuppressedDiagnostics: includeSuppressionFixes, priorityProvider,
-                    DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
+                    priorityProvider, DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
+                if (!includeSuppressionFixes)
+                    diagnostics = diagnostics.WhereAsArray(d => !d.IsSuppressed);
             }
 
             var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
@@ -286,14 +292,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}");
+            using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}");
             ImmutableArray<DiagnosticData> diagnostics;
 
-            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+            using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
             {
                 diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
-                    document, range, diagnosticId, includeSuppressedDiagnostics: false, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+                    document, range, diagnosticId, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
                     DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
+
+                // NOTE(cyrusn): We do not include suppressed diagnostics here as they are effectively hidden from the
+                // user in the editor.  As far as the user is concerned, there is no squiggle for it and no lightbulb
+                // entries either.
+                diagnostics = diagnostics.WhereAsArray(d => !d.IsSuppressed);
             }
 
             diagnostics = diagnostics.WhereAsArray(d => d.Severity.IsMoreSevereThanOrEqualTo(minimumSeverity));

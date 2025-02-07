@@ -2487,6 +2487,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(Me, moduleBeingBuilt, cancellationToken)
+
+                If moduleBeingBuilt.OutputKind.IsApplication() Then
+                    Dim entryPoint = GetEntryPointAndDiagnostics(cancellationToken)
+                    diagnostics.AddRange(entryPoint.Diagnostics)
+                    If entryPoint.MethodSymbol IsNot Nothing AndAlso Not entryPoint.Diagnostics.HasAnyErrors() Then
+                        moduleBeingBuilt.SetPEEntryPoint(entryPoint.MethodSymbol, diagnostics)
+                    Else
+                        Return False
+                    End If
+                End If
             Else
                 ' start generating PDB checksums if we need to emit PDBs
                 If (emittingPdb OrElse moduleBuilder.EmitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage)) AndAlso
@@ -2521,6 +2531,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' TODO (tomat): XML doc comments diagnostics
             Return True
+        End Function
+
+        Private Protected Overrides Function MapToCompilation(moduleBeingBuilt As CommonPEModuleBuilder) As EmitBaseline
+            Return EmitHelpers.MapToCompilation(Me, DirectCast(moduleBeingBuilt, PEDeltaAssemblyBuilder))
         End Function
 
         Friend Overrides Function GenerateResources(
@@ -2838,6 +2852,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New MissingNamespaceSymbol(
                        container.EnsureVbSymbolOrNothing(Of NamespaceSymbol)(NameOf(container)),
                        name)
+        End Function
+
+        Protected Overrides Function CommonCreatePreprocessingSymbol(name As String) As IPreprocessingSymbol
+            Return New PreprocessingSymbol(name)
         End Function
 
         Protected Overrides Function CommonCreateArrayTypeSymbol(elementType As ITypeSymbol, rank As Integer, elementNullableAnnotation As NullableAnnotation) As IArrayTypeSymbol

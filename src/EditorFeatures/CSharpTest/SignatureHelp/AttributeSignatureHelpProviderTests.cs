@@ -335,7 +335,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute({CSharpFeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 0)
+            new SignatureHelpTestItem($"SomethingAttribute({FeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
@@ -432,7 +432,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute({CSharpFeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 0)
+            new SignatureHelpTestItem($"SomethingAttribute({FeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -580,7 +580,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"DerivedAttribute({CSharpFeaturesResources.Properties}: [Name = string])", string.Empty, string.Empty, currentParameterIndex: 0)
+            new SignatureHelpTestItem($"DerivedAttribute({FeaturesResources.Properties}: [Name = string])", string.Empty, string.Empty, currentParameterIndex: 0)
         };
 
         await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
@@ -612,7 +612,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {CSharpFeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "GooParameter", currentParameterIndex: 0)
+            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {FeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "GooParameter", currentParameterIndex: 0)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -641,7 +641,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {CSharpFeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "BarParameter", currentParameterIndex: 1)
+            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {FeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "BarParameter", currentParameterIndex: 1)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -670,7 +670,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {CSharpFeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, string.Empty, currentParameterIndex: 2)
+            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], [string bar = null], {FeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, string.Empty, currentParameterIndex: 2)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -697,7 +697,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], {CSharpFeaturesResources.Properties}: [goo = int])", string.Empty, "GooParameter", currentParameterIndex: 0)
+            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], {FeaturesResources.Properties}: [goo = int])", string.Empty, "GooParameter", currentParameterIndex: 0)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -724,7 +724,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
 
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], {CSharpFeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 1)
+            new SignatureHelpTestItem($"SomethingAttribute([int goo = 0], {FeaturesResources.Properties}: [goo = int])", string.Empty, string.Empty, currentParameterIndex: 1)
         };
 
         // TODO: Bug 12319: Enable tests for script when this is fixed.
@@ -1000,7 +1000,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
             </Workspace>
             """;
         var expectedDescription = new SignatureHelpTestItem($"Secret()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
-        await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
+        await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
     }
 
     [Fact]
@@ -1038,7 +1038,7 @@ public class AttributeSignatureHelpProviderTests : AbstractCSharpSignatureHelpPr
             """;
 
         var expectedDescription = new SignatureHelpTestItem($"Secret()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
-        await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
+        await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]

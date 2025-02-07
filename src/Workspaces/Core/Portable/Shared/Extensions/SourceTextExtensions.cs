@@ -214,14 +214,7 @@ internal static partial class SourceTextExtensions
             var count = Math.Min(buffer.Length, length - offset);
             sourceText.CopyTo(offset, buffer, 0, count);
 
-            // In the case where the array is entirely full, we can pass that as is to the ObjectWriter.  It already
-            // supports sending the array all the way through to the underlying stream without allocations. In the case
-            // where it's partially full, we pass in a span to the section that is filled.  This will fast path on
-            // netcore, though will incur a copy to pooled memory on netfx.
-            if (count == buffer.Length)
-                writer.WriteCharArray(buffer);
-            else
-                writer.WriteSpan(buffer.AsSpan()[..count]);
+            writer.WriteCharArray(buffer, 0, count);
 
             offset += count;
         }

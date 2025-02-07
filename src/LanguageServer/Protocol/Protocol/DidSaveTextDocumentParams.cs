@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents the parameter that is sent with a textDocument/didSave message.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didSaveTextDocumentParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class DidSaveTextDocumentParams : ITextDocumentParams
     {
@@ -17,6 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the <see cref="TextDocumentIdentifier"/> which represents the text document that was saved.
         /// </summary>
         [JsonPropertyName("textDocument")]
+        [JsonRequired]
         public TextDocumentIdentifier TextDocument
         {
             get;
@@ -24,7 +26,9 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the <see cref="string"/> which represents the content of the text document when it was saved.
+        /// Optional the content when saved. Depends on the <see cref="SaveOptions.IncludeText"/> value
+        /// or the <see cref="TextDocumentSaveRegistrationOptions.IncludeText"/> when the save
+        /// notification was requested.
         /// </summary>
         [JsonPropertyName("text")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

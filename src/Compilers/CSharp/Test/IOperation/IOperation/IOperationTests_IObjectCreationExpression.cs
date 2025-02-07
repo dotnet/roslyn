@@ -9072,22 +9072,22 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (2)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new C1 { P1 ... 2) = null }')
-              Value: 
+              Value:
                 IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'new C1 { P1 ... 2) = null }')
                   Arguments(0)
-                  Initializer: 
+                  Initializer:
                     null
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: 'P1 = null')
-              Left: 
+              Left:
                 IPropertyReferenceOperation: System.Object C1.P1 { get; set; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'P1')
-                  Instance Receiver: 
+                  Instance Receiver:
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { P1 ... 2) = null }')
-              Right: 
+              Right:
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     (ImplicitReference)
-                  Operand: 
+                  Operand:
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 
         Next (Regular) Block[B2]
@@ -9103,14 +9103,14 @@ Block[B0] - Entry
                 Predecessors: [B1]
                 Statements (1)
                     IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'P1')
-                      Value: 
+                      Value:
                         IPropertyReferenceOperation: System.Object C1.P1 { get; set; } (OperationKind.PropertyReference, Type: System.Object, IsInvalid) (Syntax: 'P1')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'P1')
 
                 Jump if True (Regular) to Block[B4]
                     IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'P1')
-                      Operand: 
+                      Operand:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'P1')
                     Leaving: {R3}
 
@@ -9119,7 +9119,7 @@ Block[B0] - Entry
                 Predecessors: [B2]
                 Statements (1)
                     IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'P1')
-                      Value: 
+                      Value:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'P1')
 
                 Next (Regular) Block[B5]
@@ -9130,9 +9130,9 @@ Block[B0] - Entry
             Predecessors: [B2]
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'P2')
-                  Value: 
+                  Value:
                     IPropertyReferenceOperation: System.Object C1.P2 { get; set; } (OperationKind.PropertyReference, Type: System.Object, IsInvalid) (Syntax: 'P2')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'P2')
 
             Next (Regular) Block[B5]
@@ -9140,12 +9140,16 @@ Block[B0] - Entry
             Predecessors: [B3] [B4]
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid) (Syntax: '(P1 ?? P2) = null')
-                  Left: 
+                  Left:
                     IInvalidOperation (OperationKind.Invalid, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'P1 ?? P2')
                       Children(1):
                           IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'P1 ?? P2')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand:
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 
             Next (Regular) Block[B6]
                 Leaving: {R2}
@@ -9155,9 +9159,9 @@ Block[B0] - Entry
         Predecessors: [B5]
         Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1, IsInvalid, IsImplicit) (Syntax: 'x = new C1  ... 2) = null }')
-              Left: 
+              Left:
                 ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'x = new C1  ... 2) = null }')
-              Right: 
+              Right:
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { P1 ... 2) = null }')
 
         Next (Regular) Block[B7]
@@ -9215,22 +9219,22 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (2)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new C1 { P1 ... 2) = null }')
-              Value: 
+              Value:
                 IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'new C1 { P1 ... 2) = null }')
                   Arguments(0)
-                  Initializer: 
+                  Initializer:
                     null
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: 'P1 = null')
-              Left: 
+              Left:
                 IPropertyReferenceOperation: System.Object C1.P1 { get; set; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'P1')
-                  Instance Receiver: 
+                  Instance Receiver:
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { P1 ... 2) = null }')
-              Right: 
+              Right:
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     (ImplicitReference)
-                  Operand: 
+                  Operand:
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 
         Next (Regular) Block[B2]
@@ -9246,14 +9250,14 @@ Block[B0] - Entry
                 Predecessors: [B1]
                 Statements (1)
                     IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'P1')
-                      Value: 
+                      Value:
                         IPropertyReferenceOperation: System.Object C1.P1 { get; set; } (OperationKind.PropertyReference, Type: System.Object, IsInvalid) (Syntax: 'P1')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'P1')
 
                 Jump if True (Regular) to Block[B4]
                     IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'P1')
-                      Operand: 
+                      Operand:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'P1')
                     Leaving: {R3}
 
@@ -9262,7 +9266,7 @@ Block[B0] - Entry
                 Predecessors: [B2]
                 Statements (1)
                     IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'P1')
-                      Value: 
+                      Value:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'P1')
 
                 Next (Regular) Block[B5]
@@ -9273,9 +9277,9 @@ Block[B0] - Entry
             Predecessors: [B2]
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'P2')
-                  Value: 
+                  Value:
                     IFieldReferenceOperation: System.Object C1.P2 (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'P2')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'P2')
 
             Next (Regular) Block[B5]
@@ -9283,12 +9287,16 @@ Block[B0] - Entry
             Predecessors: [B3] [B4]
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid) (Syntax: '(P1 ?? P2) = null')
-                  Left: 
+                  Left:
                     IInvalidOperation (OperationKind.Invalid, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'P1 ?? P2')
                       Children(1):
                           IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'P1 ?? P2')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand:
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 
             Next (Regular) Block[B6]
                 Leaving: {R2}
@@ -9298,9 +9306,9 @@ Block[B0] - Entry
         Predecessors: [B5]
         Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1, IsInvalid, IsImplicit) (Syntax: 'x = new C1  ... 2) = null }')
-              Left: 
+              Left:
                 ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'x = new C1  ... 2) = null }')
-              Right: 
+              Right:
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1 { P1 ... 2) = null }')
 
         Next (Regular) Block[B7]

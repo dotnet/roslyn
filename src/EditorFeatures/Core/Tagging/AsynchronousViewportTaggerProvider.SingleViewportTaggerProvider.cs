@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -62,23 +64,67 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             // This can save a lot of CPU time for things that may never even be looked at.
             => _viewPortToTag != ViewPortToTag.InView;
 
-        protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
+        /// <summary>
+        /// Returns the span of the lines in subjectBuffer that is currently visible in the provided
+        /// view.  "extraLines" can be provided to get a span that encompasses some number of lines
+        /// before and after the actual visible lines.
+        /// </summary>
+        private static SnapshotSpan? GetVisibleLinesSpan(ITextView textView, ITextBuffer subjectBuffer, int extraLines)
+        {
+            // Determine the range of text that is visible in the view.  Then map this down to the buffer passed in.  From
+            // that, determine the start/end line for the buffer that is in view.
+            var visibleSpan = textView.TextViewLines.FormattedSpan;
+            var visibleSpansInBuffer = textView.BufferGraph.MapDownToBuffer(visibleSpan, SpanTrackingMode.EdgeInclusive, subjectBuffer);
+            if (visibleSpansInBuffer.Count == 0)
+                return null;
+
+            var visibleStart = visibleSpansInBuffer.First().Start;
+            var visibleEnd = visibleSpansInBuffer.Last().End;
+
+            var snapshot = subjectBuffer.CurrentSnapshot;
+            var startLine = visibleStart.GetContainingLineNumber();
+            var endLine = visibleEnd.GetContainingLineNumber();
+
+            startLine = Math.Max(startLine - extraLines, 0);
+            endLine = Math.Min(endLine + extraLines, snapshot.LineCount - 1);
+
+            var start = snapshot.GetLineFromLineNumber(startLine).Start;
+            var end = snapshot.GetLineFromLineNumber(endLine).EndIncludingLineBreak;
+
+            var span = new SnapshotSpan(snapshot, Span.FromBounds(start, end));
+
+            return span;
+        }
+
+        protected override bool TryAddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
         {
             this.ThreadingContext.ThrowIfNotOnUIThread();
             Contract.ThrowIfNull(textView);
 
+            // View is closed.  Return no spans so we can remove all tags.
+            if (textView.IsClosed)
+                return true;
+
+            // If we're in a layout, then we can't even determine what our visible span is. Bail out immediately as qe
+            // don't want to suddenly flip to tagging everything, then go back to tagging a small subset of the view
+            // afterwards.
+            //
+            // In this case we literally do not know what is visible, so we want to bail and try again later.
+            if (textView.InLayout)
+                return false;
+
+            // During text view initialization the TextViewLines may be null.  In that case nothing is really visible.
+            // So return no spans so we can remove all tags.
+            if (textView.TextViewLines == null)
+                return true;
+
             // if we're the current view, attempt to just get what's visible, plus 10 lines above and below.  This will
             // ensure that moving up/down a few lines tends to have immediate accurate results.
-            var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: s_standardLineCountAroundViewportToTag);
-            if (visibleSpanOpt is null)
-            {
-                // couldn't figure out the visible span.  So the InView tagger will need to tag everything, and the
-                // above/below tagger should tag nothing.
-                if (_viewPortToTag == ViewPortToTag.InView)
-                    base.AddSpansToTag(textView, subjectBuffer, ref result);
+            var visibleSpanOpt = GetVisibleLinesSpan(textView, subjectBuffer, extraLines: s_standardLineCountAroundViewportToTag);
 
-                return;
-            }
+            // Nothing was visible at all.  Return no spans so we can remove all tags.
+            if (visibleSpanOpt is null)
+                return true;
 
             var visibleSpan = visibleSpanOpt.Value;
 
@@ -86,29 +132,34 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             if (_viewPortToTag is ViewPortToTag.InView)
             {
                 result.Add(visibleSpan);
-                return;
             }
-
-            // For the above/below tagger, broaden the span to to the requested portion above/below what's visible, then
-            // subtract out the visible range.
-            var widenedSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: _callback._extraLinesAroundViewportToTag);
-            Contract.ThrowIfNull(widenedSpanOpt, "Should not ever fail getting the widened span as we were able to get the normal visible span");
-
-            var widenedSpan = widenedSpanOpt.Value;
-            Contract.ThrowIfFalse(widenedSpan.Span.Contains(visibleSpan.Span), "The widened span must be at least as large as the visible one.");
-
-            if (_viewPortToTag is ViewPortToTag.Above)
+            else
             {
-                var aboveSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(widenedSpan.Span.Start, visibleSpan.Span.Start));
-                if (!aboveSpan.IsEmpty)
-                    result.Add(aboveSpan);
+                // For the above/below tagger, broaden the span to to the requested portion above/below what's visible, then
+                // subtract out the visible range.
+                var widenedSpanOpt = GetVisibleLinesSpan(textView, subjectBuffer, extraLines: _callback._extraLinesAroundViewportToTag);
+                Contract.ThrowIfNull(widenedSpanOpt, "Should not ever fail getting the widened span as we were able to get the normal visible span");
+
+                var widenedSpan = widenedSpanOpt.Value;
+                Contract.ThrowIfFalse(widenedSpan.Span.Contains(visibleSpan.Span), "The widened span must be at least as large as the visible one.");
+
+                if (_viewPortToTag is ViewPortToTag.Above)
+                {
+                    var aboveSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(widenedSpan.Span.Start, visibleSpan.Span.Start));
+                    if (!aboveSpan.IsEmpty)
+                        result.Add(aboveSpan);
+                }
+                else if (_viewPortToTag is ViewPortToTag.Below)
+                {
+                    var belowSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(visibleSpan.Span.End, widenedSpan.Span.End));
+                    if (!belowSpan.IsEmpty)
+                        result.Add(belowSpan);
+                }
             }
-            else if (_viewPortToTag is ViewPortToTag.Below)
-            {
-                var belowSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(visibleSpan.Span.End, widenedSpan.Span.End));
-                if (!belowSpan.IsEmpty)
-                    result.Add(belowSpan);
-            }
+
+            // Unilaterally return true here, even if we determine we don't have a span to tag.  In this case, we've
+            // computed that there really is nothing visible, in which case we *do* want to move to having no tags.
+            return true;
         }
 
         protected override async Task ProduceTagsAsync(

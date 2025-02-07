@@ -67,11 +67,6 @@
         <target state="translated">Inserir '{0}' ausente.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conflict_s_detected">
-        <source>Conflict(s) detected.</source>
-        <target state="translated">Conflito(s) detectado(s).</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_Using_statement">
         <source>Introduce 'Using' statement</source>
         <target state="translated">Apresente a instrução 'Using'</target>
@@ -222,30 +217,10 @@
         <target state="translated">Corrigir Tipo de Retorno de Função Incorreta</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_name_0">
-        <source>Simplify name '{0}'</source>
-        <target state="translated">Simplificar nome '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_member_access_0">
-        <source>Simplify member access '{0}'</source>
-        <target state="translated">Simplificar acesso do membro '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_Me_qualification">
         <source>Remove 'Me' qualification</source>
         <target state="translated">Remover qualificação 'Me'</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
-        <source>can't determine valid range of statements to extract out</source>
-        <target state="translated">não pode determinar o intervalo válido de instruções para extrair </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_all_code_paths_return">
-        <source>Not all code paths return</source>
-        <target state="translated">Nem todos os caminhos de código são retornados</target>
-        <note />
       </trans-unit>
       <trans-unit id="contains_invalid_selection">
         <source>contains invalid selection</source>
@@ -300,11 +275,6 @@
       <trans-unit id="Selection_doesn_t_contain_any_valid_node">
         <source>Selection doesn't contain any valid node</source>
         <target state="translated">A seleção não contém qualquer nó válido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">nenhum intervalo de instrução válido para extrair</target>
         <note />
       </trans-unit>
       <trans-unit id="Deprecated">
@@ -1647,16 +1617,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">Adicione uma referência de metadados para o assembly especificado e a todas as suas dependências, por ex., #r "myLib.dll".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">Propriedades</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="namespace_name">
-        <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;nome do namespace&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_namespace">
         <source>Type a name here to declare a namespace.</source>
         <target state="translated">Digite um nome aqui para declarar um namespace.</target>
@@ -1665,16 +1625,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Type_a_name_here_to_declare_a_partial_class">
         <source>Type a name here to declare a partial class.</source>
         <target state="translated">Digite um nome aqui para declarar uma classe parcial.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="class_name">
-        <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;nome da classe&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="interface_name">
-        <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;nome da interface&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="module_name">

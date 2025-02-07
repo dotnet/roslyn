@@ -13,9 +13,9 @@ using InterlockedOperations = Roslyn.Utilities.InterlockedOperations;
 
 namespace Microsoft.CodeAnalysis.Navigation;
 
-internal partial class NavigableItemFactory
+internal static partial class NavigableItemFactory
 {
-    private class SymbolLocationNavigableItem(
+    private sealed class SymbolLocationNavigableItem(
         Solution solution,
         ISymbol symbol,
         Location location,

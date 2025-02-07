@@ -236,6 +236,61 @@ internal static class LightupHelpers
     /// <param name="methodName">The name of the method to access.</param>
     /// <param name="defaultValue">The value to return if the method is not available at runtime.</param>
     /// <returns>An accessor method to access the specified runtime property.</returns>
+    public static Func<T, TResult> CreateGenericFunctionAccessor<T, TResult>(Type? type, string methodName, Type genericArgumentType, TResult defaultValue)
+    {
+        if (methodName is null)
+        {
+            throw new ArgumentNullException(nameof(methodName));
+        }
+
+        if (type == null)
+        {
+            return CreateFallbackFunction<T, TResult>(defaultValue);
+        }
+
+        if (!typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
+        {
+            throw new InvalidOperationException($"Type '{type}' is not assignable to type '{typeof(T)}'");
+        }
+
+        var method = type.GetTypeInfo().GetDeclaredMethods(methodName).Single(method => method.GetParameters().Length == 0);
+
+        if (method == null)
+        {
+            return CreateFallbackFunction<T, TResult>(defaultValue);
+        }
+
+        if (!typeof(TResult).GetTypeInfo().IsAssignableFrom(method.ReturnType.GetTypeInfo()))
+        {
+            throw new InvalidOperationException($"Method '{method}' produces a value of type '{method.ReturnType}', which is not assignable to type '{typeof(TResult)}'");
+        }
+
+        method = method.MakeGenericMethod(genericArgumentType);
+
+        var parameter = Expression.Parameter(typeof(T), GenerateParameterName(typeof(T)));
+
+        var expression =
+            Expression.Lambda<Func<T, TResult>>(
+                Expression.Convert(Expression.Call(null, method), typeof(TResult)),
+                parameter);
+        return expression.Compile();
+    }
+
+    /// <summary>
+    /// Generates a compiled accessor method for a method which cannot be bound at compile time.
+    /// </summary>
+    /// <typeparam name="T">The compile-time type representing the instance on which the property is defined. This
+    /// may be a superclass of the actual type on which the property is declared if the declaring type is not
+    /// available at compile time.</typeparam>
+    /// <typeparam name="TResult">The compile-type type representing the result of the property. This may be a
+    /// superclass of the actual type of the property if the property type is not available at compile
+    /// time.</typeparam>
+    /// <param name="type">The runtime time on which the property is defined. If this value is null, the runtime
+    /// time is assumed to not exist, and a fallback accessor returning <paramref name="defaultValue"/> will be
+    /// generated.</param>
+    /// <param name="methodName">The name of the method to access.</param>
+    /// <param name="defaultValue">The value to return if the method is not available at runtime.</param>
+    /// <returns>An accessor method to access the specified runtime property.</returns>
     public static Func<T, TResult> CreateFunctionAccessor<T, TResult>(Type? type, string methodName, TResult defaultValue)
     {
         if (methodName is null)

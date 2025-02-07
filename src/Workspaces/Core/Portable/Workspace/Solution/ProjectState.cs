@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -23,9 +22,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class ProjectState
+internal sealed partial class ProjectState
 {
-    private readonly ProjectInfo _projectInfo;
     public readonly LanguageServices LanguageServices;
 
     /// <summary>
@@ -49,17 +47,22 @@ internal partial class ProjectState
     private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentVersion;
     private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentTopLevelChangeVersion;
 
-    // Checksums for this solution state
-    private readonly AsyncLazy<ProjectStateChecksums> _lazyChecksums;
+    // Checksums for this solution state (access via LazyChecksums)
+    private AsyncLazy<ProjectStateChecksums>? _lazyChecksums;
 
-    private readonly AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>> _lazyContentHashToDocumentId;
+    // Mapping from content has to document id (access via LazyContentHashToDocumentId)
+    private AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>>? _lazyContentHashToDocumentId;
 
     /// <summary>
     /// Analyzer config options to be used for specific trees.
     /// </summary>
     private readonly AnalyzerConfigOptionsCache _analyzerConfigOptionsCache;
 
-    private AnalyzerOptions? _lazyAnalyzerOptions;
+    private ImmutableArray<AdditionalText> _lazyAdditionalFiles;
+
+    private AnalyzerOptions? _lazyProjectAnalyzerOptions;
+
+    private AnalyzerOptions? _lazyHostAnalyzerOptions;
 
     private ProjectState(
         ProjectInfo projectInfo,
@@ -82,10 +85,7 @@ internal partial class ProjectState
         // ownership of information on document has moved to project state. clear out documentInfo the state is
         // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
         // the info has changed by DocumentState.
-        _projectInfo = ClearAllDocumentsFromProjectInfo(projectInfo);
-
-        _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
-        _lazyContentHashToDocumentId = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this);
+        ProjectInfo = ClearAllDocumentsFromProjectInfo(projectInfo);
     }
 
     public ProjectState(LanguageServices languageServices, ProjectInfo projectInfo, StructuredAnalyzerConfigOptions fallbackAnalyzerOptions)
@@ -123,10 +123,7 @@ internal partial class ProjectState
         // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
         // the info has changed by DocumentState.
         // we hold onto the info so that we don't need to duplicate all information info already has in the state
-        _projectInfo = ClearAllDocumentsFromProjectInfo(projectInfoFixed);
-
-        _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
-        _lazyContentHashToDocumentId = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this);
+        ProjectInfo = ClearAllDocumentsFromProjectInfo(projectInfoFixed);
     }
 
     public TextDocumentStates<TDocumentState> GetDocumentStates<TDocumentState>()
@@ -154,6 +151,38 @@ internal partial class ProjectState
         return result;
     }
 
+    private AsyncLazy<ProjectStateChecksums> LazyChecksums
+    {
+        get
+        {
+            if (_lazyChecksums is null)
+            {
+                Interlocked.CompareExchange(
+                    ref _lazyChecksums,
+                    AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this),
+                    null);
+            }
+
+            return _lazyChecksums;
+        }
+    }
+
+    private AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>> LazyContentHashToDocumentId
+    {
+        get
+        {
+            if (_lazyContentHashToDocumentId is null)
+            {
+                Interlocked.CompareExchange(
+                    ref _lazyContentHashToDocumentId,
+                    AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this),
+                    null);
+            }
+
+            return _lazyContentHashToDocumentId;
+        }
+    }
+
     private static ProjectInfo ClearAllDocumentsFromProjectInfo(ProjectInfo projectInfo)
     {
         return projectInfo
@@ -164,7 +193,7 @@ internal partial class ProjectState
 
     public async ValueTask<DocumentId?> GetDocumentIdAsync(ImmutableArray<byte> contentHash, CancellationToken cancellationToken)
     {
-        var map = await _lazyContentHashToDocumentId.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        var map = await LazyContentHashToDocumentId.GetValueAsync(cancellationToken).ConfigureAwait(false);
         return map.TryGetValue(contentHash, out var documentId) ? documentId : null;
     }
 
@@ -292,17 +321,39 @@ internal partial class ProjectState
             typeof(TDocumentState) == typeof(AnalyzerConfigDocumentState) ? new AnalyzerConfigDocumentState(LanguageServices.SolutionServices, documentInfo, new LoadTextOptions(ChecksumAlgorithm)) :
             throw ExceptionUtilities.UnexpectedValue(typeof(TDocumentState)));
 
-    public AnalyzerOptions AnalyzerOptions
-        => _lazyAnalyzerOptions ??= new AnalyzerOptions(
-            additionalFiles: AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText),
-            optionsProvider: new ProjectAnalyzerConfigOptionsProvider(this));
+    private ImmutableArray<AdditionalText> AdditionalFiles
+    {
+        get
+        {
+            return InterlockedOperations.Initialize(
+                ref _lazyAdditionalFiles,
+                static self => self.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText),
+                this);
+        }
+    }
+
+    public AnalyzerOptions ProjectAnalyzerOptions
+        => InterlockedOperations.Initialize(
+            ref _lazyProjectAnalyzerOptions,
+            static self => new AnalyzerOptions(
+                additionalFiles: self.AdditionalFiles,
+                optionsProvider: new ProjectAnalyzerConfigOptionsProvider(self)),
+            this);
+
+    public AnalyzerOptions HostAnalyzerOptions
+        => InterlockedOperations.Initialize(
+            ref _lazyHostAnalyzerOptions,
+            static self => new AnalyzerOptions(
+                additionalFiles: self.AdditionalFiles,
+                optionsProvider: new ProjectHostAnalyzerConfigOptionsProvider(self)),
+            this);
 
     public AnalyzerConfigData GetAnalyzerOptionsForPath(string path, CancellationToken cancellationToken)
         => _analyzerConfigOptionsCache.Lazy.GetValue(cancellationToken).GetOptionsForSourcePath(path);
 
     public AnalyzerConfigData? GetAnalyzerConfigOptions()
     {
-        var extension = _projectInfo.Language switch
+        var extension = ProjectInfo.Language switch
         {
             LanguageNames.CSharp => ".cs",
             LanguageNames.VisualBasic => ".vb",
@@ -314,7 +365,7 @@ internal partial class ProjectState
             return null;
         }
 
-        if (!PathUtilities.IsAbsolute(_projectInfo.FilePath))
+        if (!PathUtilities.IsAbsolute(ProjectInfo.FilePath))
         {
             return null;
         }
@@ -325,7 +376,7 @@ internal partial class ProjectState
         // NIL character is invalid in paths so it will never match any pattern in editorconfig, but editorconfig parsing allows it.
         // TODO: https://github.com/dotnet/roslyn/issues/61217
 
-        var projectDirectory = PathUtilities.GetDirectoryName(_projectInfo.FilePath);
+        var projectDirectory = PathUtilities.GetDirectoryName(ProjectInfo.FilePath);
         Contract.ThrowIfNull(projectDirectory);
 
         var sourceFilePath = PathUtilities.CombinePathsUnchecked(projectDirectory, "\0" + extension);
@@ -335,13 +386,83 @@ internal partial class ProjectState
 
     internal sealed class ProjectAnalyzerConfigOptionsProvider(ProjectState projectState) : AnalyzerConfigOptionsProvider
     {
+        private AnalyzerConfigOptionsCache.Value GetCache()
+            => projectState._analyzerConfigOptionsCache.Lazy.GetValue(CancellationToken.None);
+
+        public override AnalyzerConfigOptions GlobalOptions
+            => GetCache().GlobalConfigOptions.ConfigOptionsWithoutFallback;
+
+        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
+        {
+            var documentId = DocumentState.GetDocumentIdForTree(tree);
+            var cache = GetCache();
+            if (documentId != null && projectState.DocumentStates.TryGetState(documentId, out var documentState))
+            {
+                return GetOptions(cache, documentState);
+            }
+
+            return GetOptionsForSourcePath(cache, tree.FilePath);
+        }
+
+        internal async ValueTask<StructuredAnalyzerConfigOptions> GetOptionsAsync(DocumentState documentState, CancellationToken cancellationToken)
+        {
+            var cache = await projectState._analyzerConfigOptionsCache.Lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return GetOptions(cache, documentState);
+        }
+
+        private StructuredAnalyzerConfigOptions GetOptions(in AnalyzerConfigOptionsCache.Value cache, DocumentState documentState)
+        {
+            var filePath = GetEffectiveFilePath(documentState);
+            return filePath == null
+                ? StructuredAnalyzerConfigOptions.Empty
+                : GetOptionsForSourcePath(cache, filePath);
+        }
+
+        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
+        {
+            // TODO: correctly find the file path, since it looks like we give this the document's .Name under the covers if we don't have one
+            return GetOptionsForSourcePath(GetCache(), textFile.Path);
+        }
+
+        private static StructuredAnalyzerConfigOptions GetOptionsForSourcePath(in AnalyzerConfigOptionsCache.Value cache, string path)
+            => cache.GetOptionsForSourcePath(path).ConfigOptionsWithoutFallback;
+
+        private string? GetEffectiveFilePath(DocumentState documentState)
+        {
+            if (!string.IsNullOrEmpty(documentState.FilePath))
+            {
+                return documentState.FilePath;
+            }
+
+            // We need to work out path to this document. Documents may not have a "real" file path if they're something created
+            // as a part of a code action, but haven't been written to disk yet.
+
+            var projectFilePath = projectState.FilePath;
+
+            if (documentState.Name != null && projectFilePath != null)
+            {
+                var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
+
+                if (!RoslynString.IsNullOrEmpty(projectPath) &&
+                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
+                {
+                    return PathUtilities.CombinePathsUnchecked(directory, documentState.Name);
+                }
+            }
+
+            return null;
+        }
+    }
+
+    internal sealed class ProjectHostAnalyzerConfigOptionsProvider(ProjectState projectState) : AnalyzerConfigOptionsProvider
+    {
         private RazorDesignTimeAnalyzerConfigOptions? _lazyRazorDesignTimeOptions = null;
 
         private AnalyzerConfigOptionsCache.Value GetCache()
             => projectState._analyzerConfigOptionsCache.Lazy.GetValue(CancellationToken.None);
 
         public override AnalyzerConfigOptions GlobalOptions
-            => GetCache().GlobalConfigOptions.ConfigOptions;
+            => GetCache().GlobalConfigOptions.ConfigOptionsWithoutFallback;
 
         public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
         {
@@ -383,7 +504,7 @@ internal partial class ProjectState
         }
 
         private static StructuredAnalyzerConfigOptions GetOptionsForSourcePath(in AnalyzerConfigOptionsCache.Value cache, string path)
-            => cache.GetOptionsForSourcePath(path).ConfigOptions;
+            => cache.GetOptionsForSourcePath(path).ConfigOptionsWithFallback;
 
         private string? GetEffectiveFilePath(DocumentState documentState)
         {
@@ -468,7 +589,7 @@ internal partial class ProjectState
         {
             var options = _lazyAnalyzerConfigSet.Lazy
                 .GetValue(cancellationToken).GetOptionsForSourcePath(tree.FilePath);
-            return GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options.ConfigOptions);
+            return GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options.ConfigOptionsWithoutFallback);
         }
 
         public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)
@@ -501,9 +622,9 @@ internal partial class ProjectState
     {
         var docVersion = await _lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-        // This is unfortunate, however the impact of this is that *any* change to our project-state version will 
+        // This is unfortunate, however the impact of this is that *any* change to our project-state version will
         // cause us to think the semantic version of the project has changed.  Thus, any change to a project property
-        // that does *not* flow into the compiler still makes us think the semantic version has changed.  This is 
+        // that does *not* flow into the compiler still makes us think the semantic version has changed.  This is
         // likely to not be too much of an issue as these changes should be rare, and it's better to be conservative
         // and assume there was a change than to wrongly presume there was not.
         return docVersion.GetNewerVersion(this.Version);
@@ -553,7 +674,7 @@ internal partial class ProjectState
     public VersionStamp Version => this.ProjectInfo.Version;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-    public ProjectInfo ProjectInfo => _projectInfo;
+    public ProjectInfo ProjectInfo { get; }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
     public string AssemblyName => this.ProjectInfo.AssemblyName;
@@ -579,6 +700,9 @@ internal partial class ProjectState
     [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
     public bool RunAnalyzers => this.ProjectInfo.RunAnalyzers;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+    internal bool HasSdkCodeStyleAnalyzers => this.ProjectInfo.HasSdkCodeStyleAnalyzers;
+
     private ProjectState With(
         ProjectInfo? projectInfo = null,
         TextDocumentStates<DocumentState>? documentStates = null,
@@ -589,7 +713,7 @@ internal partial class ProjectState
         AnalyzerConfigOptionsCache? analyzerConfigOptionsCache = null)
     {
         return new ProjectState(
-            projectInfo ?? _projectInfo,
+            projectInfo ?? ProjectInfo,
             LanguageServices,
             documentStates ?? DocumentStates,
             additionalDocumentStates ?? AdditionalDocumentStates,
@@ -640,6 +764,9 @@ internal partial class ProjectState
     public ProjectState WithRunAnalyzers(bool runAnalyzers)
         => (runAnalyzers == RunAnalyzers) ? this : WithNewerAttributes(Attributes.With(runAnalyzers: runAnalyzers, version: Version.GetNewerVersion()));
 
+    internal ProjectState WithHasSdkCodeStyleAnalyzers(bool hasSdkCodeStyleAnalyzers)
+    => (hasSdkCodeStyleAnalyzers == HasSdkCodeStyleAnalyzers) ? this : WithNewerAttributes(Attributes.With(hasSdkCodeStyleAnalyzers: hasSdkCodeStyleAnalyzers, version: Version.GetNewerVersion()));
+
     public ProjectState WithChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
     {
         if (checksumAlgorithm == ChecksumAlgorithm)
@@ -655,11 +782,16 @@ internal partial class ProjectState
     private TextDocumentStates<DocumentState> UpdateDocumentsChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
         => DocumentStates.UpdateStates(static (state, checksumAlgorithm) => state.UpdateChecksumAlgorithm(checksumAlgorithm), checksumAlgorithm);
 
-    public ProjectState WithCompilationOptions(CompilationOptions options)
+    public ProjectState WithCompilationOptions(CompilationOptions? options)
     {
         if (options == CompilationOptions)
         {
             return this;
+        }
+
+        if (options == null)
+        {
+            throw new NotSupportedException(WorkspacesResources.Removing_compilation_options_is_not_supported);
         }
 
         var newProvider = new ProjectSyntaxTreeOptionsProvider(_analyzerConfigOptionsCache);
@@ -668,11 +800,16 @@ internal partial class ProjectState
                    .WithVersion(Version.GetNewerVersion()));
     }
 
-    public ProjectState WithParseOptions(ParseOptions options)
+    public ProjectState WithParseOptions(ParseOptions? options)
     {
         if (options == ParseOptions)
         {
             return this;
+        }
+
+        if (options == null)
+        {
+            throw new NotSupportedException(WorkspacesResources.Removing_parse_options_is_not_supported);
         }
 
         var onlyPreprocessorDirectiveChange = ParseOptions != null &&
@@ -680,7 +817,9 @@ internal partial class ProjectState
 
         return With(
             projectInfo: ProjectInfo.WithParseOptions(options).WithVersion(Version.GetNewerVersion()),
-            documentStates: DocumentStates.UpdateStates(static (state, args) => state.UpdateParseOptionsAndSourceCodeKind(args.options, args.onlyPreprocessorDirectiveChange), (options, onlyPreprocessorDirectiveChange)));
+            documentStates: DocumentStates.UpdateStates(static (state, args) =>
+                state.UpdateParseOptionsAndSourceCodeKind(args.options, args.onlyPreprocessorDirectiveChange),
+                arg: (options, onlyPreprocessorDirectiveChange)));
     }
 
     public ProjectState WithFallbackAnalyzerOptions(StructuredAnalyzerConfigOptions options)
@@ -732,7 +871,7 @@ internal partial class ProjectState
         return With(projectInfo: ProjectInfo.With(metadataReferences: metadataReferences).WithVersion(Version.GetNewerVersion()));
     }
 
-    public ProjectState WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
+    public ProjectState WithAnalyzerReferences(IReadOnlyList<AnalyzerReference> analyzerReferences)
     {
         if (analyzerReferences == AnalyzerReferences)
         {
@@ -854,7 +993,7 @@ internal partial class ProjectState
 
         var newDocumentStates = DocumentStates.SetStates(newDocuments);
 
-        // When computing the latest dependent version, we just need to know how 
+        // When computing the latest dependent version, we just need to know how
         GetLatestDependentVersions(
             newDocumentStates,
             AdditionalDocumentStates,

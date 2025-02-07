@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // the null terminator off as part of creating the span instance.
 
             Debug.Assert(inPlaceTarget is null || TargetIsNotOnHeap(inPlaceTarget), "in-place construction target should not be on heap");
-            Debug.Assert(_diagnostics.DiagnosticBag is not null, $"Expected non-null {nameof(_diagnostics)}.{nameof(_diagnostics.DiagnosticBag)}");
+            RoslynDebug.Assert(_diagnostics.DiagnosticBag is not null, $"Expected non-null {nameof(_diagnostics)}.{nameof(_diagnostics.DiagnosticBag)}");
 
             if (start is null != length is null)
             {
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 if (inPlaceTarget is not null)
                 {
-                    EmitAddress(inPlaceTarget, Binder.AddressKind.Writeable);
+                    EmitAddress(inPlaceTarget, AddressKind.Writeable);
                 }
 
                 // Map a field to the block (that makes it addressable).
@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 if (inPlaceTarget is not null)
                 {
-                    EmitAddress(inPlaceTarget, Binder.AddressKind.Writeable);
+                    EmitAddress(inPlaceTarget, AddressKind.Writeable);
                 }
 
                 ImmutableArray<ConstantValue> constants = initializers.SelectAsArray(static init => init.ConstantValueOpt!);
@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // If this is in-place initialization, call the default ctor.
                 if (inPlaceTarget is not null)
                 {
-                    EmitAddress(inPlaceTarget, Binder.AddressKind.Writeable);
+                    EmitAddress(inPlaceTarget, AddressKind.Writeable);
                     _builder.EmitOpCode(ILOpCode.Initobj);
                     EmitSymbolToken(spanType, wrappedExpression.Syntax);
                     if (used)

@@ -101,6 +101,15 @@
   <data name="DocumentUriSerializationError" xml:space="preserve">
     <value>Unable to deserialize Uri. Unexpected value encountered: {0}</value>
   </data>
+  <data name="FormattingOptionsEncounteredInvalidToken" xml:space="preserve">
+    <value>Unable to deserialize FormattingOptions. Invalid token: {0}</value>
+  </data>
+  <data name="FormattingOptionsEndedUnexpectedly" xml:space="preserve">
+    <value>Unable to deserialize FormattingOptions as it ended unexpectedly</value>
+  </data>
+  <data name="FormattingOptionsMissingRequiredProperty" xml:space="preserve">
+    <value>Unable to deserialize FormattingOptions. Missing required property: {0}</value>
+  </data>
   <data name="MarkupContentSerializationError" xml:space="preserve">
     <value>Unable to deserialize MarkupContent. Unexpected value encountered: {0}</value>
   </data>

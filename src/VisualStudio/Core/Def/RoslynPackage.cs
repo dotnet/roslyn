@@ -276,7 +276,8 @@ internal sealed class RoslynPackage : AbstractPackage
         // Obtain services and QueryInterface from the main thread
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
+        var menuCommandService = (OleMenuCommandService?)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
+        Assumes.Present(menuCommandService);
         StackTraceExplorerCommandHandler.Initialize(menuCommandService, this);
     }
 

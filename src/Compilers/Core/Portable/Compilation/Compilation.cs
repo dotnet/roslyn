@@ -43,6 +43,13 @@ namespace Microsoft.CodeAnalysis
     public abstract partial class Compilation
     {
         /// <summary>
+        /// Optional data collected during testing only.
+        /// Used for instance for nullable analysis (NullableWalker.NullableAnalysisData)
+        /// and inferred delegate types (InferredDelegateTypeData).
+        /// </summary>
+        internal object? TestOnlyCompilationData;
+
+        /// <summary>
         /// Returns true if this is a case sensitive compilation, false otherwise.  Case sensitivity
         /// affects compilation features such as name lookup as well as choosing what names to emit
         /// when there are multiple different choices (for example between a virtual method and an
@@ -62,6 +69,8 @@ namespace Microsoft.CodeAnalysis
 
         // Protected for access in CSharpCompilation.WithAdditionalFeatures
         protected readonly IReadOnlyDictionary<string, string> _features;
+
+        private readonly Lazy<int?> _lazyDataSectionStringLiteralThreshold;
 
         public ScriptCompilationInfo? ScriptCompilationInfo => CommonScriptCompilationInfo;
         internal abstract ScriptCompilationInfo? CommonScriptCompilationInfo { get; }
@@ -84,6 +93,7 @@ namespace Microsoft.CodeAnalysis
 
             _lazySubmissionSlotIndex = isSubmission ? SubmissionSlotIndexToBeAllocated : SubmissionSlotIndexNotApplicable;
             _features = features;
+            _lazyDataSectionStringLiteralThreshold = new Lazy<int?>(ComputeDataSectionStringLiteralThreshold);
         }
 
         protected static IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
@@ -371,6 +381,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract INamespaceSymbol CommonCreateErrorNamespaceSymbol(INamespaceSymbol container, string name);
+
+        /// <summary>
+        /// Returns a new IPreprocessingSymbol representing a preprocessing symbol with the given name.
+        /// </summary>
+        public IPreprocessingSymbol CreatePreprocessingSymbol(string name)
+            => CommonCreatePreprocessingSymbol(name ?? throw new ArgumentNullException(nameof(name)));
+
+        protected abstract IPreprocessingSymbol CommonCreatePreprocessingSymbol(string name);
 
         #region Name
 
@@ -3400,9 +3418,10 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
+        private protected abstract EmitBaseline MapToCompilation(CommonPEModuleBuilder moduleBeingBuilt);
+
         internal EmitBaseline? SerializeToDeltaStreams(
             CommonPEModuleBuilder moduleBeingBuilt,
-            EmitBaseline baseline,
             DefinitionMap definitionMap,
             SymbolChanges changes,
             Stream metadataStream,
@@ -3424,6 +3443,14 @@ namespace Microsoft.CodeAnalysis
             using (nativePdbWriter)
             {
                 var context = new EmitContext(moduleBeingBuilt, diagnostics, metadataOnly: false, includePrivateMembers: true);
+                var deletedMethodDefs = DeltaMetadataWriter.CreateDeletedMethodsDefs(context, changes);
+
+                // Map the definitions from the previous compilation to the current compilation.
+                // This must be done after compiling since synthesized definitions (generated when compiling method bodies)
+                // may be required. Must also be done after determining deleted method definitions
+                // since doing so may synthesize HotReloadException symbol.
+
+                var baseline = MapToCompilation(moduleBeingBuilt);
                 var encId = Guid.NewGuid();
 
                 try
@@ -3435,6 +3462,7 @@ namespace Microsoft.CodeAnalysis
                         encId,
                         definitionMap,
                         changes,
+                        deletedMethodDefs,
                         cancellationToken);
 
                     moduleBeingBuilt.TestData?.SetMetadataWriter(writer);
@@ -3468,6 +3496,13 @@ namespace Microsoft.CodeAnalysis
                     diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PermissionSetAttributeFileReadError, Location.None, e.FileName, e.PropertyName, e.Message));
                     return null;
                 }
+                finally
+                {
+                    foreach (var (_, builder) in deletedMethodDefs)
+                    {
+                        builder.Free();
+                    }
+                }
             }
         }
 
@@ -3486,6 +3521,33 @@ namespace Microsoft.CodeAnalysis
         /// When that flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
         /// </summary>
         internal bool CatchAnalyzerExceptions => Feature("debug-analyzers") == null;
+
+        internal int? DataSectionStringLiteralThreshold => _lazyDataSectionStringLiteralThreshold.Value;
+
+        private int? ComputeDataSectionStringLiteralThreshold()
+        {
+            if (Feature("experimental-data-section-string-literals") is { } s)
+            {
+                if (s == "off")
+                {
+                    // disabled
+                    return null;
+                }
+
+                if (int.TryParse(s, out var i) && i >= 0)
+                {
+                    // custom non-negative threshold
+                    // 0 can be used to enable for all strings
+                    return i;
+                }
+
+                // default value
+                return 100;
+            }
+
+            // disabled
+            return null;
+        }
 
         #endregion
 

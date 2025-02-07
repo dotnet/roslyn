@@ -7,9 +7,10 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing settings for codeAction/resolve support.
-    ///
+    /// Client capabilities specific to the <c>codeAction/resolve</c> request.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class CodeActionResolveSupportSetting
     {
@@ -17,6 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets a value indicating the properties that a client can resolve lazily.
         /// </summary>
         [JsonPropertyName("properties")]
+        [JsonRequired]
         public string[] Properties
         {
             get;

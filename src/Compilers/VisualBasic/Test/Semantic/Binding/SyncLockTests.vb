@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SyncLockTests
@@ -88,7 +89,7 @@ Class Program
     End Sub
 End Class
     </file>
-</compilation>, {TestMetadata.Net40.SystemCore}).VerifyDiagnostics()
+</compilation>, {Net40.References.SystemCore}).VerifyDiagnostics()
         End Sub
 
         <Fact()>
@@ -180,7 +181,7 @@ Module StringExtensions
     End Sub
 End Module
     </file>
-</compilation>, {TestMetadata.Net40.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_SyncLockRequiresReferenceType1, "syncroot.PrintInt()").WithArguments("Integer"),
+</compilation>, {Net40.References.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_SyncLockRequiresReferenceType1, "syncroot.PrintInt()").WithArguments("Integer"),
                                 Diagnostic(ERRID.ERR_VoidValue, "syncroot.PrintVoid"),
                                 Diagnostic(ERRID.WRN_DefAsgUseNullRef, "syncroot").WithArguments("syncroot"))
         End Sub

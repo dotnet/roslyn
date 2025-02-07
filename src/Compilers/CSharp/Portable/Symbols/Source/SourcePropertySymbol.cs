@@ -43,10 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out bool isExpressionBodied,
                 out bool hasGetAccessorImplementation,
                 out bool hasSetAccessorImplementation,
-                out bool usesFieldKeyword,
-                out bool isInitOnly,
+                out bool getterUsesFieldKeyword,
+                out bool setterUsesFieldKeyword,
                 out var getSyntax,
                 out var setSyntax);
+
+            Debug.Assert(!(getterUsesFieldKeyword || setterUsesFieldKeyword) ||
+                ((CSharpParseOptions)syntax.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureFieldKeyword));
 
             bool accessorsHaveImplementation = hasGetAccessorImplementation || hasSetAccessorImplementation;
 
@@ -63,8 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out _);
 
-            bool allowAutoPropertyAccessors = (modifiers & (DeclarationModifiers.Partial | DeclarationModifiers.Abstract | DeclarationModifiers.Extern | DeclarationModifiers.Indexer)) == 0 &&
-                (!containingType.IsInterface || (modifiers & DeclarationModifiers.Static) != 0);
+            bool allowAutoPropertyAccessors = (modifiers & (DeclarationModifiers.Abstract | DeclarationModifiers.Extern | DeclarationModifiers.Indexer)) == 0 &&
+                (!containingType.IsInterface || hasGetAccessorImplementation || hasSetAccessorImplementation || (modifiers & DeclarationModifiers.Static) != 0) &&
+                ((modifiers & DeclarationModifiers.Partial) == 0 || hasGetAccessorImplementation || hasSetAccessorImplementation);
             bool hasAutoPropertyGet = allowAutoPropertyAccessors && getSyntax != null && !hasGetAccessorImplementation;
             bool hasAutoPropertySet = allowAutoPropertyAccessors && setSyntax != null && !hasSetAccessorImplementation;
 
@@ -86,9 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasAutoPropertyGet: hasAutoPropertyGet,
                 hasAutoPropertySet: hasAutoPropertySet,
                 isExpressionBodied: isExpressionBodied,
-                isInitOnly: isInitOnly,
                 accessorsHaveImplementation: accessorsHaveImplementation,
-                usesFieldKeyword: usesFieldKeyword,
+                getterUsesFieldKeyword: getterUsesFieldKeyword,
+                setterUsesFieldKeyword: setterUsesFieldKeyword,
                 memberName,
                 location,
                 diagnostics);
@@ -107,9 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasAutoPropertyGet,
             bool hasAutoPropertySet,
             bool isExpressionBodied,
-            bool isInitOnly,
             bool accessorsHaveImplementation,
-            bool usesFieldKeyword,
+            bool getterUsesFieldKeyword,
+            bool setterUsesFieldKeyword,
             string memberName,
             Location location,
             BindingDiagnosticBag diagnostics)
@@ -127,9 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasAutoPropertyGet: hasAutoPropertyGet,
                 hasAutoPropertySet: hasAutoPropertySet,
                 isExpressionBodied: isExpressionBodied,
-                isInitOnly: isInitOnly,
                 accessorsHaveImplementation: accessorsHaveImplementation,
-                usesFieldKeyword: usesFieldKeyword,
+                getterUsesFieldKeyword: getterUsesFieldKeyword,
+                setterUsesFieldKeyword: setterUsesFieldKeyword,
                 syntax.Type.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                 memberName,
                 syntax.AttributeLists,
@@ -189,8 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Attributes on partial properties are owned by the definition part.
             // If this symbol has a non-null PartialDefinitionPart, we should have accessed this method through that definition symbol instead
             Debug.Assert(PartialDefinitionPart is null
-                // We might still get here when asking for the attributes on a backing field.
-                // This is an error scenario (requires using a property initializer and field-targeted attributes on partial property implementation part).
+                // We might still get here when asking for the attributes on a backing field in error scenarios.
                 || this.BackingField is not null);
 
             if (SourcePartialImplementationPart is { } implementationPart)
@@ -215,8 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool isExpressionBodied,
             out bool hasGetAccessorImplementation,
             out bool hasSetAccessorImplementation,
-            out bool usesFieldKeyword,
-            out bool isInitOnly,
+            out bool getterUsesFieldKeyword,
+            out bool setterUsesFieldKeyword,
             out AccessorDeclarationSyntax? getSyntax,
             out AccessorDeclarationSyntax? setSyntax)
         {
@@ -224,11 +227,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             isExpressionBodied = syntax.AccessorList is null;
             getSyntax = null;
             setSyntax = null;
-            isInitOnly = false;
 
             if (!isExpressionBodied)
             {
-                usesFieldKeyword = false;
+                getterUsesFieldKeyword = false;
+                setterUsesFieldKeyword = false;
                 hasGetAccessorImplementation = false;
                 hasSetAccessorImplementation = false;
                 foreach (var accessor in syntax.AccessorList!.Accessors)
@@ -240,6 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 getSyntax = accessor;
                                 hasGetAccessorImplementation = hasImplementation(accessor);
+                                getterUsesFieldKeyword = containsFieldExpressionInAccessor(accessor);
                             }
                             else
                             {
@@ -252,10 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 setSyntax = accessor;
                                 hasSetAccessorImplementation = hasImplementation(accessor);
-                                if (accessor.Keyword.IsKind(SyntaxKind.InitKeyword))
-                                {
-                                    isInitOnly = true;
-                                }
+                                setterUsesFieldKeyword = containsFieldExpressionInAccessor(accessor);
                             }
                             else
                             {
@@ -273,8 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         default:
                             throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
                     }
-
-                    usesFieldKeyword = usesFieldKeyword || containsFieldKeyword(accessor);
                 }
             }
             else
@@ -282,7 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var body = GetArrowExpression(syntax);
                 hasGetAccessorImplementation = body is object;
                 hasSetAccessorImplementation = false;
-                usesFieldKeyword = body is { } && containsFieldKeyword(body);
+                getterUsesFieldKeyword = body is { } && containsFieldExpressionInGreenNode(body.Green);
+                setterUsesFieldKeyword = false;
                 Debug.Assert(hasGetAccessorImplementation); // it's not clear how this even parsed as a property if it has no accessor list and no arrow expression.
             }
 
@@ -292,13 +292,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return body != null;
             }
 
-            static bool containsFieldKeyword(SyntaxNode syntax)
+            static bool containsFieldExpressionInAccessor(AccessorDeclarationSyntax syntax)
             {
-                foreach (var node in syntax.Green.EnumerateNodes())
+                var accessorDeclaration = (Syntax.InternalSyntax.AccessorDeclarationSyntax)syntax.Green;
+                foreach (var attributeList in accessorDeclaration.AttributeLists)
                 {
-                    if (node.RawKind == (int)SyntaxKind.FieldKeyword)
+                    var attributes = attributeList.Attributes;
+                    for (int i = 0; i < attributes.Count; i++)
                     {
-                        return true;
+                        if (containsFieldExpressionInGreenNode(attributes[i]))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return containsFieldExpressionInGreenNode(accessorDeclaration.Body) ||
+                    containsFieldExpressionInGreenNode(accessorDeclaration.ExpressionBody);
+            }
+
+            static bool containsFieldExpressionInGreenNode(GreenNode? green)
+            {
+                if (green is { })
+                {
+                    foreach (var node in green.EnumerateNodes())
+                    {
+                        if (node.RawKind == (int)SyntaxKind.FieldExpression)
+                        {
+                            return true;
+                        }
                     }
                 }
                 return false;
@@ -784,6 +805,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(definition._otherPartOfPartial == implementation);
             Debug.Assert(implementation._otherPartOfPartial == definition);
+
+            // Use the same backing field for both parts.
+            var backingField = definition.DeclaredBackingField ?? implementation.DeclaredBackingField;
+            definition.SetMergedBackingField(backingField);
+            implementation.SetMergedBackingField(backingField);
         }
     }
 }

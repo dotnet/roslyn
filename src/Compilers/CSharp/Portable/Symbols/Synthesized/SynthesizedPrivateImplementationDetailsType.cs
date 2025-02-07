@@ -83,6 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+        internal override bool HasCompilerLoweringPreserveAttribute => false;
+
         internal override bool IsInterpolatedStringHandlerType => false;
 
         internal override bool HasSpecialName => _privateImplementationDetails.IsSpecialName;

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
 {
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 
-            return project.AddMetadataReference(TestMetadata.Net40.mscorlib)
+            return project.AddMetadataReference(Net40.References.mscorlib)
                           .AddDocument("Document", SourceText.From(code));
         }
 

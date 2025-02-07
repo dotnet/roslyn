@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data;
 
 [UseExportProvider]
-public class CodeStyleSettingsTest
+public static class CodeStyleSettingsTest
 {
     private static IGlobalOptionService GetGlobalOptions(Workspace workspace)
         => workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOptionService>();

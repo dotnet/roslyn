@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.PreferFrameworkType;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpPreferFrameworkTypeDiagnosticAnalyzer :
+internal sealed class CSharpPreferFrameworkTypeDiagnosticAnalyzer :
     PreferFrameworkTypeDiagnosticAnalyzerBase<
         SyntaxKind,
         ExpressionSyntax,
@@ -30,9 +30,7 @@ internal class CSharpPreferFrameworkTypeDiagnosticAnalyzer :
 
     // Only offer to change nint->System.IntPtr when it would preserve semantics exactly.
     protected override bool IsIdentifierNameReplaceableWithFrameworkType(SemanticModel semanticModel, IdentifierNameSyntax node)
-        => (node.IsNint || node.IsNuint) &&
-           semanticModel.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9 &&
-           semanticModel.Compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr);
+        => (node.IsNint || node.IsNuint) && semanticModel.UnifiesNativeIntegers();
 
     protected override bool IsInMemberAccessOrCrefReferenceContext(ExpressionSyntax node)
         => node.IsDirectChildOfMemberAccessExpression() || node.InsideCrefReference();

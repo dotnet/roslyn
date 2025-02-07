@@ -179,7 +179,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             byte* resourceStart = peImage.Pointer + start;
-            int resourceSize = *(int*)resourceStart;
+            BlobReader tmpresource = peImage.GetReader(start, peImage.Length - start);
+            int resourceSize = tmpresource.ReadInt32();
             if (resourceSize > resourcesDir.Size - sizeof(int))
             {
                 throw new BadImageFormatException();

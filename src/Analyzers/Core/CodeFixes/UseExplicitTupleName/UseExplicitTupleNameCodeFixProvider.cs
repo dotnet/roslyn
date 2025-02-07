@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName;
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseExplicitTupleName), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class UseExplicitTupleNameCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed partial class UseExplicitTupleNameCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId];

@@ -211,7 +211,7 @@ internal partial class InteractiveWindowInProcess : ITextViewWindowInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var interactiveWindow = await GetInteractiveWindowAsync(cancellationToken);
-        await interactiveWindow.SubmitAsync(new[] { text }).WithCancellation(cancellationToken);
+        await interactiveWindow.SubmitAsync([text]).WithCancellation(cancellationToken);
     }
 
     public async Task CloseWindowAsync(CancellationToken cancellationToken)

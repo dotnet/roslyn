@@ -398,7 +398,7 @@ public interface A {
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
@@ -581,7 +581,7 @@ namespace N1.N2  {
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(new[] { text, text1, text2 });
+            var comp = CreateCompilationWithMscorlib461(new[] { text, text1, text2 });
             Assert.Equal(0, comp.GetDiagnostics().Count());
             var ns = comp.GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol;
             var ns1 = ns.GetMembers("N2").Single() as NamespaceSymbol;
@@ -752,16 +752,16 @@ namespace N1.N2  {
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib45(text);
+            var comp1 = CreateCompilationWithMscorlib461(text);
             var compRef1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateCompilationWithMscorlib45(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
+            var comp2 = CreateCompilationWithMscorlib461(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
             //Compilation.Create(outputName: "Test2", options: CompilationOptions.Default,
             //                    syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text1) },
             //                    references: new MetadataReference[] { compRef1, GetCorlibReference() });
             var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateCompilationWithMscorlib45(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
+            var comp = CreateCompilationWithMscorlib461(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
             //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
             //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text2) },
             //                        references: new MetadataReference[] { compRef1, compRef2, GetCorlibReference() });
@@ -1748,7 +1748,7 @@ class C : I
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
 
             var globalNamespace = comp.GlobalNamespace;
 
@@ -2176,7 +2176,7 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,16): error CS1547: Keyword 'void' cannot be used in this context
                 //     static ref void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 16)
@@ -2194,7 +2194,7 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,25): error CS1547: Keyword 'void' cannot be used in this context
                 //     static ref readonly void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 25)
@@ -2214,7 +2214,7 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,13): error CS1547: Keyword 'void' cannot be used in this context
                 //         ref void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 13),
@@ -2245,7 +2245,7 @@ static class C
 ";
 
             var parseOptions = TestOptions.Regular;
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (10,22): error CS1547: Keyword 'void' cannot be used in this context
                 //         ref readonly void M2() {M1(); throw null;}
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(10, 22)
@@ -2262,7 +2262,7 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,18): error CS1073: Unexpected token 'ref'
                 //     static async ref int M() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
@@ -2286,7 +2286,7 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,18): error CS1073: Unexpected token 'ref'
                 //     static async ref readonly int M() { }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),

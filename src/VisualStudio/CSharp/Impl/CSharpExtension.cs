@@ -22,9 +22,9 @@ internal sealed class CSharpExtension : Extension
     public static CommandGroupConfiguration ProjectCommandGroupWithPlacement
         => new(GroupPlacement.VsctParent(new Guid(VSConstants.CMDSETID.ShellMainMenu_string), VsMenus.IDM_VS_CTXT_PROJNODE, priority: 0x0400))
         {
-            Children = new[]
-            {
+            Children =
+            [
                 GroupChild.Command<ResetInteractiveWindowFromProjectCommand>()
-            }
+            ]
         };
 }

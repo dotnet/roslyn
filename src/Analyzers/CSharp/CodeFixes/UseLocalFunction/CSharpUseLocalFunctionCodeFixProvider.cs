@@ -88,12 +88,7 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
 
         if (languageVersion >= LanguageVersion.CSharp8)
         {
-#if CODE_STYLE
-            var info = new CSharpCodeGenerationContextInfo(
-                CodeGenerationContext.Default, CSharpCodeGenerationOptions.Default, new CSharpCodeGenerationService(document.Project.GetExtendedLanguageServices().LanguageServices), root.SyntaxTree.Options.LanguageVersion());
-#else
             var info = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
-#endif
 
             var options = (CSharpCodeGenerationOptions)info.Options;
             makeStaticIfPossible = options.PreferStaticLocalFunction.Value;
@@ -104,7 +99,7 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
         foreach (var (localDeclaration, anonymousFunction, references) in nodesFromDiagnostics.OrderByDescending(nodes => nodes.function.SpanStart))
         {
             var delegateType = (INamedTypeSymbol)semanticModel.GetTypeInfo(anonymousFunction, cancellationToken).ConvertedType;
-            var parameterList = GenerateParameterList(editor.Generator, anonymousFunction, delegateType.DelegateInvokeMethod);
+            var parameterList = GenerateParameterList(anonymousFunction, delegateType.DelegateInvokeMethod);
             var makeStatic = MakeStatic(semanticModel, makeStaticIfPossible, localDeclaration, cancellationToken);
 
             var currentLocalDeclaration = currentRoot.GetCurrentNode(localDeclaration);
@@ -119,7 +114,7 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
             currentRoot = ReplaceReferences(
                 document, currentRoot,
                 delegateType, parameterList,
-                references.Select(node => currentRoot.GetCurrentNode(node)).ToImmutableArray());
+                [.. references.Select(node => currentRoot.GetCurrentNode(node))]);
         }
 
         editor.ReplaceNode(root, currentRoot);
@@ -242,17 +237,17 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
     }
 
     private static ParameterListSyntax GenerateParameterList(
-        SyntaxGenerator generator, AnonymousFunctionExpressionSyntax anonymousFunction, IMethodSymbol delegateMethod)
+        AnonymousFunctionExpressionSyntax anonymousFunction, IMethodSymbol delegateMethod)
     {
         var parameterList = TryGetOrCreateParameterList(anonymousFunction);
         var i = 0;
 
         return parameterList != null
-            ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(generator, parameterNode, delegateMethod.Parameters.ElementAtOrDefault(i++)))
+            ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(parameterNode, delegateMethod.Parameters.ElementAtOrDefault(i++)))
             : ParameterList([.. delegateMethod.Parameters.Select(parameter =>
-                PromoteParameter(generator, Parameter(parameter.Name.ToIdentifierToken()), parameter))]);
+                PromoteParameter(Parameter(parameter.Name.ToIdentifierToken()), parameter))]);
 
-        static ParameterSyntax PromoteParameter(SyntaxGenerator generator, ParameterSyntax parameterNode, IParameterSymbol delegateParameter)
+        static ParameterSyntax PromoteParameter(ParameterSyntax parameterNode, IParameterSymbol delegateParameter)
         {
             // delegateParameter may be null, consider this case: Action x = (a, b) => { };
             // we will still fall back to object
@@ -264,7 +259,7 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
 
             if (delegateParameter?.HasExplicitDefaultValue == true)
             {
-                parameterNode = parameterNode.WithDefault(GetDefaultValue(generator, delegateParameter));
+                parameterNode = parameterNode.WithDefault(GetDefaultValue(delegateParameter));
             }
 
             return parameterNode;
@@ -317,6 +312,6 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
         return method.Parameters.IndexOf(p => p.Name == name);
     }
 
-    private static EqualsValueClauseSyntax GetDefaultValue(SyntaxGenerator generator, IParameterSymbol parameter)
-        => EqualsValueClause(ExpressionGenerator.GenerateExpression(generator, parameter.Type, parameter.ExplicitDefaultValue, canUseFieldReference: true));
+    private static EqualsValueClauseSyntax GetDefaultValue(IParameterSymbol parameter)
+        => EqualsValueClause(ExpressionGenerator.GenerateExpression(parameter.Type, parameter.ExplicitDefaultValue, canUseFieldReference: true));
 }

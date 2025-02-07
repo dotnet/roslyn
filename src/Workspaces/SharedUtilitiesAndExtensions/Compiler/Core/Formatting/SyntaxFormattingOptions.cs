@@ -39,9 +39,4 @@ internal record class SyntaxFormattingOptions
     public int TabSize => LineFormatting.TabSize;
     public int IndentationSize => LineFormatting.IndentationSize;
     public string NewLine => LineFormatting.NewLine;
-
-#if !CODE_STYLE
-    public static SyntaxFormattingOptions GetDefault(Host.LanguageServices languageServices)
-        => languageServices.GetRequiredService<ISyntaxFormattingService>().DefaultOptions;
-#endif
 }

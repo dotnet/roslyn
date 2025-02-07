@@ -44,7 +44,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
     //        | ( <expr0> <= <const> | <const> >= <expr0> )
     //           && ( <expr0> >= <const> | <const> <= <expr0> )  // C#, VB
     //
-    internal abstract class Analyzer
+    internal abstract class Analyzer(ISyntaxFacts syntaxFacts, AbstractConvertIfToSwitchCodeRefactoringProvider<TIfStatementSyntax, TExpressionSyntax, TIsExpressionSyntax, TPatternSyntax>.Feature features)
     {
         public abstract bool CanConvert(IConditionalOperation operation);
         public abstract bool HasUnreachableEndPoint(IOperation operation);
@@ -61,15 +61,9 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         /// Holds the type of the <see cref="_switchTargetExpression"/>
         /// </summary>
         private ITypeSymbol? _switchTargetType = null!;
-        private readonly ISyntaxFacts _syntaxFacts;
+        private readonly ISyntaxFacts _syntaxFacts = syntaxFacts;
 
-        protected Analyzer(ISyntaxFacts syntaxFacts, Feature features)
-        {
-            _syntaxFacts = syntaxFacts;
-            Features = features;
-        }
-
-        public Feature Features { get; }
+        public Feature Features { get; } = features;
 
         public bool Supports(Feature feature)
             => (Features & feature) != 0;
@@ -77,7 +71,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         public (ImmutableArray<AnalyzedSwitchSection>, SyntaxNode TargetExpression) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
         {
             using var _ = ArrayBuilder<AnalyzedSwitchSection>.GetInstance(out var sections);
-            if (!ParseIfStatementSequence(operations, sections, out var defaultBodyOpt))
+            if (!ParseIfStatementSequence(operations, sections, topLevel: true, out var defaultBodyOpt))
             {
                 return default;
             }
@@ -98,7 +92,11 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         //        : if (<section-expr>) { <unreachable-end-point> }, ( return | throw )
         //        | <if-statement>
         //
-        private bool ParseIfStatementSequence(ReadOnlySpan<IOperation> operations, ArrayBuilder<AnalyzedSwitchSection> sections, out IOperation? defaultBodyOpt)
+        private bool ParseIfStatementSequence(
+            ReadOnlySpan<IOperation> operations,
+            ArrayBuilder<AnalyzedSwitchSection> sections,
+            bool topLevel,
+            out IOperation? defaultBodyOpt)
         {
             var current = 0;
             while (current < operations.Length &&
@@ -113,7 +111,17 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
             if (current == 0)
             {
                 // didn't consume a sequence of if-statements with unreachable ends.  Check for the last case.
-                return operations.Length > 0 && ParseIfStatement(operations[0], sections, out defaultBodyOpt);
+                if (operations.Length == 0)
+                    return false;
+
+                // If we're in the initial state, it's fine for there to be many operations that follow.  We're just
+                // trying to check if the first one completes our analysis (and we'll not touch the ones that
+                // follow). However, if we're actually in one of the recursive calls, it's *not* ok to ignore the 
+                // following ops as those may impact if the higher call into us is ok.  So in that case, we do not
+                // allow the parsing to succeed if we have more than one operation left.
+                return topLevel
+                    ? operations is [var op1, ..] && ParseIfStatement(op1, sections, out defaultBodyOpt)
+                    : operations is [var op2] && ParseIfStatement(op2, sections, out defaultBodyOpt);
             }
             else
             {
@@ -173,7 +181,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         private bool ParseIfStatementOrBlock(IOperation op, ArrayBuilder<AnalyzedSwitchSection> sections, out IOperation? defaultBodyOpt)
         {
             return op is IBlockOperation block
-                ? ParseIfStatementSequence(block.Operations.AsSpan(), sections, out defaultBodyOpt)
+                ? ParseIfStatementSequence(block.Operations.AsSpan(), sections, topLevel: false, out defaultBodyOpt)
                 : ParseIfStatement(op, sections, out defaultBodyOpt);
         }
 

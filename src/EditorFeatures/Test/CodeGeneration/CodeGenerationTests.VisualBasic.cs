@@ -159,7 +159,7 @@ End Class";
  End Sub
  End Class";
             await TestAddConstructorAsync(input, expected,
-                thisArguments: ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExpression("42")));
+                thisArguments: [VB.SyntaxFactory.ParseExpression("42")]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544476")]
@@ -408,20 +408,19 @@ End Class";
 End Class";
             static ImmutableArray<IEventSymbol> GetExplicitInterfaceEvent(SemanticModel semanticModel)
             {
-                return ImmutableArray.Create<IEventSymbol>(
-                    new CodeGenerationEventSymbol(
+                return [new CodeGenerationEventSymbol(
                         GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel),
                         attributes: default,
                         Accessibility.Public,
                         modifiers: default,
                         GetTypeSymbol(typeof(System.ComponentModel.PropertyChangedEventHandler))(semanticModel),
                         explicitInterfaceImplementations: default,
-                        nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null));
+                        nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null)];
             }
 
             await TestAddEventAsync(input, expected,
                 addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
+                    [], Accessibility.NotApplicable, []),
                     getExplicitInterfaceImplementations: GetExplicitInterfaceEvent,
                     type: typeof(System.ComponentModel.PropertyChangedEventHandler),
                     context: new CodeGenerationContext(addImports: false));
@@ -445,7 +444,7 @@ Class C
     End Event
 End Class";
             await TestAddEventAsync(input, expected,
-                addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
+                addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol([], Accessibility.NotApplicable, []),
                 context: new CodeGenerationContext(addImports: false));
         }
 
@@ -474,11 +473,11 @@ End Class";
             var raiseStatements = ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(2)"));
             await TestAddEventAsync(input, expected,
                 addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, addStatements),
+                    [], Accessibility.NotApplicable, addStatements),
                 removeMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, removeStatements),
+                    [], Accessibility.NotApplicable, removeStatements),
                 raiseMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, raiseStatements),
+                    [], Accessibility.NotApplicable, raiseStatements),
                 context: new CodeGenerationContext(addImports: false));
         }
 
@@ -590,7 +589,7 @@ End Class";
 End Class";
             await TestAddMethodAsync(input, expected,
                 returnType: typeof(int),
-                typeParameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateTypeParameterSymbol("T")),
+                typeParameters: [CodeGenerationSymbolFactory.CreateTypeParameterSymbol("T")],
                 statements: "Return new T().GetHashCode()");
         }
 
@@ -644,7 +643,7 @@ End Class";
                 name: "M",
                 returnType: typeof(void),
                 parameters: Parameters(Parameter(typeof(int), "i")),
-                getExplicitInterfaces: s => s.LookupSymbols(input.IndexOf('M'), null, "M").OfType<IMethodSymbol>().ToImmutableArray());
+                getExplicitInterfaces: s => [.. s.LookupSymbols(input.IndexOf('M'), null, "M").OfType<IMethodSymbol>()]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]

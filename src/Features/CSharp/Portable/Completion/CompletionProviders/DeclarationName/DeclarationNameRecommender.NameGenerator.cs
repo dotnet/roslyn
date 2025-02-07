@@ -12,7 +12,7 @@ using Words = System.Collections.Immutable.ImmutableArray<string>;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
 
-internal partial class DeclarationNameRecommender
+internal sealed partial class DeclarationNameRecommender
 {
     internal class NameGenerator
     {

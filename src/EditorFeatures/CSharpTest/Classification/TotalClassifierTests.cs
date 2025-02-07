@@ -3074,8 +3074,8 @@ Keyword("async"));
 
         var actualFormatted = actualOrdered.Select(a => new FormattedClassification(allCode.Substring(a.Span.Span.Start, a.Span.Span.Length), a.Tag.ClassificationType.Classification));
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             Keyword("using"),
             Namespace("System"),
             Operators.Dot,
@@ -3130,7 +3130,7 @@ Keyword("async"));
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly,
-        }, actualFormatted);
+        ], actualFormatted);
     }
 
     [WpfFact]
@@ -3175,8 +3175,8 @@ Keyword("async"));
 
         var actualFormatted = actualOrdered.Select(a => new FormattedClassification(allCode.Substring(a.Span.Span.Start, a.Span.Span.Length), a.Tag.ClassificationType.Classification));
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             Keyword("using"),
             Namespace("System"),
             Operators.Dot,
@@ -3231,6 +3231,6 @@ Keyword("async"));
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly,
-        }, actualFormatted);
+        ], actualFormatted);
     }
 }

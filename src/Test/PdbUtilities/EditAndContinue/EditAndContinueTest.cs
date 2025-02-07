@@ -13,11 +13,13 @@ using System.Text;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal abstract partial class EditAndContinueTest<TSelf>(Verification? verification = null) : IDisposable
+    internal abstract partial class EditAndContinueTest<TSelf>(ITestOutputHelper? output = null, Verification? verification = null) : IDisposable
         where TSelf : EditAndContinueTest<TSelf>
     {
         private readonly Verification _verification = verification ?? Verification.Passes;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private TSelf This => (TSelf)this;
 
-        internal TSelf AddBaseline(string source, Action<GenerationVerifier>? validator = null)
+        internal TSelf AddBaseline(string source, Action<GenerationVerifier>? validator = null, Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation>? debugInformationProvider = null)
         {
             _hasVerified = false;
 
@@ -45,20 +47,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var verifier = new CompilationVerifier(compilation);
 
+            output?.WriteLine($"Emitting baseline");
+
             verifier.Emit(
                 expectedOutput: null,
                 trimOutput: false,
                 expectedReturnCode: null,
                 args: null,
                 manifestResources: null,
-                emitOptions: EmitOptions.Default,
+                emitOptions: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 peVerify: _verification,
                 expectedSignatures: null);
 
             var md = ModuleMetadata.CreateFromImage(verifier.EmittedAssemblyData);
             _disposables.Add(md);
 
-            var baseline = EditAndContinueTestUtilities.CreateInitialBaseline(compilation, md, verifier.CreateSymReader().GetEncMethodDebugInfo);
+            var baseline = EditAndContinueTestUtilities.CreateInitialBaseline(compilation, md, debugInformationProvider ?? verifier.CreateSymReader().GetEncMethodDebugInfo);
 
             _generations.Add(new GenerationInfo(compilation, md.MetadataReader, diff: null, verifier, baseline, validator ?? new(x => { })));
             _sources.Add(markedSource);
@@ -70,6 +74,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => AddGeneration(source, _ => edits, validator);
 
         internal TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator)
+            => AddGeneration(source, edits, validator, expectedErrors: []);
+
+        internal TSelf AddGeneration(string source, SemanticEditDescription[] edits, DiagnosticDescription[] expectedErrors)
+            => AddGeneration(source, _ => edits, validator: static _ => { }, expectedErrors);
+
+        private TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator, DiagnosticDescription[] expectedErrors)
         {
             _hasVerified = false;
 
@@ -85,9 +95,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var semanticEdits = GetSemanticEdits(edits(markedSource), previousGeneration.Compilation, previousSource, compilation, markedSource, unmappedNodes);
 
+            output?.WriteLine($"Emitting generation #{_generations.Count}");
+
             CompilationDifference diff = compilation.EmitDifference(previousGeneration.Baseline, semanticEdits);
 
-            Assert.Empty(diff.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
+            diff.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Verify(expectedErrors);
+            if (expectedErrors is not [])
+            {
+                return This;
+            }
 
             var md = diff.GetMetadata();
             _disposables.Add(md);
@@ -116,10 +132,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 readers.Add(generation.MetadataReader);
-                var verifier = new GenerationVerifier(index, generation, readers.ToImmutableArray());
+                var verifier = new GenerationVerifier(index, generation, [.. readers]);
                 generation.Verifier(verifier);
 
-                exceptions.Add(verifier.Exceptions.ToImmutableArray());
+                exceptions.Add([.. verifier.Exceptions]);
 
                 index++;
             }
@@ -163,7 +179,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var syntaxMapFromMarkers = oldSource.MarkedSpans.IsEmpty ? null : SourceWithMarkedNodes.GetSyntaxMap(oldSource, newSource, unmappedNodes);
 
-            return ImmutableArray.CreateRange(edits.Select(e =>
+            return [.. edits.Select(e =>
             {
                 var oldSymbol = e.Kind is SemanticEditKind.Update or SemanticEditKind.Delete ? e.SymbolProvider(oldCompilation) : null;
 
@@ -185,7 +201,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
 
                 return new SemanticEdit(e.Kind, oldSymbol, newSymbol, syntaxMap, e.RudeEdits);
-            }));
+            })];
         }
 
         public void Dispose()

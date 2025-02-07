@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LegacySolutionEvents;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents;
 /// to an entirely differently (ideally 'pull') model for test discovery.
 /// </summary>
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener<object>
+internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener
 {
     private readonly IGlobalOptionService _globalOptions;
     private readonly IThreadingContext _threadingContext;
@@ -47,18 +48,18 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
             _threadingContext.DisposalToken);
     }
 
-    public void StartListening(Workspace workspace, object? serviceOpt)
+    public void StartListening(Workspace workspace)
     {
         // We only support this option to disable crawling in internal speedometer and ddrit perf runs to lower noise.
         // It is not exposed to the user.
         if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-        {
             workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _threadingContext.DisposalToken.Register(() =>
-            {
-                workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            });
-        }
+    }
+
+    public void StopListening(Workspace workspace)
+    {
+        if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            workspace.WorkspaceChanged -= OnWorkspaceChanged;
     }
 
     private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)

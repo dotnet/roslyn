@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -8140,9 +8141,15 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get").WithLocation(5, 30));
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (5,30): warning CS0626: Method, operator, or accessor 'C.R.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     public extern object R { get; } // no error
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get").WithLocation(5, 30));
+                    // (3,25): warning CS9266: The 'set' accessor of property 'C.P' should use 'field' because the other accessor is using it.
+                    //     public int P { get; set { } }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P").WithLocation(3, 25),
+                    // (4,20): warning CS9266: The 'get' accessor of property 'C.Q' should use 'field' because the other accessor is using it.
+                    //     public int Q { get { return 0; } set; }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.Q").WithLocation(4, 20),
+                    // (5,30): warning CS0626: Method, operator, or accessor 'C.R.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                    //     public extern object R { get; } // no error
+                    Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get").WithLocation(5, 30));
         }
 
         [Fact]
@@ -14944,7 +14951,7 @@ class B
 {
     public static void M4(this object o) { }
 }";
-            var compilation = CreateEmptyCompilation(source, new[] { TestMetadata.Net40.mscorlib });
+            var compilation = CreateEmptyCompilation(source, new[] { Net40.References.mscorlib });
             compilation.VerifyDiagnostics(
                 // (3,27): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 27),
@@ -16843,7 +16850,7 @@ namespace N1
                 Diagnostic(ErrorCode.ERR_NamespaceNotAllowedInScript, "namespace").WithLocation(2, 1)
             };
 
-            CreateCompilationWithMscorlib45(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlib461(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -20448,7 +20455,7 @@ class C
 @"internal abstract void M();
 internal abstract object P { get; }
 internal abstract event System.EventHandler E;";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract void M();

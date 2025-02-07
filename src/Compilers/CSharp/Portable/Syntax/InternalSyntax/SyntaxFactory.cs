@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal static SyntaxToken MissingToken(SyntaxKind kind)
         {
-            return SyntaxToken.CreateMissing(kind, null, null);
+            return SyntaxToken.CreateMissing(kind);
         }
 
         internal static SyntaxToken MissingToken(GreenNode leading, SyntaxKind kind, GreenNode trailing)

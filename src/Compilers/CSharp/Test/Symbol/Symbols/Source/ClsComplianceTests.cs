@@ -3152,7 +3152,7 @@ public class C
 }}
 ";
 
-            var helper = CreateCompilationWithMscorlib45("");
+            var helper = CreateCompilationWithMscorlib461("");
             var intType = helper.GetSpecialType(SpecialType.System_Int32);
 
             foreach (SpecialType st in Enum.GetValues(typeof(SpecialType)))
@@ -3176,7 +3176,7 @@ public class C
                 var qualifiedName = type.ToTestDisplayString();
 
                 var source = string.Format(sourceTemplate, qualifiedName);
-                var comp = CreateCompilationWithMscorlib45(source);
+                var comp = CreateCompilationWithMscorlib461(source);
 
                 switch (st)
                 {

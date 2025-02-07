@@ -2,16 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
-        private static Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, bool crashOnAnalyzerException, CancellationToken cancellationToken)
-            => DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, stateSets.SelectAsArray(s => s.Analyzer), includeSuppressedDiagnostics, crashOnAnalyzerException, cancellationToken);
+        private static Task<CompilationWithAnalyzersPair?> CreateCompilationWithAnalyzersAsync(Project project, ImmutableArray<StateSet> stateSets, bool crashOnAnalyzerException, CancellationToken cancellationToken)
+            => DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
+                project,
+                stateSets.SelectAsArray(s => !s.IsHostAnalyzer, s => s.Analyzer),
+                stateSets.SelectAsArray(s => s.IsHostAnalyzer, s => s.Analyzer),
+                crashOnAnalyzerException,
+                cancellationToken);
     }
 }

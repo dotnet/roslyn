@@ -978,11 +978,11 @@ public class Goo
 """, async w =>
         {
             // Do one set of queries
-            Assert.Single((await _aggregator.GetItemsAsync("Goo")).Where(x => x.Kind != "Method"));
+            Assert.Single((await _aggregator.GetItemsAsync("Goo")), x => x.Kind != "Method");
             _provider.StopSearch();
 
             // Do the same query again, make sure nothing was left over
-            Assert.Single((await _aggregator.GetItemsAsync("Goo")).Where(x => x.Kind != "Method"));
+            Assert.Single((await _aggregator.GetItemsAsync("Goo")), x => x.Kind != "Method");
             _provider.StopSearch();
 
             // Dispose the provider
@@ -1030,7 +1030,7 @@ public class Goo
 
             var items = await _aggregator.GetItemsAsync("GK");
 
-            Assert.Equal(expecteditems.Count(), items.Count());
+            Assert.Equal(expecteditems.Count, items.Count());
 
             VerifyNavigateToResultItems(expecteditems, items);
         });
@@ -1615,8 +1615,8 @@ class C
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(
             files: [],
-            sourceGeneratedFiles: new[]
-            {
+            sourceGeneratedFiles:
+            [
                 """
                 public partial class C
                 {
@@ -1627,7 +1627,7 @@ class C
                 {
                 }
                 """,
-            },
+            ],
             composition: DefaultComposition);
 
         _provider = CreateProvider(workspace);

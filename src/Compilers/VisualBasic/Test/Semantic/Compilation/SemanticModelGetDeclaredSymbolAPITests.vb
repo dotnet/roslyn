@@ -1939,7 +1939,7 @@ End Module
             Assert.False(symLabel.IsOverrides)
             Assert.False(symLabel.IsOverridable)
             Assert.False(symLabel.IsShared)
-            Assert.Equal(Of Accessibility)(Accessibility.NotApplicable, symLabel.DeclaredAccessibility)
+            AssertEx.Equal(Of Accessibility)(Accessibility.NotApplicable, symLabel.DeclaredAccessibility)
             Assert.Equal(1, symLabel.Locations.Length)
             Assert.Equal("Public Sub Main()", symLabel.ContainingSymbol.ToString)
             Assert.Equal("Public Sub Main()", symLabel.ContainingMethod.ToString)
@@ -2625,7 +2625,7 @@ End Namespace
 
             Dim memSymbol = compilation.GlobalNamespace.GetMembers("System").Single()
             Assert.Equal(nsSymbolA.Locations.Length, memSymbol.Locations.Length)
-            Assert.Equal(Of ISymbol)(nsSymbolA, memSymbol)
+            AssertEx.Equal(Of ISymbol)(nsSymbolA, memSymbol)
         End Sub
 
         <WorkItem(542595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542595")>

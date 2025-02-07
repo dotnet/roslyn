@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             // One would think this creates an error, but it doesn't because
             // language version is a property of the parser and there are
             // no syntactical changes to the language for get-only autoprops
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class C
 {
     public int P { get; }
@@ -36,7 +36,7 @@ class C
         [Fact]
         public void SetGetOnlyAutoPropInConstructor()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class C
 {
     public int P { get; }
@@ -50,7 +50,7 @@ class C
         [Fact]
         public void GetOnlyAutoPropBadOverride()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 
 class Base
 {
@@ -83,7 +83,7 @@ class C : Base
         [Fact]
         public void SetGetOnlyAutoPropOutOfConstructor()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class C
 {
     public int P { get; }
@@ -1776,7 +1776,7 @@ class C : I
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
 
             var globalNamespace = comp.GlobalNamespace;
 
@@ -2909,7 +2909,7 @@ unsafe class Test
     }
     ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,17): error CS8080: Properties with by-reference returns must have a get accessor.
                 //         ref int P { set { } }
                 Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "P").WithLocation(4, 17));
@@ -2926,7 +2926,7 @@ unsafe class Test
     }
     ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,48): error CS8147: Properties which return by reference cannot have set accessors
                 //         ref int P { get { return ref @field; } set { } } 
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(5, 48));
@@ -3025,6 +3025,75 @@ class C
             var compilation = CreateCompilation(source).VerifyDiagnostics();
             var property = compilation.GetMember<PropertySymbol>("C.P");
             Assert.True(property.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_01()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public class Preserve1Attribute : Attribute { }
+";
+
+            string source2 = @"
+public class Test1
+{
+    [Preserve1]
+    int P1 {get; set;}
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>k__BackingField").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_02()
+        {
+            string source1 = @"
+using System;
+
+[AttributeUsage(AttributeTargets.Field)]
+public class Preserve1Attribute : Attribute { }
+";
+
+            string source2 = @"
+public class Test1
+{
+    [field: Preserve1]
+    int P1 {get; set;}
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)",
+                        "Preserve1Attribute"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>k__BackingField").GetAttributes().Select(a => a.ToString()));
+            }
         }
     }
 }

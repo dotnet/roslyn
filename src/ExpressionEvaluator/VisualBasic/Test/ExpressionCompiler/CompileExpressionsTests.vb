@@ -39,7 +39,7 @@ End Class"
             ' Test with CompileExpression rather than CompileExpressions
             ' so field references in IL are named.
             ' Debug build.
-            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib461AndVBRuntime(
                 {VisualBasicSyntaxTree.ParseText(source)},
                 options:=TestOptions.DebugDll,
                 references:={SystemCoreRef})
@@ -74,7 +74,7 @@ End Class"
 }")
                 End Sub)
             ' Release build.
-            comp = CreateCompilationWithMscorlib45AndVBRuntime(
+            comp = CreateCompilationWithMscorlib461AndVBRuntime(
                 {VisualBasicSyntaxTree.ParseText(source)},
                 options:=TestOptions.ReleaseDll,
                 references:={SystemCoreRef})

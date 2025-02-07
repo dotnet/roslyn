@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Host;
 /// <summary>
 /// Temporarily stores text and streams in memory mapped files.
 /// </summary>
-#if NETCOREAPP
+#if NET
 [SupportedOSPlatform("windows")]
 #endif
 internal sealed partial class TemporaryStorageService : ITemporaryStorageServiceInternal
@@ -137,9 +138,9 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     }
 
     ITemporaryStorageStreamHandle ITemporaryStorageServiceInternal.WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
-        => WriteToTemporaryStorage(stream, cancellationToken);
+        => WriteToTemporaryStorage(stream);
 
-    public TemporaryStorageStreamHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
+    public TemporaryStorageStreamHandle WriteToTemporaryStorage(Stream stream)
     {
         stream.Position = 0;
         var memoryMappedInfo = WriteToMemoryMappedFile();
@@ -148,7 +149,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
 
         MemoryMappedInfo WriteToMemoryMappedFile()
         {
-            using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
+            using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, CancellationToken.None))
             {
                 var size = stream.Length;
                 var memoryMappedInfo = this.CreateTemporaryStorage(size);

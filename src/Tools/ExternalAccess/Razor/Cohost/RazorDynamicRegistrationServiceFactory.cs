@@ -36,9 +36,12 @@ internal sealed class RazorDynamicRegistrationServiceFactory(
         IClientLanguageServerManager? clientLanguageServerManager) : ILspService, IOnInitialized, IDisposable
     {
         private readonly CancellationTokenSource _disposalTokenSource = new();
+        private IDisposable? _activation;
 
         public void Dispose()
         {
+            _activation?.Dispose();
+            _activation = null;
             _disposalTokenSource.Cancel();
         }
 
@@ -56,7 +59,7 @@ internal sealed class RazorDynamicRegistrationServiceFactory(
             }
             else
             {
-                uIContextActivationService.ExecuteWhenActivated(Constants.RazorCohostingUIContext, InitializeRazor);
+                _activation = uIContextActivationService.ExecuteWhenActivated(Constants.RazorCohostingUIContext, InitializeRazor);
             }
 
             return Task.CompletedTask;

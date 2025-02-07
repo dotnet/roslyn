@@ -16,18 +16,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember;
 
 internal abstract partial class AbstractGenerateEnumMemberService<TService, TSimpleNameSyntax, TExpressionSyntax>
 {
-    private partial class GenerateEnumMemberCodeAction(Document document, State state) : CodeAction
+    private sealed partial class GenerateEnumMemberCodeAction(Document document, State state) : CodeAction
     {
         private readonly Document _document = document;
         private readonly State _state = state;
 
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
-#if CODE_STYLE
             var languageServices = _document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(_state.TypeToGenerateIn.Language);
-#else
-            var languageServices = _document.Project.Solution.Services.GetLanguageServices(_state.TypeToGenerateIn.Language);
-#endif
             var codeGenerator = languageServices.GetService<ICodeGenerationService>();
             var semanticFacts = languageServices.GetService<ISemanticFactsService>();
 

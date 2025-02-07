@@ -139,97 +139,108 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that the scenario has been tested with Edit-and-Continue.
             Debug.Assert(SyntaxBindingUtilities.BindsToTryStatement(tryStatementSyntax));
 
-            BoundStatement finalizedRegion;
-            BoundBlock rewrittenFinally;
+            var oldTrySyntax = _F.Syntax;
+            _F.Syntax = tryStatementSyntax;
 
-            var finallyContainsAwaits = _analysis.FinallyContainsAwaits(node);
-            if (!finallyContainsAwaits)
+            var result = visitTryStatement(node, tryStatementSyntax);
+
+            _F.Syntax = oldTrySyntax;
+            return result;
+
+            BoundNode visitTryStatement(BoundTryStatement node, SyntaxNode tryStatementSyntax)
             {
+                BoundStatement finalizedRegion;
+                BoundBlock rewrittenFinally;
+
+                var finallyContainsAwaits = _analysis.FinallyContainsAwaits(node);
+                if (!finallyContainsAwaits)
+                {
+                    finalizedRegion = RewriteFinalizedRegion(node);
+                    rewrittenFinally = (BoundBlock)this.Visit(node.FinallyBlockOpt);
+
+                    if (rewrittenFinally == null)
+                    {
+                        return finalizedRegion;
+                    }
+
+                    var asTry = finalizedRegion as BoundTryStatement;
+                    if (asTry != null)
+                    {
+                        // since finalized region is a try we can just attach finally to it
+                        Debug.Assert(asTry.FinallyBlockOpt == null);
+                        return asTry.Update(asTry.TryBlock, asTry.CatchBlocks, rewrittenFinally, asTry.FinallyLabelOpt, asTry.PreferFaultHandler);
+                    }
+                    else
+                    {
+                        // wrap finalizedRegion into a Try with a finally.
+                        return _F.Try((BoundBlock)finalizedRegion, ImmutableArray<BoundCatchBlock>.Empty, rewrittenFinally);
+                    }
+                }
+
+                // rewrite finalized region (try and catches) in the current frame
+                var frame = PushFrame(node);
                 finalizedRegion = RewriteFinalizedRegion(node);
-                rewrittenFinally = (BoundBlock)this.Visit(node.FinallyBlockOpt);
+                rewrittenFinally = (BoundBlock)this.VisitBlock(node.FinallyBlockOpt);
+                PopFrame();
 
-                if (rewrittenFinally == null)
-                {
-                    return finalizedRegion;
-                }
+                var exceptionType = _F.SpecialType(SpecialType.System_Object);
+                var pendingExceptionLocal = new SynthesizedLocal(_F.CurrentFunction, TypeWithAnnotations.Create(exceptionType), SynthesizedLocalKind.TryAwaitPendingException, tryStatementSyntax);
+                var finallyLabel = _F.GenerateLabel("finallyLabel");
+                var pendingBranchVar = new SynthesizedLocal(_F.CurrentFunction, TypeWithAnnotations.Create(_F.SpecialType(SpecialType.System_Int32)), SynthesizedLocalKind.TryAwaitPendingBranch, tryStatementSyntax);
 
-                var asTry = finalizedRegion as BoundTryStatement;
-                if (asTry != null)
-                {
-                    // since finalized region is a try we can just attach finally to it
-                    Debug.Assert(asTry.FinallyBlockOpt == null);
-                    return asTry.Update(asTry.TryBlock, asTry.CatchBlocks, rewrittenFinally, asTry.FinallyLabelOpt, asTry.PreferFaultHandler);
-                }
-                else
-                {
-                    // wrap finalizedRegion into a Try with a finally.
-                    return _F.Try((BoundBlock)finalizedRegion, ImmutableArray<BoundCatchBlock>.Empty, rewrittenFinally);
-                }
-            }
+                var catchAll = _F.Catch(_F.Local(pendingExceptionLocal), _F.Block());
 
-            // rewrite finalized region (try and catches) in the current frame
-            var frame = PushFrame(node);
-            finalizedRegion = RewriteFinalizedRegion(node);
-            rewrittenFinally = (BoundBlock)this.VisitBlock(node.FinallyBlockOpt);
-            PopFrame();
+                var catchAndPendException = _F.Try(
+                    _F.Block(
+                        finalizedRegion,
+                        _F.HiddenSequencePoint(),
+                        _F.Goto(finallyLabel),
+                        PendBranches(frame, pendingBranchVar, finallyLabel)),
+                    ImmutableArray.Create(catchAll),
+                    finallyLabel: finallyLabel);
 
-            var exceptionType = _F.SpecialType(SpecialType.System_Object);
-            var pendingExceptionLocal = new SynthesizedLocal(_F.CurrentFunction, TypeWithAnnotations.Create(exceptionType), SynthesizedLocalKind.TryAwaitPendingException, tryStatementSyntax);
-            var finallyLabel = _F.GenerateLabel("finallyLabel");
-            var pendingBranchVar = new SynthesizedLocal(_F.CurrentFunction, TypeWithAnnotations.Create(_F.SpecialType(SpecialType.System_Int32)), SynthesizedLocalKind.TryAwaitPendingBranch, tryStatementSyntax);
-
-            var catchAll = _F.Catch(_F.Local(pendingExceptionLocal), _F.Block());
-
-            var catchAndPendException = _F.Try(
-                _F.Block(
-                    finalizedRegion,
+                BoundBlock syntheticFinallyBlock = _F.Block(
                     _F.HiddenSequencePoint(),
-                    _F.Goto(finallyLabel),
-                    PendBranches(frame, pendingBranchVar, finallyLabel)),
-                ImmutableArray.Create(catchAll),
-                finallyLabel: finallyLabel);
+                    _F.Label(finallyLabel),
+                    rewrittenFinally,
+                    _F.HiddenSequencePoint(),
+                    UnpendException(pendingExceptionLocal),
+                    UnpendBranches(
+                        frame,
+                        pendingBranchVar));
 
-            BoundBlock syntheticFinallyBlock = _F.Block(
-                _F.HiddenSequencePoint(),
-                _F.Label(finallyLabel),
-                rewrittenFinally,
-                _F.HiddenSequencePoint(),
-                UnpendException(pendingExceptionLocal),
-                UnpendBranches(
-                    frame,
-                    pendingBranchVar));
+                BoundStatement syntheticFinally = syntheticFinallyBlock;
+                if (_F.CurrentFunction.IsAsync && _F.CurrentFunction.IsIterator)
+                {
+                    // We wrap this block so that it can be processed as a finally block by async-iterator rewriting
+                    syntheticFinally = _F.ExtractedFinallyBlock(syntheticFinallyBlock);
+                }
 
-            BoundStatement syntheticFinally = syntheticFinallyBlock;
-            if (_F.CurrentFunction.IsAsync && _F.CurrentFunction.IsIterator)
-            {
-                // We wrap this block so that it can be processed as a finally block by async-iterator rewriting
-                syntheticFinally = _F.ExtractedFinallyBlock(syntheticFinallyBlock);
+                var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+                var statements = ArrayBuilder<BoundStatement>.GetInstance();
+
+                statements.Add(_F.HiddenSequencePoint());
+
+                locals.Add(pendingExceptionLocal);
+                statements.Add(_F.Assignment(_F.Local(pendingExceptionLocal), _F.Default(pendingExceptionLocal.Type)));
+                locals.Add(pendingBranchVar);
+                statements.Add(_F.Assignment(_F.Local(pendingBranchVar), _F.Default(pendingBranchVar.Type)));
+
+                LocalSymbol returnLocal = frame.returnValue;
+                if (returnLocal != null)
+                {
+                    locals.Add(returnLocal);
+                }
+
+                statements.Add(catchAndPendException);
+                statements.Add(syntheticFinally);
+
+                var completeTry = _F.Block(
+                    locals.ToImmutableAndFree(),
+                    statements.ToImmutableAndFree());
+
+                return completeTry;
             }
-
-            var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-            var statements = ArrayBuilder<BoundStatement>.GetInstance();
-
-            statements.Add(_F.HiddenSequencePoint());
-
-            locals.Add(pendingExceptionLocal);
-            statements.Add(_F.Assignment(_F.Local(pendingExceptionLocal), _F.Default(pendingExceptionLocal.Type)));
-            locals.Add(pendingBranchVar);
-            statements.Add(_F.Assignment(_F.Local(pendingBranchVar), _F.Default(pendingBranchVar.Type)));
-
-            LocalSymbol returnLocal = frame.returnValue;
-            if (returnLocal != null)
-            {
-                locals.Add(returnLocal);
-            }
-
-            statements.Add(catchAndPendException);
-            statements.Add(syntheticFinally);
-
-            var completeTry = _F.Block(
-                locals.ToImmutableAndFree(),
-                statements.ToImmutableAndFree());
-
-            return completeTry;
         }
 
         private BoundBlock PendBranches(

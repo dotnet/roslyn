@@ -22,12 +22,12 @@ internal static class IBufferGraphExtensions
     public static SnapshotSpan? MapUpOrDownToFirstMatch(this IBufferGraph bufferGraph, SnapshotSpan span, Predicate<ITextSnapshot> match)
     {
         var spans = bufferGraph.MapDownToFirstMatch(span, SpanTrackingMode.EdgeExclusive, match);
-        if (!spans.Any())
+        if (spans.Count == 0)
         {
             spans = bufferGraph.MapUpToFirstMatch(span, SpanTrackingMode.EdgeExclusive, match);
         }
 
-        return spans.Select(s => (SnapshotSpan?)s).FirstOrDefault();
+        return spans.Count > 0 ? spans[0] : null;
     }
 
     public static SnapshotSpan? MapUpOrDownToBuffer(this IBufferGraph bufferGraph, SnapshotSpan span, ITextBuffer targetBuffer)
@@ -41,13 +41,13 @@ internal static class IBufferGraphExtensions
             case BufferMapDirection.Down:
                 {
                     var spans = bufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeExclusive, targetBuffer);
-                    return spans.Select(s => (SnapshotSpan?)s).FirstOrDefault();
+                    return spans.Count > 0 ? spans[0] : null;
                 }
 
             case BufferMapDirection.Up:
                 {
                     var spans = bufferGraph.MapUpToBuffer(span, SpanTrackingMode.EdgeExclusive, targetBuffer);
-                    return spans.Select(s => (SnapshotSpan?)s).FirstOrDefault();
+                    return spans.Count > 0 ? spans[0] : null;
                 }
 
             default:

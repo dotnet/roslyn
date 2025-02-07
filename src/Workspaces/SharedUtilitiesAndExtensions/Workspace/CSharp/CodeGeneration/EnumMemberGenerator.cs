@@ -62,7 +62,7 @@ internal static class EnumMemberGenerator
             return reusableSyntax;
         }
 
-        var value = CreateEnumMemberValue(info.Generator, destination, enumMember);
+        var value = CreateEnumMemberValue(destination, enumMember);
         var member = EnumMemberDeclaration(enumMember.Name.ToIdentifierToken())
             .WithEqualsValue(value == null ? null : EqualsValueClause(value: value));
 
@@ -71,7 +71,7 @@ internal static class EnumMemberGenerator
     }
 
     private static ExpressionSyntax? CreateEnumMemberValue(
-        SyntaxGenerator generator, EnumDeclarationSyntax? destination, IFieldSymbol enumMember)
+        EnumDeclarationSyntax? destination, IFieldSymbol enumMember)
     {
         if (!enumMember.HasConstantValue)
         {
@@ -161,7 +161,6 @@ internal static class EnumMemberGenerator
         var underlyingType = namedType?.EnumUnderlyingType;
 
         return ExpressionGenerator.GenerateNonEnumValueExpression(
-            generator,
             underlyingType,
             enumMember.ConstantValue,
             canUseFieldReference: true);

@@ -34,6 +34,7 @@
       "Microsoft.CodeAnalysis.Debugging": "arcade",
       "Microsoft.CodeAnalysis.PooledObjects": "arcade",
       "Microsoft.CodeAnalysis.Collections": "arcade",
+      "Microsoft.CodeAnalysis.Threading": "arcade",
       "Microsoft.CodeAnalysis.Features": "arcade",
       "Microsoft.CodeAnalysis.EditorFeatures": "vssdk",
       "Microsoft.CodeAnalysis.EditorFeatures.Common": "vssdk",
@@ -94,6 +95,15 @@
   },
   "comment-about-servicing-branches": "For a list of VS versions under servicing, see https://docs.microsoft.com/en-us/visualstudio/releases/2019/servicing#support-options-for-enterprise-and-professional-customers",
   "branches": {
+    "release/vscode": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Validation]"
+    },
     "dev15.9.x-vs-deps": {
       "nugetKind": "PerBuildPreRelease",
       "vsBranch": "rel/d15.9",
@@ -142,24 +152,6 @@
       "vsBranch": "rel/d17.3",
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.3]"
-    },
-    "release/dev17.4": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.4",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.4]"
-    },
-    "release/dev17.5-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.5",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.5]"
     },
     "release/dev17.6": {
       "nugetKind": [
@@ -220,10 +212,46 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.12",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.12 P1]"
+      "insertionTitlePrefix": "[d17.12]"
+    },
+    "release/dev17.12-telmet": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.12telmet",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.12]"
+    },
+    "release/dev17.13": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.13",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.13 P3]"
+    },
+    "release/dev17.13-preview2.1": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.13",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.13 P2]"
+    },
+    "release/dev17.14": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.14",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.14 P1]",
+      "insertionCreateDraftPR": false
     },
     "main": {
       "nugetKind": [
@@ -232,8 +260,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.12 P2]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.14 P2]"
     },
     "dev/andrha/telemetry": {
       "nugetKind": [
@@ -264,6 +292,16 @@
       "insertionTitlePrefix": "[Do not merge, please close me]",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false
+    },
+    "features/vscode_net9": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionTitlePrefix": "[Do not merge, please close me]",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true
     }
   }
 }

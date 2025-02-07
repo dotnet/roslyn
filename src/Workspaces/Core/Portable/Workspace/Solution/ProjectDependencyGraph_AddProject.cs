@@ -28,13 +28,13 @@ public partial class ProjectDependencyGraph
         if (!newDependencySets.IsDefault)
         {
             var builder = newDependencySets.ToBuilder();
-            builder.Add(ImmutableArray.Create(projectId));
+            builder.Add([projectId]);
             newDependencySets = builder.ToImmutable();
         }
 
         // The rest of the references map is unchanged, since no new references are added in this call.
         return new ProjectDependencyGraph(
-            _projectIds.Add(projectId),
+            ProjectIds.Add(projectId),
             referencesMap: _referencesMap,
             reverseReferencesMap: _lazyReverseReferencesMap,
             transitiveReferencesMap: _transitiveReferencesMap,

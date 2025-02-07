@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Collections;
@@ -36,6 +37,28 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// If the given key is not found in the dictionary, add it with the result of invoking getValue and return the value.
+        /// Otherwise return the existing value associated with that key.
+        /// </summary>
+        public static TValue GetOrAdd<TKey, TValue>(
+            this Dictionary<TKey, TValue> dictionary,
+            TKey key,
+            Func<TValue> getValue)
+            where TKey : notnull
+        {
+            if (dictionary.TryGetValue(key, out var existingValue))
+            {
+                return existingValue;
+            }
+            else
+            {
+                var value = getValue();
+                dictionary.Add(key, value);
+                return value;
+            }
+        }
+
 #if !NETCOREAPP
         public static bool TryAdd<TKey, TValue>(
             this Dictionary<TKey, TValue> dictionary,
@@ -53,7 +76,7 @@ namespace Microsoft.CodeAnalysis
         }
 #endif
 
-        public static void AddPooled<K, V>(this IDictionary<K, ArrayBuilder<V>> dictionary, K key, V value)
+        public static void AddPooled<K, V>(this Dictionary<K, ArrayBuilder<V>> dictionary, K key, V value)
             where K : notnull
         {
             if (!dictionary.TryGetValue(key, out var values))
@@ -65,15 +88,22 @@ namespace Microsoft.CodeAnalysis
             values.Add(value);
         }
 
-        public static ImmutableSegmentedDictionary<K, ImmutableArray<V>> ToImmutableSegmentedDictionaryAndFree<K, V>(this IReadOnlyDictionary<K, ArrayBuilder<V>> builder)
+        /// <summary>
+        /// Converts the passed in dictionary to an <see cref="ImmutableSegmentedDictionary{TKey, TValue}"/>, where all
+        /// the values in the passed builder will be converted to an <see cref="ImmutableArray{T}"/> using <see
+        /// cref="ArrayBuilder{T}.ToImmutableAndFree"/>.  The <paramref name="dictionary"/> will be freed at the end of
+        /// this method as well, and should not be used afterwards.
+        /// </summary>
+        public static ImmutableSegmentedDictionary<K, ImmutableArray<V>> ToImmutableSegmentedDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> dictionary)
             where K : notnull
         {
             var result = ImmutableSegmentedDictionary.CreateBuilder<K, ImmutableArray<V>>();
-            foreach (var (key, values) in builder)
+            foreach (var (key, values) in dictionary)
             {
                 result.Add(key, values.ToImmutableAndFree());
             }
 
+            dictionary.Free();
             return result.ToImmutable();
         }
     }

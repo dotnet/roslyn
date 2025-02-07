@@ -33,23 +33,22 @@ internal abstract partial class TreeData
     public static TreeData Create(SyntaxTrivia trivia, int initialColumn)
         => new StructuredTrivia(trivia, initialColumn);
 
-    private readonly SyntaxNode _root;
     private readonly SyntaxToken _firstToken;
     private readonly SyntaxToken _lastToken;
 
     public TreeData(SyntaxNode root)
     {
         Contract.ThrowIfNull(root);
-        _root = root;
+        Root = root;
 
-        _firstToken = _root.GetFirstToken(includeZeroWidth: true);
-        _lastToken = _root.GetLastToken(includeZeroWidth: true);
+        _firstToken = Root.GetFirstToken(includeZeroWidth: true);
+        _lastToken = Root.GetLastToken(includeZeroWidth: true);
     }
 
     public abstract string GetTextBetween(SyntaxToken token1, SyntaxToken token2);
     public abstract int GetOriginalColumn(int tabSize, SyntaxToken token);
 
-    public SyntaxNode Root => _root;
+    public SyntaxNode Root { get; }
 
     public bool IsFirstToken(SyntaxToken token)
         => _firstToken == token;

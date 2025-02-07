@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private void Options_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var listView = (AutomationDelegatingListView)sender;
-            if (listView.SelectedItem is CheckBoxOptionViewModel checkbox)
+            if (listView.SelectedItem is AbstractCheckBoxViewModel checkbox)
             {
                 ViewModel.UpdatePreview(checkbox.GetPreview());
             }

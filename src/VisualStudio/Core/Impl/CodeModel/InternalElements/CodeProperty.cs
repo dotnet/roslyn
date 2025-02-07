@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             => this.Attributes;
 
         internal override ImmutableArray<SyntaxNode> GetParameters()
-            => ImmutableArray.CreateRange(CodeModelService.GetParameterNodes(LookupNode()));
+            => [.. CodeModelService.GetParameterNodes(LookupNode())];
 
         protected override object GetExtenderNames()
             => CodeModelService.GetPropertyExtenderNames();

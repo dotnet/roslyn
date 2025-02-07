@@ -133,7 +133,7 @@ public class CodeRefactoringServiceTest
         public StubAnalyzerReference() : this(new StubRefactoring()) { }
 
         public StubAnalyzerReference(params CodeRefactoringProvider[] codeRefactorings)
-            => _refactorings = codeRefactorings.ToImmutableArray();
+            => _refactorings = [.. codeRefactorings];
 
         public override string Display => nameof(StubAnalyzerReference);
 
@@ -142,10 +142,10 @@ public class CodeRefactoringServiceTest
         public override object Id => nameof(StubAnalyzerReference);
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
-            => ImmutableArray<DiagnosticAnalyzer>.Empty;
+            => [];
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-            => ImmutableArray<DiagnosticAnalyzer>.Empty;
+            => [];
 
         public ImmutableArray<CodeRefactoringProvider> GetRefactorings()
             => _refactorings;
@@ -256,8 +256,8 @@ public class CodeRefactoringServiceTest
 #pragma warning disable RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
     [ExportCodeRefactoringProvider(
         LanguageNames.CSharp,
-        DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument), nameof(TextDocumentKind.AnalyzerConfigDocument) },
-        DocumentExtensions = new[] { ".txt", ".editorconfig" })]
+        DocumentKinds = [nameof(TextDocumentKind.AdditionalDocument), nameof(TextDocumentKind.AnalyzerConfigDocument)],
+        DocumentExtensions = [".txt", ".editorconfig"])]
     [Shared]
     internal sealed class NonSourceFileRefactoringWithDocumentKindsAndExtensions : AbstractNonSourceFileRefactoring
     {
@@ -266,7 +266,7 @@ public class CodeRefactoringServiceTest
 
     [ExportCodeRefactoringProvider(
         LanguageNames.CSharp,
-        DocumentKinds = new[] { nameof(TextDocumentKind.AdditionalDocument), nameof(TextDocumentKind.AnalyzerConfigDocument) })]
+        DocumentKinds = [nameof(TextDocumentKind.AdditionalDocument), nameof(TextDocumentKind.AnalyzerConfigDocument)])]
     [Shared]
     internal sealed class NonSourceFileRefactoringWithDocumentKinds : AbstractNonSourceFileRefactoring
     {
@@ -275,7 +275,7 @@ public class CodeRefactoringServiceTest
 
     [ExportCodeRefactoringProvider(
         LanguageNames.CSharp,
-        DocumentExtensions = new[] { ".txt", ".editorconfig" })]
+        DocumentExtensions = [".txt", ".editorconfig"])]
     [Shared]
     internal sealed class NonSourceFileRefactoringWithDocumentExtensions : AbstractNonSourceFileRefactoring
     {

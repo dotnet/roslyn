@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString), Shared]
-internal partial class CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider :
+internal sealed partial class CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider :
     AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<
         ExpressionSyntax,
         LiteralExpressionSyntax,

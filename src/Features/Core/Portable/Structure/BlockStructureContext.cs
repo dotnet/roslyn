@@ -12,12 +12,20 @@ namespace Microsoft.CodeAnalysis.Structure;
 [NonCopyable]
 internal readonly struct BlockStructureContext(SyntaxTree syntaxTree, BlockStructureOptions options, CancellationToken cancellationToken) : IDisposable
 {
-    public readonly ArrayBuilder<BlockSpan> Spans = ArrayBuilder<BlockSpan>.GetInstance();
+    // We keep our own ObjectPool of ArrayBuilders as we want to use ArrayBuilders for their ability to efficiently create ImmutableArrays, but don't
+    // want the maximum capacity the default pool uses for dropping items from the pool.
+    private static readonly ObjectPool<ArrayBuilder<BlockSpan>> _blockSpanArrayBuilderPool = new ObjectPool<ArrayBuilder<BlockSpan>>(() => new ArrayBuilder<BlockSpan>());
+
+    public readonly ArrayBuilder<BlockSpan> Spans = _blockSpanArrayBuilderPool.Allocate();
 
     public readonly SyntaxTree SyntaxTree = syntaxTree;
     public readonly BlockStructureOptions Options = options;
     public readonly CancellationToken CancellationToken = cancellationToken;
 
     public void Dispose()
-        => Spans.Free();
+    {
+        // Do not call Free on the builder as we are not using the default pool
+        Spans.Clear();
+        _blockSpanArrayBuilderPool.Free(Spans);
+    }
 }

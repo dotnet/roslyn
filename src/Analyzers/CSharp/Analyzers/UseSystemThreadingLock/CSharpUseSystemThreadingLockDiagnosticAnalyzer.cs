@@ -46,7 +46,6 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
     /// <summary>
     /// A method body edit anywhere in a type will force us to reanalyze the whole type.
     /// </summary>
-    /// <returns></returns>
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 

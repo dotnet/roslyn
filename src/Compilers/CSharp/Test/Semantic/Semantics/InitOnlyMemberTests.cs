@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -3462,7 +3463,10 @@ public class D
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9,
+                options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
+                    // warning CS1685: The predefined type 'DefaultMemberAttribute' is defined in multiple assemblies
+                    ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS1685", ReportDiagnostic.Suppress)));
             comp.VerifyEmitDiagnostics(
                 // (4,25): error CS0569: 'Derived.this[int]': cannot override 'C.this[int]' because it is not supported by the language
                 //     public override int this[int i] { set { throw null; } }
@@ -3558,7 +3562,10 @@ public class Derived2 : C
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9,
+                options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
+                    // warning CS1685: The predefined type 'DefaultMemberAttribute' is defined in multiple assemblies
+                    ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS1685", ReportDiagnostic.Suppress)));
             comp.VerifyEmitDiagnostics(
                 // (4,39): error CS0570: 'C.this[int].set' is not supported by the language
                 //     public override int this[int i] { set { throw null; } }
@@ -4584,7 +4591,7 @@ public abstract class ClassITest28 //: ITest28
 }
 ";
 
-            var piaCompilation = CreateCompilationWithMscorlib45(new[] { IsExternalInitTypeDefinition, pia }, options: TestOptions.DebugDll);
+            var piaCompilation = CreateCompilationWithMscorlib461(new[] { IsExternalInitTypeDefinition, pia }, options: TestOptions.DebugDll);
 
             CompileAndVerify(piaCompilation);
 
@@ -4600,7 +4607,7 @@ class UsePia
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { source },
+            var compilation = CreateCompilationWithMscorlib461(new[] { source },
                 new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
                 options: TestOptions.DebugExe);
 

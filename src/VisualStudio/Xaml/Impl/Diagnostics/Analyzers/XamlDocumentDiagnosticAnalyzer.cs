@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers
         {
             get
             {
-                return XamlProjectService.AnalyzerService?.SupportedDiagnostics ?? ImmutableArray<DiagnosticDescriptor>.Empty;
+                return XamlProjectService.AnalyzerService?.SupportedDiagnostics ?? [];
             }
         }
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers
         {
             if (XamlProjectService.AnalyzerService == null)
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                return [];
             }
 
             return await XamlProjectService.AnalyzerService.AnalyzeSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers
         {
             if (XamlProjectService.AnalyzerService == null)
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                return [];
             }
 
             return await XamlProjectService.AnalyzerService.AnalyzeSemanticsAsync(document, cancellationToken).ConfigureAwait(false);

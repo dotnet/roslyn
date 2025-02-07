@@ -6,8 +6,9 @@ namespace Roslyn.LanguageServer.Protocol
 {
     /// <summary>
     /// Message type enum.
-    ///
+    ///<para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#messageType">Language Server Protocol specification</see> for additional information.
+    ///</para>
     /// </summary>
     internal enum MessageType
     {
@@ -30,5 +31,11 @@ namespace Roslyn.LanguageServer.Protocol
         /// Log message.
         /// </summary>
         Log = 4,
+
+        /// <summary>
+        /// Debug message
+        /// </summary>
+        /// <remarks>Since LSP 3.18</remarks>
+        Debug = 5,
     }
 }

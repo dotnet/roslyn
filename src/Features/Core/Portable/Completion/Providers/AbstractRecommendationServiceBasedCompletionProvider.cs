@@ -60,7 +60,7 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
             if (!shouldPreselectInferredTypes)
                 return recommendedSymbols.NamedSymbols.SelectAsArray(s => new SymbolAndSelectionInfo(Symbol: s, Preselect: false));
 
-            var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToSet();
+            var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToSet(SymbolEqualityComparer.Default);
 
             return recommendedSymbols.NamedSymbols.SelectAsArray(
                 static (symbol, args) =>
@@ -68,7 +68,8 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
                     // Don't preselect intrinsic type symbols so we can preselect their keywords instead. We will also
                     // ignore nullability for purposes of preselection -- if a method is returning a string? but we've
                     // inferred we're assigning to a string or vice versa we'll still count those as the same.
-                    var preselect = args.inferredTypes.Contains(GetSymbolType(symbol), SymbolEqualityComparer.Default) && !args.self.IsInstrinsic(symbol);
+
+                    var preselect = !args.self.IsInstrinsic(symbol) && args.inferredTypes.Count > 0 && args.inferredTypes.Contains(GetSymbolType(symbol));
                     return new SymbolAndSelectionInfo(symbol, preselect);
                 },
                 (inferredTypes, self: this));
@@ -78,7 +79,7 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
     private static bool IsValidForTaskLikeTypeOnlyContext(ISymbol symbol, TSyntaxContext context)
     {
         // We want to allow all namespaces as the user may be typing a namespace name to get to a task-like type.
-        if (symbol.IsNamespace())
+        if (symbol is INamespaceSymbol)
             return true;
 
         if (symbol is not INamedTypeSymbol namedType ||
@@ -103,11 +104,8 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
 
     private static bool IsValidForGenericConstraintContext(ISymbol symbol)
     {
-        if (symbol.IsNamespace() ||
-            symbol.IsKind(SymbolKind.TypeParameter))
-        {
+        if (symbol is INamespaceSymbol or ITypeParameterSymbol)
             return true;
-        }
 
         if (symbol is not INamedTypeSymbol namedType ||
             symbol.IsDelegateType() ||

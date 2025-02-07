@@ -156,6 +156,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(
                 ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
+                // Make sure we're explicitly on the background, to do as much as possible in a non-blocking fashion.
+                await TaskScheduler.Default;
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // This function gets called immediately after operations like scrolling.  We want to wait just a small
                 // amount to ensure that we don't immediately start consuming CPU/memory which then impedes the very
                 // action the user is trying to perform.  To accomplish this, we wait 100ms.  That's longer than normal
@@ -176,12 +180,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var workspace = state.Target.Workspace;
                 if (workspace == null)
                     return null;
-
-                // never show light bulb if solution is not fully loaded yet
-                if (!await workspace.Services.GetRequiredService<IWorkspaceStatusService>().IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
-                    return null;
-
-                cancellationToken.ThrowIfCancellationRequested();
 
                 using var asyncToken = state.Target.Owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync));
                 var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();

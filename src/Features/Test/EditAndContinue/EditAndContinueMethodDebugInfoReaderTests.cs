@@ -86,9 +86,9 @@ class C
             // Main method
             var debugInfo = reader.GetDebugInfo(MetadataTokens.MethodDefinitionHandle(5));
             Assert.Equal(0, debugInfo.GetMethodOrdinal());
-            AssertEx.Equal(new[] { "Offset=0 Ordinal=0 Kind=LambdaDisplayClass", "Offset=33 Ordinal=0 Kind=UserDefined" }, debugInfo.InspectLocalSlots());
-            AssertEx.Equal(new[] { "Offset=43 Id=0#0 Closure=0" }, debugInfo.InspectLambdas());
-            AssertEx.Equal(new[] { "Offset=0 Id=0#0" }, debugInfo.InspectClosures());
+            AssertEx.Equal(["Offset=0 Ordinal=0 Kind=LambdaDisplayClass", "Offset=33 Ordinal=0 Kind=UserDefined"], debugInfo.InspectLocalSlots());
+            AssertEx.Equal(["Offset=43 Id=0#0 Closure=0"], debugInfo.InspectLambdas());
+            AssertEx.Equal(["Offset=0 Id=0#0"], debugInfo.InspectClosures());
 
             var localSig = reader.GetLocalSignature(MetadataTokens.MethodDefinitionHandle(5));
             Assert.Equal(MetadataTokens.StandaloneSignatureHandle(1), localSig);

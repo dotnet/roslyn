@@ -185,7 +185,7 @@ internal sealed class RoslynGraphProvider : IGraphProvider
             yield return new GraphCommand(
                 GraphCommandDefinition.Contains,
                 targetCategories: null,
-                linkCategories: new[] { GraphCommonSchema.Contains },
+                linkCategories: [GraphCommonSchema.Contains],
                 trackChanges: true);
         }
 
@@ -202,13 +202,13 @@ internal sealed class RoslynGraphProvider : IGraphProvider
             yield return new GraphCommand(
                 GraphCommandDefinition.BaseTypes,
                 targetCategories: null,
-                linkCategories: new[] { CodeLinkCategories.InheritsFrom },
+                linkCategories: [CodeLinkCategories.InheritsFrom],
                 trackChanges: true);
 
             yield return new GraphCommand(
                 GraphCommandDefinition.DerivedTypes,
                 targetCategories: null,
-                linkCategories: new[] { CodeLinkCategories.InheritsFrom },
+                linkCategories: [CodeLinkCategories.InheritsFrom],
                 trackChanges: true);
         }
 
@@ -218,7 +218,7 @@ internal sealed class RoslynGraphProvider : IGraphProvider
             yield return new GraphCommand(
                 GraphCommandDefinition.Calls,
                 targetCategories: null,
-                linkCategories: new[] { CodeLinkCategories.Calls },
+                linkCategories: [CodeLinkCategories.Calls],
                 trackChanges: true);
         }
 
@@ -229,15 +229,15 @@ internal sealed class RoslynGraphProvider : IGraphProvider
             yield return new GraphCommand(
                 GraphCommandDefinition.IsCalledBy,
                 targetCategories: null,
-                linkCategories: new[] { CodeLinkCategories.Calls },
+                linkCategories: [CodeLinkCategories.Calls],
                 trackChanges: true);
         }
 
         // Show 'Is Used By'
         yield return new GraphCommand(
             GraphCommandDefinition.IsUsedBy,
-            targetCategories: new[] { CodeNodeCategories.SourceLocation },
-            linkCategories: new[] { CodeLinkCategories.SourceReferences },
+            targetCategories: [CodeNodeCategories.SourceLocation],
+            linkCategories: [CodeLinkCategories.SourceReferences],
             trackChanges: true);
 
         // Show 'Implements' on a class or struct, or an applicable member in a class or struct.
@@ -247,7 +247,7 @@ internal sealed class RoslynGraphProvider : IGraphProvider
             yield return new GraphCommand(
                 s_implementsCommandDefinition,
                 targetCategories: null,
-                linkCategories: new[] { CodeLinkCategories.Implements },
+                linkCategories: [CodeLinkCategories.Implements],
                 trackChanges: true);
         }
 
@@ -263,7 +263,7 @@ internal sealed class RoslynGraphProvider : IGraphProvider
                 yield return new GraphCommand(
                     s_implementsCommandDefinition,
                     targetCategories: null,
-                    linkCategories: new[] { CodeLinkCategories.Implements },
+                    linkCategories: [CodeLinkCategories.Implements],
                     trackChanges: true);
             }
         }
@@ -275,7 +275,7 @@ internal sealed class RoslynGraphProvider : IGraphProvider
             yield return new GraphCommand(
                 s_implementedByCommandDefinition,
                 targetCategories: null,
-                linkCategories: new[] { CodeLinkCategories.Implements },
+                linkCategories: [CodeLinkCategories.Implements],
                 trackChanges: true);
         }
 
@@ -286,7 +286,7 @@ internal sealed class RoslynGraphProvider : IGraphProvider
             yield return new GraphCommand(
                 s_implementedByCommandDefinition,
                 targetCategories: null,
-                linkCategories: new[] { CodeLinkCategories.Implements },
+                linkCategories: [CodeLinkCategories.Implements],
                 trackChanges: true);
         }
 
@@ -298,7 +298,7 @@ internal sealed class RoslynGraphProvider : IGraphProvider
             yield return new GraphCommand(
                 s_overridesCommandDefinition,
                 targetCategories: null,
-                linkCategories: new[] { RoslynGraphCategories.Overrides },
+                linkCategories: [RoslynGraphCategories.Overrides],
                 trackChanges: true);
         }
 
@@ -310,7 +310,7 @@ internal sealed class RoslynGraphProvider : IGraphProvider
             yield return new GraphCommand(
                 s_overriddenByCommandDefinition,
                 targetCategories: null,
-                linkCategories: new[] { RoslynGraphCategories.Overrides },
+                linkCategories: [RoslynGraphCategories.Overrides],
                 trackChanges: true);
         }
     }
@@ -344,16 +344,16 @@ internal sealed class RoslynGraphProvider : IGraphProvider
         => typeKinds.Any(k => node[RoslynGraphProperties.TypeKind].Equals(k));
 
     private static readonly GraphCommandDefinition s_overridesCommandDefinition =
-        new("Overrides", ServicesVSResources.Overrides_, GraphContextDirection.Target, 700);
+        new("Overrides", EditorFeaturesResources.Overrides_, GraphContextDirection.Target, 700);
 
     private static readonly GraphCommandDefinition s_overriddenByCommandDefinition =
-        new("OverriddenBy", ServicesVSResources.Overridden_By, GraphContextDirection.Source, 700);
+        new("OverriddenBy", EditorFeaturesResources.Overridden_By, GraphContextDirection.Source, 700);
 
     private static readonly GraphCommandDefinition s_implementsCommandDefinition =
-        new("Implements", ServicesVSResources.Implements_, GraphContextDirection.Target, 600);
+        new("Implements", EditorFeaturesResources.Implements_, GraphContextDirection.Target, 600);
 
     private static readonly GraphCommandDefinition s_implementedByCommandDefinition =
-        new("ImplementedBy", ServicesVSResources.Implemented_By, GraphContextDirection.Source, 600);
+        new("ImplementedBy", EditorFeaturesResources.Implemented_By, GraphContextDirection.Source, 600);
 
     public T? GetExtension<T>(GraphObject graphObject, T previous) where T : class
     {

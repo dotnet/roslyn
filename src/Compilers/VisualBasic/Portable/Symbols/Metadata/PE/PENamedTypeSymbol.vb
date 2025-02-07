@@ -84,6 +84,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private _lazyHasVisualBasicEmbeddedAttribute As Integer = ThreeState.Unknown
 
+        Private _lazyHasCompilerLoweringPreserveAttribute As Integer = ThreeState.Unknown
+
         Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
 
         Private _lazyIsExtensibleInterface As ThreeState = ThreeState.Unknown
@@ -649,7 +651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Sub EnsureNonTypeMembersAreLoaded()
 
-            If _lazyMembers Is Nothing Then
+            If Volatile.Read(_lazyMembers) Is Nothing Then
                 ' A method may be referenced as an accessor by one or more properties. And,
                 ' any of those properties may be "bogus" if one of the property accessors
                 ' does not match the property signature. If the method is referenced by at
@@ -960,6 +962,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         ThreeState.Unknown)
                 End If
                 Return Me._lazyHasVisualBasicEmbeddedAttribute = ThreeState.True
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
+            Get
+                If Me._lazyHasCompilerLoweringPreserveAttribute = ThreeState.Unknown Then
+                    Interlocked.CompareExchange(
+                        Me._lazyHasCompilerLoweringPreserveAttribute,
+                        Me.ContainingPEModule.Module.HasCompilerLoweringPreserveAttribute(Me._handle).ToThreeState(),
+                        ThreeState.Unknown)
+                End If
+                Return Me._lazyHasCompilerLoweringPreserveAttribute = ThreeState.True
             End Get
         End Property
 

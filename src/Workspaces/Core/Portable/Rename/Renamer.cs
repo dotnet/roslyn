@@ -106,7 +106,7 @@ public static partial class Renamer
         if (document == null)
             throw new ArgumentNullException(nameof(document));
 
-        if (document.Services.GetService<ISpanMappingService>() != null)
+        if (document.DocumentServiceProvider.GetService<ISpanMappingService>() != null)
         {
             // Don't advertise that we can file rename generated documents that map to a different file.
             return new RenameDocumentActionSet([], document.Id, document.Name, [.. document.Folders], options);

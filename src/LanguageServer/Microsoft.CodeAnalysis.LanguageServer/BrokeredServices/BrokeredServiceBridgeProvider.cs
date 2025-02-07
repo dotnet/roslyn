@@ -69,7 +69,7 @@ internal class BrokeredServiceBridgeProvider
                 .WithTraceSource(_brokeredServiceTraceSource)
                 .ConstructRpc<IRemoteServiceBroker>(consumingServiceBrokerChannel);
 
-            using (container.ProfferRemoteBroker(remoteClient, bridgeMxStream, ServiceSource.OtherProcessOnSameMachine, Descriptors.RemoteServicesToRegister.Keys.ToImmutableHashSet()))
+            using (container.ProfferRemoteBroker(remoteClient, bridgeMxStream, ServiceSource.OtherProcessOnSameMachine, [.. Descriptors.RemoteServicesToRegister.Keys]))
             {
                 await consumingServiceBrokerChannel.Completion;
             }

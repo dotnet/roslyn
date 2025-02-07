@@ -87,15 +87,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
     internal class FSharpInlineRenameLocationSetLegacyWrapper : IInlineRenameLocationSet
     {
         private readonly IFSharpInlineRenameLocationSet _set;
-        private readonly IList<InlineRenameLocation> _locations;
 
         public FSharpInlineRenameLocationSetLegacyWrapper(IFSharpInlineRenameLocationSet set)
         {
             _set = set;
-            _locations = set.Locations?.Select(x => new InlineRenameLocation(x.Document, x.TextSpan)).ToList();
+            Locations = set.Locations?.Select(x => new InlineRenameLocation(x.Document, x.TextSpan)).ToList();
         }
 
-        public IList<InlineRenameLocation> Locations => _locations;
+        public IList<InlineRenameLocation> Locations { get; }
 
         public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, SymbolRenameOptions options, CancellationToken cancellationToken)
         {
@@ -204,9 +203,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         public bool IsEnabled => true;
 
-        public Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
+        public Task<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
         {
-            return Task.FromResult(ImmutableDictionary<string, ImmutableArray<string>>.Empty);
+            return Task.FromResult(ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty);
         }
 
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis;
 /// symbols in practice, this should not be expensive to hold onto.  Importantly, semantic models and 
 /// complex method binding/caching should never really happen with this compilation.
 /// </summary>
-internal class DeferredDocumentationProvider(Compilation compilation) : DocumentationProvider
+internal sealed class DeferredDocumentationProvider(Compilation compilation) : DocumentationProvider
 {
     private readonly Compilation _compilation = compilation.Clone();
 

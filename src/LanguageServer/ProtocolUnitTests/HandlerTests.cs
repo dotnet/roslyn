@@ -7,6 +7,7 @@ using System.Composition;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -32,7 +33,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             typeof(TestNotificationHandlerFactory),
             typeof(TestNotificationWithoutParamsHandlerFactory),
             typeof(TestLanguageSpecificHandler),
-            typeof(TestLanguageSpecificHandlerWithDifferentParams));
+            typeof(TestLanguageSpecificHandlerWithDifferentParams),
+            typeof(TestConfigurableDocumentHandler));
 
         [Theory, CombinatorialData]
         public async Task CanExecuteRequestHandler(bool mutatingLspWorkspace)
@@ -133,6 +135,166 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             var request = new TestRequestTypeThree("value");
             await Assert.ThrowsAnyAsync<Exception>(async () => await server.ExecuteRequestAsync<TestRequestTypeThree, string>(TestDocumentHandler.MethodName, request, CancellationToken.None));
             await server.AssertServerShuttingDownAsync();
+        }
+
+        [Theory, CombinatorialData]
+        public async Task NonMutatingHandlerExceptionNFWIsReported(bool mutatingLspWorkspace)
+        {
+            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+            var request = new TestRequestWithDocument(new TextDocumentIdentifier
+            {
+                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
+            });
+
+            var didReport = false;
+            FatalError.OverwriteHandler((exception, severity, dumps) =>
+            {
+                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
+                {
+                    didReport = true;
+                }
+            });
+
+            var response = Task.FromException<TestConfigurableResponse>(new InvalidOperationException(nameof(HandlerTests)));
+            TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: false, requiresLspSolution: true, response);
+
+            await Assert.ThrowsAnyAsync<Exception>(async ()
+                => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
+
+            Assert.True(didReport);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task NonMutatingHandlerExceptionNFWIsNotReportedForLocalRpcException(bool mutatingLspWorkspace)
+        {
+            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+            var request = new TestRequestWithDocument(new TextDocumentIdentifier
+            {
+                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
+            });
+
+            var didReport = false;
+            FatalError.OverwriteHandler((exception, severity, dumps) =>
+            {
+                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
+                {
+                    didReport = true;
+                }
+            });
+
+            var response = Task.FromException<TestConfigurableResponse>(new StreamJsonRpc.LocalRpcException(nameof(HandlerTests)) { ErrorCode = LspErrorCodes.ContentModified });
+            TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: false, requiresLspSolution: true, response);
+
+            await Assert.ThrowsAnyAsync<Exception>(async ()
+                => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
+
+            Assert.False(didReport);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task MutatingHandlerExceptionNFWIsReported(bool mutatingLspWorkspace)
+        {
+            var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+            var request = new TestRequestWithDocument(new TextDocumentIdentifier
+            {
+                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
+            });
+
+            var didReport = false;
+            FatalError.OverwriteHandler((exception, severity, dumps) =>
+            {
+                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
+                {
+                    didReport = true;
+                }
+            });
+
+            var response = Task.FromException<TestConfigurableResponse>(new InvalidOperationException(nameof(HandlerTests)));
+            TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: true, requiresLspSolution: true, response);
+
+            await Assert.ThrowsAnyAsync<Exception>(async ()
+                => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
+
+            await server.AssertServerShuttingDownAsync();
+
+            Assert.True(didReport);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task NonMutatingHandlerCancellationExceptionNFWIsNotReported(bool mutatingLspWorkspace)
+        {
+            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+            var request = new TestRequestWithDocument(new TextDocumentIdentifier
+            {
+                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
+            });
+
+            var didReport = false;
+            FatalError.OverwriteHandler((exception, severity, dumps) =>
+            {
+                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
+                {
+                    didReport = true;
+                }
+            });
+
+            var response = Task.FromException<TestConfigurableResponse>(new OperationCanceledException(nameof(HandlerTests)));
+            TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: false, requiresLspSolution: true, response);
+
+            await Assert.ThrowsAnyAsync<Exception>(async ()
+                => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
+
+            Assert.False(didReport);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task MutatingHandlerCancellationExceptionNFWIsNotReported(bool mutatingLspWorkspace)
+        {
+            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+            var request = new TestRequestWithDocument(new TextDocumentIdentifier
+            {
+                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
+            });
+
+            var didReport = false;
+            FatalError.OverwriteHandler((exception, severity, dumps) =>
+            {
+                if (exception.Message == nameof(HandlerTests) || exception.InnerException?.Message == nameof(HandlerTests))
+                {
+                    didReport = true;
+                }
+            });
+
+            var response = Task.FromException<TestConfigurableResponse>(new OperationCanceledException(nameof(HandlerTests)));
+            TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: true, requiresLspSolution: true, response);
+
+            await Assert.ThrowsAnyAsync<Exception>(async ()
+                => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
+
+            Assert.False(didReport);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestMutatingHandlerCrashesIfUnableToDetermineLanguage(bool mutatingLspWorkspace)
+        {
+            await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+            // Run a mutating request against a file which we have no saved languageId for
+            // and where the language cannot be determined from the URI.
+            // This should crash the server.
+            var looseFileUri = ProtocolConversions.CreateAbsoluteUri(@"untitled:untitledFile");
+            var request = new TestRequestTypeOne(new TextDocumentIdentifier
+            {
+                Uri = looseFileUri
+            });
+
+            await Assert.ThrowsAnyAsync<Exception>(async () => await testLspServer.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None)).ConfigureAwait(false);
+            await testLspServer.AssertServerShuttingDownAsync();
         }
 
         internal record TestRequestTypeOne([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);

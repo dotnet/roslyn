@@ -38,7 +38,7 @@ internal sealed class TestEvaluationData : EvaluationData
     public override ImmutableArray<string> GetItemValues(string name)
         => name switch
         {
-            "IntermediateAssembly" => ImmutableArray.Create(OutputAssembly),
+            "IntermediateAssembly" => [OutputAssembly],
             _ => throw ExceptionUtilities.UnexpectedValue(name)
         };
 }

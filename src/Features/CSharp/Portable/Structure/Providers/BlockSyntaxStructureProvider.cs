@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
@@ -19,7 +20,7 @@ internal sealed class BlockSyntaxStructureProvider : AbstractSyntaxNodeStructure
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,
         BlockSyntax node,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken)
     {
@@ -141,6 +142,9 @@ internal sealed class BlockSyntaxStructureProvider : AbstractSyntaxNodeStructure
                     type: type));
             }
         }
+
+        // Add any leading comments before the end of the block
+        CSharpStructureHelpers.CollectCommentBlockSpans(node.CloseBraceToken.LeadingTrivia, spans);
     }
 
     private static bool IsNonBlockStatement(SyntaxNode node)

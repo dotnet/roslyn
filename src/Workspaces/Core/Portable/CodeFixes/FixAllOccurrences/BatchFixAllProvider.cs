@@ -28,8 +28,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
     }
 
     public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-        => ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project,
-            FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType);
+        => [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType];
 
     public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         => DefaultFixAllProviderHelpers.GetFixAsync(

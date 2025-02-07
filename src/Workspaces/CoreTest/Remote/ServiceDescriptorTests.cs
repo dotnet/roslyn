@@ -231,11 +231,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var options = new object[]
             {
-                SimplifierOptions.GetDefault(languageServices),
-                SyntaxFormattingOptions.GetDefault(languageServices),
-                CodeCleanupOptions.GetDefault(languageServices),
-                CodeGenerationOptions.GetDefault(languageServices),
-                IndentationOptions.GetDefault(languageServices),
+                SimplifierOptionsProviders.GetDefault(languageServices),
+                SyntaxFormattingOptionsProviders.GetDefault(languageServices),
+                CodeCleanupOptionsProviders.GetDefault(languageServices),
+                CodeGenerationOptionsProviders.GetDefault(languageServices),
+                IndentationOptionsProviders.GetDefault(languageServices),
                 ExtractMethodGenerationOptions.GetDefault(languageServices),
 
                 // some non-default values:

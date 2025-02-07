@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents the server hover support.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#hoverOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class HoverOptions : IWorkDoneProgressOptions
     {

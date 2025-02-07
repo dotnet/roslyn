@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing additional information about the content in which a completion request is triggered.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionContext">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class CompletionContext
     {
@@ -17,6 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the <see cref="CompletionTriggerKind"/> indicating how the completion was triggered.
         /// </summary>
         [JsonPropertyName("triggerKind")]
+        [JsonRequired]
         public CompletionTriggerKind TriggerKind
         {
             get;
@@ -24,7 +26,8 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the character that triggered code completion.
+        /// The trigger character (a single character) that has triggered code completion.
+        /// Undefined when <see cref="TriggerKind"/> is not <see cref="CompletionTriggerKind.TriggerCharacter"/>
         /// </summary>
         [JsonPropertyName("triggerCharacter")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

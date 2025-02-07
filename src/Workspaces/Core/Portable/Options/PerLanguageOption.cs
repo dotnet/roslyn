@@ -43,7 +43,7 @@ public class PerLanguageOption<T> : IPublicOption
                OptionGroup.Default,
                name ?? throw new ArgumentNullException(nameof(name)),
                defaultValue,
-               PublicContract.RequireNonNullItems(storageLocations, nameof(storageLocations)).ToImmutableArray(),
+               [.. PublicContract.RequireNonNullItems(storageLocations, nameof(storageLocations))],
                storageMapping: null,
                isEditorConfigOption: false)
     {

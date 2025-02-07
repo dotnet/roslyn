@@ -75,7 +75,7 @@ internal abstract class AbstractSimplifyThisOrMeDiagnosticAnalyzer<
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor, thisExpression.GetLocation(), notification,
             context.Options,
-            ImmutableArray.Create(memberAccessExpression.GetLocation()),
+            [memberAccessExpression.GetLocation()],
             builder.ToImmutable()));
     }
 }

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
@@ -43,6 +44,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return Nothing
             End Get
         End Property
+
+        Public Overrides Function TryGetOrCreateSynthesizedHotReloadExceptionType() As INamedTypeSymbolInternal
+            Return Nothing
+        End Function
+
+        Public Overrides Function GetOrCreateHotReloadExceptionConstructorDefinition() As IMethodSymbolInternal
+            ' Should only be called when compiling EnC delta. EnC does not support emitting netmodules.
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Public Overrides Function GetUsedSynthesizedHotReloadExceptionType() As INamedTypeSymbolInternal
+            Return Nothing
+        End Function
 
         Public Overrides Function GetFiles(context As EmitContext) As IEnumerable(Of Cci.IFileReference)
             Return SpecializedCollections.EmptyEnumerable(Of Cci.IFileReference)()

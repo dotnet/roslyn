@@ -7,6 +7,21 @@
         <target state="translated">No se puede deserializar el URI. Se encontró un valor inesperado: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="FormattingOptionsEncounteredInvalidToken">
+        <source>Unable to deserialize FormattingOptions. Invalid token: {0}</source>
+        <target state="translated">No se puede deserializar FormattingOptions. Token no válido: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FormattingOptionsEndedUnexpectedly">
+        <source>Unable to deserialize FormattingOptions as it ended unexpectedly</source>
+        <target state="translated">No se puede deserializar FormattingOptions porque ha finalizado de manera inesperada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FormattingOptionsMissingRequiredProperty">
+        <source>Unable to deserialize FormattingOptions. Missing required property: {0}</source>
+        <target state="translated">No se puede deserializar FormattingOptions. Falta la propiedad obligatoria: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MarkupContentSerializationError">
         <source>Unable to deserialize MarkupContent. Unexpected value encountered: {0}</source>
         <target state="translated">No se puede deserializar MarkupContent. Se encontró un valor inesperado: {0}</target>

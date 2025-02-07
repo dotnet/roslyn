@@ -42,9 +42,8 @@ internal sealed class CleanableWeakComHandleTable<TKey, TValue> where TValue : c
     public TimeSpan CleanUpTimeSlice { get; }
 
     private int _itemsAddedSinceLastCleanUp;
-    private bool _needsCleanUp;
 
-    public bool NeedsCleanUp => _needsCleanUp;
+    public bool NeedsCleanUp { get; private set; }
 
     public CleanableWeakComHandleTable(IThreadingContext threadingContext, int? cleanUpThreshold = null, TimeSpan? cleanUpTimeSlice = null)
     {
@@ -67,13 +66,13 @@ internal sealed class CleanableWeakComHandleTable<TKey, TValue> where TValue : c
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
-        if (!_needsCleanUp)
+        if (!NeedsCleanUp)
         {
             return;
         }
 
         // Immediately mark as not needing cleanup; this operation will clean up the table by the time it returns.
-        _needsCleanUp = false;
+        NeedsCleanUp = false;
 
         var timeSlice = new TimeSlice(CleanUpTimeSlice);
 
@@ -159,7 +158,7 @@ internal sealed class CleanableWeakComHandleTable<TKey, TValue> where TValue : c
         _itemsAddedSinceLastCleanUp++;
         if (_itemsAddedSinceLastCleanUp >= CleanUpThreshold)
         {
-            _needsCleanUp = true;
+            NeedsCleanUp = true;
             _itemsAddedSinceLastCleanUp = 0;
         }
 

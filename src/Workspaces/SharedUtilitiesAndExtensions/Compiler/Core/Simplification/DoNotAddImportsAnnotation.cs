@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Simplification;
 // SymbolAnnotation. However that would require additional substring operations to retrieve
 // SymbolAnnotation symbols even in the common case where we don't need to suppress add imports.
 // This is therefore implemented as a separate annotation.
-internal class DoNotAddImportsAnnotation
+internal sealed class DoNotAddImportsAnnotation
 {
     public static readonly SyntaxAnnotation Annotation = new(Kind);
     public const string Kind = "DoNotAddImports";

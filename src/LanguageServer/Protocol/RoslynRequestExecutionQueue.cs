@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
@@ -25,15 +25,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _initializeManager = languageServer.GetLspServices().GetRequiredService<IInitializeManager>();
         }
 
-        public override Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
+        public override async Task WrapStartRequestTaskAsync(Task requestTask, bool rethrowExceptions)
         {
-            if (rethrowExceptions)
+            try
             {
-                return nonMutatingRequestTask;
+                await requestTask.ConfigureAwait(false);
             }
-            else
+            catch (Exception) when (!rethrowExceptions)
             {
-                return nonMutatingRequestTask.ReportNonFatalErrorAsync();
+                // The caller has asked us to not rethrow, so swallow the exception to avoid bringing down the queue.
+                // The queue item task itself already handles reporting the exception (if any).
             }
         }
 

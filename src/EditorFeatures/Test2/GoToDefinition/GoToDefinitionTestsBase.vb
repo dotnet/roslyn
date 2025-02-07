@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
-    Public Class GoToDefinitionTestsBase
+    Public MustInherit Class GoToDefinitionTestsBase
         Public Shared Async Function TestAsync(
                 workspaceDefinition As XElement,
                 Optional expectedResult As Boolean = True) As Task
@@ -101,7 +101,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                             Dim definitionDocument = workspace.GetTestDocument(mockDocumentNavigationService._documentId)
                             Assert.Single(definitionDocument.SelectedSpans)
                             Dim expected = definitionDocument.SelectedSpans.Single()
-                            Assert.True(expected.Length = 0)
                             Assert.Equal(expected.Start, mockDocumentNavigationService._position)
 
                             ' The INavigableItemsPresenter should not have been called

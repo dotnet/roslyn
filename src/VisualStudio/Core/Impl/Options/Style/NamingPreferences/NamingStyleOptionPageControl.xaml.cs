@@ -38,13 +38,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         private readonly string _languageName;
         private readonly INotificationService _notificationService;
 
-        private readonly NotificationOptionViewModel[] _notifications = new[]
-        {
+        private readonly NotificationOptionViewModel[] _notifications =
+        [
             new NotificationOptionViewModel(NotificationOption2.Silent, KnownMonikers.None),
             new NotificationOptionViewModel(NotificationOption2.Suggestion, KnownMonikers.StatusInformation),
             new NotificationOptionViewModel(NotificationOption2.Warning, KnownMonikers.StatusWarning),
             new NotificationOptionViewModel(NotificationOption2.Error, KnownMonikers.StatusError)
-        };
+        ];
 
         internal NamingStyleOptionPageControl(OptionStore optionStore, INotificationService notificationService, string languageName)
             : base(optionStore)
@@ -60,8 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         {
             return new NamingStyleOptionPageViewModel.NamingRuleViewModel()
             {
-                Specifications = new ObservableCollection<SymbolSpecification>(_viewModel.Specifications),
-                NamingStyles = new ObservableCollection<MutableNamingStyle>(_viewModel.NamingStyles),
+                Specifications = [.. _viewModel.Specifications],
+                NamingStyles = [.. _viewModel.NamingStyles],
                 NotificationPreferences = _notifications
             };
         }
@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         internal override void OnSave()
         {
             var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
-            var namingRules = ArrayBuilder<SerializableNamingRule>.GetInstance();
+            var namingRules = ArrayBuilder<NamingRule>.GetInstance();
             var namingStyles = ArrayBuilder<NamingStyle>.GetInstance();
 
             foreach (var item in _viewModel.CodeStyleItems)
@@ -149,12 +149,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                     continue;
                 }
 
-                var rule = new SerializableNamingRule()
-                {
-                    EnforcementLevel = item.SelectedNotificationPreference.Notification.Severity,
-                    NamingStyleID = item.SelectedStyle.ID,
-                    SymbolSpecificationID = item.SelectedSpecification.ID
-                };
+                var rule = new NamingRule(
+                    item.SelectedSpecification,
+                    item.SelectedStyle.NamingStyle,
+                    item.SelectedNotificationPreference.Notification.Severity);
 
                 namingRules.Add(rule);
             }

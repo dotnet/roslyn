@@ -133,11 +133,8 @@ public class MakeMemberStaticTests
                 public static class Foo
                 {
                     static int i;
-
                     static void M() { }
-
                     static object P { get; set; }
-
                     static event System.Action E;
                 }
             }

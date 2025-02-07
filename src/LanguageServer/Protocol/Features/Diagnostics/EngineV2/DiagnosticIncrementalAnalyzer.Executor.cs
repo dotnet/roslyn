@@ -4,34 +4,34 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
         /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
         /// </summary>
         private async Task<ProjectAnalysisData> GetProjectAnalysisDataAsync(
-            CompilationWithAnalyzers? compilationWithAnalyzers, Project project, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
+            CompilationWithAnalyzersPair? compilationWithAnalyzers, Project project, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, stateSets, cancellationToken))
             {
                 try
                 {
-                    // PERF: We need to flip this to false when we do actual diffing.
-                    var avoidLoadingData = true;
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+                    var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, cancellationToken).ConfigureAwait(false);
 
                     if (existingData.Version == version)
                         return existingData;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // Now we run analyzers but filter out some information. So on such projects, there will be some perf degradation.
                     result = await RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(result, project, cancellationToken).ConfigureAwait(false);
 
-                    return new ProjectAnalysisData(project.Id, version, existingData.Result, result);
+                    return new ProjectAnalysisData(project.Id, version, result);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
@@ -88,14 +88,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Calculate all diagnostics for a given project using analyzers referenced by the project and specified IDE analyzers.
         /// </summary>
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
-            CompilationWithAnalyzers? compilationWithAnalyzers, Project project, ImmutableArray<DiagnosticAnalyzer> ideAnalyzers, CancellationToken cancellationToken)
+            CompilationWithAnalyzersPair? compilationWithAnalyzers, Project project, ImmutableArray<DiagnosticAnalyzer> ideAnalyzers, CancellationToken cancellationToken)
         {
             try
             {
                 var result = ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
 
                 // can be null if given project doesn't support compilation.
-                if (compilationWithAnalyzers?.Analyzers.Length > 0)
+                if (compilationWithAnalyzers?.ProjectAnalyzers.Length > 0
+                    || compilationWithAnalyzers?.HostAnalyzers.Length > 0)
                 {
                     // calculate regular diagnostic analyzers diagnostics
                     var resultMap = await _diagnosticAnalyzerRunner.AnalyzeProjectAsync(
@@ -108,7 +109,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // check whether there is IDE specific project diagnostic analyzer
-                return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(project, ideAnalyzers, compilationWithAnalyzers?.Compilation, result, cancellationToken).ConfigureAwait(false);
+                Debug.Assert(ideAnalyzers.All(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer));
+                return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(project, ideAnalyzers, compilationWithAnalyzers?.HostCompilation, result, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
-            CompilationWithAnalyzers? compilationWithAnalyzers, Project project, ImmutableArray<StateSet> stateSets,
+            CompilationWithAnalyzersPair? compilationWithAnalyzers, Project project, ImmutableArray<StateSet> stateSets,
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, CancellationToken cancellationToken)
         {
             try
@@ -129,18 +131,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
 
-                if (compilationWithAnalyzers != null && TryReduceAnalyzersToRun(compilationWithAnalyzers, version, existing, out var analyzersToRun))
+                if (compilationWithAnalyzers != null && TryReduceAnalyzersToRun(compilationWithAnalyzers, version, existing, out var projectAnalyzersToRun, out var hostAnalyzersToRun))
                 {
                     // it looks like we can reduce the set. create new CompilationWithAnalyzer.
                     // if we reduced to 0, we just pass in null for analyzer drvier. it could be reduced to 0
                     // since we might have up to date results for analyzers from compiler but not for 
                     // workspace analyzers.
 
-                    var compilationWithReducedAnalyzers = (analyzersToRun.Length == 0) ? null :
+                    var compilationWithReducedAnalyzers = (projectAnalyzersToRun.Length == 0 && hostAnalyzersToRun.Length == 0) ? null :
                         await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
                             project,
-                            analyzersToRun,
-                            compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics,
+                            projectAnalyzersToRun,
+                            hostAnalyzersToRun,
                             AnalyzerService.CrashOnAnalyzerException,
                             cancellationToken).ConfigureAwait(false);
 
@@ -180,35 +182,52 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         private static bool TryReduceAnalyzersToRun(
-            CompilationWithAnalyzers compilationWithAnalyzers, VersionStamp version,
+            CompilationWithAnalyzersPair compilationWithAnalyzers, VersionStamp version,
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
-            out ImmutableArray<DiagnosticAnalyzer> analyzers)
+            out ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
+            out ImmutableArray<DiagnosticAnalyzer> hostAnalyzers)
         {
-            analyzers = default;
-
-            var existingAnalyzers = compilationWithAnalyzers.Analyzers;
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            foreach (var analyzer in existingAnalyzers)
-            {
-                if (existing.TryGetValue(analyzer, out var analysisResult) &&
-                    analysisResult.Version == version)
+            projectAnalyzers = compilationWithAnalyzers.ProjectAnalyzers.WhereAsArray(
+                static (analyzer, arg) =>
                 {
-                    // we already have up to date result.
-                    continue;
-                }
+                    if (arg.existing.TryGetValue(analyzer, out var analysisResult) &&
+                        analysisResult.Version == arg.version)
+                    {
+                        // we already have up to date result.
+                        return false;
+                    }
 
-                // analyzer that is out of date.
-                // open file only analyzer is always out of date for project wide data
-                builder.Add(analyzer);
-            }
+                    // analyzer that is out of date.
+                    // open file only analyzer is always out of date for project wide data
+                    return true;
+                },
+                (existing, version));
 
-            // all of analyzers are out of date.
-            if (builder.Count == existingAnalyzers.Length)
+            hostAnalyzers = compilationWithAnalyzers.HostAnalyzers.WhereAsArray(
+                static (analyzer, arg) =>
+                {
+                    if (arg.existing.TryGetValue(analyzer, out var analysisResult) &&
+                        analysisResult.Version == arg.version)
+                    {
+                        // we already have up to date result.
+                        return false;
+                    }
+
+                    // analyzer that is out of date.
+                    // open file only analyzer is always out of date for project wide data
+                    return true;
+                },
+                (existing, version));
+
+            if (projectAnalyzers.Length == compilationWithAnalyzers.ProjectAnalyzers.Length
+                && hostAnalyzers.Length == compilationWithAnalyzers.HostAnalyzers.Length)
             {
+                // all of analyzers are out of date.
+                projectAnalyzers = default;
+                hostAnalyzers = default;
                 return false;
             }
 
-            analyzers = builder.ToImmutable();
             return true;
         }
 

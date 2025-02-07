@@ -7,7 +7,7 @@
     <TargetFrameworks>$(NetRoslynSourceBuild);netstandard2.0</TargetFrameworks>
 
     <!-- Used by Razor source generator which is included in source build. -->
-    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>

@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 {
     internal sealed class MefWorkspaceServices : HostWorkspaceServices
     {
-        private readonly IMefHostExportProvider _exportProvider;
         private readonly Workspace _workspace;
 
         private readonly ImmutableArray<(Lazy<IWorkspaceService, WorkspaceServiceMetadata> lazyService, bool usesFactory)> _services;
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         public MefWorkspaceServices(IMefHostExportProvider host, Workspace workspace)
         {
-            _exportProvider = host;
+            HostExportProvider = host;
             _workspace = workspace;
 
             var services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>()
@@ -48,15 +47,15 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             var factories = host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
                 .Select(lz => (new Lazy<IWorkspaceService, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata), usesFactory: true));
 
-            _services = services.Concat(factories).ToImmutableArray();
+            _services = [.. services, .. factories];
         }
 
         public override HostServices HostServices
         {
-            get { return (HostServices)_exportProvider; }
+            get { return (HostServices)HostExportProvider; }
         }
 
-        internal IMefHostExportProvider HostExportProvider => _exportProvider;
+        internal IMefHostExportProvider HostExportProvider { get; }
 
         internal string? WorkspaceKind => _workspace.Kind;
 
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             ImmutableArray<IDisposable> disposableServices;
             lock (_gate)
             {
-                disposableServices = _ownedDisposableServices.ToImmutableArray();
+                disposableServices = [.. _ownedDisposableServices];
                 _ownedDisposableServices.Clear();
             }
 
@@ -152,8 +151,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             var localLanguages = _languages;
             if (localLanguages.IsDefault)
             {
-                var list = _exportProvider.GetExports<ILanguageService, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language).Concat(
-                           _exportProvider.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language))
+                var list = HostExportProvider.GetExports<ILanguageService, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language).Concat(
+                           HostExportProvider.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language))
                            .Distinct()
                            .ToImmutableArray();
 
@@ -215,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         internal sealed class LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
         {
             public (string type, string layer)[] Metadata
-                => services.Select(s => (s.Metadata.ServiceType, s.Metadata.Layer)).ToArray();
+                => [.. services.Select(s => (s.Metadata.ServiceType, s.Metadata.Layer))];
         }
     }
 }

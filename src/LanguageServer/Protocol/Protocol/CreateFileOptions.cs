@@ -8,14 +8,19 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the options for a create file operation.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#createFileOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.13</remarks>
     internal class CreateFileOptions
     {
         /// <summary>
-        /// Gets or sets a value indicating whether the creation should overwrite the file if it already exists. (Overwrite wins over ignoreIfExists).
+        /// Gets or sets a value indicating whether the creation should overwrite the file if it already exists.
         /// </summary>
+        /// <remarks>
+        /// <see cref="Overwrite"/> wins over <see cref="IgnoreIfExists"/>.
+        /// </remarks>
         [JsonPropertyName("overwrite")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool Overwrite
@@ -27,6 +32,9 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets a value indicating whether the action should be ignored if the file already exists.
         /// </summary>
+        /// <remarks>
+        /// <see cref="Overwrite"/> wins over <see cref="IgnoreIfExists"/>.
+        /// </remarks>
         [JsonPropertyName("ignoreIfExists")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool IgnoreIfExists

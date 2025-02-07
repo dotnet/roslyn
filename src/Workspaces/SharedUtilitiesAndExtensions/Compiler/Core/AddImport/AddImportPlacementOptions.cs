@@ -3,16 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Options;
-
-#if !CODE_STYLE
-using Microsoft.CodeAnalysis.Host;
-#endif
 
 namespace Microsoft.CodeAnalysis.AddImport;
 

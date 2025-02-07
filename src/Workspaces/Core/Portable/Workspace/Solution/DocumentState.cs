@@ -59,7 +59,7 @@ internal partial class DocumentState : TextDocumentState
         ParseOptions? options,
         LoadTextOptions loadTextOptions)
     {
-        var textSource = CreateTextAndVersionSource(languageServices.SolutionServices, info, loadTextOptions);
+        var textSource = CreateTextAndVersionSource(languageServices.SolutionServices, info.TextLoader, info.FilePath, loadTextOptions);
 
         // If this is document that doesn't support syntax, then don't even bother holding
         // onto any tree source.  It will never be used to get a tree, and can only hurt us
@@ -358,7 +358,7 @@ internal partial class DocumentState : TextDocumentState
             if (existingTree.TryGetRoot(out var existingRoot) && !existingRoot.ContainsDirective(syntaxKinds.IfDirectiveTrivia))
             {
                 var treeFactory = LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
-                newTree = treeFactory.CreateSyntaxTree(Attributes.SyntaxTreeFilePath, options, existingTree.Encoding, LoadTextOptions.ChecksumAlgorithm, existingRoot);
+                newTree = treeFactory.CreateSyntaxTree(Attributes.SyntaxTreeFilePath, options, text: null, existingTree.Encoding, LoadTextOptions.ChecksumAlgorithm, existingRoot);
             }
 
             if (newTree is not null)
@@ -430,6 +430,16 @@ internal partial class DocumentState : TextDocumentState
             newTreeSource);
     }
 
+    protected override TextDocumentState UpdateDocumentServiceProvider(IDocumentServiceProvider? newProvider)
+        => new DocumentState(
+            LanguageServices,
+            newProvider,
+            Attributes,
+            TextAndVersionSource,
+            LoadTextOptions,
+            ParseOptions,
+            TreeSource);
+
     public new DocumentState WithAttributes(DocumentInfo.DocumentAttributes newAttributes)
         => (DocumentState)base.WithAttributes(newAttributes);
 
@@ -485,23 +495,8 @@ internal partial class DocumentState : TextDocumentState
         var newTextVersion = GetNewerVersion();
         var newTreeVersion = GetNewTreeVersionForUpdatedTree(newRoot, newTextVersion, mode);
 
-        // determine encoding
-        Encoding? encoding;
-
-        if (TryGetSyntaxTree(out var priorTree))
-        {
-            // this is most likely available since UpdateTree is normally called after modifying the existing tree.
-            encoding = priorTree.Encoding;
-        }
-        else if (TryGetText(out var priorText))
-        {
-            encoding = priorText.Encoding;
-        }
-        else
-        {
-            // the existing encoding was never observed so is unknown.
-            encoding = null;
-        }
+        // use the encoding that we get from the new root
+        var encoding = newRoot.SyntaxTree.Encoding;
 
         var syntaxTreeFactory = LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 
@@ -528,7 +523,7 @@ internal partial class DocumentState : TextDocumentState
             ParseOptions options,
             ISyntaxTreeFactoryService factory)
         {
-            var tree = factory.CreateSyntaxTree(attributes.SyntaxTreeFilePath, options, encoding, checksumAlgorithm, newRoot);
+            var tree = factory.CreateSyntaxTree(attributes.SyntaxTreeFilePath, options, text: null, encoding, checksumAlgorithm, newRoot);
 
             // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
             var lazyTextAndVersion = new TreeTextSource(

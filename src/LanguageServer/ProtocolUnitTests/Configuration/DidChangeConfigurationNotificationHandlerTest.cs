@@ -40,7 +40,7 @@ public class B { }";
             {
                 Workspace = new WorkspaceClientCapabilities()
                 {
-                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true },
+                    DidChangeConfiguration = new DidChangeConfigurationClientCapabilities() { DynamicRegistration = true },
                     Configuration = false
                 }
             };
@@ -69,7 +69,7 @@ public class A { }";
             {
                 Workspace = new WorkspaceClientCapabilities()
                 {
-                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true },
+                    DidChangeConfiguration = new DidChangeConfigurationClientCapabilities() { DynamicRegistration = true },
                     Configuration = true
                 }
             };
@@ -117,6 +117,7 @@ public class A { }";
                 "completion.dotnet_show_name_completion_suggestions",
                 "completion.dotnet_provide_regex_completions",
                 "completion.dotnet_show_completion_items_from_unimported_namespaces",
+                "completion.dotnet_trigger_completion_in_argument_lists",
                 "quick_info.dotnet_show_remarks_in_quick_info",
                 "navigation.dotnet_navigate_to_decompiled_sources",
                 "highlighting.dotnet_highlight_related_json_components",
@@ -143,11 +144,16 @@ public class A { }";
                 "background_analysis.dotnet_compiler_diagnostics_scope",
                 "code_lens.dotnet_enable_references_code_lens",
                 "code_lens.dotnet_enable_tests_code_lens",
+                "auto_insert.dotnet_enable_auto_insert",
                 "projects.dotnet_binary_log_path",
-                "projects.dotnet_enable_automatic_restore"
+                "projects.dotnet_enable_automatic_restore",
+                "navigation.dotnet_navigate_to_source_link_and_embedded_sources",
+                "formatting.dotnet_organize_imports_on_format",
             };
 
-            AssertEx.SetEqual(expectedNames, actualNames);
+            AssertEx.EqualOrDiff(
+                string.Join(Environment.NewLine, expectedNames),
+                string.Join(Environment.NewLine, actualNames));
         }
 
         private static void VerifyValuesInServer(EditorTestWorkspace workspace, List<string> expectedValues)

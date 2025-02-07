@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast;
 
 internal sealed partial class CSharpAddExplicitCastCodeFixProvider
 {
-    private class AttributeArgumentFixer : Fixer<AttributeArgumentSyntax, AttributeArgumentListSyntax, AttributeSyntax>
+    private sealed class AttributeArgumentFixer : Fixer<AttributeArgumentSyntax, AttributeArgumentListSyntax, AttributeSyntax>
     {
         protected override ExpressionSyntax GetExpressionOfArgument(AttributeArgumentSyntax argument)
             => argument.Expression;

@@ -7,6 +7,7 @@ Imports System.Linq
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
@@ -37,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 
             Assert.Equal(common.Value, lang.Value)
             Assert.Equal(common.Kind, lang.Kind)
-            Assert.Equal(Of Object)(common.Type, lang.Type)
+            AssertEx.Equal(Of Object)(common.Type, lang.Type)
 
             Assert.Equal(common.Value, common2.Value)
             Assert.Equal(common.Kind, common2.Kind)
@@ -50,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 
             Assert.Equal(commonArray.Values.Single(), langArray.Values.Single())
             Assert.Equal(commonArray.Kind, langArray.Kind)
-            Assert.Equal(Of Object)(commonArray.Type, langArray.Type)
+            AssertEx.Equal(Of Object)(commonArray.Type, langArray.Type)
 
             Assert.Equal(commonArray.Values, commonArray2.Values)
             Assert.Equal(commonArray.Kind, commonArray2.Kind)

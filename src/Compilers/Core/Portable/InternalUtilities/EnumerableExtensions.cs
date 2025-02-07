@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -385,11 +386,31 @@ namespace Roslyn.Utilities
             if (source == null)
                 return ImmutableArray<TResult>.Empty;
 
-            var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
+            var builder = new TResult[source.Count];
+            var index = 0;
             foreach (var item in source)
-                builder.Add(selector(item));
+            {
+                builder[index] = selector(item);
+                index++;
+            }
 
-            return builder.ToImmutableAndFree();
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+        }
+
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult, TArg>(this IReadOnlyCollection<TSource>? source, Func<TSource, TArg, TResult> selector, TArg arg)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = new TResult[source.Count];
+            var index = 0;
+            foreach (var item in source)
+            {
+                builder[index] = selector(item, arg);
+                index++;
+            }
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
 
         public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
@@ -438,6 +459,18 @@ namespace Roslyn.Utilities
             var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
             foreach (var item in source)
                 builder.AddRange(selector(item, arg));
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, OneOrMany<TResult>> selector)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in source)
+                selector(item).AddRangeTo(builder);
 
             return builder.ToImmutableAndFree();
         }
@@ -603,7 +636,7 @@ namespace Roslyn.Utilities
             return source.OrderByDescending(Comparer<T>.Create(compare));
         }
 
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
         public static IOrderedEnumerable<T> Order<T>(IEnumerable<T> source) where T : IComparable<T>
 #else
         public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
@@ -878,6 +911,13 @@ namespace System.Linq
                 return result;
             }
         }
+
+        // https://github.com/dotnet/runtime/issues/107723
+#if NET10_0_OR_GREATER
+        public static IEnumerable<T> Reverse<T>(T[] source) => Enumerable.Reverse(source);
+#else
+        public static IEnumerable<T> Reverse<T>(this T[] source) => Enumerable.Reverse(source);
+#endif
 
 #if NETSTANDARD
 

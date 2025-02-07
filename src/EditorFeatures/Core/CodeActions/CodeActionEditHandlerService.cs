@@ -36,9 +36,8 @@ internal class CodeActionEditHandlerService(
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IPreviewFactoryService _previewService = previewService;
     private readonly IInlineRenameService _renameService = renameService;
-    private readonly ITextBufferAssociatedViewService _associatedViewService = associatedViewService;
 
-    public ITextBufferAssociatedViewService AssociatedViewService => _associatedViewService;
+    public ITextBufferAssociatedViewService AssociatedViewService { get; } = associatedViewService;
 
     public async Task<SolutionPreviewResult?> GetPreviewsAsync(
         Workspace workspace, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken)

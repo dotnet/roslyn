@@ -592,6 +592,7 @@ internal enum FunctionId
     // 670-680 for newer rename ids
     Rename_TryApplyRename_WorkspaceChanged = 670,
     Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange = 671,
+    InlineRenameAdornmentChoice = 672,
 
     // 680-690 LSP Initialization info ids.
     LSP_Initialize = 680,
@@ -632,5 +633,10 @@ internal enum FunctionId
     Copilot_On_The_Fly_Docs_Error_Displayed = 813,
     Copilot_On_The_Fly_Docs_Results_Canceled = 814,
     Copilot_On_The_Fly_Docs_Get_Counts = 815,
-    Copilot_Rename = 851
+    Copilot_On_The_Fly_Docs_Content_Excluded = 816,
+    Copilot_Rename = 851,
+
+    VSCode_LanguageServer_Started = 860,
+    VSCode_Project_Load_Started = 861,
+    VSCode_Projects_Load_Completed = 862,
 }

@@ -10,12 +10,13 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
         public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
@@ -24,14 +25,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSetsForProject = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
                 var stateSets = GetStateSetsForFullSolutionAnalysis(stateSetsForProject, project);
 
-                // PERF: get analyzers that are not suppressed and marked as open file only
-                // this is perf optimization. we cache these result since we know the result. (no diagnostics)
-                var activeAnalyzers = stateSets.SelectAsArray(s => s.Analyzer);
-
-                CompilationWithAnalyzers? compilationWithAnalyzers = null;
-
-                compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
-                    project, activeAnalyzers, includeSuppressedDiagnostics: true, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(
+                    project, stateSets, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, stateSets, cancellationToken).ConfigureAwait(false);
 
@@ -57,53 +52,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private async Task TextDocumentOpenAsync(TextDocument document, CancellationToken cancellationToken)
-        {
-            using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
-            {
-                var stateSets = _stateManager.GetStateSets(document.Project);
-
-                // can not be canceled
-                foreach (var stateSet in stateSets)
-                    await stateSet.OnDocumentOpenedAsync(document).ConfigureAwait(false);
-            }
-        }
-
         /// <summary>
         /// Return list of <see cref="StateSet"/> to be used for full solution analysis.
         /// </summary>
         private ImmutableArray<StateSet> GetStateSetsForFullSolutionAnalysis(ImmutableArray<StateSet> stateSets, Project project)
         {
-            // If full analysis is off, remove state that is created from build.
-            // this will make sure diagnostics from build (converted from build to live) will never be cleared
-            // until next build.
-            _ = GlobalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullSolutionAnalysisEnabled, out var analyzersFullSolutionAnalysisEnabled);
-            if (!compilerFullSolutionAnalysisEnabled)
-            {
-                // Full solution analysis is not enabled for compiler diagnostics,
-                // so we remove the compiler analyzer state sets that are from build.
-                // We do so by retaining only those state sets that are
-                // either not for compiler analyzer or those which are for compiler
-                // analyzer, but not from build.
-                stateSets = stateSets.WhereAsArray(s => !s.Analyzer.IsCompilerAnalyzer() || !s.FromBuild(project.Id));
-            }
-
-            if (!analyzersFullSolutionAnalysisEnabled)
-            {
-                // Full solution analysis is not enabled for analyzer diagnostics,
-                // so we remove the analyzer state sets that are from build.
-                // We do so by retaining only those state sets that are
-                // either for the special compiler/workspace analyzers or those which are for
-                // other analyzers, but not from build.
-                stateSets = stateSets.WhereAsArray(s => s.Analyzer.IsCompilerAnalyzer() || s.Analyzer.IsWorkspaceDiagnosticAnalyzer() || !s.FromBuild(project.Id));
-            }
-
             // Include only analyzers we want to run for full solution analysis.
             // Analyzers not included here will never be saved because result is unknown.
-            return stateSets.WhereAsArray(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project));
+            return stateSets.WhereAsArray(static (s, arg) => arg.self.IsCandidateForFullSolutionAnalysis(s.Analyzer, s.IsHostAnalyzer, arg.project), (self: this, project));
         }
 
-        private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project)
+        private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, bool isHostAnalyzer, Project project)
         {
             // PERF: Don't query descriptors for compiler analyzer or workspace load analyzer, always execute them.
             if (analyzer == FileContentLoadAnalyzer.Instance ||
@@ -143,16 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer);
             var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
-            return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.CompilationOptions, arg.analyzerConfigOptions?.ConfigOptions, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project.CompilationOptions, analyzerConfigOptions));
-        }
-
-        public TestAccessor GetTestAccessor()
-            => new(this);
-
-        public readonly struct TestAccessor(DiagnosticIncrementalAnalyzer diagnosticIncrementalAnalyzer)
-        {
-            public Task TextDocumentOpenAsync(TextDocument document)
-                => diagnosticIncrementalAnalyzer.TextDocumentOpenAsync(document, CancellationToken.None);
+            return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.CompilationOptions, arg.isHostAnalyzer ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project.CompilationOptions, isHostAnalyzer, analyzerConfigOptions));
         }
     }
 }

@@ -38,11 +38,10 @@ internal partial class WhitespaceViewModel : SettingsViewModelBase<
         };
 
     protected override string[] GetFixedColumns()
-        => new[]
-        {
+        => [
             ColumnDefinitions.Whitespace.Category,
             ColumnDefinitions.Whitespace.Description,
             ColumnDefinitions.Whitespace.Value,
             ColumnDefinitions.Whitespace.Location
-        };
+        ];
 }

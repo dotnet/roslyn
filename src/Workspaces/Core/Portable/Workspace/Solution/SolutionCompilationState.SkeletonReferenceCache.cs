@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     /// <summary>
     /// Caches the skeleton references produced for a given project/compilation under the varying <see
@@ -260,7 +260,7 @@ internal partial class SolutionCompilationState
                             // Now read the data back from the stream from the memory mapped file.  This will come back as an
                             // UnmanagedMemoryStream, which our assembly/metadata subsystem is optimized around. 
                             var result = AssemblyMetadata.CreateFromStream(
-                                handle.ReadFromTemporaryStorage(cancellationToken), leaveOpen: false);
+                                handle.ReadFromTemporaryStorage(), leaveOpen: false);
 
                             return (result, handle);
                         }

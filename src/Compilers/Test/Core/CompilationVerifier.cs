@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <param name="validateExpected">An action to invoke with the emitted IL.</param>
         public void VerifyTypeIL(string typeName, Action<string> validateExpected)
         {
-            var output = new ICSharpCode.Decompiler.PlainTextOutput();
+            var output = new ICSharpCode.Decompiler.PlainTextOutput() { IndentationString = "    " };
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
             {
                 string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             try
             {
                 testEnvironment.Verify(peVerify);
-#if NETCOREAPP
+#if NET
                 ILVerify(peVerify);
 #endif
             }

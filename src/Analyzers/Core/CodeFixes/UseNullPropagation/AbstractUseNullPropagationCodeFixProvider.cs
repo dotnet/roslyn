@@ -61,8 +61,19 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        RegisterCodeFix(context, AnalyzersResources.Use_null_propagation, nameof(AnalyzersResources.Use_null_propagation));
+        var firstDiagnostic = context.Diagnostics.First();
+
+        var title = IsTrivialNullableValueAccess(firstDiagnostic)
+            ? AnalyzersResources.Simplify_conditional_expression
+            : AnalyzersResources.Use_null_propagation;
+
+        RegisterCodeFix(context, title, nameof(AnalyzersResources.Use_null_propagation));
         return Task.CompletedTask;
+    }
+
+    private static bool IsTrivialNullableValueAccess(Diagnostic firstDiagnostic)
+    {
+        return firstDiagnostic.Properties.ContainsKey(UseNullPropagationHelpers.IsTrivialNullableValueAccess);
     }
 
     protected override async Task FixAllAsync(
@@ -105,7 +116,16 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
             conditionalExpression, out _, out var whenTrue, out _);
         whenTrue = syntaxFacts.WalkDownParentheses(whenTrue);
 
-        var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
+        // `x == null ? x : x.Value` will be converted to just 'x'.
+        if (IsTrivialNullableValueAccess(diagnostic))
+        {
+            editor.ReplaceNode(
+                conditionalExpression,
+                conditionalPart.WithTriviaFrom(conditionalExpression));
+            return;
+        }
+
+        var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationHelpers.WhenPartIsNullable);
         editor.ReplaceNode(
             conditionalExpression,
             (conditionalExpression, _) =>
@@ -150,7 +170,7 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
         var whenTrueStatement = (TStatementSyntax)root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
         var match = (TExpressionSyntax)root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
 
-        var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
+        var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationHelpers.WhenPartIsNullable);
 
         SyntaxNode nodeToBeReplaced = ifStatement;
         SyntaxNode? replacementNode = null;
