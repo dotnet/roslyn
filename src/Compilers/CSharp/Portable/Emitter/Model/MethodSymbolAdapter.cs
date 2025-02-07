@@ -164,11 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (AdaptedMethodSymbol.IsDefinition && // can't be generic instantiation
                 AdaptedMethodSymbol.ContainingModule == moduleBeingBuilt.SourceModule) // must be declared in the module we are building
             {
-                if (AdaptedMethodSymbol.PartialDefinitionPart is { } definition)
-                {
-                    return definition.GetCciAdapter().ResolvedMethodImpl(context);
-                }
-
+                Debug.Assert((object)AdaptedMethodSymbol.PartialDefinitionPart == null); // must be definition
                 return this;
             }
 
