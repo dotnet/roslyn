@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -58,27 +60,26 @@ internal partial class DiagnosticAnalyzerService
             }
 
             /// <summary>
-            /// Return <see cref="StateSet"/>s for the given <see cref="ProjectId"/>. 
-            /// This will never create new <see cref="StateSet"/> but will return ones already created.
-            /// </summary>
-            public IEnumerable<StateSet> GetStateSets(ProjectId projectId)
-            {
-                var hostStateSets = GetAllHostStateSets();
-
-                // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
-                return _projectAnalyzerStateMap.TryGetValue(projectId, out var entry)
-                    ? hostStateSets.Concat(entry.StateSetMap.Values)
-                    : hostStateSets;
-            }
-
-            /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>.
             /// This will never create new <see cref="StateSet"/> but will return ones already created.
-            /// Difference with <see cref="GetStateSets(ProjectId)"/> is that 
-            /// this will only return <see cref="StateSet"/>s that have same language as <paramref name="project"/>.
             /// </summary>
-            public IEnumerable<StateSet> GetStateSets(Project project)
-                => GetStateSets(project.Id).Where(s => s.Language == project.Language);
+            public ImmutableArray<StateSet> GetStateSets(Project project)
+            {
+                using var _ = ArrayBuilder<StateSet>.GetInstance(out var result);
+
+                var analyzerReferences = project.Solution.SolutionState.Analyzers.HostAnalyzerReferences;
+                foreach (var (key, value) in _hostAnalyzerStateMap)
+                {
+                    if (key.AnalyzerReferences == analyzerReferences)
+                        result.AddRange(value.OrderedStateSets);
+                }
+
+                // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
+                if (_projectAnalyzerStateMap.TryGetValue(project.Id, out var entry))
+                    result.AddRange(entry.StateSetMap.Values);
+
+                return result.ToImmutableAndClear();
+            }
 
             /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>. 
@@ -117,7 +118,6 @@ internal partial class DiagnosticAnalyzerService
                 => ProjectAnalyzerReferenceChanged?.Invoke(this, args);
 
             private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
-                string language,
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> projectAnalyzerCollection,
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> hostAnalyzerCollection,
                 bool includeWorkspacePlaceholderAnalyzers)
@@ -126,8 +126,8 @@ internal partial class DiagnosticAnalyzerService
 
                 if (includeWorkspacePlaceholderAnalyzers)
                 {
-                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(language, FileContentLoadAnalyzer.Instance, isHostAnalyzer: true));
-                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(language, GeneratorDiagnosticsPlaceholderAnalyzer.Instance, isHostAnalyzer: true));
+                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(FileContentLoadAnalyzer.Instance, isHostAnalyzer: true));
+                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, isHostAnalyzer: true));
                 }
 
                 foreach (var analyzers in projectAnalyzerCollection)
@@ -145,7 +145,7 @@ internal partial class DiagnosticAnalyzerService
                             continue;
                         }
 
-                        builder.Add(analyzer, new StateSet(language, analyzer, isHostAnalyzer: false));
+                        builder.Add(analyzer, new StateSet(analyzer, isHostAnalyzer: false));
                     }
                 }
 
@@ -164,38 +164,15 @@ internal partial class DiagnosticAnalyzerService
                             continue;
                         }
 
-                        builder.Add(analyzer, new StateSet(language, analyzer, isHostAnalyzer: true));
+                        builder.Add(analyzer, new StateSet(analyzer, isHostAnalyzer: true));
                     }
                 }
 
                 return builder.ToImmutable();
             }
 
-            private readonly struct HostAnalyzerStateSetKey : IEquatable<HostAnalyzerStateSetKey>
-            {
-                public HostAnalyzerStateSetKey(string language, bool hasSdkCodeStyleAnalyzers, IReadOnlyList<AnalyzerReference> analyzerReferences)
-                {
-                    Language = language;
-                    HasSdkCodeStyleAnalyzers = hasSdkCodeStyleAnalyzers;
-                    AnalyzerReferences = analyzerReferences;
-                }
-
-                public string Language { get; }
-                public bool HasSdkCodeStyleAnalyzers { get; }
-                public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
-
-                public bool Equals(HostAnalyzerStateSetKey other)
-                    => Language == other.Language &&
-                       HasSdkCodeStyleAnalyzers == other.HasSdkCodeStyleAnalyzers &&
-                       AnalyzerReferences == other.AnalyzerReferences;
-
-                public override bool Equals(object? obj)
-                    => obj is HostAnalyzerStateSetKey key && Equals(key);
-
-                public override int GetHashCode()
-                    => Hash.Combine(Language.GetHashCode(),
-                       Hash.Combine(HasSdkCodeStyleAnalyzers.GetHashCode(), AnalyzerReferences.GetHashCode()));
-            }
+            private readonly record struct HostAnalyzerStateSetKey(
+                string Language, bool HasSdkCodeStyleAnalyzers, IReadOnlyList<AnalyzerReference> AnalyzerReferences);
         }
     }
 }

@@ -17,21 +17,6 @@ internal partial class DiagnosticAnalyzerService
     {
         private partial class StateManager
         {
-            public IEnumerable<StateSet> GetAllHostStateSets()
-            {
-                var analyzerReferences = _workspace.CurrentSolution.SolutionState.Analyzers.HostAnalyzerReferences;
-                foreach (var (key, value) in _hostAnalyzerStateMap)
-                {
-                    if (key.AnalyzerReferences == analyzerReferences)
-                    {
-                        foreach (var stateSet in value.OrderedStateSets)
-                        {
-                            yield return stateSet;
-                        }
-                    }
-                }
-            }
-
             private HostAnalyzerStateSets GetOrCreateHostStateSets(Project project, ProjectAnalyzerStateSets projectStateSets)
             {
                 var key = new HostAnalyzerStateSetKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, project.Solution.SolutionState.Analyzers.HostAnalyzerReferences);
@@ -43,11 +28,10 @@ internal partial class DiagnosticAnalyzerService
 
                 static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(HostAnalyzerStateSetKey arg, (HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
                 {
-                    var language = arg.Language;
-                    var analyzersPerReference = state.HostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
+                    var analyzersPerReference = state.HostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(arg.Language);
 
                     var (hostAnalyzerCollection, projectAnalyzerCollection) = GetAnalyzerCollections(analyzersPerReference, state.ReferenceIdsToRedirect);
-                    var analyzerMap = CreateStateSetMap(language, projectAnalyzerCollection, hostAnalyzerCollection, includeWorkspacePlaceholderAnalyzers: true);
+                    var analyzerMap = CreateStateSetMap(projectAnalyzerCollection, hostAnalyzerCollection, includeWorkspacePlaceholderAnalyzers: true);
 
                     return new HostAnalyzerStateSets(analyzerMap);
                 }

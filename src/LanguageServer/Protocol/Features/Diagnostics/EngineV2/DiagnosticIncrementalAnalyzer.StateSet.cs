@@ -23,16 +23,14 @@ internal partial class DiagnosticAnalyzerService
         /// </summary>
         private sealed class StateSet
         {
-            public readonly string Language;
             public readonly DiagnosticAnalyzer Analyzer;
             public readonly bool IsHostAnalyzer;
 
             private readonly ConcurrentSet<DocumentId> _activeDocuments;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
 
-            public StateSet(string language, DiagnosticAnalyzer analyzer, bool isHostAnalyzer)
+            public StateSet(DiagnosticAnalyzer analyzer, bool isHostAnalyzer)
             {
-                Language = language;
                 Analyzer = analyzer;
                 IsHostAnalyzer = isHostAnalyzer;
 
