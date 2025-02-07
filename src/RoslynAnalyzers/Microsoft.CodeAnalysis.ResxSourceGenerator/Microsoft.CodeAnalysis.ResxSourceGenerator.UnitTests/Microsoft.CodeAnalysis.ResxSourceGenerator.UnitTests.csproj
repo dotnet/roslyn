@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(NetCurrent)</TargetFramework>
+
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForResxSourceGenerators)</MicrosoftCodeAnalysisVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Resources\**\*.cs" />
+    <EmbeddedResource Include="Resources\**\*.cs" />
+    <EmbeddedResource Include="Resources\**\*.vb" />
+  </ItemGroup>
+
+</Project>

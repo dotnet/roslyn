@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(NetCurrent)</TargetFramework>
+    <NonShipping>true</NonShipping>
+    <UseAppHost>false</UseAppHost>
+  </PropertyGroup>
+</Project>

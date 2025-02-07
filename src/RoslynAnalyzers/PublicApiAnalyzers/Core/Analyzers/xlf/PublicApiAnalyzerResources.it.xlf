@@ -1,0 +1,297 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="it" original="../PublicApiAnalyzerResources.resx">
+    <body>
+      <trans-unit id="AddAllItemsInDocumentToTheApiTitle">
+        <source>Add all items in document '{0}' to the API</source>
+        <target state="translated">Aggiungi tutti gli elementi del documento '{0}' all'API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddAllItemsInProjectToTheApiTitle">
+        <source>Add all items in project '{0}' to the API</source>
+        <target state="translated">Aggiungi tutti gli elementi del progetto '{0}' all'API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddAllItemsInTheSolutionToTheApiTitle">
+        <source>Add all items in the solution to the API</source>
+        <target state="translated">Aggiungi tutti gli elementi della soluzione all'API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateInternalApiDescription">
+        <source>All internal types and members should be declared with nullability annotations in InternalAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Tutti i tipi e i membri interni devono essere dichiarati con annotazioni di supporto dei valori Null in InternalAPI.txt. In questo modo si richiama l'attenzione sulle modifiche del supporto dei valori Null all'API nelle revisioni del codice e nella cronologia del controllo del codice sorgente e si contribuisce a evitare modifiche che causano un'interruzione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateInternalApiMessage">
+        <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
+        <target state="translated">Nel simbolo '{0}' mancano le annotazioni di supporto dei valori Null nell'API dichiarata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateInternalApiTitle">
+        <source>Annotate nullability of internal types and members in the declared API</source>
+        <target state="translated">Annota il supporto dei valori Null di tipi interni e membri nell'API dichiarata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiDescription">
+        <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Tutti i tipi e i membri public devono essere dichiarati con annotazioni di supporto dei valori Null in PublicAPI.txt. In questo modo si richiama l'attenzione sulle modifiche del supporto dei valori Null all'API nelle revisioni del codice e nella cronologia del controllo del codice sorgente e si contribuisce a evitare modifiche che causano un'interruzione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiMessage">
+        <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
+        <target state="translated">Nel simbolo '{0}' mancano le annotazioni di supporto dei valori Null nell'API dichiarata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiTitle">
+        <source>Annotate nullability of public types and members in the declared API</source>
+        <target state="translated">Annota il supporto dei valori Null di tipi e membri public nell'API dichiarata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
+        <source>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</source>
+        <target state="translated">Il simbolo '{0}' viola il requisito di compatibilità con le versioni precedenti: 'Non aggiungere più overload public con parametri facoltativi'. Per dettagli, vedere '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersTitle">
+        <source>Do not add multiple public overloads with optional parameters</source>
+        <target state="translated">Non aggiungere più overload public con parametri facoltativi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareInternalApiDescription">
+        <source>All internal types and members should be declared in InternalAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Tutti i tipi e i membri interni devono essere dichiarati in InternalAPI.txt. In questo modo si richiama l'attenzione sulle modifiche all'API nelle revisioni del codice e nella cronologia del controllo del codice sorgente e contribuisce a evitare modifiche che causano un'interruzione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareInternalApiMessage">
+        <source>Symbol '{0}' is not part of the declared API</source>
+        <target state="translated">Il simbolo '{0}' non fa parte dell'API dichiarata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclareInternalApiTitle">
+        <source>Add internal types and members to the declared API</source>
+        <target state="translated">Aggiungere tipi e membri interni all'API dichiarata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclarePublicApiDescription">
+        <source>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Tutti i tipi e i membri public devono essere dichiarati in PublicAPI.txt. In questo modo si richiama l'attenzione sulle modifiche all'API nelle revisioni del codice e nella cronologia del controllo del codice sorgente e contribuisce a evitare modifiche che causano un'interruzione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclarePublicApiMessage">
+        <source>Symbol '{0}' is not part of the declared public API</source>
+        <target state="translated">Il simbolo '{0}' non fa parte dell'API pubblica dichiarata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DeclarePublicApiTitle">
+        <source>Add public types and members to the declared API</source>
+        <target state="translated">Aggiungere tipi e membri public all'API dichiarata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateSymbolsInInternalApiFilesMessage">
+        <source>The symbol '{0}' appears more than once in the internal API files</source>
+        <target state="translated">Il simbolo '{0}' è presente più volte nei file dell'API interna</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateSymbolsInInternalApiFilesTitle">
+        <source>Do not duplicate symbols in internal API files</source>
+        <target state="translated">Non duplicare simboli nei file API interni</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
+        <source>The symbol '{0}' appears more than once in the public API files</source>
+        <target state="translated">Il simbolo '{0}' è presente più volte nei file dell'API pubblica</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
+        <source>Do not duplicate symbols in public API files</source>
+        <target state="translated">Non duplicare simboli nei file dell'API pubblica</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableNullableInProjectToTheApiTitle">
+        <source>Enable nullability annotations in the API for project '{0}'</source>
+        <target state="translated">Abilita le annotazioni di supporto dei valori Null nell'API per il progetto '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableNullableInTheSolutionToTheApiTitle">
+        <source>Enable nullability annotations in the API for the solution</source>
+        <target state="translated">Abilita le annotazioni di supporto dei valori Null nell'API per la soluzione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposedNoninstantiableTypeMessage">
+        <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</source>
+        <target state="translated">Il costruttore rende ereditabile la relativa classe di base non ereditabile, esponendone in tal modo i membri protetti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExposedNoninstantiableTypeTitle">
+        <source>Constructor make noninheritable base class inheritable</source>
+        <target state="translated">Il costruttore rende ereditabile la classe di base non ereditabile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplicitConstructorErrorMessageName">
+        <source>implicit constructor for '{0}'</source>
+        <target state="translated">costruttore implicito per '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplicitGetAccessor">
+        <source>implicit get-accessor for '{0}'</source>
+        <target state="translated">funzione di accesso get implicita per '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplicitSetAccessor">
+        <source>implicit set-accessor for '{0}'</source>
+        <target state="translated">funzione di accesso set implicita per '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalApiFileMissingMessage">
+        <source>Internal API file '{0}' is missing or not marked as an additional analyzer file</source>
+        <target state="translated">Il file di API interna '{0}' manca o non è contrassegnato come file aggiuntivo dell'analizzatore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalApiFileMissingTitle">
+        <source>Missing shipped or unshipped internal API file</source>
+        <target state="translated">File di API interno distribuito o non distribuito mancante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalApiFilesInvalidMessage">
+        <source>The contents of the internal API files are invalid: {0}</source>
+        <target state="translated">Il contenuto dei file dell'API interna non è valido: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalApiFilesInvalidTitle">
+        <source>The contents of the internal API files are invalid</source>
+        <target state="translated">Il contenuto dei file dell'API interna non è valido:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousInternalApiDescription">
+        <source>All internal members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">Tutti i membri interni devono usare tipi riferimento nullable o non nullable, ma non tipi riferimento oblivious.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousInternalApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types</source>
+        <target state="translated">Il simbolo '{0}' usa alcuni tipi di riferimento oblivious</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousInternalApiTitle">
+        <source>Internal members should not use oblivious types</source>
+        <target state="translated">I membri interni non devono usare tipi oblivious</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiDescription">
+        <source>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</source>
+        <target state="translated">Tutti i membri pubblici devono usare tipi riferimento nullable o non nullable, ma non tipi riferimento oblivious.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiMessage">
+        <source>Symbol '{0}' uses some oblivious reference types</source>
+        <target state="translated">Il simbolo '{0}' usa alcuni tipi di riferimento oblivious</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ObliviousPublicApiTitle">
+        <source>Public members should not use oblivious types</source>
+        <target state="translated">I membri pubblici non devono usare tipi oblivious</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
+        <source>'{0}' violates the backcompat requirement: 'API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
+        <target state="translated">'{0}' viola il requisito di compatibilità con le versioni precedenti: 'L'API con parametri facoltativi deve includere la maggior parte dei parametri tra i relativi overload public'. Per dettagli, vedere '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
+        <source>API with optional parameter(s) should have the most parameters amongst its public overloads</source>
+        <target state="translated">L'API con parametri facoltativi deve includere la maggior parte dei parametri tra i relativi overload public</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingMessage">
+        <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
+        <target state="translated">Il file di API pubblica '{0}' manca o non è contrassegnato come file aggiuntivo dell'analizzatore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingTitle">
+        <source>Missing shipped or unshipped public API file</source>
+        <target state="translated">File di API pubblica distribuito o non distribuito mancante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFilesInvalidMessage">
+        <source>The contents of the public API files are invalid: {0}</source>
+        <target state="translated">Il contenuto dei file dell'API pubblica non è valido: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFilesInvalidTitle">
+        <source>The contents of the public API files are invalid</source>
+        <target state="translated">Il contenuto dei file dell'API pubblica non è valido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDeletedInternalApiDescription">
+        <source>When removing a internal type or member, put that entry in InternalAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Quando si rimuove un tipo o un membro interno, è necessario inserire questa voce in InternalAPI.Unshipped.txt con prefisso '*REMOVED*’. In questo modo si richiama l'attenzione sulle modifiche all'API nelle revisioni del codice e nella cronologia dei controlli del codice sorgente, e si contribuisce a evitare modifiche che causano un'interruzione.</target>
+        <note>{Locked="*REMOVED*"}</note>
+      </trans-unit>
+      <trans-unit id="RemoveDeletedInternalApiMessage">
+        <source>Symbol '{0}' is part of the declared internal API, but is either not internal or could not be found</source>
+        <target state="translated">Il simbolo '{0}' fa parte dell'API interna dichiarata, ma non è interno oppure non è stato possibile trovarlo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDeletedInternalApiTitle">
+        <source>Remove deleted types and members from the declared internal API</source>
+        <target state="translated">Rimuovere tipi e membri eliminati dall'API interna dichiarata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDeletedPublicApiDescription">
+        <source>When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Quando si rimuove un tipo o un membro pubblico, è necessario inserire questa voce in PublicAPI.Unshipped.txt con prefisso '*REMOVED*’. In questo modo si richiama l'attenzione sulle modifiche all'API nelle revisioni del codice e nella cronologia dei controlli del codice sorgente, e si contribuisce a evitare modifiche che causano un'interruzione.</target>
+        <note>{Locked="*REMOVED*"}</note>
+      </trans-unit>
+      <trans-unit id="RemoveDeletedPublicApiMessage">
+        <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>
+        <target state="translated">Il simbolo '{0}' fa parte dell'API dichiarata, ma non è public oppure non è stato possibile trovarlo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemoveDeletedPublicApiTitle">
+        <source>Remove deleted types and members from the declared API</source>
+        <target state="translated">Rimuovere tipi e membri eliminati dall'API dichiarata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedMessage">
+        <source>Symbol '{0}' is marked as removed but it isn't deleted in source code</source>
+        <target state="translated">Il simbolo '{0}' è contrassegnato come rimosso, ma non è stato eliminato nel codice sorgente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RemovedApiIsNotActuallyRemovedTitle">
+        <source>API is marked as removed but it exists in source code</source>
+        <target state="translated">L'API è contrassegnata come rimossa, ma è presente nel codice sorgente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateInternalApiFilesDescription">
+        <source>InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
+        <target state="translated">I file InternalAPI.txt devono includere `#nullable enable` per tenere traccia delle informazioni sul supporto dei valori Null, in caso contrario questa diagnostica deve essere eliminata. Se il supporto dei valori Null è abilitato, InternalAPI.txt registra i tipi nullable (suffisso `?` nel tipo) o non nullable (suffisso `!`). Tiene inoltre traccia di eventuali API che usano ancora un tipo riferimento senza annotazioni nullable (prefisso `~` nella riga).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateInternalApiFilesMessage">
+        <source>InternalAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
+        <target state="translated">In InternalAPI.txt manca '#nullable enable', di conseguenza le annotazioni di supporto dei valori Null dell'API non sono registrate. È consigliabile abilitare questa verifica.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateInternalApiFilesTitle">
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">Abilita il rilevamento del supporto dei valori Null dei tipi riferimento nell'API dichiarata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotatePublicApiFilesDescription">
+        <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
+        <target state="translated">I file PublicAPI.txt devono includere `#nullable enable` per tenere traccia delle informazioni sul supporto dei valori Null, in caso contrario questa diagnostica deve essere eliminata. Se il supporto dei valori Null è abilitato, PublicAPI.txt registra i tipi nullable (suffisso `?` nel tipo) o non nullable (suffisso `!`). Tiene inoltre traccia di eventuali API che usano ancora un tipo riferimento senza annotazioni nullable (prefisso `~` nella riga).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotatePublicApiFilesMessage">
+        <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
+        <target state="translated">In PublicAPI.txt manca '#nullable enable', di conseguenza le annotazioni di supporto dei valori Null dell'API non sono registrate. È consigliabile abilitare questa verifica.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotatePublicApiFilesTitle">
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">Abilita il rilevamento del supporto dei valori Null dei tipi riferimento nell'API dichiarata</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

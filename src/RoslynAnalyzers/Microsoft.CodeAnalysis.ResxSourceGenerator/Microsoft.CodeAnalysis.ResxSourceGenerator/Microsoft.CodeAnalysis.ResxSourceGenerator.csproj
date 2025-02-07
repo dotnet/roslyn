@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
+
+    <!-- Avoid ID conflicts with the package project. -->
+    <PackageId>*$(MSBuildProjectFile)*</PackageId>
+    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForResxSourceGenerators)</MicrosoftCodeAnalysisVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ResxSourceGenerator.UnitTests" />
+  </ItemGroup>
+
+  <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
+
+</Project>
