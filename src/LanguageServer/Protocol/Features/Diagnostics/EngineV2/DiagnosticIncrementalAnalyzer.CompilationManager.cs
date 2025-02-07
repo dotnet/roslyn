@@ -2,10 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -33,7 +39,7 @@ internal partial class DiagnosticAnalyzerService
         if (!s_projectToCompilationWithAnalyzers.TryGetValue(project, out var compilationWithAnalyzersPair) ||
             !HasAllAnalyzers(stateSets, compilationWithAnalyzersPair))
         {
-            compilationWithAnalyzersPair = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
+            compilationWithAnalyzersPair = await CreateCompilationWithAnalyzersAsync(
                 project,
                 stateSets.SelectAsArray(s => !s.IsHostAnalyzer, s => s.Analyzer),
                 stateSets.SelectAsArray(s => s.IsHostAnalyzer, s => s.Analyzer),
@@ -67,5 +73,81 @@ internal partial class DiagnosticAnalyzerService
 
             return true;
         }
+
+        // <summary>
+        // Should only be called on a <see cref="Project"/> that <see cref="Project.SupportsCompilation"/>.
+        // </summary>
+        static async Task<CompilationWithAnalyzersPair?> CreateCompilationWithAnalyzersAsync(
+            Project project,
+            ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
+            ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
+            bool crashOnAnalyzerException,
+            CancellationToken cancellationToken)
+        {
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            // Create driver that holds onto compilation and associated analyzers
+            var filteredProjectAnalyzers = projectAnalyzers.WhereAsArray(static a => !a.IsWorkspaceDiagnosticAnalyzer());
+            var filteredHostAnalyzers = hostAnalyzers.WhereAsArray(static a => !a.IsWorkspaceDiagnosticAnalyzer());
+            var filteredProjectSuppressors = filteredProjectAnalyzers.WhereAsArray(static a => a is DiagnosticSuppressor);
+            filteredHostAnalyzers = filteredHostAnalyzers.AddRange(filteredProjectSuppressors);
+
+            // PERF: there is no analyzers for this compilation.
+            //       compilationWithAnalyzer will throw if it is created with no analyzers which is perf optimization.
+            if (filteredProjectAnalyzers.IsEmpty && filteredHostAnalyzers.IsEmpty)
+            {
+                return null;
+            }
+
+            Contract.ThrowIfFalse(project.SupportsCompilation);
+            AssertCompilation(project, compilation);
+
+            // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
+            // async being used with synchronous blocking concurrency.
+            var projectAnalyzerOptions = new CompilationWithAnalyzersOptions(
+                options: project.AnalyzerOptions,
+                onAnalyzerException: null,
+                analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
+                concurrentAnalysis: false,
+                logAnalyzerExecutionTime: true,
+                reportSuppressedDiagnostics: true);
+            var hostAnalyzerOptions = new CompilationWithAnalyzersOptions(
+                options: project.HostAnalyzerOptions,
+                onAnalyzerException: null,
+                analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
+                concurrentAnalysis: false,
+                logAnalyzerExecutionTime: true,
+                reportSuppressedDiagnostics: true);
+
+            // Create driver that holds onto compilation and associated analyzers
+            return new CompilationWithAnalyzersPair(
+                filteredProjectAnalyzers.Any() ? compilation.WithAnalyzers(filteredProjectAnalyzers, projectAnalyzerOptions) : null,
+                filteredHostAnalyzers.Any() ? compilation.WithAnalyzers(filteredHostAnalyzers, hostAnalyzerOptions) : null);
+
+            Func<Exception, bool> GetAnalyzerExceptionFilter()
+            {
+                return ex =>
+                {
+                    if (ex is not OperationCanceledException && crashOnAnalyzerException)
+                    {
+                        // report telemetry
+                        FatalError.ReportAndPropagate(ex);
+
+                        // force fail fast (the host might not crash when reporting telemetry):
+                        FailFast.OnFatalException(ex);
+                    }
+
+                    return true;
+                };
+            }
+        }
+    }
+
+    [Conditional("DEBUG")]
+    private static void AssertCompilation(Project project, Compilation compilation1)
+    {
+        // given compilation must be from given project.
+        Contract.ThrowIfFalse(project.TryGetCompilation(out var compilation2));
+        Contract.ThrowIfFalse(compilation1 == compilation2);
     }
 }
