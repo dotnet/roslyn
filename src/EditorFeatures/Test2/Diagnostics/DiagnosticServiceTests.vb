@@ -2098,6 +2098,7 @@ class MyClass
 
                 Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
                 Dim diagnosticService = workspace.GetService(Of IDiagnosticAnalyzerService)()
+                Dim cachedDiagnosticService = workspace.GetService(Of ICachedDiagnosticAnalyzerService)()
 
                 ' Verify available diagnostic descriptors
                 Dim descriptorsMap = solution.SolutionState.Analyzers.GetDiagnosticDescriptorsPerReference(diagnosticService.AnalyzerInfoCache, project)
@@ -2107,7 +2108,7 @@ class MyClass
                 Assert.Equal(analyzer.Descriptor.Id, descriptors.Single().Id)
 
                 ' Get cached project diagnostics.
-                Dim diagnostics = Await diagnosticService.ForceAnalyzeProjectAsync(
+                Dim diagnostics = Await cachedDiagnosticService.ForceAnalyzeProjectAsync(
                     project, CancellationToken.None)
 
                 ' in v2, solution crawler never creates non-local hidden diagnostics.

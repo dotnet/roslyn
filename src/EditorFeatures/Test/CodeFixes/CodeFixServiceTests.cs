@@ -1032,6 +1032,7 @@ class C
         var tuple = ServiceSetup(codeFix, code: code);
         using var workspace = tuple.workspace;
         var analyzerService = tuple.analyzerService;
+        var cachedAnalyzerService = tuple.cachedAnalyzerService;
         GetDocumentAndExtensionManager(workspace, out var document,
             out var extensionManager, analyzerReference);
 
@@ -1045,7 +1046,7 @@ class C
         // We enable full solution analysis so the 'AnalyzeDocumentAsync' doesn't skip analysis based on whether the document is active/open.
         workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
 
-        var diagnostics = await analyzerService.ForceAnalyzeProjectAsync(sourceDocument.Project, CancellationToken.None);
+        var diagnostics = await cachedAnalyzerService.ForceAnalyzeProjectAsync(sourceDocument.Project, CancellationToken.None);
         await VerifyCachedDiagnosticsAsync(
             sourceDocument, expectedCachedDiagnostic: diagnosticOnFixLineInPriorSnapshot, testSpan, diagnostics);
 

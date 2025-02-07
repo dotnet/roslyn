@@ -323,10 +323,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public Function GetProjectDiagnosticsForIdsAsync(solution As Solution, projectId As ProjectId, diagnosticIds As ImmutableHashSet(Of String), shouldIncludeAnalyzer As Func(Of DiagnosticAnalyzer, Boolean), includeNonLocalDocumentDiagnostics As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
-
-            Public Function ForceAnalyzeProjectAsync(project As Project, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.ForceAnalyzeProjectAsync
-                Throw New NotImplementedException()
-            End Function
         End Class
 
         <PartNotDiscoverable>
