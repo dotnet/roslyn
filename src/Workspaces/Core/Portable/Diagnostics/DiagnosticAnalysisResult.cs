@@ -32,39 +32,22 @@ internal readonly struct DiagnosticAnalysisResult
     /// <summary>
     /// Syntax diagnostics from this file.
     /// </summary>
-    private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? _syntaxLocals;
+    private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> _syntaxLocals;
 
     /// <summary>
     /// Semantic diagnostics from this file.
     /// </summary>
-    private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? _semanticLocals;
+    private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> _semanticLocals;
 
     /// <summary>
     /// Diagnostics that were produced for these documents, but came from the analysis of other files.
     /// </summary>
-    private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? _nonLocals;
+    private readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> _nonLocals;
 
     /// <summary>
     /// Diagnostics that don't have locations.
     /// </summary>
     private readonly ImmutableArray<DiagnosticData> _others;
-
-    private DiagnosticAnalysisResult(
-        ProjectId projectId,
-        VersionStamp version,
-        ImmutableHashSet<DocumentId>? documentIds,
-        bool isEmpty)
-    {
-        ProjectId = projectId;
-        Version = version;
-        DocumentIds = documentIds;
-        IsEmpty = isEmpty;
-
-        _syntaxLocals = null;
-        _semanticLocals = null;
-        _nonLocals = null;
-        _others = default;
-    }
 
     private DiagnosticAnalysisResult(
         ProjectId projectId,
@@ -104,15 +87,6 @@ internal readonly struct DiagnosticAnalysisResult
             others: []);
     }
 
-    public static DiagnosticAnalysisResult CreateInitialResult(ProjectId projectId)
-    {
-        return new DiagnosticAnalysisResult(
-            projectId,
-            version: VersionStamp.Default,
-            documentIds: null,
-            isEmpty: true);
-    }
-
     public static DiagnosticAnalysisResult Create(
         Project project,
         VersionStamp version,
@@ -150,12 +124,6 @@ internal readonly struct DiagnosticAnalysisResult
 
     // aggregated form means it has aggregated information but no actual data.
     public bool IsAggregatedForm => _syntaxLocals == null;
-
-    // default analysis result
-    public bool IsDefault => DocumentIds == null;
-
-    // make sure we don't return null
-    public ImmutableHashSet<DocumentId> DocumentIdsOrEmpty => DocumentIds ?? [];
 
     private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? GetMap(AnalysisKind kind)
         => kind switch
@@ -217,9 +185,6 @@ internal readonly struct DiagnosticAnalysisResult
 
     public ImmutableArray<DiagnosticData> GetOtherDiagnostics()
         => (IsAggregatedForm || IsEmpty) ? [] : _others;
-
-    public DiagnosticAnalysisResult ToAggregatedForm()
-        => new(ProjectId, Version, DocumentIds, IsEmpty);
 
     public DiagnosticAnalysisResult DropExceptSyntax()
     {
