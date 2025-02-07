@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 internal readonly struct DiagnosticAnalysisResult
 {
     public readonly ProjectId ProjectId;
-    public readonly VersionStamp Version;
 
     /// <summary>
     /// The set of documents that has any kind of diagnostics on it.
@@ -51,7 +50,6 @@ internal readonly struct DiagnosticAnalysisResult
 
     private DiagnosticAnalysisResult(
         ProjectId projectId,
-        VersionStamp version,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocals,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocals,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocals,
@@ -64,7 +62,6 @@ internal readonly struct DiagnosticAnalysisResult
         Debug.Assert(!nonLocals.Values.Any(item => item.IsDefault));
 
         ProjectId = projectId;
-        Version = version;
 
         _syntaxLocals = syntaxLocals;
         _semanticLocals = semanticLocals;
@@ -74,11 +71,10 @@ internal readonly struct DiagnosticAnalysisResult
         DocumentIds = documentIds ?? GetDocumentIds(syntaxLocals, semanticLocals, nonLocals);
     }
 
-    public static DiagnosticAnalysisResult CreateEmpty(ProjectId projectId, VersionStamp version)
+    public static DiagnosticAnalysisResult CreateEmpty(ProjectId projectId)
     {
         return new DiagnosticAnalysisResult(
             projectId,
-            version,
             documentIds: [],
             syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
             semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
@@ -88,7 +84,6 @@ internal readonly struct DiagnosticAnalysisResult
 
     public static DiagnosticAnalysisResult Create(
         Project project,
-        VersionStamp version,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocalMap,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocalMap,
         ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocalMap,
@@ -101,7 +96,6 @@ internal readonly struct DiagnosticAnalysisResult
 
         return new DiagnosticAnalysisResult(
             project.Id,
-            version,
             syntaxLocalMap,
             semanticLocalMap,
             nonLocalMap,
@@ -113,7 +107,6 @@ internal readonly struct DiagnosticAnalysisResult
     {
         return Create(
             builder.Project,
-            builder.Version,
             builder.SyntaxLocals,
             builder.SemanticLocals,
             builder.NonLocals,
@@ -170,13 +163,12 @@ internal readonly struct DiagnosticAnalysisResult
         // quick bail out
         if (_syntaxLocals == null || _syntaxLocals.Count == 0)
         {
-            return CreateEmpty(ProjectId, Version);
+            return CreateEmpty(ProjectId);
         }
 
         // keep only syntax errors
         return new DiagnosticAnalysisResult(
            ProjectId,
-           Version,
            _syntaxLocals,
            semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
            nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,

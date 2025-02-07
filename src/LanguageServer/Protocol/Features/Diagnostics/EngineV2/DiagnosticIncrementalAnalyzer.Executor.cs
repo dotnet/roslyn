@@ -30,8 +30,6 @@ internal partial class DiagnosticAnalyzerService
             {
                 try
                 {
-                    var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-
                     var result = await ComputeDiagnosticsForStateSetsAsync(stateSets).ConfigureAwait(false);
 
                     // If project is not loaded successfully, get rid of any semantic errors from compiler analyzer.
@@ -118,8 +116,6 @@ internal partial class DiagnosticAnalyzerService
             {
                 try
                 {
-                    var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-
                     var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
 
                     return await ComputeDiagnosticsForAnalyzersAsync(ideAnalyzers).ConfigureAwait(false);
@@ -137,14 +133,12 @@ internal partial class DiagnosticAnalyzerService
                 try
                 {
                     var compilation = compilationWithAnalyzers?.HostCompilation;
-                    var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-                    (result, var failedDocuments) = await UpdateWithDocumentLoadAndGeneratorFailuresAsync(
-                        result, version).ConfigureAwait(false);
+                    (result, var failedDocuments) = await UpdateWithDocumentLoadAndGeneratorFailuresAsync(result).ConfigureAwait(false);
 
                     foreach (var analyzer in ideAnalyzers)
                     {
-                        var builder = new DiagnosticAnalysisResultBuilder(project, version);
+                        var builder = new DiagnosticAnalysisResultBuilder(project);
 
                         switch (analyzer)
                         {
@@ -190,8 +184,7 @@ internal partial class DiagnosticAnalyzerService
             }
 
             async Task<(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results, ImmutableHashSet<Document>? failedDocuments)> UpdateWithDocumentLoadAndGeneratorFailuresAsync(
-                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results,
-                VersionStamp version)
+                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results)
             {
                 ImmutableHashSet<Document>.Builder? failedDocuments = null;
                 ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? lazyLoadDiagnostics = null;
@@ -213,7 +206,6 @@ internal partial class DiagnosticAnalyzerService
                     FileContentLoadAnalyzer.Instance,
                     DiagnosticAnalysisResult.Create(
                         project,
-                        version,
                         syntaxLocalMap: lazyLoadDiagnostics?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         semanticLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                         nonLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
@@ -221,7 +213,7 @@ internal partial class DiagnosticAnalyzerService
                         documentIds: null));
 
                 var generatorDiagnostics = await _diagnosticAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-                var diagnosticResultBuilder = new DiagnosticAnalysisResultBuilder(project, version);
+                var diagnosticResultBuilder = new DiagnosticAnalysisResultBuilder(project);
                 foreach (var generatorDiagnostic in generatorDiagnostics)
                 {
                     // We'll always treat generator diagnostics that are associated with a tree as a local diagnostic, because
