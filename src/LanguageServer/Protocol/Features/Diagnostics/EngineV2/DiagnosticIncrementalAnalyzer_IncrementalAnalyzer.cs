@@ -39,10 +39,7 @@ internal partial class DiagnosticAnalyzerService
                     var state = stateSet.GetOrCreateProjectState(project.Id);
 
                     if (projectAnalysisData.TryGetResult(stateSet.Analyzer, out var analyzerResult))
-                    {
                         diagnostics.AddRange(analyzerResult.GetAllDiagnostics());
-                        await state.SaveToInMemoryStorageAsync(project, analyzerResult).ConfigureAwait(false);
-                    }
                 }
 
                 return diagnostics.ToImmutableAndClear();

@@ -31,14 +31,12 @@ internal partial class DiagnosticAnalyzerService
 
             // project id of this state
             private readonly StateSet _owner;
-
-            // last aggregated analysis result for this project saved
-            private DiagnosticAnalysisResult _lastResult;
+            private readonly ProjectId _projectId;
 
             public ProjectState(StateSet owner, ProjectId projectId)
             {
                 _owner = owner;
-                _lastResult = DiagnosticAnalysisResult.CreateInitialResult(projectId);
+                _projectId = projectId;
             }
 
             /// <summary>
@@ -47,8 +45,7 @@ internal partial class DiagnosticAnalyzerService
             public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(Project project, CancellationToken cancellationToken)
             {
                 // make a copy of last result.
-                var lastResult = _lastResult;
-                Contract.ThrowIfFalse(lastResult.ProjectId == project.Id);
+                Contract.ThrowIfFalse(_projectId == project.Id);
 
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                 if (lastResult.IsDefault)
@@ -316,36 +313,6 @@ internal partial class DiagnosticAnalyzerService
                 }
 
                 return false;
-            }
-
-            private ImmutableArray<DiagnosticData> GetDiagnosticsFromInMemoryStorage(
-                VersionStamp serializerVersion, ProjectOrDocumentId key, string stateKey)
-            {
-                return InMemoryStorage.TryGetValue(_owner.Analyzer, (key, stateKey), out var entry) && serializerVersion == entry.Version
-                    ? entry.Diagnostics
-                    : default;
-            }
-
-            private void RemoveInMemoryCache(DiagnosticAnalysisResult lastResult)
-            {
-                // remove old cache
-                foreach (var documentId in lastResult.DocumentIdsOrEmpty)
-                {
-                    RemoveInMemoryCacheEntries(documentId);
-                }
-            }
-
-            private void RemoveInMemoryCacheEntries(DocumentId id)
-            {
-                RemoveInMemoryCacheEntry(new(id), SyntaxStateName);
-                RemoveInMemoryCacheEntry(new(id), SemanticStateName);
-                RemoveInMemoryCacheEntry(new(id), NonLocalStateName);
-            }
-
-            private void RemoveInMemoryCacheEntry(ProjectOrDocumentId key, string stateKey)
-            {
-                // remove in memory cache if entry exist
-                InMemoryStorage.Remove(_owner.Analyzer, (key, stateKey));
             }
 
             private static bool IsEmpty(DiagnosticAnalysisResult result, DocumentId documentId)
