@@ -25,13 +25,8 @@ internal partial class DiagnosticAnalyzerService
                 var stateSetsForProject = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
                 var stateSets = GetStateSetsForFullSolutionAnalysis(stateSetsForProject, project);
 
-                // PERF: get analyzers that are not suppressed and marked as open file only
-                // this is perf optimization. we cache these result since we know the result. (no diagnostics)
-                var activeProjectAnalyzers = stateSets.SelectAsArray(s => !s.IsHostAnalyzer, s => s.Analyzer);
-                var activeHostAnalyzers = stateSets.SelectAsArray(s => s.IsHostAnalyzer, s => s.Analyzer);
-
-                var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
-                    project, activeProjectAnalyzers, activeHostAnalyzers, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(
+                    project, stateSets, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, stateSets, cancellationToken).ConfigureAwait(false);
 
