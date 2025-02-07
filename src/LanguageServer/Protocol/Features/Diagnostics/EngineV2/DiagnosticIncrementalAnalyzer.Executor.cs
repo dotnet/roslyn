@@ -23,7 +23,7 @@ internal partial class DiagnosticAnalyzerService
         /// <summary>
         /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
         /// </summary>
-        private async Task<ProjectAnalysisData> GetProjectAnalysisDataAsync(
+        private async Task<ProjectAnalysisData> ComputeProjectAnalysisDataAsync(
             CompilationWithAnalyzersPair? compilationWithAnalyzers, Project project, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, stateSets, cancellationToken))
@@ -31,10 +31,6 @@ internal partial class DiagnosticAnalyzerService
                 try
                 {
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    //var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, cancellationToken).ConfigureAwait(false);
-
-                    //if (existingData.Version == version)
-                    //    return existingData;
 
                     var result = await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, stateSets, cancellationToken).ConfigureAwait(false);
 

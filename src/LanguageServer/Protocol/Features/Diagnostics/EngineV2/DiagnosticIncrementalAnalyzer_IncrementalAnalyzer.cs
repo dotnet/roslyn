@@ -59,7 +59,7 @@ internal partial class DiagnosticAnalyzerService
                 var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(
                     project, fullSolutionAnalysisStateSets, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
-                var projectAnalysisData = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, fullSolutionAnalysisStateSets, cancellationToken).ConfigureAwait(false);
+                var projectAnalysisData = await ComputeProjectAnalysisDataAsync(compilationWithAnalyzers, project, fullSolutionAnalysisStateSets, cancellationToken).ConfigureAwait(false);
                 return (fullSolutionAnalysisStateSets, projectAnalysisData);
             }
         }
