@@ -12753,5 +12753,72 @@ internal class Program
                 Await state.AssertSelectedCompletionItem("Create")
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5399")>
+        Public Async Function TestFilterOutOwnTypeInBaseList1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C : $$
+                {
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsDoNotContainAny("C")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5399")>
+        Public Async Function TestFilterOutOwnTypeInBaseList2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C : $$
+                {
+                    interface IGoo
+                    {
+                    }
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("C", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5399")>
+        Public Async Function TestFilterOutOwnTypeInBaseList3(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C : IComparable&lt;$$&gt;
+                {
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("C", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5399")>
+        Public Async Function TestFilterOutOwnTypeInBaseList4(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C : BaseType($$);
+                {
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("C", displayTextSuffix:="")
+            End Using
+        End Function
     End Class
 End Namespace

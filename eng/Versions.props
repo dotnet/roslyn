@@ -8,7 +8,7 @@
     <MajorVersion>4</MajorVersion>
     <MinorVersion>14</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>2</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
@@ -89,8 +89,6 @@
     <MicrosoftIdentityModelJsonWebTokensVersion>6.34.0</MicrosoftIdentityModelJsonWebTokensVersion>
     <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
-    <!-- TODO: remove https://github.com/dotnet/roslyn/issues/71827 -->
-    <MicrosoftDotNetXliffTasksVersion Condition="'$(DotNetBuildSourceOnly)' != 'true'">9.0.0-beta.24076.5</MicrosoftDotNetXliffTasksVersion>
     <MicrosoftIdentityClientVersion>4.61.3</MicrosoftIdentityClientVersion>
     <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
   </PropertyGroup>
@@ -99,8 +97,9 @@
     <UsingToolPdbConverter>false</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
-    <UsingToolIbcOptimization>true</UsingToolIbcOptimization>
-    <UsingToolVisualStudioIbcTraining>true</UsingToolVisualStudioIbcTraining>
+    <!-- Avoid attempting IBC on platforms where ngen won't work, or the IBC tooling won't work -->
+    <UsingToolIbcOptimization Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolIbcOptimization>
+    <UsingToolVisualStudioIbcTraining Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolVisualStudioIbcTraining>
     <UsingToolXliff>true</UsingToolXliff>
     <UsingToolXUnit>false</UsingToolXUnit>
     <UseVSTestRunner>true</UseVSTestRunner>

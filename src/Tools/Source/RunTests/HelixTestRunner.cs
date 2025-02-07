@@ -26,12 +26,14 @@ namespace RunTests;
 public sealed class HelixWorkItem(
     int id,
     ImmutableArray<string> assemblyFilePaths,
-    ImmutableArray<string> testMethodNames)
+    ImmutableArray<string> testMethodNames,
+    TimeSpan? estimatedExecutionTime)
 {
     public string DisplayName { get; } = $"workitem_{id}";
     public int Id { get; } = id;
     public ImmutableArray<string> AssemblyFilePaths { get; } = assemblyFilePaths;
     public ImmutableArray<string> TestMethodNames { get; } = testMethodNames;
+    public TimeSpan? EstimatedExecutionTime { get; } = estimatedExecutionTime;
 
     public override string ToString() => DisplayName;
 }
@@ -70,12 +72,7 @@ internal sealed class HelixTestRunner
 
         // Retrieve test runtimes from azure devops historical data.
         var testHistory = await TestHistoryManager.GetTestHistoryAsync(options, cancellationToken);
-        var workItems = AssemblyScheduler.Schedule(assemblies, testHistory);
-        var helixWorkItems = workItems.Index().Select((tuple) => new HelixWorkItem(
-            tuple.Index,
-            tuple.Item.Filters.Keys.Select(x => x.AssemblyPath).ToImmutableArray(),
-            tuple.Item.Filters.Values.SelectMany(x => x).Select(x => x.FullyQualifiedName).ToImmutableArray()));
-
+        var helixWorkItems = AssemblyScheduler.Schedule(assemblies.Select(x => x.AssemblyPath), testHistory);
         var helixProjectFileContent = GetHelixProjectFileContent(
             helixWorkItems,
             testOS,
@@ -103,6 +100,7 @@ internal sealed class HelixTestRunner
         }
 
         CopyPayloadFilesToLogs(logsDir, payloadsDir);
+        File.Copy(helixFilePath, Path.Combine(logsDir, "helix.proj"));
 
         var process = ProcessRunner.CreateProcess(
             executable: options.DotnetFilePath,
@@ -235,6 +233,7 @@ internal sealed class HelixTestRunner
                         <Command>{commandPrefix}{commandFileName}</Command>
                         <PostCommands>{commandPrefix}{postCommandFileName}</PostCommands>
                         <Timeout>00:30:00</Timeout>
+                        <ExpectedExecutionTime>{helixWorkItem.EstimatedExecutionTime}</ExpectedExecutionTime>
                     </HelixWorkItem>
                 """);
         }

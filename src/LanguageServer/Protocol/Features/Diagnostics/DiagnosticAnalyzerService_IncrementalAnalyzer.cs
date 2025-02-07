@@ -3,14 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal partial class DiagnosticAnalyzerService
 {
-    public DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+    private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
     {
         return _map.GetValue(workspace, _createIncrementalAnalyzer);
     }
@@ -21,7 +20,7 @@ internal partial class DiagnosticAnalyzerService
         // subscribe to active context changed event for new workspace
         workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
 
-        return new DiagnosticIncrementalAnalyzer(this, workspace, AnalyzerInfoCache);
+        return new DiagnosticIncrementalAnalyzer(this, workspace, AnalyzerInfoCache, this.GlobalOptions);
     }
 
     private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)

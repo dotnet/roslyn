@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -132,7 +131,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Project project,
             ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
             ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
-            bool includeSuppressedDiagnostics,
             bool crashOnAnalyzerException,
             CancellationToken cancellationToken)
         {
@@ -167,14 +165,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
                 logAnalyzerExecutionTime: true,
-                reportSuppressedDiagnostics: includeSuppressedDiagnostics);
+                reportSuppressedDiagnostics: true);
             var hostAnalyzerOptions = new CompilationWithAnalyzersOptions(
                 options: project.HostAnalyzerOptions,
                 onAnalyzerException: null,
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
                 logAnalyzerExecutionTime: true,
-                reportSuppressedDiagnostics: includeSuppressedDiagnostics);
+                reportSuppressedDiagnostics: true);
 
             // Create driver that holds onto compilation and associated analyzers
             return new CompilationWithAnalyzersPair(

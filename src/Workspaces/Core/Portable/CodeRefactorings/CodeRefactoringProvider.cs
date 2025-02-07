@@ -27,11 +27,13 @@ public abstract class CodeRefactoringProvider
     /// registered by this code refactoring provider across the supported <see cref="CodeFixes.FixAllScope"/>s.
     /// Return null if the provider doesn't support fix all operation.
     /// </summary>
-    /// <remarks>
-    /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
-    /// </remarks>
     internal virtual FixAllProvider? GetFixAllProvider()
         => null;
+
+    /// <summary>
+    /// Gets the <see cref="CodeRefactoringKind"/> indicating what kind of refactoring it is. 
+    /// </summary>
+    internal virtual CodeRefactoringKind Kind => CodeRefactoringKind.Refactoring;
 
     /// <summary>
     /// Computes the <see cref="CodeActionRequestPriority"/> group this provider should be considered to run at. Legal values

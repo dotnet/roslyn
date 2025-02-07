@@ -2,106 +2,40 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
-        /// <summary>
-        /// Simple data holder for local diagnostics for an analyzer
-        /// </summary>
-        private readonly struct DocumentAnalysisData
-        {
-            public static readonly DocumentAnalysisData Empty = new(VersionStamp.Default, lineCount: 0, []);
-
-            /// <summary>
-            /// Version of the diagnostic data.
-            /// </summary>
-            public readonly VersionStamp Version;
-
-            /// <summary>
-            /// Number of lines in the document.
-            /// </summary>
-            public readonly int LineCount;
-
-            /// <summary>
-            /// Current data that matches the version.
-            /// </summary>
-            public readonly ImmutableArray<DiagnosticData> Items;
-
-            /// <summary>
-            /// Last set of data we broadcasted to outer world, or <see langword="default"/>.
-            /// </summary>
-            public readonly ImmutableArray<DiagnosticData> OldItems;
-
-            public DocumentAnalysisData(VersionStamp version, int lineCount, ImmutableArray<DiagnosticData> items)
-            {
-                Debug.Assert(!items.IsDefault);
-
-                Version = version;
-                LineCount = lineCount;
-                Items = items;
-                OldItems = default;
-            }
-
-            public DocumentAnalysisData(VersionStamp version, int lineCount, ImmutableArray<DiagnosticData> oldItems, ImmutableArray<DiagnosticData> newItems)
-                : this(version, lineCount, newItems)
-            {
-                Debug.Assert(!oldItems.IsDefault);
-                OldItems = oldItems;
-            }
-        }
-
         /// <summary>
         /// Data holder for all diagnostics for a project for an analyzer
         /// </summary>
-        private readonly struct ProjectAnalysisData
+        private readonly struct ProjectAnalysisData(
+            ProjectId projectId,
+            VersionStamp version,
+            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
         {
             /// <summary>
             /// ProjectId of this data
             /// </summary>
-            public readonly ProjectId ProjectId;
+            public readonly ProjectId ProjectId = projectId;
 
             /// <summary>
             /// Version of the Items
             /// </summary>
-            public readonly VersionStamp Version;
+            public readonly VersionStamp Version = version;
 
             /// <summary>
             /// Current data that matches the version
             /// </summary>
-            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result;
-
-            /// <summary>
-            /// When present, holds onto last data we broadcasted to outer world.
-            /// </summary>
-            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>? OldResult;
-
-            public ProjectAnalysisData(ProjectId projectId, VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
-            {
-                ProjectId = projectId;
-                Version = version;
-                Result = result;
-
-                OldResult = null;
-            }
-
-            public ProjectAnalysisData(
-                ProjectId projectId,
-                VersionStamp version,
-                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> oldResult,
-                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult)
-                : this(projectId, version, newResult)
-            {
-                OldResult = oldResult;
-            }
+            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result = result;
 
             public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
                 => GetResultOrEmpty(Result, analyzer, ProjectId, Version);
@@ -109,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public bool TryGetResult(DiagnosticAnalyzer analyzer, out DiagnosticAnalysisResult result)
                 => Result.TryGetValue(analyzer, out result);
 
-            public static async Task<ProjectAnalysisData> CreateAsync(Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
+            public static async Task<ProjectAnalysisData> CreateAsync(Project project, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
             {
                 VersionStamp? version = null;
 
@@ -117,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 foreach (var stateSet in stateSets)
                 {
                     var state = stateSet.GetOrCreateProjectState(project.Id);
-                    var result = await state.GetAnalysisDataAsync(project, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+                    var result = await state.GetAnalysisDataAsync(project, cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfFalse(project.Id == result.ProjectId);
 
                     if (!version.HasValue)

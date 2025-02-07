@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
         <source>_Always add new line on enter</source>
-        <target state="new">_Always add new line on enter</target>
+        <target state="translated">Enter 키를 누르면 항상 새 줄 추가(_A)</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Automatically_reload_updated_analyzers_and_generators">
         <source>Automatically reload updated analyzers and generators (requires restart)</source>
-        <target state="new">Automatically reload updated analyzers and generators (requires restart)</target>
+        <target state="translated">업데이트된 분석기 및 생성기를 자동으로 다시 로드(다시 시작해야 함)</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
@@ -394,7 +394,7 @@
       </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
-        <target state="new">Editor Help</target>
+        <target state="translated">편집기 도움말</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -434,12 +434,12 @@
       </trans-unit>
       <trans-unit id="Enter_key_behavior">
         <source>Enter key behavior</source>
-        <target state="new">Enter key behavior</target>
+        <target state="translated">키 동작 입력</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_key_behavior_colon">
         <source>Enter key behavior:</source>
-        <target state="new">Enter key behavior:</target>
+        <target state="translated">Enter 키 기능:</target>
         <note />
       </trans-unit>
       <trans-unit id="Entire_repository">
@@ -464,7 +464,7 @@
       </trans-unit>
       <trans-unit id="Experimental_feature">
         <source>Experimental feature</source>
-        <target state="new">Experimental feature</target>
+        <target state="translated">실험적 기능</target>
         <note />
       </trans-unit>
       <trans-unit id="External_sources">
@@ -484,7 +484,7 @@
       </trans-unit>
       <trans-unit id="Fade_out_unused_members">
         <source>Fade out unused members</source>
-        <target state="new">Fade out unused members</target>
+        <target state="translated">사용되지 않는 멤버 페이드 아웃</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -539,12 +539,12 @@
       </trans-unit>
       <trans-unit id="Highlight_matching_portions_of_completion_list_items">
         <source>Highlight matching portions of completion list items</source>
-        <target state="new">Highlight matching portions of completion list items</target>
+        <target state="translated">완성 목록 항목의 일치하는 부분 강조 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
         <source>_Highlight references to symbol under cursor</source>
-        <target state="new">_Highlight references to symbol under cursor</target>
+        <target state="translated">커서 아래의 기호에 대한 참조 강조(_H)</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -554,12 +554,12 @@
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related _keywords under cursor</source>
-        <target state="new">Highlight related _keywords under cursor</target>
+        <target state="translated">커서 아래의 관련 키워드 강조(_K)</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
         <source>Highlighting</source>
-        <target state="new">Highlighting</target>
+        <target state="translated">강조 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Id">
@@ -619,7 +619,7 @@
       </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
-        <target state="new">Insert Snippet</target>
+        <target state="translated">조각 삽입</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -664,7 +664,7 @@
       </trans-unit>
       <trans-unit id="Large">
         <source>Large</source>
-        <target state="new">Large</target>
+        <target state="translated">크게</target>
         <note />
       </trans-unit>
       <trans-unit id="Loaded_items">
@@ -914,12 +914,12 @@
       </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
-        <target state="new">Never</target>
+        <target state="translated">안 함 </target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
         <source>_Never add new line on enter</source>
-        <target state="new">_Never add new line on enter</target>
+        <target state="translated">Enter 키를 누르면 새 줄 추가 안 함(_N)</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -929,7 +929,7 @@
       </trans-unit>
       <trans-unit id="Never_include_snippets">
         <source>Never include snippets</source>
-        <target state="new">Never include snippets</target>
+        <target state="translated">코드 조각 포함 안 함</target>
         <note />
       </trans-unit>
       <trans-unit id="New_Type_Name_colon">
@@ -979,7 +979,7 @@
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>Only add new line on enter after end of fully typed word</source>
-        <target state="new">Only add new line on enter after end of fully typed word</target>
+        <target state="translated">단어를 모두 입력하고 Enter 키를 누르는 경우에만 새 줄 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Open_documents">
@@ -994,7 +994,7 @@
       </trans-unit>
       <trans-unit id="Optimize_for_solution_size">
         <source>Optimize for solution size</source>
-        <target state="new">Optimize for solution size</target>
+        <target state="translated">솔루션 크기에 맞게 최적화</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
@@ -1079,7 +1079,7 @@
       </trans-unit>
       <trans-unit id="Performance">
         <source>Performance</source>
-        <target state="new">Performance</target>
+        <target state="translated">성능</target>
         <note />
       </trans-unit>
       <trans-unit id="Please_enter_a_type_name">
@@ -1189,7 +1189,7 @@
       </trans-unit>
       <trans-unit id="Prefer_unbound_generic_type_in_nameof">
         <source>Prefer unbound generic type in 'nameof'</source>
-        <target state="new">Prefer unbound generic type in 'nameof'</target>
+        <target state="translated">'nameof'에서 바인딩되지 않은 제네릭 형식 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects">
@@ -1214,7 +1214,7 @@
       </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
-        <target state="new">Regular</target>
+        <target state="translated">일반</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -1384,7 +1384,7 @@
       </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer">
         <source>Show "Remove Unused References" command in Solution Explorer</source>
-        <target state="new">Show "Remove Unused References" command in Solution Explorer</target>
+        <target state="translated">솔루션 탐색기에서 "사용하지 않는 참조 제거" 명령 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_UI_as_dashboard_in_top_right">
@@ -1404,12 +1404,12 @@
       </trans-unit>
       <trans-unit id="Show_completion_item__filters">
         <source>Show completion item _filters</source>
-        <target state="new">Show completion item _filters</target>
+        <target state="translated">완성 항목 필터 표시(_F)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_item_filters">
         <source>Show completion item filters</source>
-        <target state="new">Show completion item filters</target>
+        <target state="translated">완성 항목 필터 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list">
@@ -1419,17 +1419,17 @@
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is__deleted">
         <source>Show completion list after a character is _deleted</source>
-        <target state="new">Show completion list after a character is _deleted</target>
+        <target state="translated">문자를 삭제하면 완성 목록 표시(_D)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_deleted">
         <source>Show completion list after a character is deleted</source>
-        <target state="new">Show completion list after a character is deleted</target>
+        <target state="translated">문자를 삭제하면 완성 목록 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
         <source>Show completion list after a character is typed</source>
-        <target state="new">Show completion list after a character is typed</target>
+        <target state="translated">문자를 입력하면 완성 목록 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
@@ -1479,22 +1479,22 @@
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
-        <target state="new">Show items from unimported namespaces</target>
+        <target state="translated">가져오지 않은 네임스페이스의 항목 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename _tracking</source>
-        <target state="new">Show preview for rename _tracking</target>
+        <target state="translated">이름 바꾸기 추적 미리 보기 표시(_T)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
-        <target state="new">_Show procedure line separators</target>
+        <target state="translated">프로시저 줄 구분선 표시(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
-        <target state="new">Show remarks in Quick Info</target>
+        <target state="translated">요약 정보에 설명 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
@@ -1504,12 +1504,12 @@
       </trans-unit>
       <trans-unit id="Small">
         <source>Small</source>
-        <target state="new">Small</target>
+        <target state="translated">작게</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
-        <target state="new">Snippets behavior</target>
+        <target state="translated">코드 조각 동작</target>
         <note />
       </trans-unit>
       <trans-unit id="Source_Generators">
@@ -1579,12 +1579,12 @@
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments</source>
-        <target state="needs-review-translation">두 번 탭하여 인수 삽입(실험적)</target>
+        <target state="translated">탭을 두 번 탭하여 인수 삽입</target>
         <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments_experimental">
         <source>Tab twice to insert arguments (experimental)</source>
-        <target state="new">Tab twice to insert arguments (experimental)</target>
+        <target state="translated">두 번 탭하여 인수 삽입(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -1629,7 +1629,7 @@
       </trans-unit>
       <trans-unit id="Title">
         <source>Title</source>
-        <target state="new">Title</target>
+        <target state="translated">제목</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Name">
@@ -1659,7 +1659,7 @@
       </trans-unit>
       <trans-unit id="Unused_local">
         <source>Unused local</source>
-        <target state="new">Unused local</target>
+        <target state="translated">사용하지 않는 로컬</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -1884,17 +1884,17 @@
       </trans-unit>
       <trans-unit id="_Highlight_matching_portions_of_completion_list_items">
         <source>_Highlight matching portions of completion list items</source>
-        <target state="new">_Highlight matching portions of completion list items</target>
+        <target state="translated">완성 목록 항목에서 일치하는 부분 강조 표시(_H)</target>
         <note />
       </trans-unit>
       <trans-unit id="_Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="new">_Only add new line on enter after end of fully typed word</target>
+        <target state="translated">단어를 모두 입력한 후 Enter 키를 누르면 새 줄 추가(_O)</target>
         <note />
       </trans-unit>
       <trans-unit id="_Show_completion_list_after_a_character_is_typed">
         <source>_Show completion list after a character is typed</source>
-        <target state="new">_Show completion list after a character is typed</target>
+        <target state="translated">문자를 입력하면 완성 목록 표시(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="at_the_end_of_the_line_of_code">

@@ -104,7 +104,7 @@ public abstract partial class AbstractMetadataAsSourceTests
             // Get an ISymbol corresponding to the metadata name
             var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
             var diagnostics = compilation.GetDiagnostics().ToArray();
-            Assert.Equal(0, diagnostics.Length);
+            Assert.Empty(diagnostics);
             var symbol = await ResolveSymbolAsync(symbolMetadataName, compilation);
             Contract.ThrowIfNull(symbol);
 
@@ -172,7 +172,7 @@ public abstract partial class AbstractMetadataAsSourceTests
             {
                 compilation = await this.DefaultProject.GetRequiredCompilationAsync(CancellationToken.None);
                 var diagnostics = compilation.GetDiagnostics().ToArray();
-                Assert.Equal(0, diagnostics.Length);
+                Assert.Empty(diagnostics);
             }
 
             foreach (var reference in compilation.References)

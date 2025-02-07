@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
         <source>Cannot emit update; {0} '{1}' is missing.</source>
-        <target state="new">Cannot emit update; {0} '{1}' is missing.</target>
+        <target state="translated">無法發出更新;遺漏  {0} '{1}' 。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -1334,7 +1334,7 @@
       </trans-unit>
       <trans-unit id="ERR_IteratorRefLikeElementType">
         <source>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</source>
-        <target state="new">Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</target>
+        <target state="translated">iterator 的元素類型不能是 ref 結構或允許 ref 結構的類型參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
@@ -1864,7 +1864,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefAssignValEscapeWider">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
-        <target state="translated">無法參考指派 '{1}' 給 '{0}'，因為 '{1}' 具有比 '{0}' 更寬的值逸出範圍，允許透過 '{0}' 的值指派，其逸出範圍比 '{1}' 更窄。</target>
+        <target state="translated">無法參考指派 '{1}' 給 '{0}'，因為 '{1}' 具有比 '{0}' 更寬的值逸出範圍，允許透過 '{0}' 具有比 '{1}' 更窄的值逸出範圍指派。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -1999,7 +1999,7 @@
       </trans-unit>
       <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
         <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
-        <target state="new">The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</target>
+        <target state="translated">類型 'Microsoft.CodeAnalysis.EmbeddedAttribute' 必須是非泛型、內部、密封、非靜態、具有無參數建構函式、繼承自 System.Attribute，而且可以套用到任何類型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2439,7 +2439,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureFirstClassSpan">
         <source>first-class Span types</source>
-        <target state="new">first-class Span types</target>
+        <target state="translated">第一類 Span 類型</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
@@ -2519,7 +2519,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureOverloadResolutionPriority">
         <source>overload resolution priority</source>
-        <target state="new">overload resolution priority</target>
+        <target state="translated">多載解析優先順序</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
@@ -2604,7 +2604,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
-        <target state="new">unbound generic types in nameof operator</target>
+        <target state="translated">運算子 nameof 中的未系結泛型型別</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -2689,12 +2689,12 @@
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
-        <target state="new">The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</target>
+        <target state="translated">屬性 '{1}' 的 '{0}' 存取子應該使用 『field』，因為其他存取子正在使用它。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField_Title">
         <source>Property accessor should use 'field' because the other accessor is using it.</source>
-        <target state="new">Property accessor should use 'field' because the other accessor is using it.</target>
+        <target state="translated">屬性存取子應該使用 『field』，因為其他存取子正在使用它。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
@@ -2969,12 +2969,12 @@
       </trans-unit>
       <trans-unit id="WRN_ExperimentalWithMessage">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</source>
-        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</target>
+        <target state="translated">'{0}' 僅供評估用。後續更新: '{1}' 時可能會有所變更或移除。抑制此診斷以繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExperimentalWithMessage_Title">
         <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="new">Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
+        <target state="translated">類型僅供評估之用，可能會在未來更新中變更或移除。抑制此診斷以繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous">
@@ -3049,12 +3049,12 @@
       </trans-unit>
       <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature">
         <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
-        <target state="new">'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</target>
+        <target state="translated">不支援 'InterceptsLocationAttribute(字串、int、int)'。改為移至以 『InterceptableLocation』 為基礎的這些屬性產生。(https://github.com/dotnet/roslyn/issues/72133)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature_Title">
         <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
-        <target state="new">'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</target>
+        <target state="translated">不支援 'InterceptsLocationAttribute(字串、int、int)'。改為移至以 『InterceptableLocation』 為基礎的這些屬性產生。(https://github.com/dotnet/roslyn/issues/72133)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
@@ -3264,7 +3264,7 @@
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider">
         <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
-        <target state="translated">此參考指派 '{1}' 給 '{0}' 但 '{1}' 具有比 '{0}' 更寬的值逸出範圍，允許透過 '{0}' 的值指派，其逸出範圍比 '{1}' 更窄。</target>
+        <target state="translated">這會將 '{1}' 參考指派給 '{0}'，但 '{1}' 具有比 '{0}' 更寬的值逸出範圍，允許透過 '{0}' 具有比 '{1}' 更窄的值逸出範圍指派。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider_Title">
@@ -3696,7 +3696,7 @@
                             Visual C# 編譯器選項
 
                       - OUTPUT FILES -
--out:&lt;file&gt;                   指定輸出檔案名稱 (預設: 
+-out:&lt;file&gt;                   指定輸出檔案名稱 (預設:
                              具有主要類別或第一個檔案的檔案基礎名稱)
 -target:exe                   建置主控台可執行檔 (預設) (簡短
                              形式: -t:exe)
@@ -3813,7 +3813,7 @@ strument:TestCoverage      產生檢測要收集
                       - ADVANCED -
 -baseaddress:&lt;address&gt;        要建置程式庫的基底位址
 -checksumalgorithm:&lt;alg&gt;      指定計算儲存在 PDB 中
-                             來源檔案總和檢查碼的演算法。支援的值為: 
+                             來源檔案總和檢查碼的演算法。支援的值為:
                              SHA1 或 SHA256 (預設)。
 -codepage:&lt;n&gt;                 指定開啟來源
                              檔案時所要使用的字碼頁
@@ -5275,12 +5275,12 @@ strument:TestCoverage      產生檢測要收集
       </trans-unit>
       <trans-unit id="WRN_UnassignedInternalRefField">
         <source>Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</source>
-        <target state="new">Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</target>
+        <target state="translated">從未參考指派至欄位 '{0}'，並會一律使用其預設值 (Null 參考)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedInternalRefField_Title">
         <source>Field is never ref-assigned to, and will always have its default value (null reference)</source>
-        <target state="new">Field is never ref-assigned to, and will always have its default value (null reference)</target>
+        <target state="translated">從未參考指派至欄位，並會一律使用其預設值 (Null 參考)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion">
@@ -5395,12 +5395,12 @@ strument:TestCoverage      產生檢測要收集
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
-        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
+        <target state="translated">UnscopedRefAttribute 只在 C# 11 或更新版本中有效，或以 net7.0 或更新版本為目標時有效。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules_Title">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
-        <target state="new">UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</target>
+        <target state="translated">UnscopedRefAttribute 只在 C# 11 或更新版本中有效，或以 net7.0 或更新版本為目標時有效。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -10356,7 +10356,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
         <source>Cannot open '{0}' for writing -- {1}</source>
-        <target state="needs-review-translation">無法開啟 '{0}' 進行寫入 -- '{1}'</target>
+        <target state="translated">無法開啟 '{0}' 進行寫入 -- {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBaseNumber">
@@ -12721,7 +12721,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
         <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
-        <target state="needs-review-translation">程式所使用的使用者字串加起來長度超過允許限制。請嘗試減少使用字串常值。</target>
+        <target state="translated">程式所使用的使用者字串加起來長度超過允許限制。嘗試減少使用字串文字，或嘗試實驗性功能旗標 'experimental-data-section-string-literals'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
@@ -13016,7 +13016,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
-        <target state="new">'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</target>
+        <target state="translated">'{0}' 僅供評估之用，可能會在未來更新中變更或移除。抑制此診斷以繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
@@ -13071,7 +13071,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
         <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
-        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
+        <target state="translated">無法從組件 '{2}' 讀取方法 '{0}' (權杖 0x{1:X8}) 的偵錯資訊: {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotCSharpConversion">
