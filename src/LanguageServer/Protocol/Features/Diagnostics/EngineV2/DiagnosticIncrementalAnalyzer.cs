@@ -30,10 +30,8 @@ internal partial class DiagnosticIncrementalAnalyzer
 
     internal DiagnosticAnalyzerService AnalyzerService { get; }
 
-    [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
     public DiagnosticIncrementalAnalyzer(
         DiagnosticAnalyzerService analyzerService,
-        Workspace workspace,
         DiagnosticAnalyzerInfoCache analyzerInfoCache,
         IGlobalOptionService globalOptionService)
     {
@@ -42,7 +40,7 @@ internal partial class DiagnosticIncrementalAnalyzer
         AnalyzerService = analyzerService;
         GlobalOptions = globalOptionService;
 
-        _stateManager = new StateManager(workspace, analyzerInfoCache);
+        _stateManager = new StateManager(analyzerInfoCache);
         _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
         var enabled = globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler);

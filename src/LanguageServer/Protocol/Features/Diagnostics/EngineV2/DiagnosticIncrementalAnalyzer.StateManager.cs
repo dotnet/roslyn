@@ -20,22 +20,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// This is in charge of anything related to <see cref="StateSet"/>
         /// </summary>
-        private partial class StateManager
+        private partial class StateManager(DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
-            private readonly Workspace _workspace;
-            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache = analyzerInfoCache;
 
             /// <summary>
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
             /// Maps language name to the analyzers and their state.
             /// </summary>
-            private ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets> _hostAnalyzerStateMap;
+            private ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets> _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets>.Empty;
 
             /// <summary>
             /// Analyzers referenced by the project via a PackageReference. Updates are protected by _projectAnalyzerStateMapGuard.
             /// ImmutableDictionary used to present a safe, non-immutable view to users.
             /// </summary>
-            private ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets> _projectAnalyzerStateMap;
+            private ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets> _projectAnalyzerStateMap = ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets>.Empty;
 
             /// <summary>
             /// Guard around updating _projectAnalyzerStateMap. This is used in UpdateProjectStateSets to avoid
@@ -47,15 +46,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// This will be raised whenever <see cref="StateManager"/> finds <see cref="Project.AnalyzerReferences"/> change
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
-
-            public StateManager(Workspace workspace, DiagnosticAnalyzerInfoCache analyzerInfoCache)
-            {
-                _workspace = workspace;
-                _analyzerInfoCache = analyzerInfoCache;
-
-                _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets>.Empty;
-                _projectAnalyzerStateMap = ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets>.Empty;
-            }
 
             /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>.
