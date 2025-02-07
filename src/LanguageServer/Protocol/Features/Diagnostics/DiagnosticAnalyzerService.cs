@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -57,6 +56,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             });
         }
+
+        public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
+            => project.GetDependentVersionAsync(cancellationToken);
 
         public bool CrashOnAnalyzerException
             => GlobalOptions.GetOption(s_crashOnAnalyzerException);
@@ -111,6 +113,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var analyzer = CreateIncrementalAnalyzer(solution.Workspace);
             return analyzer.GetProjectDiagnosticsForIdsAsync(solution, projectId, diagnosticIds, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics, cancellationToken);
+        }
+
+        public TestAccessor GetTestAccessor()
+            => new(this);
+
+        public readonly struct TestAccessor(DiagnosticAnalyzerService service)
+        {
+            public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersAsync(Project project, CancellationToken cancellationToken)
+            {
+                return service.CreateIncrementalAnalyzer(project.Solution.Workspace).GetAnalyzersForTestingPurposesOnlyAsync(project, cancellationToken);
+            }
         }
     }
 }

@@ -6,10 +6,13 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2;
+namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticIncrementalAnalyzer
+internal partial class DiagnosticAnalyzerService
 {
-    private static Task<CompilationWithAnalyzersPair?> CreateCompilationWithAnalyzersAsync(Project project, ImmutableArray<StateSet> stateSets, bool crashOnAnalyzerException, CancellationToken cancellationToken)
-        => DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, stateSets.SelectAsArray(s => !s.IsHostAnalyzer, s => s.Analyzer), stateSets.SelectAsArray(s => s.IsHostAnalyzer, s => s.Analyzer), crashOnAnalyzerException, cancellationToken);
+    private partial class DiagnosticIncrementalAnalyzer
+    {
+        private static Task<CompilationWithAnalyzersPair?> CreateCompilationWithAnalyzersAsync(Project project, ImmutableArray<StateSet> stateSets, bool crashOnAnalyzerException, CancellationToken cancellationToken)
+            => DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, stateSets.SelectAsArray(s => !s.IsHostAnalyzer, s => s.Analyzer), stateSets.SelectAsArray(s => s.IsHostAnalyzer, s => s.Analyzer), crashOnAnalyzerException, cancellationToken);
+    }
 }

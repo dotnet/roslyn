@@ -8,72 +8,75 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2;
+namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticIncrementalAnalyzer
+internal partial class DiagnosticAnalyzerService
 {
-    /// <summary>
-    /// Data holder for all diagnostics for a project for an analyzer
-    /// </summary>
-    private readonly struct ProjectAnalysisData(
-        ProjectId projectId,
-        VersionStamp version,
-        ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
+    private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
-        /// ProjectId of this data
+        /// Data holder for all diagnostics for a project for an analyzer
         /// </summary>
-        public readonly ProjectId ProjectId = projectId;
-
-        /// <summary>
-        /// Version of the Items
-        /// </summary>
-        public readonly VersionStamp Version = version;
-
-        /// <summary>
-        /// Current data that matches the version
-        /// </summary>
-        public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result = result;
-
-        public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
-            => GetResultOrEmpty(Result, analyzer, ProjectId, Version);
-
-        public bool TryGetResult(DiagnosticAnalyzer analyzer, out DiagnosticAnalysisResult result)
-            => Result.TryGetValue(analyzer, out result);
-
-        public static async Task<ProjectAnalysisData> CreateAsync(Project project, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
+        private readonly struct ProjectAnalysisData(
+            ProjectId projectId,
+            VersionStamp version,
+            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
         {
-            VersionStamp? version = null;
+            /// <summary>
+            /// ProjectId of this data
+            /// </summary>
+            public readonly ProjectId ProjectId = projectId;
 
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
-            foreach (var stateSet in stateSets)
+            /// <summary>
+            /// Version of the Items
+            /// </summary>
+            public readonly VersionStamp Version = version;
+
+            /// <summary>
+            /// Current data that matches the version
+            /// </summary>
+            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result = result;
+
+            public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
+                => GetResultOrEmpty(Result, analyzer, ProjectId, Version);
+
+            public bool TryGetResult(DiagnosticAnalyzer analyzer, out DiagnosticAnalysisResult result)
+                => Result.TryGetValue(analyzer, out result);
+
+            public static async Task<ProjectAnalysisData> CreateAsync(Project project, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
             {
-                var state = stateSet.GetOrCreateProjectState(project.Id);
-                var result = await state.GetAnalysisDataAsync(project, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfFalse(project.Id == result.ProjectId);
+                VersionStamp? version = null;
+
+                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
+                foreach (var stateSet in stateSets)
+                {
+                    var state = stateSet.GetOrCreateProjectState(project.Id);
+                    var result = await state.GetAnalysisDataAsync(project, cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfFalse(project.Id == result.ProjectId);
+
+                    if (!version.HasValue)
+                    {
+                        version = result.Version;
+                    }
+                    else if (version.Value != VersionStamp.Default && version.Value != result.Version)
+                    {
+                        // if not all version is same, set version as default.
+                        // this can happen at the initial data loading or
+                        // when document is closed and we put active file state to project state
+                        version = VersionStamp.Default;
+                    }
+
+                    builder.Add(stateSet.Analyzer, result);
+                }
 
                 if (!version.HasValue)
                 {
-                    version = result.Version;
-                }
-                else if (version.Value != VersionStamp.Default && version.Value != result.Version)
-                {
-                    // if not all version is same, set version as default.
-                    // this can happen at the initial data loading or
-                    // when document is closed and we put active file state to project state
-                    version = VersionStamp.Default;
+                    // there is no saved data to return.
+                    return new ProjectAnalysisData(project.Id, VersionStamp.Default, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                 }
 
-                builder.Add(stateSet.Analyzer, result);
+                return new ProjectAnalysisData(project.Id, version.Value, builder.ToImmutable());
             }
-
-            if (!version.HasValue)
-            {
-                // there is no saved data to return.
-                return new ProjectAnalysisData(project.Id, VersionStamp.Default, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
-            }
-
-            return new ProjectAnalysisData(project.Id, version.Value, builder.ToImmutable());
         }
     }
 }
