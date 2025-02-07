@@ -122,9 +122,6 @@ internal readonly struct DiagnosticAnalysisResult
             builder.DocumentIds);
     }
 
-    // aggregated form means it has aggregated information but no actual data.
-    public bool IsAggregatedForm => _syntaxLocals == null;
-
     private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>? GetMap(AnalysisKind kind)
         => kind switch
         {
@@ -137,10 +134,8 @@ internal readonly struct DiagnosticAnalysisResult
     public ImmutableArray<DiagnosticData> GetAllDiagnostics()
     {
         // PERF: don't allocation anything if not needed
-        if (IsAggregatedForm || IsEmpty)
-        {
+        if (IsEmpty)
             return [];
-        }
 
         Contract.ThrowIfNull(_syntaxLocals);
         Contract.ThrowIfNull(_semanticLocals);
@@ -166,10 +161,8 @@ internal readonly struct DiagnosticAnalysisResult
 
     public ImmutableArray<DiagnosticData> GetDocumentDiagnostics(DocumentId documentId, AnalysisKind kind)
     {
-        if (IsAggregatedForm || IsEmpty)
-        {
+        if (IsEmpty)
             return [];
-        }
 
         var map = GetMap(kind);
         Contract.ThrowIfNull(map);
@@ -184,7 +177,7 @@ internal readonly struct DiagnosticAnalysisResult
     }
 
     public ImmutableArray<DiagnosticData> GetOtherDiagnostics()
-        => (IsAggregatedForm || IsEmpty) ? [] : _others;
+        => IsEmpty ? [] : _others;
 
     public DiagnosticAnalysisResult DropExceptSyntax()
     {
