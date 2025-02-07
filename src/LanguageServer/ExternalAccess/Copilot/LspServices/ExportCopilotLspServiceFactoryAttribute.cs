@@ -7,5 +7,5 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot;
 
-internal class ExportCopilotLspServiceFactoryAttribute(Type type) :
+internal sealed class ExportCopilotLspServiceFactoryAttribute(Type type) :
     ExportCSharpVisualBasicLspServiceFactoryAttribute(type, WellKnownLspServerKinds.Any);

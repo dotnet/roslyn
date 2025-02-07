@@ -4,6 +4,6 @@
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot;
 
-internal class AbstractCopilotLspService : ILspService
+internal interface ICopilotLspService : ILspService
 {
 }

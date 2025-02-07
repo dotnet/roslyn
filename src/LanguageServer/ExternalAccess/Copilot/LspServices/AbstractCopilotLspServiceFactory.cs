@@ -6,10 +6,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot;
 
 internal abstract class AbstractCopilotLspServiceFactory : ILspServiceFactory
 {
-    public abstract AbstractCopilotLspService CreateILspService(CopilotLspServices lspServices);
+    public abstract ICopilotLspService CreateCopilotLspService(CopilotLspServices lspServices);
 
     ILspService ILspServiceFactory.CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return CreateILspService(new CopilotLspServices(lspServices));
+        return CreateCopilotLspService(new CopilotLspServices(lspServices));
     }
 }

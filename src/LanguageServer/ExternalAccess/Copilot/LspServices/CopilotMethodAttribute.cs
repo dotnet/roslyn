@@ -6,4 +6,4 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot;
 
-internal class CopilotMethodAttribute(string method) : MethodAttribute(method);
+internal sealed class CopilotMethodAttribute(string method) : MethodAttribute(method);
