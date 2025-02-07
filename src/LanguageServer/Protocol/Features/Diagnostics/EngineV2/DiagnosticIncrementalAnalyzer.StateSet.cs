@@ -16,47 +16,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal partial class DiagnosticAnalyzerService
 {
-    private partial class DiagnosticIncrementalAnalyzer
+    /// <summary>
+    /// this contains all states regarding a <see cref="DiagnosticAnalyzer"/>
+    /// </summary>
+    private sealed class StateSet
     {
-        /// <summary>
-        /// this contains all states regarding a <see cref="DiagnosticAnalyzer"/>
-        /// </summary>
-        private sealed class StateSet
+        public readonly DiagnosticAnalyzer Analyzer;
+        public readonly bool IsHostAnalyzer;
+
+        private readonly ConcurrentSet<DocumentId> _activeDocuments;
+        private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
+
+        public StateSet(DiagnosticAnalyzer analyzer, bool isHostAnalyzer)
         {
-            public readonly DiagnosticAnalyzer Analyzer;
-            public readonly bool IsHostAnalyzer;
+            Analyzer = analyzer;
+            IsHostAnalyzer = isHostAnalyzer;
 
-            private readonly ConcurrentSet<DocumentId> _activeDocuments;
-            private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
+            _activeDocuments = [];
+            _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
+        }
 
-            public StateSet(DiagnosticAnalyzer analyzer, bool isHostAnalyzer)
-            {
-                Analyzer = analyzer;
-                IsHostAnalyzer = isHostAnalyzer;
+        public bool IsActiveFile(DocumentId documentId)
+            => _activeDocuments.Contains(documentId);
 
-                _activeDocuments = [];
-                _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
-            }
+        public bool TryGetProjectState(ProjectId projectId, [NotNullWhen(true)] out ProjectState? state)
+            => _projectStates.TryGetValue(projectId, out state);
 
-            public bool IsActiveFile(DocumentId documentId)
-                => _activeDocuments.Contains(documentId);
+        public void AddActiveDocument(DocumentId documentId)
+            => _activeDocuments.Add(documentId);
 
-            public bool TryGetProjectState(ProjectId projectId, [NotNullWhen(true)] out ProjectState? state)
-                => _projectStates.TryGetValue(projectId, out state);
+        public ProjectState GetOrCreateProjectState(ProjectId projectId)
+            => _projectStates.GetOrAdd(projectId, static (id, self) => new ProjectState(self, id), this);
 
-            public void AddActiveDocument(DocumentId documentId)
-                => _activeDocuments.Add(documentId);
-
-            public ProjectState GetOrCreateProjectState(ProjectId projectId)
-                => _projectStates.GetOrAdd(projectId, static (id, self) => new ProjectState(self, id), this);
-
-            public void OnRemoved()
-            {
-                // ths stateset is being removed.
-                // TODO: we do this since InMemoryCache is static type. we might consider making it instance object
-                //       of something.
-                InMemoryStorage.DropCache(Analyzer);
-            }
+        public void OnRemoved()
+        {
+            // ths stateset is being removed.
+            // TODO: we do this since InMemoryCache is static type. we might consider making it instance object
+            //       of something.
+            InMemoryStorage.DropCache(Analyzer);
         }
     }
 }

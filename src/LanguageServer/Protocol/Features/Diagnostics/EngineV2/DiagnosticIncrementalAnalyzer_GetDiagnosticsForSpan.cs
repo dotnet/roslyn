@@ -102,57 +102,6 @@ internal partial class DiagnosticAnalyzerService
                     range, priorityProvider, isExplicit, logPerformanceInfo, incrementalAnalysis, diagnosticKinds);
             }
 
-            private static async Task<CompilationWithAnalyzersPair?> GetOrCreateCompilationWithAnalyzersAsync(
-                Project project,
-                ImmutableArray<StateSet> stateSets,
-                bool crashOnAnalyzerException,
-                CancellationToken cancellationToken)
-            {
-                if (!project.SupportsCompilation)
-                    return null;
-
-                if (!s_projectToCompilationWithAnalyzers.TryGetValue(project, out var compilationWithAnalyzersPair))
-                    compilationWithAnalyzersPair = await ComputeAndCacheCompilationWithAnalyzersAsync().ConfigureAwait(false);
-
-                if (compilationWithAnalyzersPair is null)
-                    return null;
-
-                // Make sure the cached pair matches the state sets we're asking about.  if not, recompute and cache
-                // with the new state sets.
-                if (HasAllAnalyzers(stateSets, compilationWithAnalyzersPair))
-                    return compilationWithAnalyzersPair;
-
-                return await ComputeAndCacheCompilationWithAnalyzersAsync().ConfigureAwait(false);
-
-                async Task<CompilationWithAnalyzersPair?> ComputeAndCacheCompilationWithAnalyzersAsync()
-                {
-                    var compilationWithAnalyzersPair = await CreateCompilationWithAnalyzersAsync(project, stateSets, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
-
-                    // Make a best effort attempt to store the latest computed value against these state sets. If this
-                    // fails (because another thread interleaves with this), that's ok.  We still return the pair we 
-                    // computed, so our caller will still see the right data
-                    s_projectToCompilationWithAnalyzers.Remove(project);
-                    s_projectToCompilationWithAnalyzers.GetValue(project, _ => compilationWithAnalyzersPair);
-
-                    return compilationWithAnalyzersPair;
-                }
-                s_lastProjectAndCompilationWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
-                return compilationWithAnalyzers;
-
-                static bool HasAllAnalyzers(ImmutableArray<StateSet> stateSets, CompilationWithAnalyzersPair compilationWithAnalyzers)
-                {
-                    foreach (var stateSet in stateSets)
-                    {
-                        if (stateSet.IsHostAnalyzer && !compilationWithAnalyzers.HostAnalyzers.Contains(stateSet.Analyzer))
-                            return false;
-                        else if (!stateSet.IsHostAnalyzer && !compilationWithAnalyzers.ProjectAnalyzers.Contains(stateSet.Analyzer))
-                            return false;
-                    }
-
-                    return true;
-                }
-            }
-
             private LatestDiagnosticsForSpanGetter(
                 DiagnosticIncrementalAnalyzer owner,
                 CompilationWithAnalyzersPair? compilationWithAnalyzers,
