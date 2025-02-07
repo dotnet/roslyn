@@ -39,7 +39,7 @@ internal partial class DiagnosticAnalyzerService
                     // Now we run analyzers but filter out some information. So on such projects, there will be some perf degradation.
                     result = await RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(result, project, cancellationToken).ConfigureAwait(false);
 
-                    return new ProjectAnalysisData(project.Id, version, result);
+                    return new ProjectAnalysisData(result);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {

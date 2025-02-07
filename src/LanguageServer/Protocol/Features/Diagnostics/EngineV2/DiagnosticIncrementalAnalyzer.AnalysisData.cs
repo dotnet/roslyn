@@ -18,27 +18,9 @@ internal partial class DiagnosticAnalyzerService
         /// Data holder for all diagnostics for a project for an analyzer
         /// </summary>
         private readonly struct ProjectAnalysisData(
-            ProjectId projectId,
-            VersionStamp version,
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
         {
-            /// <summary>
-            /// ProjectId of this data
-            /// </summary>
-            public readonly ProjectId ProjectId = projectId;
-
-            /// <summary>
-            /// Version of the Items
-            /// </summary>
-            public readonly VersionStamp Version = version;
-
-            /// <summary>
-            /// Current data that matches the version
-            /// </summary>
-            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result = result;
-
-            public DiagnosticAnalysisResult GetResult(DiagnosticAnalyzer analyzer)
-                => GetResultOrEmpty(Result, analyzer, ProjectId, Version);
+            private readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result = result;
 
             public bool TryGetResult(DiagnosticAnalyzer analyzer, out DiagnosticAnalysisResult result)
                 => Result.TryGetValue(analyzer, out result);

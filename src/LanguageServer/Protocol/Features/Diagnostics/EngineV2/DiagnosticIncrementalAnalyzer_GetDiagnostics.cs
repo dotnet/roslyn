@@ -107,7 +107,8 @@ internal partial class DiagnosticAnalyzerService
 
                 foreach (var stateSet in stateSets)
                 {
-                    var analysisResult = result.GetResult(stateSet.Analyzer);
+                    if (!result.TryGetResult(stateSet.Analyzer, out var analysisResult))
+                        continue;
 
                     foreach (var documentId in documentIds)
                     {
