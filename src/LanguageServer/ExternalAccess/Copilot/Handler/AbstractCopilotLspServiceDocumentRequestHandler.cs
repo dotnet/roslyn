@@ -9,13 +9,12 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
-using LspRequestContext = Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext;
-
 namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot;
 
+/// <inheritdoc cref="ILspServiceDocumentRequestHandler{TRequest, TResponse}"/>
 internal abstract class AbstractCopilotLspServiceDocumentRequestHandler<TRequest, TResponse> : ILspServiceDocumentRequestHandler<TRequest, TResponse>
 {
-    public abstract Task<TResponse> HandleRequestAsync(TRequest request, RequestContext context, CancellationToken cancellationToken);
+    public abstract Task<TResponse> HandleRequestAsync(TRequest request, CopilotRequestContext context, CancellationToken cancellationToken);
     public abstract Uri GetTextDocumentUri(TRequest request);
 
     bool IMethodHandler.MutatesSolutionState => false;
@@ -24,6 +23,6 @@ internal abstract class AbstractCopilotLspServiceDocumentRequestHandler<TRequest
     TextDocumentIdentifier ITextDocumentIdentifierHandler<TRequest, TextDocumentIdentifier>.GetTextDocumentIdentifier(TRequest request)
         => new() { Uri = GetTextDocumentUri(request) };
 
-    Task<TResponse> IRequestHandler<TRequest, TResponse, LspRequestContext>.HandleRequestAsync(TRequest request, LspRequestContext context, CancellationToken cancellationToken)
-        => HandleRequestAsync(request, new RequestContext(context), cancellationToken);
+    Task<TResponse> IRequestHandler<TRequest, TResponse, RequestContext>.HandleRequestAsync(TRequest request, RequestContext context, CancellationToken cancellationToken)
+        => HandleRequestAsync(request, new CopilotRequestContext(context), cancellationToken);
 }

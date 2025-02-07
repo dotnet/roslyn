@@ -4,6 +4,9 @@
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot;
 
+/// <summary>
+/// Interface to mark a Copilot LSP service.
+/// </summary>
 internal interface ICopilotLspService : ILspService
 {
 }
