@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -127,6 +128,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 language: language);
         }
 
+        /// <summary>
+        /// Should only be called on a <see cref="Project"/> that <see cref="Project.SupportsCompilation"/>.
+        /// </summary>
         public static async Task<CompilationWithAnalyzersPair?> CreateCompilationWithAnalyzersAsync(
             Project project,
             ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
@@ -134,12 +138,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool crashOnAnalyzerException,
             CancellationToken cancellationToken)
         {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            if (compilation == null)
-            {
-                // project doesn't support compilation
-                return null;
-            }
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // Create driver that holds onto compilation and associated analyzers
             var filteredProjectAnalyzers = projectAnalyzers.WhereAsArray(static a => !a.IsWorkspaceDiagnosticAnalyzer());

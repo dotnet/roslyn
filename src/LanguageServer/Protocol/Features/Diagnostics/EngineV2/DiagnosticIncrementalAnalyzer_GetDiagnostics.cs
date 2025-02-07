@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -100,18 +101,15 @@ internal partial class DiagnosticAnalyzerService
                 ArrayBuilder<DiagnosticData> builder,
                 CancellationToken cancellationToken)
             {
-                // get analyzers that are not suppressed.
                 var stateSetsForProject = await StateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
                 var stateSets = stateSetsForProject.Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
 
-                // unlike the suppressed (disabled) analyzer, we will include hidden diagnostic only analyzers here.
-                var compilation = await GetOrCreateCompilationWithAnalyzersAsync(project, stateSets, Owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
-
-                var result = await Owner.GetProjectAnalysisDataAsync(compilation, project, stateSets, cancellationToken).ConfigureAwait(false);
+                var result = await GetOrComputeDiagnosticAnalysisResultsAsync(stateSets).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
-                    var analysisResult = result.GetResult(stateSet.Analyzer);
+                    if (!result.TryGetValue(stateSet.Analyzer, out var analysisResult))
+                        continue;
 
                     foreach (var documentId in documentIds)
                     {
@@ -130,6 +128,23 @@ internal partial class DiagnosticAnalyzerService
                         // include project diagnostics if there is no target document
                         AddIncludedDiagnostics(builder, analysisResult.GetOtherDiagnostics());
                     }
+                }
+
+                async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetOrComputeDiagnosticAnalysisResultsAsync(ImmutableArray<StateSet> stateSets)
+                {
+                    // If there was a 'ForceAnalyzeProjectAsync' run for this project, we can piggy back off of the
+                    // prior computed/cached results as they will be a superset of the results we want.
+                    //
+                    // Note: the caller will loop over *its* state sets, grabbing from the full set of data we've cached
+                    // for this project, and filtering down further.  So it's ok to return this potentially larger set.
+                    if (this.Owner._projectToForceAnalysisData.TryGetValue(project, out var box))
+                        return box.Value.diagnosticAnalysisResults;
+
+                    // Otherwise, just compute for the state sets we care about.
+                    var compilation = await GetOrCreateCompilationWithAnalyzersAsync(project, stateSets, Owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+
+                    var result = await Owner.ComputeDiagnosticAnalysisResultsAsync(compilation, project, stateSets, cancellationToken).ConfigureAwait(false);
+                    return result;
                 }
             }
 

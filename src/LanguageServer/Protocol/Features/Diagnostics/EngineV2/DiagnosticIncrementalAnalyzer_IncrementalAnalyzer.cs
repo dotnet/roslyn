@@ -4,12 +4,13 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -18,30 +19,31 @@ internal partial class DiagnosticAnalyzerService
 {
     private partial class DiagnosticIncrementalAnalyzer
     {
+        /// <summary>
+        /// Cached data from a real <see cref="Project"/> instance to the cached diagnostic data produced by
+        /// <em>all</em> the analyzers for the project.  This data can then be used by <see
+        /// cref="DiagnosticGetter.ProduceDiagnosticsAsync"/> to speed up subsequent calls through the normal <see
+        /// cref="IDiagnosticAnalyzerService"/> entry points as long as the project hasn't changed at all.
+        /// </summary>
+        private readonly ConditionalWeakTable<Project, StrongBox<(ImmutableArray<StateSet> stateSets, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> _projectToForceAnalysisData = new();
+
         public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
             try
             {
-                var stateSetsForProject = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
-                var stateSets = GetStateSetsForFullSolutionAnalysis(stateSetsForProject, project);
-
-                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
-                    project, stateSets, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
-
-                var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, stateSets, cancellationToken).ConfigureAwait(false);
+                if (!_projectToForceAnalysisData.TryGetValue(project, out var box))
+                {
+                    box = new(await ComputeForceAnalyzeProjectAsync().ConfigureAwait(false));
+                    box = _projectToForceAnalysisData.GetValue(project, _ => box);
+                }
 
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
 
-                // no cancellation after this point.
+                var (stateSets, projectAnalysisData) = box.Value;
                 foreach (var stateSet in stateSets)
                 {
-                    var state = stateSet.GetOrCreateProjectState(project.Id);
-
-                    if (result.TryGetResult(stateSet.Analyzer, out var analyzerResult))
-                    {
+                    if (projectAnalysisData.TryGetValue(stateSet.Analyzer, out var analyzerResult))
                         diagnostics.AddRange(analyzerResult.GetAllDiagnostics());
-                        await state.SaveToInMemoryStorageAsync(project, analyzerResult).ConfigureAwait(false);
-                    }
                 }
 
                 return diagnostics.ToImmutableAndClear();
@@ -50,16 +52,20 @@ internal partial class DiagnosticAnalyzerService
             {
                 throw ExceptionUtilities.Unreachable();
             }
-        }
 
-        /// <summary>
-        /// Return list of <see cref="StateSet"/> to be used for full solution analysis.
-        /// </summary>
-        private ImmutableArray<StateSet> GetStateSetsForFullSolutionAnalysis(ImmutableArray<StateSet> stateSets, Project project)
-        {
-            // Include only analyzers we want to run for full solution analysis.
-            // Analyzers not included here will never be saved because result is unknown.
-            return stateSets.WhereAsArray(static (s, arg) => arg.self.IsCandidateForFullSolutionAnalysis(s.Analyzer, s.IsHostAnalyzer, arg.project), (self: this, project));
+            async Task<(ImmutableArray<StateSet> stateSets, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)> ComputeForceAnalyzeProjectAsync()
+            {
+                var allStateSets = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
+                var fullSolutionAnalysisStateSets = allStateSets.WhereAsArray(
+                    static (stateSet, arg) => arg.self.IsCandidateForFullSolutionAnalysis(stateSet.Analyzer, stateSet.IsHostAnalyzer, arg.project),
+                    (self: this, project));
+
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
+                    project, fullSolutionAnalysisStateSets, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+
+                var projectAnalysisData = await ComputeDiagnosticAnalysisResultsAsync(compilationWithAnalyzers, project, fullSolutionAnalysisStateSets, cancellationToken).ConfigureAwait(false);
+                return (fullSolutionAnalysisStateSets, projectAnalysisData);
+            }
         }
 
         private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, bool isHostAnalyzer, Project project)
