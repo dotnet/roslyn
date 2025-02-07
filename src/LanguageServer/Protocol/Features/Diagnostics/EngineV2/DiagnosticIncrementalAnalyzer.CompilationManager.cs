@@ -13,6 +13,11 @@ internal partial class DiagnosticAnalyzerService
     private partial class DiagnosticIncrementalAnalyzer
     {
         private static Task<CompilationWithAnalyzersPair?> CreateCompilationWithAnalyzersAsync(Project project, ImmutableArray<StateSet> stateSets, bool crashOnAnalyzerException, CancellationToken cancellationToken)
-            => DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, stateSets.SelectAsArray(s => !s.IsHostAnalyzer, s => s.Analyzer), stateSets.SelectAsArray(s => s.IsHostAnalyzer, s => s.Analyzer), crashOnAnalyzerException, cancellationToken);
+            => DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
+                project,
+                stateSets.SelectAsArray(s => !s.IsHostAnalyzer, s => s.Analyzer),
+                stateSets.SelectAsArray(s => s.IsHostAnalyzer, s => s.Analyzer),
+                crashOnAnalyzerException,
+                cancellationToken);
     }
 }
