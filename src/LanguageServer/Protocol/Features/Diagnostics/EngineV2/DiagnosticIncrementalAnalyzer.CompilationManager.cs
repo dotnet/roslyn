@@ -39,12 +39,7 @@ internal partial class DiagnosticAnalyzerService
         if (!s_projectToCompilationWithAnalyzers.TryGetValue(project, out var compilationWithAnalyzersPair) ||
             !HasAllAnalyzers(stateSets, compilationWithAnalyzersPair))
         {
-            compilationWithAnalyzersPair = await CreateCompilationWithAnalyzersAsync(
-                project,
-                stateSets.SelectAsArray(s => !s.IsHostAnalyzer, s => s.Analyzer),
-                stateSets.SelectAsArray(s => s.IsHostAnalyzer, s => s.Analyzer),
-                crashOnAnalyzerException,
-                cancellationToken).ConfigureAwait(false);
+            compilationWithAnalyzersPair = await CreateCompilationWithAnalyzersAsync().ConfigureAwait(false);
 
             // Make a best effort attempt to store the latest computed value against these state sets. If this
             // fails (because another thread interleaves with this), that's ok.  We still return the pair we 
@@ -77,13 +72,11 @@ internal partial class DiagnosticAnalyzerService
         // <summary>
         // Should only be called on a <see cref="Project"/> that <see cref="Project.SupportsCompilation"/>.
         // </summary>
-        static async Task<CompilationWithAnalyzersPair?> CreateCompilationWithAnalyzersAsync(
-            Project project,
-            ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
-            ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
-            bool crashOnAnalyzerException,
-            CancellationToken cancellationToken)
+        async Task<CompilationWithAnalyzersPair?> CreateCompilationWithAnalyzersAsync()
         {
+            var projectAnalyzers = stateSets.SelectAsArray(s => !s.IsHostAnalyzer, s => s.Analyzer);
+            var hostAnalyzers = stateSets.SelectAsArray(s => s.IsHostAnalyzer, s => s.Analyzer);
+
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // Create driver that holds onto compilation and associated analyzers
