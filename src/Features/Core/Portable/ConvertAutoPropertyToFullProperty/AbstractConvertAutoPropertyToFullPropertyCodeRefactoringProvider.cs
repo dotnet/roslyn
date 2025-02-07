@@ -99,9 +99,9 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
         var fieldName = await GetFieldNameAsync(document, propertySymbol, cancellationToken).ConfigureAwait(false);
         var (newGetAccessor, newSetAccessor) = GetNewAccessors(info, property, fieldName, cancellationToken);
 
-        editor.ReplaceNode(
-            property,
-            CreateFinalProperty(document, property, info, newGetAccessor, newSetAccessor));
+        var finalProperty = CreateFinalProperty(
+            document, GetPropertyWithoutInitializer(property), info, newGetAccessor, newSetAccessor);
+        editor.ReplaceNode(property, finalProperty);
 
         // add backing field, plus initializer if it exists 
         var newField = CodeGenerationSymbolFactory.CreateFieldSymbol(
@@ -137,7 +137,7 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
 
         var fullProperty = generator
             .WithAccessorDeclarations(
-                GetPropertyWithoutInitializer(property),
+                property,
                 newSetAccessor == null
                     ? [newGetAccessor]
                     : [newGetAccessor, newSetAccessor])

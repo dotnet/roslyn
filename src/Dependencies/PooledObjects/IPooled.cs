@@ -6,5 +6,5 @@ namespace Microsoft.CodeAnalysis.PooledObjects;
 
 internal interface IPooled
 {
-    void Free();
+    void Free(bool discardLargeInstances);
 }

@@ -61,6 +61,7 @@ try {
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Debugging.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.PooledObjects.Package.dll" +
+  " --exclude netstandard2.0\Microsoft.CodeAnalysis.Threading.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Workspaces.UnitTests.dll" +
   " --exclude net472\Zip\tools\vsixexpinstaller\System.ValueTuple.dll" +
   " --exclude net472\Zip\tools\vsixexpinstaller\VSIXExpInstaller.exe" +

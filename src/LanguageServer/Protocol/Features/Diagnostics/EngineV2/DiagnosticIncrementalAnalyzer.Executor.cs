@@ -11,13 +11,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
         /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
@@ -29,10 +30,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 try
                 {
-                    // PERF: We need to flip this to false when we do actual diffing.
-                    var avoidLoadingData = true;
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+                    var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, cancellationToken).ConfigureAwait(false);
 
                     if (existingData.Version == version)
                         return existingData;
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // Now we run analyzers but filter out some information. So on such projects, there will be some perf degradation.
                     result = await RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(result, project, cancellationToken).ConfigureAwait(false);
 
-                    return new ProjectAnalysisData(project.Id, version, existingData.Result, result);
+                    return new ProjectAnalysisData(project.Id, version, result);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {

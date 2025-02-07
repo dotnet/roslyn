@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis.Threading
 {
     /// <summary>
     /// A custom awaiter that supports <see cref="YieldAwaitableExtensions.ConfigureAwait"/> for

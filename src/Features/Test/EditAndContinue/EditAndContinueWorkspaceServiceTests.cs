@@ -1594,15 +1594,8 @@ class C { int Y => 2; }
         EndDebuggingSession(debuggingSession);
     }
 
-    public enum DocumentKind
-    {
-        Source,
-        Additional,
-        AnalyzerConfig,
-    }
-
     [Theory, CombinatorialData]
-    public async Task HasChanges_Documents(DocumentKind documentKind)
+    public async Task HasChanges_Documents(TextDocumentKind documentKind)
     {
         using var _ = CreateWorkspace(out var solution, out var service);
         var log = new TraceLog("Test");
@@ -1617,15 +1610,15 @@ class C { int Y => 2; }
             {
                 switch (documentKind)
                 {
-                    case DocumentKind.Source:
+                    case TextDocumentKind.Document:
                         context.AddSource("Generated.cs", context.Compilation.SyntaxTrees.SingleOrDefault(t => t.FilePath.EndsWith("X.cs"))?.ToString() ?? "none");
                         break;
 
-                    case DocumentKind.Additional:
+                    case TextDocumentKind.AdditionalDocument:
                         context.AddSource("Generated.cs", context.AdditionalFiles.FirstOrDefault()?.GetText().ToString() ?? "none");
                         break;
 
-                    case DocumentKind.AnalyzerConfig:
+                    case TextDocumentKind.AnalyzerConfigDocument:
                         var syntaxTree = context.Compilation.SyntaxTrees.Single(t => t.FilePath.EndsWith("A.cs"));
                         var content = context.AnalyzerConfigOptions.GetOptions(syntaxTree).TryGetValue("x", out var optionValue) ? optionValue.ToString() : "none";
 
@@ -1663,9 +1656,9 @@ class C { int Y => 2; }
         var documentId = DocumentId.CreateNewId(projectId);
         solution = documentKind switch
         {
-            DocumentKind.Source => solution.AddDocument(documentId, "X", CreateText("xxx"), filePath: pathX),
-            DocumentKind.Additional => solution.AddAdditionalDocument(documentId, "X", CreateText("xxx"), filePath: pathX),
-            DocumentKind.AnalyzerConfig => solution.AddAnalyzerConfigDocument(documentId, "X", GetAnalyzerConfigText([("x", "1")]), filePath: pathX),
+            TextDocumentKind.Document => solution.AddDocument(documentId, "X", CreateText("xxx"), filePath: pathX),
+            TextDocumentKind.AdditionalDocument => solution.AddAdditionalDocument(documentId, "X", CreateText("xxx"), filePath: pathX),
+            TextDocumentKind.AnalyzerConfigDocument => solution.AddAnalyzerConfigDocument(documentId, "X", GetAnalyzerConfigText([("x", "1")]), filePath: pathX),
             _ => throw ExceptionUtilities.Unreachable(),
         };
         Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
@@ -1683,7 +1676,7 @@ class C { int Y => 2; }
         var diagnostics = new ArrayBuilder<ProjectDiagnostics>();
         await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
-        AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
+        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
 
@@ -1696,9 +1689,9 @@ class C { int Y => 2; }
 
         solution = documentKind switch
         {
-            DocumentKind.Source => solution.WithDocumentText(documentId, CreateText("xxx")),
-            DocumentKind.Additional => solution.WithAdditionalDocumentText(documentId, CreateText("xxx")),
-            DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText([("x", "1")])),
+            TextDocumentKind.Document => solution.WithDocumentText(documentId, CreateText("xxx")),
+            TextDocumentKind.AdditionalDocument => solution.WithAdditionalDocumentText(documentId, CreateText("xxx")),
+            TextDocumentKind.AnalyzerConfigDocument => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText([("x", "1")])),
             _ => throw ExceptionUtilities.Unreachable(),
         };
         Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
@@ -1707,7 +1700,7 @@ class C { int Y => 2; }
         Assert.Equal(0, generatorExecutionCount);
 
         // source generator infrastructure compares content and reuses state if it matches (SourceGeneratedDocumentState.WithUpdatedGeneratedContent):
-        AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId } : [],
+        AssertEx.Equal(documentKind == TextDocumentKind.Document ? new[] { documentId } : [],
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
         await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
@@ -1724,20 +1717,20 @@ class C { int Y => 2; }
         oldSolution = solution;
         solution = documentKind switch
         {
-            DocumentKind.Source => solution.WithDocumentText(documentId, CreateText("xxx-changed")),
-            DocumentKind.Additional => solution.WithAdditionalDocumentText(documentId, CreateText("xxx-changed")),
-            DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText([("x", "2")])),
+            TextDocumentKind.Document => solution.WithDocumentText(documentId, CreateText("xxx-changed")),
+            TextDocumentKind.AdditionalDocument => solution.WithAdditionalDocumentText(documentId, CreateText("xxx-changed")),
+            TextDocumentKind.AnalyzerConfigDocument => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText([("x", "2")])),
             _ => throw ExceptionUtilities.Unreachable(),
         };
         Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
         Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
 
-        AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId],
+        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId],
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
         await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
-        AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
+        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
 
@@ -1749,9 +1742,9 @@ class C { int Y => 2; }
         oldSolution = solution;
         solution = documentKind switch
         {
-            DocumentKind.Source => solution.RemoveDocument(documentId),
-            DocumentKind.Additional => solution.RemoveAdditionalDocument(documentId),
-            DocumentKind.AnalyzerConfig => solution.RemoveAnalyzerConfigDocument(documentId),
+            TextDocumentKind.Document => solution.RemoveDocument(documentId),
+            TextDocumentKind.AdditionalDocument => solution.RemoveAdditionalDocument(documentId),
+            TextDocumentKind.AnalyzerConfigDocument => solution.RemoveAnalyzerConfigDocument(documentId),
             _ => throw ExceptionUtilities.Unreachable(),
         };
         Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
