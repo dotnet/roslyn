@@ -30,9 +30,7 @@ internal partial class DiagnosticAnalyzerService
                 var activeProjectAnalyzers = stateSets.SelectAsArray(s => !s.IsHostAnalyzer, s => s.Analyzer);
                 var activeHostAnalyzers = stateSets.SelectAsArray(s => s.IsHostAnalyzer, s => s.Analyzer);
 
-                CompilationWithAnalyzersPair? compilationWithAnalyzers = null;
-
-                compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
+                var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
                     project, activeProjectAnalyzers, activeHostAnalyzers, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, stateSets, cancellationToken).ConfigureAwait(false);
