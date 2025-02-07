@@ -8,6 +8,7 @@ internal readonly struct RequestContext(LspRequestContext context)
 {
     /// <inheritdoc cref="LspRequestContext.Solution"/>
     internal Solution? Solution => context.Solution;
+
     /// <inheritdoc cref="LspRequestContext.Document"/>
     internal Document? Document => context.Document;
 
