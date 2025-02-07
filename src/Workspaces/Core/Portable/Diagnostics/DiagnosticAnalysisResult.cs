@@ -27,7 +27,6 @@ internal readonly struct DiagnosticAnalysisResult
     /// The set of documents that has any kind of diagnostics on it.
     /// </summary>
     public readonly ImmutableHashSet<DocumentId>? DocumentIds;
-    public readonly bool IsEmpty;
 
     /// <summary>
     /// Syntax diagnostics from this file.
@@ -72,7 +71,6 @@ internal readonly struct DiagnosticAnalysisResult
         _others = others;
 
         DocumentIds = documentIds ?? GetDocumentIds(syntaxLocals, semanticLocals, nonLocals);
-        IsEmpty = DocumentIds.IsEmpty && _others.IsEmpty;
     }
 
     public static DiagnosticAnalysisResult CreateEmpty(ProjectId projectId, VersionStamp version)
@@ -157,9 +155,6 @@ internal readonly struct DiagnosticAnalysisResult
 
     public ImmutableArray<DiagnosticData> GetDocumentDiagnostics(DocumentId documentId, AnalysisKind kind)
     {
-        if (IsEmpty)
-            return [];
-
         var map = GetMap(kind);
         Contract.ThrowIfNull(map);
 
@@ -173,7 +168,7 @@ internal readonly struct DiagnosticAnalysisResult
     }
 
     public ImmutableArray<DiagnosticData> GetOtherDiagnostics()
-        => IsEmpty ? [] : _others;
+        => _others;
 
     public DiagnosticAnalysisResult DropExceptSyntax()
     {
