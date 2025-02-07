@@ -37,11 +37,6 @@
         <target state="translated">Use la versión de lenguaje {0} o superior para usar los comentarios después del carácter de continuación de línea.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
-        <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
-        <target state="new">Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">El tipo "{0}" no se puede incrustar porque tiene un miembro no abstracto. Puede establecer la propiedad "Incrustar tipos de interoperabilidad" en false.</target>

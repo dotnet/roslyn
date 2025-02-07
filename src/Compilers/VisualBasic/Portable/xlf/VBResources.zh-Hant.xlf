@@ -37,11 +37,6 @@
         <target state="translated">若要在行接續字元後使用註解，請使用 {0} 或更高的語言版本。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
-        <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
-        <target state="new">Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">因為類型 '{0}' 有非抽象成員，所以無法內嵌。請考慮將 [內嵌 Interop 類型] 屬性設為 false。</target>

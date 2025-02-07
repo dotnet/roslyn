@@ -37,11 +37,6 @@
         <target state="translated">Usare la versione {0} o versioni successive del linguaggio per usare commenti dopo il carattere di continuazione di riga.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
-        <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
-        <target state="new">Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Non è possibile incorporare il tipo '{0}' perché contiene un membro non astratto. Provare a impostare la proprietà 'Incorpora tipi di interoperabilità' su false.</target>

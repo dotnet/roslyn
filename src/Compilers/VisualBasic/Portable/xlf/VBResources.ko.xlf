@@ -37,11 +37,6 @@
         <target state="translated">줄 연속 문자 뒤에 주석을 사용하려면 언어 버전 {0} 이상을 사용하세요.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
-        <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
-        <target state="new">Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">'{0}' 형식에는 비추상 멤버가 있으므로 해당 형식을 포함할 수 없습니다. 'Interop 형식 포함' 속성을 false로 설정해보세요.</target>
