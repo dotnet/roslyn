@@ -23,7 +23,7 @@ internal partial class DiagnosticAnalyzerService
         /// <summary>
         /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
         /// </summary>
-        private async Task<ProjectAnalysisData> ComputeProjectAnalysisDataAsync(
+        private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticAnalysisResultsAsync(
             CompilationWithAnalyzersPair? compilationWithAnalyzers, Project project, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, stateSets, cancellationToken))
@@ -39,7 +39,7 @@ internal partial class DiagnosticAnalyzerService
                     // Now we run analyzers but filter out some information. So on such projects, there will be some perf degradation.
                     result = await RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(result, project, cancellationToken).ConfigureAwait(false);
 
-                    return new ProjectAnalysisData(result);
+                    return result;
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {

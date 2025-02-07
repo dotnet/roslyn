@@ -8,9 +8,9 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -19,7 +19,7 @@ internal partial class DiagnosticAnalyzerService
 {
     private partial class DiagnosticIncrementalAnalyzer
     {
-        private readonly ConditionalWeakTable<Project, StrongBox<(ImmutableArray<StateSet> stateSets, ProjectAnalysisData projectAnalysisData)>> _projectToForceAnalysisData = new();
+        private readonly ConditionalWeakTable<Project, StrongBox<(ImmutableArray<StateSet> stateSets, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> _projectToForceAnalysisData = new();
 
         public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
@@ -36,7 +36,7 @@ internal partial class DiagnosticAnalyzerService
                 var (stateSets, projectAnalysisData) = box.Value;
                 foreach (var stateSet in stateSets)
                 {
-                    if (projectAnalysisData.TryGetResult(stateSet.Analyzer, out var analyzerResult))
+                    if (projectAnalysisData.TryGetValue(stateSet.Analyzer, out var analyzerResult))
                         diagnostics.AddRange(analyzerResult.GetAllDiagnostics());
                 }
 
@@ -47,7 +47,7 @@ internal partial class DiagnosticAnalyzerService
                 throw ExceptionUtilities.Unreachable();
             }
 
-            async Task<(ImmutableArray<StateSet> stateSets, ProjectAnalysisData projectAnalysisData)> ComputeForceAnalyzeProjectAsync()
+            async Task<(ImmutableArray<StateSet> stateSets, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)> ComputeForceAnalyzeProjectAsync()
             {
                 var allStateSets = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
                 var fullSolutionAnalysisStateSets = allStateSets.WhereAsArray(
@@ -57,7 +57,7 @@ internal partial class DiagnosticAnalyzerService
                 var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(
                     project, fullSolutionAnalysisStateSets, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
-                var projectAnalysisData = await ComputeProjectAnalysisDataAsync(compilationWithAnalyzers, project, fullSolutionAnalysisStateSets, cancellationToken).ConfigureAwait(false);
+                var projectAnalysisData = await ComputeDiagnosticAnalysisResultsAsync(compilationWithAnalyzers, project, fullSolutionAnalysisStateSets, cancellationToken).ConfigureAwait(false);
                 return (fullSolutionAnalysisStateSets, projectAnalysisData);
             }
         }

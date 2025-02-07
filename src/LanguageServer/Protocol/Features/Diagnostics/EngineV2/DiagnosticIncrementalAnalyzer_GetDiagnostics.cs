@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -103,11 +104,11 @@ internal partial class DiagnosticAnalyzerService
                 var stateSetsForProject = await StateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
                 var stateSets = stateSetsForProject.Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
 
-                var result = await GetOrComputeProjectAnalysisDataAsync(stateSets).ConfigureAwait(false);
+                var result = await GetOrComputeDiagnosticAnalysisResultsAsync(stateSets).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
-                    if (!result.TryGetResult(stateSet.Analyzer, out var analysisResult))
+                    if (!result.TryGetValue(stateSet.Analyzer, out var analysisResult))
                         continue;
 
                     foreach (var documentId in documentIds)
@@ -129,7 +130,7 @@ internal partial class DiagnosticAnalyzerService
                     }
                 }
 
-                async Task<ProjectAnalysisData> GetOrComputeProjectAnalysisDataAsync(ImmutableArray<StateSet> stateSets)
+                async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetOrComputeDiagnosticAnalysisResultsAsync(ImmutableArray<StateSet> stateSets)
                 {
                     // If there was a 'ForceAnalyzeProjectAsync' run for this project, we can piggy back off of the
                     // prior computed/cached results as they will be a superset of the results we want.
@@ -137,12 +138,12 @@ internal partial class DiagnosticAnalyzerService
                     // Note: the caller will loop over *its* state sets, grabbing from the full set of data we've cached
                     // for this project, and filtering down further.  So it's ok to return this potentially larger set.
                     if (this.Owner._projectToForceAnalysisData.TryGetValue(project, out var box))
-                        return box.Value.projectAnalysisData;
+                        return box.Value.diagnosticAnalysisResults;
 
                     // Otherwise, just compute for the state sets we care about.
                     var compilation = await CreateCompilationWithAnalyzersAsync(project, stateSets, Owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
-                    var result = await Owner.ComputeProjectAnalysisDataAsync(compilation, project, stateSets, cancellationToken).ConfigureAwait(false);
+                    var result = await Owner.ComputeDiagnosticAnalysisResultsAsync(compilation, project, stateSets, cancellationToken).ConfigureAwait(false);
                     return result;
                 }
             }
