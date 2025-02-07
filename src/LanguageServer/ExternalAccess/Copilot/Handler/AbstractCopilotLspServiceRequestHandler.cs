@@ -11,12 +11,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot;
 
 internal abstract class AbstractCopilotLspServiceRequestHandler<TRequest, TResponse> : ILspServiceRequestHandler<TRequest, TResponse>
 {
-    public abstract bool MutatesSolutionState { get; }
-    public abstract bool RequiresLSPSolution { get; }
     public abstract Task<TResponse> HandleRequestAsync(TRequest request, RequestContext context, CancellationToken cancellationToken);
 
-    bool IMethodHandler.MutatesSolutionState => MutatesSolutionState;
-    bool ISolutionRequiredHandler.RequiresLSPSolution => RequiresLSPSolution;
+    bool IMethodHandler.MutatesSolutionState => false;
+    bool ISolutionRequiredHandler.RequiresLSPSolution => true;
+
     Task<TResponse> IRequestHandler<TRequest, TResponse, LspRequestContext>.HandleRequestAsync(TRequest request, LspRequestContext context, CancellationToken cancellationToken)
         => HandleRequestAsync(request, new RequestContext(context), cancellationToken);
 }
