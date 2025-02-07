@@ -41,11 +41,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(HostAnalyzerStateSetKey arg, (HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
                 {
-                    var language = arg.Language;
-                    var analyzersPerReference = state.HostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
+                    var analyzersPerReference = state.HostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(arg.Language);
 
                     var (hostAnalyzerCollection, projectAnalyzerCollection) = GetAnalyzerCollections(analyzersPerReference, state.ReferenceIdsToRedirect);
-                    var analyzerMap = CreateStateSetMap(language, projectAnalyzerCollection, hostAnalyzerCollection, includeWorkspacePlaceholderAnalyzers: true);
+                    var analyzerMap = CreateStateSetMap(projectAnalyzerCollection, hostAnalyzerCollection, includeWorkspacePlaceholderAnalyzers: true);
 
                     return new HostAnalyzerStateSets(analyzerMap);
                 }
