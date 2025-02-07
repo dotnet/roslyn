@@ -10474,6 +10474,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
+            if (node.MethodOpt is { } method ?
+                    !method.IsStatic :
+                    (!node.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty && !node.OriginalUserDefinedOperatorsOpt[0].IsStatic))
+            {
+                TypeWithState receiverType = VisitRvalueWithState(node.Operand);
+                CheckCallReceiver(node.Operand, receiverType, node.MethodOpt ?? node.OriginalUserDefinedOperatorsOpt[0]);
+                SetNotNullResult(node);
+                return null;
+            }
+
             var operandType = VisitRvalueWithState(node.Operand);
             var operandLvalue = LvalueResultType;
             bool setResult = false;

@@ -2550,6 +2550,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var op1 in ops1)
             {
+                if (op1.IsOverride)
+                {
+                    continue;
+                }
+
                 bool foundMatch = false;
                 foreach (var op2 in ops2)
                 {

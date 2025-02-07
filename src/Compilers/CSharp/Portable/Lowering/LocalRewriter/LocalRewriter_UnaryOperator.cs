@@ -384,6 +384,105 @@ namespace Microsoft.CodeAnalysis.CSharp
             return op == UnaryOperatorKind.PrefixIncrement || op == UnaryOperatorKind.PrefixDecrement;
         }
 
+        public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
+        {
+            return VisitIncrementOperator(node, used: true);
+        }
+
+        private BoundExpression VisitIncrementOperator(BoundIncrementOperator node, bool used)
+        {
+            if (node.MethodOpt?.IsStatic == false)
+            {
+                return VisitInstanceIncrementOperator(node, used);
+            }
+            else
+            {
+                return VisitBuiltInOrStaticIncrementOperator(node);
+            }
+        }
+
+        private BoundExpression VisitInstanceIncrementOperator(BoundIncrementOperator node, bool used)
+        {
+            Debug.Assert(node.MethodOpt is { });
+
+            SyntaxNode syntax = node.Syntax;
+
+            if (!used)
+            {
+                Debug.Assert(node.Type.IsVoidType());
+                return BoundCall.Synthesized(syntax, VisitExpression(node.Operand), initialBindingReceiverIsSubjectToCloning: ThreeState.False, node.MethodOpt);
+            }
+
+            TypeSymbol? operandType = node.Operand.Type; //type of the variable being incremented
+            Debug.Assert(operandType is { });
+            Debug.Assert(TypeSymbol.Equals(operandType, node.Type, TypeCompareKind.AllIgnoreOptions));
+
+            if (!IsPrefix(node))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            BoundAssignmentOperator tempAssignment;
+            BoundLocal boundTemp;
+
+            if (operandType.IsReferenceType)
+            {
+                boundTemp = _factory.StoreToTemp(VisitExpression(node.Operand), out tempAssignment);
+                return new BoundSequence(
+                    syntax: syntax,
+                    locals: [boundTemp.LocalSymbol],
+                    sideEffects: [tempAssignment, BoundCall.Synthesized(syntax, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.False, node.MethodOpt)],
+                    value: boundTemp,
+                    type: operandType);
+            }
+
+            ArrayBuilder<LocalSymbol> tempSymbols = ArrayBuilder<LocalSymbol>.GetInstance();
+            ArrayBuilder<BoundExpression> tempInitializers = ArrayBuilder<BoundExpression>.GetInstance();
+
+            // This will be filled in with the LHS that uses temporaries to prevent
+            // double-evaluation of side effects.
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, isRegularCompoundAssignment: true, tempInitializers, tempSymbols, isDynamicAssignment: false);
+            Debug.Assert(TypeSymbol.Equals(operandType, transformedLHS.Type, TypeCompareKind.AllIgnoreOptions));
+
+            boundTemp = _factory.StoreToTemp(transformedLHS, out tempAssignment);
+            tempSymbols.Add(boundTemp.LocalSymbol);
+
+            tempInitializers.Add(tempAssignment);
+
+            var increment = BoundCall.Synthesized(syntax, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.False, node.MethodOpt);
+            var assignBack = MakeAssignmentOperator(syntax, transformedLHS, boundTemp, used: false, isChecked: node.OperatorKind.IsChecked(), isCompoundAssignment: false);
+
+            if (operandType.IsValueType)
+            {
+                tempInitializers.Add(increment);
+                tempInitializers.Add(assignBack);
+            }
+            else
+            {
+                //  (object)default(T) != null
+                var isNotClass = _factory.IsNotNullReference(_factory.Default(operandType));
+                tempInitializers.Add(
+                    _factory.Conditional(
+                        isNotClass,
+                        new BoundSequence(
+                            syntax: syntax,
+                            locals: [],
+                            sideEffects: [increment, assignBack],
+                            value: boundTemp,
+                            type: operandType),
+                        increment,
+                        operandType,
+                        isRef: false));
+            }
+
+            return new BoundSequence(
+                syntax: syntax,
+                locals: tempSymbols.ToImmutableAndFree(),
+                sideEffects: tempInitializers.ToImmutableAndFree(),
+                value: boundTemp,
+                type: operandType);
+        }
+
         /// <summary>
         /// The rewrites are as follows: suppose the operand x is a variable of type X. The
         /// chosen increment/decrement operator is modelled as a static method on a type T,
@@ -422,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="node">The unary operator expression representing the increment/decrement.</param>
         /// <returns>A bound sequence that uses a temp to achieve the correct side effects and return value.</returns>
-        public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
+        public BoundExpression VisitBuiltInOrStaticIncrementOperator(BoundIncrementOperator node)
         {
             bool isPrefix = IsPrefix(node);
             bool isDynamic = node.OperatorKind.IsDynamic();
@@ -452,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // prefix:  (X)(T.Increment((T)operand)))
             // postfix: (X)(T.Increment((T)temp)))
-            var newValue = makeIncrementOperator(node, rewrittenValueToIncrement: (isPrefix ? MakeRValue(transformedLHS) : boundTemp));
+            var newValue = makeBuiltInOrStaticIncrementOperator(node, rewrittenValueToIncrement: (isPrefix ? MakeRValue(transformedLHS) : boundTemp));
 
             // there are two strategies for completing the rewrite.
             // The reason is that indirect assignments read the target of the assignment before evaluating 
@@ -566,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: boundTemp.Type);
             }
 
-            BoundExpression makeIncrementOperator(BoundIncrementOperator node, BoundExpression rewrittenValueToIncrement)
+            BoundExpression makeBuiltInOrStaticIncrementOperator(BoundIncrementOperator node, BoundExpression rewrittenValueToIncrement)
             {
                 if (node.OperatorKind.IsDynamic())
                 {
@@ -576,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression result;
                 if (node.OperatorKind.OperandTypes() == UnaryOperatorKind.UserDefined)
                 {
-                    result = MakeUserDefinedIncrementOperator(node, rewrittenValueToIncrement);
+                    result = MakeUserDefinedStaticIncrementOperator(node, rewrittenValueToIncrement);
                 }
                 else
                 {
@@ -627,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return replacement;
         }
 
-        private BoundExpression MakeUserDefinedIncrementOperator(BoundIncrementOperator node, BoundExpression rewrittenValueToIncrement)
+        private BoundExpression MakeUserDefinedStaticIncrementOperator(BoundIncrementOperator node, BoundExpression rewrittenValueToIncrement)
         {
             Debug.Assert(node.MethodOpt is { });
             Debug.Assert(node.MethodOpt.ParameterCount == 1);
