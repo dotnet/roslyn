@@ -322,7 +322,7 @@ public class CodeFixServiceTests
         Assert.True(errorReported);
     }
 
-    private static (EditorTestWorkspace workspace, IDiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+    private static (EditorTestWorkspace workspace, IDiagnosticAnalyzerService analyzerService, ICachedDiagnosticAnalyzerService cachedAnalyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
         CodeFixProvider codefix,
         bool includeConfigurationFixProviders = false,
         bool throwExceptionInFixerCreation = false,
@@ -330,7 +330,7 @@ public class CodeFixServiceTests
         string code = "class Program { }")
         => ServiceSetup([codefix], includeConfigurationFixProviders, throwExceptionInFixerCreation, additionalDocument, code);
 
-    private static (EditorTestWorkspace workspace, IDiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+    private static (EditorTestWorkspace workspace, IDiagnosticAnalyzerService analyzerService, ICachedDiagnosticAnalyzerService cachedAnalyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
         ImmutableArray<CodeFixProvider> codefixers,
         bool includeConfigurationFixProviders = false,
         bool throwExceptionInFixerCreation = false,
@@ -355,6 +355,8 @@ public class CodeFixServiceTests
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
         var diagnosticService = workspace.GetService<IDiagnosticAnalyzerService>();
+        var cachedDiagnosticService = workspace.GetService<ICachedDiagnosticAnalyzerService>();
+
         var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => new TestErrorLogger()));
         var errorLogger = logger.First().Value;
 
@@ -368,7 +370,7 @@ public class CodeFixServiceTests
             fixers,
             configurationFixProviders);
 
-        return (workspace, diagnosticService, fixService, errorLogger);
+        return (workspace, diagnosticService, cachedDiagnosticService, fixService, errorLogger);
     }
 
     private static void GetDocumentAndExtensionManager(
