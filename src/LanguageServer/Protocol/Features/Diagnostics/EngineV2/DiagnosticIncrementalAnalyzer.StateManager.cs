@@ -26,6 +26,7 @@ internal partial class DiagnosticAnalyzerService
         {
             private readonly Workspace _workspace;
             private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+            private readonly InMemoryStorage _storage;
 
             /// <summary>
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
@@ -50,10 +51,14 @@ internal partial class DiagnosticAnalyzerService
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(Workspace workspace, DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            public StateManager(
+                Workspace workspace,
+                DiagnosticAnalyzerInfoCache analyzerInfoCache,
+                InMemoryStorage storage)
             {
                 _workspace = workspace;
                 _analyzerInfoCache = analyzerInfoCache;
+                _storage = storage;
 
                 _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets>.Empty;
                 _projectAnalyzerStateMap = ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets>.Empty;
@@ -117,7 +122,7 @@ internal partial class DiagnosticAnalyzerService
             private void RaiseProjectAnalyzerReferenceChanged(ProjectAnalyzerReferenceChangedEventArgs args)
                 => ProjectAnalyzerReferenceChanged?.Invoke(this, args);
 
-            private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
+            private ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> projectAnalyzerCollection,
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> hostAnalyzerCollection,
                 bool includeWorkspacePlaceholderAnalyzers)
@@ -126,8 +131,8 @@ internal partial class DiagnosticAnalyzerService
 
                 if (includeWorkspacePlaceholderAnalyzers)
                 {
-                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(FileContentLoadAnalyzer.Instance, isHostAnalyzer: true));
-                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, isHostAnalyzer: true));
+                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(FileContentLoadAnalyzer.Instance, isHostAnalyzer: true, _storage));
+                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, isHostAnalyzer: true, _storage));
                 }
 
                 foreach (var analyzers in projectAnalyzerCollection)
@@ -145,7 +150,7 @@ internal partial class DiagnosticAnalyzerService
                             continue;
                         }
 
-                        builder.Add(analyzer, new StateSet(analyzer, isHostAnalyzer: false));
+                        builder.Add(analyzer, new StateSet(analyzer, isHostAnalyzer: false, _storage));
                     }
                 }
 
@@ -164,7 +169,7 @@ internal partial class DiagnosticAnalyzerService
                             continue;
                         }
 
-                        builder.Add(analyzer, new StateSet(analyzer, isHostAnalyzer: true));
+                        builder.Add(analyzer, new StateSet(analyzer, isHostAnalyzer: true, _storage));
                     }
                 }
 

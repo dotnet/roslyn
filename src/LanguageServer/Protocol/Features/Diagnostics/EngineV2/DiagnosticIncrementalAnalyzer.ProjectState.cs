@@ -264,7 +264,7 @@ internal partial class DiagnosticAnalyzerService
             private void AddToInMemoryStorage(
                 VersionStamp serializerVersion, ProjectOrDocumentId key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
             {
-                InMemoryStorage.Cache(_owner.Analyzer, (key, stateKey), new CacheEntry(serializerVersion, diagnostics));
+                _owner.Storage.Cache(_owner.Analyzer, (key, stateKey), new CacheEntry(serializerVersion, diagnostics));
             }
 
             private bool TryGetDiagnosticsFromInMemoryStorage(VersionStamp serializerVersion, TextDocument document, Builder builder)
@@ -321,7 +321,7 @@ internal partial class DiagnosticAnalyzerService
             private ImmutableArray<DiagnosticData> GetDiagnosticsFromInMemoryStorage(
                 VersionStamp serializerVersion, ProjectOrDocumentId key, string stateKey)
             {
-                return InMemoryStorage.TryGetValue(_owner.Analyzer, (key, stateKey), out var entry) && serializerVersion == entry.Version
+                return _owner.Storage.TryGetValue(_owner.Analyzer, (key, stateKey), out var entry) && serializerVersion == entry.Version
                     ? entry.Diagnostics
                     : default;
             }
@@ -345,7 +345,7 @@ internal partial class DiagnosticAnalyzerService
             private void RemoveInMemoryCacheEntry(ProjectOrDocumentId key, string stateKey)
             {
                 // remove in memory cache if entry exist
-                InMemoryStorage.Remove(_owner.Analyzer, (key, stateKey));
+                _owner.Storage.Remove(_owner.Analyzer, (key, stateKey));
             }
 
             private static bool IsEmpty(DiagnosticAnalysisResult result, DocumentId documentId)

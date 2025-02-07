@@ -23,15 +23,17 @@ internal partial class DiagnosticAnalyzerService
                 // Some Host Analyzers may need to be treated as Project Analyzers so that they do not have access to the
                 // Host fallback options. These ids will be used when building up the Host and Project analyzer collections.
                 var referenceIdsToRedirect = GetReferenceIdsToRedirectAsProjectAnalyzers(project);
-                var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (project.Solution.SolutionState.Analyzers, referenceIdsToRedirect));
+                var hostStateSets = ImmutableInterlocked.GetOrAdd(
+                    ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (this, project.Solution.SolutionState.Analyzers, referenceIdsToRedirect));
                 return hostStateSets.WithExcludedAnalyzers(projectStateSets.SkippedAnalyzersInfo.SkippedAnalyzers);
 
-                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(HostAnalyzerStateSetKey arg, (HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
+                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(
+                    HostAnalyzerStateSetKey arg, (StateManager @this, HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
                 {
                     var analyzersPerReference = state.HostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(arg.Language);
 
                     var (hostAnalyzerCollection, projectAnalyzerCollection) = GetAnalyzerCollections(analyzersPerReference, state.ReferenceIdsToRedirect);
-                    var analyzerMap = CreateStateSetMap(projectAnalyzerCollection, hostAnalyzerCollection, includeWorkspacePlaceholderAnalyzers: true);
+                    var analyzerMap = state.@this.CreateStateSetMap(projectAnalyzerCollection, hostAnalyzerCollection, includeWorkspacePlaceholderAnalyzers: true);
 
                     return new HostAnalyzerStateSets(analyzerMap);
                 }
@@ -45,22 +47,18 @@ internal partial class DiagnosticAnalyzerService
                         return (analyzersPerReference.Values, []);
                     }
 
-                    var hostAnalyzerCollection = ArrayBuilder<ImmutableArray<DiagnosticAnalyzer>>.GetInstance();
-                    var projectAnalyzerCollection = ArrayBuilder<ImmutableArray<DiagnosticAnalyzer>>.GetInstance();
+                    using var _1 = ArrayBuilder<ImmutableArray<DiagnosticAnalyzer>>.GetInstance(out var hostAnalyzerCollection);
+                    using var _2 = ArrayBuilder<ImmutableArray<DiagnosticAnalyzer>>.GetInstance(out var projectAnalyzerCollection);
 
                     foreach (var (referenceId, analyzers) in analyzersPerReference)
                     {
-                        if (referenceIdsToRedirectAsProjectAnalyzers.Contains(referenceId))
-                        {
-                            projectAnalyzerCollection.Add(analyzers);
-                        }
-                        else
-                        {
-                            hostAnalyzerCollection.Add(analyzers);
-                        }
+                        var collection = referenceIdsToRedirectAsProjectAnalyzers.Contains(referenceId)
+                            ? projectAnalyzerCollection
+                            : hostAnalyzerCollection;
+                        collection.Add(analyzers);
                     }
 
-                    return (hostAnalyzerCollection.ToImmutableAndFree(), projectAnalyzerCollection.ToImmutableAndFree());
+                    return (hostAnalyzerCollection.ToImmutableAndClear(), projectAnalyzerCollection.ToImmutableAndClear());
                 }
             }
 

@@ -25,15 +25,19 @@ internal partial class DiagnosticAnalyzerService
         {
             public readonly DiagnosticAnalyzer Analyzer;
             public readonly bool IsHostAnalyzer;
+            public readonly InMemoryStorage Storage;
 
             private readonly ConcurrentSet<DocumentId> _activeDocuments;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
 
-            public StateSet(DiagnosticAnalyzer analyzer, bool isHostAnalyzer)
+            public StateSet(
+                DiagnosticAnalyzer analyzer,
+                bool isHostAnalyzer,
+                InMemoryStorage storage)
             {
                 Analyzer = analyzer;
                 IsHostAnalyzer = isHostAnalyzer;
-
+                Storage = storage;
                 _activeDocuments = [];
                 _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
             }
@@ -55,7 +59,7 @@ internal partial class DiagnosticAnalyzerService
                 // ths stateset is being removed.
                 // TODO: we do this since InMemoryCache is static type. we might consider making it instance object
                 //       of something.
-                InMemoryStorage.DropCache(Analyzer);
+                Storage.DropCache(Analyzer);
             }
         }
     }

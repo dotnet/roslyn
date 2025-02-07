@@ -29,6 +29,7 @@ internal partial class DiagnosticAnalyzerService
         private readonly StateManager _stateManager;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
         private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
+        private readonly InMemoryStorage _inMemoryStorage = new();
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
 
@@ -44,7 +45,7 @@ internal partial class DiagnosticAnalyzerService
             AnalyzerService = analyzerService;
             GlobalOptions = globalOptionService;
 
-            _stateManager = new StateManager(workspace, analyzerInfoCache);
+            _stateManager = new StateManager(workspace, analyzerInfoCache, _inMemoryStorage);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
             var enabled = globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler);

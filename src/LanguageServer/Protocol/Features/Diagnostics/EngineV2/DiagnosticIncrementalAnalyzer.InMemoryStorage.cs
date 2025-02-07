@@ -13,30 +13,30 @@ internal partial class DiagnosticAnalyzerService
 {
     private partial class DiagnosticIncrementalAnalyzer
     {
-        private static class InMemoryStorage
+        private sealed class InMemoryStorage
         {
             // the reason using nested map rather than having tuple as key is so that I dont have a gigantic map
-            private static readonly ConcurrentDictionary<DiagnosticAnalyzer, ConcurrentDictionary<(ProjectOrDocumentId key, string stateKey), CacheEntry>> s_map =
+            private readonly ConcurrentDictionary<DiagnosticAnalyzer, ConcurrentDictionary<(ProjectOrDocumentId key, string stateKey), CacheEntry>> _map =
                 new(concurrencyLevel: 2, capacity: 10);
 
-            public static bool TryGetValue(DiagnosticAnalyzer analyzer, (ProjectOrDocumentId key, string stateKey) key, out CacheEntry entry)
+            public bool TryGetValue(DiagnosticAnalyzer analyzer, (ProjectOrDocumentId key, string stateKey) key, out CacheEntry entry)
             {
                 entry = default;
-                return s_map.TryGetValue(analyzer, out var analyzerMap) &&
+                return _map.TryGetValue(analyzer, out var analyzerMap) &&
                     analyzerMap.TryGetValue(key, out entry);
             }
 
-            public static void Cache(DiagnosticAnalyzer analyzer, (ProjectOrDocumentId key, string stateKey) key, CacheEntry entry)
+            public void Cache(DiagnosticAnalyzer analyzer, (ProjectOrDocumentId key, string stateKey) key, CacheEntry entry)
             {
                 // add new cache entry
-                var analyzerMap = s_map.GetOrAdd(analyzer, _ => new ConcurrentDictionary<(ProjectOrDocumentId key, string stateKey), CacheEntry>(concurrencyLevel: 2, capacity: 10));
+                var analyzerMap = _map.GetOrAdd(analyzer, _ => new ConcurrentDictionary<(ProjectOrDocumentId key, string stateKey), CacheEntry>(concurrencyLevel: 2, capacity: 10));
                 analyzerMap[key] = entry;
             }
 
-            public static void Remove(DiagnosticAnalyzer analyzer, (ProjectOrDocumentId key, string stateKey) key)
+            public void Remove(DiagnosticAnalyzer analyzer, (ProjectOrDocumentId key, string stateKey) key)
             {
                 // remove the entry
-                if (!s_map.TryGetValue(analyzer, out var analyzerMap))
+                if (!_map.TryGetValue(analyzer, out var analyzerMap))
                 {
                     return;
                 }
@@ -45,14 +45,14 @@ internal partial class DiagnosticAnalyzerService
 
                 if (analyzerMap.IsEmpty)
                 {
-                    s_map.TryRemove(analyzer, out _);
+                    _map.TryRemove(analyzer, out _);
                 }
             }
 
-            public static void DropCache(DiagnosticAnalyzer analyzer)
+            public void DropCache(DiagnosticAnalyzer analyzer)
             {
                 // drop any cache related to given analyzer
-                s_map.TryRemove(analyzer, out _);
+                _map.TryRemove(analyzer, out _);
             }
         }
 
