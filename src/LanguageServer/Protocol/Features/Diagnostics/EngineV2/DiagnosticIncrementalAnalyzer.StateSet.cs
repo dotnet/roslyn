@@ -30,7 +30,10 @@ internal partial class DiagnosticAnalyzerService
             private readonly ConcurrentSet<DocumentId> _activeDocuments;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
 
-            public StateSet(string language, DiagnosticAnalyzer analyzer, bool isHostAnalyzer)
+            public StateSet(
+                string language,
+                DiagnosticAnalyzer analyzer,
+                bool isHostAnalyzer,)
             {
                 Language = language;
                 Analyzer = analyzer;

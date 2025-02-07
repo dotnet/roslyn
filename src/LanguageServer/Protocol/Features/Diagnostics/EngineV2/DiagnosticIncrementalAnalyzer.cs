@@ -29,6 +29,7 @@ internal partial class DiagnosticAnalyzerService
         private readonly StateManager _stateManager;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
         private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
+        private readonly InMemoryStorage _inMemoryStorage = new();
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
 
