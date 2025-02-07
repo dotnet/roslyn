@@ -175,15 +175,15 @@ internal partial class DiagnosticAnalyzerService
                 try
                 {
                     // Try to get cached diagnostics, and also compute non-cached state sets that need diagnostic computation.
-                    using var _1 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var syntaxAnalyzers);
+                    using var _1 = ArrayBuilder<StateSet>.GetInstance(out var syntaxAnalyzers);
 
                     // If we are performing incremental member edit analysis to compute diagnostics incrementally,
                     // we divide the analyzers into those that support span-based incremental analysis and
                     // those that do not support incremental analysis and must be executed for the entire document.
                     // Otherwise, if we are not performing incremental analysis, all semantic analyzers are added
                     // to the span-based analyzer set as we want to compute diagnostics only for the given span.
-                    using var _2 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var semanticSpanBasedAnalyzers);
-                    using var _3 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var semanticDocumentBasedAnalyzers);
+                    using var _2 = ArrayBuilder<StateSet>.GetInstance(out var semanticSpanBasedAnalyzers);
+                    using var _3 = ArrayBuilder<StateSet>.GetInstance(out var semanticDocumentBasedAnalyzers);
 
                     using var _4 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"Pri{_priorityProvider.Priority.GetPriorityInt()}");
 
@@ -212,7 +212,7 @@ internal partial class DiagnosticAnalyzerService
                         {
                             if (includeSyntax)
                             {
-                                syntaxAnalyzers.Add(new AnalyzerWithState(stateSet.Analyzer, stateSet.IsHostAnalyzer));
+                                syntaxAnalyzers.Add(stateSet);
                             }
 
                             if (includeSemantic)
@@ -221,7 +221,7 @@ internal partial class DiagnosticAnalyzerService
                                     stateSet.Analyzer, _incrementalAnalysis,
                                     semanticSpanBasedAnalyzers, semanticDocumentBasedAnalyzers);
 
-                                stateSets.Add(new AnalyzerWithState(stateSet.Analyzer, stateSet.IsHostAnalyzer));
+                                stateSets.Add(stateSet);
                             }
                         }
                     }
@@ -272,11 +272,11 @@ internal partial class DiagnosticAnalyzerService
                     return true;
                 }
 
-                static ArrayBuilder<AnalyzerWithState> GetSemanticAnalysisSelectedStates(
+                static ArrayBuilder<StateSet> GetSemanticAnalysisSelectedStates(
                     DiagnosticAnalyzer analyzer,
                     bool incrementalAnalysis,
-                    ArrayBuilder<AnalyzerWithState> semanticSpanBasedAnalyzers,
-                    ArrayBuilder<AnalyzerWithState> semanticDocumentBasedAnalyzers)
+                    ArrayBuilder<StateSet> semanticSpanBasedAnalyzers,
+                    ArrayBuilder<StateSet> semanticDocumentBasedAnalyzers)
                 {
                     if (!incrementalAnalysis)
                     {
@@ -296,7 +296,7 @@ internal partial class DiagnosticAnalyzerService
             }
 
             private async Task ComputeDocumentDiagnosticsAsync(
-                ImmutableArray<AnalyzerWithState> analyzersWithState,
+                ImmutableArray<StateSet> analyzersWithState,
                 AnalysisKind kind,
                 TextSpan? span,
                 ArrayBuilder<DiagnosticData> builder,
@@ -306,7 +306,7 @@ internal partial class DiagnosticAnalyzerService
                 Debug.Assert(!incrementalAnalysis || kind == AnalysisKind.Semantic);
                 Debug.Assert(!incrementalAnalysis || analyzersWithState.All(analyzerWithState => analyzerWithState.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
-                using var _ = ArrayBuilder<AnalyzerWithState>.GetInstance(analyzersWithState.Length, out var filteredAnalyzersWithStateBuilder);
+                using var _ = ArrayBuilder<StateSet>.GetInstance(analyzersWithState.Length, out var filteredAnalyzersWithStateBuilder);
                 foreach (var analyzerWithState in analyzersWithState)
                 {
                     Debug.Assert(_priorityProvider.MatchesPriority(analyzerWithState.Analyzer));
@@ -460,7 +460,5 @@ internal partial class DiagnosticAnalyzerService
                     && (_shouldIncludeDiagnostic == null || _shouldIncludeDiagnostic(diagnostic.Id));
             }
         }
-
-        private sealed record class AnalyzerWithState(DiagnosticAnalyzer Analyzer, bool IsHostAnalyzer);
     }
 }
