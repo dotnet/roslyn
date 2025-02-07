@@ -25,7 +25,7 @@ internal partial class DiagnosticAnalyzerService
                 var stateSetsForProject = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
                 var stateSets = GetStateSetsForFullSolutionAnalysis(stateSetsForProject, project);
 
-                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
                     project, stateSets, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, stateSets, cancellationToken).ConfigureAwait(false);

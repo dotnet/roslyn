@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -47,10 +48,7 @@ internal partial class DiagnosticAnalyzerService
         /// </summary>
         private sealed class LatestDiagnosticsForSpanGetter
         {
-            // PERF: Cache the last Project and corresponding CompilationWithAnalyzers used to compute analyzer diagnostics for span.
-            //       This is now required as async lightbulb will query and execute different priority buckets of analyzers with multiple
-            //       calls, and we want to reuse CompilationWithAnalyzers instance if possible. 
-            private static readonly WeakReference<ProjectAndCompilationWithAnalyzers?> s_lastProjectAndCompilationWithAnalyzers = new(null);
+            private static readonly ConditionalWeakTable<Project, CompilationWithAnalyzersPair?> s_projectToCompilationWithAnalyzers = new();
 
             private readonly DiagnosticIncrementalAnalyzer _owner;
             private readonly TextDocument _document;
@@ -110,25 +108,38 @@ internal partial class DiagnosticAnalyzerService
                 bool crashOnAnalyzerException,
                 CancellationToken cancellationToken)
             {
-                if (s_lastProjectAndCompilationWithAnalyzers.TryGetTarget(out var projectAndCompilationWithAnalyzers) &&
-                    projectAndCompilationWithAnalyzers?.Project == project)
+                if (!project.SupportsCompilation)
+                    return null;
+
+                if (!s_projectToCompilationWithAnalyzers.TryGetValue(project, out var compilationWithAnalyzersPair))
+                    compilationWithAnalyzersPair = await ComputeAndCacheCompilationWithAnalyzersAsync().ConfigureAwait(false);
+
+                if (compilationWithAnalyzersPair is null)
+                    return null;
+
+                // Make sure the cached pair matches the state sets we're asking about.  if not, recompute and cache
+                // with the new state sets.
+                if (HasAllAnalyzers(stateSets, compilationWithAnalyzersPair))
+                    return compilationWithAnalyzersPair;
+
+                return await ComputeAndCacheCompilationWithAnalyzersAsync().ConfigureAwait(false);
+
+                async Task<CompilationWithAnalyzersPair?> ComputeAndCacheCompilationWithAnalyzersAsync()
                 {
-                    if (projectAndCompilationWithAnalyzers.CompilationWithAnalyzers == null)
-                    {
-                        return null;
-                    }
+                    var compilationWithAnalyzersPair = await CreateCompilationWithAnalyzersAsync(project, stateSets, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
-                    if (HasAllAnalyzers(stateSets, projectAndCompilationWithAnalyzers.CompilationWithAnalyzers))
-                    {
-                        return projectAndCompilationWithAnalyzers.CompilationWithAnalyzers;
-                    }
+                    // Make a best effort attempt to store the latest computed value against these state sets. If this
+                    // fails (because another thread interleaves with this), that's ok.  We still return the pair we 
+                    // computed, so our caller will still see the right data
+                    s_projectToCompilationWithAnalyzers.Remove(project);
+                    s_projectToCompilationWithAnalyzers.GetValue(project, _ => compilationWithAnalyzersPair);
+
+                    return compilationWithAnalyzersPair;
                 }
-
-                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, stateSets, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
                 s_lastProjectAndCompilationWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
                 return compilationWithAnalyzers;
 
-                static bool HasAllAnalyzers(IEnumerable<StateSet> stateSets, CompilationWithAnalyzersPair compilationWithAnalyzers)
+                static bool HasAllAnalyzers(ImmutableArray<StateSet> stateSets, CompilationWithAnalyzersPair compilationWithAnalyzers)
                 {
                     foreach (var stateSet in stateSets)
                     {
