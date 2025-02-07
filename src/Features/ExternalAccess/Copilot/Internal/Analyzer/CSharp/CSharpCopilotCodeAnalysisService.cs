@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateDocumentation;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -24,15 +25,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer.CSharp
 internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnalysisService
 {
     private IExternalCSharpCopilotCodeAnalysisService AnalysisService { get; }
+    private IExternalCSharpCopilotGenerateDocumentationService GenerateDocumentationService { get; }
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpCopilotCodeAnalysisService(
         [Import] IExternalCSharpCopilotCodeAnalysisService externalCopilotService,
+        [Import] IExternalCSharpCopilotGenerateDocumentationService externalCSharpCopilotGenerateDocumentationService,
         IDiagnosticsRefresher diagnosticsRefresher
         ) : base(diagnosticsRefresher)
     {
         AnalysisService = externalCopilotService;
+        GenerateDocumentationService = externalCSharpCopilotGenerateDocumentationService;
     }
 
     protected override Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
@@ -77,5 +81,5 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         => AnalysisService.IsFileExcludedAsync(filePath, cancellationToken);
 
     protected override Task<(string responseString, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
-        => AnalysisService.GetDocumentationCommentAsync(new CopilotDocumentationCommentProposalWrapper(proposal), cancellationToken);
+        => GenerateDocumentationService.GetDocumentationCommentAsync(new CopilotDocumentationCommentProposalWrapper(proposal), cancellationToken);
 }

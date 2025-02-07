@@ -19,5 +19,4 @@ internal interface IExternalCSharpCopilotCodeAnalysisService
     Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
     Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
     Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken);
-    Task<(string responseString, bool isQuotaExceeded)> GetDocumentationCommentAsync(CopilotDocumentationCommentProposalWrapper proposal, CancellationToken cancellationToken);
 }

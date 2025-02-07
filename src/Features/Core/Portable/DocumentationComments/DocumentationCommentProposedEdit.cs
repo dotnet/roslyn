@@ -11,16 +11,17 @@ namespace Microsoft.CodeAnalysis.DocumentationComments;
 /// The individual piece of each documentation comment that will eventually be proposed as an edit.
 /// E.g. the summary tag, the param tag, etc.
 /// </summary>
-internal sealed class DocumentationCommentProposedEdit
+internal sealed record DocumentationCommentProposedEdit
 {
     public TextSpan SpanToReplace { get; }
 
-    // May be null if the tag is 
+    // May be null if the piece of the comment to document does not have an
+    // associated name.
     public string? SymbolName { get; }
 
     public DocumentationCommentTagType TagType { get; }
 
-    internal DocumentationCommentProposedEdit(TextSpan spanToReplace, string? symbolName, DocumentationCommentTagType tagType)
+    public DocumentationCommentProposedEdit(TextSpan spanToReplace, string? symbolName, DocumentationCommentTagType tagType)
     {
         SpanToReplace = spanToReplace;
         SymbolName = symbolName;
