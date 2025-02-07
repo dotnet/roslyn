@@ -45,7 +45,7 @@ internal partial class DiagnosticAnalyzerService
             AnalyzerService = analyzerService;
             GlobalOptions = globalOptionService;
 
-            _stateManager = new StateManager(workspace, analyzerInfoCache);
+            _stateManager = new StateManager(workspace, analyzerInfoCache, _inMemoryStorage);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
             var enabled = globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler);
