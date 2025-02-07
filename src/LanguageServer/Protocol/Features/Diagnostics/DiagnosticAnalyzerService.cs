@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -58,6 +57,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             });
         }
 
+        public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
+            => project.GetDependentVersionAsync(cancellationToken);
+
         public bool CrashOnAnalyzerException
             => GlobalOptions.GetOption(s_crashOnAnalyzerException);
 
@@ -91,17 +93,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 document, range, shouldIncludeDiagnostic, priorityProvider, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(
-            Workspace workspace, ProjectId projectId, DocumentId? documentId, CancellationToken cancellationToken)
-        {
-            var analyzer = CreateIncrementalAnalyzer(workspace);
-            return analyzer.GetCachedDiagnosticsAsync(workspace.CurrentSolution, projectId, documentId, cancellationToken);
-        }
-
-        public async Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
             var analyzer = CreateIncrementalAnalyzer(project.Solution.Workspace);
-            await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+            return await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
@@ -118,6 +113,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var analyzer = CreateIncrementalAnalyzer(solution.Workspace);
             return analyzer.GetProjectDiagnosticsForIdsAsync(solution, projectId, diagnosticIds, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics, cancellationToken);
+        }
+
+        public TestAccessor GetTestAccessor()
+            => new(this);
+
+        public readonly struct TestAccessor(DiagnosticAnalyzerService service)
+        {
+            public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersAsync(Project project, CancellationToken cancellationToken)
+            {
+                return service.CreateIncrementalAnalyzer(project.Solution.Workspace).GetAnalyzersForTestingPurposesOnlyAsync(project, cancellationToken);
+            }
         }
     }
 }

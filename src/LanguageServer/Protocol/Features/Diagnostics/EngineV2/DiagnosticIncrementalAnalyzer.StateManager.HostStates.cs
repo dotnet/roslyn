@@ -9,9 +9,11 @@ using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
         private partial class StateManager
         {

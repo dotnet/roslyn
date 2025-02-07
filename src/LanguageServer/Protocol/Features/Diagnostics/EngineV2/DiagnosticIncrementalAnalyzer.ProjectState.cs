@@ -8,16 +8,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
         /// State for diagnostics that belong to a project at given time.

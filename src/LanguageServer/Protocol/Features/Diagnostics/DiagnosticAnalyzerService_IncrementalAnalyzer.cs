@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
-
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal partial class DiagnosticAnalyzerService
 {
-    public DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+    private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
     {
         return _map.GetValue(workspace, _createIncrementalAnalyzer);
     }

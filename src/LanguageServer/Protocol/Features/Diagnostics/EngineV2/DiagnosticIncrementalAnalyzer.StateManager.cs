@@ -13,9 +13,11 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
         /// This is in charge of anything related to <see cref="StateSet"/>

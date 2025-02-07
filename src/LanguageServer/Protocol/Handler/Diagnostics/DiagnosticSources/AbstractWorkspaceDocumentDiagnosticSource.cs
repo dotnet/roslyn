@@ -103,7 +103,7 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            return codeAnalysisService.GetLastComputedDocumentDiagnosticsAsync(Document.Id, cancellationToken);
+            return Task.FromResult(codeAnalysisService.GetLastComputedDocumentDiagnostics(Document.Id));
         }
     }
 }
