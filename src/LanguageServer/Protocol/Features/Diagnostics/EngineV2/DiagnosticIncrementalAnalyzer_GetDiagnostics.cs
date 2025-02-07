@@ -18,33 +18,35 @@ internal partial class DiagnosticAnalyzerService
     private partial class DiagnosticIncrementalAnalyzer
     {
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-            => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
+            => new DiagnosticGetter(this, solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
 
         public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-            => new IdeLatestDiagnosticGetter(this, solution, projectId, documentId: null, diagnosticIds, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics).GetProjectDiagnosticsAsync(cancellationToken);
+            => new DiagnosticGetter(this, solution, projectId, documentId: null, diagnosticIds, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics).GetProjectDiagnosticsAsync(cancellationToken);
 
-        private abstract class DiagnosticGetter(
+        private sealed class DiagnosticGetter(
             DiagnosticIncrementalAnalyzer owner,
             Solution solution,
             ProjectId projectId,
             DocumentId? documentId,
+            ImmutableHashSet<string>? diagnosticIds,
+            Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
             bool includeLocalDocumentDiagnostics,
             bool includeNonLocalDocumentDiagnostics)
         {
-            protected readonly DiagnosticIncrementalAnalyzer Owner = owner;
+            private readonly DiagnosticIncrementalAnalyzer Owner = owner;
 
-            protected readonly Solution Solution = solution;
-            protected readonly ProjectId ProjectId = projectId;
-            protected readonly DocumentId? DocumentId = documentId;
-            protected readonly bool IncludeLocalDocumentDiagnostics = includeLocalDocumentDiagnostics;
-            protected readonly bool IncludeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
+            private readonly Solution Solution = solution;
+            private readonly ProjectId ProjectId = projectId;
+            private readonly DocumentId? DocumentId = documentId;
+            private readonly ImmutableHashSet<string>? _diagnosticIds = diagnosticIds;
+            private readonly Func<DiagnosticAnalyzer, bool>? _shouldIncludeAnalyzer = shouldIncludeAnalyzer;
+            private readonly bool IncludeLocalDocumentDiagnostics = includeLocalDocumentDiagnostics;
+            private readonly bool IncludeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
 
-            protected StateManager StateManager => Owner._stateManager;
+            private StateManager StateManager => Owner._stateManager;
 
-            protected virtual bool ShouldIncludeDiagnostic(DiagnosticData diagnostic) => true;
-
-            protected abstract Task ProduceDiagnosticsAsync(
-                Project project, IReadOnlyList<DocumentId> documentIds, bool includeProjectNonLocalResult, ArrayBuilder<DiagnosticData> builder, CancellationToken cancellationToken);
+            private bool ShouldIncludeDiagnostic(DiagnosticData diagnostic)
+                => _diagnosticIds == null || _diagnosticIds.Contains(diagnostic.Id);
 
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(CancellationToken cancellationToken)
             {
@@ -62,7 +64,7 @@ internal partial class DiagnosticAnalyzerService
                     includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
             }
 
-            protected async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
+            private async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
                 Project project, IReadOnlyList<DocumentId> documentIds,
                 bool includeProjectNonLocalResult, CancellationToken cancellationToken)
             {
@@ -72,7 +74,7 @@ internal partial class DiagnosticAnalyzerService
                 return builder.ToImmutableAndClear();
             }
 
-            protected void AddIncludedDiagnostics(ArrayBuilder<DiagnosticData> builder, ImmutableArray<DiagnosticData> diagnostics)
+            private void AddIncludedDiagnostics(ArrayBuilder<DiagnosticData> builder, ImmutableArray<DiagnosticData> diagnostics)
             {
                 foreach (var diagnostic in diagnostics)
                 {
@@ -80,22 +82,6 @@ internal partial class DiagnosticAnalyzerService
                         builder.Add(diagnostic);
                 }
             }
-        }
-
-        private sealed class IdeLatestDiagnosticGetter(
-            DiagnosticIncrementalAnalyzer owner,
-            Solution solution,
-            ProjectId projectId,
-            DocumentId? documentId,
-            ImmutableHashSet<string>? diagnosticIds,
-            Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
-            bool includeLocalDocumentDiagnostics,
-            bool includeNonLocalDocumentDiagnostics)
-            : DiagnosticGetter(
-                owner, solution, projectId, documentId, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics)
-        {
-            private readonly ImmutableHashSet<string>? _diagnosticIds = diagnosticIds;
-            private readonly Func<DiagnosticAnalyzer, bool>? _shouldIncludeAnalyzer = shouldIncludeAnalyzer;
 
             public async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(CancellationToken cancellationToken)
             {
@@ -107,10 +93,7 @@ internal partial class DiagnosticAnalyzerService
                     project, documentIds: [], includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
             }
 
-            protected override bool ShouldIncludeDiagnostic(DiagnosticData diagnostic)
-                => _diagnosticIds == null || _diagnosticIds.Contains(diagnostic.Id);
-
-            protected override async Task ProduceDiagnosticsAsync(
+            private async Task ProduceDiagnosticsAsync(
                 Project project,
                 IReadOnlyList<DocumentId> documentIds,
                 bool includeProjectNonLocalResult,
