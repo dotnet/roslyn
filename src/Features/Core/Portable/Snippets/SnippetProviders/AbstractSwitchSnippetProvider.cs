@@ -19,8 +19,10 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         protected sealed override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            var statement = generator.SwitchStatement(generator.IdentifierName("switch_on"), generator.SwitchSection();
+            var statement = generator.SwitchStatement(generator.IdentifierName("switch_on"),
+                generator.DefaultSwitchSection([generator.ExitSwitchStatement()]));
             return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), statement.NormalizeWhitespace().ToFullString()));
         }
+
     }
 }
