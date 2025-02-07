@@ -3943,7 +3943,6 @@
       <Kind Name="FalseKeyword"/>
       <Kind Name="TrueKeyword"/>
       <Kind Name="IsKeyword"/>
-      <Kind Name="ExplicitKeyword"/>
     </Field>
     <Field Name="ParameterList" Type="ParameterListSyntax" Override="true"/>
     <Choice>

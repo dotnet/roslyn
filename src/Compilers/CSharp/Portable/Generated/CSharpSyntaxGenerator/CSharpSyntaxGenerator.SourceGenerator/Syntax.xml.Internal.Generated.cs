@@ -31740,8 +31740,7 @@ internal partial class ContextAwareSyntax
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
             case SyntaxKind.TrueKeyword:
-            case SyntaxKind.IsKeyword:
-            case SyntaxKind.ExplicitKeyword: break;
+            case SyntaxKind.IsKeyword: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
         if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
@@ -37009,8 +37008,7 @@ internal static partial class SyntaxFactory
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
             case SyntaxKind.TrueKeyword:
-            case SyntaxKind.IsKeyword:
-            case SyntaxKind.ExplicitKeyword: break;
+            case SyntaxKind.IsKeyword: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
         if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));

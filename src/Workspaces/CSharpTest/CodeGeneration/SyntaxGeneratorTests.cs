@@ -1002,12 +1002,12 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         }
 
         [Fact, WorkItem(77101, "https://github.com/dotnet/roslyn/issues/77101")]
-        public void TestExplicitOperatorFromSymbol()
+        public void TestExplicitCheckedOperatorFromSymbol()
         {
             var compilation = CSharpCompilation.Create("Test", [SyntaxFactory.ParseSyntaxTree("""
                 public class C
                 {
-                    public static explicit operator int(C c) => 0;
+                    public static explicit operator checked int(C c) => 0;
                 }
                 """)]);
 
@@ -1016,7 +1016,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<ConversionOperatorDeclarationSyntax>(
                 Generator.OperatorDeclaration(op),
-                "public static explicit operator global::System.Int32(global::C c)\r\n{\r\n}");
+                "public static explicit operator checked global::System.Int32(global::C c)\r\n{\r\n}");
         }
 
         [Fact]
