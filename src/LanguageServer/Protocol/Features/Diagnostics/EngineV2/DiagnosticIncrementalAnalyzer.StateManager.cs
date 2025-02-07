@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -56,27 +58,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             /// <summary>
-            /// Return <see cref="StateSet"/>s for the given <see cref="ProjectId"/>. 
-            /// This will never create new <see cref="StateSet"/> but will return ones already created.
-            /// </summary>
-            public IEnumerable<StateSet> GetStateSets(ProjectId projectId)
-            {
-                var hostStateSets = GetAllHostStateSets();
-
-                // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
-                return _projectAnalyzerStateMap.TryGetValue(projectId, out var entry)
-                    ? hostStateSets.Concat(entry.StateSetMap.Values)
-                    : hostStateSets;
-            }
-
-            /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>.
             /// This will never create new <see cref="StateSet"/> but will return ones already created.
-            /// Difference with <see cref="GetStateSets(ProjectId)"/> is that 
-            /// this will only return <see cref="StateSet"/>s that have same language as <paramref name="project"/>.
             /// </summary>
-            public IEnumerable<StateSet> GetStateSets(Project project)
-                => GetStateSets(project.Id).Where(s => s.Language == project.Language);
+            public ImmutableArray<StateSet> GetStateSets(Project project)
+            {
+                using var _ = ArrayBuilder<StateSet>.GetInstance(out var result);
+
+                var analyzerReferences = project.Solution.SolutionState.Analyzers.HostAnalyzerReferences;
+                foreach (var (key, value) in _hostAnalyzerStateMap)
+                {
+                    if (key.AnalyzerReferences == analyzerReferences)
+                        result.AddRange(value.OrderedStateSets);
+                }
+
+                // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
+                if (_projectAnalyzerStateMap.TryGetValue(project.Id, out var entry))
+                    result.AddRange(entry.StateSetMap.Values);
+
+                return result.WhereAsArray((stateSet, project) => stateSet.Language == project.Language, project);
+            }
 
             /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>. 

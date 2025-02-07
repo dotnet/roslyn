@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Project project, IReadOnlyList<DocumentId> documentIds, bool includeProjectNonLocalResult,
                 ArrayBuilder<DiagnosticData> builder, CancellationToken cancellationToken)
             {
-                foreach (var stateSet in StateManager.GetStateSets(project.Id))
+                foreach (var stateSet in StateManager.GetStateSets(project))
                 {
                     foreach (var documentId in documentIds)
                     {
