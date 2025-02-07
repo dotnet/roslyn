@@ -299,8 +299,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 IncludePrivateMembers == other.IncludePrivateMembers &&
                 InstrumentationKinds.NullToEmpty().SequenceEqual(other.InstrumentationKinds.NullToEmpty(), (a, b) => a == b) &&
                 DefaultSourceFileEncoding == other.DefaultSourceFileEncoding &&
-                FallbackSourceFileEncoding == other.FallbackSourceFileEncoding &&
-                TestOnly_DataToHexViaXxHash128 == other.TestOnly_DataToHexViaXxHash128;
+                FallbackSourceFileEncoding == other.FallbackSourceFileEncoding;
         }
 
         public override int GetHashCode()
@@ -319,8 +318,7 @@ namespace Microsoft.CodeAnalysis.Emit
                    Hash.Combine(IncludePrivateMembers,
                    Hash.Combine(Hash.CombineValues(InstrumentationKinds),
                    Hash.Combine(DefaultSourceFileEncoding,
-                   Hash.Combine(FallbackSourceFileEncoding,
-                   Hash.Combine(TestOnly_DataToHexViaXxHash128, 0))))))))))))))));
+                   Hash.Combine(FallbackSourceFileEncoding, 0)))))))))))))));
         }
 
         public static bool operator ==(EmitOptions? left, EmitOptions? right)
