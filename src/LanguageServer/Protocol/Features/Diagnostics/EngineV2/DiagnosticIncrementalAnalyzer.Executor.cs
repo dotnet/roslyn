@@ -32,12 +32,12 @@ internal partial class DiagnosticAnalyzerService
                 {
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-                    var result = await ComputeDiagnosticsForStateSetsAsync(compilationWithAnalyzers, project, stateSets, cancellationToken).ConfigureAwait(false);
+                    var result = await ComputeDiagnosticsForStateSetsAsync(stateSets).ConfigureAwait(false);
 
                     // If project is not loaded successfully, get rid of any semantic errors from compiler analyzer.
                     // Note: In the past when project was not loaded successfully we did not run any analyzers on the project.
                     // Now we run analyzers but filter out some information. So on such projects, there will be some perf degradation.
-                    result = await RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(result, project, cancellationToken).ConfigureAwait(false);
+                    result = await RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(result).ConfigureAwait(false);
 
                     return result;
                 }
@@ -47,8 +47,8 @@ internal partial class DiagnosticAnalyzerService
                 }
             }
 
-            static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(
-                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result, Project project, CancellationToken cancellationToken)
+            async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(
+                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
             {
                 // see whether solution is loaded successfully
                 var projectLoadedSuccessfully = await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
@@ -83,10 +83,7 @@ internal partial class DiagnosticAnalyzerService
             // Calculate all diagnostics for a given project using analyzers referenced by the project and specified IDE analyzers.
             // </summary>
             async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsForAnalyzersAsync(
-                CompilationWithAnalyzersPair? compilationWithAnalyzers,
-                Project project,
-                ImmutableArray<DiagnosticAnalyzer> ideAnalyzers,
-                CancellationToken cancellationToken)
+                ImmutableArray<DiagnosticAnalyzer> ideAnalyzers)
             {
                 try
                 {
@@ -108,7 +105,7 @@ internal partial class DiagnosticAnalyzerService
 
                     // check whether there is IDE specific project diagnostic analyzer
                     Debug.Assert(ideAnalyzers.All(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer));
-                    return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(project, ideAnalyzers, compilationWithAnalyzers?.HostCompilation, result, cancellationToken).ConfigureAwait(false);
+                    return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(ideAnalyzers, result).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
@@ -117,10 +114,7 @@ internal partial class DiagnosticAnalyzerService
             }
 
             async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsForStateSetsAsync(
-                CompilationWithAnalyzersPair? compilationWithAnalyzers,
-                Project project,
-                ImmutableArray<StateSet> stateSets,
-                CancellationToken cancellationToken)
+                ImmutableArray<StateSet> stateSets)
             {
                 try
                 {
@@ -128,7 +122,7 @@ internal partial class DiagnosticAnalyzerService
 
                     var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
 
-                    return await ComputeDiagnosticsForAnalyzersAsync(compilationWithAnalyzers, project, ideAnalyzers, cancellationToken).ConfigureAwait(false);
+                    return await ComputeDiagnosticsForAnalyzersAsync(ideAnalyzers).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
@@ -137,17 +131,16 @@ internal partial class DiagnosticAnalyzerService
             }
 
             async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
-                Project project,
                 ImmutableArray<DiagnosticAnalyzer> ideAnalyzers,
-                Compilation? compilation,
-                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result,
-                CancellationToken cancellationToken)
+                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
             {
                 try
                 {
+                    var compilation = compilationWithAnalyzers?.HostCompilation;
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-                    (result, var failedDocuments) = await UpdateWithDocumentLoadAndGeneratorFailuresAsync(result, project, version, cancellationToken).ConfigureAwait(false);
+                    (result, var failedDocuments) = await UpdateWithDocumentLoadAndGeneratorFailuresAsync(
+                        result, version).ConfigureAwait(false);
 
                     foreach (var analyzer in ideAnalyzers)
                     {
@@ -198,9 +191,7 @@ internal partial class DiagnosticAnalyzerService
 
             async Task<(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results, ImmutableHashSet<Document>? failedDocuments)> UpdateWithDocumentLoadAndGeneratorFailuresAsync(
                 ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results,
-                Project project,
-                VersionStamp version,
-                CancellationToken cancellationToken)
+                VersionStamp version)
             {
                 ImmutableHashSet<Document>.Builder? failedDocuments = null;
                 ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? lazyLoadDiagnostics = null;
