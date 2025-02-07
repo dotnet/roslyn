@@ -31,12 +31,12 @@ internal partial class DiagnosticAnalyzerService
                 try
                 {
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, cancellationToken).ConfigureAwait(false);
+                    //var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, cancellationToken).ConfigureAwait(false);
 
-                    if (existingData.Version == version)
-                        return existingData;
+                    //if (existingData.Version == version)
+                    //    return existingData;
 
-                    var result = await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, stateSets, existingData.Result, cancellationToken).ConfigureAwait(false);
+                    var result = await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, stateSets, cancellationToken).ConfigureAwait(false);
 
                     // If project is not loaded successfully, get rid of any semantic errors from compiler analyzer.
                     // Note: In the past when project was not loaded successfully we did not run any analyzers on the project.
@@ -119,116 +119,23 @@ internal partial class DiagnosticAnalyzerService
         }
 
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
-            CompilationWithAnalyzersPair? compilationWithAnalyzers, Project project, ImmutableArray<StateSet> stateSets,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, CancellationToken cancellationToken)
+            CompilationWithAnalyzersPair? compilationWithAnalyzers,
+            Project project,
+            ImmutableArray<StateSet> stateSets,
+            CancellationToken cancellationToken)
         {
             try
             {
-                // PERF: check whether we can reduce number of analyzers we need to run.
-                //       this can happen since caller could have created the driver with different set of analyzers that are different
-                //       than what we used to create the cache.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
                 var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
 
-                if (compilationWithAnalyzers != null && TryReduceAnalyzersToRun(compilationWithAnalyzers, version, existing, out var projectAnalyzersToRun, out var hostAnalyzersToRun))
-                {
-                    // it looks like we can reduce the set. create new CompilationWithAnalyzer.
-                    // if we reduced to 0, we just pass in null for analyzer drvier. it could be reduced to 0
-                    // since we might have up to date results for analyzers from compiler but not for 
-                    // workspace analyzers.
-
-                    var compilationWithReducedAnalyzers = (projectAnalyzersToRun.Length == 0 && hostAnalyzersToRun.Length == 0) ? null :
-                        await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
-                            project,
-                            projectAnalyzersToRun,
-                            hostAnalyzersToRun,
-                            AnalyzerService.CrashOnAnalyzerException,
-                            cancellationToken).ConfigureAwait(false);
-
-                    var result = await ComputeDiagnosticsAsync(compilationWithReducedAnalyzers, project, ideAnalyzers, cancellationToken).ConfigureAwait(false);
-                    return MergeExistingDiagnostics(version, existing, result);
-                }
-
-                // we couldn't reduce the set.
                 return await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, ideAnalyzers, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable();
             }
-        }
-
-        private static ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> MergeExistingDiagnostics(
-            VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
-        {
-            // quick bail out.
-            if (existing.IsEmpty)
-            {
-                return result;
-            }
-
-            foreach (var (analyzer, results) in existing)
-            {
-                if (results.Version != version)
-                {
-                    continue;
-                }
-
-                result = result.SetItem(analyzer, results);
-            }
-
-            return result;
-        }
-
-        private static bool TryReduceAnalyzersToRun(
-            CompilationWithAnalyzersPair compilationWithAnalyzers, VersionStamp version,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
-            out ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
-            out ImmutableArray<DiagnosticAnalyzer> hostAnalyzers)
-        {
-            projectAnalyzers = compilationWithAnalyzers.ProjectAnalyzers.WhereAsArray(
-                static (analyzer, arg) =>
-                {
-                    if (arg.existing.TryGetValue(analyzer, out var analysisResult) &&
-                        analysisResult.Version == arg.version)
-                    {
-                        // we already have up to date result.
-                        return false;
-                    }
-
-                    // analyzer that is out of date.
-                    // open file only analyzer is always out of date for project wide data
-                    return true;
-                },
-                (existing, version));
-
-            hostAnalyzers = compilationWithAnalyzers.HostAnalyzers.WhereAsArray(
-                static (analyzer, arg) =>
-                {
-                    if (arg.existing.TryGetValue(analyzer, out var analysisResult) &&
-                        analysisResult.Version == arg.version)
-                    {
-                        // we already have up to date result.
-                        return false;
-                    }
-
-                    // analyzer that is out of date.
-                    // open file only analyzer is always out of date for project wide data
-                    return true;
-                },
-                (existing, version));
-
-            if (projectAnalyzers.Length == compilationWithAnalyzers.ProjectAnalyzers.Length
-                && hostAnalyzers.Length == compilationWithAnalyzers.HostAnalyzers.Length)
-            {
-                // all of analyzers are out of date.
-                projectAnalyzers = default;
-                hostAnalyzers = default;
-                return false;
-            }
-
-            return true;
         }
 
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(

@@ -43,40 +43,40 @@ internal partial class DiagnosticAnalyzerService
             public bool TryGetResult(DiagnosticAnalyzer analyzer, out DiagnosticAnalysisResult result)
                 => Result.TryGetValue(analyzer, out result);
 
-            public static async Task<ProjectAnalysisData> CreateAsync(Project project, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
-            {
-                VersionStamp? version = null;
+            //public static async Task<ProjectAnalysisData> CreateAsync(Project project, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
+            //{
+            //    VersionStamp? version = null;
 
-                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
-                foreach (var stateSet in stateSets)
-                {
-                    var state = stateSet.GetOrCreateProjectState(project.Id);
-                    var result = await state.GetAnalysisDataAsync(project, cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfFalse(project.Id == result.ProjectId);
+            //    var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
+            //    foreach (var stateSet in stateSets)
+            //    {
+            //        var state = stateSet.GetOrCreateProjectState(project.Id);
+            //        var result = await state.GetAnalysisDataAsync(project, cancellationToken).ConfigureAwait(false);
+            //        Contract.ThrowIfFalse(project.Id == result.ProjectId);
 
-                    if (!version.HasValue)
-                    {
-                        version = result.Version;
-                    }
-                    else if (version.Value != VersionStamp.Default && version.Value != result.Version)
-                    {
-                        // if not all version is same, set version as default.
-                        // this can happen at the initial data loading or
-                        // when document is closed and we put active file state to project state
-                        version = VersionStamp.Default;
-                    }
+            //        if (!version.HasValue)
+            //        {
+            //            version = result.Version;
+            //        }
+            //        else if (version.Value != VersionStamp.Default && version.Value != result.Version)
+            //        {
+            //            // if not all version is same, set version as default.
+            //            // this can happen at the initial data loading or
+            //            // when document is closed and we put active file state to project state
+            //            version = VersionStamp.Default;
+            //        }
 
-                    builder.Add(stateSet.Analyzer, result);
-                }
+            //        builder.Add(stateSet.Analyzer, result);
+            //    }
 
-                if (!version.HasValue)
-                {
-                    // there is no saved data to return.
-                    return new ProjectAnalysisData(project.Id, VersionStamp.Default, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
-                }
+            //    if (!version.HasValue)
+            //    {
+            //        // there is no saved data to return.
+            //        return new ProjectAnalysisData(project.Id, VersionStamp.Default, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
+            //    }
 
-                return new ProjectAnalysisData(project.Id, version.Value, builder.ToImmutable());
-            }
+            //    return new ProjectAnalysisData(project.Id, version.Value, builder.ToImmutable());
+            //}
         }
     }
 }

@@ -39,230 +39,178 @@ internal partial class DiagnosticAnalyzerService
                 _projectId = projectId;
             }
 
-            /// <summary>
-            /// Return all diagnostics for the given project stored in this state
-            /// </summary>
-            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(Project project, CancellationToken cancellationToken)
-            {
-                // make a copy of last result.
-                Contract.ThrowIfFalse(_projectId == project.Id);
+            ///// <summary>
+            ///// Return all diagnostics for the given project stored in this state
+            ///// </summary>
+            //public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(Project project, CancellationToken cancellationToken)
+            //{
+            //    // make a copy of last result.
+            //    Contract.ThrowIfFalse(_projectId == project.Id);
 
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                if (lastResult.IsDefault)
-                    return LoadInitialAnalysisData(project, version, cancellationToken);
+            //    var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+            //    if (lastResult.IsDefault)
+            //        return LoadInitialAnalysisData(project, version, cancellationToken);
 
-                RoslynDebug.Assert(lastResult.DocumentIds != null);
+            //    RoslynDebug.Assert(lastResult.DocumentIds != null);
 
-                // PERF: avoid loading data if version is not right one.
-                // avoid loading data flag is there as a strictly perf optimization.
-                if (lastResult.Version != version)
-                {
-                    return lastResult;
-                }
+            //    // PERF: avoid loading data if version is not right one.
+            //    // avoid loading data flag is there as a strictly perf optimization.
+            //    if (lastResult.Version != version)
+            //    {
+            //        return lastResult;
+            //    }
 
-                // if given project doesnt have any diagnostics, return empty.
-                if (lastResult.IsEmpty)
-                {
-                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
-                }
+            //    // if given project doesnt have any diagnostics, return empty.
+            //    if (lastResult.IsEmpty)
+            //    {
+            //        return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
+            //    }
 
-                // loading data can be canceled any time.
-                var serializerVersion = lastResult.Version;
-                var builder = new Builder(project, lastResult.Version, lastResult.DocumentIds);
+            //    // loading data can be canceled any time.
+            //    var serializerVersion = lastResult.Version;
+            //    var builder = new Builder(project, lastResult.Version, lastResult.DocumentIds);
 
-                foreach (var documentId in lastResult.DocumentIds)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
+            //    foreach (var documentId in lastResult.DocumentIds)
+            //    {
+            //        cancellationToken.ThrowIfCancellationRequested();
 
-                    var document = project.GetDocument(documentId);
-                    if (document == null)
-                        continue;
+            //        var document = project.GetDocument(documentId);
+            //        if (document == null)
+            //            continue;
 
-                    if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder))
-                    {
-                        Debug.Assert(lastResult.Version == VersionStamp.Default);
+            //        if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder))
+            //        {
+            //            Debug.Assert(lastResult.Version == VersionStamp.Default);
 
-                        // this can happen if we merged back active file diagnostics back to project state but
-                        // project state didn't have diagnostics for the file yet. (since project state was staled)
-                        continue;
-                    }
-                }
+            //            // this can happen if we merged back active file diagnostics back to project state but
+            //            // project state didn't have diagnostics for the file yet. (since project state was staled)
+            //            continue;
+            //        }
+            //    }
 
-                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder))
-                {
-                    // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
-                    // analysis happened.
-                }
+            //    if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder))
+            //    {
+            //        // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
+            //        // analysis happened.
+            //    }
 
-                return builder.ToResult();
-            }
+            //    return builder.ToResult();
+            //}
 
-            /// <summary>
-            /// Return all diagnostics for the given document stored in this state including non local diagnostics for this document
-            /// </summary>
-            public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(TextDocument document, CancellationToken cancellationToken)
-            {
-                // make a copy of last result.
-                var lastResult = _lastResult;
-                Contract.ThrowIfFalse(lastResult.ProjectId == document.Project.Id);
+            ///// <summary>
+            ///// Return all diagnostics for the given document stored in this state including non local diagnostics for this document
+            ///// </summary>
+            //public async Task<DiagnosticAnalysisResult> GetAnalysisDataAsync(TextDocument document, CancellationToken cancellationToken)
+            //{
+            //    // make a copy of last result.
+            //    var lastResult = _lastResult;
+            //    Contract.ThrowIfFalse(lastResult.ProjectId == document.Project.Id);
 
-                var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
-                if (lastResult.IsDefault)
-                    return LoadInitialAnalysisData(document, version);
+            //    var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            //    if (lastResult.IsDefault)
+            //        return LoadInitialAnalysisData(document, version);
 
-                // if given document doesnt have any diagnostics, return empty.
-                if (IsEmpty(lastResult, document.Id))
-                {
-                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
-                }
+            //    // if given document doesnt have any diagnostics, return empty.
+            //    if (IsEmpty(lastResult, document.Id))
+            //    {
+            //        return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
+            //    }
 
-                // loading data can be canceled any time.
-                var serializerVersion = lastResult.Version;
-                var builder = new Builder(document.Project, lastResult.Version);
+            //    // loading data can be canceled any time.
+            //    var serializerVersion = lastResult.Version;
+            //    var builder = new Builder(document.Project, lastResult.Version);
 
-                if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder))
-                {
-                    Debug.Assert(lastResult.Version == VersionStamp.Default);
+            //    if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder))
+            //    {
+            //        Debug.Assert(lastResult.Version == VersionStamp.Default);
 
-                    // this can happen if we merged back active file diagnostics back to project state but
-                    // project state didn't have diagnostics for the file yet. (since project state was staled)
-                }
+            //        // this can happen if we merged back active file diagnostics back to project state but
+            //        // project state didn't have diagnostics for the file yet. (since project state was staled)
+            //    }
 
-                return builder.ToResult();
-            }
+            //    return builder.ToResult();
+            //}
 
-            /// <summary>
-            /// Return all no location diagnostics for the given project stored in this state
-            /// </summary>
-            public async Task<DiagnosticAnalysisResult> GetProjectAnalysisDataAsync(Project project, CancellationToken cancellationToken)
-            {
-                // make a copy of last result.
-                var lastResult = _lastResult;
-                Contract.ThrowIfFalse(lastResult.ProjectId == project.Id);
+            ///// <summary>
+            ///// Return all no location diagnostics for the given project stored in this state
+            ///// </summary>
+            //public async Task<DiagnosticAnalysisResult> GetProjectAnalysisDataAsync(Project project, CancellationToken cancellationToken)
+            //{
+            //    // make a copy of last result.
+            //    var lastResult = _lastResult;
+            //    Contract.ThrowIfFalse(lastResult.ProjectId == project.Id);
 
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                if (lastResult.IsDefault)
-                    return LoadInitialProjectAnalysisData(project, version);
+            //    var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+            //    if (lastResult.IsDefault)
+            //        return LoadInitialProjectAnalysisData(project, version);
 
-                // if given document doesn't have any diagnostics, return empty.
-                if (lastResult.IsEmpty)
-                {
-                    return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
-                }
+            //    // if given document doesn't have any diagnostics, return empty.
+            //    if (lastResult.IsEmpty)
+            //    {
+            //        return DiagnosticAnalysisResult.CreateEmpty(lastResult.ProjectId, lastResult.Version);
+            //    }
 
-                // loading data can be canceled any time.
-                var serializerVersion = lastResult.Version;
-                var builder = new Builder(project, lastResult.Version);
+            //    // loading data can be canceled any time.
+            //    var serializerVersion = lastResult.Version;
+            //    var builder = new Builder(project, lastResult.Version);
 
-                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder))
-                {
-                    // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
-                    // analysis happened.
-                }
+            //    if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder))
+            //    {
+            //        // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
+            //        // analysis happened.
+            //    }
 
-                return builder.ToResult();
-            }
+            //    return builder.ToResult();
+            //}
 
-            public async ValueTask SaveToInMemoryStorageAsync(Project project, DiagnosticAnalysisResult result)
-            {
-                Contract.ThrowIfTrue(result.IsAggregatedForm);
-                Contract.ThrowIfNull(result.DocumentIds);
+            //public async ValueTask SaveToInMemoryStorageAsync(Project project, DiagnosticAnalysisResult result)
+            //{
+            //    Contract.ThrowIfTrue(result.IsAggregatedForm);
+            //    Contract.ThrowIfNull(result.DocumentIds);
 
-                RemoveInMemoryCache(_lastResult);
+            //    RemoveInMemoryCache(_lastResult);
 
-                using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentIdsToProcess);
-                documentIdsToProcess.AddRange(_lastResult.DocumentIdsOrEmpty);
-                documentIdsToProcess.AddRange(result.DocumentIdsOrEmpty);
+            //    using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentIdsToProcess);
+            //    documentIdsToProcess.AddRange(_lastResult.DocumentIdsOrEmpty);
+            //    documentIdsToProcess.AddRange(result.DocumentIdsOrEmpty);
 
-                // save last aggregated form of analysis result
-                _lastResult = result.ToAggregatedForm();
+            //    // save last aggregated form of analysis result
+            //    _lastResult = result.ToAggregatedForm();
 
-                // serialization can't be canceled.
-                var serializerVersion = result.Version;
+            //    // serialization can't be canceled.
+            //    var serializerVersion = result.Version;
 
-                foreach (var documentId in documentIdsToProcess)
-                {
-                    var document = project.GetTextDocument(documentId);
+            //    foreach (var documentId in documentIdsToProcess)
+            //    {
+            //        var document = project.GetTextDocument(documentId);
 
-                    // If we couldn't find a normal document, and all features are enabled for source generated
-                    // documents, attempt to locate a matching source generated document in the project.
-                    if (document is null
-                        && project.Solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true)
-                    {
-                        document = await project.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
-                    }
+            //        // If we couldn't find a normal document, and all features are enabled for source generated
+            //        // documents, attempt to locate a matching source generated document in the project.
+            //        if (document is null
+            //            && project.Solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true)
+            //        {
+            //            document = await project.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
+            //        }
 
-                    if (document == null)
-                    {
-                        // it can happen with build synchronization since, in build case, 
-                        // we don't have actual snapshot (we have no idea what sources out of proc build has picked up)
-                        // so we might be out of sync.
-                        // example of such cases will be changing anything about solution while building is going on.
-                        // it can be user explicit actions such as unloading project, deleting a file, but also it can be 
-                        // something project system or roslyn workspace does such as populating workspace right after
-                        // solution is loaded.
-                        continue;
-                    }
+            //        if (document == null)
+            //        {
+            //            // it can happen with build synchronization since, in build case, 
+            //            // we don't have actual snapshot (we have no idea what sources out of proc build has picked up)
+            //            // so we might be out of sync.
+            //            // example of such cases will be changing anything about solution while building is going on.
+            //            // it can be user explicit actions such as unloading project, deleting a file, but also it can be 
+            //            // something project system or roslyn workspace does such as populating workspace right after
+            //            // solution is loaded.
+            //            continue;
+            //        }
 
-                    AddToInMemoryStorage(serializerVersion, new(document.Id), SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax));
-                    AddToInMemoryStorage(serializerVersion, new(document.Id), SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic));
-                    AddToInMemoryStorage(serializerVersion, new(document.Id), NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal));
-                }
+            //        AddToInMemoryStorage(serializerVersion, new(document.Id), SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax));
+            //        AddToInMemoryStorage(serializerVersion, new(document.Id), SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic));
+            //        AddToInMemoryStorage(serializerVersion, new(document.Id), NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal));
+            //    }
 
-                AddToInMemoryStorage(serializerVersion, new(result.ProjectId), NonLocalStateName, result.GetOtherDiagnostics());
-            }
-
-            private DiagnosticAnalysisResult LoadInitialAnalysisData(
-                Project project, VersionStamp version, CancellationToken cancellationToken)
-            {
-                // loading data can be canceled any time.
-                var builder = new Builder(project, version);
-
-                foreach (var document in project.Documents)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    if (!TryGetDiagnosticsFromInMemoryStorage(version, document, builder))
-                        continue;
-                }
-
-                if (!TryGetProjectDiagnosticsFromInMemoryStorage(version, project, builder))
-                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
-
-                return builder.ToResult();
-            }
-
-            private DiagnosticAnalysisResult LoadInitialAnalysisData(
-                TextDocument document, VersionStamp version)
-            {
-                // loading data can be canceled any time.
-                var project = document.Project;
-
-                var builder = new Builder(project, version);
-
-                if (!TryGetDiagnosticsFromInMemoryStorage(version, document, builder))
-                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
-
-                return builder.ToResult();
-            }
-
-            private DiagnosticAnalysisResult LoadInitialProjectAnalysisData(
-                Project project, VersionStamp version)
-            {
-                // loading data can be canceled any time.
-                var builder = new Builder(project, version);
-
-                if (!TryGetProjectDiagnosticsFromInMemoryStorage(version, project, builder))
-                    return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
-
-                return builder.ToResult();
-            }
-
-            private void AddToInMemoryStorage(
-                VersionStamp serializerVersion, ProjectOrDocumentId key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
-            {
-                InMemoryStorage.Cache(_owner.Analyzer, (key, stateKey), new CacheEntry(serializerVersion, diagnostics));
-            }
+            //    AddToInMemoryStorage(serializerVersion, new(result.ProjectId), NonLocalStateName, result.GetOtherDiagnostics());
+            //}
 
             private static bool IsEmpty(DiagnosticAnalysisResult result, DocumentId documentId)
                 => !result.DocumentIdsOrEmpty.Contains(documentId);
