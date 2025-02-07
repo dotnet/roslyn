@@ -41,7 +41,7 @@ internal partial class DiagnosticAnalyzerService
             /// Guard around updating _projectAnalyzerStateMap. This is used in UpdateProjectStateSets to avoid
             /// duplicated calculations for a project during contentious calls.
             /// </summary>
-            private readonly SemaphoreSlim _projectAnalyzerStateMapGuard = new(1);
+            private readonly SemaphoreSlim _projectAnalyzerStateMapGuard = new(initialCount: 1);
 
             public StateManager(Workspace workspace, DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {

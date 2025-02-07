@@ -210,7 +210,6 @@ internal partial class DiagnosticAnalyzerService
 
                         if (includeSyntax || includeSemantic)
                         {
-                            stateSet.AddActiveDocument(_document.Id);
                             if (includeSyntax)
                             {
                                 syntaxAnalyzers.Add(new AnalyzerWithState(stateSet.Analyzer, stateSet.IsHostAnalyzer));
