@@ -18,15 +18,16 @@ using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
         public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
             TextDocument document,
             TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
-            bool includeCompilerDiagnostics,
             ICodeActionRequestPriorityProvider priorityProvider,
             DiagnosticKind diagnosticKinds,
             bool isExplicit,
@@ -35,8 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
 
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(
-                this, document, range, includeCompilerDiagnostics,
-                priorityProvider, shouldIncludeDiagnostic, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
+                this, document, range, priorityProvider, shouldIncludeDiagnostic, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
             await getter.GetAsync(list, cancellationToken).ConfigureAwait(false);
 
             return list.ToImmutableAndClear();
@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly TextSpan? _range;
             private readonly ICodeActionRequestPriorityProvider _priorityProvider;
             private readonly Func<string, bool>? _shouldIncludeDiagnostic;
-            private readonly bool _includeCompilerDiagnostics;
             private readonly bool _isExplicit;
             private readonly bool _logPerformanceInfo;
             private readonly bool _incrementalAnalysis;
@@ -72,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  DiagnosticIncrementalAnalyzer owner,
                  TextDocument document,
                  TextSpan? range,
-                 bool includeCompilerDiagnostics,
                  ICodeActionRequestPriorityProvider priorityProvider,
                  Func<string, bool>? shouldIncludeDiagnostic,
                  DiagnosticKind diagnosticKinds,
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     && document is Document { SupportsSyntaxTree: true };
 
                 return new LatestDiagnosticsForSpanGetter(
-                    owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,
+                    owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic,
                     range, priorityProvider, isExplicit, logPerformanceInfo, incrementalAnalysis, diagnosticKinds);
             }
 
@@ -151,7 +149,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 SourceText text,
                 ImmutableArray<StateSet> stateSets,
                 Func<string, bool>? shouldIncludeDiagnostic,
-                bool includeCompilerDiagnostics,
                 TextSpan? range,
                 ICodeActionRequestPriorityProvider priorityProvider,
                 bool isExplicit,
@@ -165,7 +162,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _text = text;
                 _stateSets = stateSets;
                 _shouldIncludeDiagnostic = shouldIncludeDiagnostic;
-                _includeCompilerDiagnostics = includeCompilerDiagnostics;
                 _range = range;
                 _priorityProvider = priorityProvider;
                 _isExplicit = isExplicit;
@@ -462,7 +458,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 return diagnostic.DocumentId == _document.Id &&
                     (_range == null || _range.Value.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(_text)))
-                    && (_includeCompilerDiagnostics || !diagnostic.CustomTags.Any(static t => t is WellKnownDiagnosticTags.Compiler))
                     && (_shouldIncludeDiagnostic == null || _shouldIncludeDiagnostic(diagnostic.Id));
             }
         }

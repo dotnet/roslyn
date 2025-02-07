@@ -14,78 +14,78 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2;
+namespace Microsoft.CodeAnalysis.Diagnostics;
 
-/// <summary>
-/// Diagnostic Analyzer Engine V2
-/// 
-/// This one follows pattern compiler has set for diagnostic analyzer.
-/// </summary>
-internal partial class DiagnosticIncrementalAnalyzer
+internal partial class DiagnosticAnalyzerService
 {
-    private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
-    private readonly StateManager _stateManager;
-    private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
-    private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
-
-    internal DiagnosticAnalyzerService AnalyzerService { get; }
-
-    [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-    public DiagnosticIncrementalAnalyzer(
-        DiagnosticAnalyzerService analyzerService,
-        Workspace workspace,
-        DiagnosticAnalyzerInfoCache analyzerInfoCache,
-        IGlobalOptionService globalOptionService)
+    /// <summary>
+    /// Diagnostic Analyzer Engine V2
+    /// 
+    /// This one follows pattern compiler has set for diagnostic analyzer.
+    /// </summary>
+    private partial class DiagnosticIncrementalAnalyzer
     {
-        Contract.ThrowIfNull(analyzerService);
+        private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
+        private readonly StateManager _stateManager;
+        private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
+        private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
 
-        AnalyzerService = analyzerService;
-        GlobalOptions = globalOptionService;
+        internal DiagnosticAnalyzerService AnalyzerService { get; }
 
-        _stateManager = new StateManager(workspace, analyzerInfoCache);
-        _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
-
-        var enabled = globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler);
-        _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(
-            enabled, analyzerInfoCache, analyzerService.Listener);
-    }
-
-    internal IGlobalOptionService GlobalOptions { get; }
-    internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
-
-    private void OnProjectAnalyzerReferenceChanged(object? sender, ProjectAnalyzerReferenceChangedEventArgs e)
-    {
-        if (e.Removed.Length == 0)
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+        public DiagnosticIncrementalAnalyzer(
+            DiagnosticAnalyzerService analyzerService,
+            Workspace workspace,
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            IGlobalOptionService globalOptionService)
         {
-            // nothing to refresh
-            return;
+            Contract.ThrowIfNull(analyzerService);
+
+            AnalyzerService = analyzerService;
+            GlobalOptions = globalOptionService;
+
+            _stateManager = new StateManager(workspace, analyzerInfoCache);
+            _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
+
+            var enabled = globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler);
+            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(
+                enabled, analyzerInfoCache, analyzerService.Listener);
         }
 
-        // make sure we drop cache related to the analyzers
-        foreach (var stateSet in e.Removed)
-            stateSet.OnRemoved();
-    }
+        internal IGlobalOptionService GlobalOptions { get; }
+        internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
 
-    public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
-        => project.GetDependentVersionAsync(cancellationToken);
-
-    private static DiagnosticAnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
-    {
-        if (map.TryGetValue(analyzer, out var result))
+        private void OnProjectAnalyzerReferenceChanged(object? sender, ProjectAnalyzerReferenceChangedEventArgs e)
         {
-            return result;
+            if (e.Removed.Length == 0)
+            {
+                // nothing to refresh
+                return;
+            }
+
+            // make sure we drop cache related to the analyzers
+            foreach (var stateSet in e.Removed)
+                stateSet.OnRemoved();
         }
 
-        return DiagnosticAnalysisResult.CreateEmpty(projectId, version);
+        private static DiagnosticAnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
+        {
+            if (map.TryGetValue(analyzer, out var result))
+            {
+                return result;
+            }
+
+            return DiagnosticAnalysisResult.CreateEmpty(projectId, version);
+        }
+
+        public async Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersForTestingPurposesOnlyAsync(Project project, CancellationToken cancellationToken)
+        {
+            var analyzers = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
+
+            return analyzers.SelectAsArray(s => s.Analyzer);
+        }
+
+        private static string GetProjectLogMessage(Project project, ImmutableArray<StateSet> stateSets)
+            => $"project: ({project.Id}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
     }
-
-    internal async Task<IEnumerable<DiagnosticAnalyzer>> GetAnalyzersTestOnlyAsync(Project project, CancellationToken cancellationToken)
-    {
-        var analyzers = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
-
-        return analyzers.Select(s => s.Analyzer);
-    }
-
-    private static string GetProjectLogMessage(Project project, ImmutableArray<StateSet> stateSets)
-        => $"project: ({project.Id}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
 }

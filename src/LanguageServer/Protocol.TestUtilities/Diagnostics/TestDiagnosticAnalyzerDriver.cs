@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
             var mefServices = workspace.Services.SolutionServices.ExportProvider;
 
-            _diagnosticAnalyzerService = Assert.IsType<ConcreteDiagnosticAnalyzerService>(mefServices.GetExportedValue<IDiagnosticAnalyzerService>());
-            // _diagnosticAnalyzerService.CreateIncrementalAnalyzer(workspace);
+            _diagnosticAnalyzerService = mefServices.GetExportedValue<IDiagnosticAnalyzerService>();
             _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
             _includeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
         }

@@ -3,14 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal partial class DiagnosticAnalyzerService
 {
-    public DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+    private DiagnosticIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
     {
         return _map.GetValue(workspace, _createIncrementalAnalyzer);
     }

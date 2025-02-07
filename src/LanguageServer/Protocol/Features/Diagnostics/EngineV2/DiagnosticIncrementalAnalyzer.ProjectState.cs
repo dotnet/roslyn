@@ -8,16 +8,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
         /// State for diagnostics that belong to a project at given time.
@@ -49,16 +50,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var lastResult = _lastResult;
                 Contract.ThrowIfFalse(lastResult.ProjectId == project.Id);
 
+                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                 if (lastResult.IsDefault)
-                {
-                    return await LoadInitialAnalysisDataAsync(project, cancellationToken).ConfigureAwait(false);
-                }
+                    return LoadInitialAnalysisData(project, version, cancellationToken);
 
                 RoslynDebug.Assert(lastResult.DocumentIds != null);
 
                 // PERF: avoid loading data if version is not right one.
                 // avoid loading data flag is there as a strictly perf optimization.
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                 if (lastResult.Version != version)
                 {
                     return lastResult;
@@ -110,12 +109,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var lastResult = _lastResult;
                 Contract.ThrowIfFalse(lastResult.ProjectId == document.Project.Id);
 
-                if (lastResult.IsDefault)
-                {
-                    return await LoadInitialAnalysisDataAsync(document, cancellationToken).ConfigureAwait(false);
-                }
-
                 var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                if (lastResult.IsDefault)
+                    return LoadInitialAnalysisData(document, version);
 
                 // if given document doesnt have any diagnostics, return empty.
                 if (IsEmpty(lastResult, document.Id))
@@ -147,12 +143,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var lastResult = _lastResult;
                 Contract.ThrowIfFalse(lastResult.ProjectId == project.Id);
 
-                if (lastResult.IsDefault)
-                {
-                    return await LoadInitialProjectAnalysisDataAsync(project, cancellationToken).ConfigureAwait(false);
-                }
-
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+                if (lastResult.IsDefault)
+                    return LoadInitialProjectAnalysisData(project, version);
 
                 // if given document doesn't have any diagnostics, return empty.
                 if (lastResult.IsEmpty)
@@ -222,52 +215,47 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 AddToInMemoryStorage(serializerVersion, new(result.ProjectId), NonLocalStateName, result.GetOtherDiagnostics());
             }
 
-            private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(Project project, CancellationToken cancellationToken)
+            private DiagnosticAnalysisResult LoadInitialAnalysisData(
+                Project project, VersionStamp version, CancellationToken cancellationToken)
             {
                 // loading data can be canceled any time.
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                var serializerVersion = version;
                 var builder = new Builder(project, version);
 
                 foreach (var document in project.Documents)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder))
+                    if (!TryGetDiagnosticsFromInMemoryStorage(version, document, builder))
                         continue;
                 }
 
-                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder))
+                if (!TryGetProjectDiagnosticsFromInMemoryStorage(version, project, builder))
                     return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
 
                 return builder.ToResult();
             }
 
-            private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(TextDocument document, CancellationToken cancellationToken)
+            private DiagnosticAnalysisResult LoadInitialAnalysisData(
+                TextDocument document, VersionStamp version)
             {
                 // loading data can be canceled any time.
                 var project = document.Project;
 
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                var serializerVersion = version;
                 var builder = new Builder(project, version);
 
-                if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder))
-                {
+                if (!TryGetDiagnosticsFromInMemoryStorage(version, document, builder))
                     return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
-                }
 
                 return builder.ToResult();
             }
 
-            private async Task<DiagnosticAnalysisResult> LoadInitialProjectAnalysisDataAsync(Project project, CancellationToken cancellationToken)
+            private DiagnosticAnalysisResult LoadInitialProjectAnalysisData(
+                Project project, VersionStamp version)
             {
                 // loading data can be canceled any time.
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                var serializerVersion = version;
                 var builder = new Builder(project, version);
 
-                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder))
+                if (!TryGetProjectDiagnosticsFromInMemoryStorage(version, project, builder))
                     return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
 
                 return builder.ToResult();

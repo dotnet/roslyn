@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool getTelemetryInfo,
             CancellationToken cancellationToken)
         {
-            var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+            var version = await DiagnosticAnalyzerService.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
             var (analysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(
                 documentAnalysisScope, project, AnalyzerInfoCache, cancellationToken).ConfigureAwait(false);
@@ -238,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // handling of cancellation and exception
-            var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+            var version = await DiagnosticAnalyzerService.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
             var documentIds = (documentAnalysisScope != null) ? ImmutableHashSet.Create(documentAnalysisScope.TextDocument.Id) : null;
 
