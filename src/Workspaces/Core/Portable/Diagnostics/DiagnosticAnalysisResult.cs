@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -131,26 +132,20 @@ internal readonly struct DiagnosticAnalysisResult
 
     public ImmutableArray<DiagnosticData> GetAllDiagnostics()
     {
-        Contract.ThrowIfNull(_syntaxLocals);
-        Contract.ThrowIfNull(_semanticLocals);
-        Contract.ThrowIfNull(_nonLocals);
-        Contract.ThrowIfTrue(_others.IsDefault);
-
-        using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
+        using var result = TemporaryArray<DiagnosticData>.Empty;
 
         foreach (var (_, data) in _syntaxLocals)
-            builder.AddRange(data);
+            result.AddRange(data);
 
         foreach (var (_, data) in _semanticLocals)
-            builder.AddRange(data);
+            result.AddRange(data);
 
         foreach (var (_, data) in _nonLocals)
-            builder.AddRange(data);
+            result.AddRange(data);
 
-        foreach (var data in _others)
-            builder.AddRange(data);
+        result.AddRange(_others);
 
-        return builder.ToImmutableAndClear();
+        return result.ToImmutableAndClear();
     }
 
     public ImmutableArray<DiagnosticData> GetDocumentDiagnostics(DocumentId documentId, AnalysisKind kind)
