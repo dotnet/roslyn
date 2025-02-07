@@ -27,7 +27,6 @@ internal partial class DiagnosticAnalyzerService
             public readonly bool IsHostAnalyzer;
 
             private readonly ConcurrentSet<DocumentId> _activeDocuments;
-            private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
 
             public StateSet(DiagnosticAnalyzer analyzer, bool isHostAnalyzer)
             {
@@ -35,20 +34,13 @@ internal partial class DiagnosticAnalyzerService
                 IsHostAnalyzer = isHostAnalyzer;
 
                 _activeDocuments = [];
-                _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
             }
 
             public bool IsActiveFile(DocumentId documentId)
                 => _activeDocuments.Contains(documentId);
 
-            public bool TryGetProjectState(ProjectId projectId, [NotNullWhen(true)] out ProjectState? state)
-                => _projectStates.TryGetValue(projectId, out state);
-
             public void AddActiveDocument(DocumentId documentId)
                 => _activeDocuments.Add(documentId);
-
-            public ProjectState GetOrCreateProjectState(ProjectId projectId)
-                => _projectStates.GetOrAdd(projectId, static (id, self) => new ProjectState(self, id), this);
         }
     }
 }

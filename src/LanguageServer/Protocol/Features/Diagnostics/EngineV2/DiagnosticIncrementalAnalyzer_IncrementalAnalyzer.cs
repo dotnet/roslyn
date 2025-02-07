@@ -36,8 +36,6 @@ internal partial class DiagnosticAnalyzerService
                 var (stateSets, projectAnalysisData) = box.Value;
                 foreach (var stateSet in stateSets)
                 {
-                    var state = stateSet.GetOrCreateProjectState(project.Id);
-
                     if (projectAnalysisData.TryGetResult(stateSet.Analyzer, out var analyzerResult))
                         diagnostics.AddRange(analyzerResult.GetAllDiagnostics());
                 }
