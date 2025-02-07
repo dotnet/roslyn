@@ -43,11 +43,6 @@ internal partial class DiagnosticAnalyzerService
             /// </summary>
             private readonly SemaphoreSlim _projectAnalyzerStateMapGuard = new(1);
 
-            /// <summary>
-            /// This will be raised whenever <see cref="StateManager"/> finds <see cref="Project.AnalyzerReferences"/> change
-            /// </summary>
-            public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
-
             public StateManager(Workspace workspace, DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {
                 _workspace = workspace;
@@ -103,9 +98,6 @@ internal partial class DiagnosticAnalyzerService
 
                 return null;
             }
-
-            private void RaiseProjectAnalyzerReferenceChanged(ProjectAnalyzerReferenceChangedEventArgs args)
-                => ProjectAnalyzerReferenceChanged?.Invoke(this, args);
 
             private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> projectAnalyzerCollection,

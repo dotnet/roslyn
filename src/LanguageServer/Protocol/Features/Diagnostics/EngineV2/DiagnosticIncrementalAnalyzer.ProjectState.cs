@@ -264,57 +264,6 @@ internal partial class DiagnosticAnalyzerService
                 InMemoryStorage.Cache(_owner.Analyzer, (key, stateKey), new CacheEntry(serializerVersion, diagnostics));
             }
 
-            private bool TryGetDiagnosticsFromInMemoryStorage(VersionStamp serializerVersion, TextDocument document, Builder builder)
-            {
-                var success = true;
-                var project = document.Project;
-                var documentId = document.Id;
-
-                var diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, new(documentId), SyntaxStateName);
-                if (!diagnostics.IsDefault)
-                {
-                    builder.AddSyntaxLocals(documentId, diagnostics);
-                }
-                else
-                {
-                    success = false;
-                }
-
-                diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, new(documentId), SemanticStateName);
-                if (!diagnostics.IsDefault)
-                {
-                    builder.AddSemanticLocals(documentId, diagnostics);
-                }
-                else
-                {
-                    success = false;
-                }
-
-                diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, new(documentId), NonLocalStateName);
-                if (!diagnostics.IsDefault)
-                {
-                    builder.AddNonLocals(documentId, diagnostics);
-                }
-                else
-                {
-                    success = false;
-                }
-
-                return success;
-            }
-
-            private bool TryGetProjectDiagnosticsFromInMemoryStorage(VersionStamp serializerVersion, Project project, Builder builder)
-            {
-                var diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, new(project.Id), NonLocalStateName);
-                if (!diagnostics.IsDefault)
-                {
-                    builder.AddOthers(diagnostics);
-                    return true;
-                }
-
-                return false;
-            }
-
             private static bool IsEmpty(DiagnosticAnalysisResult result, DocumentId documentId)
                 => !result.DocumentIdsOrEmpty.Contains(documentId);
 

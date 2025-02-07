@@ -44,7 +44,6 @@ internal partial class DiagnosticAnalyzerService
             GlobalOptions = globalOptionService;
 
             _stateManager = new StateManager(workspace, analyzerInfoCache);
-            _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
             var enabled = globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler);
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(
@@ -53,19 +52,6 @@ internal partial class DiagnosticAnalyzerService
 
         internal IGlobalOptionService GlobalOptions { get; }
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
-
-        private void OnProjectAnalyzerReferenceChanged(object? sender, ProjectAnalyzerReferenceChangedEventArgs e)
-        {
-            if (e.Removed.Length == 0)
-            {
-                // nothing to refresh
-                return;
-            }
-
-            // make sure we drop cache related to the analyzers
-            foreach (var stateSet in e.Removed)
-                stateSet.OnRemoved();
-        }
 
         private static DiagnosticAnalysisResult GetResultOrEmpty(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> map, DiagnosticAnalyzer analyzer, ProjectId projectId, VersionStamp version)
         {

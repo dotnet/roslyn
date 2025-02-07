@@ -49,14 +49,6 @@ internal partial class DiagnosticAnalyzerService
 
             public ProjectState GetOrCreateProjectState(ProjectId projectId)
                 => _projectStates.GetOrAdd(projectId, static (id, self) => new ProjectState(self, id), this);
-
-            public void OnRemoved()
-            {
-                // ths stateset is being removed.
-                // TODO: we do this since InMemoryCache is static type. we might consider making it instance object
-                //       of something.
-                InMemoryStorage.DropCache(Analyzer);
-            }
         }
     }
 }
