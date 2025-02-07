@@ -5395,7 +5395,8 @@ public static partial class SyntaxFactory
             case SyntaxKind.GreaterThanEqualsToken:
             case SyntaxKind.FalseKeyword:
             case SyntaxKind.TrueKeyword:
-            case SyntaxKind.IsKeyword: break;
+            case SyntaxKind.IsKeyword:
+            case SyntaxKind.ExplicitKeyword: break;
             default: throw new ArgumentException(nameof(operatorToken));
         }
         if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
