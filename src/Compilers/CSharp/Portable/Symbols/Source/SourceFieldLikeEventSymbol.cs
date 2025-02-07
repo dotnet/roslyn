@@ -110,13 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.GetFirstLocation());
                     }
                 }
-                else if (!this.IsAbstract && !this.IsPartial)
+                else if (!this.IsAbstract && !this.IsPartialDefinition)
                 {
                     diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.GetFirstLocation(), this);
                 }
             }
 
-            if (this.IsPartial)
+            if (this.IsPartialDefinition)
             {
                 _addMethod = new SourceEventDefinitionAccessorSymbol(this, isAdder: true, diagnostics);
                 _removeMethod = new SourceEventDefinitionAccessorSymbol(this, isAdder: false, diagnostics);
@@ -224,6 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     isNullableAnalysisEnabled: ev.DeclaringCompilation.IsNullableAnalysisEnabledIn(ev.CSharpSyntaxNode),
                     isExpressionBodied: false)
             {
+                Debug.Assert(ev.IsPartialDefinition);
+
                 CheckFeatureAvailabilityAndRuntimeSupport(ev.CSharpSyntaxNode, ev.Location, hasBody: false, diagnostics: diagnostics);
             }
 
