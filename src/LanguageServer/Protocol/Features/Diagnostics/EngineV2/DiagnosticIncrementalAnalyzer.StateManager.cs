@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (_projectAnalyzerStateMap.TryGetValue(project.Id, out var entry))
                     result.AddRange(entry.StateSetMap.Values);
 
-                return result.WhereAsArray((stateSet, project) => stateSet.Language == project.Language, project);
+                return result.ToImmutableAndClear();
             }
 
             /// <summary>
@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 => ProjectAnalyzerReferenceChanged?.Invoke(this, args);
 
             private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
-                string language,
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> projectAnalyzerCollection,
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> hostAnalyzerCollection,
                 bool includeWorkspacePlaceholderAnalyzers)
@@ -125,8 +124,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (includeWorkspacePlaceholderAnalyzers)
                 {
-                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(language, FileContentLoadAnalyzer.Instance, isHostAnalyzer: true));
-                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(language, GeneratorDiagnosticsPlaceholderAnalyzer.Instance, isHostAnalyzer: true));
+                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(FileContentLoadAnalyzer.Instance, isHostAnalyzer: true));
+                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, isHostAnalyzer: true));
                 }
 
                 foreach (var analyzers in projectAnalyzerCollection)
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             continue;
                         }
 
-                        builder.Add(analyzer, new StateSet(language, analyzer, isHostAnalyzer: false));
+                        builder.Add(analyzer, new StateSet(analyzer, isHostAnalyzer: false));
                     }
                 }
 
@@ -163,38 +162,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             continue;
                         }
 
-                        builder.Add(analyzer, new StateSet(language, analyzer, isHostAnalyzer: true));
+                        builder.Add(analyzer, new StateSet(analyzer, isHostAnalyzer: true));
                     }
                 }
 
                 return builder.ToImmutable();
             }
 
-            private readonly struct HostAnalyzerStateSetKey : IEquatable<HostAnalyzerStateSetKey>
-            {
-                public HostAnalyzerStateSetKey(string language, bool hasSdkCodeStyleAnalyzers, IReadOnlyList<AnalyzerReference> analyzerReferences)
-                {
-                    Language = language;
-                    HasSdkCodeStyleAnalyzers = hasSdkCodeStyleAnalyzers;
-                    AnalyzerReferences = analyzerReferences;
-                }
-
-                public string Language { get; }
-                public bool HasSdkCodeStyleAnalyzers { get; }
-                public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
-
-                public bool Equals(HostAnalyzerStateSetKey other)
-                    => Language == other.Language &&
-                       HasSdkCodeStyleAnalyzers == other.HasSdkCodeStyleAnalyzers &&
-                       AnalyzerReferences == other.AnalyzerReferences;
-
-                public override bool Equals(object? obj)
-                    => obj is HostAnalyzerStateSetKey key && Equals(key);
-
-                public override int GetHashCode()
-                    => Hash.Combine(Language.GetHashCode(),
-                       Hash.Combine(HasSdkCodeStyleAnalyzers.GetHashCode(), AnalyzerReferences.GetHashCode()));
-            }
+            private readonly record struct HostAnalyzerStateSetKey(
+                string Language, bool HasSdkCodeStyleAnalyzers, IReadOnlyList<AnalyzerReference> AnalyzerReferences);
         }
     }
 }
