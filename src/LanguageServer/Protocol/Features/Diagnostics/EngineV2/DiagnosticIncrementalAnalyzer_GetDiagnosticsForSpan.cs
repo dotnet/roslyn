@@ -56,7 +56,7 @@ internal partial class DiagnosticAnalyzerService
             private readonly TextDocument _document;
             private readonly SourceText _text;
 
-            private readonly ImmutableArray<StateSet> _stateSets;
+            private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
             private readonly CompilationWithAnalyzersPair? _compilationWithAnalyzers;
 
             private readonly TextSpan? _range;
@@ -78,11 +78,13 @@ internal partial class DiagnosticAnalyzerService
                  CancellationToken cancellationToken)
             {
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+
                 var unfilteredAnalyzers = await owner._stateManager
                     .GetOrCreateAnalyzersAsync(document.Project, cancellationToken)
                     .ConfigureAwait(false);
                 var analyzers = unfilteredAnalyzers
                     .WhereAsArray(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, document.Project, owner.GlobalOptions));
+                var hostAnalyzerInfo = await owner._stateManager.GetOrCreateHostAnalyzerInfoAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
                 // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span.
                 // We clear out range for such cases as we are computing full document diagnostics.
@@ -91,7 +93,8 @@ internal partial class DiagnosticAnalyzerService
 
                 // We log performance info when we are computing diagnostics for a span
                 var logPerformanceInfo = range.HasValue;
-                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, analyzers, owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
+                    document.Project, analyzers, hostAnalyzerInfo, owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 // If we are computing full document diagnostics, we will attempt to perform incremental
                 // member edit analysis. This analysis is currently only enabled with LSP pull diagnostics.
@@ -105,7 +108,8 @@ internal partial class DiagnosticAnalyzerService
 
             private static async Task<CompilationWithAnalyzersPair?> GetOrCreateCompilationWithAnalyzersAsync(
                 Project project,
-                ImmutableArray<StateSet> stateSets,
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
+                HostAnalyzerInfo hostAnalyzerInfo,
                 bool crashOnAnalyzerException,
                 CancellationToken cancellationToken)
             {
@@ -117,23 +121,27 @@ internal partial class DiagnosticAnalyzerService
                         return null;
                     }
 
-                    if (HasAllAnalyzers(stateSets, projectAndCompilationWithAnalyzers.CompilationWithAnalyzers))
+                    if (HasAllAnalyzers(analyzers, hostAnalyzerInfo, projectAndCompilationWithAnalyzers.CompilationWithAnalyzers))
                     {
                         return projectAndCompilationWithAnalyzers.CompilationWithAnalyzers;
                     }
                 }
 
-                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, stateSets, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(
+                    project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
                 s_lastProjectAndCompilationWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
                 return compilationWithAnalyzers;
 
-                static bool HasAllAnalyzers(IEnumerable<StateSet> stateSets, CompilationWithAnalyzersPair compilationWithAnalyzers)
+                static bool HasAllAnalyzers(
+                    ImmutableArray<DiagnosticAnalyzer> analyzers,
+                    HostAnalyzerInfo hostAnalyzerInfo,
+                    CompilationWithAnalyzersPair compilationWithAnalyzers)
                 {
-                    foreach (var stateSet in stateSets)
+                    foreach (var analyzer in analyzers)
                     {
-                        if (stateSet.IsHostAnalyzer && !compilationWithAnalyzers.HostAnalyzers.Contains(stateSet.Analyzer))
+                        if (hostAnalyzerInfo.HostAnalyzers.Contains(analyzer) && !compilationWithAnalyzers.HostAnalyzers.Contains(analyzer))
                             return false;
-                        else if (!stateSet.IsHostAnalyzer && !compilationWithAnalyzers.ProjectAnalyzers.Contains(stateSet.Analyzer))
+                        else if (!hostAnalyzerInfo.HostAnalyzers.Contains(analyzer) && !compilationWithAnalyzers.ProjectAnalyzers.Contains(analyzer))
                             return false;
                     }
 
@@ -146,7 +154,7 @@ internal partial class DiagnosticAnalyzerService
                 CompilationWithAnalyzersPair? compilationWithAnalyzers,
                 TextDocument document,
                 SourceText text,
-                ImmutableArray<StateSet> stateSets,
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
                 Func<string, bool>? shouldIncludeDiagnostic,
                 TextSpan? range,
                 ICodeActionRequestPriorityProvider priorityProvider,
@@ -159,7 +167,7 @@ internal partial class DiagnosticAnalyzerService
                 _compilationWithAnalyzers = compilationWithAnalyzers;
                 _document = document;
                 _text = text;
-                _stateSets = stateSets;
+                _analyzers = analyzers;
                 _shouldIncludeDiagnostic = shouldIncludeDiagnostic;
                 _range = range;
                 _priorityProvider = priorityProvider;
@@ -174,21 +182,20 @@ internal partial class DiagnosticAnalyzerService
                 try
                 {
                     // Try to get cached diagnostics, and also compute non-cached state sets that need diagnostic computation.
-                    using var _1 = ArrayBuilder<StateSet>.GetInstance(out var syntaxAnalyzers);
+                    using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var syntaxAnalyzers);
 
                     // If we are performing incremental member edit analysis to compute diagnostics incrementally,
                     // we divide the analyzers into those that support span-based incremental analysis and
                     // those that do not support incremental analysis and must be executed for the entire document.
                     // Otherwise, if we are not performing incremental analysis, all semantic analyzers are added
                     // to the span-based analyzer set as we want to compute diagnostics only for the given span.
-                    using var _2 = ArrayBuilder<StateSet>.GetInstance(out var semanticSpanBasedAnalyzers);
-                    using var _3 = ArrayBuilder<StateSet>.GetInstance(out var semanticDocumentBasedAnalyzers);
+                    using var _2 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var semanticSpanBasedAnalyzers);
+                    using var _3 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var semanticDocumentBasedAnalyzers);
 
                     using var _4 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"Pri{_priorityProvider.Priority.GetPriorityInt()}");
 
-                    foreach (var stateSet in _stateSets)
+                    foreach (var analyzer in _analyzers)
                     {
-                        var analyzer = stateSet.Analyzer;
                         if (!ShouldIncludeAnalyzer(analyzer, _shouldIncludeDiagnostic, _priorityProvider, _owner))
                             continue;
 
@@ -211,16 +218,16 @@ internal partial class DiagnosticAnalyzerService
                         {
                             if (includeSyntax)
                             {
-                                syntaxAnalyzers.Add(stateSet);
+                                syntaxAnalyzers.Add(analyzer);
                             }
 
                             if (includeSemantic)
                             {
-                                var stateSets = GetSemanticAnalysisSelectedStates(
-                                    stateSet.Analyzer, _incrementalAnalysis,
+                                var stateSets = GetSemanticAnalysisSelectedAnalyzers(
+                                    analyzer, _incrementalAnalysis,
                                     semanticSpanBasedAnalyzers, semanticDocumentBasedAnalyzers);
 
-                                stateSets.Add(stateSet);
+                                stateSets.Add(analyzer);
                             }
                         }
                     }
@@ -271,11 +278,11 @@ internal partial class DiagnosticAnalyzerService
                     return true;
                 }
 
-                static ArrayBuilder<StateSet> GetSemanticAnalysisSelectedStates(
+                static ArrayBuilder<DiagnosticAnalyzer> GetSemanticAnalysisSelectedAnalyzers(
                     DiagnosticAnalyzer analyzer,
                     bool incrementalAnalysis,
-                    ArrayBuilder<StateSet> semanticSpanBasedAnalyzers,
-                    ArrayBuilder<StateSet> semanticDocumentBasedAnalyzers)
+                    ArrayBuilder<DiagnosticAnalyzer> semanticSpanBasedAnalyzers,
+                    ArrayBuilder<DiagnosticAnalyzer> semanticDocumentBasedAnalyzers)
                 {
                     if (!incrementalAnalysis)
                     {
@@ -295,7 +302,7 @@ internal partial class DiagnosticAnalyzerService
             }
 
             private async Task ComputeDocumentDiagnosticsAsync(
-                ImmutableArray<StateSet> analyzersWithState,
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
                 AnalysisKind kind,
                 TextSpan? span,
                 ArrayBuilder<DiagnosticData> builder,
@@ -303,31 +310,33 @@ internal partial class DiagnosticAnalyzerService
                 CancellationToken cancellationToken)
             {
                 Debug.Assert(!incrementalAnalysis || kind == AnalysisKind.Semantic);
-                Debug.Assert(!incrementalAnalysis || analyzersWithState.All(analyzerWithState => analyzerWithState.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
+                Debug.Assert(!incrementalAnalysis || analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
-                using var _ = ArrayBuilder<StateSet>.GetInstance(analyzersWithState.Length, out var filteredAnalyzersWithStateBuilder);
-                foreach (var analyzerWithState in analyzersWithState)
+                using var _ = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(analyzers.Length, out var filteredAnalyzers);
+                foreach (var analyzer in analyzers)
                 {
-                    Debug.Assert(_priorityProvider.MatchesPriority(analyzerWithState.Analyzer));
+                    Debug.Assert(_priorityProvider.MatchesPriority(analyzer));
 
                     // Check if this is an expensive analyzer that needs to be de-prioritized to a lower priority bucket.
                     // If so, we skip this analyzer from execution in the current priority bucket.
                     // We will subsequently execute this analyzer in the lower priority bucket.
-                    if (await TryDeprioritizeAnalyzerAsync(analyzerWithState.Analyzer).ConfigureAwait(false))
+                    if (await TryDeprioritizeAnalyzerAsync(analyzer).ConfigureAwait(false))
                     {
                         continue;
                     }
 
-                    filteredAnalyzersWithStateBuilder.Add(analyzerWithState);
+                    filteredAnalyzers.Add(analyzer);
                 }
 
-                if (filteredAnalyzersWithStateBuilder.Count == 0)
+                if (filteredAnalyzers.Count == 0)
                     return;
 
-                analyzersWithState = filteredAnalyzersWithStateBuilder.ToImmutable();
+                analyzers = filteredAnalyzers.ToImmutable();
 
-                var projectAnalyzers = analyzersWithState.SelectAsArray(stateSet => !stateSet.IsHostAnalyzer, stateSet => stateSet.Analyzer);
-                var hostAnalyzers = analyzersWithState.SelectAsArray(stateSet => stateSet.IsHostAnalyzer, stateSet => stateSet.Analyzer);
+                var hostAnalyzerInfo = await _owner._stateManager.GetOrCreateHostAnalyzerInfoAsync(_document.Project, cancellationToken).ConfigureAwait(false);
+
+                var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.HostAnalyzers.Contains(a), hostAnalyzerInfo);
+                var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.HostAnalyzers.Contains(a), hostAnalyzerInfo);
                 var analysisScope = new DocumentAnalysisScope(_document, span, projectAnalyzers, hostAnalyzers, kind);
                 var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, _isExplicit, _logPerformanceInfo);
                 var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
@@ -339,7 +348,7 @@ internal partial class DiagnosticAnalyzerService
 
                     diagnosticsMap = await _owner._incrementalMemberEditAnalyzer.ComputeDiagnosticsAsync(
                         executor,
-                        analyzersWithState,
+                        analyzers,
                         version,
                         ComputeDocumentDiagnosticsForAnalyzerCoreAsync,
                         ComputeDocumentDiagnosticsCoreAsync,
@@ -352,7 +361,7 @@ internal partial class DiagnosticAnalyzerService
                     diagnosticsMap = await ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken).ConfigureAwait(false);
                 }
 
-                foreach (var analyzerWithState in analyzersWithState)
+                foreach (var analyzerWithState in analyzers)
                 {
                     var diagnostics = diagnosticsMap[analyzerWithState.Analyzer];
                     builder.AddRange(diagnostics.Where(ShouldInclude));

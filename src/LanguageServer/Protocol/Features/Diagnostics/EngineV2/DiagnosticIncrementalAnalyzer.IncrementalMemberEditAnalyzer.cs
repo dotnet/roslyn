@@ -46,7 +46,7 @@ internal partial class DiagnosticAnalyzerService
 
             public async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDiagnosticsAsync(
                 DocumentAnalysisExecutor executor,
-                ImmutableArray<StateSet> analyzersWithState,
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
                 VersionStamp version,
                 Func<DiagnosticAnalyzer, DocumentAnalysisExecutor, CancellationToken, Task<ImmutableArray<DiagnosticData>>> computeAnalyzerDiagnosticsAsync,
                 Func<DocumentAnalysisExecutor, CancellationToken, Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>>> computeDiagnosticsNonIncrementallyAsync,
@@ -58,7 +58,7 @@ internal partial class DiagnosticAnalyzerService
                 Debug.Assert(!analysisScope.Span.HasValue);
 
                 // Ensure that only the analyzers that support incremental span-based analysis are provided.
-                Debug.Assert(analyzersWithState.All(stateSet => stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
+                Debug.Assert(analyzers.All(stateSet => stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
                 var document = (Document)analysisScope.TextDocument;
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -79,7 +79,7 @@ internal partial class DiagnosticAnalyzerService
                     using var _1 = ArrayBuilder<StateSet>.GetInstance(out var spanBasedAnalyzers);
                     using var _2 = ArrayBuilder<StateSet>.GetInstance(out var documentBasedAnalyzers);
                     (StateSet analyzerWithState, bool spanBased)? compilerAnalyzerData = null;
-                    foreach (var analyzerWithState in analyzersWithState)
+                    foreach (var analyzerWithState in analyzers)
                     {
                         // Check if we have existing cached diagnostics for this analyzer whose version matches the
                         // old document version. If so, we can perform span based incremental analysis for the changed member.

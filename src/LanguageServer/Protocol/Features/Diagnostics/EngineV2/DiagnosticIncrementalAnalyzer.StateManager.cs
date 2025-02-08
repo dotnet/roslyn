@@ -73,8 +73,15 @@ internal partial class DiagnosticAnalyzerService
             /// </summary>
             public async Task<ImmutableArray<DiagnosticAnalyzer>> GetOrCreateAnalyzersAsync(Project project, CancellationToken cancellationToken)
             {
+                var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+                var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+                return hostAnalyzerInfo.OrderedAllAnalyzers.AddRange(projectAnalyzerInfo.Analyzers);
+            }
+
+            public async Task<HostAnalyzerInfo> GetOrCreateHostAnalyzerInfoAsync(Project project, CancellationToken cancellationToken)
+            {
                 var projectStateSets = await GetOrCreateProjectAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
-                return GetOrCreateHostStateSets(project, projectStateSets).OrderedAllAnalyzers.AddRange(projectStateSets.Analyzers);
+                return GetOrCreateHostAnalyzerInfo(project, projectStateSets);
             }
 
             /// <summary>
@@ -90,7 +97,7 @@ internal partial class DiagnosticAnalyzerService
                     return analyzer;
                 }
 
-                var hostStateSetMap = GetOrCreateHostStateSets(project, projectStateSets).AllAnalyzers;
+                var hostStateSetMap = GetOrCreateHostAnalyzerInfo(project, projectStateSets).AllAnalyzers;
                 if (hostStateSetMap.Contains(analyzer))
                 {
                     return analyzer;
