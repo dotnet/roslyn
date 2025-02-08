@@ -136,14 +136,62 @@ albeit with a disclaimer during the experimental phase of the feature.
 Throughput of `ldstr` vs `ldsfld` is very similar (both result in one or two move instructions).
 
 In the `ldsfld` emit strategy, the `string` instances won't ever be collected by the GC once the generated class is initialized.
-`ldstr` has similar behavior, but there are some optimizations in the runtime around `ldstr`,
+`ldstr` has similar behavior (GC does not collect the string literals either until the assembly is unloaded),
+but there are some optimizations in the runtime around `ldstr`,
 e.g., they are loaded into a different frozen heap so machine codegen can be more efficient (no need to worry about pointer moves).
 
 Generating new types by the compiler means more type loads and hence runtime impact,
 e.g., startup performance and the overhead of keeping track of these types.
+On the other hand, the PE size might be smaller due to UTF-8 vs UTF-16 encoding,
+which can result in memory savings since the binary is also loaded to memory by the runtime.
+See [below](#runtime-overhead-benchmark) for a more detailed analysis.
 
 The generated types are returned from reflection like `Assembly.GetTypes()`
 which might impact the performance of Dependency Injection and similar systems.
+
+### Runtime overhead benchmark
+
+| [cost per string literal](https://github.com/jkotas/stringliteralperf) | feature on | feature off |
+| --- | --- | --- |
+| bytes | 1037 | 550 |
+| microseconds | 20.3 | 3.1 |
+
+The benchmark results above [show](https://github.com/dotnet/roslyn/pull/76139#discussion_r1944144978)
+that the runtime overhead of this feature per 100 char string literal
+is ~500 bytes of working set memory (~2x of regular string literal)
+and ~17 microseconds of startup time (~7x of regular string literal).
+
+The startup time overhead does depend on the length of the string literal.
+It is cost of the type loads and JITing the static constructor.
+
+The working set has two components: private working set (r/w pages) and non-private working set (r/o pages backed by the binary).
+The private working set overhead (~600 bytes) does not depend on the length of the string literal.
+Again, it is the cost of the type loads and the static constructor code.
+Non-private working set is reduced by this feature since the binary is smaller.
+Once the string literal is about 600 characters,
+the private working set overhead and non-private working set improvement will break even.
+For string literals longer than 600 characters, this feature is total working set improvement.
+
+<details>
+<summary>Why 600 bytes?</summary>
+
+When the feature is off, ~550 bytes cost of 100 char string literal is composed from:
+- The string in the binary (~200 bytes).
+- The string allocated on the GC heap (~200 bytes).
+- Fixed overheads: metadata encoding, runtime hashtable of all allocated string literals, code that referenced the string in the benchmark (~150 bytes).
+
+When the feature is on, ~1050 bytes cost of 100 char string literal is composed from:
+- The string in the binary (~100 bytes).
+- The string allocated on the GC heap (~200 bytes).
+- Fixed overheads: metadata encoding, the extra types, code that referenced the string in the benchmark (~750 bytes).
+
+750 - 150 = 600. Vast majority of it are the extra types.
+
+A bit of the extra fixed overheads with the feature on is probably in the non-private working set.
+It is difficult to measure it since there is no managed API to get private vs. non-private working set.
+It does not impact the estimate of the break-even point for the total working set.
+
+</details>
 
 ## Implementation
 
@@ -168,7 +216,7 @@ but that seems to require similar amount of implemented abstract properties/meth
 as the implementations of `Cci` interfaces require.
 But implementing `Cci` directly allows us to reuse the same implementation for VB if needed in the future.
 
-## Future work
+## Future work and alternatives
 
 ### Edit and Continue
 
@@ -209,7 +257,7 @@ We would generate a single `__StaticArrayInitTypeSize=*` structure for the entir
 add a single `.data` field to `<PrivateImplementationDetails>` that points to the blob.
 At runtime, we would do an offset to where the required data reside in the blob and decode the required length from UTF-8 to UTF-16.
 
-## Alternatives
+However, this would be unfriendly to IL trimming.
 
 ### Configuration/emit granularity
 
@@ -221,7 +269,8 @@ The idea is that strings from one class are likely used "together" so there is n
 
 ### GC
 
-To avoid rooting the `string` references forever, we could turn the fields into `WeakReference<string>`s.
+To avoid rooting the `string` references forever, we could turn the fields into `WeakReference<string>`s
+(note that this would be quite expensive for both direct overhead and indirectly for the GC due to longer GC pause times).
 Or we could avoid the caching altogether (each eligible `ldstr` would be replaced with a direct call to `Encoding.UTF8.GetString`).
 This could be configurable as well.
 
@@ -246,6 +295,12 @@ static class <PrivateImplementationDetails>
 ```
 
 However, that would likely result in worse machine code due to more branches and function calls.
+
+### String interning
+
+The compiler should report a diagnostic when the feature is enabled together with
+`[assembly: System.Runtime.CompilerServices.CompilationRelaxations(0)]`, i.e., string interning enabled,
+because that is incompatible with the feature.
 
 <!-- links -->
 [u8-literals]: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-11.0/utf8-string-literals
