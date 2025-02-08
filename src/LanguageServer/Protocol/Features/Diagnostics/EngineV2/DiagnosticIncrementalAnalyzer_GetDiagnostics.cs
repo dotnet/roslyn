@@ -52,7 +52,6 @@ internal partial class DiagnosticAnalyzerService
                 // return diagnostics specific to one project or document
                 var includeProjectNonLocalResult = DocumentId == null;
                 return await ProduceProjectDiagnosticsAsync(
-                    this.Project,
                     // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this
                     // project if no specific document id was requested.
                     this.DocumentId != null ? [this.DocumentId] : [.. this.Project.DocumentIds, .. this.Project.AdditionalDocumentIds],
@@ -60,12 +59,12 @@ internal partial class DiagnosticAnalyzerService
             }
 
             private async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
-                Project project, IReadOnlyList<DocumentId> documentIds,
+                IReadOnlyList<DocumentId> documentIds,
                 bool includeProjectNonLocalResult, CancellationToken cancellationToken)
             {
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
                 await this.ProduceDiagnosticsAsync(
-                    project, documentIds, includeProjectNonLocalResult, builder, cancellationToken).ConfigureAwait(false);
+                    documentIds, includeProjectNonLocalResult, builder, cancellationToken).ConfigureAwait(false);
                 return builder.ToImmutableAndClear();
             }
 
@@ -81,16 +80,16 @@ internal partial class DiagnosticAnalyzerService
             public async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(CancellationToken cancellationToken)
             {
                 return await ProduceProjectDiagnosticsAsync(
-                    this.Project, documentIds: [], includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
+                    documentIds: [], includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task ProduceDiagnosticsAsync(
-                Project project,
                 IReadOnlyList<DocumentId> documentIds,
                 bool includeProjectNonLocalResult,
                 ArrayBuilder<DiagnosticData> builder,
                 CancellationToken cancellationToken)
             {
+                var project = this.Project;
                 var analyzersForProject = await StateManager.GetOrCreateAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
                 var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
                 var analyzers = analyzersForProject.WhereAsArray(a => ShouldIncludeAnalyzer(project, a));
