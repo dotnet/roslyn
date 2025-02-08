@@ -102,6 +102,7 @@ internal partial class DiagnosticAnalyzerService
                 CancellationToken cancellationToken)
             {
                 var analyzersForProject = await StateManager.GetOrCreateAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
+                var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
                 var analyzers = analyzersForProject.WhereAsArray(a => ShouldIncludeAnalyzer(project, a));
 
                 var result = await GetOrComputeDiagnosticAnalysisResultsAsync(analyzers).ConfigureAwait(false);
@@ -130,7 +131,8 @@ internal partial class DiagnosticAnalyzerService
                     }
                 }
 
-                async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetOrComputeDiagnosticAnalysisResultsAsync(ImmutableArray<StateSet> stateSets)
+                async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetOrComputeDiagnosticAnalysisResultsAsync(
+                    ImmutableArray<DiagnosticAnalyzer> analyzers)
                 {
                     // If there was a 'ForceAnalyzeProjectAsync' run for this project, we can piggy back off of the
                     // prior computed/cached results as they will be a superset of the results we want.
@@ -143,15 +145,16 @@ internal partial class DiagnosticAnalyzerService
                     // of that call so that we don't accidentally reuse results that would not correspond to what we are
                     // computing ourselves.
                     if (this.Owner._projectToForceAnalysisData.TryGetValue(project, out var box) &&
-                        stateSets.IsSubsetOf(box.Value.stateSets))
+                        analyzers.IsSubsetOf(box.Value.analyzers))
                     {
                         return box.Value.diagnosticAnalysisResults;
                     }
 
                     // Otherwise, just compute for the state sets we care about.
-                    var compilation = await CreateCompilationWithAnalyzersAsync(project, stateSets, Owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                    var compilation = await CreateCompilationWithAnalyzersAsync(
+                        project, analyzers, hostAnalyzerInfo, Owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
-                    var result = await Owner.ComputeDiagnosticAnalysisResultsAsync(compilation, project, stateSets, cancellationToken).ConfigureAwait(false);
+                    var result = await Owner.ComputeDiagnosticAnalysisResultsAsync(compilation, project, analyzers, cancellationToken).ConfigureAwait(false);
                     return result;
                 }
             }
