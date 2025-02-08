@@ -376,7 +376,7 @@ namespace Text.Analyzers.UnitTests
         interface IProgram
         {
             void Method(string {|#0:explaintain|});
-            
+
             string this[int {|#1:indxe|}] { get; }
         }
 
@@ -414,7 +414,7 @@ namespace Text.Analyzers.UnitTests
         interface IProgram
         {
             void Method(string {|#0:a|});
-            
+
             string this[int {|#1:i|}] { get; }
         }
 
@@ -452,7 +452,7 @@ namespace Text.Analyzers.UnitTests
         interface IProgram
         {
             void Method(string {|#0:a|});
-            
+
             string this[int {|#1:i|}] { get; }
         }
 
@@ -490,7 +490,7 @@ namespace Text.Analyzers.UnitTests
         interface IProgram
         {
             void Method(string {|#0:explaintain|});
-            
+
             string this[int {|#1:indxe|}] { get; }
         }
 
@@ -574,7 +574,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         public class Derived : Mid
-        {            
+        {
             public override void Method(string explanation)
             {
             }
@@ -586,7 +586,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         public class Derived2 : Mid
-        {            
+        {
             public override void Method(string {|#4:explaintaing|})
             {
             }
@@ -634,7 +634,7 @@ namespace Text.Analyzers.UnitTests
         {
             public virtual string this[int indxe] => null;
         }
-        
+
         public class DerivedProgram : Program
         {
             public override string this[int indxe] => null;
@@ -811,10 +811,10 @@ namespace Text.Analyzers.UnitTests
             await csharpTest.RunAsync();
         }
 
-        private static (string Path, string Text) CreateXmlDictionary(IEnumerable<string> recognizedWords, IEnumerable<string> unrecognizedWords = null)
+        private static (string Path, string Text) CreateXmlDictionary(IEnumerable<string>? recognizedWords, IEnumerable<string>? unrecognizedWords = null)
             => CreateXmlDictionary("CodeAnalysisDictionary.xml", recognizedWords, unrecognizedWords);
 
-        private static (string Path, string Text) CreateXmlDictionary(string filename, IEnumerable<string> recognizedWords, IEnumerable<string> unrecognizedWords = null)
+        private static (string Path, string Text) CreateXmlDictionary(string filename, IEnumerable<string>? recognizedWords, IEnumerable<string>? unrecognizedWords = null)
         {
             var contents = $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Dictionary>
@@ -826,7 +826,7 @@ namespace Text.Analyzers.UnitTests
 
             return (filename, contents);
 
-            static string CreateXml(IEnumerable<string> words) =>
+            static string CreateXml(IEnumerable<string>? words) =>
                 string.Join(Environment.NewLine, words?.Select(x => $"<Word>{x}</Word>") ?? Enumerable.Empty<string>());
         }
 

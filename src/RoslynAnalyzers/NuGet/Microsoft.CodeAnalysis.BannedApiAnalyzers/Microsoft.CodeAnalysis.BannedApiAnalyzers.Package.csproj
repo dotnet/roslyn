@@ -19,10 +19,10 @@
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll" />
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.dll" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.BannedApiAnalyzers\Core\Microsoft.CodeAnalysis.BannedApiAnalyzers.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.BannedApiAnalyzers\CSharp\Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.BannedApiAnalyzers\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.vbproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.BannedApiAnalyzers\Core\Microsoft.CodeAnalysis.BannedApiAnalyzers.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.BannedApiAnalyzers\CSharp\Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.BannedApiAnalyzers\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.vbproj" />
   </ItemGroup>
 </Project>

@@ -144,7 +144,7 @@ namespace Analyzer.Utilities.Extensions
         {
             Assert.Throws<ArgumentNullException>(() =>
             {
-                IEnumerable<int> collection = null;
+                IEnumerable<int> collection = null!;
                 collection.Concat(1);
             });
         }

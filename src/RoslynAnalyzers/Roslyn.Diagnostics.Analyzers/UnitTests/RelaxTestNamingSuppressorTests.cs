@@ -20,8 +20,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     {
         private static Solution WithoutSuppressedDiagnosticsTransform(Solution solution, ProjectId projectId)
         {
-            var compilationOptions = solution.GetProject(projectId).CompilationOptions;
-            return solution.WithProjectCompilationOptions(projectId, compilationOptions.WithReportSuppressedDiagnostics(false));
+            var compilationOptions = solution.GetProject(projectId)!.CompilationOptions;
+            return solution.WithProjectCompilationOptions(projectId, compilationOptions!.WithReportSuppressedDiagnostics(false));
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/41584")]

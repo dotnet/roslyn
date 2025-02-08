@@ -1650,7 +1650,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 }",
                 SolutionTransforms =
                 {
-                    (solution, projectId) => solution.GetProject(projectId).WithAssemblyName(assemblyName).Solution,
+                    (solution, projectId) => solution.GetProject(projectId)!.WithAssemblyName(assemblyName).Solution,
                     WithoutEnableReleaseTrackingWarning,
                 },
             }.RunAsync();
@@ -1681,7 +1681,7 @@ Class MyAnalyzer
 End Class",
                 SolutionTransforms =
                 {
-                    (solution, projectId) => solution.GetProject(projectId).WithAssemblyName(assemblyName).Solution,
+                    (solution, projectId) => solution.GetProject(projectId)!.WithAssemblyName(assemblyName).Solution,
                     WithoutEnableReleaseTrackingWarning,
                 }
             }.RunAsync();
@@ -3970,7 +3970,7 @@ Class MyAnalyzer
     Inherits DiagnosticAnalyzer
 
     Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = {|#0:new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, True, description:=Nothing, helpLinkUri:=""HelpLinkUrl"", Tags)|}
-    Private Shared ReadOnly Tags As String() = { """" } 
+    Private Shared ReadOnly Tags As String() = { """" }
 
     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
         Get

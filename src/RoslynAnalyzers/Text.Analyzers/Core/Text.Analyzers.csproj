@@ -7,19 +7,25 @@
       Restore would conclude that there is a cyclic dependency between us and the Text.Analyzers nuget package.
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
-    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForTextAnalyzers)</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisPackageVersion>$(MicrosoftCodeAnalysisPackageVersionForTextAnalyzers)</MicrosoftCodeAnalysisPackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Dictionary.dic" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Dictionary.dic" />
+    <EmbeddedResource Update="TextAnalyzersResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Text.CSharp.Analyzers" />
     <InternalsVisibleTo Include="Text.VisualBasic.Analyzers" />
     <InternalsVisibleTo Include="Text.Analyzers.UnitTests" />
-    <PackageReference Include="Humanizer.Core" Version="$(HumanizerVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Humanizer.Core" />
+
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
   </ItemGroup>
   <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
   <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />

@@ -424,7 +424,7 @@ public namespace MyCompany.MyProduct.MyFeature
                 .AddMetadataReferences(projectId, references)
                 .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .WithProjectParseOptions(projectId, new CSharpParseOptions())
-                .GetProject(projectId);
+                .GetProject(projectId)!;
 
             int count = 0;
             foreach (var source in sources)
@@ -434,7 +434,8 @@ public namespace MyCompany.MyProduct.MyFeature
                 project = project.AddDocument(newFileName, SourceText.From(source)).Project;
             }
 
-            return project.GetCompilationAsync(cancellationToken).Result;
+            Assert.True(project.SupportsCompilation);
+            return project.GetCompilationAsync(cancellationToken).Result!;
         }
     }
 }

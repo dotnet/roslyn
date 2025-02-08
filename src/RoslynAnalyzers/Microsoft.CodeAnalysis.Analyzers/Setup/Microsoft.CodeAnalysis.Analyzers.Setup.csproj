@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
 
-    <!-- 
-      PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.Analyzers 
+    <!--
+      PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.Analyzers
       Restore would conclude that there is a cyclic dependency between Microsoft.CodeAnalysis and Microsoft.CodeAnalysis.Analyzers.
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
@@ -17,7 +17,7 @@
     <PublishWindowsPdb>false</PublishWindowsPdb>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Analyzers.csproj">
       <Name>Microsoft.CodeAnalysis.Analyzers</Name>
@@ -37,5 +37,11 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
 </Project>

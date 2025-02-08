@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
         private const string PrimaryRulesetName = "MyRules.ruleset";
         private const string IncludedRulesetName = "IncludedRules.ruleset";
 
-        private static void Verify(string rulesetText, string expectedEditorconfigText, string includedRulesetText = null)
+        private static void Verify(string rulesetText, string expectedEditorconfigText, string? includedRulesetText = null)
         {
             var directory = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
 

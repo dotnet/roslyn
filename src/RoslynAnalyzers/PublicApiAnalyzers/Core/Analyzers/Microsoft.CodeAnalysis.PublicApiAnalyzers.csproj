@@ -7,18 +7,21 @@
       Restore would conclude that there is a cyclic dependency between us and the Microsoft.CodeAnalysis.PublicApiAnalyzer package.
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
-    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForPublicApiAnalyzers)</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisPackageVersion>$(MicrosoftCodeAnalysisPackageVersionForPublicApiAnalyzers)</MicrosoftCodeAnalysisPackageVersion>
   </PropertyGroup>
-
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="System.ValueTuple" VersionOverride="4.5.0" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Roslyn.Diagnostics.Analyzers\Core\RoslynDiagnosticIds.cs" Link="RoslynDiagnosticIds.cs" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests" />
+    <EmbeddedResource Update="PublicApiAnalyzerResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests" />
   </ItemGroup>
   <Import Project="..\..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
 </Project>

@@ -12,7 +12,7 @@
     <ReleaseNotes>Text Analyzers</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
     <IsShippingPackage>true</IsShippingPackage>
-    
+
     <ContainsPortedFxCopRules>true</ContainsPortedFxCopRules>
   </PropertyGroup>
 
@@ -24,8 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Text.Analyzers\Core\Text.Analyzers.csproj" />
-    <ProjectReference Include="..\..\src\Text.Analyzers\CSharp\Text.CSharp.Analyzers.csproj" />
-    <ProjectReference Include="..\..\src\Text.Analyzers\VisualBasic\Text.VisualBasic.Analyzers.vbproj" />
+    <ProjectReference Include="..\..\Text.Analyzers\Core\Text.Analyzers.csproj" />
+    <ProjectReference Include="..\..\Text.Analyzers\CSharp\Text.CSharp.Analyzers.csproj" />
+    <ProjectReference Include="..\..\Text.Analyzers\VisualBasic\Text.VisualBasic.Analyzers.vbproj" />
   </ItemGroup>
 </Project>

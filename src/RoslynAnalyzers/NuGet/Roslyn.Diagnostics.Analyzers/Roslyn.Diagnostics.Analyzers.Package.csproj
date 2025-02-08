@@ -18,13 +18,13 @@
     <AnalyzerNupkgAssembly Include="Roslyn.Diagnostics.CSharp.Analyzers.dll" />
     <AnalyzerNupkgAssembly Include="Roslyn.Diagnostics.VisualBasic.Analyzers.dll" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Roslyn.Diagnostics.Analyzers\Core\Roslyn.Diagnostics.Analyzers.csproj" />
-    <ProjectReference Include="..\..\src\Roslyn.Diagnostics.Analyzers\CSharp\Roslyn.Diagnostics.CSharp.Analyzers.csproj" />
-    <ProjectReference Include="..\..\src\Roslyn.Diagnostics.Analyzers\VisualBasic\Roslyn.Diagnostics.VisualBasic.Analyzers.vbproj" />
+    <ProjectReference Include="..\..\Roslyn.Diagnostics.Analyzers\Core\Roslyn.Diagnostics.Analyzers.csproj" />
+    <ProjectReference Include="..\..\Roslyn.Diagnostics.Analyzers\CSharp\Roslyn.Diagnostics.CSharp.Analyzers.csproj" />
+    <ProjectReference Include="..\..\Roslyn.Diagnostics.Analyzers\VisualBasic\Roslyn.Diagnostics.VisualBasic.Analyzers.vbproj" />
   </ItemGroup>
-  
+
   <!-- TODO: Can we figure out the AnalyzerNupkgAssembly and AnalyzerRulesetAssembly items from the referenced projects instead of hardcoding them as AnalyzerRulesetAssembly items here? -->
   <ItemGroup>
     <AnalyzerNupkgDependency Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" />

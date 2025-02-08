@@ -7,15 +7,20 @@
       Restore would conclude that there is a cyclic dependency between us and the Microsoft.CodeAnalysis.AnalyzerUtilities package.
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
-    <ExcludeInternalFlowAnalyses>true</ExcludeInternalFlowAnalyses>
     <ExcludeCodeMetricsUtilities>true</ExcludeCodeMetricsUtilities>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!-- RS0026: Avoid public API overloads with differences in optional parameters -->
     <NoWarn>$(NoWarn);RS0026</NoWarn>
-    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers)</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisPackageVersion>$(MicrosoftCodeAnalysisPackageVersionForCodeAnalysisAnalyzers)</MicrosoftCodeAnalysisPackageVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Analyzer.Utilities.UnitTests" />
+  </ItemGroup>
   <Import Project="..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
   <Import Project="..\Utilities\FlowAnalysis\FlowAnalysis.Utilities.projitems" Label="Shared" />
   <ItemGroup>

@@ -12,23 +12,23 @@
     <PackageReadmeFile>documentation\readme.md</PackageReadmeFile>
     <IsShippingPackage>true</IsShippingPackage>
 
-    <!-- 
-      PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.Analyzers 
+    <!--
+      PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.Analyzers
       Restore would conclude that there is a cyclic dependency between Microsoft.CodeAnalysis and Microsoft.CodeAnalysis.Analyzers.
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.Analyzers.dll" />
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.VisualBasic.Analyzers.dll" />
-    <PackageReadmeFileSource Include="..\..\src\Microsoft.CodeAnalysis.Analyzers\readme.md"/>
+    <PackageReadmeFileSource Include="..\..\Microsoft.CodeAnalysis.Analyzers\readme.md"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Analyzers\Core\Microsoft.CodeAnalysis.Analyzers.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Analyzers\CSharp\Microsoft.CodeAnalysis.CSharp.Analyzers.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Analyzers\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Analyzers.vbproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Analyzers\Core\Microsoft.CodeAnalysis.Analyzers.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Analyzers\CSharp\Microsoft.CodeAnalysis.CSharp.Analyzers.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Analyzers\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Analyzers.vbproj" />
   </ItemGroup>
 </Project>

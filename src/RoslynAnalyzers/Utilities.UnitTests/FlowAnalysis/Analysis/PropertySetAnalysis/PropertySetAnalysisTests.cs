@@ -55,24 +55,28 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         private void VerifyCSharp(
             string source,
             PropertySetAnalysisParameters propertySetAnalysisParameters,
-            params (int Line, int Column, string Method, HazardousUsageEvaluationResult Result)[] expectedResults)
+            params (int Line, int Column, string? Method, HazardousUsageEvaluationResult Result)[] expectedResults)
         {
-            expectedResults ??= Array.Empty<(int Line, int Column, string MethodName, HazardousUsageEvaluationResult Result)>();
+            expectedResults ??= Array.Empty<(int Line, int Column, string? MethodName, HazardousUsageEvaluationResult Result)>();
 
             Project project = CreateProject(new string[] { source, TestTypeToTrackSource });
-            Compilation compilation = project.GetCompilationAsync().Result;
+            Compilation? compilation = project.GetCompilationAsync().Result;
+            Assert.NotNull(compilation);
             CompilationUtils.ValidateNoCompileErrors(compilation.GetDiagnostics());
-            (IOperation operation, SemanticModel model, SyntaxNode syntaxNode) = GetOperationAndSyntaxForTest<BlockSyntax>((CSharpCompilation)compilation);
+            (IOperation? operation, SemanticModel? model, SyntaxNode? syntaxNode) = GetOperationAndSyntaxForTest<BlockSyntax>((CSharpCompilation)compilation);
             Assert.True(
                 operation != null,
                 $"Could not find code block to analyze.  Does your test code have {StartString} and {EndString} around the braces of block to analyze?");
-            ISymbol symbol = model.GetDeclaredSymbol(syntaxNode.Parent) ?? model.GetSymbolInfo(syntaxNode.Parent).Symbol;
+            Assert.NotNull(model);
+            Assert.NotNull(syntaxNode?.Parent);
+            ISymbol? symbol = model.GetDeclaredSymbol(syntaxNode.Parent) ?? model.GetSymbolInfo(syntaxNode.Parent).Symbol;
+            Assert.NotNull(symbol);
             var success = operation.TryGetEnclosingControlFlowGraph(out var cfg);
             Debug.Assert(success);
             Debug.Assert(cfg != null);
 
-            DiagnosticDescriptor dummy = new DiagnosticDescriptor("fakeId", null, null, "fakeagory", DiagnosticSeverity.Info, true);
-            PropertySetAnalysisResult result =
+            DiagnosticDescriptor dummy = new DiagnosticDescriptor("fakeId", null!, null!, "fakeagory", DiagnosticSeverity.Info, true);
+            PropertySetAnalysisResult? result =
                 PropertySetAnalysis.GetOrComputeResult(
                     cfg,
                     compilation,
@@ -88,15 +92,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         cfg,
                         compilation,
                         InterproceduralAnalysisKind.ContextSensitive));
-            ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> actual =
+            Assert.NotNull(result);
+            ImmutableDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> actual =
                 result.HazardousUsages;
             try
             {
                 Assert.Equal(expectedResults.Length, actual.Count);
-                foreach ((int Line, int Column, string Method, HazardousUsageEvaluationResult Result) in expectedResults)
+                foreach ((int Line, int Column, string? Method, HazardousUsageEvaluationResult Result) in expectedResults)
                 {
                     HazardousUsageEvaluationResult? actualResult = null;
-                    foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp in actual)
+                    foreach (KeyValuePair<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> kvp in actual)
                     {
                         FileLinePositionSpan span = kvp.Key.Location.GetLineSpan();
                         if (span.Path != CSharpDefaultFilePath)
@@ -131,7 +136,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     throw;
                 }
 
-                foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp in actual)
+                foreach (KeyValuePair<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> kvp in actual)
                 {
                     LinePosition linePosition = kvp.Key.Location.GetLineSpan().StartLinePosition;
                     int lineNumber = linePosition.Line + 1;
@@ -145,12 +150,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 throw;
             }
 
-            static string MethodSymbolOrReturnString(IMethodSymbol methodSymbol)
+            static string MethodSymbolOrReturnString(IMethodSymbol? methodSymbol)
             {
                 return methodSymbol != null ? $"Method {methodSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}" : "Return/Initialization";
             }
 
-            static string MethodOrReturnString(string method)
+            static string MethodOrReturnString(string? method)
             {
                 return method != null ? $"Method {method}" : "Return/Initialization";
             }
@@ -520,7 +525,7 @@ class TestClass
                         "AnEnum",
                         (ValueContentAbstractValue valueContentAbstractValue) =>
                         {
-                            return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(0));
+                            return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v is not null && v.Equals(0));
                         })),
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
@@ -585,7 +590,7 @@ class TestClass
 
                         PropertySetAbstractValueKind kind = PropertySetCallbacks.EvaluateLiteralValues(
                             argumentValueContentAbstractValues[0],
-                            v => v.Equals(0));
+                            v => v is not null && v.Equals(0));
                         return PropertySetAbstractValue.GetInstance(kind);
                     }),
                 new PropertyMapperCollection(
@@ -593,7 +598,7 @@ class TestClass
                         "AnEnum",
                         (ValueContentAbstractValue valueContentAbstractValue) =>
                         {
-                            return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(0));
+                            return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v is not null && v.Equals(0));
                         })),
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
@@ -666,7 +671,7 @@ class TestClass
                     "AnEnum",
                     (ValueContentAbstractValue valueContentAbstractValue) =>
                     {
-                        return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(2));
+                        return PropertySetCallbacks.EvaluateLiteralValues(valueContentAbstractValue, v => v is not null && v.Equals(2));
                     })),
             new HazardousUsageEvaluatorCollection(
                 new HazardousUsageEvaluator(
@@ -1304,7 +1309,9 @@ class TestClass
 #endif
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, new CSharpParseOptions())
-                .GetProject(projectId);
+                .GetProject(projectId)!;
+
+            Assert.NotNull(project.ParseOptions);
 
             // Enable Flow-Analysis feature on the project
             var parseOptions = project.ParseOptions.WithFeatures(
@@ -1329,12 +1336,12 @@ class TestClass
             return project;
         }
 
-        protected static (IOperation operation, SemanticModel model, SyntaxNode node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation)
+        protected static (IOperation? operation, SemanticModel? model, SyntaxNode? node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation)
     where TSyntaxNode : SyntaxNode
         {
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
-            SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
+            SyntaxNode? syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
             if (syntaxNode == null)
             {
                 return (null, null, null);
@@ -1354,7 +1361,7 @@ class TestClass
             return GetSyntaxNodeList(syntaxTree.GetRoot(), null);
         }
 
-        protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode> synList)
+        protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode>? synList)
         {
             synList ??= new List<SyntaxNode>();
 
@@ -1364,7 +1371,9 @@ class TestClass
             {
                 if (child.IsNode)
                 {
-                    synList = GetSyntaxNodeList(child.AsNode(), synList);
+                    var childNode = child.AsNode();
+                    Assert.NotNull(childNode);
+                    synList = GetSyntaxNodeList(childNode, synList);
                 }
             }
 
@@ -1374,7 +1383,7 @@ class TestClass
         protected const string StartString = "/*<bind>*/";
         protected const string EndString = "/*</bind>*/";
 
-        protected static TNode GetSyntaxNodeOfTypeForBinding<TNode>(List<SyntaxNode> synList) where TNode : SyntaxNode
+        protected static TNode? GetSyntaxNodeOfTypeForBinding<TNode>(List<SyntaxNode> synList) where TNode : SyntaxNode
         {
             foreach (var node in synList.OfType<TNode>())
             {
