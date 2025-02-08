@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -47,11 +48,6 @@ internal partial class DiagnosticAnalyzerService
         /// </summary>
         private sealed class LatestDiagnosticsForSpanGetter
         {
-            // PERF: Cache the last Project and corresponding CompilationWithAnalyzers used to compute analyzer diagnostics for span.
-            //       This is now required as async lightbulb will query and execute different priority buckets of analyzers with multiple
-            //       calls, and we want to reuse CompilationWithAnalyzers instance if possible. 
-            private static readonly WeakReference<ProjectAndCompilationWithAnalyzers?> s_lastProjectAndCompilationWithAnalyzers = new(null);
-
             private readonly DiagnosticIncrementalAnalyzer _owner;
             private readonly TextDocument _document;
             private readonly SourceText _text;
@@ -104,49 +100,6 @@ internal partial class DiagnosticAnalyzerService
                 return new LatestDiagnosticsForSpanGetter(
                     owner, compilationWithAnalyzers, document, text, analyzers, shouldIncludeDiagnostic,
                     range, priorityProvider, isExplicit, logPerformanceInfo, incrementalAnalysis, diagnosticKinds);
-            }
-
-            private static async Task<CompilationWithAnalyzersPair?> GetOrCreateCompilationWithAnalyzersAsync(
-                Project project,
-                ImmutableArray<DiagnosticAnalyzer> analyzers,
-                HostAnalyzerInfo hostAnalyzerInfo,
-                bool crashOnAnalyzerException,
-                CancellationToken cancellationToken)
-            {
-                if (s_lastProjectAndCompilationWithAnalyzers.TryGetTarget(out var projectAndCompilationWithAnalyzers) &&
-                    projectAndCompilationWithAnalyzers?.Project == project)
-                {
-                    if (projectAndCompilationWithAnalyzers.CompilationWithAnalyzers == null)
-                    {
-                        return null;
-                    }
-
-                    if (HasAllAnalyzers(analyzers, hostAnalyzerInfo, projectAndCompilationWithAnalyzers.CompilationWithAnalyzers))
-                    {
-                        return projectAndCompilationWithAnalyzers.CompilationWithAnalyzers;
-                    }
-                }
-
-                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(
-                    project, analyzers, hostAnalyzerInfo, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
-                s_lastProjectAndCompilationWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
-                return compilationWithAnalyzers;
-
-                static bool HasAllAnalyzers(
-                    ImmutableArray<DiagnosticAnalyzer> analyzers,
-                    HostAnalyzerInfo hostAnalyzerInfo,
-                    CompilationWithAnalyzersPair compilationWithAnalyzers)
-                {
-                    foreach (var analyzer in analyzers)
-                    {
-                        if (hostAnalyzerInfo.IsHostAnalyzer(analyzer) && !compilationWithAnalyzers.HostAnalyzers.Contains(analyzer))
-                            return false;
-                        else if (!hostAnalyzerInfo.IsHostAnalyzer(analyzer) && !compilationWithAnalyzers.ProjectAnalyzers.Contains(analyzer))
-                            return false;
-                    }
-
-                    return true;
-                }
             }
 
             private LatestDiagnosticsForSpanGetter(

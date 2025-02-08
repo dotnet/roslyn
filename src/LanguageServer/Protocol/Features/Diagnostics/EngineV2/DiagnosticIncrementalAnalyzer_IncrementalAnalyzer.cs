@@ -62,7 +62,7 @@ internal partial class DiagnosticAnalyzerService
                     static (analyzer, arg) => arg.self.IsCandidateForFullSolutionAnalysis(analyzer, arg.hostAnalyzerInfo.IsHostAnalyzer(analyzer), arg.project),
                     (self: this, project, hostAnalyzerInfo));
 
-                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
                     project, fullSolutionAnalysisAnalyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 var projectAnalysisData = await ComputeDiagnosticAnalysisResultsAsync(compilationWithAnalyzers, project, fullSolutionAnalysisAnalyzers, cancellationToken).ConfigureAwait(false);

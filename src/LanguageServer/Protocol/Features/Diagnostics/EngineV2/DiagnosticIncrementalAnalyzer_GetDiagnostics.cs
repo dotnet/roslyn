@@ -151,7 +151,7 @@ internal partial class DiagnosticAnalyzerService
                     }
 
                     // Otherwise, just compute for the analyzers we care about.
-                    var compilation = await CreateCompilationWithAnalyzersAsync(
+                    var compilation = await GetOrCreateCompilationWithAnalyzersAsync(
                         project, analyzers, hostAnalyzerInfo, Owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                     var result = await Owner.ComputeDiagnosticAnalysisResultsAsync(compilation, project, analyzers, cancellationToken).ConfigureAwait(false);
