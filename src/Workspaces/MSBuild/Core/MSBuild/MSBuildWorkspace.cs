@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             _reporter = new DiagnosticReporter(this);
             _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(Services.SolutionServices, _reporter);
-            _loggerFactory = DiagnosticReporterLoggerProvider.CreateLoggerFactoryForDiagnosticReporter(_reporter);
+            _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory([new DiagnosticReporterLoggerProvider(_reporter)]);
             _loader = new MSBuildProjectLoader(Services.SolutionServices, _reporter, _loggerFactory, _projectFileExtensionRegistry, properties);
         }
 
@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             return new MSBuildWorkspace(hostServices, properties.ToImmutableDictionary());
         }
+
+        internal void AddLoggerProvider(Microsoft.Extensions.Logging.ILoggerProvider loggerProvider) => _loggerFactory.AddProvider(loggerProvider);
 
         /// <summary>
         /// The MSBuild properties used when interpreting project files.

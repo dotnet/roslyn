@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -30,10 +29,8 @@ internal partial class DiagnosticAnalyzerService
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public DiagnosticIncrementalAnalyzer(
             DiagnosticAnalyzerService analyzerService,
-            Workspace workspace,
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
             IGlobalOptionService globalOptionService)
         {
@@ -42,7 +39,7 @@ internal partial class DiagnosticAnalyzerService
             AnalyzerService = analyzerService;
             GlobalOptions = globalOptionService;
 
-            _stateManager = new StateManager(workspace, analyzerInfoCache);
+            _stateManager = new StateManager(analyzerInfoCache);
 
             var enabled = globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler);
             _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(
