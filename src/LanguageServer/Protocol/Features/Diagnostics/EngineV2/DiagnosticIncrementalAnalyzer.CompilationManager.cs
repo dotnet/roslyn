@@ -19,9 +19,10 @@ internal partial class DiagnosticAnalyzerService
 {
     /// <summary>
     /// Cached data from a <see cref="Project"/> to the last <see cref="CompilationWithAnalyzersPair"/> instance created
-    /// for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see cref="StateSet"/>s
-    /// passed along with the project.  As such, we might not be able to use a prior cached value if the set of state
-    /// sets changes.  In that case, a new instance will be created and will be cached for the next caller.
+    /// for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see
+    /// cref="DiagnosticAnalyzer"/>s passed along with the project.  As such, we might not be able to use a prior cached
+    /// value if the set of analyzers changes.  In that case, a new instance will be created and will be cached for the
+    /// next caller.
     /// </summary>
     private static readonly ConditionalWeakTable<Project, StrongBox<(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersPair? compilationWithAnalyzersPair)>> s_projectToCompilationWithAnalyzers = new();
 
