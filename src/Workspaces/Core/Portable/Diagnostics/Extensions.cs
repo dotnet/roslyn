@@ -103,7 +103,6 @@ internal static partial class Extensions
         ImmutableArray<Diagnostic> additionalPragmaSuppressionDiagnostics,
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
-        VersionStamp version,
         ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
         ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
         SkippedHostAnalyzersInfo skippedAnalyzersInfo,
@@ -133,7 +132,7 @@ internal static partial class Extensions
                 continue;
             }
 
-            var result = new DiagnosticAnalysisResultBuilder(project, version);
+            var result = new DiagnosticAnalysisResultBuilder(project);
             var diagnosticIdsToFilter = skippedAnalyzersInfo.FilteredDiagnosticIdsForAnalyzers.GetValueOrDefault(
                 analyzer,
                 []);

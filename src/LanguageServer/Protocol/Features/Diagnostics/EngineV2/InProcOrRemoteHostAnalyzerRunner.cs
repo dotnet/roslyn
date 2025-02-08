@@ -119,8 +119,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool getTelemetryInfo,
             CancellationToken cancellationToken)
         {
-            var version = await DiagnosticAnalyzerService.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-
             var (analysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(
                 documentAnalysisScope, project, AnalyzerInfoCache, cancellationToken).ConfigureAwait(false);
 
@@ -140,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (analysisResult is not null)
             {
                 var map = await analysisResult.ToResultBuilderMapAsync(
-                    additionalPragmaSuppressionDiagnostics, documentAnalysisScope, project, version,
+                    additionalPragmaSuppressionDiagnostics, documentAnalysisScope, project,
                     projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo, cancellationToken).ConfigureAwait(false);
                 builderMap = builderMap.AddRange(map);
             }
@@ -236,9 +234,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
             }
 
-            // handling of cancellation and exception
-            var version = await DiagnosticAnalyzerService.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-
             var documentIds = (documentAnalysisScope != null) ? ImmutableHashSet.Create(documentAnalysisScope.TextDocument.Id) : null;
 
             return new DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>(
@@ -246,7 +241,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     entry => IReadOnlyDictionaryExtensions.GetValueOrDefault(projectAnalyzerMap, entry.analyzerId) ?? hostAnalyzerMap[entry.analyzerId],
                     entry => DiagnosticAnalysisResult.Create(
                         project,
-                        version,
                         syntaxLocalMap: Hydrate(entry.diagnosticMap.Syntax, project),
                         semanticLocalMap: Hydrate(entry.diagnosticMap.Semantic, project),
                         nonLocalMap: Hydrate(entry.diagnosticMap.NonLocal, project),

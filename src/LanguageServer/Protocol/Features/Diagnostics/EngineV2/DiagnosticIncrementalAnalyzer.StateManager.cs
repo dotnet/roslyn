@@ -42,12 +42,7 @@ internal partial class DiagnosticAnalyzerService
             /// Guard around updating _projectAnalyzerStateMap. This is used in UpdateProjectStateSets to avoid
             /// duplicated calculations for a project during contentious calls.
             /// </summary>
-            private readonly SemaphoreSlim _projectAnalyzerStateMapGuard = new(1);
-
-            /// <summary>
-            /// This will be raised whenever <see cref="StateManager"/> finds <see cref="Project.AnalyzerReferences"/> change
-            /// </summary>
-            public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
+            private readonly SemaphoreSlim _projectAnalyzerStateMapGuard = new(initialCount: 1);
 
             /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>.
@@ -103,9 +98,6 @@ internal partial class DiagnosticAnalyzerService
 
                 return null;
             }
-
-            private void RaiseProjectAnalyzerReferenceChanged(ProjectAnalyzerReferenceChangedEventArgs args)
-                => ProjectAnalyzerReferenceChanged?.Invoke(this, args);
 
             private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> projectAnalyzerCollection,
