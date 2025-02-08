@@ -17,22 +17,22 @@ internal partial class DiagnosticAnalyzerService
     {
         private partial class StateManager
         {
-            private HostAnalyzerInfo GetOrCreateHostAnalyzerInfo(Project project, ProjectAnalyzerInfo projectStateSets)
+            private HostAnalyzerInfo GetOrCreateHostAnalyzerInfo(Project project, ProjectAnalyzerInfo projectAnalyzerInfo)
             {
-                var key = new HostAnalyzerStateSetKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, project.Solution.SolutionState.Analyzers.HostAnalyzerReferences);
+                var key = new HostAnalyzersKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, project.Solution.SolutionState.Analyzers.HostAnalyzerReferences);
                 // Some Host Analyzers may need to be treated as Project Analyzers so that they do not have access to the
                 // Host fallback options. These ids will be used when building up the Host and Project analyzer collections.
                 var referenceIdsToRedirect = GetReferenceIdsToRedirectAsProjectAnalyzers(project);
-                var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (project.Solution.SolutionState.Analyzers, referenceIdsToRedirect));
-                return hostStateSets.WithExcludedAnalyzers(projectStateSets.SkippedAnalyzersInfo.SkippedAnalyzers);
+                var hostAnalyzerInfo = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (project.Solution.SolutionState.Analyzers, referenceIdsToRedirect));
+                return hostAnalyzerInfo.WithExcludedAnalyzers(projectAnalyzerInfo.SkippedAnalyzersInfo.SkippedAnalyzers);
 
-                static HostAnalyzerInfo CreateLanguageSpecificAnalyzerMap(HostAnalyzerStateSetKey arg, (HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
+                static HostAnalyzerInfo CreateLanguageSpecificAnalyzerMap(HostAnalyzersKey arg, (HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
                 {
                     var language = arg.Language;
                     var analyzersPerReference = state.HostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
 
                     var (hostAnalyzerCollection, projectAnalyzerCollection) = GetAnalyzerCollections(analyzersPerReference, state.ReferenceIdsToRedirect);
-                    var (hostAnalyzers, allAnalyzers) = CreateStateSetMap(projectAnalyzerCollection, hostAnalyzerCollection, includeWorkspacePlaceholderAnalyzers: true);
+                    var (hostAnalyzers, allAnalyzers) = PartitionAnalyzers(projectAnalyzerCollection, hostAnalyzerCollection, includeWorkspacePlaceholderAnalyzers: true);
 
                     return new HostAnalyzerInfo(hostAnalyzers, allAnalyzers);
                 }
@@ -110,7 +110,7 @@ internal partial class DiagnosticAnalyzerService
                 HostAnalyzers = hostAnalyzers;
                 AllAnalyzers = allAnalyzers;
 
-                // order statesets
+                // order analyzers.
                 // order will be in this order
                 // BuiltIn Compiler Analyzer (C#/VB) < Regular DiagnosticAnalyzers < Document/ProjectDiagnosticAnalyzers
                 OrderedAllAnalyzers = [.. AllAnalyzers.OrderBy(PriorityComparison)];

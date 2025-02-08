@@ -30,7 +30,7 @@ internal partial class DiagnosticAnalyzerService
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
             /// Maps language name to the analyzers and their state.
             /// </summary>
-            private ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerInfo> _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerInfo>.Empty;
+            private ImmutableDictionary<HostAnalyzersKey, HostAnalyzerInfo> _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzersKey, HostAnalyzerInfo>.Empty;
 
             /// <summary>
             /// Analyzers referenced by the project via a PackageReference. Updates are protected by _projectAnalyzerStateMapGuard.
@@ -56,11 +56,11 @@ internal partial class DiagnosticAnalyzerService
 
             public async Task<HostAnalyzerInfo> GetOrCreateHostAnalyzerInfoAsync(Project project, CancellationToken cancellationToken)
             {
-                var projectStateSets = await GetOrCreateProjectAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
-                return GetOrCreateHostAnalyzerInfo(project, projectStateSets);
+                var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+                return GetOrCreateHostAnalyzerInfo(project, projectAnalyzerInfo);
             }
 
-            private static (ImmutableHashSet<DiagnosticAnalyzer> hostAnalyzers, ImmutableHashSet<DiagnosticAnalyzer> allAnalyzers) CreateStateSetMap(
+            private static (ImmutableHashSet<DiagnosticAnalyzer> hostAnalyzers, ImmutableHashSet<DiagnosticAnalyzer> allAnalyzers) PartitionAnalyzers(
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> projectAnalyzerCollection,
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> hostAnalyzerCollection,
                 bool includeWorkspacePlaceholderAnalyzers)
@@ -108,7 +108,7 @@ internal partial class DiagnosticAnalyzerService
                 return (hostAnalyzers.ToImmutableHashSet(), allAnalyzers.ToImmutableHashSet());
             }
 
-            private readonly record struct HostAnalyzerStateSetKey(
+            private readonly record struct HostAnalyzersKey(
                 string Language, bool HasSdkCodeStyleAnalyzers, IReadOnlyList<AnalyzerReference> AnalyzerReferences);
         }
     }

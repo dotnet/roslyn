@@ -47,13 +47,6 @@ internal partial class DiagnosticAnalyzerService
                 }
             }
 
-            public IEnumerable<DiagnosticAnalyzer> GetAllProjectStateSets()
-            {
-                // return existing state sets
-                // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
-                return _projectAnalyzerStateMap.Values.SelectManyAsArray(e => e.Analyzers);
-            }
-
             private ProjectAnalyzerInfo? TryGetProjectAnalyzerInfo(Project project)
             {
                 // check if the analyzer references have changed since the last time we updated the map:
@@ -87,7 +80,7 @@ internal partial class DiagnosticAnalyzerService
                     return ProjectAnalyzerInfo.Default;
                 }
 
-                var (newHostAnalyzers, newAllAnalyzers) = CreateStateSetMap(
+                var (newHostAnalyzers, newAllAnalyzers) = PartitionAnalyzers(
                     analyzersPerReference.Values, hostAnalyzerCollection: [], includeWorkspacePlaceholderAnalyzers: false);
 
                 // We passed an empty array for 'hostAnalyzeCollection' above, and we specifically asked to not include

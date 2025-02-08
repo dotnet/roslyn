@@ -21,7 +21,8 @@ internal partial class DiagnosticAnalyzerService
     private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
-        /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
+        /// Return all diagnostics that belong to given project for the given <see cref="DiagnosticAnalyzer"/> either
+        /// from cache or by calculating them.
         /// </summary>
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticAnalysisResultsAsync(
             CompilationWithAnalyzersPair? compilationWithAnalyzers,
@@ -114,11 +115,11 @@ internal partial class DiagnosticAnalyzerService
             }
 
             async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsForIDEAnalyzersAsync(
-                ImmutableArray<DiagnosticAnalyzer> stateSets)
+                ImmutableArray<DiagnosticAnalyzer> analyzers)
             {
                 try
                 {
-                    var ideAnalyzers = stateSets.WhereAsArray(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer);
+                    var ideAnalyzers = analyzers.WhereAsArray(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer);
 
                     return await ComputeDiagnosticsForAnalyzersAsync(ideAnalyzers).ConfigureAwait(false);
                 }
