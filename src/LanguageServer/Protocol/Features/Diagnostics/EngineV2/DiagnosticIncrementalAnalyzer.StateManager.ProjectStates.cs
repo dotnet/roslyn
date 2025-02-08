@@ -21,14 +21,10 @@ internal partial class DiagnosticAnalyzerService
             {
                 public static readonly ProjectAnalyzerInfo Default = new(
                     analyzerReferences: [],
-                    ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>.Empty,
                     analyzers: [],
                     SkippedHostAnalyzersInfo.Empty);
 
                 public readonly IReadOnlyList<AnalyzerReference> AnalyzerReferences;
-
-                // maps analyzer reference id to list of analyzers loaded from the reference
-                public readonly ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> MapPerReferences;
 
                 public readonly ImmutableHashSet<DiagnosticAnalyzer> Analyzers;
 
@@ -36,12 +32,10 @@ internal partial class DiagnosticAnalyzerService
 
                 internal ProjectAnalyzerInfo(
                     IReadOnlyList<AnalyzerReference> analyzerReferences,
-                    ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> mapPerReferences,
                     ImmutableHashSet<DiagnosticAnalyzer> analyzers,
                     SkippedHostAnalyzersInfo skippedAnalyzersInfo)
                 {
                     AnalyzerReferences = analyzerReferences;
-                    MapPerReferences = mapPerReferences;
                     Analyzers = analyzers;
                     SkippedAnalyzersInfo = skippedAnalyzersInfo;
                 }
@@ -85,7 +79,7 @@ internal partial class DiagnosticAnalyzerService
                 Contract.ThrowIfTrue(newHostAnalyzers.Count > 0);
 
                 var skippedAnalyzersInfo = project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
-                return new ProjectAnalyzerInfo(project.AnalyzerReferences, analyzersPerReference, newAllAnalyzers, skippedAnalyzersInfo);
+                return new ProjectAnalyzerInfo(project.AnalyzerReferences, newAllAnalyzers, skippedAnalyzersInfo);
             }
 
             /// <summary>
