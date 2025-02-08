@@ -46,8 +46,6 @@ internal partial class DiagnosticAnalyzerService
 
             /// <summary>
             /// Return <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>. 
-            /// This will either return already created <see cref="StateSet"/>s for the specific snapshot of <see cref="Project"/> or
-            /// it will create new <see cref="StateSet"/>s for the <see cref="Project"/> and update internal state.
             /// </summary>
             public async Task<ImmutableArray<DiagnosticAnalyzer>> GetOrCreateAnalyzersAsync(Project project, CancellationToken cancellationToken)
             {
@@ -60,28 +58,6 @@ internal partial class DiagnosticAnalyzerService
             {
                 var projectStateSets = await GetOrCreateProjectAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
                 return GetOrCreateHostAnalyzerInfo(project, projectStateSets);
-            }
-
-            /// <summary>
-            /// Return <see cref="StateSet"/> for the given <see cref="DiagnosticAnalyzer"/> in the context of <see cref="Project"/>.
-            /// This will either return already created <see cref="StateSet"/> for the specific snapshot of <see cref="Project"/> or
-            /// it will create new <see cref="StateSet"/> for the <see cref="Project"/>. and update internal state.
-            /// </summary>
-            public async Task<DiagnosticAnalyzer?> GetOrCreateStateSetAsync(Project project, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
-            {
-                var projectStateSets = await GetOrCreateProjectAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
-                if (projectStateSets.Analyzers.Contains(analyzer))
-                {
-                    return analyzer;
-                }
-
-                var hostStateSetMap = GetOrCreateHostAnalyzerInfo(project, projectStateSets).AllAnalyzers;
-                if (hostStateSetMap.Contains(analyzer))
-                {
-                    return analyzer;
-                }
-
-                return null;
             }
 
             private static (ImmutableHashSet<DiagnosticAnalyzer> hostAnalyzers, ImmutableHashSet<DiagnosticAnalyzer> allAnalyzers) CreateStateSetMap(
