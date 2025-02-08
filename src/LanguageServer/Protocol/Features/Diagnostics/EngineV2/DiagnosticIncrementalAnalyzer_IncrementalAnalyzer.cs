@@ -25,7 +25,7 @@ internal partial class DiagnosticAnalyzerService
         /// cref="DiagnosticGetter.ProduceDiagnosticsAsync"/> to speed up subsequent calls through the normal <see
         /// cref="IDiagnosticAnalyzerService"/> entry points as long as the project hasn't changed at all.
         /// </summary>
-        private readonly ConditionalWeakTable<Project, StrongBox<(ImmutableArray<StateSet> stateSets, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> _projectToForceAnalysisData = new();
+        private readonly ConditionalWeakTable<Project, StrongBox<(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> _projectToForceAnalysisData = new();
 
         public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
@@ -39,10 +39,10 @@ internal partial class DiagnosticAnalyzerService
 
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
 
-                var (stateSets, projectAnalysisData) = box.Value;
-                foreach (var stateSet in stateSets)
+                var (analyzers, projectAnalysisData) = box.Value;
+                foreach (var analyzer in analyzers)
                 {
-                    if (projectAnalysisData.TryGetValue(stateSet.Analyzer, out var analyzerResult))
+                    if (projectAnalysisData.TryGetValue(analyzer, out var analyzerResult))
                         diagnostics.AddRange(analyzerResult.GetAllDiagnostics());
                 }
 
