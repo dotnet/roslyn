@@ -14,13 +14,13 @@ internal partial class DiagnosticAnalyzerService
         private sealed class StateSet
         {
             public readonly DiagnosticAnalyzer Analyzer;
-            public readonly bool IsHostAnalyzer;
 
-            public StateSet(DiagnosticAnalyzer analyzer, bool isHostAnalyzer)
+            public StateSet(DiagnosticAnalyzer analyzer)
             {
                 Analyzer = analyzer;
-                IsHostAnalyzer = isHostAnalyzer;
             }
+
+            public bool IsHostAnalyzer => false;
         }
     }
 }
