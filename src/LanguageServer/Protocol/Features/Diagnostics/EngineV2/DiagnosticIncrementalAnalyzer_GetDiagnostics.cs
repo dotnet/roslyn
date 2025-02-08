@@ -18,16 +18,15 @@ internal partial class DiagnosticAnalyzerService
 {
     private partial class DiagnosticIncrementalAnalyzer
     {
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-            => new DiagnosticGetter(this, solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+            => new DiagnosticGetter(this, project, documentId, diagnosticIds, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics).GetDiagnosticsAsync(cancellationToken);
 
-        public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-            => new DiagnosticGetter(this, solution, projectId, documentId: null, diagnosticIds, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics).GetProjectDiagnosticsAsync(cancellationToken);
+        public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Project project, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+            => new DiagnosticGetter(this, project, documentId: null, diagnosticIds, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics).GetProjectDiagnosticsAsync(cancellationToken);
 
         private sealed class DiagnosticGetter(
             DiagnosticIncrementalAnalyzer owner,
-            Solution solution,
-            ProjectId projectId,
+            Project project,
             DocumentId? documentId,
             ImmutableHashSet<string>? diagnosticIds,
             Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
@@ -36,8 +35,7 @@ internal partial class DiagnosticAnalyzerService
         {
             private readonly DiagnosticIncrementalAnalyzer Owner = owner;
 
-            private readonly Solution Solution = solution;
-            private readonly ProjectId ProjectId = projectId;
+            private readonly Project Project = project;
             private readonly DocumentId? DocumentId = documentId;
             private readonly ImmutableHashSet<string>? _diagnosticIds = diagnosticIds;
             private readonly Func<DiagnosticAnalyzer, bool>? _shouldIncludeAnalyzer = shouldIncludeAnalyzer;
@@ -51,17 +49,13 @@ internal partial class DiagnosticAnalyzerService
 
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(CancellationToken cancellationToken)
             {
-                var project = Solution.GetProject(ProjectId);
-                if (project == null)
-                    return [];
-
                 // return diagnostics specific to one project or document
                 var includeProjectNonLocalResult = DocumentId == null;
                 return await ProduceProjectDiagnosticsAsync(
-                    project,
+                    this.Project,
                     // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this
                     // project if no specific document id was requested.
-                    this.DocumentId != null ? [this.DocumentId] : [.. project.DocumentIds, .. project.AdditionalDocumentIds],
+                    this.DocumentId != null ? [this.DocumentId] : [.. this.Project.DocumentIds, .. this.Project.AdditionalDocumentIds],
                     includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
             }
 
@@ -86,12 +80,8 @@ internal partial class DiagnosticAnalyzerService
 
             public async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(CancellationToken cancellationToken)
             {
-                var project = Solution.GetProject(ProjectId);
-                if (project is null)
-                    return [];
-
                 return await ProduceProjectDiagnosticsAsync(
-                    project, documentIds: [], includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
+                    this.Project, documentIds: [], includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task ProduceDiagnosticsAsync(
