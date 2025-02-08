@@ -27,7 +27,8 @@ internal partial class DiagnosticAnalyzerService
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticAnalysisResultsAsync(
             CompilationWithAnalyzersPair? compilationWithAnalyzers,
             Project project,
-            ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, analyzers, cancellationToken))
             {
