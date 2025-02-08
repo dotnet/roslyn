@@ -56,7 +56,7 @@ internal partial class DiagnosticAnalyzerService
             return analyzers;
         }
 
-        private static string GetProjectLogMessage(Project project, ImmutableArray<StateSet> stateSets)
-            => $"project: ({project.Id}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
+        private static string GetProjectLogMessage(Project project, ImmutableArray<DiagnosticAnalyzer> analyzers)
+            => $"project: ({project.Id}), ({string.Join(Environment.NewLine, analyzers.Select(a => a.ToString()))})";
     }
 }

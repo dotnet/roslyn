@@ -53,18 +53,20 @@ internal partial class DiagnosticAnalyzerService
                 throw ExceptionUtilities.Unreachable();
             }
 
-            async Task<(ImmutableArray<StateSet> stateSets, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)> ComputeForceAnalyzeProjectAsync()
+            async Task<(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)> ComputeForceAnalyzeProjectAsync()
             {
                 var allAnalyzers = await _stateManager.GetOrCreateAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
-                var fullSolutionAnalysisStateSets = allAnalyzers.WhereAsArray(
-                    static (analyzer, arg) => arg.self.IsCandidateForFullSolutionAnalysis(analyzer.Analyzer, analyzer.IsHostAnalyzer, arg.project),
-                    (self: this, project));
+                var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+
+                var fullSolutionAnalysisAnalyzers = allAnalyzers.WhereAsArray(
+                    static (analyzer, arg) => arg.self.IsCandidateForFullSolutionAnalysis(analyzer, arg.hostAnalyzerInfo.HostAnalyzers.Contains(analyzer), arg.project),
+                    (self: this, project, hostAnalyzerInfo));
 
                 var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(
-                    project, fullSolutionAnalysisStateSets, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                    project, fullSolutionAnalysisAnalyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
-                var projectAnalysisData = await ComputeDiagnosticAnalysisResultsAsync(compilationWithAnalyzers, project, fullSolutionAnalysisStateSets, cancellationToken).ConfigureAwait(false);
-                return (fullSolutionAnalysisStateSets, projectAnalysisData);
+                var projectAnalysisData = await ComputeDiagnosticAnalysisResultsAsync(compilationWithAnalyzers, project, fullSolutionAnalysisAnalyzers, cancellationToken).ConfigureAwait(false);
+                return (fullSolutionAnalysisAnalyzers, projectAnalysisData);
             }
         }
 
