@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SourceEventSymbol : EventSymbol, IAttributeTargetSymbol
     {
+        private SourceEventSymbol? _otherPartOfPartial;
+
         private readonly Location _location;
         private readonly SyntaxReference _syntaxRef;
         private readonly DeclarationModifiers _modifiers;
@@ -72,6 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
+            SourcePartialImplementationPart?.ForceComplete(locationOpt, filter, cancellationToken);
+
             if (filter?.Invoke(this) == false)
             {
                 return;
@@ -370,10 +374,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.Abstract) != 0; }
         }
 
-        public sealed override bool IsExtern
+        private bool HasExternModifier
         {
             get { return (_modifiers & DeclarationModifiers.Extern) != 0; }
         }
+
+        public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : HasExternModifier;
 
         public sealed override bool IsStatic
         {
@@ -449,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
-            var allowedModifiers = DeclarationModifiers.Unsafe;
+            var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
             if (!explicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New |
@@ -554,6 +560,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' cannot be sealed because it is not an override
                 diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
             }
+            else if (IsPartial && !ContainingType.IsPartial())
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberOnlyInPartialClass, location);
+            }
+            else if (IsPartial && IsExplicitInterfaceImplementation)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberNotExplicit, location);
+            }
+            else if (IsPartial && IsAbstract)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberCannotBeAbstract, location);
+            }
             else if (IsAbstract && ContainingType.TypeKind == TypeKind.Struct)
             {
                 // The modifier '{0}' is not valid for this item
@@ -609,6 +627,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // '{0}' is a new virtual member in sealed type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
+            }
+
+            if (IsPartial)
+            {
+                ModifierUtils.CheckFeatureAvailabilityForPartialEventsAndConstructors(_location, diagnostics);
             }
 
             diagnostics.Add(location, useSiteInfo);
@@ -779,6 +802,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_ExplicitPropertyAddingAccessor, thisAccessor.GetFirstLocation(), thisAccessor, explicitlyImplementedEvent);
             }
+        }
+
+        internal bool IsPartial => (this.Modifiers & DeclarationModifiers.Partial) != 0;
+
+        /// <summary>
+        /// <see langword="false"/> if this symbol corresponds to a semi-colon body declaration.
+        /// <see langword="true"/> if this symbol corresponds to a declaration with custom <see langword="add"/> and <see langword="remove"/> accessors.
+        /// </summary>
+        protected abstract bool AccessorsHaveImplementation { get; }
+
+        internal bool IsPartialDefinition => IsPartial && !AccessorsHaveImplementation && !HasExternModifier;
+
+        internal bool IsPartialImplementation => IsPartial && (AccessorsHaveImplementation || HasExternModifier);
+
+        internal SourceEventSymbol? OtherPartOfPartial => _otherPartOfPartial;
+
+        internal SourceEventSymbol? SourcePartialDefinitionPart => IsPartialImplementation ? OtherPartOfPartial : null;
+
+        internal SourceEventSymbol? SourcePartialImplementationPart => IsPartialDefinition ? OtherPartOfPartial : null;
+
+        internal override EventSymbol? PartialDefinitionPart => SourcePartialDefinitionPart;
+
+        internal override EventSymbol? PartialImplementationPart => SourcePartialImplementationPart;
+
+        internal static void InitializePartialEventParts(SourceEventSymbol definition, SourceEventSymbol implementation)
+        {
+            Debug.Assert(definition.IsPartialDefinition);
+            Debug.Assert(implementation.IsPartialImplementation);
+
+            Debug.Assert(definition._otherPartOfPartial is not { } alreadySetImplPart || ReferenceEquals(alreadySetImplPart, implementation));
+            Debug.Assert(implementation._otherPartOfPartial is not { } alreadySetDefPart || ReferenceEquals(alreadySetDefPart, definition));
+
+            definition._otherPartOfPartial = implementation;
+            implementation._otherPartOfPartial = definition;
+
+            Debug.Assert(ReferenceEquals(definition._otherPartOfPartial, implementation));
+            Debug.Assert(ReferenceEquals(implementation._otherPartOfPartial, definition));
         }
     }
 }

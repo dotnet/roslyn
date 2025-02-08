@@ -1171,7 +1171,7 @@
     <value>Cannot implicitly convert type '{0}' to '{1}'. An explicit conversion exists (are you missing a cast?)</value>
   </data>
   <data name="ERR_PartialMisplaced" xml:space="preserve">
-    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</value>
+    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</value>
   </data>
   <data name="ERR_ImportedCircularBase" xml:space="preserve">
     <value>Imported type '{0}' is invalid. It contains a circular base type dependency.</value>
@@ -8046,5 +8046,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_InterceptsLocationAttributeUnsupportedSignature_Title" xml:space="preserve">
     <value>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</value>
+  </data>
+  <data name="IDS_FeaturePartialEventsAndConstructors" xml:space="preserve">
+    <value>partial events and constructors</value>
+  </data>
+  <data name="ERR_PartialMemberMissingImplementation" xml:space="preserve">
+    <value>Partial member '{0}' must have an implementation part.</value>
+  </data>
+  <data name="ERR_PartialMemberMissingDefinition" xml:space="preserve">
+    <value>Partial member '{0}' must have a definition part.</value>
+  </data>
+  <data name="ERR_PartialMemberDuplicateDefinition" xml:space="preserve">
+    <value>Partial member '{0}' may not have multiple defining declarations.</value>
+  </data>
+  <data name="ERR_PartialMemberDuplicateImplementation" xml:space="preserve">
+    <value>Partial member '{0}' may not have multiple implementing declarations.</value>
+  </data>
+  <data name="ERR_PartialEventInitializer" xml:space="preserve">
+    <value>'{0}': partial event cannot have initializer</value>
   </data>
 </root>
