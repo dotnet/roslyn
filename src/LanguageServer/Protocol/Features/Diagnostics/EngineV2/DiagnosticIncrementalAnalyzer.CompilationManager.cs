@@ -23,7 +23,7 @@ internal partial class DiagnosticAnalyzerService
     /// passed along with the project.  As such, we might not be able to use a prior cached value if the set of state
     /// sets changes.  In that case, a new instance will be created and will be cached for the next caller.
     /// </summary>
-    private static readonly ConditionalWeakTable<Project, CompilationWithAnalyzersPair?> s_projectToCompilationWithAnalyzers = new();
+    private static readonly ConditionalWeakTable<Project, StrongBox<(ImmutableArray<StateSet> stateSets, CompilationWithAnalyzersPair? compilationWithAnalyzersPair)>> s_projectToCompilationWithAnalyzers = new();
 
     private static async Task<CompilationWithAnalyzersPair?> GetOrCreateCompilationWithAnalyzersAsync(
         Project project,
@@ -34,12 +34,13 @@ internal partial class DiagnosticAnalyzerService
         if (!project.SupportsCompilation)
             return null;
 
-        // Make sure the cached pair matches the state sets we're asking about.  if not, recompute and cache with
-        // the new state sets.
-        if (!s_projectToCompilationWithAnalyzers.TryGetValue(project, out var compilationWithAnalyzersPair) ||
-            !HasAllAnalyzers(stateSets, compilationWithAnalyzersPair))
+        // Make sure the cached pair was computed with at least the same state sets we're asking about.  if not,
+        // recompute and cache with the new state sets.
+        if (!s_projectToCompilationWithAnalyzers.TryGetValue(project, out var tupleBox) ||
+            !stateSets.IsSubsetOf(tupleBox.Value.stateSets))
         {
-            compilationWithAnalyzersPair = await CreateCompilationWithAnalyzersAsync().ConfigureAwait(false);
+            var compilationWithAnalyzersPair = await CreateCompilationWithAnalyzersAsync().ConfigureAwait(false);
+            tupleBox = new((stateSets, compilationWithAnalyzersPair));
 
             // Make a best effort attempt to store the latest computed value against these state sets. If this
             // fails (because another thread interleaves with this), that's ok.  We still return the pair we 
@@ -48,26 +49,10 @@ internal partial class DiagnosticAnalyzerService
 
             // Intentionally ignore the result of this.  We still want to use the value we computed above, even if
             // another thread interleaves and sets a different value.
-            s_projectToCompilationWithAnalyzers.GetValue(project, _ => compilationWithAnalyzersPair);
+            s_projectToCompilationWithAnalyzers.GetValue(project, _ => tupleBox);
         }
 
-        return compilationWithAnalyzersPair;
-
-        static bool HasAllAnalyzers(ImmutableArray<StateSet> stateSets, CompilationWithAnalyzersPair? compilationWithAnalyzers)
-        {
-            if (compilationWithAnalyzers is null)
-                return false;
-
-            foreach (var stateSet in stateSets)
-            {
-                if (stateSet.IsHostAnalyzer && !compilationWithAnalyzers.HostAnalyzers.Contains(stateSet.Analyzer))
-                    return false;
-                else if (!stateSet.IsHostAnalyzer && !compilationWithAnalyzers.ProjectAnalyzers.Contains(stateSet.Analyzer))
-                    return false;
-            }
-
-            return true;
-        }
+        return tupleBox.Value.compilationWithAnalyzersPair;
 
         // <summary>
         // Should only be called on a <see cref="Project"/> that <see cref="Project.SupportsCompilation"/>.
