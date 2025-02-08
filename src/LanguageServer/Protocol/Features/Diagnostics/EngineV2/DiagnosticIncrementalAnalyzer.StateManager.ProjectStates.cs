@@ -63,9 +63,6 @@ internal partial class DiagnosticAnalyzerService
             private async Task<ProjectAnalyzerInfo> GetOrCreateProjectAnalyzerInfoAsync(Project project, CancellationToken cancellationToken)
                 => TryGetProjectAnalyzerInfo(project) ?? await UpdateProjectAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
 
-            /// <summary>
-            /// Creates a new project state sets.
-            /// </summary>
             private ProjectAnalyzerInfo CreateProjectAnalyzerInfo(Project project)
             {
                 if (project.AnalyzerReferences.Count == 0)

@@ -181,7 +181,6 @@ internal partial class DiagnosticAnalyzerService
             {
                 try
                 {
-                    // Try to get cached diagnostics, and also compute non-cached state sets that need diagnostic computation.
                     using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var syntaxAnalyzers);
 
                     // If we are performing incremental member edit analysis to compute diagnostics incrementally,
@@ -232,7 +231,6 @@ internal partial class DiagnosticAnalyzerService
                         }
                     }
 
-                    // Compute diagnostics for non-cached state sets.
                     await ComputeDocumentDiagnosticsAsync(syntaxAnalyzers.ToImmutable(), AnalysisKind.Syntax, _range, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);
                     await ComputeDocumentDiagnosticsAsync(semanticSpanBasedAnalyzers.ToImmutable(), AnalysisKind.Semantic, _range, list, _incrementalAnalysis, cancellationToken).ConfigureAwait(false);
                     await ComputeDocumentDiagnosticsAsync(semanticDocumentBasedAnalyzers.ToImmutable(), AnalysisKind.Semantic, span: null, list, incrementalAnalysis: false, cancellationToken).ConfigureAwait(false);

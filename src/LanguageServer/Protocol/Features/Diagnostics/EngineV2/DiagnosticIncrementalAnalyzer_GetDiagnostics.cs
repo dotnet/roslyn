@@ -137,20 +137,20 @@ internal partial class DiagnosticAnalyzerService
                     // If there was a 'ForceAnalyzeProjectAsync' run for this project, we can piggy back off of the
                     // prior computed/cached results as they will be a superset of the results we want.
                     //
-                    // Note: the caller will loop over *its* state sets, grabbing from the full set of data we've cached
+                    // Note: the caller will loop over *its* analzyers, grabbing from the full set of data we've cached
                     // for this project, and filtering down further.  So it's ok to return this potentially larger set.
                     //
-                    // Note: While ForceAnalyzeProjectAsync should always run with a larger state set than us (since it
-                    // runs all analyzers), we still run a paranoia check that the state sets we care about are a subset
-                    // of that call so that we don't accidentally reuse results that would not correspond to what we are
-                    // computing ourselves.
+                    // Note: While ForceAnalyzeProjectAsync should always run with a larger set of analyzers than us
+                    // (since it runs all analyzers), we still run a paranoia check that the analyzers we care about are
+                    // a subset of that call so that we don't accidentally reuse results that would not correspond to
+                    // what we are computing ourselves.
                     if (this.Owner._projectToForceAnalysisData.TryGetValue(project, out var box) &&
                         analyzers.IsSubsetOf(box.Value.analyzers))
                     {
                         return box.Value.diagnosticAnalysisResults;
                     }
 
-                    // Otherwise, just compute for the state sets we care about.
+                    // Otherwise, just compute for the analyzers we care about.
                     var compilation = await CreateCompilationWithAnalyzersAsync(
                         project, analyzers, hostAnalyzerInfo, Owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
