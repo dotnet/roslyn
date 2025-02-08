@@ -223,11 +223,11 @@ internal partial class DiagnosticAnalyzerService
 
                             if (includeSemantic)
                             {
-                                var stateSets = GetSemanticAnalysisSelectedAnalyzers(
+                                var selectedAnalyzers = GetSemanticAnalysisSelectedAnalyzers(
                                     analyzer, _incrementalAnalysis,
                                     semanticSpanBasedAnalyzers, semanticDocumentBasedAnalyzers);
 
-                                stateSets.Add(analyzer);
+                                selectedAnalyzers.Add(analyzer);
                             }
                         }
                     }

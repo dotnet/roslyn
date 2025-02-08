@@ -61,7 +61,7 @@ internal partial class DiagnosticAnalyzerService
             }
 
             private async Task<ProjectAnalyzerInfo> GetOrCreateProjectAnalyzerInfoAsync(Project project, CancellationToken cancellationToken)
-                => TryGetProjectAnalyzerInfo(project) ?? await UpdateProjectAnalyzerInfo(project, cancellationToken).ConfigureAwait(false);
+                => TryGetProjectAnalyzerInfo(project) ?? await UpdateProjectAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
 
             /// <summary>
             /// Creates a new project state sets.
@@ -94,22 +94,22 @@ internal partial class DiagnosticAnalyzerService
             /// <summary>
             /// Updates the map to the given project snapshot.
             /// </summary>
-            private async Task<ProjectAnalyzerInfo> UpdateProjectAnalyzerInfo(Project project, CancellationToken cancellationToken)
+            private async Task<ProjectAnalyzerInfo> UpdateProjectAnalyzerInfoAsync(Project project, CancellationToken cancellationToken)
             {
                 // This code is called concurrently for a project, so the guard prevents duplicated effort calculating StateSets.
                 using (await _projectAnalyzerStateMapGuard.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    var projectStateSets = TryGetProjectAnalyzerInfo(project);
+                    var projectAnalyzerInfo = TryGetProjectAnalyzerInfo(project);
 
-                    if (projectStateSets == null)
+                    if (projectAnalyzerInfo == null)
                     {
-                        projectStateSets = CreateProjectAnalyzerInfo(project);
+                        projectAnalyzerInfo = CreateProjectAnalyzerInfo(project);
 
                         // update cache. 
-                        _projectAnalyzerStateMap = _projectAnalyzerStateMap.SetItem(project.Id, projectStateSets.Value);
+                        _projectAnalyzerStateMap = _projectAnalyzerStateMap.SetItem(project.Id, projectAnalyzerInfo.Value);
                     }
 
-                    return projectStateSets.Value;
+                    return projectAnalyzerInfo.Value;
                 }
             }
         }
