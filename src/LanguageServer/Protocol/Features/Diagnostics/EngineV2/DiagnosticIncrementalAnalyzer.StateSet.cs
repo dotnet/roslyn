@@ -20,7 +20,16 @@ internal partial class DiagnosticAnalyzerService
                 Analyzer = analyzer;
             }
 
-            public bool IsHostAnalyzer => false;
+            public bool IsHostAnalyzer
+            {
+                get
+                {
+                    if (this.Analyzer == FileContentLoadAnalyzer.Instance)
+                        return true;
+
+                    return false;
+                }
+            }
         }
     }
 }
