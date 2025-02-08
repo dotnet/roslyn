@@ -20,7 +20,7 @@ internal partial class DiagnosticAnalyzerService
     private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
-        /// This is in charge of anything related to <see cref="StateSet"/>
+        /// This is in charge of anything related to <see cref="DiagnosticAnalyzer"/>
         /// </summary>
         private partial class StateManager(DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
@@ -45,29 +45,7 @@ internal partial class DiagnosticAnalyzerService
             private readonly SemaphoreSlim _projectAnalyzerStateMapGuard = new(initialCount: 1);
 
             /// <summary>
-            /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>.
-            /// This will never create new <see cref="StateSet"/> but will return ones already created.
-            /// </summary>
-            public ImmutableArray<DiagnosticAnalyzer> GetStateSets(Project project)
-            {
-                using var _ = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var result);
-
-                var analyzerReferences = project.Solution.SolutionState.Analyzers.HostAnalyzerReferences;
-                foreach (var (key, value) in _hostAnalyzerStateMap)
-                {
-                    if (key.AnalyzerReferences == analyzerReferences)
-                        result.AddRange(value.OrderedAllAnalyzers);
-                }
-
-                // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
-                if (_projectAnalyzerStateMap.TryGetValue(project.Id, out var entry))
-                    result.AddRange(entry.Analyzers);
-
-                return result.ToImmutableAndClear();
-            }
-
-            /// <summary>
-            /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>. 
+            /// Return <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>. 
             /// This will either return already created <see cref="StateSet"/>s for the specific snapshot of <see cref="Project"/> or
             /// it will create new <see cref="StateSet"/>s for the <see cref="Project"/> and update internal state.
             /// </summary>
