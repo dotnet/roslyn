@@ -1043,9 +1043,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("arg", "MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(4, 47));
         }
 
-        // PROTOTYPE: Test when two overloads are applicable for collection expressions with no arguments. For example,
-        // no extra parameters, and one extra optional parameter. Test for collection builders and collection initializers.
-
         [Fact]
         public void CollectionBuilder_OptionalParameter()
         {
@@ -1272,9 +1269,286 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyDiagnostics();
         }
 
-        // PROTOTYPE: Test ref mismatches.
         [Fact]
         public void CollectionBuilder_RefParameter()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    internal MyCollection(ReadOnlySpan<T> items, T arg) { _list = new(items.ToArray()); _list.Add(arg); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, ref T x) => new(items, x);
+                }
+                """;
+
+            string sourceB1 = """
+                #pragma warning disable 219 // variable assigned but never used
+                MyCollection<int> c;
+                int x = 1;
+                ref int r = ref x;
+                c = [with(ref x)];
+                c.Report();
+                x = 2;
+                c = [with(ref r)];
+                c.Report();
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB1, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1], [2], "));
+            verifier.VerifyDiagnostics();
+
+            string sourceB2 = """
+                #pragma warning disable 219 // variable assigned but never used
+                MyCollection<int> c;
+                int x = 1;
+                ref readonly int ro = ref x;
+                c = [with(0)];
+                c = [with(x)];
+                c = [with(in x)];
+                c = [with(ref ro)];
+                c = [with(out x)];
+                """;
+            var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (5,11): error CS1620: Argument 2 must be passed with the 'ref' keyword
+                // c = [with(0)];
+                Diagnostic(ErrorCode.ERR_BadArgRef, "0").WithArguments("2", "ref").WithLocation(5, 11),
+                // (6,11): error CS1620: Argument 2 must be passed with the 'ref' keyword
+                // c = [with(x)];
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("2", "ref").WithLocation(6, 11),
+                // (7,14): error CS1620: Argument 2 must be passed with the 'ref' keyword
+                // c = [with(in x)];
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("2", "ref").WithLocation(7, 14),
+                // (8,15): error CS1510: A ref or out value must be an assignable variable
+                // c = [with(ref ro)];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "ro").WithLocation(8, 15),
+                // (9,15): error CS1620: Argument 2 must be passed with the 'ref' keyword
+                // c = [with(out x)];
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("2", "ref").WithLocation(9, 15));
+        }
+
+        [Fact]
+        public void CollectionBuilder_RefReadonlyParameter()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    internal MyCollection(ReadOnlySpan<T> items, T arg) { _list = new(items.ToArray()); _list.Add(arg); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, ref readonly T x) => new(items, x);
+                }
+                """;
+
+            string sourceB1 = """
+                #pragma warning disable 219 // variable assigned but never used
+                MyCollection<int> c;
+                int x = 1;
+                ref int r = ref x;
+                ref readonly int ro = ref x;
+                c = [with(0)];
+                c.Report();
+                c = [with(x)];
+                c.Report();
+                x = 2;
+                c = [with(ref x)];
+                c.Report();
+                x = 3;
+                c = [with(ref r)];
+                c.Report();
+                x = 4;
+                c = [with(in ro)];
+                c.Report();
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB1, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[0], [1], [2], [3], [4], "));
+            verifier.VerifyDiagnostics(
+                // (6,11): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+                // c = [with(0)];
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "0").WithArguments("2").WithLocation(6, 11),
+                // (8,11): warning CS9192: Argument 2 should be passed with 'ref' or 'in' keyword
+                // c = [with(x)];
+                Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(8, 11));
+
+            string sourceB2 = """
+                #pragma warning disable 219 // variable assigned but never used
+                MyCollection<int> c;
+                int x = 1;
+                ref readonly int ro = ref x;
+                c = [with(in x)];
+                c = [with(ref ro)];
+                c = [with(out x)];
+                """;
+            var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS1510: A ref or out value must be an assignable variable
+                // c = [with(ref ro)];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "ro").WithLocation(6, 15),
+                // (7,15): error CS1615: Argument 2 may not be passed with the 'out' keyword
+                // c = [with(out x)];
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("2", "out").WithLocation(7, 15));
+        }
+
+        [Fact]
+        public void CollectionBuilder_InParameter()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    internal MyCollection(ReadOnlySpan<T> items, T arg) { _list = new(items.ToArray()); _list.Add(arg); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, in T x) => new(items, x);
+                }
+                """;
+
+            string sourceB1 = """
+                #pragma warning disable 219 // variable assigned but never used
+                MyCollection<int> c;
+                int x = 1;
+                ref int r = ref x;
+                ref readonly int ro = ref x;
+                c = [with(0)];
+                c.Report();
+                c = [with(x)];
+                c.Report();
+                x = 2;
+                c = [with(ref x)];
+                c.Report();
+                x = 3;
+                c = [with(in x)];
+                c.Report();
+                x = 4;
+                c = [with(in r)];
+                c.Report();
+                x = 5;
+                c = [with(in ro)];
+                c.Report();
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB1, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[0], [1], [2], [3], [4], [5], "));
+            verifier.VerifyDiagnostics(
+                // (11,15): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                // c = [with(ref x)];
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("2").WithLocation(11, 15));
+
+            string sourceB2 = """
+                #pragma warning disable 219 // variable assigned but never used
+                MyCollection<int> c;
+                int x = 1;
+                ref readonly int ro = ref x;
+                c = [with(ref ro)];
+                """;
+            var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (5,15): error CS1510: A ref or out value must be an assignable variable
+                // c = [with(ref ro)];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "ro").WithLocation(5, 15));
+        }
+
+        [Fact]
+        public void CollectionBuilder_OutParameter()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    internal MyCollection(ReadOnlySpan<T> items, T arg) { _list = new(items.ToArray()); _list.Add(arg); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, out T x) { x = default; return new(items, x); }
+                }
+                """;
+
+            string sourceB1 = """
+                #pragma warning disable 219 // variable assigned but never used
+                MyCollection<int> c;
+                int x = 1;
+                ref int r = ref x;
+                c = [with(out x)];
+                c.Report();
+                x = 2;
+                c = [with(out r), 3];
+                c.Report();
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB1, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[0], [3, 0], "));
+            verifier.VerifyDiagnostics();
+
+            string sourceB2 = """
+                #pragma warning disable 219 // variable assigned but never used
+                MyCollection<int> c;
+                int x = 1;
+                c = [with(1)];
+                c = [with(x)];
+                c = [with(ref x)];
+                c = [with(in x)];
+                """;
+            var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (4,11): error CS1620: Argument 2 must be passed with the 'out' keyword
+                // c = [with(1)];
+                Diagnostic(ErrorCode.ERR_BadArgRef, "1").WithArguments("2", "out").WithLocation(4, 11),
+                // (5,11): error CS1620: Argument 2 must be passed with the 'out' keyword
+                // c = [with(x)];
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("2", "out").WithLocation(5, 11),
+                // (6,15): error CS1620: Argument 2 must be passed with the 'out' keyword
+                // c = [with(ref x)];
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("2", "out").WithLocation(6, 15),
+                // (7,14): error CS1620: Argument 2 must be passed with the 'out' keyword
+                // c = [with(in x)];
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("2", "out").WithLocation(7, 14));
+        }
+
+        [Fact]
+        public void CollectionBuilder_RefParameter_Overloads()
         {
             string sourceA = """
                 using System;
@@ -1323,6 +1597,168 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput("[1, 0], [1, 0, 3], [1, 2], [0, 2, 3], "));
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CollectionBuilder_ReferenceImplicitParameter()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    internal MyCollection(ReadOnlySpan<T> items, T arg) { _list = new(items.ToArray()); _list.Add(arg); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg = default) => new(items, arg);
+                }
+                """;
+            string sourceB = """
+                MyCollection<int> c;
+                c = [with(items: default)];
+                c = [with(items: default, 1)];
+                c = [with(items: default, arg: 2)];
+                c = [with(3, items: default)];
+                c = [with(arg: 4, items: default)];
+                c = [with(default, 5)];
+                c = [with(default, arg: 6)];
+                """;
+            var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (2,11): error CS1744: Named argument 'items' specifies a parameter for which a positional argument has already been given
+                // c = [with(items: default)];
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "items").WithArguments("items").WithLocation(2, 11),
+                // (3,11): error CS8323: Named argument 'items' is used out-of-position but is followed by an unnamed argument
+                // c = [with(items: default, 1)];
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "items").WithArguments("items").WithLocation(3, 11),
+                // (4,11): error CS1744: Named argument 'items' specifies a parameter for which a positional argument has already been given
+                // c = [with(items: default, arg: 2)];
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "items").WithArguments("items").WithLocation(4, 11),
+                // (5,14): error CS1744: Named argument 'items' specifies a parameter for which a positional argument has already been given
+                // c = [with(3, items: default)];
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "items").WithArguments("items").WithLocation(5, 14),
+                // (6,19): error CS1744: Named argument 'items' specifies a parameter for which a positional argument has already been given
+                // c = [with(arg: 4, items: default)];
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "items").WithArguments("items").WithLocation(6, 19),
+                // (7,6): error CS1501: No overload for method 'Create' takes 3 arguments
+                // c = [with(default, 5)];
+                Diagnostic(ErrorCode.ERR_BadArgCount, "with(default, 5)").WithArguments("Create", "3").WithLocation(7, 6),
+                // (8,20): error CS1744: Named argument 'arg' specifies a parameter for which a positional argument has already been given
+                // c = [with(default, arg: 6)];
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "arg").WithArguments("arg").WithLocation(8, 20));
+        }
+
+        [Fact]
+        public void CollectionBuilder_ImplicitParameter_Optional()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    internal MyCollection(ReadOnlySpan<T> items) { _list = new(items.ToArray()); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items = default) => new(items);
+                }
+                """;
+
+            string sourceB1 = """
+                MyCollection<int> c;
+                c = [];
+                c.Report();
+                c = [1, 2, 3];
+                c.Report();
+                c = [with(), 4];
+                c.Report();
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB1, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], [4], "));
+            verifier.VerifyDiagnostics();
+
+            string sourceB2 = """
+                MyCollection<int> c;
+                c = [with(1)];
+                c = [with(2), 3];
+                """;
+            var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (2,6): error CS1501: No overload for method 'Create' takes 2 arguments
+                // c = [with(1)];
+                Diagnostic(ErrorCode.ERR_BadArgCount, "with(1)").WithArguments("Create", "2").WithLocation(2, 6),
+                // (3,6): error CS1501: No overload for method 'Create' takes 2 arguments
+                // c = [with(2), 3];
+                Diagnostic(ErrorCode.ERR_BadArgCount, "with(2)").WithArguments("Create", "2").WithLocation(3, 6));
+        }
+
+        [Fact]
+        public void CollectionBuilder_ImplicitParameter_Params()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    internal MyCollection(ReadOnlySpan<T> items) { _list = new(items.ToArray()); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(params ReadOnlySpan<T> items) => new(items);
+                }
+                """;
+
+            string sourceB1 = """
+                MyCollection<int> c;
+                c = [];
+                c.Report();
+                c = [1, 2, 3];
+                c.Report();
+                c = [with(), 4];
+                c.Report();
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB1, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], [4], "));
+            verifier.VerifyDiagnostics();
+
+            string sourceB2 = """
+                MyCollection<int> c;
+                c = [with(1)];
+                c = [with(2), 3];
+                """;
+            var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<int>' to 'int'
+                // c = [with(1)];
+                Diagnostic(ErrorCode.ERR_BadArgType, "[with(1)]").WithArguments("1", "System.ReadOnlySpan<int>", "int").WithLocation(2, 5),
+                // (3,5): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<int>' to 'int'
+                // c = [with(2), 3];
+                Diagnostic(ErrorCode.ERR_BadArgType, "[with(2), 3]").WithArguments("1", "System.ReadOnlySpan<int>", "int").WithLocation(3, 5));
         }
 
         [Fact]
