@@ -55,9 +55,9 @@ internal partial class DiagnosticAnalyzerService
 
             async Task<(ImmutableArray<StateSet> stateSets, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)> ComputeForceAnalyzeProjectAsync()
             {
-                var allStateSets = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
-                var fullSolutionAnalysisStateSets = allStateSets.WhereAsArray(
-                    static (stateSet, arg) => arg.self.IsCandidateForFullSolutionAnalysis(stateSet.Analyzer, stateSet.IsHostAnalyzer, arg.project),
+                var allAnalyzers = await _stateManager.GetOrCreateAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
+                var fullSolutionAnalysisStateSets = allAnalyzers.WhereAsArray(
+                    static (analyzer, arg) => arg.self.IsCandidateForFullSolutionAnalysis(analyzer.Analyzer, analyzer.IsHostAnalyzer, arg.project),
                     (self: this, project));
 
                 var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(

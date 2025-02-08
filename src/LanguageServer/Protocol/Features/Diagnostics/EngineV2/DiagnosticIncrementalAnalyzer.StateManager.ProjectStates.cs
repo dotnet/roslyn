@@ -17,12 +17,12 @@ internal partial class DiagnosticAnalyzerService
     {
         private partial class StateManager
         {
-            private readonly struct ProjectAnalyzerStateSets
+            private readonly struct ProjectAnalyzerInfo
             {
-                public static readonly ProjectAnalyzerStateSets Default = new(
-                    [],
+                public static readonly ProjectAnalyzerInfo Default = new(
+                    analyzerReferences: [],
                     ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>.Empty,
-                    ImmutableDictionary<DiagnosticAnalyzer, StateSet>.Empty,
+                    analyzers: [],
                     SkippedHostAnalyzersInfo.Empty);
 
                 public readonly IReadOnlyList<AnalyzerReference> AnalyzerReferences;
@@ -30,31 +30,31 @@ internal partial class DiagnosticAnalyzerService
                 // maps analyzer reference id to list of analyzers loaded from the reference
                 public readonly ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> MapPerReferences;
 
-                public readonly ImmutableDictionary<DiagnosticAnalyzer, StateSet> StateSetMap;
+                public readonly ImmutableHashSet<DiagnosticAnalyzer> Analyzers;
 
                 public readonly SkippedHostAnalyzersInfo SkippedAnalyzersInfo;
 
-                internal ProjectAnalyzerStateSets(
+                internal ProjectAnalyzerInfo(
                     IReadOnlyList<AnalyzerReference> analyzerReferences,
                     ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> mapPerReferences,
-                    ImmutableDictionary<DiagnosticAnalyzer, StateSet> stateSetMap,
+                    ImmutableHashSet<DiagnosticAnalyzer> analyzers,
                     SkippedHostAnalyzersInfo skippedAnalyzersInfo)
                 {
                     AnalyzerReferences = analyzerReferences;
                     MapPerReferences = mapPerReferences;
-                    StateSetMap = stateSetMap;
+                    Analyzers = analyzers;
                     SkippedAnalyzersInfo = skippedAnalyzersInfo;
                 }
             }
 
-            public IEnumerable<StateSet> GetAllProjectStateSets()
+            public IEnumerable<DiagnosticAnalyzer> GetAllProjectStateSets()
             {
                 // return existing state sets
                 // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
-                return _projectAnalyzerStateMap.Values.SelectManyAsArray(e => e.StateSetMap.Values);
+                return _projectAnalyzerStateMap.Values.SelectManyAsArray(e => e.Analyzers);
             }
 
-            private ProjectAnalyzerStateSets? TryGetProjectStateSets(Project project)
+            private ProjectAnalyzerInfo? TryGetProjectAnalyzerInfo(Project project)
             {
                 // check if the analyzer references have changed since the last time we updated the map:
                 // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
@@ -67,44 +67,50 @@ internal partial class DiagnosticAnalyzerService
                 return null;
             }
 
-            private async Task<ProjectAnalyzerStateSets> GetOrCreateProjectStateSetsAsync(Project project, CancellationToken cancellationToken)
-                => TryGetProjectStateSets(project) ?? await UpdateProjectStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
+            private async Task<ProjectAnalyzerInfo> GetOrCreateProjectAnalyzerInfoAsync(Project project, CancellationToken cancellationToken)
+                => TryGetProjectAnalyzerInfo(project) ?? await UpdateProjectAnalyzerInfo(project, cancellationToken).ConfigureAwait(false);
 
             /// <summary>
             /// Creates a new project state sets.
             /// </summary>
-            private ProjectAnalyzerStateSets CreateProjectStateSets(Project project)
+            private ProjectAnalyzerInfo CreateProjectAnalyzerInfo(Project project)
             {
                 if (project.AnalyzerReferences.Count == 0)
                 {
-                    return ProjectAnalyzerStateSets.Default;
+                    return ProjectAnalyzerInfo.Default;
                 }
 
                 var hostAnalyzers = project.Solution.SolutionState.Analyzers;
                 var analyzersPerReference = hostAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project);
                 if (analyzersPerReference.Count == 0)
                 {
-                    return ProjectAnalyzerStateSets.Default;
+                    return ProjectAnalyzerInfo.Default;
                 }
 
-                var newMap = CreateStateSetMap(analyzersPerReference.Values, [], includeWorkspacePlaceholderAnalyzers: false);
+                var (newHostAnalyzers, newAllAnalyzers) = CreateStateSetMap(
+                    analyzersPerReference.Values, hostAnalyzerCollection: [], includeWorkspacePlaceholderAnalyzers: false);
+
+                // We passed an empty array for 'hostAnalyzeCollection' above, and we specifically asked to not include
+                // workspace placeholder analyzers.  So we should never get host analyzers back here.
+                Contract.ThrowIfTrue(newHostAnalyzers.Count > 0);
+
                 var skippedAnalyzersInfo = project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
-                return new ProjectAnalyzerStateSets(project.AnalyzerReferences, analyzersPerReference, newMap, skippedAnalyzersInfo);
+                return new ProjectAnalyzerInfo(project.AnalyzerReferences, analyzersPerReference, newAllAnalyzers, skippedAnalyzersInfo);
             }
 
             /// <summary>
             /// Updates the map to the given project snapshot.
             /// </summary>
-            private async Task<ProjectAnalyzerStateSets> UpdateProjectStateSetsAsync(Project project, CancellationToken cancellationToken)
+            private async Task<ProjectAnalyzerInfo> UpdateProjectAnalyzerInfo(Project project, CancellationToken cancellationToken)
             {
                 // This code is called concurrently for a project, so the guard prevents duplicated effort calculating StateSets.
                 using (await _projectAnalyzerStateMapGuard.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    var projectStateSets = TryGetProjectStateSets(project);
+                    var projectStateSets = TryGetProjectAnalyzerInfo(project);
 
                     if (projectStateSets == null)
                     {
-                        projectStateSets = CreateProjectStateSets(project);
+                        projectStateSets = CreateProjectAnalyzerInfo(project);
 
                         // update cache. 
                         _projectAnalyzerStateMap = _projectAnalyzerStateMap.SetItem(project.Id, projectStateSets.Value);

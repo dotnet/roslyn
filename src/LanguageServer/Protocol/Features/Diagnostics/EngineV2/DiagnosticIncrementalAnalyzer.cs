@@ -51,9 +51,9 @@ internal partial class DiagnosticAnalyzerService
 
         public async Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersForTestingPurposesOnlyAsync(Project project, CancellationToken cancellationToken)
         {
-            var analyzers = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
+            var analyzers = await _stateManager.GetOrCreateAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
 
-            return analyzers.SelectAsArray(s => s.Analyzer);
+            return analyzers;
         }
 
         private static string GetProjectLogMessage(Project project, ImmutableArray<StateSet> stateSets)

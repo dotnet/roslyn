@@ -78,12 +78,11 @@ internal partial class DiagnosticAnalyzerService
                  CancellationToken cancellationToken)
             {
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                var unfilteredStateSets = await owner._stateManager
-                    .GetOrCreateStateSetsAsync(document.Project, cancellationToken)
+                var unfilteredAnalyzers = await owner._stateManager
+                    .GetOrCreateAnalyzersAsync(document.Project, cancellationToken)
                     .ConfigureAwait(false);
-                var stateSets = unfilteredStateSets
-                    .Where(s => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(s.Analyzer, document.Project, owner.GlobalOptions))
-                    .ToImmutableArray();
+                var analyzers = unfilteredAnalyzers
+                    .WhereAsArray(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, document.Project, owner.GlobalOptions));
 
                 // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span.
                 // We clear out range for such cases as we are computing full document diagnostics.
@@ -92,7 +91,7 @@ internal partial class DiagnosticAnalyzerService
 
                 // We log performance info when we are computing diagnostics for a span
                 var logPerformanceInfo = range.HasValue;
-                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, analyzers, owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 // If we are computing full document diagnostics, we will attempt to perform incremental
                 // member edit analysis. This analysis is currently only enabled with LSP pull diagnostics.
@@ -100,7 +99,7 @@ internal partial class DiagnosticAnalyzerService
                     && document is Document { SupportsSyntaxTree: true };
 
                 return new LatestDiagnosticsForSpanGetter(
-                    owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic,
+                    owner, compilationWithAnalyzers, document, text, analyzers, shouldIncludeDiagnostic,
                     range, priorityProvider, isExplicit, logPerformanceInfo, incrementalAnalysis, diagnosticKinds);
             }
 

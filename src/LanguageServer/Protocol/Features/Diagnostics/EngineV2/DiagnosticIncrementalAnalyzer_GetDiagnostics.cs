@@ -101,14 +101,14 @@ internal partial class DiagnosticAnalyzerService
                 ArrayBuilder<DiagnosticData> builder,
                 CancellationToken cancellationToken)
             {
-                var stateSetsForProject = await StateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
-                var stateSets = stateSetsForProject.Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
+                var analyzersForProject = await StateManager.GetOrCreateAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
+                var analyzers = analyzersForProject.WhereAsArray(a => ShouldIncludeAnalyzer(project, a));
 
-                var result = await GetOrComputeDiagnosticAnalysisResultsAsync(stateSets).ConfigureAwait(false);
+                var result = await GetOrComputeDiagnosticAnalysisResultsAsync(analyzers).ConfigureAwait(false);
 
-                foreach (var stateSet in stateSets)
+                foreach (var analyzer in analyzers)
                 {
-                    if (!result.TryGetValue(stateSet.Analyzer, out var analysisResult))
+                    if (!result.TryGetValue(analyzer, out var analysisResult))
                         continue;
 
                     foreach (var documentId in documentIds)
@@ -156,19 +156,19 @@ internal partial class DiagnosticAnalyzerService
                 }
             }
 
-            private bool ShouldIncludeStateSet(Project project, StateSet stateSet)
+            private bool ShouldIncludeAnalyzer(Project project, DiagnosticAnalyzer analyzer)
             {
-                if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(stateSet.Analyzer, project, Owner.GlobalOptions))
+                if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(analyzer, project, Owner.GlobalOptions))
                 {
                     return false;
                 }
 
-                if (_shouldIncludeAnalyzer != null && !_shouldIncludeAnalyzer(stateSet.Analyzer))
+                if (_shouldIncludeAnalyzer != null && !_shouldIncludeAnalyzer(analyzer))
                 {
                     return false;
                 }
 
-                if (_diagnosticIds != null && Owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(stateSet.Analyzer).All(d => !_diagnosticIds.Contains(d.Id)))
+                if (_diagnosticIds != null && Owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer).All(d => !_diagnosticIds.Contains(d.Id)))
                 {
                     return false;
                 }
