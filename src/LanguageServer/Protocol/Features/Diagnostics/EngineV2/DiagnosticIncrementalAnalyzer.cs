@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -32,10 +30,8 @@ internal partial class DiagnosticAnalyzerService
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public DiagnosticIncrementalAnalyzer(
             DiagnosticAnalyzerService analyzerService,
-            Workspace workspace,
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
             IGlobalOptionService globalOptionService)
         {
@@ -44,7 +40,7 @@ internal partial class DiagnosticAnalyzerService
             AnalyzerService = analyzerService;
             GlobalOptions = globalOptionService;
 
-            _stateManager = new StateManager(workspace, analyzerInfoCache);
+            _stateManager = new StateManager(analyzerInfoCache);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
 
             var enabled = globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler);

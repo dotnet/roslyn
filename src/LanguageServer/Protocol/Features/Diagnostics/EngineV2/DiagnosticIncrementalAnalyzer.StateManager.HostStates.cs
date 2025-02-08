@@ -17,21 +17,6 @@ internal partial class DiagnosticAnalyzerService
     {
         private partial class StateManager
         {
-            public IEnumerable<StateSet> GetAllHostStateSets()
-            {
-                var analyzerReferences = _workspace.CurrentSolution.SolutionState.Analyzers.HostAnalyzerReferences;
-                foreach (var (key, value) in _hostAnalyzerStateMap)
-                {
-                    if (key.AnalyzerReferences == analyzerReferences)
-                    {
-                        foreach (var stateSet in value.OrderedStateSets)
-                        {
-                            yield return stateSet;
-                        }
-                    }
-                }
-            }
-
             private HostAnalyzerStateSets GetOrCreateHostStateSets(Project project, ProjectAnalyzerStateSets projectStateSets)
             {
                 var key = new HostAnalyzerStateSetKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, project.Solution.SolutionState.Analyzers.HostAnalyzerReferences);

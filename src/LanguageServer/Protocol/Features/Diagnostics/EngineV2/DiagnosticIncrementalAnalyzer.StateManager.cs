@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -20,22 +22,21 @@ internal partial class DiagnosticAnalyzerService
         /// <summary>
         /// This is in charge of anything related to <see cref="StateSet"/>
         /// </summary>
-        private partial class StateManager
+        private partial class StateManager(DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
-            private readonly Workspace _workspace;
-            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache = analyzerInfoCache;
 
             /// <summary>
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
             /// Maps language name to the analyzers and their state.
             /// </summary>
-            private ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets> _hostAnalyzerStateMap;
+            private ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets> _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets>.Empty;
 
             /// <summary>
             /// Analyzers referenced by the project via a PackageReference. Updates are protected by _projectAnalyzerStateMapGuard.
             /// ImmutableDictionary used to present a safe, non-immutable view to users.
             /// </summary>
-            private ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets> _projectAnalyzerStateMap;
+            private ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets> _projectAnalyzerStateMap = ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets>.Empty;
 
             /// <summary>
             /// Guard around updating _projectAnalyzerStateMap. This is used in UpdateProjectStateSets to avoid
@@ -48,27 +49,26 @@ internal partial class DiagnosticAnalyzerService
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(Workspace workspace, DiagnosticAnalyzerInfoCache analyzerInfoCache)
-            {
-                _workspace = workspace;
-                _analyzerInfoCache = analyzerInfoCache;
-
-                _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets>.Empty;
-                _projectAnalyzerStateMap = ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets>.Empty;
-            }
-
             /// <summary>
-            /// Return <see cref="StateSet"/>s for the given <see cref="ProjectId"/>. 
+            /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>.
             /// This will never create new <see cref="StateSet"/> but will return ones already created.
             /// </summary>
-            public IEnumerable<StateSet> GetStateSets(ProjectId projectId)
+            public ImmutableArray<StateSet> GetStateSets(Project project)
             {
-                var hostStateSets = GetAllHostStateSets();
+                using var _ = ArrayBuilder<StateSet>.GetInstance(out var result);
+
+                var analyzerReferences = project.Solution.SolutionState.Analyzers.HostAnalyzerReferences;
+                foreach (var (key, value) in _hostAnalyzerStateMap)
+                {
+                    if (key.AnalyzerReferences == analyzerReferences)
+                        result.AddRange(value.OrderedStateSets);
+                }
 
                 // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
-                return _projectAnalyzerStateMap.TryGetValue(projectId, out var entry)
-                    ? hostStateSets.Concat(entry.StateSetMap.Values)
-                    : hostStateSets;
+                if (_projectAnalyzerStateMap.TryGetValue(project.Id, out var entry))
+                    result.AddRange(entry.StateSetMap.Values);
+
+                return result.ToImmutableAndClear();
             }
 
             /// <summary>
