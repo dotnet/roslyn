@@ -4,11 +4,11 @@
     <TargetFramework>$(NetCurrent)</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <!-- Executable code, so set this in non-source build or repo source-build. Full
-         source build will use the incoming, pre-set MicrosoftCodeAnalysisVersion. -->
-    <MicrosoftCodeAnalysisVersion Condition="'$(DotNetBuildSourceOnly)' != 'true' or '$(DotNetBuildOrchestrator)' != 'true'">$(MicrosoftCodeAnalysisVersionForTests)</MicrosoftCodeAnalysisVersion>
+         source build will use the incoming, pre-set MicrosoftCodeAnalysisPackageVersion. -->
+    <MicrosoftCodeAnalysisPackageVersion Condition="'$(DotNetBuildSourceOnly)' != 'true' or '$(DotNetBuildOrchestrator)' != 'true'">$(MicrosoftCodeAnalysisPackageVersionForTests)</MicrosoftCodeAnalysisPackageVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis" OverrideVersion="$(MicrosoftCodeAnalysisPackageVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Test.Utilities\Test.Utilities.csproj" />

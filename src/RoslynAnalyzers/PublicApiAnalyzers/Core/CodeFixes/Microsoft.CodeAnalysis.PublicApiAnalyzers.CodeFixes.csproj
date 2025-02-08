@@ -7,7 +7,7 @@
       Restore would conclude that there is a cyclic dependency between us and the DotNetAnalyzers.PublicApiAnalyzer.CodeFixes package.
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
-    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForPublicApiAnalyzers)</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisPackageVersion>$(MicrosoftCodeAnalysisPackageVersionForPublicApiAnalyzers)</MicrosoftCodeAnalysisPackageVersion>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
   </PropertyGroup>
 

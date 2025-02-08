@@ -7,7 +7,7 @@
       Restore would conclude that there is a cyclic dependency between us and the Microsoft.CodeAnalysis.PublicApiAnalyzer package.
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
-    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForPublicApiAnalyzers)</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisPackageVersion>$(MicrosoftCodeAnalysisPackageVersionForPublicApiAnalyzers)</MicrosoftCodeAnalysisPackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +18,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Include="System.ValueTuple" OverrideVersion="4.5.0" />
   </ItemGroup>
   <Import Project="..\..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
 </Project>
