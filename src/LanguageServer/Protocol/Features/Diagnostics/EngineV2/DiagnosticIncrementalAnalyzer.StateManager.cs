@@ -30,7 +30,7 @@ internal partial class DiagnosticAnalyzerService
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
             /// Maps language name to the analyzers and their state.
             /// </summary>
-            private ImmutableDictionary<HostAnalyzersKey, HostAnalyzerInfo> _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzersKey, HostAnalyzerInfo>.Empty;
+            private ImmutableDictionary<HostAnalyzerInfoKey, HostAnalyzerInfo> _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerInfoKey, HostAnalyzerInfo>.Empty;
 
             /// <summary>
             /// Analyzers referenced by the project via a PackageReference. Updates are protected by _projectAnalyzerStateMapGuard.
@@ -108,7 +108,7 @@ internal partial class DiagnosticAnalyzerService
                 return (hostAnalyzers.ToImmutableHashSet(), allAnalyzers.ToImmutableHashSet());
             }
 
-            private readonly record struct HostAnalyzersKey(
+            private readonly record struct HostAnalyzerInfoKey(
                 string Language, bool HasSdkCodeStyleAnalyzers, IReadOnlyList<AnalyzerReference> AnalyzerReferences);
         }
     }

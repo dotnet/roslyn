@@ -19,14 +19,14 @@ internal partial class DiagnosticAnalyzerService
         {
             private HostAnalyzerInfo GetOrCreateHostAnalyzerInfo(Project project, ProjectAnalyzerInfo projectAnalyzerInfo)
             {
-                var key = new HostAnalyzersKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, project.Solution.SolutionState.Analyzers.HostAnalyzerReferences);
+                var key = new HostAnalyzerInfoKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, project.Solution.SolutionState.Analyzers.HostAnalyzerReferences);
                 // Some Host Analyzers may need to be treated as Project Analyzers so that they do not have access to the
                 // Host fallback options. These ids will be used when building up the Host and Project analyzer collections.
                 var referenceIdsToRedirect = GetReferenceIdsToRedirectAsProjectAnalyzers(project);
                 var hostAnalyzerInfo = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (project.Solution.SolutionState.Analyzers, referenceIdsToRedirect));
                 return hostAnalyzerInfo.WithExcludedAnalyzers(projectAnalyzerInfo.SkippedAnalyzersInfo.SkippedAnalyzers);
 
-                static HostAnalyzerInfo CreateLanguageSpecificAnalyzerMap(HostAnalyzersKey arg, (HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
+                static HostAnalyzerInfo CreateLanguageSpecificAnalyzerMap(HostAnalyzerInfoKey arg, (HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
                 {
                     var language = arg.Language;
                     var analyzersPerReference = state.HostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
