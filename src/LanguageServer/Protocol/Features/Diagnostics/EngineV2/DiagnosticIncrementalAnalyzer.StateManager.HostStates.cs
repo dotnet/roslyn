@@ -99,7 +99,7 @@ internal partial class DiagnosticAnalyzerService
             private const int BuiltInCompilerPriority = -2;
             private const int RegularDiagnosticAnalyzerPriority = -1;
 
-            public readonly ImmutableHashSet<DiagnosticAnalyzer> HostAnalyzers;
+            private readonly ImmutableHashSet<DiagnosticAnalyzer> _hostAnalyzers;
             public readonly ImmutableHashSet<DiagnosticAnalyzer> AllAnalyzers;
             public readonly ImmutableArray<DiagnosticAnalyzer> OrderedAllAnalyzers;
 
@@ -107,7 +107,7 @@ internal partial class DiagnosticAnalyzerService
                 ImmutableHashSet<DiagnosticAnalyzer> hostAnalyzers,
                 ImmutableHashSet<DiagnosticAnalyzer> allAnalyzers)
             {
-                HostAnalyzers = hostAnalyzers;
+                _hostAnalyzers = hostAnalyzers;
                 AllAnalyzers = allAnalyzers;
 
                 // order analyzers.
@@ -116,6 +116,9 @@ internal partial class DiagnosticAnalyzerService
                 OrderedAllAnalyzers = [.. AllAnalyzers.OrderBy(PriorityComparison)];
             }
 
+            public bool IsHostAnalyzer(DiagnosticAnalyzer analyzer)
+                => _hostAnalyzers.Contains(analyzer);
+
             public HostAnalyzerInfo WithExcludedAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzers)
             {
                 if (excludedAnalyzers.IsEmpty)
@@ -123,7 +126,7 @@ internal partial class DiagnosticAnalyzerService
                     return this;
                 }
 
-                return new(HostAnalyzers, AllAnalyzers.Except(excludedAnalyzers));
+                return new(_hostAnalyzers, AllAnalyzers.Except(excludedAnalyzers));
             }
 
             private int PriorityComparison(DiagnosticAnalyzer state1, DiagnosticAnalyzer state2)

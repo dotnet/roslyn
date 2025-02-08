@@ -19,8 +19,8 @@ internal partial class DiagnosticAnalyzerService
             bool crashOnAnalyzerException, CancellationToken cancellationToken)
             => DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
                 project,
-                analyzers.WhereAsArray((a, info) => !info.HostAnalyzers.Contains(a), hostAnalyzerInfo),
-                analyzers.WhereAsArray((a, info) => info.HostAnalyzers.Contains(a), hostAnalyzerInfo),
+                analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo),
+                analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo),
                 crashOnAnalyzerException,
                 cancellationToken);
     }

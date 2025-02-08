@@ -139,9 +139,9 @@ internal partial class DiagnosticAnalyzerService
                 {
                     foreach (var analyzer in analyzers)
                     {
-                        if (hostAnalyzerInfo.HostAnalyzers.Contains(analyzer) && !compilationWithAnalyzers.HostAnalyzers.Contains(analyzer))
+                        if (hostAnalyzerInfo.IsHostAnalyzer(analyzer) && !compilationWithAnalyzers.HostAnalyzers.Contains(analyzer))
                             return false;
-                        else if (!hostAnalyzerInfo.HostAnalyzers.Contains(analyzer) && !compilationWithAnalyzers.ProjectAnalyzers.Contains(analyzer))
+                        else if (!hostAnalyzerInfo.IsHostAnalyzer(analyzer) && !compilationWithAnalyzers.ProjectAnalyzers.Contains(analyzer))
                             return false;
                     }
 
@@ -333,8 +333,8 @@ internal partial class DiagnosticAnalyzerService
 
                 var hostAnalyzerInfo = await _owner._stateManager.GetOrCreateHostAnalyzerInfoAsync(_document.Project, cancellationToken).ConfigureAwait(false);
 
-                var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.HostAnalyzers.Contains(a), hostAnalyzerInfo);
-                var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.HostAnalyzers.Contains(a), hostAnalyzerInfo);
+                var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
+                var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
                 var analysisScope = new DocumentAnalysisScope(_document, span, projectAnalyzers, hostAnalyzers, kind);
                 var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, _isExplicit, _logPerformanceInfo);
                 var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
