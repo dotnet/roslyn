@@ -109,7 +109,7 @@ internal partial class DiagnosticAnalyzerService
                 if (includeWorkspacePlaceholderAnalyzers)
                 {
                     builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(FileContentLoadAnalyzer.Instance));
-                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, isHostAnalyzer: true));
+                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(GeneratorDiagnosticsPlaceholderAnalyzer.Instance));
                 }
 
                 foreach (var analyzers in projectAnalyzerCollection)

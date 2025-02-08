@@ -27,6 +27,9 @@ internal partial class DiagnosticAnalyzerService
                     if (this.Analyzer == FileContentLoadAnalyzer.Instance)
                         return true;
 
+                    if (this.Analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
+                        return true;
+
                     return false;
                 }
             }
