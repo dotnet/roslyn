@@ -2332,8 +2332,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialPropertyMissingAccessor = 9252,
         ERR_PartialPropertyUnexpectedAccessor = 9253,
         ERR_PartialPropertyInitMismatch = 9254,
-        ERR_PartialPropertyTypeDifference = 9255,
-        WRN_PartialPropertySignatureDifference = 9256,
+        ERR_PartialMemberTypeDifference = 9255,
+        WRN_PartialMemberSignatureDifference = 9256,
         ERR_PartialPropertyRequiredDifference = 9257,
 
         WRN_FieldIsAmbiguous = 9258,

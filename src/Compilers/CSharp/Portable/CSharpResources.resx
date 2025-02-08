@@ -7983,14 +7983,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialPropertyInitMismatch" xml:space="preserve">
     <value>Property accessor '{0}' must be '{1}' to match the definition part</value>
   </data>
-  <data name="ERR_PartialPropertyTypeDifference" xml:space="preserve">
-    <value>Both partial property declarations must have the same type.</value>
+  <data name="ERR_PartialMemberTypeDifference" xml:space="preserve">
+    <value>Both partial member declarations must have the same type.</value>
   </data>
-  <data name="WRN_PartialPropertySignatureDifference" xml:space="preserve">
-    <value>Partial property declarations '{0}' and '{1}' have signature differences.</value>
+  <data name="WRN_PartialMemberSignatureDifference" xml:space="preserve">
+    <value>Partial member declarations '{0}' and '{1}' have signature differences.</value>
   </data>
-  <data name="WRN_PartialPropertySignatureDifference_Title" xml:space="preserve">
-    <value>Partial property declarations have signature differences.</value>
+  <data name="WRN_PartialMemberSignatureDifference_Title" xml:space="preserve">
+    <value>Partial member declarations have signature differences.</value>
   </data>
   <data name="ERR_PartialPropertyRequiredDifference" xml:space="preserve">
     <value>Both partial property declarations must be required or neither may be required</value>

@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
             BindingDiagnosticBag diagnostics,
-            out bool modifierErrors)
+            out bool modifierErrors,
+            out bool hasExplicitAccessModifier)
         {
             var result = modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnostics.DiagnosticBag ?? new DiagnosticBag(), isOrdinaryMethod: isOrdinaryMethod);
             result = CheckModifiers(isForTypeDeclaration: false, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
@@ -29,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (readonlyToken.Parent is MethodDeclarationSyntax or AccessorDeclarationSyntax or BasePropertyDeclarationSyntax or EventDeclarationSyntax)
                 modifierErrors |= !MessageID.IDS_FeatureReadOnlyMembers.CheckFeatureAvailability(diagnostics, readonlyToken);
 
-            if ((result & DeclarationModifiers.AccessibilityMask) == 0)
+            hasExplicitAccessModifier = (result & DeclarationModifiers.AccessibilityMask) != 0;
+            if (!hasExplicitAccessModifier)
                 result |= defaultAccess;
 
             return result;

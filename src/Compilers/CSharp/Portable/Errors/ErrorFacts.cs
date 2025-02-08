@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
-                case ErrorCode.WRN_PartialPropertySignatureDifference:
+                case ErrorCode.WRN_PartialMemberSignatureDifference:
                 case ErrorCode.WRN_FieldIsAmbiguous:
                 case ErrorCode.WRN_UninitializedNonNullableBackingField:
                 case ErrorCode.WRN_AccessorDoesNotUseBackingField:
@@ -2462,8 +2462,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialPropertyMissingAccessor
                 or ErrorCode.ERR_PartialPropertyUnexpectedAccessor
                 or ErrorCode.ERR_PartialPropertyInitMismatch
-                or ErrorCode.ERR_PartialPropertyTypeDifference
-                or ErrorCode.WRN_PartialPropertySignatureDifference
+                or ErrorCode.ERR_PartialMemberTypeDifference
+                or ErrorCode.WRN_PartialMemberSignatureDifference
                 or ErrorCode.ERR_PartialPropertyRequiredDifference
                 or ErrorCode.WRN_FieldIsAmbiguous
                 or ErrorCode.ERR_InlineArrayAttributeOnRecord

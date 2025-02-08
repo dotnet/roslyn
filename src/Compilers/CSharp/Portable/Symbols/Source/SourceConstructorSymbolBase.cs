@@ -97,7 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics);
             }
+
+            PartialConstructorChecks(diagnostics);
         }
+
+        protected virtual void PartialConstructorChecks(BindingDiagnosticBag diagnostics) { }
 
         public sealed override bool IsImplicitlyDeclared
         {
