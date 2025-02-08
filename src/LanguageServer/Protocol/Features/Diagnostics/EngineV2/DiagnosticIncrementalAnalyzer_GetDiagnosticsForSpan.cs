@@ -361,9 +361,9 @@ internal partial class DiagnosticAnalyzerService
                     diagnosticsMap = await ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken).ConfigureAwait(false);
                 }
 
-                foreach (var analyzerWithState in analyzers)
+                foreach (var analyzer in analyzers)
                 {
-                    var diagnostics = diagnosticsMap[analyzerWithState.Analyzer];
+                    var diagnostics = diagnosticsMap[analyzer];
                     builder.AddRange(diagnostics.Where(ShouldInclude));
                 }
 
