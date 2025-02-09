@@ -130,7 +130,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // getter is vacuously null-resilient, since it doesn't exist.
                 if (_property.GetMethod is not SourcePropertyAccessorSymbol getMethod)
+                {
+                    Debug.Assert(_property.GetMethod is null);
                     return true;
+                }
 
                 // auto-implemented getter is not null-resilient.
                 if (getMethod.IsAutoPropertyAccessor)
@@ -158,11 +161,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // TODO2: thread safe
+        // TODO2: need to look for a *difference* in nullable diagnostics when annotated versus not.
+        // e.g. non-annotated version contains a *nullable* diagnostic which is missing in the annotated version.
+        // Also, do not double bind.
+        // Therefore this probably should be occurring when we are compiling methods within a single type.
+        // e.g. if we are compiling+nullable analyzing a constructor, we should have a way to say:
+        // hold on, first, let's do the getters which need null resilience analysis.
         private NullableAnnotation? _inferredNullableAnnotation;
         internal NullableAnnotation GetInferredNullableAnnotation() => _inferredNullableAnnotation ??= ComputeInferredNullableAnnotation();
 
         private NullableAnnotation ComputeInferredNullableAnnotation()
         {
+            Debug.Assert(InfersNullableAnnotation);
             if (IsGetterTriviallyNullResilient is { } isNullResilient)
                 return isNullResilient ? NullableAnnotation.Annotated : NullableAnnotation.NotAnnotated;
 
@@ -173,14 +183,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var binder = getAccessor.TryGetBodyBinder() ?? throw ExceptionUtilities.UnexpectedValue(getAccessor);
             var boundGetAccessor = binder.BindMethodBody(getAccessor.SyntaxNode, BindingDiagnosticBag.Discarded);
 
-            var nullableDiagnostics = DiagnosticBag.GetInstance();
-            NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, nullableDiagnostics, getMethodForNullResilienceAnalysis: getAccessor);
+            // TODO: first, analyze with Annotated, and see if we have no nullability diagnostics.
+            // In this case, we can skip analyzing with NotAnnotated, and simply mark it as resilient.
+            var annotatedDiagnostics = DiagnosticBag.GetInstance();
+            NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, annotatedDiagnostics, getterNullResilienceData: (getAccessor, _property.BackingField, NullableAnnotation.Annotated));
 
-            if (nullableDiagnostics.IsEmptyWithoutResolution)
+            if (annotatedDiagnostics.IsEmptyWithoutResolution)
             {
                 // getter is null-resilient.
+                annotatedDiagnostics.Free();
                 return NullableAnnotation.Annotated;
             }
+
+            var notAnnotatedDiagnostics = DiagnosticBag.GetInstance();
+            NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, notAnnotatedDiagnostics, getterNullResilienceData: (getAccessor, _property.BackingField, NullableAnnotation.NotAnnotated));
 
             return NullableAnnotation.NotAnnotated;
         }

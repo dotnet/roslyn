@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 'true' if we are performing the 'null-resilience' analysis of getters which use the 'field' keyword.
         /// In this case, the inferred nullable annotation of the backing field must not be used, as we are currently in the process of inferring it.
         /// </summary>
-        private readonly bool _isGetterNullResilienceAnalysis;
+        private readonly (SynthesizedBackingFieldSymbol field, NullableAnnotation assumedAnnotation)? _getterNullResilienceData;
 
         /// <summary>
         /// If true, the parameter types and nullability from _delegateInvokeMethod is used for
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             Symbol? symbol,
             bool useConstructorExitWarnings,
-            bool isGetterNullResilienceAnalysis,
+            (SynthesizedBackingFieldSymbol field, NullableAnnotation assumedAnnotation)? getterNullResilienceData,
             bool useDelegateInvokeParameterTypes,
             bool useDelegateInvokeReturnType,
             MethodSymbol? delegateInvokeMethodOpt,
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _binder = binder;
             _conversions = (Conversions)conversions.WithNullability(true);
             _useConstructorExitWarnings = useConstructorExitWarnings;
-            _isGetterNullResilienceAnalysis = isGetterNullResilienceAnalysis;
+            _getterNullResilienceData = getterNullResilienceData;
             _useDelegateInvokeParameterTypes = useDelegateInvokeParameterTypes;
             _useDelegateInvokeReturnType = useDelegateInvokeReturnType;
             _delegateInvokeMethod = delegateInvokeMethodOpt;
@@ -1458,7 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversions,
                 diagnostics,
                 useConstructorExitWarnings,
-                isGetterNullResilienceAnalysis: false,
+                getterNullResilienceData: null,
                 useDelegateInvokeParameterTypes: false,
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
@@ -1595,7 +1595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.Conversions,
                 diagnostics,
                 useConstructorExitWarnings: true,
-                isGetterNullResilienceAnalysis: false,
+                getterNullResilienceData: null,
                 useDelegateInvokeParameterTypes: false,
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
@@ -1647,7 +1647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.Compilation,
                 symbol,
                 useConstructorExitWarnings: false,
-                isGetterNullResilienceAnalysis: false,
+                getterNullResilienceData: null,
                 useDelegateInvokeParameterTypes: false,
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
@@ -1716,7 +1716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             SyntaxNode syntax,
             DiagnosticBag diagnostics,
-            SourcePropertyAccessorSymbol? getMethodForNullResilienceAnalysis = null)
+            (SourcePropertyAccessorSymbol getter, SynthesizedBackingFieldSymbol field, NullableAnnotation assumedNullableAnnotation)? getterNullResilienceData = null)
         {
             bool requiresAnalysis = true;
             var compilation = binder.Compilation;
@@ -1732,13 +1732,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Analyze(
                 compilation,
-                symbol: getMethodForNullResilienceAnalysis,
+                symbol: getterNullResilienceData?.getter,
                 node,
                 binder,
                 binder.Conversions,
                 diagnostics,
                 useConstructorExitWarnings: false,
-                isGetterNullResilienceAnalysis: getMethodForNullResilienceAnalysis is not null,
+                getterNullResilienceData is var (_, field, annotation) ? (field, annotation) : null,
                 useDelegateInvokeParameterTypes: false,
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
@@ -1768,7 +1768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 symbol,
                 useConstructorExitWarnings: false,
-                isGetterNullResilienceAnalysis: false,
+                getterNullResilienceData: null,
                 useDelegateInvokeParameterTypes: useDelegateInvokeParameterTypes,
                 useDelegateInvokeReturnType: useDelegateInvokeReturnType,
                 delegateInvokeMethodOpt: delegateInvokeMethodOpt,
@@ -1799,7 +1799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversions conversions,
             DiagnosticBag diagnostics,
             bool useConstructorExitWarnings,
-            bool isGetterNullResilienceAnalysis,
+            (SynthesizedBackingFieldSymbol field, NullableAnnotation assumedAnnotation)? getterNullResilienceData,
             bool useDelegateInvokeParameterTypes,
             bool useDelegateInvokeReturnType,
             MethodSymbol? delegateInvokeMethodOpt,
@@ -1813,13 +1813,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool requiresAnalysis = true)
         {
             Debug.Assert(diagnostics != null);
-            Debug.Assert(!isGetterNullResilienceAnalysis || symbol is SourcePropertyAccessorSymbol { MethodKind: MethodKind.PropertyGet });
-            Debug.Assert(!isGetterNullResilienceAnalysis || !useConstructorExitWarnings);
+            Debug.Assert(getterNullResilienceData is null || symbol is SourcePropertyAccessorSymbol { MethodKind: MethodKind.PropertyGet });
+            Debug.Assert(getterNullResilienceData is null || !useConstructorExitWarnings);
 
             var walker = new NullableWalker(compilation,
                                             symbol,
                                             useConstructorExitWarnings,
-                                            isGetterNullResilienceAnalysis,
+                                            getterNullResilienceData,
                                             useDelegateInvokeParameterTypes,
                                             useDelegateInvokeReturnType,
                                             delegateInvokeMethodOpt,
@@ -2825,9 +2825,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeWithAnnotations = symbol.GetTypeOrReturnType();
             if (symbol is SynthesizedBackingFieldSymbol { InfersNullableAnnotation: true } backingField)
             {
-                var nullableAnnotation = _isGetterNullResilienceAnalysis ? NullableAnnotation.Annotated : backingField.GetInferredNullableAnnotation();
+                NullableAnnotation nullableAnnotation;
+                if (_getterNullResilienceData is var (analyzedField, assumedNullableAnnotation)
+                    && (object)analyzedField == backingField)
+                {
+                    // Currently in the process of inferring the nullable annotation for 'backingField'.
+                    // Therefore don't try to access the inferred nullable annotation, use a temporary assumedNullableAnnotation instead.
+                    nullableAnnotation = assumedNullableAnnotation;
+                }
+                else
+                {
+                    nullableAnnotation = backingField.GetInferredNullableAnnotation();
+                }
+
                 typeWithAnnotations = TypeWithAnnotations.Create(typeWithAnnotations.Type, nullableAnnotation);
             }
+
             return typeWithAnnotations;
         }
 
@@ -4806,7 +4819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var walker = new NullableWalker(binder.Compilation,
                                             symbol: null,
                                             useConstructorExitWarnings: false,
-                                            isGetterNullResilienceAnalysis: false,
+                                            getterNullResilienceData: null,
                                             useDelegateInvokeParameterTypes: false,
                                             useDelegateInvokeReturnType: false,
                                             delegateInvokeMethodOpt: null,
