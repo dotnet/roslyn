@@ -59,7 +59,8 @@ internal partial class DiagnosticAnalyzerService
                 var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
 
                 var fullSolutionAnalysisAnalyzers = allAnalyzers.WhereAsArray(
-                    static (analyzer, arg) => arg.self.IsCandidateForFullSolutionAnalysis(analyzer, arg.hostAnalyzerInfo.IsHostAnalyzer(analyzer), arg.project),
+                    static (analyzer, arg) => IsCandidateForFullSolutionAnalysis(
+                        arg.self.DiagnosticAnalyzerInfoCache, analyzer, arg.hostAnalyzerInfo.IsHostAnalyzer(analyzer), arg.project),
                     (self: this, project, hostAnalyzerInfo));
 
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
@@ -68,49 +69,50 @@ internal partial class DiagnosticAnalyzerService
                 var projectAnalysisData = await ComputeDiagnosticAnalysisResultsAsync(compilationWithAnalyzers, project, fullSolutionAnalysisAnalyzers, cancellationToken).ConfigureAwait(false);
                 return (fullSolutionAnalysisAnalyzers, projectAnalysisData);
             }
-        }
 
-        private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, bool isHostAnalyzer, Project project)
-        {
-            // PERF: Don't query descriptors for compiler analyzer or workspace load analyzer, always execute them.
-            if (analyzer == FileContentLoadAnalyzer.Instance ||
-                analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance ||
-                analyzer.IsCompilerAnalyzer())
+            static bool IsCandidateForFullSolutionAnalysis(
+                DiagnosticAnalyzerInfoCache infoCache, DiagnosticAnalyzer analyzer, bool isHostAnalyzer, Project project)
             {
-                return true;
+                // PERF: Don't query descriptors for compiler analyzer or workspace load analyzer, always execute them.
+                if (analyzer == FileContentLoadAnalyzer.Instance ||
+                    analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance ||
+                    analyzer.IsCompilerAnalyzer())
+                {
+                    return true;
+                }
+
+                if (analyzer.IsBuiltInAnalyzer())
+                {
+                    // always return true for builtin analyzer. we can't use
+                    // descriptor check since many builtin analyzer always return 
+                    // hidden descriptor regardless what descriptor it actually
+                    // return on runtime. they do this so that they can control
+                    // severity through option page rather than rule set editor.
+                    // this is special behavior only ide analyzer can do. we hope
+                    // once we support editorconfig fully, third party can use this
+                    // ability as well and we can remove this kind special treatment on builtin
+                    // analyzer.
+                    return true;
+                }
+
+                if (analyzer is DiagnosticSuppressor)
+                {
+                    // Always execute diagnostic suppressors.
+                    return true;
+                }
+
+                if (project.CompilationOptions is null)
+                {
+                    // Skip compilation options based checks for non-C#/VB projects.
+                    return true;
+                }
+
+                // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
+                var descriptors = infoCache.GetDiagnosticDescriptors(analyzer);
+                var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
+
+                return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.CompilationOptions, arg.isHostAnalyzer ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project.CompilationOptions, isHostAnalyzer, analyzerConfigOptions));
             }
-
-            if (analyzer.IsBuiltInAnalyzer())
-            {
-                // always return true for builtin analyzer. we can't use
-                // descriptor check since many builtin analyzer always return 
-                // hidden descriptor regardless what descriptor it actually
-                // return on runtime. they do this so that they can control
-                // severity through option page rather than rule set editor.
-                // this is special behavior only ide analyzer can do. we hope
-                // once we support editorconfig fully, third party can use this
-                // ability as well and we can remove this kind special treatment on builtin
-                // analyzer.
-                return true;
-            }
-
-            if (analyzer is DiagnosticSuppressor)
-            {
-                // Always execute diagnostic suppressors.
-                return true;
-            }
-
-            if (project.CompilationOptions is null)
-            {
-                // Skip compilation options based checks for non-C#/VB projects.
-                return true;
-            }
-
-            // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
-            var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer);
-            var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
-
-            return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.CompilationOptions, arg.isHostAnalyzer ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project.CompilationOptions, isHostAnalyzer, analyzerConfigOptions));
         }
     }
 }
