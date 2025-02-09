@@ -1641,17 +1641,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
 
                             var candidateMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-                            binder.GetAndValidateCollectionBuilderMethods(syntax, (NamedTypeSymbol)Type, candidateMethods, diagnostics);
-
-                            // PROTOTYPE: Test where the builder factory method has an optional parameter, and update the params collection spec.
-                            var collectionBuilderMethod = candidateMethods.FirstOrDefault(m => m.ParameterCount == 1); // PROTOTYPE: Test where the expected method has an optional parameter.
+                            // PROTOTYPE: Update the params collection spec to allow the builder factory method to have an optional or params parameter.
+                            var collectionBuilderMethod = binder.GetAndValidateCollectionBuilderMethods(syntax, (NamedTypeSymbol)Type, candidateMethods, diagnostics);
                             if (collectionBuilderMethod is { })
                             {
-                                // PROTOTYPE: Previously, GetAndValidateCollectionBuilderMethod() called the following with the one method
-                                // that was found. Which of these need to be called here for the method callable with no arguments?
-                                //  ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location);
-                                //  collectionBuilderMethod.CheckConstraints(
-                                //      new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, syntax.Location, diagnostics));
+                                Binder.ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location); // PROTOTYPE: Test.
                                 binder.ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
                                 Binder.ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
 

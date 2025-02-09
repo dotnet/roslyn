@@ -987,29 +987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                     }
 
-                    var candidateDefinitions = ArrayBuilder<MethodSymbol>.GetInstance();
-                    foreach (var candidate in collectionBuilderCandidates)
-                    {
-                        candidateDefinitions.Add(candidate.OriginalDefinition);
-                    }
-
-                    ((NamedTypeSymbol)targetType).HasCollectionBuilderAttribute(out _, out string? methodName);
-                    Debug.Assert(methodName is { });
-
-                    var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded; // PROTOTYPE: Test use-site diagnostics.
-                    var typeArguments = ((NamedTypeSymbol)targetType).GetAllTypeArguments(ref useSiteInfo);
-
-                    var candidateMethodGroup = new BoundMethodGroup(
-                        syntax,
-                        typeArgumentsOpt: typeArguments,
-                        name: methodName,
-                        methods: candidateDefinitions.ToImmutableAndFree(),
-                        lookupSymbolOpt: null,
-                        lookupError: null,
-                        flags: BoundMethodGroupFlags.None,
-                        functionType: null,
-                        receiverOpt: null,
-                        resultKind: LookupResultKind.Viable);
+                    var candidateMethodGroup = BindCollectionBuilderMethodGroup(syntax, (NamedTypeSymbol)targetType, collectionBuilderCandidates);
                     collectionBuilderSpanPlaceholder = new BoundValuePlaceholder(syntax, GetWellKnownType(WellKnownType.System_ReadOnlySpan_T, diagnostics, syntax).Construct(elementType)) { WasCompilerGenerated = true };
 
                     // Bind collection creation with arguments.
@@ -1023,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             withElement.AddArguments(analyzedArguments);
                             // PROTOTYPE: If there are multiple with() elements, should with() elements after
                             // the first be bound for error recovery only rather than as a factory method call?
-                            var collectionWithArguments = bindCollectionBuilderCreate(withElement.Syntax, candidateMethodGroup, analyzedArguments, diagnostics);
+                            var collectionWithArguments = BindCollectionBuilderCreate(withElement.Syntax, candidateMethodGroup, analyzedArguments, diagnostics);
                             collectionCreation ??= collectionWithArguments;
                             analyzedArguments.Free();
                         }
@@ -1034,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var analyzedArguments = AnalyzedArguments.GetInstance();
                         addCollectionBuilderElementsArgument(analyzedArguments, collectionBuilderSpanPlaceholder);
-                        collectionCreation = bindCollectionBuilderCreate(syntax, candidateMethodGroup, analyzedArguments, diagnostics);
+                        collectionCreation = BindCollectionBuilderCreate(syntax, candidateMethodGroup, analyzedArguments, diagnostics);
                         analyzedArguments.Free();
                     }
 
@@ -1112,24 +1090,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments.Arguments.Add(elements);
             }
 
-            BoundExpression bindCollectionBuilderCreate(
-                SyntaxNode syntax,
-                BoundMethodGroup candidateMethodGroup,
-                AnalyzedArguments analyzedArguments,
-                BindingDiagnosticBag diagnostics)
-            {
-                return BindMethodGroupInvocation(
-                    syntax,
-                    expression: syntax,
-                    methodName: candidateMethodGroup.Name,
-                    candidateMethodGroup,
-                    analyzedArguments,
-                    diagnostics,
-                    queryClause: null,
-                    ignoreNormalFormIfHasValidParamsParameter: false,
-                    out _).MakeCompilerGenerated();
-            }
-
             BoundNode bindSpreadElement(BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion, BindingDiagnosticBag diagnostics)
             {
                 var enumeratorInfo = element.EnumeratorInfoOpt;
@@ -1182,6 +1142,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private BoundMethodGroup BindCollectionBuilderMethodGroup(SyntaxNode syntax, NamedTypeSymbol targetType, ArrayBuilder<MethodSymbol> collectionBuilderCandidates)
+        {
+            var candidateDefinitions = ArrayBuilder<MethodSymbol>.GetInstance();
+            foreach (var candidate in collectionBuilderCandidates)
+            {
+                candidateDefinitions.Add(candidate.OriginalDefinition);
+            }
+
+            targetType.HasCollectionBuilderAttribute(out _, out string? methodName);
+            Debug.Assert(methodName is { });
+
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded; // PROTOTYPE: Test use-site diagnostics.
+            var typeArguments = targetType.GetAllTypeArguments(ref useSiteInfo);
+
+            return new BoundMethodGroup(
+                syntax,
+                typeArgumentsOpt: typeArguments,
+                name: methodName,
+                methods: candidateDefinitions.ToImmutableAndFree(),
+                lookupSymbolOpt: null,
+                lookupError: null,
+                flags: BoundMethodGroupFlags.None,
+                functionType: null,
+                receiverOpt: null,
+                resultKind: LookupResultKind.Viable);
+        }
+
+        private BoundExpression BindCollectionBuilderCreate(
+            SyntaxNode syntax,
+            BoundMethodGroup candidateMethodGroup,
+            AnalyzedArguments analyzedArguments,
+            BindingDiagnosticBag diagnostics)
+        {
+            return BindMethodGroupInvocation(
+                syntax,
+                expression: syntax,
+                methodName: candidateMethodGroup.Name,
+                candidateMethodGroup,
+                analyzedArguments,
+                diagnostics,
+                queryClause: null,
+                ignoreNormalFormIfHasValidParamsParameter: false,
+                out _).MakeCompilerGenerated();
+        }
+
         private bool HasCollectionInitializerTypeInProgress(SyntaxNode syntax, TypeSymbol targetType)
         {
             Binder? current = this;
@@ -1200,7 +1205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal void GetAndValidateCollectionBuilderMethods(
+        internal MethodSymbol? GetAndValidateCollectionBuilderMethods(
             SyntaxNode syntax,
             NamedTypeSymbol namedType,
             ArrayBuilder<MethodSymbol> candidates,
@@ -1227,10 +1232,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfObsolete(diagnostics, builderType, syntax, hasBaseReceiver: false);
             }
 
-            if (candidates.IsEmpty)
+            MethodSymbol? noArgsMethod = null;
+            // PROTOTYPE: Test case where the factory methods have different constraints.
+            // PROTOTYPE: Test case where multiple factory methods are applicable at the call site. For instance, an optional
+            // parameter in one, and a params parameter in the other. Does supporting that require a spec change? For those cases,
+            // we can't check for ObsoleteAttribute or check constraints, because the actual method used at the call site is not known.
+            foreach (var candidate in candidates)
+            {
+                if (IsCollectionBuilderMethodCallableWithoutAdditionalArguments(syntax, namedType, candidate))
+                {
+                    noArgsMethod = candidate;
+                    break;
+                }
+            }
+
+            if (noArgsMethod is null)
             {
                 diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition, targetTypeOriginalDefinition);
             }
+
+            return noArgsMethod;
+        }
+
+        private bool IsCollectionBuilderMethodCallableWithoutAdditionalArguments(SyntaxNode syntax, NamedTypeSymbol targetType, MethodSymbol candidate)
+        {
+            var candidates = ArrayBuilder<MethodSymbol>.GetInstance(1);
+            candidates.Add(candidate);
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+            analyzedArguments.Arguments.Add(new BoundDefaultExpression(syntax, candidate.Parameters[0].Type));
+            var candidateMethodGroup = BindCollectionBuilderMethodGroup(syntax, targetType, candidates);
+            var collectionCreation = BindCollectionBuilderCreate(syntax, candidateMethodGroup, analyzedArguments, BindingDiagnosticBag.Discarded);
+            analyzedArguments.Free();
+            // PROTOTYPE: How do we know if binding succeeded?
+            return true;
         }
 
         internal BoundExpression BindCollectionExpressionConstructor(
@@ -1879,18 +1913,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(node.CollectionCreation is { });
+            return GetCollectionBuilderMethodFromCollectionCreation(node.CollectionCreation);
+        }
 
-            return getBuilderMethod(node.CollectionCreation);
-
-            static MethodSymbol? getBuilderMethod(BoundExpression? expr)
+        private static MethodSymbol? GetCollectionBuilderMethodFromCollectionCreation(BoundExpression? expr)
+        {
+            return expr switch
             {
-                return expr switch
-                {
-                    BoundCall call => call.Method,
-                    BoundConversion conversion => getBuilderMethod(conversion.Operand),
-                    _ => null,
-                };
-            }
+                BoundCall call => call.Method,
+                BoundConversion conversion => GetCollectionBuilderMethodFromCollectionCreation(conversion.Operand),
+                _ => null,
+            };
         }
 
         private BoundCollectionExpression BindCollectionExpressionForErrorRecovery(

@@ -1896,7 +1896,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
-            // PROTOTYPE: Should report error for F<T>(params MyCollection<T> c).
             comp.VerifyEmitDiagnostics(
                 // (6,13): warning CS0612: 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)' is obsolete
                 //         c = [];
@@ -1906,7 +1905,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with()").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(7, 14),
                 // (8,14): warning CS0612: 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)' is obsolete
                 //         c = [with(default)];
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(8, 14));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(8, 14),
+                // (10,22): warning CS0612: 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)' is obsolete
+                //     static void F<T>(params MyCollection<T> c) { }
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(10, 22));
         }
 
         [Fact]
@@ -1944,7 +1946,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
-            // PROTOTYPE: Should report error for F(params MyCollection c).
             comp.VerifyEmitDiagnostics(
                 // (6,13): error CS8901: 'MyBuilder.Create(ReadOnlySpan<int>, params object[])' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         c = [];
@@ -1955,6 +1956,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (8,14): error CS8901: 'MyBuilder.Create(ReadOnlySpan<int>, params object[])' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         c = [with(0)];
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "with(0)").WithArguments("MyBuilder.Create(System.ReadOnlySpan<int>, params object[])").WithLocation(8, 14),
+                // (10,19): error CS8901: 'MyBuilder.Create(ReadOnlySpan<int>, params object[])' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //     static void F(params MyCollection c) { }
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "params MyCollection c").WithArguments("MyBuilder.Create(System.ReadOnlySpan<int>, params object[])").WithLocation(10, 19),
                 // (15,19): error CS8894: Cannot use 'MyCollection' as a return type on a method attributed with 'UnmanagedCallersOnly'.
                 //     public static MyCollection Create(ReadOnlySpan<int> items, params object[] args) => default;
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "MyCollection").WithArguments("MyCollection", "return").WithLocation(15, 19),
@@ -1967,7 +1971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void CollectionBuilder_GenericConstraints()
+        public void CollectionBuilder_GenericConstraints_01()
         {
             string sourceA = """
                 using System;
@@ -2006,6 +2010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         y = [with(2), 3];
                         y.Report();
                     }
+                    static void F<T>(params MyCollection<T> c) { }
                 }
                 """;
             var verifier = CompileAndVerify(
@@ -2036,6 +2041,193 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (7,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
                 //         x = [with(2), 3];
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with(2)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)", "T", "object").WithLocation(7, 14));
+        }
+
+        [Fact]
+        public void CollectionBuilder_GenericConstraints_02()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _items;
+                    public MyCollection(T arg, ReadOnlySpan<T> items)
+                    {
+                        _items = new();
+                        _items.Add(arg);
+                        _items.AddRange(items.ToArray());
+                    }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg = default) where T : struct => new(arg, items);
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = [];
+                        c.Report();
+                        c = [with(), 1];
+                        c.Report();
+                        c = [with(2)];
+                        c.Report();
+                        F<int>();
+                        F(3);
+                        F(4, 5);
+                    }
+                    static void F<T>(params MyCollection<T> c) where T : struct
+                    {
+                        c.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB1, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[0], [0, 1], [2], [0], [0, 3], [0, 4, 5], "));
+            verifier.VerifyDiagnostics();
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> c;
+                        c = [];
+                        c = [with(), 1];
+                        c = [with(2)];
+                        F<object>();
+                        F((object)3);
+                    }
+                    static void F<T>(params MyCollection<T> c)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                [sourceA, sourceB2],
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (6,13): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "[]").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)", "T", "object").WithLocation(6, 13),
+                // (7,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
+                //         c = [with(), 1];
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with()").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)", "T", "object").WithLocation(7, 14),
+                // (8,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
+                //         c = [with(2)];
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with(2)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)", "T", "object").WithLocation(8, 14),
+                // (9,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
+                //         F<object>();
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>()").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)", "T", "object").WithLocation(9, 9),
+                // (10,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
+                //         F((object)3);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F((object)3)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)", "T", "object").WithLocation(10, 9));
+        }
+
+        [Fact]
+        public void CollectionBuilder_GenericConstraints_03()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _items;
+                    public MyCollection(T[] args, ReadOnlySpan<T> items)
+                    {
+                        _items = new();
+                        _items.AddRange(args);
+                        _items.AddRange(items.ToArray());
+                    }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, params T[] args) where T : struct => new(args, items);
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = [];
+                        c.Report();
+                        c = [with(), 1];
+                        c.Report();
+                        c = [with(2, 3)];
+                        c.Report();
+                        F<int>();
+                        F(4, 5);
+                    }
+                    static void F<T>(params MyCollection<T> c) where T : struct
+                    {
+                        c.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB1, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[], [1], [2, 3], [], [4, 5], "));
+            verifier.VerifyDiagnostics();
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<object> c;
+                        c = [];
+                        c = [with(), 1];
+                        c = [with(2, 3)];
+                        F<object>();
+                        F((object)4, 5);
+                    }
+                    static void F<T>(params MyCollection<T> c)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                [sourceA, sourceB2],
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (6,13): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, params T[])'
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "[]").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])", "T", "object").WithLocation(6, 13),
+                // (7,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, params T[])'
+                //         c = [with(), 1];
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with()").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])", "T", "object").WithLocation(7, 14),
+                // (8,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, params T[])'
+                //         c = [with(2, 3)];
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with(2, 3)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])", "T", "object").WithLocation(8, 14),
+                // (9,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, params T[])'
+                //         F<object>();
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>()").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])", "T", "object").WithLocation(9, 9),
+                // (10,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, params T[])'
+                //         F((object)4, 5);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F((object)4, 5)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])", "T", "object").WithLocation(10, 9));
         }
 
         [Fact]
