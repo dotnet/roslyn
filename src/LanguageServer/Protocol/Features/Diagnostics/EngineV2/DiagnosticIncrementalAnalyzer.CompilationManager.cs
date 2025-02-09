@@ -98,25 +98,28 @@ internal partial class DiagnosticAnalyzerService
 
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
-            var projectAnalyzerOptions = new CompilationWithAnalyzersOptions(
-                options: project.AnalyzerOptions,
-                onAnalyzerException: null,
-                analyzerExceptionFilter: exceptionFilter,
-                concurrentAnalysis: false,
-                logAnalyzerExecutionTime: true,
-                reportSuppressedDiagnostics: true);
-            var hostAnalyzerOptions = new CompilationWithAnalyzersOptions(
-                options: project.HostAnalyzerOptions,
-                onAnalyzerException: null,
-                analyzerExceptionFilter: exceptionFilter,
-                concurrentAnalysis: false,
-                logAnalyzerExecutionTime: true,
-                reportSuppressedDiagnostics: true);
+            var projectCompilation = !filteredProjectAnalyzers.Any()
+                ? null
+                : compilation.WithAnalyzers(filteredProjectAnalyzers, new CompilationWithAnalyzersOptions(
+                    options: project.AnalyzerOptions,
+                    onAnalyzerException: null,
+                    analyzerExceptionFilter: exceptionFilter,
+                    concurrentAnalysis: false,
+                    logAnalyzerExecutionTime: true,
+                    reportSuppressedDiagnostics: true));
+
+            var hostCompilation = !filteredHostAnalyzers.Any()
+                ? null
+                : compilation.WithAnalyzers(filteredHostAnalyzers, new CompilationWithAnalyzersOptions(
+                    options: project.HostAnalyzerOptions,
+                    onAnalyzerException: null,
+                    analyzerExceptionFilter: exceptionFilter,
+                    concurrentAnalysis: false,
+                    logAnalyzerExecutionTime: true,
+                    reportSuppressedDiagnostics: true));
 
             // Create driver that holds onto compilation and associated analyzers
-            return new CompilationWithAnalyzersPair(
-                filteredProjectAnalyzers.Any() ? compilation.WithAnalyzers(filteredProjectAnalyzers, projectAnalyzerOptions) : null,
-                filteredHostAnalyzers.Any() ? compilation.WithAnalyzers(filteredHostAnalyzers, hostAnalyzerOptions) : null);
+            return new CompilationWithAnalyzersPair(projectCompilation, hostCompilation);
         }
     }
 
