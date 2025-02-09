@@ -22,7 +22,7 @@ internal partial class DiagnosticAnalyzerService
         /// <summary>
         /// Cached data from a real <see cref="Project"/> instance to the cached diagnostic data produced by
         /// <em>all</em> the analyzers for the project.  This data can then be used by <see
-        /// cref="DiagnosticGetter.ProduceDiagnosticsAsync"/> to speed up subsequent calls through the normal <see
+        /// cref="GetDiagnosticsForIdsAsync"/> to speed up subsequent calls through the normal <see
         /// cref="IDiagnosticAnalyzerService"/> entry points as long as the project hasn't changed at all.
         /// </summary>
         private readonly ConditionalWeakTable<Project, StrongBox<(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> _projectToForceAnalysisData = new();
