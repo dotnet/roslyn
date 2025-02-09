@@ -35,26 +35,26 @@ internal partial class DiagnosticAnalyzerService
         {
             private readonly DiagnosticIncrementalAnalyzer Owner = owner;
 
-            private readonly Project Project = project;
-            private readonly DocumentId? DocumentId = documentId;
-            private readonly ImmutableHashSet<string>? _diagnosticIds = diagnosticIds;
-            private readonly Func<DiagnosticAnalyzer, bool>? _shouldIncludeAnalyzer = shouldIncludeAnalyzer;
-            private readonly bool IncludeLocalDocumentDiagnostics = includeLocalDocumentDiagnostics;
-            private readonly bool IncludeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
+            private readonly Project project = project;
+            private readonly DocumentId? documentId = documentId;
+            private readonly ImmutableHashSet<string>? diagnosticIds = diagnosticIds;
+            private readonly Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer = shouldIncludeAnalyzer;
+            private readonly bool includeLocalDocumentDiagnostics = includeLocalDocumentDiagnostics;
+            private readonly bool includeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
 
-            private StateManager StateManager => Owner._stateManager;
+            private StateManager _stateManager => Owner._stateManager;
 
             private bool ShouldIncludeDiagnostic(DiagnosticData diagnostic)
-                => _diagnosticIds == null || _diagnosticIds.Contains(diagnostic.Id);
+                => diagnosticIds == null || diagnosticIds.Contains(diagnostic.Id);
 
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(CancellationToken cancellationToken)
             {
                 // return diagnostics specific to one project or document
-                var includeProjectNonLocalResult = DocumentId == null;
+                var includeProjectNonLocalResult = documentId == null;
                 return await ProduceProjectDiagnosticsAsync(
                     // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this
                     // project if no specific document id was requested.
-                    this.DocumentId != null ? [this.DocumentId] : [.. this.Project.DocumentIds, .. this.Project.AdditionalDocumentIds],
+                    this.documentId != null ? [this.documentId] : [.. this.project.DocumentIds, .. this.project.AdditionalDocumentIds],
                     includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
             }
 
@@ -89,9 +89,9 @@ internal partial class DiagnosticAnalyzerService
                 ArrayBuilder<DiagnosticData> builder,
                 CancellationToken cancellationToken)
             {
-                var project = this.Project;
-                var analyzersForProject = await StateManager.GetOrCreateAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
-                var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+                var project = this.project;
+                var analyzersForProject = await _stateManager.GetOrCreateAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
+                var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
                 var analyzers = analyzersForProject.WhereAsArray(a => ShouldIncludeAnalyzer(project, a));
 
                 var result = await GetOrComputeDiagnosticAnalysisResultsAsync(analyzers).ConfigureAwait(false);
@@ -103,13 +103,13 @@ internal partial class DiagnosticAnalyzerService
 
                     foreach (var documentId in documentIds)
                     {
-                        if (IncludeLocalDocumentDiagnostics)
+                        if (includeLocalDocumentDiagnostics)
                         {
                             AddIncludedDiagnostics(builder, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Syntax));
                             AddIncludedDiagnostics(builder, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Semantic));
                         }
 
-                        if (IncludeNonLocalDocumentDiagnostics)
+                        if (includeNonLocalDocumentDiagnostics)
                             AddIncludedDiagnostics(builder, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal));
                     }
 
@@ -146,26 +146,26 @@ internal partial class DiagnosticAnalyzerService
                     var result = await Owner.ComputeDiagnosticAnalysisResultsAsync(compilation, project, analyzers, cancellationToken).ConfigureAwait(false);
                     return result;
                 }
-            }
 
-            private bool ShouldIncludeAnalyzer(Project project, DiagnosticAnalyzer analyzer)
-            {
-                if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(analyzer, project, Owner.GlobalOptions))
+                bool ShouldIncludeAnalyzer(Project project, DiagnosticAnalyzer analyzer)
                 {
-                    return false;
-                }
+                    if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(analyzer, project, Owner.GlobalOptions))
+                    {
+                        return false;
+                    }
 
-                if (_shouldIncludeAnalyzer != null && !_shouldIncludeAnalyzer(analyzer))
-                {
-                    return false;
-                }
+                    if (shouldIncludeAnalyzer != null && !shouldIncludeAnalyzer(analyzer))
+                    {
+                        return false;
+                    }
 
-                if (_diagnosticIds != null && Owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer).All(d => !_diagnosticIds.Contains(d.Id)))
-                {
-                    return false;
-                }
+                    if (diagnosticIds != null && Owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer).All(d => !diagnosticIds.Contains(d.Id)))
+                    {
+                        return false;
+                    }
 
-                return true;
+                    return true;
+                }
             }
         }
     }
