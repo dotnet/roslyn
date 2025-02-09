@@ -246,7 +246,7 @@ internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider
             var switchStatement = topLevel ? AddCastIfNecessary(node) : node;
 
             return SwitchExpression(
-                switchStatement.Expression.Parenthesize(),
+                switchStatement.Expression.WithoutTrailingTrivia().Parenthesize(),
                 Token(leading: default, SyntaxKind.SwitchKeyword, node.CloseParenToken.TrailingTrivia),
                 Token(leading: default, SyntaxKind.OpenBraceToken, node.OpenBraceToken.TrailingTrivia),
                 SeparatedList(

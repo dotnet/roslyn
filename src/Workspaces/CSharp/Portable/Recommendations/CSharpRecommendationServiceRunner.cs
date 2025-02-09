@@ -307,13 +307,26 @@ internal partial class CSharpRecommendationService
 
         private ImmutableArray<ISymbol> GetSymbolsForTypeOrNamespaceContext()
         {
-            var symbols = _context.SemanticModel.LookupNamespacesAndTypes(_context.LeftToken.SpanStart);
+            var semanticModel = _context.SemanticModel;
+            var symbols = semanticModel.LookupNamespacesAndTypes(_context.LeftToken.SpanStart);
 
             if (_context.TargetToken.IsUsingKeywordInUsingDirective())
-                return symbols.WhereAsArray(s => s is INamespaceSymbol);
+                return symbols.WhereAsArray(static s => s is INamespaceSymbol);
 
             if (_context.TargetToken.IsStaticKeywordContextInUsingDirective())
-                return symbols.WhereAsArray(s => !s.IsDelegateType());
+                return symbols.WhereAsArray(static s => !s.IsDelegateType());
+
+            if (_context.IsBaseListContext)
+            {
+                // Filter out the type we're in the inheritance list for if it has no nested types.  A type can't show
+                // up in its own inheritance list (unless being used to 
+                //
+                // Note: IsBaseListContext requires that we have a type declaration ancestor above us..
+                var containingType = semanticModel.GetRequiredDeclaredSymbol(
+                    _context.TargetToken.GetRequiredAncestor<TypeDeclarationSyntax>(), _cancellationToken).OriginalDefinition;
+                if (containingType.GetTypeMembers().IsEmpty)
+                    return symbols.WhereAsArray(static (s, containingType) => !Equals(s.OriginalDefinition, containingType), containingType);
+            }
 
             return symbols;
         }
