@@ -34,7 +34,11 @@ internal partial class DiagnosticAnalyzerService
                 if (!_projectToForceAnalysisData.TryGetValue(project, out var box))
                 {
                     box = new(await ComputeForceAnalyzeProjectAsync().ConfigureAwait(false));
+#if NET
+                    _projectToForceAnalysisData.AddOrUpdate(project, box);
+#else
                     box = _projectToForceAnalysisData.GetValue(project, _ => box);
+#endif
                 }
 
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
