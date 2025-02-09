@@ -82,19 +82,33 @@ internal partial class DiagnosticAnalyzerService
             Contract.ThrowIfFalse(project.SupportsCompilation);
             AssertCompilation(project, compilation);
 
+            var exceptionFilter = (Exception ex) =>
+            {
+                if (ex is not OperationCanceledException && crashOnAnalyzerException)
+                {
+                    // report telemetry
+                    FatalError.ReportAndPropagate(ex);
+
+                    // force fail fast (the host might not crash when reporting telemetry):
+                    FailFast.OnFatalException(ex);
+                }
+
+                return true;
+            };
+
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
             var projectAnalyzerOptions = new CompilationWithAnalyzersOptions(
                 options: project.AnalyzerOptions,
                 onAnalyzerException: null,
-                analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
+                analyzerExceptionFilter: exceptionFilter,
                 concurrentAnalysis: false,
                 logAnalyzerExecutionTime: true,
                 reportSuppressedDiagnostics: true);
             var hostAnalyzerOptions = new CompilationWithAnalyzersOptions(
                 options: project.HostAnalyzerOptions,
                 onAnalyzerException: null,
-                analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
+                analyzerExceptionFilter: exceptionFilter,
                 concurrentAnalysis: false,
                 logAnalyzerExecutionTime: true,
                 reportSuppressedDiagnostics: true);
@@ -103,23 +117,6 @@ internal partial class DiagnosticAnalyzerService
             return new CompilationWithAnalyzersPair(
                 filteredProjectAnalyzers.Any() ? compilation.WithAnalyzers(filteredProjectAnalyzers, projectAnalyzerOptions) : null,
                 filteredHostAnalyzers.Any() ? compilation.WithAnalyzers(filteredHostAnalyzers, hostAnalyzerOptions) : null);
-
-            Func<Exception, bool> GetAnalyzerExceptionFilter()
-            {
-                return ex =>
-                {
-                    if (ex is not OperationCanceledException && crashOnAnalyzerException)
-                    {
-                        // report telemetry
-                        FatalError.ReportAndPropagate(ex);
-
-                        // force fail fast (the host might not crash when reporting telemetry):
-                        FailFast.OnFatalException(ex);
-                    }
-
-                    return true;
-                };
-            }
         }
     }
 
