@@ -63,7 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return VisitArrayOrSpanCollectionExpression(node, collectionTypeKind, node.Type, TypeWithAnnotations.Create(elementType));
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         // A few special cases when a collection type is an ImmutableArray<T>
-                        // PROTOTYPE: Test these cases with collection args (possibly empty).
                         if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType))
                         {
                             // For `[]` try to use `ImmutableArray<T>.Empty` singleton if available
@@ -180,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             result = null;
 
-            if (node.Elements is not [BoundCollectionExpressionSpreadElement singleSpread])
+            if (node.Elements is not [BoundCollectionExpressionSpreadElement singleSpread]) // PROTOTYPE: This is not handling [with(...), ..s].
             {
                 return false;
             }
@@ -237,6 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             spreadExpression = null;
 
+            // PROTOTYPE: This is not handling [with(...), ..s].
             if (node.Elements is [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr }] &&
                 Binder.GetCollectionBuilderMethod(node) is { } builder &&
                 ConversionsBase.HasIdentityConversion(builder.Parameters[0].Type, spreadType) &&
