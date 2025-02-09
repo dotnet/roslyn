@@ -20,18 +20,16 @@ internal partial class DiagnosticAnalyzerService
     {
         public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
         {
-            // return diagnostics specific to one project or document
-            var includeProjectNonLocalResult = documentId == null;
             return await ProduceProjectDiagnosticsAsync(
-                project,
-                diagnosticIds,
-                shouldIncludeAnalyzer,
+                project, diagnosticIds, shouldIncludeAnalyzer,
                 // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this
                 // project if no specific document id was requested.
                 documentId != null ? [documentId] : [.. project.DocumentIds, .. project.AdditionalDocumentIds],
                 includeLocalDocumentDiagnostics,
                 includeNonLocalDocumentDiagnostics,
-                includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
+                // return diagnostics specific to one project or document
+                includeProjectNonLocalResult: documentId == null,
+                cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
@@ -85,11 +83,9 @@ internal partial class DiagnosticAnalyzerService
                         AddIncludedDiagnostics(builder, analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal));
                 }
 
+                // include project diagnostics if there is no target document
                 if (includeProjectNonLocalResult)
-                {
-                    // include project diagnostics if there is no target document
                     AddIncludedDiagnostics(builder, analysisResult.GetOtherDiagnostics());
-                }
             }
 
             return builder.ToImmutableAndClear();
