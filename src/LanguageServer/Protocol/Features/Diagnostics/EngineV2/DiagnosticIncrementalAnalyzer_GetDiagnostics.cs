@@ -149,7 +149,7 @@ internal partial class DiagnosticAnalyzerService
                     }
 
                     // Otherwise, just compute for the state sets we care about.
-                    var compilation = await CreateCompilationWithAnalyzersAsync(project, stateSets, Owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                    var compilation = await GetOrCreateCompilationWithAnalyzersAsync(project, stateSets, Owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                     var result = await Owner.ComputeDiagnosticAnalysisResultsAsync(compilation, project, stateSets, cancellationToken).ConfigureAwait(false);
                     return result;

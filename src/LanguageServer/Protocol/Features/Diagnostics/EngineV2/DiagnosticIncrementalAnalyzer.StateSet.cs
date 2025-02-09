@@ -6,21 +6,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal partial class DiagnosticAnalyzerService
 {
-    private partial class DiagnosticIncrementalAnalyzer
+    /// <summary>
+    /// this contains all states regarding a <see cref="DiagnosticAnalyzer"/>
+    /// </summary>
+    private sealed class StateSet
     {
-        /// <summary>
-        /// this contains all states regarding a <see cref="DiagnosticAnalyzer"/>
-        /// </summary>
-        private sealed class StateSet
-        {
-            public readonly DiagnosticAnalyzer Analyzer;
-            public readonly bool IsHostAnalyzer;
+        public readonly DiagnosticAnalyzer Analyzer;
+        public readonly bool IsHostAnalyzer;
 
-            public StateSet(DiagnosticAnalyzer analyzer, bool isHostAnalyzer)
-            {
-                Analyzer = analyzer;
-                IsHostAnalyzer = isHostAnalyzer;
-            }
+        public StateSet(DiagnosticAnalyzer analyzer, bool isHostAnalyzer)
+        {
+            Analyzer = analyzer;
+            IsHostAnalyzer = isHostAnalyzer;
         }
     }
 }
