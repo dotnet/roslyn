@@ -196,7 +196,12 @@ internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider
             {
                 var conversion = _semanticModel.Compilation.ClassifyConversion(typeInfo.Type, typeInfo.ConvertedType);
                 if (!conversion.IsIdentityOrImplicitReference())
-                    return node.Cast(typeInfo.ConvertedType);
+                {
+                    if (!conversion.IsBoxing || typeInfo.Type.IsNumericType())
+                    {
+                        return node.Cast(typeInfo.ConvertedType);
+                    }
+                }
             }
 
             return node;
