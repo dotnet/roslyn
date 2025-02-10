@@ -47,6 +47,9 @@ internal partial class DiagnosticAnalyzerService
             var compilationWithAnalyzersPair = CreateCompilationWithAnalyzers(projectState, compilation);
             tupleBox = new((analyzers, compilationWithAnalyzersPair));
 
+#if NET
+            s_projectToCompilationWithAnalyzers.AddOrUpdate(projectState, tupleBox);
+#else
             // Make a best effort attempt to store the latest computed value against these state sets. If this
             // fails (because another thread interleaves with this), that's ok.  We still return the pair we 
             // computed, so our caller will still see the right data
@@ -55,6 +58,7 @@ internal partial class DiagnosticAnalyzerService
             // Intentionally ignore the result of this.  We still want to use the value we computed above, even if
             // another thread interleaves and sets a different value.
             s_projectToCompilationWithAnalyzers.GetValue(projectState, _ => tupleBox);
+#endif
         }
 
         return tupleBox.Value.compilationWithAnalyzersPair;
