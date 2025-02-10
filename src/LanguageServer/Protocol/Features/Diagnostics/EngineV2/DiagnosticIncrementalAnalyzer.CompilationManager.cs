@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal partial class DiagnosticAnalyzerService
 {
     /// <summary>
-    /// Cached data from a <see cref="Project"/> to the last <see cref="CompilationWithAnalyzersPair"/> instance created
-    /// for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see
+    /// Cached data from a <see cref="ProjectState"/> to the last <see cref="CompilationWithAnalyzersPair"/> instance
+    /// created for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see
     /// cref="DiagnosticAnalyzer"/>s passed along with the project.  As such, we might not be able to use a prior cached
     /// value if the set of analyzers changes.  In that case, a new instance will be created and will be cached for the
     /// next caller.
