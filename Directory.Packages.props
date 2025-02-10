@@ -5,7 +5,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
 
-    <MicroBuildVersion>2.0.181</MicroBuildVersion>
+    <MicroBuildVersion>2.0.187</MicroBuildVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- Put repo-specific PackageVersion items in this group. -->
