@@ -94,11 +94,10 @@ internal partial class DiagnosticAnalyzerService
                         }
                         else
                         {
-                            var analyzerWithStateAndEmptyData = analyzer;
                             if (!compilerAnalyzerData.HasValue && analyzer.IsCompilerAnalyzer())
-                                compilerAnalyzerData = (analyzerWithStateAndEmptyData, spanBased: false);
+                                compilerAnalyzerData = (analyzer, spanBased: false);
                             else
-                                documentBasedAnalyzers.Add(analyzerWithStateAndEmptyData);
+                                documentBasedAnalyzers.Add(analyzer);
                         }
                     }
 
