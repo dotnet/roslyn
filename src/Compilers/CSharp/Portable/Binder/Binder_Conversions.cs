@@ -987,7 +987,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                     }
 
-                    var candidateMethodGroup = BindCollectionBuilderMethodGroup(syntax, (NamedTypeSymbol)targetType, collectionBuilderCandidates);
+                    ((NamedTypeSymbol)targetType).HasCollectionBuilderAttribute(out _, out string? methodName);
+                    Debug.Assert(methodName is { });
+
+                    var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                    var typeArguments = ((NamedTypeSymbol)targetType).GetAllTypeArguments(ref useSiteInfo);
+                    diagnostics.Add(syntax, useSiteInfo);
+
+                    var candidateMethodGroup = BindCollectionBuilderMethodGroup(syntax, methodName, typeArguments, collectionBuilderCandidates);
                     collectionBuilderSpanPlaceholder = new BoundValuePlaceholder(syntax, GetWellKnownType(WellKnownType.System_ReadOnlySpan_T, diagnostics, syntax).Construct(elementType)) { WasCompilerGenerated = true };
 
                     // Bind collection creation with arguments.
@@ -1142,20 +1149,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundMethodGroup BindCollectionBuilderMethodGroup(SyntaxNode syntax, NamedTypeSymbol targetType, ArrayBuilder<MethodSymbol> collectionBuilderCandidates)
+        private BoundMethodGroup BindCollectionBuilderMethodGroup(
+            SyntaxNode syntax,
+            string methodName,
+            ImmutableArray<TypeWithAnnotations> typeArguments,
+            ArrayBuilder<MethodSymbol> collectionBuilderCandidates)
         {
             var candidateDefinitions = ArrayBuilder<MethodSymbol>.GetInstance();
             foreach (var candidate in collectionBuilderCandidates)
             {
                 candidateDefinitions.Add(candidate.OriginalDefinition);
             }
-
-            targetType.HasCollectionBuilderAttribute(out _, out string? methodName);
-            Debug.Assert(methodName is { });
-
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded; // PROTOTYPE: Test use-site diagnostics.
-            var typeArguments = targetType.GetAllTypeArguments(ref useSiteInfo);
-
             return new BoundMethodGroup(
                 syntax,
                 typeArgumentsOpt: typeArguments,
@@ -1233,13 +1237,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodSymbol? noArgsMethod = null;
-            // PROTOTYPE: Test case where the factory methods have different constraints.
-            // PROTOTYPE: Test case where multiple factory methods are applicable at the call site. For instance, an optional
-            // parameter in one, and a params parameter in the other. Does supporting that require a spec change? For those cases,
-            // we can't check for ObsoleteAttribute or check constraints, because the actual method used at the call site is not known.
+            // PROTOTYPE: For cases where multiple candidates are callable with no additional arguments,
+            // we can't check for ObsoleteAttribute or check constraints, because the actual method used at
+            // the call site is not known. Is a spec change needed for params collections to make that clear?
             foreach (var candidate in candidates)
             {
-                if (IsCollectionBuilderMethodCallableWithoutAdditionalArguments(syntax, namedType, candidate))
+                if (IsCollectionBuilderMethodCallableWithoutAdditionalArguments(syntax, candidate.OriginalDefinition))
                 {
                     noArgsMethod = candidate;
                     break;
@@ -1248,23 +1251,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (noArgsMethod is null)
             {
+                // PROTOTYPE: We currently require a factory method callable with no arguments even if arguments are provided
+                // at the call-site. (See error reported for [with(t)] in CollectionBuilder_NoParameterlessConstructor.) Is this
+                // requirement necessary other than for 'params' parameter types? If not, remove this diagnostic and update the spec.
                 diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition, targetTypeOriginalDefinition);
             }
 
             return noArgsMethod;
         }
 
-        private bool IsCollectionBuilderMethodCallableWithoutAdditionalArguments(SyntaxNode syntax, NamedTypeSymbol targetType, MethodSymbol candidate)
+        private bool IsCollectionBuilderMethodCallableWithoutAdditionalArguments(SyntaxNode syntax, MethodSymbol candidate)
         {
+            Debug.Assert(candidate.IsDefinition);
+
             var candidates = ArrayBuilder<MethodSymbol>.GetInstance(1);
             candidates.Add(candidate);
             var analyzedArguments = AnalyzedArguments.GetInstance();
             analyzedArguments.Arguments.Add(new BoundDefaultExpression(syntax, candidate.Parameters[0].Type));
-            var candidateMethodGroup = BindCollectionBuilderMethodGroup(syntax, targetType, candidates);
+            var candidateMethodGroup = BindCollectionBuilderMethodGroup(syntax, candidate.Name, candidate.TypeArgumentsWithAnnotations, candidates);
             var collectionCreation = BindCollectionBuilderCreate(syntax, candidateMethodGroup, analyzedArguments, BindingDiagnosticBag.Discarded);
             analyzedArguments.Free();
-            // PROTOTYPE: How do we know if binding succeeded?
-            return true;
+            return collectionCreation is BoundCall { ResultKind: LookupResultKind.Viable };
         }
 
         internal BoundExpression BindCollectionExpressionConstructor(
