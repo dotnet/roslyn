@@ -193,13 +193,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (annotatedDiagnostics.IsEmptyWithoutResolution)
             {
-                // No nullable warnings occur at all when we treat the field as nullable.
+                // No nullable warnings occur in the getter when we treat the field as nullable.
+                // Infer that the field is nullable-annotated. This can prevent nuisance warnings in constructors.
+                // TODO2: maybe play with some scenarios which read the field in the setter. Didn't we say field should always be nullable at the start of that anyways?
                 annotatedDiagnostics.Free();
                 return NullableAnnotation.Annotated;
             }
 
             var notAnnotatedDiagnostics = DiagnosticBag.GetInstance();
             NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, notAnnotatedDiagnostics, getterNullResilienceData: (getAccessor, _property.BackingField, NullableAnnotation.NotAnnotated));
+
+            if (notAnnotatedDiagnostics.IsEmptyWithoutResolution)
+            {
+                // We had nullable warnings with annotated nullability, and no nullable warnings with NotAnnotated nullability.
+                annotatedDiagnostics.Free();
+                notAnnotatedDiagnostics.Free();
+                return NullableAnnotation.NotAnnotated;
+            }
+
+            // Both Annotated and not NotAnnotated cases had nullable warnings.
             var notAnnotatedDiagnosticsSet = new HashSet<Diagnostic>(notAnnotatedDiagnostics.AsEnumerable(), SameDiagnosticComparer.Instance);
             notAnnotatedDiagnostics.Free();
 

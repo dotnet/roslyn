@@ -6063,7 +6063,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Nullability_10()
         {
-            // TODO2: no inference
             // MaybeNull on the field and assign null to it
             var source = """
                 #nullable enable
@@ -7324,7 +7323,6 @@ class Program
         [Fact]
         public void MaybeNullT_24()
         {
-            // TODO2: checking InferredNullableAnnotation API for all these backing fields?
             var source =
 @"#nullable enable
 using System.Diagnostics.CodeAnalysis;
@@ -7371,7 +7369,7 @@ class C<T>
 
     C([AllowNull]T t)
     {
-        P1 = t; // 9
+        P1 = t;
         P2 = t;
         P3 = t;
         P4 = t; // 10
@@ -7390,13 +7388,24 @@ class C<T>
                 // 0.cs(35,9): warning CS8601: Possible null reference assignment.
                 //     } = default; // 6
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(35, 9),
-                // 0.cs(46,14): warning CS8601: Possible null reference assignment.
-                //         P1 = t; // 9
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(46, 14),
                 // 0.cs(49,14): warning CS8601: Possible null reference assignment.
                 //         P4 = t; // 10
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(49, 14)
                 );
+
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P1>k__BackingField"), NullableAnnotation.Annotated);
+            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P2>k__BackingField"), NullableAnnotation.NotAnnotated);
+            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P3>k__BackingField"), NullableAnnotation.Annotated);
+            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P4>k__BackingField"), NullableAnnotation.Annotated);
+            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P5>k__BackingField"), NullableAnnotation.NotAnnotated);
+            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P6>k__BackingField"), NullableAnnotation.Annotated);
+
+            void verify(SynthesizedBackingFieldSymbol field, NullableAnnotation expectedInferredAnnotation)
+            {
+                Assert.Equal(NullableAnnotation.NotAnnotated, field.TypeWithAnnotations.NullableAnnotation);
+                Assert.Equal(expectedInferredAnnotation, field.GetInferredNullableAnnotation());
+            }
         }
 
         // Based on RequiredMembersTests.RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_01.
@@ -10756,7 +10765,7 @@ class C<T>
         }
 
         [Fact]
-        public void Nullable_NotResilient_NotInitialized_03()
+        public void Nullable_Resilient_NotInitialized_03()
         {
             var source = """
                 #nullable enable
@@ -10789,6 +10798,33 @@ class C<T>
 
         // TODO2: test where different yet "morally equivalent" set of nullable warnings occurs with/without annotation of the field.
         // for example, something involving type argument reinference.
+
+        [Fact]
+        public void NullResilience_GetterDoesNotUseField()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string Prop { get => "a"; set => field = value; }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,26): warning CS9266: The 'get' accessor of property 'C.Prop' should use 'field' because the other accessor is using it.
+                //     public string Prop { get => "a"; set => field = value; }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.Prop").WithLocation(5, 26));
+
+            var field = comp.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
+
+            // We could further scope this by saying: do not infer if the getter specifically doesn't use 'field',
+            // regardless of whether the setter uses it, and perhaps skip some additional work.
+            // However, this is considered a pathological case.
+            Assert.True(field.InfersNullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, field.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, field.TypeWithAnnotations.NullableAnnotation);
+        }
 
         [Fact]
         public void Nullable_NotResilient_Initialized_01()
@@ -10860,6 +10896,88 @@ class C<T>
                 """;
 
             var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_Resilient_Initialized_02()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    public C()
+                    {
+                        Prop = null;
+                    }
+
+                    public string Prop { get => field ??= "a"; } = null;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_Resilient_Initialized_03()
+        {
+            // This case is a bit funky. The inference does not affect signature of the setter.
+            // In general, we don't want an inference to affect shape of a public API.
+            // But, it's conceivable to want to assign a possible null value here, which gets further coalesced into a non-null in the getter.
+            var source = """
+                #nullable enable
+                class C
+                {
+                    public C()
+                    {
+                        Prop = null; // 1
+                    }
+
+                    public string Prop { get => field ??= "a"; set; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         Prop = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 16));
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_Resilient_Initialized_04()
+        {
+            // Suggested fix for the nullable warning in Nullable_Resilient_Initialized_03
+            var source = """
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    public C()
+                    {
+                        Prop = null;
+                    }
+
+                    [AllowNull]
+                    public string Prop { get => field ??= "a"; set; }
+                }
+                """;
+
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
