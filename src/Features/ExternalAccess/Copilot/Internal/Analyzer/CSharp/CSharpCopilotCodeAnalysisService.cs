@@ -16,49 +16,41 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer.CSharp;
 
 [ExportLanguageService(typeof(ICopilotCodeAnalysisService), LanguageNames.CSharp), Shared]
-internal sealed partial class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnalysisService
+internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnalysisService
 {
-    private readonly Lazy<IExternalCSharpCopilotCodeAnalysisService> _lazyExternalCopilotService;
+    private IExternalCSharpCopilotCodeAnalysisService AnalysisService { get; }
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpCopilotCodeAnalysisService(
-        [Import(AllowDefault = true)] IExternalCSharpCopilotCodeAnalysisService? externalCopilotService,
-        IDiagnosticsRefresher diagnosticsRefresher,
-        SVsServiceProvider serviceProvider,
-        IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer
+        [Import] IExternalCSharpCopilotCodeAnalysisService externalCopilotService,
+        IDiagnosticsRefresher diagnosticsRefresher
         ) : base(diagnosticsRefresher)
     {
-        _lazyExternalCopilotService = new Lazy<IExternalCSharpCopilotCodeAnalysisService>(GetExternalService, LazyThreadSafetyMode.PublicationOnly);
-
-        IExternalCSharpCopilotCodeAnalysisService GetExternalService()
-            => externalCopilotService ?? new ReflectionWrapper(serviceProvider, brokeredServiceContainer);
+        AnalysisService = externalCopilotService;
     }
 
     protected override Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
-        => _lazyExternalCopilotService.Value.AnalyzeDocumentAsync(document, span, promptTitle, cancellationToken);
+        => AnalysisService.AnalyzeDocumentAsync(document, span, promptTitle, cancellationToken);
 
     protected override Task<ImmutableArray<string>> GetAvailablePromptTitlesCoreAsync(Document document, CancellationToken cancellationToken)
-        => _lazyExternalCopilotService.Value.GetAvailablePromptTitlesAsync(document, cancellationToken);
+        => AnalysisService.GetAvailablePromptTitlesAsync(document, cancellationToken);
 
     protected override Task<ImmutableArray<Diagnostic>> GetCachedDiagnosticsCoreAsync(Document document, string promptTitle, CancellationToken cancellationToken)
-        => _lazyExternalCopilotService.Value.GetCachedDiagnosticsAsync(document, promptTitle, cancellationToken);
+        => AnalysisService.GetCachedDiagnosticsAsync(document, promptTitle, cancellationToken);
 
     protected override Task<bool> IsAvailableCoreAsync(CancellationToken cancellationToken)
-        => _lazyExternalCopilotService.Value.IsAvailableAsync(cancellationToken);
+        => AnalysisService.IsAvailableAsync(cancellationToken);
 
     protected override Task StartRefinementSessionCoreAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
-        => _lazyExternalCopilotService.Value.StartRefinementSessionAsync(oldDocument, newDocument, primaryDiagnostic, cancellationToken);
+        => AnalysisService.StartRefinementSessionAsync(oldDocument, newDocument, primaryDiagnostic, cancellationToken);
 
     protected override Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsCoreAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken)
-        => _lazyExternalCopilotService.Value.GetOnTheFlyDocsAsync(symbolSignature, declarationCode, language, cancellationToken);
+        => AnalysisService.GetOnTheFlyDocsAsync(symbolSignature, declarationCode, language, cancellationToken);
 
     protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsIntersectWithSpanAsync(
         Document document, IReadOnlyList<Diagnostic> diagnostics, TextSpan span, CancellationToken cancellationToken)
@@ -81,5 +73,5 @@ internal sealed partial class CSharpCopilotCodeAnalysisService : AbstractCopilot
     }
 
     protected override Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken)
-        => _lazyExternalCopilotService.Value.IsFileExcludedAsync(filePath, cancellationToken);
+        => AnalysisService.IsFileExcludedAsync(filePath, cancellationToken);
 }

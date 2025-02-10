@@ -74,7 +74,7 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            return codeAnalysisService.GetLastComputedProjectDiagnosticsAsync(Project.Id, cancellationToken);
+            return Task.FromResult(codeAnalysisService.GetLastComputedProjectDiagnostics(Project.Id));
         }
     }
 }

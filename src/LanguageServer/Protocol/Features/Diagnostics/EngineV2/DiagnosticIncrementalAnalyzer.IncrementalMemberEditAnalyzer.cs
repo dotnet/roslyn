@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -16,9 +15,11 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
         /// This type performs incremental analysis in presence of edits to only a single member inside a document.
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDiagnosticsAsync(
                 DocumentAnalysisExecutor executor,
-                ImmutableArray<AnalyzerWithState> analyzersWithState,
+                ImmutableArray<StateSet> analyzersWithState,
                 VersionStamp version,
                 Func<DiagnosticAnalyzer, DocumentAnalysisExecutor, CancellationToken, Task<ImmutableArray<DiagnosticData>>> computeAnalyzerDiagnosticsAsync,
                 Func<DocumentAnalysisExecutor, CancellationToken, Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>>> computeDiagnosticsNonIncrementallyAsync,
@@ -75,9 +76,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var oldDocumentVersion = await GetDiagnosticVersionAsync(oldDocument.Project, cancellationToken).ConfigureAwait(false);
 
-                    using var _1 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var spanBasedAnalyzers);
-                    using var _2 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var documentBasedAnalyzers);
-                    (AnalyzerWithState analyzerWithState, bool spanBased)? compilerAnalyzerData = null;
+                    using var _1 = ArrayBuilder<StateSet>.GetInstance(out var spanBasedAnalyzers);
+                    using var _2 = ArrayBuilder<StateSet>.GetInstance(out var documentBasedAnalyzers);
+                    (StateSet analyzerWithState, bool spanBased)? compilerAnalyzerData = null;
                     foreach (var analyzerWithState in analyzersWithState)
                     {
                         // Check if we have existing cached diagnostics for this analyzer whose version matches the
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
                         else
                         {
-                            var analyzerWithStateAndEmptyData = new AnalyzerWithState(analyzerWithState.Analyzer, analyzerWithState.IsHostAnalyzer);
+                            var analyzerWithStateAndEmptyData = analyzerWithState;
                             if (!compilerAnalyzerData.HasValue && analyzerWithState.Analyzer.IsCompilerAnalyzer())
                                 compilerAnalyzerData = (analyzerWithStateAndEmptyData, spanBased: false);
                             else
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 async Task ExecuteCompilerAnalyzerAsync(
-                    (AnalyzerWithState analyzerWithState, bool spanBased)? compilerAnalyzerData,
+                    (StateSet analyzerWithState, bool spanBased)? compilerAnalyzerData,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
@@ -135,12 +136,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var (analyzerWithState, spanBased) = compilerAnalyzerData.Value;
                     var span = spanBased ? changedMember.FullSpan : (TextSpan?)null;
                     executor = executor.With(analysisScope.WithSpan(span));
-                    using var _ = ArrayBuilder<AnalyzerWithState>.GetInstance(1, analyzerWithState, out var analyzersWithState);
+                    using var _ = ArrayBuilder<StateSet>.GetInstance(1, analyzerWithState, out var analyzersWithState);
                     await ExecuteAnalyzersAsync(executor, analyzersWithState, oldMemberSpans, builder).ConfigureAwait(false);
                 }
 
                 async Task ExecuteSpanBasedAnalyzersAsync(
-                    ArrayBuilder<AnalyzerWithState> analyzersWithState,
+                    ArrayBuilder<StateSet> analyzersWithState,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 async Task ExecuteDocumentBasedAnalyzersAsync(
-                    ArrayBuilder<AnalyzerWithState> analyzersWithState,
+                    ArrayBuilder<StateSet> analyzersWithState,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 async Task ExecuteAnalyzersAsync(
                     DocumentAnalysisExecutor executor,
-                    ArrayBuilder<AnalyzerWithState> analyzersWithState,
+                    ArrayBuilder<StateSet> analyzersWithState,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
@@ -201,8 +202,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                using var pooledMembers = syntaxFacts.GetMethodLevelMembers(root);
-                var members = pooledMembers.Object;
+
+                // Specifies false for discardLargeInstances as these objects commonly exceed the default ArrayBuilder capacity threshold.
+                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(discardLargeInstances: false, out var members);
+                syntaxFacts.AddMethodLevelMembers(root, members);
 
                 var memberSpans = members.SelectAsArray(member => member.FullSpan);
                 var changedMemberId = members.IndexOf(changedMember);
