@@ -213,8 +213,7 @@ internal static partial class ProtocolConversions
             // Hidden is translated in ConvertTags to pass along appropriate _ms tags
             // that will hide the item in a client that knows about those tags.
             DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
-            // VSCode shows information diagnostics as blue squiggles, and hint diagnostics as 3 dots.  We prefer the latter rendering so we return hint diagnostics in vscode.
-            DiagnosticSeverity.Info => supportsVisualStudioExtensions ? LSP.DiagnosticSeverity.Information : LSP.DiagnosticSeverity.Hint,
+            DiagnosticSeverity.Info => LSP.DiagnosticSeverity.Information,
             DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
             DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
             _ => throw ExceptionUtilities.UnexpectedValue(severity),
