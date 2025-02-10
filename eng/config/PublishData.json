@@ -258,7 +258,7 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "rel/d18.0",
+      "vsBranch": "dev/monicaro/versioning",
       "vsMajorVersion": 18,
       "insertionTitlePrefix": "[d18.0 P1]",
       "insertionCreateDraftPR": false
