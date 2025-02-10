@@ -70,26 +70,6 @@ internal abstract class AbstractPackage : AsyncPackage
 
     protected virtual void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
     {
-        afterPackageLoadedTasks.AddTask(
-            isMainThreadTask: false,
-            task: (afterPackageLoadedTasks, cancellationToken) =>
-            {
-                // TODO: remove, workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1985204
-                var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
-                if (globalOptions.GetOption(SemanticSearchFeatureFlag.Enabled))
-                {
-                    afterPackageLoadedTasks.AddTask(
-                        isMainThreadTask: true,
-                        task: (packageLoadedTasks, cancellationToken) =>
-                        {
-                            UIContext.FromUIContextGuid(new Guid(SemanticSearchFeatureFlag.UIContextId)).IsActive = true;
-
-                            return Task.CompletedTask;
-                        });
-                }
-
-                return Task.CompletedTask;
-            });
     }
 
     protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
