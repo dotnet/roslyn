@@ -35,19 +35,6 @@ internal abstract class AbstractPackage : AsyncPackage
         Assumes.Present(_componentModel_doNotAccessDirectly);
     }
 
-    protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
-    {
-        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
-
-        // TODO: remove, workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1985204
-        var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
-        if (globalOptions.GetOption(SemanticSearchFeatureFlag.Enabled))
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            UIContext.FromUIContextGuid(new Guid(SemanticSearchFeatureFlag.UIContextId)).IsActive = true;
-        }
-    }
-
     protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
     {
         // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
