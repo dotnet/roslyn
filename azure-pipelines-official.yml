@@ -16,6 +16,11 @@ resources:
     type: git
     name: 1ESPipelineTemplates/1ESPipelineTemplates
     ref: refs/tags/release
+  pipelines:
+    - pipeline: profilingInputs
+      source: dotnet-vscode-csharp-profiling
+      branch: main
+      trigger: none
 
 parameters:
 - name: IbcDrop
@@ -89,6 +94,9 @@ variables:
   - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
     - name: enableSourceIndex
       value: true
+  - name: VSCodeOptimizationDataRoot
+    value: $(Pipeline.Workspace)/profilingInputs/merged mibc
+
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
@@ -273,6 +281,10 @@ extends:
             feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
           condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
+        - download: profilingInputs
+          artifact: merged mibc
+          displayName: Download VSCode optimization inputs
+
         - task: PowerShell@2
           displayName: Build
           inputs:
@@ -294,6 +306,7 @@ extends:
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
+                       /p:VSCodeOptimizationDataRoot="$(VSCodeOptimizationDataRoot)"
                        /p:DotNetSignType=$(SignType)
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
