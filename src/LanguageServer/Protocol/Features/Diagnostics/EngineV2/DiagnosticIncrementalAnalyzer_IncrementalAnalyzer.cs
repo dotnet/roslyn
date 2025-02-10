@@ -25,7 +25,7 @@ internal partial class DiagnosticAnalyzerService
         /// cref="DiagnosticGetter.ProduceDiagnosticsAsync"/> to speed up subsequent calls through the normal <see
         /// cref="IDiagnosticAnalyzerService"/> entry points as long as the project hasn't changed at all.
         /// </summary>
-        private readonly ConditionalWeakTable<Project, StrongBox<(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> _projectToForceAnalysisData = new();
+        private readonly ConditionalWeakTable<ProjectState, StrongBox<(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> _projectToForceAnalysisData = new();
 
         public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
