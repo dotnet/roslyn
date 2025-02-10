@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.Interactive
         private readonly ImmutableArray<IInteractiveWindowCommand> _commands;
         private readonly InteractiveWindowWorkspace _workspace;
         private readonly InteractiveSession _session;
-
-        private IInteractiveWindow? _lazyInteractiveWindow;
         private IInteractiveWindowCommands? _lazyInteractiveCommands;
 
         #region UI Thread only
@@ -100,9 +98,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             _session.Dispose();
             _workspace.Dispose();
 
-            if (_lazyInteractiveWindow != null)
+            if (CurrentWindow != null)
             {
-                _lazyInteractiveWindow.SubmissionBufferAdded -= SubmissionBufferAdded;
+                CurrentWindow.SubmissionBufferAdded -= SubmissionBufferAdded;
             }
         }
 
@@ -118,18 +116,18 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         public IInteractiveWindow? CurrentWindow
         {
-            get => _lazyInteractiveWindow;
+            get;
 
             set
             {
                 _threadingContext.ThrowIfNotOnUIThread();
 
-                if (_lazyInteractiveWindow != null)
+                if (field != null)
                 {
                     throw new NotSupportedException(EditorFeaturesWpfResources.The_CurrentWindow_property_may_only_be_assigned_once);
                 }
 
-                _lazyInteractiveWindow = value ?? throw new ArgumentNullException(nameof(value));
+                field = value ?? throw new ArgumentNullException(nameof(value));
                 _workspace.Window = value;
 
                 Task.Run(() => _session.Host.SetOutputs(value.OutputWriter, value.ErrorOutputWriter));
@@ -148,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             => _session.SubmissionCount;
 
         private IInteractiveWindow GetInteractiveWindow()
-            => _lazyInteractiveWindow ?? throw new InvalidOperationException(EditorFeaturesResources.Engine_must_be_attached_to_an_Interactive_Window);
+            => CurrentWindow ?? throw new InvalidOperationException(EditorFeaturesResources.Engine_must_be_attached_to_an_Interactive_Window);
 
         private IInteractiveWindowCommands GetInteractiveCommands()
             => _lazyInteractiveCommands ?? throw new InvalidOperationException(EditorFeaturesResources.Engine_must_be_attached_to_an_Interactive_Window);

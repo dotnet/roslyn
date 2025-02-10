@@ -40,13 +40,13 @@ public sealed class ProjectId : IEquatable<ProjectId>, IComparable<ProjectId>
     /// purpose.  Importantly, it must not be part of the equality/hashing/comparable contract of this type (including
     /// <see cref="_lazyChecksum"/>).
     /// </summary>
-    [DataMember(Order = 1)]
-    private readonly string? _debugName;
+    [field: DataMember(Order = 1)]
+    internal string? DebugName { get; }
 
     private ProjectId(Guid guid, string? debugName)
     {
         this.Id = guid;
-        _debugName = debugName;
+        DebugName = debugName;
     }
 
     /// <summary>
@@ -66,10 +66,8 @@ public sealed class ProjectId : IEquatable<ProjectId>, IComparable<ProjectId>
         return new ProjectId(id, debugName);
     }
 
-    internal string? DebugName => _debugName;
-
     private string GetDebuggerDisplay()
-        => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
+        => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, DebugName);
 
     public override string ToString()
         => GetDebuggerDisplay();

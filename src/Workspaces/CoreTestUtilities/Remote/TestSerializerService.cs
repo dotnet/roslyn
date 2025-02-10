@@ -117,10 +117,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
         [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         internal new sealed class Factory() : IWorkspaceServiceFactory
         {
-            private ConcurrentDictionary<Guid, TestGeneratorReference>? _sharedTestGeneratorReferences;
 
             /// <summary>
-            /// Gate to serialize reads/writes to <see cref="_sharedTestGeneratorReferences"/>.
+            /// Gate to serialize reads/writes to <see cref="SharedTestGeneratorReferences"/>.
             /// </summary>
             private readonly object _gate = new();
 
@@ -136,9 +135,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                 {
                     lock (_gate)
                     {
-                        _sharedTestGeneratorReferences ??= [];
+                        field ??= [];
 
-                        return _sharedTestGeneratorReferences;
+                        return field;
                     }
                 }
 
@@ -152,9 +151,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                         // RemoteWorkspace was always the first assignment. However the ExportProviderCache.cs in our
                         // unit tests hands out the same MEF container multiple times instead of implementing the
                         // expected contract. See https://github.com/dotnet/roslyn/issues/25863 for further details.
-                        Contract.ThrowIfFalse(_sharedTestGeneratorReferences == null ||
-                            _sharedTestGeneratorReferences == value, "We already have a shared set of references, we shouldn't be getting another one.");
-                        _sharedTestGeneratorReferences = value;
+                        Contract.ThrowIfFalse(field == null ||
+                            field == value, "We already have a shared set of references, we shouldn't be getting another one.");
+                        field = value;
                     }
                 }
             }

@@ -40,8 +40,6 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         private readonly Task _languageServerHostCompletionTask;
         private readonly JsonRpc _clientRpc;
 
-        private ServerCapabilities? _serverCapabilities;
-
         internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, TestOutputLogger logger, string cacheDirectory, bool includeDevKitComponents = true, string[]? extensionPaths = null)
         {
             var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
@@ -49,7 +47,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var testLspServer = new TestLspServer(exportProvider, logger, assemblyLoader);
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);
-            testLspServer._serverCapabilities = initializeResponse!.Capabilities;
+            testLspServer.ServerCapabilities = initializeResponse!.Capabilities;
 
             await testLspServer.ExecuteRequestAsync<InitializedParams, object>(Methods.InitializedName, new InitializedParams(), CancellationToken.None);
 
@@ -59,7 +57,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         internal LanguageServerHost LanguageServerHost { get; }
         public ExportProvider ExportProvider { get; }
 
-        internal ServerCapabilities ServerCapabilities => _serverCapabilities ?? throw new InvalidOperationException("Initialize has not been called");
+        internal ServerCapabilities ServerCapabilities { get => field ?? throw new InvalidOperationException("Initialize has not been called"); private set; }
 
         private TestLspServer(ExportProvider exportProvider, TestOutputLogger logger, IAssemblyLoader assemblyLoader)
         {

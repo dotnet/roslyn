@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly INavigateToSearchResult _searchResult;
-        private ReadOnlyCollection<DescriptionItem> _descriptionItems;
 
         public NavigateToItemDisplay(
             IThreadingContext threadingContext,
@@ -50,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         {
             get
             {
-                _descriptionItems ??= CreateDescriptionItems();
-                return _descriptionItems;
+                field ??= CreateDescriptionItems();
+                return field;
             }
         }
 

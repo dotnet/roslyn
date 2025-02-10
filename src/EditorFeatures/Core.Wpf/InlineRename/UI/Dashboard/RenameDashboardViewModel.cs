@@ -21,11 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IWpfTextView _textView;
-        private RenameDashboardSeverity _severity = RenameDashboardSeverity.None;
         private int _resolvableConflictCount;
         private int _unresolvableConflictCount;
         private bool _isReplacementTextValid;
-        private Visibility _visibility;
 
         public RenameDashboardViewModel(InlineRenameSession session, IThreadingContext threadingContext, IWpfTextView wpfTextView)
         {
@@ -154,21 +152,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (ErrorText != null ||
                 _unresolvableConflictCount > 0)
             {
-                _severity = RenameDashboardSeverity.Error;
+                Severity = RenameDashboardSeverity.Error;
             }
             else if (_resolvableConflictCount > 0)
             {
-                _severity = RenameDashboardSeverity.Info;
+                Severity = RenameDashboardSeverity.Info;
             }
             else
             {
-                _severity = RenameDashboardSeverity.None;
+                Severity = RenameDashboardSeverity.None;
             }
         }
 
         public InlineRenameSession Session { get; }
 
-        public RenameDashboardSeverity Severity => _severity;
+        public RenameDashboardSeverity Severity { get; private set; } = RenameDashboardSeverity.None;
 
         public bool AllowFileRename => Session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
         public bool ShowFileRename => Session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
@@ -184,14 +182,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-                return _visibility;
+                return field;
             }
             set
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-                if (_visibility != value)
+                if (field != value)
                 {
-                    _visibility = value;
+                    field = value;
                     NotifyPropertyChanged();
                 }
             }

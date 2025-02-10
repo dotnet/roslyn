@@ -62,22 +62,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             SetMoveArrowStatuses();
         }
 
-        private int _selectedIndex;
         public int SelectedIndex
         {
-            get
-            {
-                return _selectedIndex;
-            }
+            get;
 
             set
             {
-                if (value == _selectedIndex)
+                if (value == field)
                 {
                     return;
                 }
 
-                _selectedIndex = value;
+                field = value;
             }
         }
 
@@ -209,75 +205,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                 NotificationPreferences = new List<NotificationOptionViewModel>();
             }
 
-            private SymbolSpecification _selectedSpecification;
-            private MutableNamingStyle _selectedNamingStyle;
-            private NotificationOptionViewModel _selectedNotification;
-
             public ObservableCollection<SymbolSpecification> Specifications { get; set; }
             public ObservableCollection<MutableNamingStyle> NamingStyles { get; set; }
             public IEnumerable<NotificationOptionViewModel> NotificationPreferences { get; set; }
 
             public SymbolSpecification SelectedSpecification
             {
-                get
-                {
-                    return _selectedSpecification;
-                }
+                get;
                 set
                 {
-                    SetProperty(ref _selectedSpecification, value);
+                    SetProperty(ref field, value);
                 }
             }
 
             public MutableNamingStyle SelectedStyle
             {
-                get
-                {
-                    return _selectedNamingStyle;
-                }
+                get;
                 set
                 {
-                    SetProperty(ref _selectedNamingStyle, value);
+                    SetProperty(ref field, value);
                 }
             }
             public NotificationOptionViewModel SelectedNotificationPreference
             {
-                get
-                {
-                    return _selectedNotification;
-                }
+                get;
 
                 set
                 {
-                    SetProperty(ref _selectedNotification, value);
+                    SetProperty(ref field, value);
                 }
             }
 
-            private bool _canMoveUp;
             public bool CanMoveUp
             {
-                get
-                {
-                    return _canMoveUp;
-                }
+                get;
 
                 set
                 {
-                    SetProperty(ref _canMoveUp, value);
+                    SetProperty(ref field, value);
                 }
             }
 
-            private bool _canMoveDown;
             public bool CanMoveDown
             {
-                get
-                {
-                    return _canMoveDown;
-                }
+                get;
 
                 set
                 {
-                    SetProperty(ref _canMoveDown, value);
+                    SetProperty(ref field, value);
                 }
             }
 

@@ -13,8 +13,6 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     internal class VSInternalReferenceItem
     {
-        private object? definitionTextValue = null;
-        private object? textValue = null;
 
         /// <summary>
         /// Gets or sets the reference id.
@@ -61,24 +59,21 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? DefinitionText
         {
-            get
-            {
-                return this.definitionTextValue;
-            }
+            get;
 
             set
             {
                 if (value == null || // Null is accepted since for non-definition references
                     (value is ImageElement || value is ContainerElement || value is ClassifiedTextElement || value is string))
                 {
-                    this.definitionTextValue = value;
+                    field = value;
                 }
                 else
                 {
                     throw new InvalidOperationException($"{value.GetType()} is an invalid type.");
                 }
             }
-        }
+        } = null;
 
         /// <summary>
         /// Gets or sets the resolution status.
@@ -150,23 +145,20 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? Text
         {
-            get
-            {
-                return this.textValue;
-            }
+            get;
 
             set
             {
                 if (value is ImageElement || value is ContainerElement || value is ClassifiedTextElement || value is string)
                 {
-                    this.textValue = value;
+                    field = value;
                 }
                 else
                 {
                     throw new InvalidOperationException($"{value?.GetType()} is an invalid type.");
                 }
             }
-        }
+        } = null;
 
         /// <summary>
         /// Gets or sets the text value for display path.This would be a friendly display name for scenarios where the actual path on disk may be confusing for users.

@@ -23,13 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     /// </summary>
     public abstract partial class AbstractCodeModelObject : ApartmentSensitiveComObject
     {
-        private CodeModelState _state;
-
         internal AbstractCodeModelObject(CodeModelState state)
         {
             Debug.Assert(state != null);
 
-            _state = state;
+            State = state;
         }
 
         protected bool IsZombied { get; private set; }
@@ -44,8 +42,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     throw Exceptions.ThrowEUnexpected();
                 }
 
-                return _state;
+                return field;
             }
+
+            private set;
         }
 
         internal ICodeGenerationService CodeGenerationService
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal virtual void Shutdown()
         {
-            _state = null;
+            State = null;
             IsZombied = true;
         }
 

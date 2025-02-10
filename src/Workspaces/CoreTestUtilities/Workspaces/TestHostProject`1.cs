@@ -23,10 +23,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private readonly ProjectId _id;
         private readonly string _name;
-        private readonly IEnumerable<AnalyzerReference> _analyzerReferences;
         private readonly string _assemblyName;
-        private readonly string _defaultNamespace;
-
         public IEnumerable<TDocument> Documents;
         public IEnumerable<TDocument> AdditionalDocuments;
         public IEnumerable<TDocument> AnalyzerConfigDocuments;
@@ -42,13 +39,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public IEnumerable<MetadataReference> MetadataReferences { get; }
 
-        public IEnumerable<AnalyzerReference> AnalyzerReferences
-        {
-            get
-            {
-                return _analyzerReferences;
-            }
-        }
+        public IEnumerable<AnalyzerReference> AnalyzerReferences { get; }
 
         public CompilationOptions CompilationOptions { get; }
 
@@ -81,10 +72,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal void OnProjectFilePathChanged(string filePath)
             => FilePath = filePath;
 
-        public string DefaultNamespace
-        {
-            get { return _defaultNamespace; }
-        }
+        public string DefaultNamespace { get; }
 
         protected TestHostProject(
             HostLanguageServices languageServices,
@@ -109,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             CompilationOptions = compilationOptions;
             ParseOptions = parseOptions;
             MetadataReferences = references;
-            _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
+            AnalyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
             this.Documents = documents;
             this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TDocument>();
             this.AnalyzerConfigDocuments = analyzerConfigDocuments ?? SpecializedCollections.EmptyEnumerable<TDocument>();
@@ -118,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             HostObjectType = hostObjectType;
             Version = VersionStamp.Create();
             FilePath = filePath;
-            _defaultNamespace = defaultNamespace;
+            DefaultNamespace = defaultNamespace;
         }
 
         protected TestHostProject(
@@ -150,10 +138,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this.AnalyzerConfigDocuments = analyzerConfigDocuments ?? SpecializedCollections.EmptyEnumerable<TDocument>();
             ProjectReferences = projectReferences != null ? projectReferences.Select(p => new ProjectReference(p.Id)) : SpecializedCollections.EmptyEnumerable<ProjectReference>();
             MetadataReferences = metadataReferences ?? new MetadataReference[] { NetFramework.mscorlib };
-            _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
+            AnalyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
             _assemblyName = assemblyName ?? "TestProject";
             Version = VersionStamp.Create();
-            _defaultNamespace = defaultNamespace;
+            DefaultNamespace = defaultNamespace;
 
             if (documents != null)
             {
