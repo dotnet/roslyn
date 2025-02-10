@@ -182,14 +182,15 @@ internal partial class DiagnosticAnalyzerService
                                     // analyzer diagnostics for the requested span.
                                     semanticSpanBasedAnalyzers.Add(analyzer);
                                 }
-                                else
+                                else if (analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis())
                                 {
                                     // We can perform incremental analysis only for analyzers that support
                                     // span-based semantic diagnostic analysis.
-                                    if (analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis())
-                                        semanticSpanBasedAnalyzers.Add(analyzer);
-                                    else
-                                        semanticDocumentBasedAnalyzers.Add(analyzer);
+                                    semanticSpanBasedAnalyzers.Add(analyzer);
+                                }
+                                else
+                                {
+                                    semanticDocumentBasedAnalyzers.Add(analyzer);
                                 }
                             }
                         }
