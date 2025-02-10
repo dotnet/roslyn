@@ -46,7 +46,7 @@ internal partial class DiagnosticAnalyzerService
 
             public async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDiagnosticsAsync(
                 DocumentAnalysisExecutor executor,
-                ImmutableArray<AnalyzerWithState> analyzersWithState,
+                ImmutableArray<StateSet> analyzersWithState,
                 VersionStamp version,
                 Func<DiagnosticAnalyzer, DocumentAnalysisExecutor, CancellationToken, Task<ImmutableArray<DiagnosticData>>> computeAnalyzerDiagnosticsAsync,
                 Func<DocumentAnalysisExecutor, CancellationToken, Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>>> computeDiagnosticsNonIncrementallyAsync,
@@ -76,9 +76,9 @@ internal partial class DiagnosticAnalyzerService
                 {
                     var oldDocumentVersion = await GetDiagnosticVersionAsync(oldDocument.Project, cancellationToken).ConfigureAwait(false);
 
-                    using var _1 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var spanBasedAnalyzers);
-                    using var _2 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var documentBasedAnalyzers);
-                    (AnalyzerWithState analyzerWithState, bool spanBased)? compilerAnalyzerData = null;
+                    using var _1 = ArrayBuilder<StateSet>.GetInstance(out var spanBasedAnalyzers);
+                    using var _2 = ArrayBuilder<StateSet>.GetInstance(out var documentBasedAnalyzers);
+                    (StateSet analyzerWithState, bool spanBased)? compilerAnalyzerData = null;
                     foreach (var analyzerWithState in analyzersWithState)
                     {
                         // Check if we have existing cached diagnostics for this analyzer whose version matches the
@@ -93,7 +93,7 @@ internal partial class DiagnosticAnalyzerService
                         }
                         else
                         {
-                            var analyzerWithStateAndEmptyData = new AnalyzerWithState(analyzerWithState.Analyzer, analyzerWithState.IsHostAnalyzer);
+                            var analyzerWithStateAndEmptyData = analyzerWithState;
                             if (!compilerAnalyzerData.HasValue && analyzerWithState.Analyzer.IsCompilerAnalyzer())
                                 compilerAnalyzerData = (analyzerWithStateAndEmptyData, spanBased: false);
                             else
@@ -126,7 +126,7 @@ internal partial class DiagnosticAnalyzerService
                 }
 
                 async Task ExecuteCompilerAnalyzerAsync(
-                    (AnalyzerWithState analyzerWithState, bool spanBased)? compilerAnalyzerData,
+                    (StateSet analyzerWithState, bool spanBased)? compilerAnalyzerData,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
@@ -136,12 +136,12 @@ internal partial class DiagnosticAnalyzerService
                     var (analyzerWithState, spanBased) = compilerAnalyzerData.Value;
                     var span = spanBased ? changedMember.FullSpan : (TextSpan?)null;
                     executor = executor.With(analysisScope.WithSpan(span));
-                    using var _ = ArrayBuilder<AnalyzerWithState>.GetInstance(1, analyzerWithState, out var analyzersWithState);
+                    using var _ = ArrayBuilder<StateSet>.GetInstance(1, analyzerWithState, out var analyzersWithState);
                     await ExecuteAnalyzersAsync(executor, analyzersWithState, oldMemberSpans, builder).ConfigureAwait(false);
                 }
 
                 async Task ExecuteSpanBasedAnalyzersAsync(
-                    ArrayBuilder<AnalyzerWithState> analyzersWithState,
+                    ArrayBuilder<StateSet> analyzersWithState,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
@@ -153,7 +153,7 @@ internal partial class DiagnosticAnalyzerService
                 }
 
                 async Task ExecuteDocumentBasedAnalyzersAsync(
-                    ArrayBuilder<AnalyzerWithState> analyzersWithState,
+                    ArrayBuilder<StateSet> analyzersWithState,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
@@ -166,7 +166,7 @@ internal partial class DiagnosticAnalyzerService
 
                 async Task ExecuteAnalyzersAsync(
                     DocumentAnalysisExecutor executor,
-                    ArrayBuilder<AnalyzerWithState> analyzersWithState,
+                    ArrayBuilder<StateSet> analyzersWithState,
                     ImmutableArray<TextSpan> oldMemberSpans,
                     PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
