@@ -175,11 +175,22 @@ internal partial class DiagnosticAnalyzerService
 
                             if (includeSemantic)
                             {
-                                var selectedAnalyzers = GetSemanticAnalysisSelectedAnalyzers(
-                                    analyzer, _incrementalAnalysis,
-                                    semanticSpanBasedAnalyzers, semanticDocumentBasedAnalyzers);
 
-                                selectedAnalyzers.Add(analyzer);
+                                if (!_incrementalAnalysis)
+                                {
+                                    // For non-incremental analysis, we always attempt to compute all
+                                    // analyzer diagnostics for the requested span.
+                                    semanticSpanBasedAnalyzers.Add(analyzer);
+                                }
+                                else
+                                {
+                                    // We can perform incremental analysis only for analyzers that support
+                                    // span-based semantic diagnostic analysis.
+                                    if (analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis())
+                                        semanticSpanBasedAnalyzers.Add(analyzer);
+                                    else
+                                        semanticDocumentBasedAnalyzers.Add(analyzer);
+                                }
                             }
                         }
                     }
@@ -227,28 +238,6 @@ internal partial class DiagnosticAnalyzerService
                     }
 
                     return true;
-                }
-
-                static ArrayBuilder<DiagnosticAnalyzer> GetSemanticAnalysisSelectedAnalyzers(
-                    DiagnosticAnalyzer analyzer,
-                    bool incrementalAnalysis,
-                    ArrayBuilder<DiagnosticAnalyzer> semanticSpanBasedAnalyzers,
-                    ArrayBuilder<DiagnosticAnalyzer> semanticDocumentBasedAnalyzers)
-                {
-                    if (!incrementalAnalysis)
-                    {
-                        // For non-incremental analysis, we always attempt to compute all
-                        // analyzer diagnostics for the requested span.
-                        return semanticSpanBasedAnalyzers;
-                    }
-                    else
-                    {
-                        // We can perform incremental analysis only for analyzers that support
-                        // span-based semantic diagnostic analysis.
-                        return analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()
-                            ? semanticSpanBasedAnalyzers
-                            : semanticDocumentBasedAnalyzers;
-                    }
                 }
             }
 
