@@ -34,7 +34,15 @@ internal partial class DiagnosticAnalyzerService
                 if (!_projectToForceAnalysisData.TryGetValue(project, out var box))
                 {
                     box = new(await ComputeForceAnalyzeProjectAsync().ConfigureAwait(false));
+
+                    // Try to add the new computed data to the CWT.  But use any existing value that another thread
+                    // might have beaten us to storing in it.
+#if NET
+                    _projectToForceAnalysisData.TryAdd(project, box);
+                    Contract.ThrowIfFalse(_projectToForceAnalysisData.TryGetValue(project, out box));
+#else
                     box = _projectToForceAnalysisData.GetValue(project, _ => box);
+#endif
                 }
 
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
