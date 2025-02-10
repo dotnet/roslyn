@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected override int GetTargetCaretPosition(SwitchStatementSyntax switchStatement, SourceText sourceText)
         {
-            var triviaSpan = switchStatement.CloseBraceToken.LeadingTrivia.Span;
+            // We are only creating one statement, the default and a break.
+            var triviaSpan = switchStatement.Sections.First().Statements.Span;
             var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
             // Getting the location at the end of the line before the newline.
             return line.Span.End;
