@@ -181,8 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _useConstructorExitWarnings;
 
         /// <summary>
-        /// TODO2: doc
-        /// 'true' if we are performing the 'null-resilience' analysis of getters which use the 'field' keyword.
+        /// Non-null if we are performing the 'null-resilience' analysis of a getter which uses the 'field' keyword.
         /// In this case, the inferred nullable annotation of the backing field must not be used, as we are currently in the process of inferring it.
         /// </summary>
         private readonly (SynthesizedBackingFieldSymbol field, NullableAnnotation assumedAnnotation)? _getterNullResilienceData;
@@ -2836,6 +2835,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    // TODO2: possibility of a cycle across inference of multiple fields?
+                    // we should probably avoid calling this API if any field is being inferred here, but,
+                    // if the data doesn't apply to the field at hand, then use the property annotation instead of the assumedNullableAnnotation.
+                    Debug.Assert(_getterNullResilienceData is null);
                     nullableAnnotation = backingField.GetInferredNullableAnnotation();
                 }
 
@@ -10060,9 +10063,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we may enter a conditional state for error scenarios on the LHS.
             Unsplit();
 
+            // TODO2: this probably needs to be specced
+            // and more tests for more combinations of attributes on property+field
+            // as well as both property assignment and initializer cases.
+            TypeWithAnnotations leftLValueType;
             FlowAnalysisAnnotations leftAnnotations = GetLValueAnnotations(left);
-            TypeWithAnnotations declaredType = LvalueResultType;
-            TypeWithAnnotations leftLValueType = ApplyLValueAnnotations(declaredType, leftAnnotations);
+            if (left is BoundPropertyAccess { PropertySymbol: SourcePropertySymbolBase property }
+                && property.SetMethod is null
+                && property.UsesFieldKeyword)
+            {
+                var field = property.BackingField;
+                leftAnnotations |= GetFieldAnnotations(field);
+                leftLValueType = ApplyLValueAnnotations(GetTypeOrReturnTypeWithAnnotations(field), leftAnnotations);
+            }
+            else
+            {
+                leftLValueType = ApplyLValueAnnotations(LvalueResultType, leftAnnotations);
+            }
 
             if (left.Kind == BoundKind.EventAccess && ((BoundEventAccess)left).EventSymbol.IsWindowsRuntimeEvent)
             {
