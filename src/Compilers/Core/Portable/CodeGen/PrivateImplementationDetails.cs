@@ -352,7 +352,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     // If there is a hash collision, we cannot fallback to normal string literal emit strategy
                     // because the selection of which literal would get which emit strategy would not be deterministic.
                     var messageProvider = @this.ModuleBuilder.CommonCompilation.MessageProvider;
-                    diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_DataSectionStringLiteralHashCollision, syntaxNode.GetLocation(), previousText));
+                    diagnostics.Add(messageProvider.CreateDiagnostic(
+                        messageProvider.ERR_DataSectionStringLiteralHashCollision,
+                        syntaxNode.GetLocation(),
+                        previousText[..Math.Min(previousText.Length, 500)]));
                 }
 
                 return new DataSectionStringType(
