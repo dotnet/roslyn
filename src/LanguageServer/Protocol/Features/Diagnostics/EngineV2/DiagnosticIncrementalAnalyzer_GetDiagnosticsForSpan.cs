@@ -43,6 +43,31 @@ internal partial class DiagnosticAnalyzerService
             return list.ToImmutableAndClear();
         }
 
+        private static async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDocumentDiagnosticsCoreAsync(
+            DocumentAnalysisExecutor executor,
+            CancellationToken cancellationToken)
+        {
+            using var _ = PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>.GetInstance(out var builder);
+            foreach (var analyzer in executor.AnalysisScope.ProjectAnalyzers.ConcatFast(executor.AnalysisScope.HostAnalyzers))
+            {
+                var diagnostics = await ComputeDocumentDiagnosticsForAnalyzerCoreAsync(analyzer, executor, cancellationToken).ConfigureAwait(false);
+                builder.Add(analyzer, diagnostics);
+            }
+
+            return builder.ToImmutableDictionary();
+        }
+
+        private static async Task<ImmutableArray<DiagnosticData>> ComputeDocumentDiagnosticsForAnalyzerCoreAsync(
+            DiagnosticAnalyzer analyzer,
+            DocumentAnalysisExecutor executor,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var diagnostics = await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
+            return diagnostics?.ToImmutableArrayOrEmpty() ?? [];
+        }
+
         /// <summary>
         /// Get diagnostics for given span either by using cache or calculating it on the spot.
         /// </summary>
@@ -291,8 +316,6 @@ internal partial class DiagnosticAnalyzerService
                         executor,
                         analyzers,
                         version,
-                        ComputeDocumentDiagnosticsForAnalyzerCoreAsync,
-                        ComputeDocumentDiagnosticsCoreAsync,
                         cancellationToken).ConfigureAwait(false);
                 }
                 else
@@ -375,31 +398,6 @@ internal partial class DiagnosticAnalyzerService
 
                     return telemetryInfo.SymbolStartActionsCount > 0 || telemetryInfo.SemanticModelActionsCount > 0;
                 }
-            }
-
-            private async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDocumentDiagnosticsCoreAsync(
-                DocumentAnalysisExecutor executor,
-                CancellationToken cancellationToken)
-            {
-                using var _ = PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>.GetInstance(out var builder);
-                foreach (var analyzer in executor.AnalysisScope.ProjectAnalyzers.ConcatFast(executor.AnalysisScope.HostAnalyzers))
-                {
-                    var diagnostics = await ComputeDocumentDiagnosticsForAnalyzerCoreAsync(analyzer, executor, cancellationToken).ConfigureAwait(false);
-                    builder.Add(analyzer, diagnostics);
-                }
-
-                return builder.ToImmutableDictionary();
-            }
-
-            private async Task<ImmutableArray<DiagnosticData>> ComputeDocumentDiagnosticsForAnalyzerCoreAsync(
-                DiagnosticAnalyzer analyzer,
-                DocumentAnalysisExecutor executor,
-                CancellationToken cancellationToken)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var diagnostics = await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                return diagnostics?.ToImmutableArrayOrEmpty() ?? [];
             }
 
             private bool ShouldInclude(DiagnosticData diagnostic)
