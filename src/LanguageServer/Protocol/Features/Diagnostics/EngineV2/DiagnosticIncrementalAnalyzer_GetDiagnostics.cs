@@ -101,14 +101,15 @@ internal partial class DiagnosticAnalyzerService
                 ArrayBuilder<DiagnosticData> builder,
                 CancellationToken cancellationToken)
             {
-                var stateSetsForProject = await StateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
-                var stateSets = stateSetsForProject.Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
+                var analyzersForProject = await StateManager.GetOrCreateAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
+                var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+                var analyzers = analyzersForProject.WhereAsArray(a => ShouldIncludeAnalyzer(project, a));
 
-                var result = await GetOrComputeDiagnosticAnalysisResultsAsync(stateSets).ConfigureAwait(false);
+                var result = await GetOrComputeDiagnosticAnalysisResultsAsync(analyzers).ConfigureAwait(false);
 
-                foreach (var stateSet in stateSets)
+                foreach (var analyzer in analyzers)
                 {
-                    if (!result.TryGetValue(stateSet.Analyzer, out var analysisResult))
+                    if (!result.TryGetValue(analyzer, out var analysisResult))
                         continue;
 
                     foreach (var documentId in documentIds)
@@ -130,45 +131,47 @@ internal partial class DiagnosticAnalyzerService
                     }
                 }
 
-                async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetOrComputeDiagnosticAnalysisResultsAsync(ImmutableArray<StateSet> stateSets)
+                async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetOrComputeDiagnosticAnalysisResultsAsync(
+                    ImmutableArray<DiagnosticAnalyzer> analyzers)
                 {
                     // If there was a 'ForceAnalyzeProjectAsync' run for this project, we can piggy back off of the
                     // prior computed/cached results as they will be a superset of the results we want.
                     //
-                    // Note: the caller will loop over *its* state sets, grabbing from the full set of data we've cached
+                    // Note: the caller will loop over *its* analzyers, grabbing from the full set of data we've cached
                     // for this project, and filtering down further.  So it's ok to return this potentially larger set.
                     //
-                    // Note: While ForceAnalyzeProjectAsync should always run with a larger state set than us (since it
-                    // runs all analyzers), we still run a paranoia check that the state sets we care about are a subset
-                    // of that call so that we don't accidentally reuse results that would not correspond to what we are
-                    // computing ourselves.
+                    // Note: While ForceAnalyzeProjectAsync should always run with a larger set of analyzers than us
+                    // (since it runs all analyzers), we still run a paranoia check that the analyzers we care about are
+                    // a subset of that call so that we don't accidentally reuse results that would not correspond to
+                    // what we are computing ourselves.
                     if (this.Owner._projectToForceAnalysisData.TryGetValue(project, out var box) &&
-                        stateSets.IsSubsetOf(box.Value.stateSets))
+                        analyzers.IsSubsetOf(box.Value.analyzers))
                     {
                         return box.Value.diagnosticAnalysisResults;
                     }
 
-                    // Otherwise, just compute for the state sets we care about.
-                    var compilation = await GetOrCreateCompilationWithAnalyzersAsync(project, stateSets, Owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                    // Otherwise, just compute for the analyzers we care about.
+                    var compilation = await GetOrCreateCompilationWithAnalyzersAsync(
+                        project, analyzers, hostAnalyzerInfo, Owner.AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
-                    var result = await Owner.ComputeDiagnosticAnalysisResultsAsync(compilation, project, stateSets, cancellationToken).ConfigureAwait(false);
+                    var result = await Owner.ComputeDiagnosticAnalysisResultsAsync(compilation, project, analyzers, cancellationToken).ConfigureAwait(false);
                     return result;
                 }
             }
 
-            private bool ShouldIncludeStateSet(Project project, StateSet stateSet)
+            private bool ShouldIncludeAnalyzer(Project project, DiagnosticAnalyzer analyzer)
             {
-                if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(stateSet.Analyzer, project, Owner.GlobalOptions))
+                if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(analyzer, project, Owner.GlobalOptions))
                 {
                     return false;
                 }
 
-                if (_shouldIncludeAnalyzer != null && !_shouldIncludeAnalyzer(stateSet.Analyzer))
+                if (_shouldIncludeAnalyzer != null && !_shouldIncludeAnalyzer(analyzer))
                 {
                     return false;
                 }
 
-                if (_diagnosticIds != null && Owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(stateSet.Analyzer).All(d => !_diagnosticIds.Contains(d.Id)))
+                if (_diagnosticIds != null && Owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer).All(d => !_diagnosticIds.Contains(d.Id)))
                 {
                     return false;
                 }

@@ -20,7 +20,7 @@ internal partial class DiagnosticAnalyzerService
     private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
-        /// This is in charge of anything related to <see cref="StateSet"/>
+        /// This is in charge of anything related to <see cref="DiagnosticAnalyzer"/>
         /// </summary>
         private partial class StateManager(DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
@@ -30,13 +30,13 @@ internal partial class DiagnosticAnalyzerService
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
             /// Maps language name to the analyzers and their state.
             /// </summary>
-            private ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets> _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets>.Empty;
+            private ImmutableDictionary<HostAnalyzerInfoKey, HostAnalyzerInfo> _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerInfoKey, HostAnalyzerInfo>.Empty;
 
             /// <summary>
             /// Analyzers referenced by the project via a PackageReference. Updates are protected by _projectAnalyzerStateMapGuard.
             /// ImmutableDictionary used to present a safe, non-immutable view to users.
             /// </summary>
-            private ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets> _projectAnalyzerStateMap = ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets>.Empty;
+            private ImmutableDictionary<ProjectId, ProjectAnalyzerInfo> _projectAnalyzerStateMap = ImmutableDictionary<ProjectId, ProjectAnalyzerInfo>.Empty;
 
             /// <summary>
             /// Guard around updating _projectAnalyzerStateMap. This is used in UpdateProjectStateSets to avoid
@@ -45,71 +45,35 @@ internal partial class DiagnosticAnalyzerService
             private readonly SemaphoreSlim _projectAnalyzerStateMapGuard = new(initialCount: 1);
 
             /// <summary>
-            /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>.
-            /// This will never create new <see cref="StateSet"/> but will return ones already created.
+            /// Return <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>. 
             /// </summary>
-            public ImmutableArray<StateSet> GetStateSets(Project project)
+            public async Task<ImmutableArray<DiagnosticAnalyzer>> GetOrCreateAnalyzersAsync(Project project, CancellationToken cancellationToken)
             {
-                using var _ = ArrayBuilder<StateSet>.GetInstance(out var result);
-
-                var analyzerReferences = project.Solution.SolutionState.Analyzers.HostAnalyzerReferences;
-                foreach (var (key, value) in _hostAnalyzerStateMap)
-                {
-                    if (key.AnalyzerReferences == analyzerReferences)
-                        result.AddRange(value.OrderedStateSets);
-                }
-
-                // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
-                if (_projectAnalyzerStateMap.TryGetValue(project.Id, out var entry))
-                    result.AddRange(entry.StateSetMap.Values);
-
-                return result.ToImmutableAndClear();
+                var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+                var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+                return hostAnalyzerInfo.OrderedAllAnalyzers.AddRange(projectAnalyzerInfo.Analyzers);
             }
 
-            /// <summary>
-            /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>. 
-            /// This will either return already created <see cref="StateSet"/>s for the specific snapshot of <see cref="Project"/> or
-            /// it will create new <see cref="StateSet"/>s for the <see cref="Project"/> and update internal state.
-            /// </summary>
-            public async Task<ImmutableArray<StateSet>> GetOrCreateStateSetsAsync(Project project, CancellationToken cancellationToken)
+            public async Task<HostAnalyzerInfo> GetOrCreateHostAnalyzerInfoAsync(Project project, CancellationToken cancellationToken)
             {
-                var projectStateSets = await GetOrCreateProjectStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
-                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.AddRange(projectStateSets.StateSetMap.Values);
+                var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+                return GetOrCreateHostAnalyzerInfo(project, projectAnalyzerInfo);
             }
 
-            /// <summary>
-            /// Return <see cref="StateSet"/> for the given <see cref="DiagnosticAnalyzer"/> in the context of <see cref="Project"/>.
-            /// This will either return already created <see cref="StateSet"/> for the specific snapshot of <see cref="Project"/> or
-            /// it will create new <see cref="StateSet"/> for the <see cref="Project"/>. and update internal state.
-            /// </summary>
-            public async Task<StateSet?> GetOrCreateStateSetAsync(Project project, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
-            {
-                var projectStateSets = await GetOrCreateProjectStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
-                if (projectStateSets.StateSetMap.TryGetValue(analyzer, out var stateSet))
-                {
-                    return stateSet;
-                }
-
-                var hostStateSetMap = GetOrCreateHostStateSets(project, projectStateSets).StateSetMap;
-                if (hostStateSetMap.TryGetValue(analyzer, out stateSet))
-                {
-                    return stateSet;
-                }
-
-                return null;
-            }
-
-            private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
+            private static (ImmutableHashSet<DiagnosticAnalyzer> hostAnalyzers, ImmutableHashSet<DiagnosticAnalyzer> allAnalyzers) PartitionAnalyzers(
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> projectAnalyzerCollection,
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> hostAnalyzerCollection,
                 bool includeWorkspacePlaceholderAnalyzers)
             {
-                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, StateSet>();
+                using var _1 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var hostAnalyzers);
+                using var _2 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var allAnalyzers);
 
                 if (includeWorkspacePlaceholderAnalyzers)
                 {
-                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(FileContentLoadAnalyzer.Instance, isHostAnalyzer: true));
-                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, isHostAnalyzer: true));
+                    hostAnalyzers.Add(FileContentLoadAnalyzer.Instance);
+                    hostAnalyzers.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
+                    allAnalyzers.Add(FileContentLoadAnalyzer.Instance);
+                    allAnalyzers.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
                 }
 
                 foreach (var analyzers in projectAnalyzerCollection)
@@ -122,12 +86,7 @@ internal partial class DiagnosticAnalyzerService
                         // #1, all de-duplication should move to DiagnosticAnalyzerInfoCache
                         // #2, not sure whether de-duplication of analyzer itself makes sense. this can only happen
                         //     if user deliberately put same analyzer twice.
-                        if (builder.ContainsKey(analyzer))
-                        {
-                            continue;
-                        }
-
-                        builder.Add(analyzer, new StateSet(analyzer, isHostAnalyzer: false));
+                        allAnalyzers.Add(analyzer);
                     }
                 }
 
@@ -141,19 +100,15 @@ internal partial class DiagnosticAnalyzerService
                         // #1, all de-duplication should move to DiagnosticAnalyzerInfoCache
                         // #2, not sure whether de-duplication of analyzer itself makes sense. this can only happen
                         //     if user deliberately put same analyzer twice.
-                        if (builder.ContainsKey(analyzer))
-                        {
-                            continue;
-                        }
-
-                        builder.Add(analyzer, new StateSet(analyzer, isHostAnalyzer: true));
+                        allAnalyzers.Add(analyzer);
+                        hostAnalyzers.Add(analyzer);
                     }
                 }
 
-                return builder.ToImmutable();
+                return (hostAnalyzers.ToImmutableHashSet(), allAnalyzers.ToImmutableHashSet());
             }
 
-            private readonly record struct HostAnalyzerStateSetKey(
+            private readonly record struct HostAnalyzerInfoKey(
                 string Language, bool HasSdkCodeStyleAnalyzers, IReadOnlyList<AnalyzerReference> AnalyzerReferences);
         }
     }

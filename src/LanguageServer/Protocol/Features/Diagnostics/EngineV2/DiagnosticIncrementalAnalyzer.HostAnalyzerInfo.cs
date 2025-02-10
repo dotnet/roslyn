@@ -17,24 +17,24 @@ internal partial class DiagnosticAnalyzerService
     {
         private partial class StateManager
         {
-            private HostAnalyzerStateSets GetOrCreateHostStateSets(Project project, ProjectAnalyzerStateSets projectStateSets)
+            private HostAnalyzerInfo GetOrCreateHostAnalyzerInfo(Project project, ProjectAnalyzerInfo projectAnalyzerInfo)
             {
-                var key = new HostAnalyzerStateSetKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, project.Solution.SolutionState.Analyzers.HostAnalyzerReferences);
+                var key = new HostAnalyzerInfoKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, project.Solution.SolutionState.Analyzers.HostAnalyzerReferences);
                 // Some Host Analyzers may need to be treated as Project Analyzers so that they do not have access to the
                 // Host fallback options. These ids will be used when building up the Host and Project analyzer collections.
                 var referenceIdsToRedirect = GetReferenceIdsToRedirectAsProjectAnalyzers(project);
-                var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (project.Solution.SolutionState.Analyzers, referenceIdsToRedirect));
-                return hostStateSets.WithExcludedAnalyzers(projectStateSets.SkippedAnalyzersInfo.SkippedAnalyzers);
+                var hostAnalyzerInfo = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (project.Solution.SolutionState.Analyzers, referenceIdsToRedirect));
+                return hostAnalyzerInfo.WithExcludedAnalyzers(projectAnalyzerInfo.SkippedAnalyzersInfo.SkippedAnalyzers);
 
-                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(HostAnalyzerStateSetKey arg, (HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
+                static HostAnalyzerInfo CreateLanguageSpecificAnalyzerMap(HostAnalyzerInfoKey arg, (HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
                 {
                     var language = arg.Language;
                     var analyzersPerReference = state.HostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
 
                     var (hostAnalyzerCollection, projectAnalyzerCollection) = GetAnalyzerCollections(analyzersPerReference, state.ReferenceIdsToRedirect);
-                    var analyzerMap = CreateStateSetMap(projectAnalyzerCollection, hostAnalyzerCollection, includeWorkspacePlaceholderAnalyzers: true);
+                    var (hostAnalyzers, allAnalyzers) = PartitionAnalyzers(projectAnalyzerCollection, hostAnalyzerCollection, includeWorkspacePlaceholderAnalyzers: true);
 
-                    return new HostAnalyzerStateSets(analyzerMap);
+                    return new HostAnalyzerInfo(hostAnalyzers, allAnalyzers);
                 }
 
                 static (IEnumerable<ImmutableArray<DiagnosticAnalyzer>> HostAnalyzerCollection, IEnumerable<ImmutableArray<DiagnosticAnalyzer>> ProjectAnalyzerCollection) GetAnalyzerCollections(
@@ -90,68 +90,65 @@ internal partial class DiagnosticAnalyzerService
                     return builder.ToImmutable();
                 }
             }
+        }
+    }
 
-            private sealed class HostAnalyzerStateSets
+    private sealed class HostAnalyzerInfo
+    {
+        private const int FileContentLoadAnalyzerPriority = -4;
+        private const int GeneratorDiagnosticsPlaceholderAnalyzerPriority = -3;
+        private const int BuiltInCompilerPriority = -2;
+        private const int RegularDiagnosticAnalyzerPriority = -1;
+
+        private readonly ImmutableHashSet<DiagnosticAnalyzer> _hostAnalyzers;
+        private readonly ImmutableHashSet<DiagnosticAnalyzer> _allAnalyzers;
+        public readonly ImmutableArray<DiagnosticAnalyzer> OrderedAllAnalyzers;
+
+        public HostAnalyzerInfo(
+            ImmutableHashSet<DiagnosticAnalyzer> hostAnalyzers,
+            ImmutableHashSet<DiagnosticAnalyzer> allAnalyzers)
+        {
+            _hostAnalyzers = hostAnalyzers;
+            _allAnalyzers = allAnalyzers;
+
+            // order analyzers.
+            // order will be in this order
+            // BuiltIn Compiler Analyzer (C#/VB) < Regular DiagnosticAnalyzers < Document/ProjectDiagnosticAnalyzers
+            OrderedAllAnalyzers = [.. _allAnalyzers.OrderBy(PriorityComparison)];
+        }
+
+        public bool IsHostAnalyzer(DiagnosticAnalyzer analyzer)
+            => _hostAnalyzers.Contains(analyzer);
+
+        public HostAnalyzerInfo WithExcludedAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzers)
+        {
+            if (excludedAnalyzers.IsEmpty)
             {
-                private const int FileContentLoadAnalyzerPriority = -4;
-                private const int GeneratorDiagnosticsPlaceholderAnalyzerPriority = -3;
-                private const int BuiltInCompilerPriority = -2;
-                private const int RegularDiagnosticAnalyzerPriority = -1;
-
-                // ordered by priority
-                public readonly ImmutableArray<StateSet> OrderedStateSets;
-
-                public readonly ImmutableDictionary<DiagnosticAnalyzer, StateSet> StateSetMap;
-
-                private HostAnalyzerStateSets(ImmutableDictionary<DiagnosticAnalyzer, StateSet> stateSetMap, ImmutableArray<StateSet> orderedStateSets)
-                {
-                    StateSetMap = stateSetMap;
-                    OrderedStateSets = orderedStateSets;
-                }
-
-                public HostAnalyzerStateSets(ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap)
-                {
-                    StateSetMap = analyzerMap;
-
-                    // order statesets
-                    // order will be in this order
-                    // BuiltIn Compiler Analyzer (C#/VB) < Regular DiagnosticAnalyzers < Document/ProjectDiagnosticAnalyzers
-                    OrderedStateSets = [.. StateSetMap.Values.OrderBy(PriorityComparison)];
-                }
-
-                public HostAnalyzerStateSets WithExcludedAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzers)
-                {
-                    if (excludedAnalyzers.IsEmpty)
-                    {
-                        return this;
-                    }
-
-                    var stateSetMap = StateSetMap.Where(kvp => !excludedAnalyzers.Contains(kvp.Key)).ToImmutableDictionary();
-                    var orderedStateSets = OrderedStateSets.WhereAsArray(stateSet => !excludedAnalyzers.Contains(stateSet.Analyzer));
-                    return new HostAnalyzerStateSets(stateSetMap, orderedStateSets);
-                }
-
-                private int PriorityComparison(StateSet state1, StateSet state2)
-                    => GetPriority(state1) - GetPriority(state2);
-
-                private static int GetPriority(StateSet state)
-                {
-                    // compiler gets highest priority
-                    if (state.Analyzer.IsCompilerAnalyzer())
-                    {
-                        return BuiltInCompilerPriority;
-                    }
-
-                    return state.Analyzer switch
-                    {
-                        FileContentLoadAnalyzer _ => FileContentLoadAnalyzerPriority,
-                        GeneratorDiagnosticsPlaceholderAnalyzer _ => GeneratorDiagnosticsPlaceholderAnalyzerPriority,
-                        DocumentDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
-                        ProjectDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
-                        _ => RegularDiagnosticAnalyzerPriority,
-                    };
-                }
+                return this;
             }
+
+            return new(_hostAnalyzers, _allAnalyzers.Except(excludedAnalyzers));
+        }
+
+        private int PriorityComparison(DiagnosticAnalyzer state1, DiagnosticAnalyzer state2)
+            => GetPriority(state1) - GetPriority(state2);
+
+        private static int GetPriority(DiagnosticAnalyzer state)
+        {
+            // compiler gets highest priority
+            if (state.IsCompilerAnalyzer())
+            {
+                return BuiltInCompilerPriority;
+            }
+
+            return state switch
+            {
+                FileContentLoadAnalyzer _ => FileContentLoadAnalyzerPriority,
+                GeneratorDiagnosticsPlaceholderAnalyzer _ => GeneratorDiagnosticsPlaceholderAnalyzerPriority,
+                DocumentDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
+                ProjectDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
+                _ => RegularDiagnosticAnalyzerPriority,
+            };
         }
     }
 }

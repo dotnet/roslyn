@@ -19,15 +19,17 @@ internal partial class DiagnosticAnalyzerService
 {
     /// <summary>
     /// Cached data from a <see cref="Project"/> to the last <see cref="CompilationWithAnalyzersPair"/> instance created
-    /// for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see cref="StateSet"/>s
-    /// passed along with the project.  As such, we might not be able to use a prior cached value if the set of state
-    /// sets changes.  In that case, a new instance will be created and will be cached for the next caller.
+    /// for it.  Note: the CompilationWithAnalyzersPair instance is dependent on the set of <see
+    /// cref="DiagnosticAnalyzer"/>s passed along with the project.  As such, we might not be able to use a prior cached
+    /// value if the set of analyzers changes.  In that case, a new instance will be created and will be cached for the
+    /// next caller.
     /// </summary>
-    private static readonly ConditionalWeakTable<Project, StrongBox<(ImmutableArray<StateSet> stateSets, CompilationWithAnalyzersPair? compilationWithAnalyzersPair)>> s_projectToCompilationWithAnalyzers = new();
+    private static readonly ConditionalWeakTable<Project, StrongBox<(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersPair? compilationWithAnalyzersPair)>> s_projectToCompilationWithAnalyzers = new();
 
     private static async Task<CompilationWithAnalyzersPair?> GetOrCreateCompilationWithAnalyzersAsync(
         Project project,
-        ImmutableArray<StateSet> stateSets,
+        ImmutableArray<DiagnosticAnalyzer> analyzers,
+        HostAnalyzerInfo hostAnalyzerInfo,
         bool crashOnAnalyzerException,
         CancellationToken cancellationToken)
     {
@@ -37,10 +39,10 @@ internal partial class DiagnosticAnalyzerService
         // Make sure the cached pair was computed with at least the same state sets we're asking about.  if not,
         // recompute and cache with the new state sets.
         if (!s_projectToCompilationWithAnalyzers.TryGetValue(project, out var tupleBox) ||
-            !stateSets.IsSubsetOf(tupleBox.Value.stateSets))
+            !analyzers.IsSubsetOf(tupleBox.Value.analyzers))
         {
             var compilationWithAnalyzersPair = await CreateCompilationWithAnalyzersAsync().ConfigureAwait(false);
-            tupleBox = new((stateSets, compilationWithAnalyzersPair));
+            tupleBox = new((analyzers, compilationWithAnalyzersPair));
 
             // Make a best effort attempt to store the latest computed value against these state sets. If this
             // fails (because another thread interleaves with this), that's ok.  We still return the pair we 
@@ -59,8 +61,8 @@ internal partial class DiagnosticAnalyzerService
         // </summary>
         async Task<CompilationWithAnalyzersPair?> CreateCompilationWithAnalyzersAsync()
         {
-            var projectAnalyzers = stateSets.SelectAsArray(s => !s.IsHostAnalyzer, s => s.Analyzer);
-            var hostAnalyzers = stateSets.SelectAsArray(s => s.IsHostAnalyzer, s => s.Analyzer);
+            var projectAnalyzers = analyzers.WhereAsArray(static (s, info) => !info.IsHostAnalyzer(s), hostAnalyzerInfo);
+            var hostAnalyzers = analyzers.WhereAsArray(static (s, info) => info.IsHostAnalyzer(s), hostAnalyzerInfo);
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
