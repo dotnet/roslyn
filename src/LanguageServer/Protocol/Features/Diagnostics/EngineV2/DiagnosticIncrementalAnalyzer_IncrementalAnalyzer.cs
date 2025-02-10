@@ -20,21 +20,31 @@ internal partial class DiagnosticAnalyzerService
     private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
-        /// Cached data from a real <see cref="Project"/> instance to the cached diagnostic data produced by
+        /// Cached data from a real <see cref="ProjectState"/> instance to the cached diagnostic data produced by
         /// <em>all</em> the analyzers for the project.  This data can then be used by <see
         /// cref="DiagnosticGetter.ProduceDiagnosticsAsync"/> to speed up subsequent calls through the normal <see
         /// cref="IDiagnosticAnalyzerService"/> entry points as long as the project hasn't changed at all.
         /// </summary>
+        /// <remarks>
+        /// This table is keyed off of <see cref="ProjectState"/> but stores data from <see cref="SolutionState"/> on
+        /// it.  Specifically <see cref="SolutionState.Analyzers"/>.  Normally keying off a ProjectState would not be ok
+        /// as the ProjectState might stay the same while the SolutionState changed.  However, that can't happen as
+        /// SolutionState has the data for Analyzers computed prior to Projects being added, and then never changes.
+        /// Practically, solution analyzers are the core Roslyn analyzers themselves we distribute, or analyzers shipped
+        /// by vsix (not nuget).  These analyzers do not get loaded after changing *until* VS restarts.
+        /// </remarks>
         private readonly ConditionalWeakTable<ProjectState, StrongBox<(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> _projectToForceAnalysisData = new();
 
         public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
+            var projectState = project.State;
+
             try
             {
-                if (!_projectToForceAnalysisData.TryGetValue(project, out var box))
+                if (!_projectToForceAnalysisData.TryGetValue(projectState, out var box))
                 {
                     box = new(await ComputeForceAnalyzeProjectAsync().ConfigureAwait(false));
-                    box = _projectToForceAnalysisData.GetValue(project, _ => box);
+                    box = _projectToForceAnalysisData.GetValue(projectState, _ => box);
                 }
 
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
@@ -55,12 +65,13 @@ internal partial class DiagnosticAnalyzerService
 
             async Task<(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)> ComputeForceAnalyzeProjectAsync()
             {
-                var allAnalyzers = await _stateManager.GetOrCreateAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
-                var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+                var solutionState = project.Solution.SolutionState;
+                var allAnalyzers = await _stateManager.GetOrCreateAnalyzersAsync(solutionState, projectState, cancellationToken).ConfigureAwait(false);
+                var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(solutionState, projectState, cancellationToken).ConfigureAwait(false);
 
                 var fullSolutionAnalysisAnalyzers = allAnalyzers.WhereAsArray(
-                    static (analyzer, arg) => arg.self.IsCandidateForFullSolutionAnalysis(analyzer, arg.hostAnalyzerInfo.IsHostAnalyzer(analyzer), arg.project),
-                    (self: this, project, hostAnalyzerInfo));
+                    static (analyzer, arg) => arg.self.IsCandidateForFullSolutionAnalysis(analyzer, arg.hostAnalyzerInfo.IsHostAnalyzer(analyzer), arg.projectState),
+                    (self: this, projectState, hostAnalyzerInfo));
 
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
                     project, fullSolutionAnalysisAnalyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
@@ -70,7 +81,8 @@ internal partial class DiagnosticAnalyzerService
             }
         }
 
-        private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, bool isHostAnalyzer, Project project)
+        private bool IsCandidateForFullSolutionAnalysis(
+            DiagnosticAnalyzer analyzer, bool isHostAnalyzer, ProjectState project)
         {
             // PERF: Don't query descriptors for compiler analyzer or workspace load analyzer, always execute them.
             if (analyzer == FileContentLoadAnalyzer.Instance ||
@@ -110,7 +122,9 @@ internal partial class DiagnosticAnalyzerService
             var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer);
             var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
-            return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.CompilationOptions, arg.isHostAnalyzer ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project.CompilationOptions, isHostAnalyzer, analyzerConfigOptions));
+            return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(
+                arg.CompilationOptions, arg.isHostAnalyzer ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden,
+                (project.CompilationOptions, isHostAnalyzer, analyzerConfigOptions));
         }
     }
 }

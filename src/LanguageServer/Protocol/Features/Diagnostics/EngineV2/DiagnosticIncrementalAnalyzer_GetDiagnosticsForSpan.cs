@@ -75,12 +75,15 @@ internal partial class DiagnosticAnalyzerService
             {
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
+                var project = document.Project;
+                var solution = project.Solution;
                 var unfilteredAnalyzers = await owner._stateManager
-                    .GetOrCreateAnalyzersAsync(document.Project, cancellationToken)
+                    .GetOrCreateAnalyzersAsync(solution.SolutionState, project.State, cancellationToken)
                     .ConfigureAwait(false);
                 var analyzers = unfilteredAnalyzers
-                    .WhereAsArray(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, document.Project, owner.GlobalOptions));
-                var hostAnalyzerInfo = await owner._stateManager.GetOrCreateHostAnalyzerInfoAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                    .WhereAsArray(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, owner.GlobalOptions));
+                var hostAnalyzerInfo = await owner._stateManager.GetOrCreateHostAnalyzerInfoAsync(
+                    solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
 
                 // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span.
                 // We clear out range for such cases as we are computing full document diagnostics.
@@ -284,13 +287,15 @@ internal partial class DiagnosticAnalyzerService
 
                 analyzers = filteredAnalyzers.ToImmutable();
 
-                var hostAnalyzerInfo = await _owner._stateManager.GetOrCreateHostAnalyzerInfoAsync(_document.Project, cancellationToken).ConfigureAwait(false);
+                var project = _document.Project;
+                var hostAnalyzerInfo = await _owner._stateManager.GetOrCreateHostAnalyzerInfoAsync(
+                    project.Solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
 
                 var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
                 var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
                 var analysisScope = new DocumentAnalysisScope(_document, span, projectAnalyzers, hostAnalyzers, kind);
                 var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, _isExplicit, _logPerformanceInfo);
-                var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
+                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
                 ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnosticsMap;
                 if (incrementalAnalysis)

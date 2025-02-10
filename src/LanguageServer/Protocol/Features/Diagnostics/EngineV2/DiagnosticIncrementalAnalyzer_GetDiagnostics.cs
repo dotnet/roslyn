@@ -101,8 +101,12 @@ internal partial class DiagnosticAnalyzerService
                 ArrayBuilder<DiagnosticData> builder,
                 CancellationToken cancellationToken)
             {
-                var analyzersForProject = await StateManager.GetOrCreateAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
-                var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+                var solution = project.Solution;
+                var projectState = project.State;
+                var analyzersForProject = await StateManager.GetOrCreateAnalyzersAsync(
+                    solution.SolutionState, projectState, cancellationToken).ConfigureAwait(false);
+                var hostAnalyzerInfo = await StateManager.GetOrCreateHostAnalyzerInfoAsync(
+                    solution.SolutionState, projectState, cancellationToken).ConfigureAwait(false);
                 var analyzers = analyzersForProject.WhereAsArray(a => ShouldIncludeAnalyzer(project, a));
 
                 var result = await GetOrComputeDiagnosticAnalysisResultsAsync(analyzers).ConfigureAwait(false);
@@ -144,7 +148,7 @@ internal partial class DiagnosticAnalyzerService
                     // (since it runs all analyzers), we still run a paranoia check that the analyzers we care about are
                     // a subset of that call so that we don't accidentally reuse results that would not correspond to
                     // what we are computing ourselves.
-                    if (this.Owner._projectToForceAnalysisData.TryGetValue(project, out var box) &&
+                    if (this.Owner._projectToForceAnalysisData.TryGetValue(projectState, out var box) &&
                         analyzers.IsSubsetOf(box.Value.analyzers))
                     {
                         return box.Value.diagnosticAnalysisResults;
