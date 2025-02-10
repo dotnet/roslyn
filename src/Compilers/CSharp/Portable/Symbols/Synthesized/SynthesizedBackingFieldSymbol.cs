@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -148,7 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // TODO2: also if any nullable attributes are used, we don't infer.
+                if (FlowAnalysisAnnotations != FlowAnalysisAnnotations.None)
+                {
+                    return false;
+                }
+
                 var propertyType = _property.TypeWithAnnotations;
                 if (propertyType.NullableAnnotation != NullableAnnotation.NotAnnotated
                     || !_property.UsesFieldKeyword)
@@ -183,24 +188,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var binder = getAccessor.TryGetBodyBinder() ?? throw ExceptionUtilities.UnexpectedValue(getAccessor);
             var boundGetAccessor = binder.BindMethodBody(getAccessor.SyntaxNode, BindingDiagnosticBag.Discarded);
 
-            // TODO: first, analyze with Annotated, and see if we have no nullability diagnostics.
-            // In this case, we can skip analyzing with NotAnnotated, and simply mark it as resilient.
             var annotatedDiagnostics = DiagnosticBag.GetInstance();
             NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, annotatedDiagnostics, getterNullResilienceData: (getAccessor, _property.BackingField, NullableAnnotation.Annotated));
 
             if (annotatedDiagnostics.IsEmptyWithoutResolution)
             {
-                // getter is null-resilient.
+                // No nullable warnings occur at all when we treat the field as nullable.
                 annotatedDiagnostics.Free();
                 return NullableAnnotation.Annotated;
             }
 
             var notAnnotatedDiagnostics = DiagnosticBag.GetInstance();
             NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, notAnnotatedDiagnostics, getterNullResilienceData: (getAccessor, _property.BackingField, NullableAnnotation.NotAnnotated));
+            var notAnnotatedDiagnosticsSet = new HashSet<Diagnostic>(notAnnotatedDiagnostics.AsEnumerable(), SameDiagnosticComparer.Instance);
+            notAnnotatedDiagnostics.Free();
 
-            return NullableAnnotation.NotAnnotated;
+            foreach (var diagnostic in annotatedDiagnostics.AsEnumerable())
+            {
+                if (!notAnnotatedDiagnosticsSet.Contains(diagnostic))
+                {
+                    // Treating the field as non-nullable removes a nullable warning compared to treating it as annotated.
+                    annotatedDiagnostics.Free();
+                    return NullableAnnotation.NotAnnotated;
+                }
+            }
+
+            annotatedDiagnostics.Free();
+            return NullableAnnotation.Annotated;
         }
 #nullable disable
+
+        // TODO2: dedupe
+        private sealed class SameDiagnosticComparer : EqualityComparer<Diagnostic>
+        {
+            public static readonly SameDiagnosticComparer Instance = new SameDiagnosticComparer();
+            public override bool Equals(Diagnostic x, Diagnostic y) => x.Equals(y);
+            public override int GetHashCode(Diagnostic obj) =>
+                Hash.Combine(Hash.CombineValues(obj.Arguments), Hash.Combine(obj.Location.GetHashCode(), obj.Code));
+        }
 
         internal override bool HasPointerType
             => _property.HasPointerType;
