@@ -49,8 +49,6 @@ internal partial class DiagnosticAnalyzerService
                 DocumentAnalysisExecutor executor,
                 ImmutableArray<DiagnosticAnalyzer> analyzers,
                 VersionStamp version,
-                Func<DiagnosticAnalyzer, DocumentAnalysisExecutor, CancellationToken, Task<ImmutableArray<DiagnosticData>>> computeAnalyzerDiagnosticsAsync,
-                Func<DocumentAnalysisExecutor, CancellationToken, Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>>> computeDiagnosticsNonIncrementallyAsync,
                 CancellationToken cancellationToken)
             {
                 var analysisScope = executor.AnalysisScope;
@@ -68,7 +66,7 @@ internal partial class DiagnosticAnalyzerService
                 {
                     // This is not a member-edit scenario, so compute full document diagnostics
                     // without incremental analysis.
-                    return await computeDiagnosticsNonIncrementallyAsync(executor, cancellationToken).ConfigureAwait(false);
+                    return await ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken).ConfigureAwait(false);
                 }
 
                 var (changedMember, changedMemberId, newMemberSpans, oldDocument) = changedMemberAndIdAndSpansAndDocument.Value;
@@ -94,18 +92,17 @@ internal partial class DiagnosticAnalyzerService
                         }
                         else
                         {
-                            var analyzerWithStateAndEmptyData = analyzer;
                             if (!compilerAnalyzerData.HasValue && analyzer.IsCompilerAnalyzer())
-                                compilerAnalyzerData = (analyzerWithStateAndEmptyData, spanBased: false);
+                                compilerAnalyzerData = (analyzer, spanBased: false);
                             else
-                                documentBasedAnalyzers.Add(analyzerWithStateAndEmptyData);
+                                documentBasedAnalyzers.Add(analyzer);
                         }
                     }
 
                     if (spanBasedAnalyzers.Count == 0 && (!compilerAnalyzerData.HasValue || !compilerAnalyzerData.Value.spanBased))
                     {
                         // No incremental span based-analysis to be performed.
-                        return await computeDiagnosticsNonIncrementallyAsync(executor, cancellationToken).ConfigureAwait(false);
+                        return await ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken).ConfigureAwait(false);
                     }
 
                     // Get or create the member spans for all member nodes in the old document.
@@ -178,7 +175,7 @@ internal partial class DiagnosticAnalyzerService
 
                     foreach (var analyzer in analyzers)
                     {
-                        var diagnostics = await computeAnalyzerDiagnosticsAsync(analyzer, executor, cancellationToken).ConfigureAwait(false);
+                        var diagnostics = await ComputeDocumentDiagnosticsForAnalyzerCoreAsync(analyzer, executor, cancellationToken).ConfigureAwait(false);
                         builder.Add(analyzer, diagnostics);
                     }
                 }
