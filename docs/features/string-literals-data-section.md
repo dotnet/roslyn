@@ -54,7 +54,7 @@ The utf8 string literal encoding emit strategy emits `ldsfld` of a field in a ge
 
 For every unique string literal, a unique internal static class is generated which:
 - has name composed of `<S>` followed by a hex-encoded XXH128 hash of the string
-  (collisions [should not happen][xxh128] with XXH128 and so they aren't currently detected or reported, the behavior in that case is undefined),
+  (collisions [should not happen][xxh128] with XXH128, but if there are string literals which would result in the same XXH128 hash, a compile-time error is reported),
 - is nested in the `<PrivateImplementationDetails>` type to avoid polluting the global namespace
   and to avoid having to enforce name uniqueness across modules,
 - has one internal static readonly `string` field which is initialized in a static constructor of the class,
@@ -62,6 +62,7 @@ For every unique string literal, a unique internal static class is generated whi
 
 There is also an internal static readonly `.data` field generated into `<PrivateImplementationDetails>` containing the actual bytes,
 similar to [u8 string literals][u8-literals] and [constant array initializers][constant-array-init].
+This field uses hex-encoded SHA-256 hash for its name and collisions are currently not reported by the compiler.
 These other scenarios might also reuse the data field, e.g., the following statements could all reuse the same data field:
 
 ```cs
@@ -241,6 +242,9 @@ This fixup phase already exists in the compiler in `MetadataWriter.WriteInstruct
 It is called from `SerializeMethodBodies` which precedes `PopulateSystemTables` call,
 hence synthesizing the utf8 string classes in the former should be possible and they would be emitted in the latter.
 
+Alternatively, we could collect string literals during binding, then before emit sort them by length and content (for determinism)
+to find the ones that are over the threshold and should be emitted with this new strategy.
+
 ### Statistics
 
 The compiler could emit an info diagnostic with useful statistics for customers to determine what threshold to set.
@@ -301,6 +305,18 @@ However, that would likely result in worse machine code due to more branches and
 The compiler should report a diagnostic when the feature is enabled together with
 `[assembly: System.Runtime.CompilerServices.CompilationRelaxations(0)]`, i.e., string interning enabled,
 because that is incompatible with the feature.
+
+### Avoiding hash collisions
+
+Instead of XXH128 for the type names and SHA-256 for the data field names, we could use index-based names.
+- The compiler could assign names lazily based on metadata tokens which are deterministic.
+  If building on the current approach, that might require some refactoring,
+  because internal data structures in the compiler might not be ready for lazy names like that.
+  But it would be easier if combined with the first strategy suggested for [automatic threshold](#automatic-threshold) above,
+  where we would not synthesize the types until very late in the emit phase (during fixup of the metadata tokens).
+- We could build on the second strategy suggested for [automatic threshold](#automatic-threshold) where we would collect string literals during binding
+  (and perhaps also constant arrays and u8 strings if we want to extend this support to them as well),
+  then before emit we would sort them by length and content and assign indices to them to be then used for the synthesized names.
 
 <!-- links -->
 [u8-literals]: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-11.0/utf8-string-literals
