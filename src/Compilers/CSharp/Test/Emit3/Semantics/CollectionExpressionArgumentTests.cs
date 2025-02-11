@@ -1989,8 +1989,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         c = [];
                         c = [with()];
                         c = [with(default)];
+                        c = F(1, 2);
                     }
-                    static void F<T>(params MyCollection<T> c) { }
+                    static MyCollection<T> F<T>(params MyCollection<T> c) => c;
                 }
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
@@ -2029,8 +2030,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         c = [];
                         c = [with()];
                         c = [with(default)];
+                        c = F(1, 2);
                     }
-                    static void F<T>(params MyCollection<T> c) { }
+                    static MyCollection<T> F<T>(params MyCollection<T> c) => c;
                 }
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
@@ -2044,9 +2046,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (8,14): warning CS0612: 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)' is obsolete
                 //         c = [with(default)];
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(8, 14),
-                // (10,22): warning CS0612: 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)' is obsolete
-                //     static void F<T>(params MyCollection<T> c) { }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(10, 22));
+                // (9,13): warning CS0612: 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)' is obsolete
+                //         c = F(1, 2);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F(1, 2)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(9, 13),
+                // (11,33): warning CS0612: 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)' is obsolete
+                //     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(11, 33));
         }
 
         [Fact]
@@ -2079,8 +2084,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         c = [];
                         c = [with()];
                         c = [with(0)];
+                        c = F(1, 2);
                     }
-                    static void F(params MyCollection c) { }
+                    static MyCollection F(params MyCollection c) => c;
                 }
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
@@ -2094,9 +2100,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (8,14): error CS8901: 'MyBuilder.Create(ReadOnlySpan<int>, params object[])' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         c = [with(0)];
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "with(0)").WithArguments("MyBuilder.Create(System.ReadOnlySpan<int>, params object[])").WithLocation(8, 14),
-                // (10,19): error CS8901: 'MyBuilder.Create(ReadOnlySpan<int>, params object[])' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
-                //     static void F(params MyCollection c) { }
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "params MyCollection c").WithArguments("MyBuilder.Create(System.ReadOnlySpan<int>, params object[])").WithLocation(10, 19),
+                // (9,13): error CS8901: 'MyBuilder.Create(ReadOnlySpan<int>, params object[])' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         c = F(1, 2);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F(1, 2)").WithArguments("MyBuilder.Create(System.ReadOnlySpan<int>, params object[])").WithLocation(9, 13),
+                // (11,27): error CS8901: 'MyBuilder.Create(ReadOnlySpan<int>, params object[])' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //     static MyCollection F(params MyCollection c) => c;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "params MyCollection c").WithArguments("MyBuilder.Create(System.ReadOnlySpan<int>, params object[])").WithLocation(11, 27),
                 // (15,19): error CS8894: Cannot use 'MyCollection' as a return type on a method attributed with 'UnmanagedCallersOnly'.
                 //     public static MyCollection Create(ReadOnlySpan<int> items, params object[] args) => default;
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "MyCollection").WithArguments("MyCollection", "return").WithLocation(15, 19),
@@ -2147,15 +2156,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         MyCollection<int> y;
                         y = [with(2), 3];
                         y.Report();
+                        x = F((object)1);
+                        x.Report();
+                        y = F(3);
+                        y.Report();
                     }
-                    static void F<T>(params MyCollection<T> c) { }
+                    static MyCollection<T> F<T>(params MyCollection<T> c) => c;
                 }
                 """;
             var verifier = CompileAndVerify(
                 [sourceA, sourceB1, s_collectionExtensions],
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("[null, 1], [2, 3], "));
+                expectedOutput: IncludeExpectedOutput("[null, 1], [2, 3], [null, 1], [0, 3], "));
             verifier.VerifyDiagnostics();
 
             string sourceB2 = """

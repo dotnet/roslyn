@@ -1260,6 +1260,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return noArgsMethod;
         }
 
+        internal static MethodSymbol? GetCollectionBuilderMethod(BoundCollectionExpression node)
+        {
+            if (node.CollectionTypeKind != CollectionExpressionTypeKind.CollectionBuilder)
+            {
+                return null;
+            }
+
+            Debug.Assert(node.CollectionCreation is { });
+            return GetCollectionBuilderMethodFromCollectionCreation(node.CollectionCreation);
+        }
+
+        private static MethodSymbol? GetCollectionBuilderMethodFromCollectionCreation(BoundExpression? expr)
+        {
+            return expr switch
+            {
+                BoundCall call => call.Method,
+                BoundConversion conversion => GetCollectionBuilderMethodFromCollectionCreation(conversion.Operand),
+                _ => null,
+            };
+        }
+
         private bool IsCollectionBuilderMethodCallableWithoutAdditionalArguments(SyntaxNode syntax, MethodSymbol candidate)
         {
             Debug.Assert(candidate.IsDefinition);
@@ -1910,27 +1931,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
             return result;
-        }
-
-        internal static MethodSymbol? GetCollectionBuilderMethod(BoundCollectionExpression node)
-        {
-            if (node.CollectionTypeKind != CollectionExpressionTypeKind.CollectionBuilder)
-            {
-                return null;
-            }
-
-            Debug.Assert(node.CollectionCreation is { });
-            return GetCollectionBuilderMethodFromCollectionCreation(node.CollectionCreation);
-        }
-
-        private static MethodSymbol? GetCollectionBuilderMethodFromCollectionCreation(BoundExpression? expr)
-        {
-            return expr switch
-            {
-                BoundCall call => call.Method,
-                BoundConversion conversion => GetCollectionBuilderMethodFromCollectionCreation(conversion.Operand),
-                _ => null,
-            };
         }
 
         private BoundCollectionExpression BindCollectionExpressionForErrorRecovery(
