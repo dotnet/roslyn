@@ -1455,6 +1455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+            // PROTOTYPE: Should we report an error for Params<T>() since there may not be a candidate that works for any T? Did we report such an error in C#13?
             comp.VerifyEmitDiagnostics(
                 // (7,53): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
                 //     static MyCollection<T> TwoItems<T>(T x, T y) => Params(x, y);
@@ -1957,6 +1958,87 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_000c:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void CollectionBuilder_UseSiteError_Method()
+        {
+            // [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
+            // public sealed class MyCollection<T>
+            // {
+            //     public IEnumerator<T> GetEnumerator() { }
+            // }
+            // public static class MyCollectionBuilder
+            // {
+            //     [CompilerFeatureRequired("MyFeature")]
+            //     public static MyCollection<T> MyCollectionBuilder.Create<T>(ReadOnlySpan<T>, object arg = null) { }
+            // }
+            string sourceA = """
+                .assembly extern System.Runtime { .ver 8:0:0:0 .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A) }
+                .class public sealed MyCollection`1<T>
+                {
+                  .custom instance void [System.Runtime]System.Runtime.CompilerServices.CollectionBuilderAttribute::.ctor(class [System.Runtime]System.Type, string) = { type(MyCollectionBuilder) string('Create') }
+                  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+                  .method public instance class [System.Runtime]System.Collections.Generic.IEnumerator`1<!T> GetEnumerator() { ldnull ret }
+                }
+                .class public abstract sealed MyCollectionBuilder
+                {
+                  .method public static class MyCollection`1<!!T> Create<T>(valuetype [System.Runtime]System.ReadOnlySpan`1<!!T> items, [opt] object arg)
+                  {
+                    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = { string('MyFeature') }
+                    .param [2] = nullref
+                    ldnull ret
+                  }
+                }
+                """;
+            var refA = CompileIL(sourceA);
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = [];
+                        c = [with()];
+                        c = [with(default)];
+                        c = F(1, 2);
+                    }
+                    static MyCollection<T> F<T>(params MyCollection<T> c) => c;
+                }
+                """;
+            var comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 13),
+                // (6,13): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>, object)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "[]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>, object)", "MyFeature").WithLocation(6, 13),
+                // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //         c = [with()];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 13),
+                // (7,14): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>, object)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
+                //         c = [with()];
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "with()").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>, object)", "MyFeature").WithLocation(7, 14),
+                // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //         c = [with(default)];
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
+                // (8,14): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>, object)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
+                //         c = [with(default)];
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "with(default)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>, object)", "MyFeature").WithLocation(8, 14),
+                // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //         c = F(1, 2);
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(1, 2)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 13),
+                // (9,13): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>, object)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
+                //         c = F(1, 2);
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "F(1, 2)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>, object)", "MyFeature").WithLocation(9, 13),
+                // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                //     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 33),
+                // (11,33): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
+                //     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "MyFeature").WithLocation(11, 33));
         }
 
         [Fact]

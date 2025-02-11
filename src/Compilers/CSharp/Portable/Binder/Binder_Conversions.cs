@@ -1290,7 +1290,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var analyzedArguments = AnalyzedArguments.GetInstance();
             analyzedArguments.Arguments.Add(new BoundDefaultExpression(syntax, candidate.Parameters[0].Type));
             var candidateMethodGroup = BindCollectionBuilderMethodGroup(syntax, candidate.Name, candidate.TypeArgumentsWithAnnotations, candidates);
-            var collectionCreation = BindCollectionBuilderCreate(syntax, candidateMethodGroup, analyzedArguments, BindingDiagnosticBag.Discarded);
+            var diagnostics = BindingDiagnosticBag.GetInstance();
+            var collectionCreation = BindCollectionBuilderCreate(syntax, candidateMethodGroup, analyzedArguments, diagnostics);
+            diagnostics.Free(); // PROTOTYPE: Should return these diagnostics when returning true.
             analyzedArguments.Free();
             return collectionCreation is BoundCall { ResultKind: LookupResultKind.Viable };
         }
