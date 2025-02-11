@@ -1265,6 +1265,42 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         Assert.Equal("Parameter 'p5' can be removed; its initial value is never used", sortedDiagnostics[4].GetMessage());
     }
 
+    [Theory]
+    [InlineData("int[]")]
+    [InlineData("Span<int>")]
+    public async Task Parameter_ArrayLikeUsedForReading(string arrayLikeType)
+    {
+        await TestDiagnosticMissingAsync(
+            $$"""
+            using System;
+            class C
+            {
+                void M({{arrayLikeType}} p)
+                {
+                    var x = p[0];
+                }
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("int[]")]
+    [InlineData("Span<int>", Skip = "https://github.com/dotnet/sdk/pull/46546")]
+    public async Task Parameter_ArrayLikeUsedForWriting(string arrayLikeType)
+    {
+        await TestDiagnosticMissingAsync(
+            $$"""
+            using System;
+            class C
+            {
+                void M({{arrayLikeType}} p)
+                {
+                    p[0] = new();
+                }
+            }
+            """);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32287")]
     public async Task Parameter_DeclarationPatternWithNullDeclaredSymbol()
     {
