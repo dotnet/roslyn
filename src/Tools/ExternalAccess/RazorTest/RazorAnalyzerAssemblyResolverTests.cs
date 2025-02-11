@@ -86,32 +86,6 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
     [Obsolete]
     internal static RazorAnalyzerAssemblyResolver CreateResolver() => new RazorAnalyzerAssemblyResolver();
 
-    [Fact]
-    public void OneLoadsAll()
-    {
-        var dir = TempRoot.CreateDirectory().Path;
-        CreateRazorAssemblies(dir);
-        foreach (var name in RazorAnalyzerAssemblyResolver.RazorAssemblyNames)
-        {
-            RunWithLoader((resolver, loader, currentLoadContext) =>
-            {
-                var assembly = resolver.Resolve(
-                    loader,
-                    new AssemblyName(name),
-                    currentLoadContext,
-                    dir);
-                Assert.NotNull(assembly);
-                Assert.Equal(name, assembly.GetName().Name);
-
-                foreach (var n in RazorAnalyzerAssemblyResolver.RazorAssemblyNames)
-                {
-                    var a = loader.CompilerLoadContext.Assemblies.Single(x => x.GetName().Name == n);
-                    Assert.NotNull(a);
-                }
-            });
-        }
-    }
-
     /// <summary>
     /// When running in Visual Studio the razor generator will be redirected to the razor language 
     /// services directory. That will not contain all of the necessary DLLs. Anything that is a 

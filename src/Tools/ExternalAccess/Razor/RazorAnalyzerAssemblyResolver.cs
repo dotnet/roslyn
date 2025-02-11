@@ -27,98 +27,67 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         internal static readonly ImmutableArray<string> RazorAssemblyNames = [RazorCompilerAssemblyName, RazorUtilsAssemblyName, ObjectPoolAssemblyName];
 
-        public Assembly? Resolve(AnalyzerAssemblyLoader loader, AssemblyName assemblyName, AssemblyLoadContext directoryContext, string directory)
+        public Assembly? Resolve(AnalyzerAssemblyLoader loader, AssemblyName assemblyName, AssemblyLoadContext directoryContext, string directory) =>
+            ResolveCore(loader.CompilerLoadContext, assemblyName, directory);
+
+        public static Assembly? ResolveRazorAssembly(AssemblyName assemblyName, string rootDirectory) =>
+            ResolveCore(
+                AssemblyLoadContext.GetLoadContext(typeof(Microsoft.CodeAnalysis.Compilation).Assembly)!,
+                assemblyName,
+                rootDirectory);
+
+        /// <summary>
+        /// This will resolve the razor generator assembly specified by <paramref name="assemblyName"/> in the specified 
+        /// <paramref name="compilerLoadContext"/>.
+        /// </summary>
+        internal static Assembly? ResolveCore(AssemblyLoadContext compilerLoadContext, AssemblyName assemblyName, string directory)
         {
             if (assemblyName.Name is not (RazorCompilerAssemblyName or RazorUtilsAssemblyName or ObjectPoolAssemblyName))
             {
                 return null;
             }
 
-            return Resolve(loader.CompilerLoadContext, assemblyName, directory);
-        }
-
-        public static Assembly? ResolveRazorAssembly(AssemblyName assemblyName, string rootDirectory)
-        {
-            var compilerLoadContext = AssemblyLoadContext.GetLoadContext(typeof(Microsoft.CodeAnalysis.Compilation).Assembly)!;
-            return Resolve(compilerLoadContext, assemblyName, rootDirectory);
-        }
-
-        /// <summary>
-        /// This will resolve the razor generator assembly specified by <paramref name="assemblyName"/> in the specified 
-        /// <paramref name="compilerLoadContext"/>.
-        /// 
-        /// This will resolve _all_ of the known razor generator assemblies, not just the specified one. This is necessary
-        /// because the compiler load context, unlike the directory load context, does not have a way to resolve dependencies.
-        /// That means if we loaded Microsoft.CodeAnalysis.Razor.Compiler.dll and nothing else it's possible we'd eventually 
-        /// get an exception when it tried to access members in Microsoft.AspNetCore.Razor.Utilities.Shared.dll.
-        /// </summary>
-        internal static Assembly? Resolve(AssemblyLoadContext compilerLoadContext, AssemblyName assemblyName, string directory)
-        {
-            Debug.Assert(assemblyName.Name is not null);
-
-            var found = false;
-            Assembly? resolvedAssembly = null;
-            foreach (var name in RazorAssemblyNames)
+            var assembly = compilerLoadContext.Assemblies.FirstOrDefault(a => a.GetName().Name == assemblyName.Name);
+            if (assembly is not null)
             {
-                var assembly = resolve(compilerLoadContext, new AssemblyName(name), directory);
-                if (name == assemblyName.Name)
-                {
-                    found = true;
-                    resolvedAssembly = assembly;
-                }
-            }
-
-            if (!found)
-            {
-                resolvedAssembly = resolve(compilerLoadContext, assemblyName, directory);
-            }
-
-            return resolvedAssembly;
-
-            static Assembly? resolve(AssemblyLoadContext compilerLoadContext, AssemblyName assemblyName, string directory)
-            {
-                var assembly = compilerLoadContext.Assemblies.FirstOrDefault(a => a.GetName().Name == assemblyName.Name);
-                if (assembly is not null)
-                {
-                    return assembly;
-                }
-
-                var assemblyFileName = $"{assemblyName.Name}.dll";
-                var assemblyPath = Path.Combine(directory, assemblyFileName);
-                if (File.Exists(assemblyPath))
-                {
-                    // https://github.com/dotnet/roslyn/issues/76868
-                    //
-                    // There is a subtle race condition in this logic as another thread could load the assembly inbetween 
-                    // the above calls and this one. Short term will just catch and grab the loaded assembly but longer 
-                    // term need to think about creating a dedicated AssemblyLoadContext for the razor assemblies 
-                    // which avoids this race condition.
-                    try
-                    {
-                        assembly = compilerLoadContext.LoadFromAssemblyPath(assemblyPath);
-                    }
-                    catch
-                    {
-                        assembly = compilerLoadContext.Assemblies.Single(a => a.GetName().Name == assemblyName.Name);
-                    }
-                }
-                else
-                {
-                    // There are assemblies in the razor sdk generator directory that do not exist in the VS installation. That
-                    // means when the paths are redirected, it's possible that the assembly is not found. In that case, we should
-                    // load the assembly from the VS installation by querying through the compiler context.
-                    try
-                    {
-                        assembly = compilerLoadContext.LoadFromAssemblyName(assemblyName);
-                    }
-                    catch (FileNotFoundException)
-                    {
-                        assembly = null;
-                    }
-                }
-
                 return assembly;
             }
+
+            var assemblyFileName = $"{assemblyName.Name}.dll";
+            var assemblyPath = Path.Combine(directory, assemblyFileName);
+            if (File.Exists(assemblyPath))
+            {
+                // https://github.com/dotnet/roslyn/issues/76868
+                //
+                // There is a subtle race condition in this logic as another thread could load the assembly inbetween 
+                // the above calls and this one. Short term will just catch and grab the loaded assembly but longer 
+                // term need to think about creating a dedicated AssemblyLoadContext for the razor assemblies 
+                // which avoids this race condition.
+                try
+                {
+                    assembly = compilerLoadContext.LoadFromAssemblyPath(assemblyPath);
+                }
+                catch
+                {
+                    assembly = compilerLoadContext.Assemblies.Single(a => a.GetName().Name == assemblyName.Name);
+                }
+            }
+            else
+            {
+                // There are assemblies in the razor sdk generator directory that do not exist in the VS installation. That
+                // means when the paths are redirected, it's possible that the assembly is not found. In that case, we should
+                // load the assembly from the VS installation by querying through the compiler context.
+                try
+                {
+                    assembly = compilerLoadContext.LoadFromAssemblyName(assemblyName);
+                }
+                catch (FileNotFoundException)
+                {
+                    assembly = null;
+                }
+            }
+
+            return assembly;
         }
     }
 }
