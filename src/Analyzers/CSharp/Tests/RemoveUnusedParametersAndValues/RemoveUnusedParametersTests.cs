@@ -1285,7 +1285,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
     [Theory]
     [InlineData("int[]")]
-    [InlineData("Span<int>", Skip = "https://github.com/dotnet/sdk/pull/46546")]
+    [InlineData("Span<int>")]
     public async Task Parameter_ArrayLikeUsedForWriting(string arrayLikeType)
     {
         await TestDiagnosticMissingAsync(
