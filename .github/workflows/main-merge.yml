@@ -5,6 +5,7 @@ on:
   schedule:
     # once a day at 13:00 UTC to cleanup old runs
     - cron: '0 13 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
