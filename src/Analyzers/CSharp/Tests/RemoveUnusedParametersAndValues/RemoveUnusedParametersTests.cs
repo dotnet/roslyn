@@ -45,8 +45,8 @@ public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBased
     // Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).
     private static Task TestDiagnosticMissingAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup)
         => TestDiagnosticMissingAsync(initialMarkup, options: null);
-    private Task TestDiagnosticsAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
-        => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions: null, expectedDiagnostics);
+    private static Task TestDiagnosticsAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup)
+        => TestDiagnosticsAsync(initialMarkup, options: null);
     private static async Task TestDiagnosticMissingAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, OptionsCollection? options)
     {
         var test = new VerifyCS.Test
@@ -67,10 +67,25 @@ public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBased
         await test.RunAsync();
     }
 
-    private Task TestDiagnosticsAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, OptionsCollection options, params DiagnosticDescription[] expectedDiagnostics)
-        => TestDiagnosticsAsync(initialMarkup, options, parseOptions: null, expectedDiagnostics);
-    private Task TestDiagnosticsAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, OptionsCollection? options, ParseOptions? parseOptions, params DiagnosticDescription[] expectedDiagnostics)
-        => TestDiagnosticsAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true), expectedDiagnostics);
+    private static async Task TestDiagnosticsAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, OptionsCollection? options)
+    {
+        var test = new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            TestCode = initialMarkup,
+            DisabledDiagnostics =
+            {
+                IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
+                IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId,
+            },
+        };
+
+        if (options is not null)
+            test.Options.AddRange(options);
+
+        await test.RunAsync();
+    }
 
     [Fact]
     public async Task Parameter_Used()
@@ -94,12 +109,11 @@ public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBased
             """
             class C
             {
-                void M(int [|p|])
+                void M(int {|IDE0060:p|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Theory]
@@ -131,12 +145,11 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             $$"""
             {{typeAccessibility}} class C
             {
-                {{methodAccessibility}} void M(int [|p|])
+                {{methodAccessibility}} void M(int {|IDE0060:p|})
                 {
                 }
             }
-            """, NonPublicMethodsOnly,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """, NonPublicMethodsOnly);
     }
 
     [Fact]
@@ -164,13 +177,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|p|])
+                void M(int {|IDE0060:p|})
                 {
                     p = 1;
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -180,14 +192,13 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|p|])
+                void M(int {|IDE0060:p|})
                 {
                     p = 1;
                     var x = p;
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -197,7 +208,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|p|], bool flag)
+                void M(int {|IDE0060:p|}, bool flag)
                 {
                     if (flag)
                     {
@@ -211,8 +222,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                     var x = p;
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -249,12 +259,11 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|p|] = 0)
+                void M(int {|IDE0060:p|} = 0)
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -329,13 +338,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 void M(int y)
                 {
                     LocalFunction(y);
-                    void LocalFunction(int [|p|])
+                    void LocalFunction(int {|IDE0060:p|})
                     {
                     }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -348,13 +356,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 void M()
                 {
                     LocalFunction(0);
-                    void LocalFunction(int [|p|])
+                    void LocalFunction(int {|IDE0060:p|})
                     {
                     }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -426,13 +433,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private static Action M(object [|p|])
+                private static Action M(object {|IDE0060:p|})
                 {
                     return () => { };
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -446,15 +452,14 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private static void M(object [|p|])
+                private static void M(object {|IDE0060:p|})
                 {
                     M2(() => { });
                 }
 
-                private static void M2(Action a) { }
+                private static void M2(Action _) { }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -509,16 +514,15 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                public static void M1(object [|p|])
+                public static void M1(object {|IDE0060:p|})
                 {
                     M2(x => x.M3());
                 }
 
-                private static C M2(Expression<Func<C, int>> a) { return null; }
+                private static C M2(Expression<Func<C, int>> _) { return null; }
                 private int M3() { return 0; }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31744")]
@@ -779,12 +783,11 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(in int [|p|])
+                void M(in int {|IDE0060:p|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -794,12 +797,11 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(ref int [|p|])
+                void M(ref int {|IDE0060:p|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -887,12 +889,11 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(out int [|p|])
+                void {|CS0177:M|}(out int {|IDE0060:p|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -1357,16 +1358,15 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|x|])
+                void M(int {|IDE0060:x|})
                 {
                     // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
                     Invoke<string>(() => 0);
 
-                    T Invoke<T>(Func<T> a) { return a(); }
+                    T Invoke<T>({|CS0246:Func<T>|} a) { return a(); }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32973")]
@@ -1401,14 +1401,13 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 {
                     return LocalFunction(ref x);
 
-                    bool LocalFunction(ref int [|y|])
+                    bool LocalFunction(ref int {|IDE0060:y|})
                     {
                         return true;
                     }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32973")]
@@ -1458,13 +1457,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 {
                     LocalFunc(0);
 
-                    void LocalFunc<T>(T [|value|])
+                    void LocalFunc<T>(T {|IDE0060:value|})
                     {
                     }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36715")]
@@ -1476,7 +1474,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                void M(object [|value|])
+                void M(object {|IDE0060:value|})
                 {
                     try
                     {
@@ -1495,21 +1493,20 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                     }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36715")]
     public async Task GenericLocalFunction_03()
     {
-        await TestDiagnosticsAsync(
+        await TestDiagnosticMissingAsync(
             """
             using System;
             using System.Collections.Generic;
 
             class C
             {
-                void M(object [|value|])
+                void M(object value)
                 {
                     Func<object, IEnumerable<object>> myDel = LocalFunc;
                     try
@@ -1770,14 +1767,13 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private void Goo(int [|i|])
+                private void Goo(int {|IDE0060:i|})
                 {
                     throw new NotImplementedException();
                     return;
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")]
@@ -1789,14 +1785,13 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private void Goo(int [|i|])
+                private void Goo(int {|IDE0060:i|})
                 {
                     if (true)
                         throw new NotImplementedException();
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47142")]
@@ -1813,12 +1808,11 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             record A
             {
-                public A(int [|X|])
+                public A(int {|IDE0060:X|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47142")]
@@ -1974,12 +1968,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         await TestDiagnosticsAsync("""
             class C
             {
-                void M(int [|x|])
+                void M(int {|IDE0060:x|})
                 {
                     const string y = nameof(C);
                 }
             }
-            """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
@@ -2019,21 +2013,16 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
     public async Task TestInterpolatedStringHandler_TwoParameters_FirstNonIntParameter(string nonIntType)
     {
         await TestDiagnosticsAsync($$"""
-            <Workspace>
-                <Project Language="C#" CommonReferencesNet6="true">
-                    <Document>using System.Runtime.CompilerServices;
+            using System.Runtime.CompilerServices;
 
             [InterpolatedStringHandler]
             public struct MyInterpolatedStringHandler
             {
-                public MyInterpolatedStringHandler({{nonIntType}} [|literalLength|], int formattedCount)
+                public MyInterpolatedStringHandler({{nonIntType}} {|IDE0060:literalLength|}, int formattedCount)
                 {
                 }
             }
-                    </Document>
-                </Project>
-            </Workspace>
-            """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
@@ -2041,21 +2030,16 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
     public async Task TestInterpolatedStringHandler_TwoParameters_SecondNonIntParameter(string nonIntType)
     {
         await TestDiagnosticsAsync($$"""
-            <Workspace>
-                <Project Language="C#" CommonReferencesNet6="true">
-                    <Document>using System.Runtime.CompilerServices;
+            using System.Runtime.CompilerServices;
 
             [InterpolatedStringHandler]
             public struct MyInterpolatedStringHandler
             {
-                public MyInterpolatedStringHandler(int literalLength, {{nonIntType}} [|formattedCount|])
+                public MyInterpolatedStringHandler(int literalLength, {{nonIntType}} {|IDE0060:formattedCount|})
                 {
                 }
             }
-                    </Document>
-                </Project>
-            </Workspace>
-            """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
@@ -2079,21 +2063,16 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
     public async Task TestInterpolatedStringHandler_OneNonIntParameter(string nonIntType)
     {
         await TestDiagnosticsAsync($$"""
-            <Workspace>
-                <Project Language="C#" CommonReferencesNet6="true">
-                    <Document>using System.Runtime.CompilerServices;
+            using System.Runtime.CompilerServices;
 
             [InterpolatedStringHandler]
             public struct MyInterpolatedStringHandler
             {
-                public MyInterpolatedStringHandler({{nonIntType}} [|p|])
+                public MyInterpolatedStringHandler({{nonIntType}} {|IDE0060:p|})
                 {
                 }
             }
-                    </Document>
-                </Project>
-            </Workspace>
-            """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     public static IEnumerable<object[]> NonIntTypes()
