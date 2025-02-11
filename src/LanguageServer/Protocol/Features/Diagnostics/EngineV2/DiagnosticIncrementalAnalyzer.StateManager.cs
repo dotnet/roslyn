@@ -83,11 +83,6 @@ internal partial class DiagnosticAnalyzerService
                     foreach (var analyzer in analyzers)
                     {
                         Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance && analyzer != GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
-
-                        // TODO: 
-                        // #1, all de-duplication should move to DiagnosticAnalyzerInfoCache
-                        // #2, not sure whether de-duplication of analyzer itself makes sense. this can only happen
-                        //     if user deliberately put same analyzer twice.
                         allAnalyzers.Add(analyzer);
                     }
                 }
@@ -97,11 +92,6 @@ internal partial class DiagnosticAnalyzerService
                     foreach (var analyzer in analyzers)
                     {
                         Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance && analyzer != GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
-
-                        // TODO: 
-                        // #1, all de-duplication should move to DiagnosticAnalyzerInfoCache
-                        // #2, not sure whether de-duplication of analyzer itself makes sense. this can only happen
-                        //     if user deliberately put same analyzer twice.
                         allAnalyzers.Add(analyzer);
                         hostAnalyzers.Add(analyzer);
                     }

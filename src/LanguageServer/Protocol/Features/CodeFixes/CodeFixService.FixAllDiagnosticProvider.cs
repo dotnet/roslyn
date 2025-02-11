@@ -46,9 +46,8 @@ internal partial class CodeFixService
 
         public override async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
             var diagnostics = Filter(await _diagnosticService.GetDiagnosticsForIdsAsync(
-                solution, projectId: document.Project.Id, document.Id, _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
+                document.Project, document.Id, _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
             Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
             return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
         }
@@ -68,7 +67,7 @@ internal partial class CodeFixService
         {
             // Get all diagnostics for the entire project, including document diagnostics.
             var diagnostics = Filter(await _diagnosticService.GetDiagnosticsForIdsAsync(
-                project.Solution, project.Id, documentId: null, _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
+                project, documentId: null, _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
             return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
         }
 
@@ -76,7 +75,7 @@ internal partial class CodeFixService
         {
             // Get all no-location diagnostics for the project, doesn't include document diagnostics.
             var diagnostics = Filter(await _diagnosticService.GetProjectDiagnosticsForIdsAsync(
-                project.Solution, project.Id, _diagnosticIds, shouldIncludeAnalyzer: null, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
+                project, _diagnosticIds, shouldIncludeAnalyzer: null, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
             Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId == null));
             return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
         }
