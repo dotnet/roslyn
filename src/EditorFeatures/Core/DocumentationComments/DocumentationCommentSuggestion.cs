@@ -63,15 +63,4 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return Task.CompletedTask;
         }
     }
-
-    internal class DocumentationCommentHandlerProposal(VirtualSnapshotPoint snapshotPoint, IReadOnlyList<ProposedEdit> edits) : ProposalBase
-    {
-        public override IReadOnlyList<ProposedEdit> Edits => edits;
-
-        public override VirtualSnapshotPoint Caret => snapshotPoint;
-
-        public override CompletionState? CompletionState => null;
-
-        public override ProposalFlags Flags => ProposalFlags.SingleTabToAccept;
-    }
 }

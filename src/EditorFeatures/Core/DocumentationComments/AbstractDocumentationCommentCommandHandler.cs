@@ -175,7 +175,13 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
 
         var proposalEdits = await GetProposedEditsAsync(snippetProposal, copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
 
-        var proposal = new DocumentationCommentHandlerProposal(oldCaret, proposalEdits);
+        var proposal = Proposal.TryCreateProposal(null, proposalEdits, oldCaret, flags: ProposalFlags.SingleTabToAccept);
+
+        if (proposal is null)
+        {
+            return;
+        }
+
         var suggestion = new DocumentationCommentSuggestion(this, proposal);
 
         var session = this._suggestionSession = await (_suggestionManagerBase.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
