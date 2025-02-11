@@ -870,30 +870,6 @@ class C
         Assert.Equal(LSP.DiagnosticSeverity.Information, results.Single().Diagnostics.Single().Severity);
     }
 
-    [Theory, CombinatorialData]
-    public async Task TestInfoDiagnosticsAreReportedAsHintInVSCode(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
-{
-    public A SomeA = new A();
-}";
-        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: false);
-
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-
-        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
-
-        await OpenDocumentAsync(testLspServer, document);
-
-        var results = await RunGetDocumentPullDiagnosticsAsync(
-            testLspServer, document.GetURI(), useVSDiagnostics: false);
-
-        Assert.Equal("IDE0090", results.Single().Diagnostics.Single().Code);
-        Assert.Equal(LSP.DiagnosticSeverity.Hint, results.Single().Diagnostics.Single().Severity);
-    }
-
     #endregion
 
     #region Workspace Diagnostics

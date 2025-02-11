@@ -107,7 +107,7 @@ internal static partial class ProtocolConversions
             Code = diagnosticData.Id,
             CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
             Message = diagnosticData.Message,
-            Severity = ConvertDiagnosticSeverity(diagnosticData.Severity, supportsVisualStudioExtensions),
+            Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
             Tags = ConvertTags(diagnosticData, isLiveSource, potentialDuplicate),
             DiagnosticRank = ConvertRank(diagnosticData),
             Range = GetRange(diagnosticData.DataLocation)
@@ -207,7 +207,7 @@ internal static partial class ProtocolConversions
         return null;
     }
 
-    private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity, bool supportsVisualStudioExtensions)
+    private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity)
         => severity switch
         {
             // Hidden is translated in ConvertTags to pass along appropriate _ms tags
