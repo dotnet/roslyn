@@ -43,11 +43,11 @@ public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBased
             new CodeStyleOption2<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption2.Suggestion));
 
     // Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).
-    private static Task TestDiagnosticMissingAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, ParseOptions? parseOptions = null)
-        => TestDiagnosticMissingAsync(initialMarkup, options: null, parseOptions);
+    private static Task TestDiagnosticMissingAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup)
+        => TestDiagnosticMissingAsync(initialMarkup, options: null);
     private Task TestDiagnosticsAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
         => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions: null, expectedDiagnostics);
-    private static async Task TestDiagnosticMissingAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, OptionsCollection? options, ParseOptions? parseOptions = null)
+    private static async Task TestDiagnosticMissingAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, OptionsCollection? options)
     {
         var test = new VerifyCS.Test
         {
@@ -1444,7 +1444,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                     x ??= new C();
                 }
             }
-            """, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34301")]
