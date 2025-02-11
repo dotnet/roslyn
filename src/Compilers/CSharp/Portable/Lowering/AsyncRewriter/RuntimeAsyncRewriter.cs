@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
-internal class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
+internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 {
     public static BoundStatement Rewrite(
         BoundStatement node,
@@ -15,6 +15,11 @@ internal class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         TypeCompilationState compilationState,
         BindingDiagnosticBag diagnostics)
     {
+        if (!method.IsAsync)
+        {
+            return node;
+        }
+
         var rewriter = new RuntimeAsyncRewriter(compilationState.Compilation, new SyntheticBoundNodeFactory(method, node.Syntax, compilationState, diagnostics));
         return (BoundStatement)rewriter.Visit(node);
     }
@@ -31,7 +36,6 @@ internal class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
     private NamedTypeSymbol Task
     {
         get => field ??= _compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
-
     } = null!;
 
     private NamedTypeSymbol TaskT
@@ -65,20 +69,20 @@ internal class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         WellKnownMember awaitCall;
         TypeWithAnnotations? maybeNestedType = null;
 
-        if (originalType.Equals(Task))
+        if (ReferenceEquals(originalType, Task))
         {
             awaitCall = WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTask;
         }
-        else if (originalType.Equals(TaskT))
+        else if (ReferenceEquals(originalType, TaskT))
         {
             awaitCall = WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTaskT_T;
             maybeNestedType = ((NamedTypeSymbol)nodeType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
         }
-        else if (originalType.Equals(ValueTask))
+        else if (ReferenceEquals(originalType, ValueTask))
         {
             awaitCall = WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTask;
         }
-        else if (originalType.Equals(ValueTaskT))
+        else if (ReferenceEquals(originalType, ValueTaskT))
         {
             awaitCall = WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTaskT_T;
             maybeNestedType = ((NamedTypeSymbol)nodeType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];

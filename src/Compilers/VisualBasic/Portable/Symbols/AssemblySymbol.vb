@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case RuntimeCapability.ByRefLikeGenerics
                     Return Me.RuntimeSupportsByRefLikeGenerics
                 Case RuntimeCapability.RuntimeAsyncMethods
-                    Return Me.RuntimeSupportsAsync
+                    Return Me.RuntimeSupportsAsyncMethods
             End Select
 
             Return False
@@ -423,9 +423,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property RuntimeSupportsAsync As Boolean
+        Private ReadOnly Property RuntimeSupportsAsyncMethods As Boolean
             Get
-                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsAsync
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsAsyncMethods
                 Return RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__Async)
             End Get
         End Property

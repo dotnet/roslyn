@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case RuntimeCapability.ByRefLikeGenerics:
                     return this.RuntimeSupportsByRefLikeGenerics;
                 case RuntimeCapability.RuntimeAsyncMethods:
-                    return this.RuntimeSupportsAsync;
+                    return this.RuntimeSupportsAsyncMethods;
             }
 
             return false;
@@ -497,18 +497,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        private bool _overrideRuntimeSupportsAsync;
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        internal void SetOverrideRuntimeAsync()
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        // PROTOTYPE: Remove when we have a runtime with support
+        private bool _overrideRuntimeSupportsAsyncMethods;
+        internal void SetOverrideRuntimeSupportsAsyncMethods()
         {
-            _overrideRuntimeSupportsAsync = true;
+            _overrideRuntimeSupportsAsyncMethods = true;
         }
 
-        // Keep in sync with VB's AssemblySymbol.RuntimeSupportsAsync
-        internal bool RuntimeSupportsAsync
+        // Keep in sync with VB's AssemblySymbol.RuntimeSupportsAsyncMethods
+        internal bool RuntimeSupportsAsyncMethods
             => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__Async)
-               || _overrideRuntimeSupportsAsync;
+               || _overrideRuntimeSupportsAsyncMethods;
 #nullable disable
 
         protected bool RuntimeSupportsFeature(SpecialMember feature)
