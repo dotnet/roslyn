@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncTests : EmitMetadataTestBase
     {
+        // PROTOTYPE: Use the real value when possible
         private const MethodImplAttributes MethodImplOptionsAsync = (MethodImplAttributes)1024;
 
         internal static string ExpectedOutput(string output)
@@ -382,6 +383,267 @@ class Test
                   IL_0005:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
                   IL_000a:  ret
                 }
+                """);
+
+            void verify(ModuleSymbol module)
+            {
+                var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var f = test.GetMethod("F");
+                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                AssertEx.Empty(test.GetTypeMembers());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ObjectCreation_ReturningAsync(bool useValueTask, bool useGeneric)
+        {
+            string retType = useGeneric ? (useValueTask ? "ValueTask<string>" : "Task<string>") : (useValueTask ? "ValueTask" : "Task");
+            string expr = useValueTask ?
+                (useGeneric ? """new ValueTask<string>("42")""" : "new ValueTask()") :
+                (useGeneric ? """new Task<string>(() => "42")""" : "new Task(null)");
+
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static async {{retType}} F()
+                    {
+                        {{(useGeneric ? "return " : "")}}await {{expr}};
+                    }
+
+                    public static async Task Main()
+                    {
+                        {{(useGeneric ? "string result = await F();" : "await F();")}}
+                        Console.WriteLine({{(useGeneric ? "result" : "42")}});
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90);
+            comp.Assembly.SetOverrideRuntimeAsync();
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = ReturnValueMissing("F", "0x2e"),
+            }, symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.F", """
+
+                """);
+
+            void verify(ModuleSymbol module)
+            {
+                var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var f = test.GetMethod("F");
+                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                if (!useValueTask && useGeneric)
+                {
+                    AssertEx.Equal(["<>c"], test.GetTypeMembers().SelectAsArray(t => t.Name));
+                }
+                else
+                {
+                    AssertEx.Empty(test.GetTypeMembers());
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DefaultLiteral_ReturningAsync(bool useValueTask, bool useGeneric)
+        {
+            string retType = useGeneric ? (useValueTask ? "ValueTask<string>" : "Task<string>") : (useValueTask ? "ValueTask" : "Task");
+            string expr = useValueTask ?
+                (useGeneric ? "default(ValueTask<string>)" : "default(ValueTask)") :
+                (useGeneric ? """default(Task<string>)""" : "default(Task)");
+
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static async {{retType}} F()
+                    {
+                        {{(useGeneric ? "return " : "")}}await {{expr}};
+                    }
+
+                    public static async Task Main()
+                    {
+                        try
+                        {
+                            {{(useGeneric ? "string result = " : "")}}await F();
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                        }
+                        Console.WriteLine({{(useValueTask && useGeneric ? "result" : "42")}});
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90);
+            comp.Assembly.SetOverrideRuntimeAsync();
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = ReturnValueMissing("F", "0x2e"),
+            }, symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.F", """
+
+                """);
+
+            void verify(ModuleSymbol module)
+            {
+                var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var f = test.GetMethod("F");
+                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                AssertEx.Empty(test.GetTypeMembers());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Conditional_ReturningAsync(bool useValueTask, bool useGeneric)
+        {
+            string retType = useGeneric ? (useValueTask ? "ValueTask<string>" : "Task<string>") : (useValueTask ? "ValueTask" : "Task");
+            string baseExpr = useValueTask ?
+                (useGeneric ? """new ValueTask<string>("42")""" : "new ValueTask()") :
+                (useGeneric ? """Task.FromResult("42")""" : "Task.CompletedTask");
+
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static async {{retType}} F()
+                    {
+                        bool b = true;
+                        {{(useGeneric ? "return " : "")}}await b ? {{baseExpr}} : {{baseExpr}};
+                    }
+
+                    public static async Task Main()
+                    {
+                        {{(useGeneric ? "string result = " : "")}}await F();
+                        Console.WriteLine({{(useGeneric ? "result" : "42")}});
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90);
+            comp.Assembly.SetOverrideRuntimeAsync();
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = ReturnValueMissing("F", "0x2e"),
+            }, symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.F", """
+
+                """);
+
+            void verify(ModuleSymbol module)
+            {
+                var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var f = test.GetMethod("F");
+                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                AssertEx.Empty(test.GetTypeMembers());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Cast_ReturningAsync(bool useValueTask, bool useGeneric)
+        {
+            string retType = useGeneric ? (useValueTask ? "ValueTask<string>" : "Task<string>") : (useValueTask ? "ValueTask" : "Task");
+            string baseExpr = useValueTask ?
+                (useGeneric ? """new ValueTask<string>("42")""" : "new ValueTask()") :
+                (useGeneric ? """Task.FromResult("42")""" : "Task.CompletedTask");
+
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static async {{retType}} F()
+                    {
+                        {{(useGeneric ? "return await " : "await ")}}({{retType}}){{baseExpr}};
+                    }
+
+                    public static async Task Main()
+                    {
+                        {{(useGeneric ? "string result = " : "")}}await F();
+                        Console.WriteLine({{(useGeneric ? "result" : "42")}});
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90);
+            comp.Assembly.SetOverrideRuntimeAsync();
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = ReturnValueMissing("F", "0x2e"),
+            }, symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.F", """
+
+                """);
+
+            void verify(ModuleSymbol module)
+            {
+                var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var f = test.GetMethod("F");
+                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                AssertEx.Empty(test.GetTypeMembers());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PropertyAccess_ReturningAsync(bool useValueTask, bool useGeneric)
+        {
+            string retType = useGeneric ? (useValueTask ? "ValueTask<string>" : "Task<string>") : (useValueTask ? "ValueTask" : "Task");
+            string baseExpr = useValueTask ?
+                (useGeneric ? """new ValueTask<string>("42")""" : "new ValueTask()") :
+                (useGeneric ? """Task.FromResult("42")""" : "Task.CompletedTask");
+
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static async {{retType}} F()
+                    {
+                        {{(useGeneric ? "return " : "")}}await Prop;
+                    }
+
+                    public static async Task Main()
+                    {
+                        {{(useGeneric ? "string result = " : "")}}await F();
+                        Console.WriteLine({{(useGeneric ? "result" : "42")}});
+                    }
+
+                    public static {{retType}} Prop => {{baseExpr}};
+                }
+                """;
+            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90);
+            comp.Assembly.SetOverrideRuntimeAsync();
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = ReturnValueMissing("F", "0x2e"),
+            }, symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.F", """
+
                 """);
 
             void verify(ModuleSymbol module)

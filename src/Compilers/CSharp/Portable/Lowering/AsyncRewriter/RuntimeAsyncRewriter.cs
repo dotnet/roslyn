@@ -30,65 +30,37 @@ internal class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 
     private NamedTypeSymbol Task
     {
-        get
-        {
-            if (field is null)
-            {
-                field = _compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
-            }
+        get => field ??= _compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
 
-            return field;
-        }
     } = null!;
 
     private NamedTypeSymbol TaskT
     {
-        get
-        {
-            if (field is null)
-            {
-                field = _compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
-            }
-
-            return field;
-        }
+        get => field ??= _compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
     } = null!;
 
     private NamedTypeSymbol ValueTask
     {
-        get
-        {
-            if (field is null)
-            {
-                field = _compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
-            }
-
-            return field;
-        }
+        get => field ??= _compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
     } = null!;
 
     private NamedTypeSymbol ValueTaskT
     {
-        get
-        {
-            if (field is null)
-            {
-                field = _compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask_T);
-            }
-
-            return field;
-        }
+        get => field ??= _compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask_T);
     } = null!;
+
+    public BoundExpression VisitExpression(BoundExpression node)
+    {
+        var result = Visit(node);
+        Debug.Assert(result is BoundExpression);
+        return (BoundExpression)result;
+    }
 
     public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
     {
-        // PROTOTYPE: when it's not a method with Task/TaskT/ValueTask/ValueTaskT returns, use the helpers
-        if (node is not { Expression: BoundCall awaitedCall })
-        {
-            return base.VisitAwaitExpression(node);
-        }
-
-        var originalType = awaitedCall.Type.OriginalDefinition;
+        var nodeType = node.Expression.Type;
+        Debug.Assert(nodeType is not null);
+        var originalType = nodeType.OriginalDefinition;
 
         WellKnownMember awaitCall;
         TypeWithAnnotations? maybeNestedType = null;
@@ -100,7 +72,7 @@ internal class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         else if (originalType.Equals(TaskT))
         {
             awaitCall = WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitTaskT_T;
-            maybeNestedType = ((NamedTypeSymbol)awaitedCall.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+            maybeNestedType = ((NamedTypeSymbol)nodeType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
         }
         else if (originalType.Equals(ValueTask))
         {
@@ -109,10 +81,11 @@ internal class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         else if (originalType.Equals(ValueTaskT))
         {
             awaitCall = WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__AwaitValueTaskT_T;
-            maybeNestedType = ((NamedTypeSymbol)awaitedCall.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+            maybeNestedType = ((NamedTypeSymbol)nodeType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
         }
         else
         {
+            // PROTOTYPE: when it's not a method with Task/TaskT/ValueTask/ValueTaskT returns, use the helpers
             return base.VisitAwaitExpression(node);
         }
 
@@ -134,6 +107,6 @@ internal class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
 #endif
 
         // System.Runtime.CompilerServices.RuntimeHelpers.Await(awaitedCall)
-        return _factory.Call(receiver: null, awaitMethod, awaitedCall);
+        return _factory.Call(receiver: null, awaitMethod, VisitExpression(node.Expression));
     }
 }
