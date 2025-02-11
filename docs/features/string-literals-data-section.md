@@ -310,8 +310,11 @@ because that is incompatible with the feature.
 
 Instead of XXH128 for the type names and SHA-256 for the data field names, we could use index-based names.
 - The compiler could assign names lazily based on metadata tokens which are deterministic.
-  That might require some refactoring because internal data structures in the compiler might not be ready for lazy names like that.
-- Build on the second strategy suggested for [automatic threshold](#automatic-threshold) where we would collect string literals during binding
+  If building on the current approach, that might require some refactoring,
+  because internal data structures in the compiler might not be ready for lazy names like that.
+  But it would be easier if combined with the first strategy suggested for [automatic threshold](#automatic-threshold) above,
+  where we would not synthesize the types until very late in the emit phase (during fixup of the metadata tokens).
+- We could build on the second strategy suggested for [automatic threshold](#automatic-threshold) where we would collect string literals during binding
   (and perhaps also constant arrays and u8 strings if we want to extend this support to them as well),
   then before emit we would sort them by length and content and assign indices to them to be then used for the synthesized names.
 
