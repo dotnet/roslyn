@@ -41,7 +41,7 @@ public abstract class InterceptableLocation : IEquatable<InterceptableLocation>
     public abstract override bool Equals(object? obj);
     public abstract override int GetHashCode();
 
-    public abstract bool Equals(InterceptableLocation other);
+    public abstract bool Equals(InterceptableLocation? other);
 }
 
 #pragma warning disable RSEXPERIMENTAL002 // internal usage of experimental API
