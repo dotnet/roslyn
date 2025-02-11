@@ -54,13 +54,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
-        /// or null if it is unknown or not applicable. 
+        /// or null if it is unknown or not applicable.
         /// </summary>
         /// <remarks>
-        /// Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
-        /// by assigning the value of the project's root namespace to it. So various feature can choose to 
+        /// Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace
+        /// by assigning the value of the project's root namespace to it. So various feature can choose to
         /// use it for their own purpose.
-        /// In the future, we might consider officially exposing "default namespace" for VB project 
+        /// In the future, we might consider officially exposing "default namespace" for VB project
         /// (e.g. through a "defaultnamespace" msbuild property)
         /// </remarks>
         [DataMember]

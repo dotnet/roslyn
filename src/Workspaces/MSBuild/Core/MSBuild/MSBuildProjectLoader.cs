@@ -173,47 +173,23 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return null!;
             }
 
-            var projectFilter = ImmutableHashSet<string>.Empty;
-            if (SolutionFilterReader.IsSolutionFilterFilename(absoluteSolutionPath) &&
-                !SolutionFilterReader.TryRead(absoluteSolutionPath, _pathResolver, out absoluteSolutionPath, out projectFilter))
-            {
-                throw new Exception(string.Format(WorkspaceMSBuildResources.Failed_to_load_solution_filter_0, solutionFilePath));
-            }
-
             using (_dataGuard.DisposableWait(cancellationToken))
             {
                 this.SetSolutionProperties(absoluteSolutionPath);
             }
 
-            var solutionFile = MSB.Construction.SolutionFile.Parse(absoluteSolutionPath);
             var reportingMode = GetReportingModeForUnrecognizedProjects();
 
             var reportingOptions = new DiagnosticReportingOptions(
                 onPathFailure: reportingMode,
                 onLoaderFailure: reportingMode);
 
-            var projectPaths = ImmutableArray.CreateBuilder<string>();
-
-            // load all the projects
-            foreach (var project in solutionFile.ProjectsInOrder)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (project.ProjectType == MSB.Construction.SolutionProjectType.SolutionFolder)
-                {
-                    continue;
-                }
-
-                // Load project if we have an empty project filter and the project path is present.
-                if (projectFilter.IsEmpty ||
-                    projectFilter.Contains(project.AbsolutePath))
-                {
-                    projectPaths.Add(project.RelativePath);
-                }
-            }
-
             var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
             await using var _ = buildHostProcessManager.ConfigureAwait(false);
+
+            // load all the projects
+            var (buildHostForSolution, _) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(BuildHostProcessManager.GetKindForCurrentProcess(), absoluteSolutionPath, cancellationToken).ConfigureAwait(false);
+            var projectsInSolution = await buildHostForSolution.GetProjectsInSolutionAsync(absoluteSolutionPath, cancellationToken).ConfigureAwait(false);
 
             var worker = new Worker(
                 _solutionServices,
@@ -221,7 +197,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _pathResolver,
                 _projectFileExtensionRegistry,
                 buildHostProcessManager,
-                projectPaths.ToImmutable(),
+                projectsInSolution.SelectAsArray(static p => p.ProjectPath),
                 // TryGetAbsoluteSolutionPath should not return an invalid path
                 baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
                 Properties,

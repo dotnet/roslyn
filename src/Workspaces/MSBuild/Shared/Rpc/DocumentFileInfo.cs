@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public string LogicalPath { get; } = logicalPath;
 
         /// <summary>
-        /// True if the document has a logical path that differs from its 
+        /// True if the document has a logical path that differs from its
         /// absolute file path.
         /// </summary>
         [DataMember(Order = 2)]
