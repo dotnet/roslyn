@@ -12,9 +12,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
         private sealed partial class IncrementalMemberEditAnalyzer
         {

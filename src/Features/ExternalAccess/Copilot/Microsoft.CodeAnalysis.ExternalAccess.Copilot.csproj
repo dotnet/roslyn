@@ -5,6 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Copilot</RootNamespace>
     <TargetFrameworks>$(NetVSShared);net472</TargetFrameworks>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>

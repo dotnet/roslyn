@@ -54,6 +54,7 @@
     <RuntimeIdentifiers Condition="'$(TargetRid)' == '' and '$(BaseOS)' == ''">win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <!-- Publish ready to run executables when we're publishing platform specific executables. -->
     <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != '' AND '$(Configuration)' == 'Release' ">true</PublishReadyToRun>
+
   </PropertyGroup>
 
   <!-- When we are packing each RID, we set PackRuntimeIdentifier; by default this will also get passed to the builds of all ResolveProjectReferences
@@ -63,6 +64,18 @@
       <GlobalPropertiesToRemove>PackRuntimeIdentifier</GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <!-- Include MIBC data if available.  This is produced by a separate profiling pipeline for the C# extension, and injected in official builds -->
+    <PublishReadyToRunPgoFiles Condition="'$(VSCodeOptimizationDataRoot)'!=''" Include="$(VSCodeOptimizationDataRoot)\*.mibc" />
+  </ItemGroup>
+
+  <Target Name="SetCrossgen2ExtraArgs" BeforeTargets="ResolveReadyToRunCompilers" Condition="'$(PublishReadyToRun)' == 'true'">
+    <PropertyGroup>
+      <!-- Define extra crossgen2 args.  This must be done in a target as TargetName isn't available in evaluation -->
+      <PublishReadyToRunCrossgen2ExtraArgs>$(PublishReadyToRunCrossgen2ExtraArgs);--opt-cross-module:*;--non-local-generics-module:"$(TargetName)"</PublishReadyToRunCrossgen2ExtraArgs>
+    </PropertyGroup>
+  </Target>
 
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />

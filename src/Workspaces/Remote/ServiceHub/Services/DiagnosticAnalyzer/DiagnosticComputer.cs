@@ -401,8 +401,7 @@ internal class DiagnosticComputer
         {
             builderMap = builderMap.AddRange(await analysisResult.ToResultBuilderMapAsync(
                 additionalPragmaSuppressionDiagnostics, documentAnalysisScope,
-                _project, VersionStamp.Default,
-                projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo, cancellationToken).ConfigureAwait(false));
+                _project, projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo, cancellationToken).ConfigureAwait(false));
         }
 
         var telemetry = getTelemetryInfo
