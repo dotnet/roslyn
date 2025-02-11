@@ -2,7 +2,8 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>$(NetRoslynSourceBuild);netstandard2.0</TargetFrameworks>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <DebugType>none</DebugType>
     <GenerateDependencyFile>false</GenerateDependencyFile>
@@ -11,23 +12,15 @@
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <IsSourcePackage>true</IsSourcePackage>
-    <PackageId>Microsoft.CodeAnalysis.Threading</PackageId>
+    <PackageId>Microsoft.CodeAnalysis.Contracts</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <PackageDescription>
-      Package containing sources of Microsoft .NET Compiler Platform ("Roslyn") threading utilities.
+      Package containing sources of Microsoft .NET Compiler Platform ("Roslyn") contract and polyfill types.
     </PackageDescription>
     <!-- Remove once https://github.com/NuGet/Home/issues/8583 is fixed -->
     <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <!-- ⚠ Consuming projects will be required to manually reproduce the APIs for any linked files added here -->
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs" Link="External\FatalError.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" />
   </ItemGroup>
-  <Import Project="..\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
-  <Import Project="..\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
-  <Import Project="..\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>
