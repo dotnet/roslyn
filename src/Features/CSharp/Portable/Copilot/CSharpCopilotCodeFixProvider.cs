@@ -63,6 +63,7 @@ internal sealed partial class CSharpCopilotCodeFixProvider() : CodeFixProvider
         if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
             await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
         {
+            // todo: review again
             return;
         }
 

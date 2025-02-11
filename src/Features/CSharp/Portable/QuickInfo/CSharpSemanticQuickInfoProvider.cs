@@ -152,8 +152,10 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         {
             return null;
         }
+
         if (document.IsRazorDocument())
         {
+            // todo: review again
             return null;
         }
 
