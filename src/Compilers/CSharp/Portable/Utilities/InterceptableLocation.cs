@@ -181,7 +181,7 @@ internal sealed class InterceptableLocation1 : InterceptableLocation
             _position);
     }
 
-    public override bool Equals(InterceptableLocation obj)
+    public override bool Equals(InterceptableLocation? obj)
     {
         return obj is InterceptableLocation1 other
             && _checksum.SequenceEqual(other._checksum)
