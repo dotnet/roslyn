@@ -2360,6 +2360,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitlyTypedParamsParameter = 9272,
         ERR_VariableDeclarationNamedField = 9273,
 
+        HDN_RedundantPattern = 9274,
+        WRN_RedundantPattern = 9275,
+        HDN_RedundantPatternStackGuard = 9276,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
 

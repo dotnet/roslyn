@@ -152,6 +152,6 @@ internal sealed class CSharpInlineTypeHintsService() : AbstractInlineTypeHintsSe
 
     private static bool IsValidType([NotNullWhen(true)] ITypeSymbol? type)
     {
-        return type is not null or IErrorTypeSymbol && type.Name != "var";
+        return type is not (null or IErrorTypeSymbol) && type.Name != "var";
     }
 }
