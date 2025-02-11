@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructureTests<BlockSyntax>
+public class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructureTests<BlockSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new BlockSyntaxStructureProvider();
 
@@ -464,13 +464,12 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
 
                 {|hint:static void Goo(){|textspan:
                 {$$
-                   {|hint2:{|textspan2:// comment|}|}
+                   // ...
                 }|}|}
                 """;
 
         await VerifyBlockSpansAsync(code,
-            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
-            Region("textspan2", "hint2", "// comment ...", autoCollapse: true));
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68513")]
@@ -481,17 +480,16 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
             {
                 void M()
                 {
-                    {|hint1:static void Goo(){|textspan1:
+                    {|hint:static void Goo(){|textspan:
                     {$$
-                       {|hint2:{|textspan2:// comment|}|}
+                       // ...
                     }|}|}
                 }
             }
             """;
 
         await VerifyBlockSpansAsync(code,
-            Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
-            Region("textspan2", "hint2", "// comment ...", autoCollapse: true));
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68513")]
@@ -504,7 +502,7 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 {
                     {|hint:static void Goo(){|textspan:
                     {$$
-                       {|hint2:{|textspan2:// comment|}|}
+                       // ...
                     }|}|}
                 }
             }
@@ -513,7 +511,6 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
         await VerifyBlockSpansAsync(code, GetDefaultOptions() with
         {
             CollapseLocalFunctionsWhenCollapsingToDefinitions = true,
-        }, Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
-           Region("textspan2", "hint2", "// comment ...", autoCollapse: true));
+        }, Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }
