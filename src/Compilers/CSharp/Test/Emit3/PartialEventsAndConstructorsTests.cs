@@ -1450,13 +1450,33 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             {
                 public partial event System.Action E
                 {
-                    add { E += null; }
-                    remove { E += null; }
+                    add
+                    {
+                        this.E += null;
+                        E += null;
+                        C.E += null; // 3
+                    }
+                    remove
+                    {
+                        this.F += null; // 4
+                        F += null;
+                        C.F += null;
+                    }
                 }
                 public static partial event System.Action F
                 {
-                    add { E += null; } // 3
-                    remove { E += null; } // 4
+                    add
+                    {
+                        this.E += null; // 5
+                        E += null; // 6
+                        C.E += null; // 7
+                    }
+                    remove
+                    {
+                        this.F += null; // 8
+                        F += null;
+                        C.F += null;
+                    }
                 }
             }
             """;
@@ -1467,12 +1487,27 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (4,1): error CS0176: Member 'C.F' cannot be accessed with an instance reference; qualify it with a type name instead
             // c.F += () => { }; // 2
             Diagnostic(ErrorCode.ERR_ObjectProhibited, "c.F").WithArguments("C.F").WithLocation(4, 1),
-            // (21,15): error CS0120: An object reference is required for the non-static field, method, or property 'C.E'
-            //         add { E += null; } // 3
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "E").WithArguments("C.E").WithLocation(21, 15),
-            // (22,18): error CS0120: An object reference is required for the non-static field, method, or property 'C.E'
-            //         remove { E += null; } // 4
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "E").WithArguments("C.E").WithLocation(22, 18));
+            // (20,13): error CS0120: An object reference is required for the non-static field, method, or property 'C.E'
+            //             C.E += null; // 3
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "C.E").WithArguments("C.E").WithLocation(20, 13),
+            // (24,13): error CS0176: Member 'C.F' cannot be accessed with an instance reference; qualify it with a type name instead
+            //             this.F += null; // 4
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.F").WithArguments("C.F").WithLocation(24, 13),
+            // (33,13): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
+            //             this.E += null; // 5
+            Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(33, 13),
+            // (34,13): error CS0120: An object reference is required for the non-static field, method, or property 'C.E'
+            //             E += null; // 6
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "E").WithArguments("C.E").WithLocation(34, 13),
+            // (35,13): error CS0120: An object reference is required for the non-static field, method, or property 'C.E'
+            //             C.E += null; // 7
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "C.E").WithArguments("C.E").WithLocation(35, 13),
+            // (39,13): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
+            //             this.F += null; // 8
+            Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(39, 13),
+            // (39,13): error CS0176: Member 'C.F' cannot be accessed with an instance reference; qualify it with a type name instead
+            //             this.F += null; // 8
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.F").WithArguments("C.F").WithLocation(39, 13));
     }
 
     [Fact]
@@ -1877,6 +1912,13 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                 protected new partial event System.Action F;
                 protected partial event System.Action F { add { } remove { } }
             }
+            partial class C3 : C1
+            {
+                protected sealed partial event System.Action E;
+                protected partial event System.Action E { add { } remove { } }
+                protected override partial event System.Action F;
+                protected override sealed partial event System.Action F { add { } remove { } }
+            }
             """;
         CreateCompilation(source).VerifyDiagnostics(
             // (4,43): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
@@ -1887,7 +1929,19 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "E").WithLocation(10, 50),
             // (12,43): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
             //     protected partial event System.Action F { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "F").WithLocation(12, 43));
+            Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "F").WithLocation(12, 43),
+            // (16,50): warning CS0114: 'C3.E' hides inherited member 'C1.E'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+            //     protected sealed partial event System.Action E;
+            Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "E").WithArguments("C3.E", "C1.E").WithLocation(16, 50),
+            // (16,50): error CS0238: 'C3.E' cannot be sealed because it is not an override
+            //     protected sealed partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_SealedNonOverride, "E").WithArguments("C3.E").WithLocation(16, 50),
+            // (17,43): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+            //     protected partial event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "E").WithLocation(17, 43),
+            // (19,59): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+            //     protected override sealed partial event System.Action F { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "F").WithLocation(19, 59));
     }
 
     [Fact]
@@ -1990,31 +2044,39 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     public void Difference_OptionalParameters()
     {
         var source = """
+            var c1 = new C1();
+            var c2 = new C2();
+
             partial class C1
             {
-                partial C1(int x = 1);
-                partial C1(int x) { }
+                public partial C1(int x = 1);
+                public partial C1(int x) { }
             }
             partial class C2
             {
-                partial C2(int x);
-                partial C2(int x = 1) { }
+                public partial C2(int x);
+                public partial C2(int x = 1) { }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics();
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,14): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C2.C2(int)'
+            // var c2 = new C2();
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C2").WithArguments("x", "C2.C2(int)").WithLocation(2, 14));
     }
 
     [Fact]
     public void Difference_DefaultParameterValues()
     {
         var source = """
+            var c = new C();
+
             partial class C
             {
-                partial C(int x = 1);
-                partial C(int x = 2) { }
+                public partial C(int x = 1);
+                public partial C(int x = 2) { System.Console.Write(x); }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
     }
 
     [Fact]

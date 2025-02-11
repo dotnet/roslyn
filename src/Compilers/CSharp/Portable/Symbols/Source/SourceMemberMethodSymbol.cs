@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |            |t|a|b|e|n|vvv|yy|s|r|q|z|kkk|wwwww|
+            // |          |m|t|a|b|e|n|vvv|yy|s|r|q|z|kkk|wwwww|
             // 
             // w = method kind.  5 bits.
             // k = ref kind.  3 bits.
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // b = HasAnyBody. 1 bit.
             // a = IsVararg. 1 bit.
             // t = HasThisInitializer. 1 bit.
-            // a = HasExplicitAccessModifier. 1 bit.
+            // m = HasExplicitAccessModifier. 1 bit.
             private int _flags;
 
             private const int MethodKindOffset = 0;
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
                 int hasThisInitializerInt = hasThisInitializer ? HasThisInitializerBit : 0;
-                var hasExplicitAccessModifierInt = hasExplicitAccessModifier ? HasExplicitAccessModifierBit : 0;
+                int hasExplicitAccessModifierInt = hasExplicitAccessModifier ? HasExplicitAccessModifierBit : 0;
 
                 _flags = methodKindInt
                     | refKindInt

@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntaxRef = syntax.GetReference();
 
             var isExplicitInterfaceImplementation = interfaceSpecifierSyntaxOpt != null;
-            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isFieldLike, _location, diagnostics, out _, out bool hasExplicitAccessModifier);
-            _hasExplicitAccessModifier = hasExplicitAccessModifier;
+            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isFieldLike, _location, diagnostics, out _, out _hasExplicitAccessModifier);
             this.CheckAccessibility(_location, diagnostics, isExplicitInterfaceImplementation);
         }
 
@@ -407,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.ReadOnly) != 0; }
         }
 
-        internal bool IsUnsafe
+        private bool IsUnsafe
         {
             get { return (_modifiers & DeclarationModifiers.Unsafe) != 0; }
         }
@@ -416,8 +415,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ModifierUtils.EffectiveAccessibility(_modifiers); }
         }
-
-        internal bool HasExplicitAccessModifier => _hasExplicitAccessModifier;
 
         internal sealed override bool MustCallMethodsDirectly
         {
@@ -851,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (DeclaredAccessibility != implementation.DeclaredAccessibility
-                || HasExplicitAccessModifier != implementation.HasExplicitAccessModifier)
+                || _hasExplicitAccessModifier != implementation._hasExplicitAccessModifier)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberAccessibilityDifference, implementation.GetFirstLocation());
             }
