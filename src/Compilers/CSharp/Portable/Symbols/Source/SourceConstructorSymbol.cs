@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -227,6 +229,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
+        internal sealed override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
+        {
+            SourcePartialImplementationPart?.ForceComplete(locationOpt, filter, cancellationToken);
+            base.ForceComplete(locationOpt, filter, cancellationToken);
+        }
+
         protected override void PartialConstructorChecks(BindingDiagnosticBag diagnostics)
         {
             if (SourcePartialImplementationPart is { } implementation)

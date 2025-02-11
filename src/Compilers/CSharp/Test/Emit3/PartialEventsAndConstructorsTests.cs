@@ -2061,7 +2061,10 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         CreateCompilation(source).VerifyDiagnostics(
             // (2,14): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C2.C2(int)'
             // var c2 = new C2();
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C2").WithArguments("x", "C2.C2(int)").WithLocation(2, 14));
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C2").WithArguments("x", "C2.C2(int)").WithLocation(2, 14),
+            // (12,27): warning CS1066: The default value specified for parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //     public partial C2(int x = 1) { }
+            Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(12, 27));
     }
 
     [Fact]
@@ -2076,7 +2079,10 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                 public partial C(int x = 2) { System.Console.Write(x); }
             }
             """;
-        CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics(
+            // (6,26): warning CS1066: The default value specified for parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //     public partial C(int x = 2) { System.Console.Write(x); }
+            Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(6, 26));
     }
 
     [Fact]
