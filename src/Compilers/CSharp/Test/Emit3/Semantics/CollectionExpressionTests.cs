@@ -18989,9 +18989,9 @@ partial class Program
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
                         MyCollection<object> z = new();
+                        y = Params(4, 5);
                     }
-                    static void F1<T>(MyCollection<T> c) { }
-                    static void F2<T>(params MyCollection<T> c) { }
+                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
@@ -19002,9 +19002,12 @@ partial class Program
                 // (7,31): warning CS0612: 'MyCollectionBuilder' is obsolete
                 //         MyCollection<int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[1, 2, 3]").WithArguments("MyCollectionBuilder").WithLocation(7, 31),
-                // (11,23): warning CS0612: 'MyCollectionBuilder' is obsolete
-                //     static void F2<T>(params MyCollection<T> c) { }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection<T> c").WithArguments("MyCollectionBuilder").WithLocation(11, 23));
+                // (9,13): warning CS0612: 'MyCollectionBuilder' is obsolete
+                //         y = Params(4, 5);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Params(4, 5)").WithArguments("MyCollectionBuilder").WithLocation(9, 13),
+                // (11,38): warning CS0612: 'MyCollectionBuilder' is obsolete
+                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection<T> c").WithArguments("MyCollectionBuilder").WithLocation(11, 38));
         }
 
         [Fact]
@@ -19036,9 +19039,9 @@ partial class Program
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
                         MyCollection<object> z = new();
+                        y = Params(4, 5);
                     }
-                    static void F1<T>(MyCollection<T> c) { }
-                    static void F2<T>(params MyCollection<T> c) { }
+                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 }
                 """;
             var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
@@ -19052,9 +19055,12 @@ partial class Program
                 // 1.cs(7,31): error CS0619: 'MyCollectionBuilder' is obsolete: 'message 2'
                 //         MyCollection<int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[1, 2, 3]").WithArguments("MyCollectionBuilder", "message 2").WithLocation(7, 31),
-                // 1.cs(11,23): error CS0619: 'MyCollectionBuilder' is obsolete: 'message 2'
-                //     static void F2<T>(params MyCollection<T> c) { }
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "params MyCollection<T> c").WithArguments("MyCollectionBuilder", "message 2").WithLocation(11, 23));
+                // 1.cs(9,13): error CS0619: 'MyCollectionBuilder' is obsolete: 'message 2'
+                //         y = Params(4, 5);
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Params(4, 5)").WithArguments("MyCollectionBuilder", "message 2").WithLocation(9, 13),
+                // 1.cs(11,38): error CS0619: 'MyCollectionBuilder' is obsolete: 'message 2'
+                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "params MyCollection<T> c").WithArguments("MyCollectionBuilder", "message 2").WithLocation(11, 38));
         }
 
         [CombinatorialData]
@@ -19090,9 +19096,9 @@ partial class Program
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
                         MyCollection<object> z = new();
+                        y = Params(4, 5);
                     }
-                    static void F1<T>(MyCollection<T> c) { }
-                    static void F2<T>(params MyCollection<T> c) { }
+                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
@@ -19103,9 +19109,12 @@ partial class Program
                 // (7,31): warning CS0612: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete
                 //         MyCollection<int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(7, 31),
-                // (11,23): warning CS0612: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete
-                //     static void F2<T>(params MyCollection<T> c) { }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(11, 23));
+                // (9,13): warning CS0612: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete
+                //         y = Params(4, 5);
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Params(4, 5)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(9, 13),
+                // (11,38): warning CS0612: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete
+                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(11, 38));
         }
 
         [CombinatorialData]
@@ -19141,9 +19150,9 @@ partial class Program
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
                         MyCollection<object> z = new();
+                        y = Params(4, 5);
                     }
-                    static void F1<T>(MyCollection<T> c) { }
-                    static void F2<T>(params MyCollection<T> c) { }
+                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
@@ -19154,9 +19163,12 @@ partial class Program
                 // (7,31): error CS0619: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete: 'message 4'
                 //         MyCollection<int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(7, 31),
-                // (11,23): error CS0619: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete: 'message 4'
-                //     static void F2<T>(params MyCollection<T> c) { }
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(11, 23));
+                // (9,13): error CS0619: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete: 'message 4'
+                //         y = Params(4, 5);
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Params(4, 5)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(9, 13),
+                // (11,38): error CS0619: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is obsolete: 'message 4'
+                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "message 4").WithLocation(11, 38));
         }
 
         [Fact]
@@ -19189,9 +19201,9 @@ partial class Program
                         MyCollection<string> x = [];
                         MyCollection<int> y = [1, 2, 3];
                         MyCollection<object> z = new();
+                        y = Params(4, 5);
                     }
-                    static void F1<T>(MyCollection<T> c) { }
-                    static void F2<T>(params MyCollection<T> c) { }
+                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 }
                 """;
             var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
@@ -19202,9 +19214,12 @@ partial class Program
                 // 1.cs(7,31): error CS8901: 'MyCollectionBuilder.Create<int>(ReadOnlySpan<int>)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         MyCollection<int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "[1, 2, 3]").WithArguments("MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)").WithLocation(7, 31),
-                // 1.cs(11,23): error CS8901: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
-                //     static void F2<T>(params MyCollection<T> c) { }
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(11, 23),
+                // 1.cs(9,13): error CS8901: 'MyCollectionBuilder.Create<int>(ReadOnlySpan<int>)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         y = Params(4, 5);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "Params(4, 5)").WithArguments("MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)").WithLocation(9, 13),
+                // 1.cs(11,38): error CS8901: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)").WithLocation(11, 38),
                 // 0.cs(14,6): error CS8895: Methods attributed with 'UnmanagedCallersOnly' cannot have generic type parameters and cannot be declared in a generic type.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, "UnmanagedCallersOnly").WithLocation(14, 6),
@@ -19251,12 +19266,13 @@ partial class Program
                     }
                 }
                 """;
-            CompileAndVerify(
+            var verifier = CompileAndVerify(
                 new[] { sourceB1, s_collectionExtensions },
                 references: new[] { refA },
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.FailsPEVerify,
                 expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
+            verifier.VerifyDiagnostics();
 
             string sourceB2 = """
                 #pragma warning disable 219
@@ -19274,6 +19290,49 @@ partial class Program
                 // (6,32): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'
                 //         MyCollection<int?> x = [4, null];
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "[4, null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "int?").WithLocation(6, 32));
+
+            string sourceB3 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Params(4, 5).Report();
+                    }
+                    static MyCollection<T> Params<T>(params MyCollection<T> c) where T : struct => c;
+                }
+                """;
+            verifier = CompileAndVerify(
+                [sourceB3, s_collectionExtensions],
+                references: new[] { refA },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[4, 5], "));
+            verifier.VerifyDiagnostics();
+
+            string sourceB4 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Params<object>(4, 5);
+                    }
+                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                }
+                """;
+            comp = CreateCompilation(sourceB4, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'
+                //         Params<object>(4, 5);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Params<object>(4, 5)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "object").WithLocation(5, 9),
+                // (7,28): error CS0310: 'T' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
+                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "Params").WithArguments("MyCollection<T>", "T", "T").WithLocation(7, 28),
+                // (7,38): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'
+                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(7, 38),
+                // (7,61): error CS0310: 'T' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
+                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "c").WithArguments("MyCollection<T>", "T", "T").WithLocation(7, 61));
         }
 
         [CombinatorialData]
@@ -19314,12 +19373,13 @@ partial class Program
                     }
                 }
                 """;
-            CompileAndVerify(
+            var verifier = CompileAndVerify(
                 new[] { sourceB1, s_collectionExtensions },
                 references: new[] { refA },
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.FailsPEVerify,
                 expectedOutput: IncludeExpectedOutput("[], [1, 2, 3], "));
+            verifier.VerifyDiagnostics();
 
             string sourceB2 = """
                 #pragma warning disable 219
@@ -19337,6 +19397,43 @@ partial class Program
                 // (6,32): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'
                 //         MyCollection<int?> x = [4, null];
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "[4, null]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "int?").WithLocation(6, 32));
+
+            string sourceB3 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Params(4, 5).Report();
+                    }
+                    static MyCollection<T> Params<T>(params MyCollection<T> c) where T : struct => c;
+                }
+                """;
+            verifier = CompileAndVerify(
+                [sourceB3, s_collectionExtensions],
+                references: new[] { refA },
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[4, 5], "));
+            verifier.VerifyDiagnostics();
+
+            string sourceB4 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Params<object>(4, 5);
+                    }
+                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                }
+                """;
+            comp = CreateCompilation(sourceB4, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'
+                //         Params<object>(4, 5);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Params<object>(4, 5)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "object").WithLocation(5, 9),
+                // (7,38): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)'
+                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(7, 38));
         }
 
         [Fact]
@@ -19361,7 +19458,8 @@ partial class Program
                         => default;
                 }
                 """;
-            string sourceB = """
+
+            string sourceB1 = """
                 #pragma warning disable 219
                 class Program
                 {
@@ -19373,11 +19471,50 @@ partial class Program
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(new[] { sourceA, sourceB1 }, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 1.cs(7,22): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
                 //         MyCollection<int> y = [1, 2, 3];
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("MyCollection<T>", "T", "int").WithLocation(7, 22),
+                // 0.cs(15,35): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
+                //     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "Create").WithArguments("MyCollection<T>", "T", "T").WithLocation(15, 35));
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        NoConstraints<int>([1]);
+                        NoConstraints<object>([2]);
+                        StructConstraint<int>([3]);
+                        ClassConstraint<object>([4]);
+                    }
+                    static MyCollection<T> NoConstraints<T>(params MyCollection<T> c) => c;
+                    static MyCollection<T> StructConstraint<T>(params MyCollection<T> c) where T : struct => c;
+                    static MyCollection<T> ClassConstraint<T>(params MyCollection<T> c) where T : class => c;
+                }
+                """;
+            comp = CreateCompilation(new[] { sourceA, sourceB2 }, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(5,9): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
+                //         NoConstraints<int>([1]);
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "NoConstraints<int>").WithArguments("MyCollection<T>", "T", "int").WithLocation(5, 9),
+                // 1.cs(7,9): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
+                //         StructConstraint<int>([3]);
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "StructConstraint<int>").WithArguments("MyCollection<T>", "T", "int").WithLocation(7, 9),
+                // 1.cs(10,28): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
+                //     static MyCollection<T> NoConstraints<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "NoConstraints").WithArguments("MyCollection<T>", "T", "T").WithLocation(10, 28),
+                // 1.cs(10,68): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
+                //     static MyCollection<T> NoConstraints<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c").WithArguments("MyCollection<T>", "T", "T").WithLocation(10, 68),
+                // 1.cs(11,28): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
+                //     static MyCollection<T> StructConstraint<T>(params MyCollection<T> c) where T : struct => c;
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "StructConstraint").WithArguments("MyCollection<T>", "T", "T").WithLocation(11, 28),
+                // 1.cs(11,71): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
+                //     static MyCollection<T> StructConstraint<T>(params MyCollection<T> c) where T : struct => c;
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c").WithArguments("MyCollection<T>", "T", "T").WithLocation(11, 71),
                 // 0.cs(15,35): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyCollection<T>'
                 //     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items)
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "Create").WithArguments("MyCollection<T>", "T", "T").WithLocation(15, 35));
@@ -19923,9 +20060,9 @@ partial class Program
                         MyCollection<int> x = [];
                         MyCollection<string> y = [null];
                         MyCollection<object> z = MyCollectionBuilder.Create<object>(default);
-                        x = F(1, 2);
+                        x = Params(1, 2);
                     }
-                    static MyCollection<T> F<T>(params MyCollection<T> c) => c;
+                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 }
                 """;
             var comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
@@ -19945,18 +20082,12 @@ partial class Program
                 // (8,54): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
                 //         MyCollection<object> z = MyCollectionBuilder.Create<object>(default);
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Create<object>").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "MyFeature").WithLocation(8, 54),
-                // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-                //         x = F(1, 2);
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(1, 2)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 13),
                 // (9,13): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
-                //         x = F(1, 2);
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "F(1, 2)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "MyFeature").WithLocation(9, 13),
-                // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
-                //     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 33),
-                // (11,33): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
-                //     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "MyFeature").WithLocation(11, 33));
+                //         x = Params(1, 2);
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Params(1, 2)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "MyFeature").WithLocation(9, 13),
+                // (11,38): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
+                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>)", "MyFeature").WithLocation(11, 38));
         }
 
         [Fact]
@@ -20000,7 +20131,9 @@ partial class Program
                         MyCollection<int> x = [];
                         MyCollection<string> y = [null];
                         MyCollection<object> z = MyCollectionBuilder.Create<object>(default);
+                        x = Params(1, 2);
                     }
+                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
                 }
                 """;
             var comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
@@ -20022,7 +20155,13 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "MyCollectionBuilder").WithArguments("MyCollectionBuilder", "MyFeature").WithLocation(8, 34),
                 // (8,54): error CS9041: 'MyCollectionBuilder' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
                 //         MyCollection<object> z = MyCollectionBuilder.Create<object>(default);
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Create<object>").WithArguments("MyCollectionBuilder", "MyFeature").WithLocation(8, 54));
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Create<object>").WithArguments("MyCollectionBuilder", "MyFeature").WithLocation(8, 54),
+                // (9,13): error CS9041: 'MyCollectionBuilder' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
+                //         x = Params(1, 2);
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Params(1, 2)").WithArguments("MyCollectionBuilder", "MyFeature").WithLocation(9, 13),
+                // (11,38): error CS9041: 'MyCollectionBuilder' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
+                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "params MyCollection<T> c").WithArguments("MyCollectionBuilder", "MyFeature").WithLocation(11, 38));
         }
 
         [Fact]
