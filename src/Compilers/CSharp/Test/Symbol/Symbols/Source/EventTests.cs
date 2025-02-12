@@ -2791,7 +2791,16 @@ public class Test1
             CompileAndVerify(source,
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: validate,
-                sourceSymbolValidator: validate)
+                sourceSymbolValidator: validate,
+                // PEVerify fails when extern methods lack an implementation
+                verify: Verification.FailsPEVerify with
+                {
+                    PEVerifyMessage = """
+                        Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+                        Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+                        Type load failed.
+                        """,
+                })
                 .VerifyDiagnostics(
                     // (8,104): warning CS0067: The event 'C.E' is never used
                     //     [A(1)] [method: A(2)] [param: A(3)] [return: A(4)] [event: A(5)] [field: A(6)] public event Action E;

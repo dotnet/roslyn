@@ -1035,15 +1035,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             """;
         CompileAndVerify(source,
             sourceSymbolValidator: verifySource,
-            symbolValidator: verifyMetadata,
-            // PEVerify fails when extern methods lack an implementation
-            verify: Verification.FailsPEVerify with
-            {
-                PEVerifyMessage = """
-                    Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
-                    Type load failed.
-                    """,
-            })
+            symbolValidator: verifyMetadata)
             .VerifyDiagnostics();
 
         static void verifySource(ModuleSymbol module)
@@ -1100,7 +1092,16 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         comp.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
         CompileAndVerify(comp,
             sourceSymbolValidator: validate,
-            symbolValidator: validate)
+            symbolValidator: validate,
+            // PEVerify fails when extern methods lack an implementation
+            verify: Verification.FailsPEVerify with
+            {
+                PEVerifyMessage = """
+                    Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+                    Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+                    Type load failed.
+                    """,
+            })
             .VerifyDiagnostics();
 
         static void validate(ModuleSymbol module)
@@ -2255,7 +2256,16 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             """;
         CompileAndVerify(source,
             symbolValidator: validate,
-            sourceSymbolValidator: validate)
+            sourceSymbolValidator: validate,
+            // PEVerify fails when extern methods lack an implementation
+            verify: Verification.FailsPEVerify with
+            {
+                PEVerifyMessage = """
+                    Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+                    Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+                    Type load failed.
+                    """,
+            })
             .VerifyDiagnostics(
                 // (8,13): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'event'. All attributes in this block will be ignored.
                 //     [A(1)] [method: A(11)] [param: A(21)] [return: A(31)] [event: A(41)] [field: A(51)] public partial event Action E;
