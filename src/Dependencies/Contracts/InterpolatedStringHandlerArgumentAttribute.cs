@@ -12,6 +12,8 @@ using System.Runtime.CompilerServices;
 
 #else
 
+#pragma warning disable CA1019 // Add a public read-only property accessor for positional argument argument of Attribute
+
 namespace System.Runtime.CompilerServices
 {
     /// <summary>Indicates which arguments to a method involving an interpolated string handler should be passed to that handler.</summary>
