@@ -62,6 +62,8 @@
       <_R2RAssemblies Include="System.Text.Encodings.Web.dll" />
       <_R2RAssemblies Include="Microsoft.NET.StringTools.dll" />
 
+      <_R2RAssemblies Remove="Microsoft.CodeAnalysis.Workspaces.dll" />
+
       <!-- Find all assemblies (including Roslyn and all dependencies) from the actual published location -->
       <_AllPublishedAssemblyPaths Include="@(_PublishDllPaths)" />
       <!-- Exclude resources DLLs-->
