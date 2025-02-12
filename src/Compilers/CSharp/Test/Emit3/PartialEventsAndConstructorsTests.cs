@@ -722,6 +722,25 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void Required()
+    {
+        var source = """
+            partial class C
+            {
+                public required partial event System.Action E;
+                public required partial event System.Action E { add { } remove { } }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,49): error CS0106: The modifier 'required' is not valid for this item
+            //     public required partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("required").WithLocation(3, 49),
+            // (4,49): error CS0106: The modifier 'required' is not valid for this item
+            //     public required partial event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("required").WithLocation(4, 49));
+    }
+
+    [Fact]
     public void ExplicitInterfaceImplementation()
     {
         var source = """
@@ -1410,5 +1429,694 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (5,3): error CS0122: 'C.E' is inaccessible due to its protection level
             // c.E -= () => { };
             Diagnostic(ErrorCode.ERR_BadAccess, "E").WithArguments("C.E").WithLocation(5, 3));
+    }
+
+    [Fact]
+    public void Use_Static()
+    {
+        var source = """
+            var c = new C();
+            c.E += () => { };
+            C.E += () => { }; // 1
+            c.F += () => { }; // 2
+            C.F += () => { };
+
+            partial class C
+            {
+                public partial event System.Action E;
+                public static partial event System.Action F;
+            }
+            partial class C
+            {
+                public partial event System.Action E
+                {
+                    add
+                    {
+                        this.E += null;
+                        E += null;
+                        C.E += null; // 3
+                    }
+                    remove
+                    {
+                        this.F += null; // 4
+                        F += null;
+                        C.F += null;
+                    }
+                }
+                public static partial event System.Action F
+                {
+                    add
+                    {
+                        this.E += null; // 5
+                        E += null; // 6
+                        C.E += null; // 7
+                    }
+                    remove
+                    {
+                        this.F += null; // 8
+                        F += null;
+                        C.F += null;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,1): error CS0120: An object reference is required for the non-static field, method, or property 'C.E'
+            // C.E += () => { }; // 1
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "C.E").WithArguments("C.E").WithLocation(3, 1),
+            // (4,1): error CS0176: Member 'C.F' cannot be accessed with an instance reference; qualify it with a type name instead
+            // c.F += () => { }; // 2
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "c.F").WithArguments("C.F").WithLocation(4, 1),
+            // (20,13): error CS0120: An object reference is required for the non-static field, method, or property 'C.E'
+            //             C.E += null; // 3
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "C.E").WithArguments("C.E").WithLocation(20, 13),
+            // (24,13): error CS0176: Member 'C.F' cannot be accessed with an instance reference; qualify it with a type name instead
+            //             this.F += null; // 4
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.F").WithArguments("C.F").WithLocation(24, 13),
+            // (33,13): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
+            //             this.E += null; // 5
+            Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(33, 13),
+            // (34,13): error CS0120: An object reference is required for the non-static field, method, or property 'C.E'
+            //             E += null; // 6
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "E").WithArguments("C.E").WithLocation(34, 13),
+            // (35,13): error CS0120: An object reference is required for the non-static field, method, or property 'C.E'
+            //             C.E += null; // 7
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "C.E").WithArguments("C.E").WithLocation(35, 13),
+            // (39,13): error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer
+            //             this.F += null; // 8
+            Diagnostic(ErrorCode.ERR_ThisInStaticMeth, "this").WithLocation(39, 13),
+            // (39,13): error CS0176: Member 'C.F' cannot be accessed with an instance reference; qualify it with a type name instead
+            //             this.F += null; // 8
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.F").WithArguments("C.F").WithLocation(39, 13));
+    }
+
+    [Fact]
+    public void Use_Inheritance()
+    {
+        var source = """
+            using System;
+
+            var c = new C1();
+            c.E += () => { };
+            c = new C2();
+            c.E += () => { };
+
+            partial class C1
+            {
+                public virtual partial event Action E;
+                public virtual partial event Action E { add { Console.Write(1); } remove { } }
+            }
+            partial class C2 : C1
+            {
+                public override partial event Action E;
+                public override partial event Action E { add { Console.Write(2); } remove { } }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Difference_Accessibility()
+    {
+        var source = """
+            partial class C
+            {
+                partial C();
+                internal partial C(int x);
+                partial event System.Action E, F;
+                public partial event System.Action G;
+            }
+            partial class C
+            {
+                public partial C() { }
+                private partial C(int x) { }
+                private partial event System.Action E { add { } remove { } }
+                partial event System.Action F { add { } remove { } }
+                internal partial event System.Action G { add { } remove { } }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,20): error CS8799: Both partial member declarations must have identical accessibility modifiers.
+            //     public partial C() { }
+            Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "C").WithLocation(10, 20),
+            // (11,21): error CS8799: Both partial member declarations must have identical accessibility modifiers.
+            //     private partial C(int x) { }
+            Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "C").WithLocation(11, 21),
+            // (12,41): error CS8799: Both partial member declarations must have identical accessibility modifiers.
+            //     private partial event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "E").WithLocation(12, 41),
+            // (14,42): error CS8799: Both partial member declarations must have identical accessibility modifiers.
+            //     internal partial event System.Action G { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "G").WithLocation(14, 42));
+    }
+
+    [Fact]
+    public void Difference_Type()
+    {
+        var source = """
+            using A = System.Action;
+            partial class C
+            {
+                partial event System.Action E, F;
+                partial event System.Action<(int X, int Y)> G;
+                partial event System.Action<(string X, string Y)> H;
+                partial event System.Action<dynamic> I;
+                partial event A J;
+            }
+            partial class C
+            {
+                partial event System.Func<int> E { add { } remove { } }
+                partial event System.Action F { add { } remove { } }
+                partial event System.Action<(int A, int B)> G { add { } remove { } }
+                partial event System.Action<(int A, int B)> H { add { } remove { } }
+                partial event System.Action<object> I { add { } remove { } }
+                partial event System.Action J { add { } remove { } }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (12,36): error CS9255: Both partial member declarations must have the same type.
+            //     partial event System.Func<int> E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberTypeDifference, "E").WithLocation(12, 36),
+            // (14,49): error CS8142: Both partial member declarations, 'C.G' and 'C.G', must use the same tuple element names.
+            //     partial event System.Action<(int A, int B)> G { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "G").WithArguments("C.G", "C.G").WithLocation(14, 49),
+            // (15,49): error CS9255: Both partial member declarations must have the same type.
+            //     partial event System.Action<(int A, int B)> H { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberTypeDifference, "H").WithLocation(15, 49),
+            // (16,41): warning CS9256: Partial member declarations 'event Action<dynamic> C.I' and 'event Action<object> C.I' have signature differences.
+            //     partial event System.Action<object> I { add { } remove { } }
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "I").WithArguments("event Action<dynamic> C.I", "event Action<object> C.I").WithLocation(16, 41));
+    }
+
+    [Fact]
+    public void Difference_ParameterType()
+    {
+        var source = """
+            partial class C1
+            {
+                partial C1(string x);
+                partial C1(int x) { }
+            }
+            partial class C2
+            {
+                partial C2(dynamic x);
+                partial C2(object x) { }
+            }
+            partial class C3
+            {
+                partial C3((int X, int Y) x);
+                partial C3((int A, int B) x) { }
+            }
+            partial class C4
+            {
+                partial C4((int X, int Y) x);
+                partial C4((string A, string B) x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS9400: Partial member 'C1.C1(string)' must have an implementation part.
+            //     partial C1(string x);
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C1").WithArguments("C1.C1(string)").WithLocation(3, 13),
+            // (4,13): error CS9401: Partial member 'C1.C1(int)' must have a definition part.
+            //     partial C1(int x) { }
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C1").WithArguments("C1.C1(int)").WithLocation(4, 13),
+            // (9,13): warning CS9256: Partial member declarations 'C2.C2(dynamic x)' and 'C2.C2(object x)' have signature differences.
+            //     partial C2(object x) { }
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C2").WithArguments("C2.C2(dynamic x)", "C2.C2(object x)").WithLocation(9, 13),
+            // (14,13): error CS8142: Both partial member declarations, 'C3.C3((int X, int Y))' and 'C3.C3((int A, int B))', must use the same tuple element names.
+            //     partial C3((int A, int B) x) { }
+            Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "C3").WithArguments("C3.C3((int X, int Y))", "C3.C3((int A, int B))").WithLocation(14, 13),
+            // (18,13): error CS9400: Partial member 'C4.C4((int X, int Y))' must have an implementation part.
+            //     partial C4((int X, int Y) x);
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C4").WithArguments("C4.C4((int X, int Y))").WithLocation(18, 13),
+            // (19,13): error CS9401: Partial member 'C4.C4((string A, string B))' must have a definition part.
+            //     partial C4((string A, string B) x) { }
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C4").WithArguments("C4.C4((string A, string B))").WithLocation(19, 13));
+    }
+
+    [Fact]
+    public void Difference_Nullability()
+    {
+        var source = """
+            partial class C
+            {
+                partial event System.Action? E;
+                partial event System.Action<string?> F;
+                partial event System.Action G;
+            }
+            partial class C
+            {
+                partial event System.Action E { add { } remove { } }
+                partial event System.Action<string> F { add { } remove { } }
+                partial event System.Action? G { add { } remove { } }
+            }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (9,33): warning CS9256: Partial member declarations 'event Action? C.E' and 'event Action C.E' have signature differences.
+            //     partial event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "E").WithArguments("event Action? C.E", "event Action C.E").WithLocation(9, 33),
+            // (10,41): warning CS9256: Partial member declarations 'event Action<string?> C.F' and 'event Action<string> C.F' have signature differences.
+            //     partial event System.Action<string> F { add { } remove { } }
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "F").WithArguments("event Action<string?> C.F", "event Action<string> C.F").WithLocation(10, 41),
+            // (11,34): warning CS9256: Partial member declarations 'event Action C.G' and 'event Action? C.G' have signature differences.
+            //     partial event System.Action? G { add { } remove { } }
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "G").WithArguments("event Action C.G", "event Action? C.G").WithLocation(11, 34)
+        };
+
+        CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Enable)).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Annotations)).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Difference_ParameterNullability()
+    {
+        var source = """
+            partial class C1
+            {
+                partial C1(string x);
+                partial C1(string? x) { }
+            }
+            partial class C2
+            {
+                partial C2(string? x);
+                partial C2(string x) { }
+            }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (4,13): warning CS9256: Partial member declarations 'C1.C1(string x)' and 'C1.C1(string? x)' have signature differences.
+            //     partial C1(string? x) { }
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C1").WithArguments("C1.C1(string x)", "C1.C1(string? x)").WithLocation(4, 13),
+            // (9,13): warning CS9256: Partial member declarations 'C2.C2(string? x)' and 'C2.C2(string x)' have signature differences.
+            //     partial C2(string x) { }
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C2").WithArguments("C2.C2(string? x)", "C2.C2(string x)").WithLocation(9, 13)
+        };
+
+        CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Enable)).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Annotations)).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Difference_NullabilityContext()
+    {
+        var source = """
+            #nullable enable
+            partial class C
+            {
+                partial event System.Action E;
+                partial event System.Action? F;
+            #nullable disable
+                partial event System.Action G;
+            }
+
+            #nullable disable
+            partial class C
+            {
+                partial event System.Action E { add { } remove { } }
+                partial event System.Action F { add { } remove { } }
+            #nullable enable
+                partial event System.Action G { add { } remove { } }
+            }
+            """;
+
+        var comp = CreateCompilation(source).VerifyDiagnostics();
+
+        var e = comp.GetMember<SourceEventSymbol>("C.E");
+        Assert.True(e.IsPartialDefinition);
+        Assert.Equal(NullableAnnotation.NotAnnotated, e.TypeWithAnnotations.NullableAnnotation);
+
+        var f = comp.GetMember<SourceEventSymbol>("C.F");
+        Assert.True(f.IsPartialDefinition);
+        Assert.Equal(NullableAnnotation.Annotated, f.TypeWithAnnotations.NullableAnnotation);
+
+        var g = comp.GetMember<SourceEventSymbol>("C.G");
+        Assert.True(g.IsPartialDefinition);
+        Assert.Equal(NullableAnnotation.Oblivious, g.TypeWithAnnotations.NullableAnnotation);
+    }
+
+    [Fact]
+    public void Difference_NullabilityAnalysis()
+    {
+        // The implementation part signature is used to analyze the implementation part bodies.
+        // The definition part signature is used to analyze use sites.
+        // Note that event assignments are not checked for nullability: https://github.com/dotnet/roslyn/issues/31018
+        var source = """
+            #nullable enable
+
+            var c = new C(0, null);
+            c = new C(null, 0);
+            c.E += null;
+            c.E -= null;
+            c.F += null;
+            c.F -= null;
+
+            partial class C
+            {
+                public partial C(int x, string? y);
+                public partial C(string x, int y);
+                public partial event System.Action E;
+                public partial event System.Action? F;
+            }
+
+            partial class C
+            {
+                public partial C(int x, string y)
+                {
+                    y.ToString();
+                }
+                public partial C(string? x, int y)
+                {
+                    x.ToString();
+                }
+                public partial event System.Action? E { add { value(); } remove { value(); } }
+                public partial event System.Action F { add { value(); } remove { value(); } }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,11): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // c = new C(null, 0);
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 11),
+            // (20,20): warning CS9256: Partial member declarations 'C.C(int x, string? y)' and 'C.C(int x, string y)' have signature differences.
+            //     public partial C(int x, string y)
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(int x, string? y)", "C.C(int x, string y)").WithLocation(20, 20),
+            // (24,20): warning CS9256: Partial member declarations 'C.C(string x, int y)' and 'C.C(string? x, int y)' have signature differences.
+            //     public partial C(string? x, int y)
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(string x, int y)", "C.C(string? x, int y)").WithLocation(24, 20),
+            // (26,9): warning CS8602: Dereference of a possibly null reference.
+            //         x.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(26, 9),
+            // (28,41): warning CS9256: Partial member declarations 'event Action C.E' and 'event Action? C.E' have signature differences.
+            //     public partial event System.Action? E { add { value(); } remove { value(); } }
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "E").WithArguments("event Action C.E", "event Action? C.E").WithLocation(28, 41),
+            // (28,51): warning CS8602: Dereference of a possibly null reference.
+            //     public partial event System.Action? E { add { value(); } remove { value(); } }
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(28, 51),
+            // (28,71): warning CS8602: Dereference of a possibly null reference.
+            //     public partial event System.Action? E { add { value(); } remove { value(); } }
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(28, 71),
+            // (29,40): warning CS9256: Partial member declarations 'event Action? C.F' and 'event Action C.F' have signature differences.
+            //     public partial event System.Action F { add { value(); } remove { value(); } }
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "F").WithArguments("event Action? C.F", "event Action C.F").WithLocation(29, 40));
+    }
+
+    [Fact]
+    public void Difference_Static()
+    {
+        var source = """
+            partial class C
+            {
+                partial event System.Action E, F;
+            }
+            partial class C
+            {
+                static partial event System.Action E { add { } remove { } }
+                partial event System.Action F { add { } remove { } }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,40): error CS0763: Both partial member declarations must be static or neither may be static
+            //     static partial event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberStaticDifference, "E").WithLocation(7, 40));
+    }
+
+    [Fact]
+    public void Difference_Unsafe_01()
+    {
+        var source = """
+            partial class C
+            {
+                unsafe partial C();
+                unsafe partial event System.Action E, F;
+            }
+            partial class C
+            {
+                partial C() { }
+                unsafe partial event System.Action E { add { } remove { } }
+                partial event System.Action F { add { } remove { } }
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (8,13): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     partial C() { }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "C").WithLocation(8, 13),
+            // (10,33): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     partial event System.Action F { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "F").WithLocation(10, 33));
+    }
+
+    [Fact]
+    public void Difference_Unsafe_02()
+    {
+        var source = """
+            unsafe partial class C
+            {
+                partial C(int* p);
+                partial event System.Action E, F;
+            }
+            partial class C
+            {
+                partial C(int* p) { }
+                partial event System.Action E { add { int* p = null; } remove { } }
+                partial event System.Action F { add { int* p = null; } remove { } }
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (8,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     partial C(int* p) { }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(8, 15),
+            // (9,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     partial event System.Action E { add { int* p = null; } remove { } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 43),
+            // (10,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     partial event System.Action F { add { int* p = null; } remove { } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 43));
+    }
+
+    [Fact]
+    public void Difference_ExtendedModifiers()
+    {
+        var source = """
+            partial class C1
+            {
+                protected virtual partial event System.Action E, F;
+                protected partial event System.Action E { add { } remove { } }
+                protected virtual partial event System.Action F { add { } remove { } }
+            }
+            partial class C2 : C1
+            {
+                protected override partial event System.Action E;
+                protected sealed partial event System.Action E { add { } remove { } }
+                protected new partial event System.Action F;
+                protected partial event System.Action F { add { } remove { } }
+            }
+            partial class C3 : C1
+            {
+                protected sealed partial event System.Action E;
+                protected partial event System.Action E { add { } remove { } }
+                protected override partial event System.Action F;
+                protected override sealed partial event System.Action F { add { } remove { } }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,43): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+            //     protected partial event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "E").WithLocation(4, 43),
+            // (10,50): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+            //     protected sealed partial event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "E").WithLocation(10, 50),
+            // (12,43): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+            //     protected partial event System.Action F { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "F").WithLocation(12, 43),
+            // (16,50): warning CS0114: 'C3.E' hides inherited member 'C1.E'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+            //     protected sealed partial event System.Action E;
+            Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "E").WithArguments("C3.E", "C1.E").WithLocation(16, 50),
+            // (16,50): error CS0238: 'C3.E' cannot be sealed because it is not an override
+            //     protected sealed partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_SealedNonOverride, "E").WithArguments("C3.E").WithLocation(16, 50),
+            // (17,43): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+            //     protected partial event System.Action E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "E").WithLocation(17, 43),
+            // (19,59): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+            //     protected override sealed partial event System.Action F { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "F").WithLocation(19, 59));
+    }
+
+    [Fact]
+    public void Difference_RefKind()
+    {
+        var source = """
+            partial class C1
+            {
+                partial C1(int x);
+                partial C1(ref int x) { }
+            }
+            partial class C2
+            {
+                partial C2(in int x);
+                partial C2(ref readonly int x) { }
+            }
+            partial class C3
+            {
+                partial C3(ref int x);
+                partial C3(out int x) => throw null;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS9400: Partial member 'C1.C1(int)' must have an implementation part.
+            //     partial C1(int x);
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C1").WithArguments("C1.C1(int)").WithLocation(3, 13),
+            // (4,13): error CS9401: Partial member 'C1.C1(ref int)' must have a definition part.
+            //     partial C1(ref int x) { }
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C1").WithArguments("C1.C1(ref int)").WithLocation(4, 13),
+            // (8,13): error CS9400: Partial member 'C2.C2(in int)' must have an implementation part.
+            //     partial C2(in int x);
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C2").WithArguments("C2.C2(in int)").WithLocation(8, 13),
+            // (9,13): error CS9401: Partial member 'C2.C2(ref readonly int)' must have a definition part.
+            //     partial C2(ref readonly int x) { }
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C2").WithArguments("C2.C2(ref readonly int)").WithLocation(9, 13),
+            // (9,13): error CS0663: 'C2' cannot define an overloaded constructor that differs only on parameter modifiers 'ref readonly' and 'in'
+            //     partial C2(ref readonly int x) { }
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "C2").WithArguments("C2", "constructor", "ref readonly", "in").WithLocation(9, 13),
+            // (13,13): error CS9400: Partial member 'C3.C3(ref int)' must have an implementation part.
+            //     partial C3(ref int x);
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C3").WithArguments("C3.C3(ref int)").WithLocation(13, 13),
+            // (14,13): error CS9401: Partial member 'C3.C3(out int)' must have a definition part.
+            //     partial C3(out int x) => throw null;
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C3").WithArguments("C3.C3(out int)").WithLocation(14, 13),
+            // (14,13): error CS0663: 'C3' cannot define an overloaded constructor that differs only on parameter modifiers 'out' and 'ref'
+            //     partial C3(out int x) => throw null;
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "C3").WithArguments("C3", "constructor", "out", "ref").WithLocation(14, 13));
+    }
+
+    [Fact]
+    public void Difference_Params()
+    {
+        var source = """
+            using System.Collections.Generic;
+            partial class C1
+            {
+                partial C1(object[] x);
+                partial C1(params object[] x) { }
+            }
+            partial class C2
+            {
+                partial C2(int x, params IEnumerable<object> y);
+                partial C2(int x, IEnumerable<object> y) { }
+            }
+            partial class C3
+            {
+                partial C3(params IEnumerable<object> x, int y);
+                partial C3(IEnumerable<object> x, int y) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,13): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
+            //     partial C1(params object[] x) { }
+            Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "C1").WithLocation(5, 13),
+            // (10,13): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
+            //     partial C2(int x, IEnumerable<object> y) { }
+            Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "C2").WithLocation(10, 13),
+            // (14,16): error CS0231: A params parameter must be the last parameter in a parameter list
+            //     partial C3(params IEnumerable<object> x, int y);
+            Diagnostic(ErrorCode.ERR_ParamsLast, "params IEnumerable<object> x").WithLocation(14, 16));
+    }
+
+    [Fact]
+    public void Difference_ParameterNames()
+    {
+        var source = """
+            partial class C
+            {
+                partial C(int x);
+                partial C(int y) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,13): warning CS9256: Partial member declarations 'C.C(int x)' and 'C.C(int y)' have signature differences.
+            //     partial C(int y) { }
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(int x)", "C.C(int y)").WithLocation(4, 13));
+    }
+
+    [Fact]
+    public void Difference_OptionalParameters()
+    {
+        var source = """
+            var c1 = new C1();
+            var c2 = new C2();
+
+            partial class C1
+            {
+                public partial C1(int x = 1);
+                public partial C1(int x) { }
+            }
+            partial class C2
+            {
+                public partial C2(int x);
+                public partial C2(int x = 1) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,14): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C2.C2(int)'
+            // var c2 = new C2();
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C2").WithArguments("x", "C2.C2(int)").WithLocation(2, 14),
+            // (12,27): warning CS1066: The default value specified for parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //     public partial C2(int x = 1) { }
+            Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(12, 27));
+    }
+
+    [Fact]
+    public void Difference_DefaultParameterValues()
+    {
+        var source = """
+            var c = new C();
+
+            partial class C
+            {
+                public partial C(int x = 1);
+                public partial C(int x = 2) { System.Console.Write(x); }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics(
+            // (6,26): warning CS1066: The default value specified for parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //     public partial C(int x = 2) { System.Console.Write(x); }
+            Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(6, 26));
+    }
+
+    [Fact]
+    public void Difference_Scoped()
+    {
+        var source = """
+            using System.Diagnostics.CodeAnalysis;
+            partial class C1
+            {
+                partial C1(scoped ref int x);
+                partial C1(ref int x) { }
+            }
+            partial class C2
+            {
+                partial C2(ref int x);
+                partial C2(scoped ref int x) { }
+            }
+            partial class C3
+            {
+                partial C3([UnscopedRef] ref int x);
+                partial C3(ref int x) { }
+            }
+            partial class C4
+            {
+                partial C4(ref int x);
+                partial C4([UnscopedRef] ref int x) { }
+            }
+            """;
+        CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+            // (5,13): error CS8988: The 'scoped' modifier of parameter 'x' doesn't match partial definition.
+            //     partial C1(ref int x) { }
+            Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "C1").WithArguments("x").WithLocation(5, 13),
+            // (10,13): error CS8988: The 'scoped' modifier of parameter 'x' doesn't match partial definition.
+            //     partial C2(scoped ref int x) { }
+            Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "C2").WithArguments("x").WithLocation(10, 13));
     }
 }

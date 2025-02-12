@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Location _location;
         private readonly SyntaxReference _syntaxRef;
         private readonly DeclarationModifiers _modifiers;
+        private readonly bool _hasExplicitAccessModifier;
         internal readonly SourceMemberContainerTypeSymbol containingType;
 
         private SymbolCompletionState _state;
@@ -54,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntaxRef = syntax.GetReference();
 
             var isExplicitInterfaceImplementation = interfaceSpecifierSyntaxOpt != null;
-            bool modifierErrors;
-            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isFieldLike, _location, diagnostics, out modifierErrors);
+            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isFieldLike, _location, diagnostics, out _, out _hasExplicitAccessModifier);
             this.CheckAccessibility(_location, diagnostics, isExplicitInterfaceImplementation);
         }
 
@@ -406,6 +406,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.ReadOnly) != 0; }
         }
 
+        private bool IsUnsafe
+        {
+            get { return (_modifiers & DeclarationModifiers.Unsafe) != 0; }
+        }
+
         public sealed override Accessibility DeclaredAccessibility
         {
             get { return ModifierUtils.EffectiveAccessibility(_modifiers); }
@@ -448,7 +453,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool explicitInterfaceImplementation,
                                                    bool isFieldLike, Location location,
-                                                   BindingDiagnosticBag diagnostics, out bool modifierErrors)
+                                                   BindingDiagnosticBag diagnostics, out bool modifierErrors,
+                                                   out bool hasExplicitAccessModifier)
         {
             bool isInterface = this.ContainingType.IsInterface;
             var defaultAccess = isInterface && !explicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
@@ -507,7 +513,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
-                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors,
+                                                                        out hasExplicitAccessModifier);
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, explicitInterfaceImplementation, location, diagnostics);
 
@@ -794,6 +801,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckExplicitImplementationAccessor(AddMethod, explicitlyImplementedEvent.AddMethod, explicitlyImplementedEvent, diagnostics);
                 CheckExplicitImplementationAccessor(RemoveMethod, explicitlyImplementedEvent.RemoveMethod, explicitlyImplementedEvent, diagnostics);
             }
+
+            if (IsPartialDefinition && OtherPartOfPartial is { } implementation)
+            {
+                PartialEventChecks(implementation, diagnostics);
+            }
         }
 
         private void CheckExplicitImplementationAccessor(MethodSymbol? thisAccessor, MethodSymbol? otherAccessor, EventSymbol explicitlyImplementedEvent, BindingDiagnosticBag diagnostics)
@@ -801,6 +813,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!otherAccessor.IsImplementable() && thisAccessor is object)
             {
                 diagnostics.Add(ErrorCode.ERR_ExplicitPropertyAddingAccessor, thisAccessor.GetFirstLocation(), thisAccessor, explicitlyImplementedEvent);
+            }
+        }
+
+        private void PartialEventChecks(SourceEventSymbol implementation, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(this.IsPartialDefinition);
+            Debug.Assert(!ReferenceEquals(this, implementation));
+            Debug.Assert(ReferenceEquals(this.OtherPartOfPartial, implementation));
+
+            if (!TypeWithAnnotations.Equals(implementation.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberTypeDifference, implementation.GetFirstLocation());
+            }
+            else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(this, implementation))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberInconsistentTupleNames, implementation.GetFirstLocation(), this, implementation);
+            }
+            else if (!MemberSignatureComparer.PartialMethodsStrictComparer.Equals(this, implementation))
+            {
+                diagnostics.Add(ErrorCode.WRN_PartialMemberSignatureDifference, implementation.GetFirstLocation(),
+                    new FormattedSymbol(this, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                    new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
+            }
+
+            if (IsStatic != implementation.IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberStaticDifference, implementation.GetFirstLocation());
+            }
+
+            if (IsUnsafe != implementation.IsUnsafe && this.CompilationAllowsUnsafe())
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
+            }
+
+            if (DeclaredAccessibility != implementation.DeclaredAccessibility
+                || _hasExplicitAccessModifier != implementation._hasExplicitAccessModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberAccessibilityDifference, implementation.GetFirstLocation());
+            }
+
+            if (IsVirtual != implementation.IsVirtual
+                || IsOverride != implementation.IsOverride
+                || IsSealed != implementation.IsSealed
+                || IsNew != implementation.IsNew)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberExtendedModDifference, implementation.GetFirstLocation());
             }
         }
 
