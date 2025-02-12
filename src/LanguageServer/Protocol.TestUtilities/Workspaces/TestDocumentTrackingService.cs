@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.Test;
+namespace Microsoft.CodeAnalysis.Test.Utilities;
 
 [ExportWorkspaceService(typeof(IDocumentTrackingService), ServiceLayer.Test), Shared, PartNotDiscoverable]
 [method: ImportingConstructor]

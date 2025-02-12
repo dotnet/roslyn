@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Linq;
@@ -21,15 +20,18 @@ using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.CodeAnalysis.LanguageServer;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.LanguageServer;
 public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 {
     public VSTypeScriptHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 
-    protected override TestComposition Composition => base.Composition.AddParts(typeof(TypeScriptHandlerFactory));
+    protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocolEditorFeatures
+        .AddParts(typeof(TypeScriptHandlerFactory))
+        .AddParts(typeof(TestWorkspaceRegistrationService));
 
     [Fact]
     public async Task TestExternalAccessTypeScriptHandlerInvoked()
@@ -102,7 +104,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         return await TestLspServer.CreateAsync(testWorkspace, new ClientCapabilities(), languageServerTarget, clientStream);
     }
 
-    private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, EditorTestWorkspace workspace)
+    private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, LspTestWorkspace workspace)
     {
         var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
         var servicesProvider = workspace.ExportProvider.GetExportedValue<VSTypeScriptLspServiceProvider>();

@@ -56,9 +56,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var markup = @"class A {";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         await OpenDocumentAsync(testLspServer, document);
@@ -78,9 +75,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var additionalAnalyzers = new DiagnosticAnalyzer[] { new CSharpSyntaxAnalyzer(), new CSharpSemanticAnalyzer() };
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
             markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, additionalAnalyzers: additionalAnalyzers);
-
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -164,9 +158,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             """;
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: true);
 
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         await OpenDocumentAsync(testLspServer, document);
@@ -183,9 +174,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
     {
         var markup = @"class A {";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: true);
-
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -210,9 +198,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             """;
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: true);
 
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         await OpenDocumentAsync(testLspServer, document);
@@ -231,8 +216,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
             GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics));
 
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
         await OpenDocumentAsync(testLspServer, document);
 
@@ -246,9 +229,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var markup = @"class A {";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
         var workspace = testLspServer.TestWorkspace;
-
-        // Calling GetTextBuffer will effectively open the file.
-        workspace.Documents.Single().GetTextBuffer();
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -278,9 +258,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var markup = @"class A {";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         await OpenDocumentAsync(testLspServer, document);
@@ -303,9 +280,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
     {
         var markup = @"class A {";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
-
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -334,17 +308,15 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var markup = @"class A {";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
-        // Calling GetTextBuffer will effectively open the file.
-        var buffer = testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+        var text = await document.GetTextAsync();
 
         await OpenDocumentAsync(testLspServer, document);
 
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
         Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
 
-        await InsertTextAsync(testLspServer, document, buffer.CurrentSnapshot.Length, "}");
+        await InsertTextAsync(testLspServer, document, text.Length, "}");
 
         results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics, results.Single().ResultId);
         AssertEx.Empty(results[0].Diagnostics);
@@ -356,17 +328,14 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var markup = @"class A {";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
-        // Calling GetTextBuffer will effectively open the file.
-        var buffer = testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+        var text = await document.GetTextAsync();
 
         await OpenDocumentAsync(testLspServer, document);
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
         Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
         Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics.Single().Range.Start);
 
-        buffer.Insert(0, " ");
         await InsertTextAsync(testLspServer, document, position: 0, text: " ");
 
         results = await RunGetDocumentPullDiagnosticsAsync(
@@ -387,9 +356,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             """;
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         await OpenDocumentAsync(testLspServer, document);
@@ -406,9 +372,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
     {
         var markup = @"class A {";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
-
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -449,8 +412,11 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Open either of the documents via LSP, we're tracking the URI and text.
         await OpenDocumentAsync(testLspServer, csproj1Document);
 
-        // This opens all documents in the workspace and ensures buffers are created.
-        testLspServer.TestWorkspace.GetTestDocument(csproj1Document.Id)!.GetTextBuffer();
+        // If we don't have a mutating workspace, we need to manually open all linked documents in the workspace (otherwise updating the context will not succeed).
+        if (!mutatingLspWorkspace)
+        {
+            await testLspServer.OpenDocumentInWorkspaceAsync(csproj2Document.Id, openAllLinkedDocuments: true);
+        }
 
         // Set CSProj2 as the active context and get diagnostics.
         testLspServer.TestWorkspace.SetDocumentContext(csproj2Document.Id);
@@ -634,9 +600,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
             GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, WellKnownLspServerKinds.RazorLspServer));
 
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         await OpenDocumentAsync(testLspServer, document);
@@ -657,9 +620,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
             GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, CompilerDiagnosticsScope.OpenFiles, useVSDiagnostics, WellKnownLspServerKinds.LiveShareLspServer));
 
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         await OpenDocumentAsync(testLspServer, document);
@@ -678,9 +638,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var markup = "// Hello, World";
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
             markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
-
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -872,9 +829,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             """;
         await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics: true);
 
-        // Calling GetTextBuffer will effectively open the file.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
-
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         await OpenDocumentAsync(testLspServer, document);
@@ -941,8 +895,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         // Now fix the compiler error, but don't re-execute code analysis.
         // Verify that we still get the workspace diagnostics from the prior snapshot on which code analysis was executed.
-        var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
-        buffer.Insert(buffer.CurrentSnapshot.Length, "}");
+        await InsertInClosedDocumentAsync(testLspServer, testLspServer.TestWorkspace.Documents.First().Id, "}");
 
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
@@ -982,8 +935,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         // Now fix the compiler error, but don't rerun code analysis.
         // Verify that we get up-to-date workspace diagnostics, i.e. no compiler errors, from the current snapshot because FSA is enabled.
-        var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
-        buffer.Insert(buffer.CurrentSnapshot.Length, "}");
+        await InsertInClosedDocumentAsync(testLspServer, testLspServer.TestWorkspace.Documents.First().Id, "}");
 
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
@@ -1456,8 +1408,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         AssertEx.Empty(results[1].Diagnostics);
         AssertEx.Empty(results[2].Diagnostics);
 
-        var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
-        buffer.Insert(buffer.CurrentSnapshot.Length, "}");
+        await InsertInClosedDocumentAsync(testLspServer, testLspServer.TestWorkspace.Documents.First().Id, "}");
 
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
@@ -1484,16 +1435,10 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         AssertEx.Empty(results[1].Diagnostics);
         AssertEx.Empty(results[2].Diagnostics);
 
-        var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
-        buffer.Insert(0, " ");
+        await InsertInClosedDocumentAsync(testLspServer, testLspServer.TestWorkspace.Documents.First().Id, " ", position: 0);
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.First();
         var text = await document.GetTextAsync();
-
-        // Hacky, but we need to close the document manually since editing the text-buffer will open it in the
-        // test-workspace.
-        testLspServer.TestWorkspace.OnDocumentClosed(
-            document.Id, TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())));
 
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
@@ -2145,6 +2090,14 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(2, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
         AssertEx.Empty(results[1].Diagnostics);
+    }
+
+    internal static async Task InsertInClosedDocumentAsync(TestLspServer testLspServer, DocumentId documentId, string textToInsert, int? position = null)
+    {
+        var text = await testLspServer.GetCurrentSolution().GetDocument(documentId)!.GetTextAsync(CancellationToken.None);
+        position ??= text.Length;
+        text = text.WithChanges(new TextChange(new TextSpan(position.Value, 0), textToInsert));
+        await testLspServer.TestWorkspace.ChangeDocumentAsync(documentId, text);
     }
 
     #endregion

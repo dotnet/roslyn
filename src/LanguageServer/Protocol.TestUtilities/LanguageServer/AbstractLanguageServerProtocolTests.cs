@@ -15,9 +15,6 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Test;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -50,10 +47,6 @@ namespace Roslyn.Test.Utilities
         {
             TestOutputLspLogger = testOutputHelper != null ? new TestOutputLspLogger(testOutputHelper) : NoOpLspLogger.Instance;
         }
-
-        protected static readonly TestComposition EditorFeaturesLspComposition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
-            .AddParts(typeof(TestDocumentTrackingService))
-            .AddParts(typeof(TestWorkspaceRegistrationService));
 
         protected static readonly TestComposition FeaturesLspComposition = LspTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
@@ -108,7 +101,7 @@ namespace Roslyn.Test.Utilities
             public override int Compare(LSP.Location? x, LSP.Location? y) => CompareLocations(x, y);
         }
 
-        protected virtual TestComposition Composition => EditorFeaturesLspComposition;
+        protected virtual TestComposition Composition => FeaturesLspComposition;
 
         private protected virtual TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
             => new(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
@@ -180,7 +173,7 @@ namespace Roslyn.Test.Utilities
 
         internal static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, Glyph glyph, string? containerName = null)
         {
-            var imageId = glyph.GetImageId();
+            var (guid, id) = glyph.GetVsImageData();
 
 #pragma warning disable CS0618 // SymbolInformation is obsolete, need to switch to DocumentSymbol/WorkspaceSymbol
             var info = new LSP.VSSymbolInformation()
@@ -188,7 +181,7 @@ namespace Roslyn.Test.Utilities
                 Kind = kind,
                 Name = name,
                 Location = location,
-                Icon = new LSP.VSImageId { Guid = imageId.Guid, Id = imageId.Id },
+                Icon = new LSP.VSImageId { Guid = guid, Id = id },
             };
 
             if (containerName != null)
@@ -279,7 +272,7 @@ namespace Roslyn.Test.Utilities
             };
 
             if (tags != null)
-                item.Icon = tags.ToImmutableArray().GetFirstGlyph().GetImageElement().ToLSPImageElement();
+                item.Icon = new(tags.ToImmutableArray().GetFirstGlyph().ToLSPImageId());
 
             if (commitCharacters != null)
                 item.CommitCharacters = [.. commitCharacters.Value.Select(c => c.ToString())];
@@ -321,13 +314,13 @@ namespace Roslyn.Test.Utilities
             var workspace = CreateWorkspace(lspOptions, workspaceKind: null, mutatingLspWorkspace, composition);
 
             workspace.InitializeDocuments(
-                TestWorkspace.CreateWorkspaceElement(languageName, files: markups, fileContainingFolders: lspOptions.DocumentFileContainingFolders, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups, commonReferences: commonReferences),
+                LspTestWorkspace.CreateWorkspaceElement(languageName, files: markups, fileContainingFolders: lspOptions.DocumentFileContainingFolders, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups, commonReferences: commonReferences),
                 openDocuments: false);
 
             return CreateTestLspServerAsync(workspace, lspOptions, languageName);
         }
 
-        private async Task<TestLspServer> CreateTestLspServerAsync(EditorTestWorkspace workspace, InitializationOptions initializationOptions, string languageName)
+        private async Task<TestLspServer> CreateTestLspServerAsync(LspTestWorkspace workspace, InitializationOptions initializationOptions, string languageName)
         {
             var solution = workspace.CurrentSolution;
 
@@ -374,10 +367,10 @@ namespace Roslyn.Test.Utilities
             return await TestLspServer.CreateAsync(workspace, lspOptions, TestOutputLspLogger);
         }
 
-        internal EditorTestWorkspace CreateWorkspace(
+        internal LspTestWorkspace CreateWorkspace(
             InitializationOptions? options, string? workspaceKind, bool mutatingLspWorkspace, TestComposition? composition = null)
         {
-            var workspace = new EditorTestWorkspace(
+            var workspace = new LspTestWorkspace(
                 composition ?? Composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(ValidateCompilationTrackerStates: true), supportsLspMutation: mutatingLspWorkspace);
             options?.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 
@@ -390,13 +383,13 @@ namespace Roslyn.Test.Utilities
         /// Waits for the async operations on the workspace to complete.
         /// This ensures that events like workspace registration / workspace changes are processed by the time we exit this method.
         /// </summary>
-        protected static async Task WaitForWorkspaceOperationsAsync(EditorTestWorkspace workspace)
+        protected static async Task WaitForWorkspaceOperationsAsync(TestWorkspace workspace)
         {
             var workspaceWaiter = GetWorkspaceWaiter(workspace);
             await workspaceWaiter.ExpeditedWaitAsync();
         }
 
-        private static IAsynchronousOperationWaiter GetWorkspaceWaiter(EditorTestWorkspace workspace)
+        private static IAsynchronousOperationWaiter GetWorkspaceWaiter(TestWorkspace workspace)
         {
             var operations = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             return operations.GetWaiter(FeatureAttribute.Workspace);
@@ -419,7 +412,7 @@ namespace Roslyn.Test.Utilities
             workspace.TryApplyChanges(newSolution);
         }
 
-        protected static async Task<AnalyzerReference> AddGeneratorAsync(ISourceGenerator generator, EditorTestWorkspace workspace)
+        protected static async Task<AnalyzerReference> AddGeneratorAsync(ISourceGenerator generator, LspTestWorkspace workspace)
         {
             var analyzerReference = new TestGeneratorReference(generator);
 
@@ -433,7 +426,7 @@ namespace Roslyn.Test.Utilities
             return analyzerReference;
         }
 
-        protected static async Task RemoveGeneratorAsync(AnalyzerReference reference, EditorTestWorkspace workspace)
+        protected static async Task RemoveGeneratorAsync(AnalyzerReference reference, LspTestWorkspace workspace)
         {
             var solution = workspace.CurrentSolution
                 .Projects.Single()
@@ -444,7 +437,7 @@ namespace Roslyn.Test.Utilities
             await WaitForWorkspaceOperationsAsync(workspace);
         }
 
-        internal static async Task<Dictionary<string, IList<LSP.Location>>> GetAnnotatedLocationsAsync(EditorTestWorkspace workspace, Solution solution)
+        internal static async Task<Dictionary<string, IList<LSP.Location>>> GetAnnotatedLocationsAsync(LspTestWorkspace workspace, Solution solution)
         {
             var locations = new Dictionary<string, IList<LSP.Location>>();
             foreach (var testDocument in workspace.Documents)
@@ -533,7 +526,7 @@ namespace Roslyn.Test.Utilities
 
         internal sealed class TestLspServer : IAsyncDisposable
         {
-            public readonly EditorTestWorkspace TestWorkspace;
+            public readonly LspTestWorkspace TestWorkspace;
             private readonly Dictionary<string, IList<LSP.Location>> _locations;
             private readonly JsonRpc _clientRpc;
             private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService;
@@ -543,7 +536,7 @@ namespace Roslyn.Test.Utilities
             public LSP.ClientCapabilities ClientCapabilities { get; }
 
             private TestLspServer(
-                EditorTestWorkspace testWorkspace,
+                LspTestWorkspace testWorkspace,
                 Dictionary<string, IList<LSP.Location>> locations,
                 LSP.ClientCapabilities clientCapabilities,
                 RoslynLanguageServer target,
@@ -579,7 +572,7 @@ namespace Roslyn.Test.Utilities
                 Assert.False(workspaceWaiter.HasPendingWork);
             }
 
-            internal static async Task<TestLspServer> CreateAsync(EditorTestWorkspace testWorkspace, InitializationOptions initializationOptions, AbstractLspLogger logger)
+            internal static async Task<TestLspServer> CreateAsync(LspTestWorkspace testWorkspace, InitializationOptions initializationOptions, AbstractLspLogger logger)
             {
                 // Important: We must wait for workspace creation operations to finish.
                 // Otherwise we could have a race where workspace change events triggered by creation are changing the state
@@ -610,7 +603,7 @@ namespace Roslyn.Test.Utilities
                 return server;
             }
 
-            internal static async Task<TestLspServer> CreateAsync(EditorTestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, RoslynLanguageServer target, Stream clientStream)
+            internal static async Task<TestLspServer> CreateAsync(LspTestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, RoslynLanguageServer target, Stream clientStream)
             {
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
                 var server = new TestLspServer(testWorkspace, locations, clientCapabilities, target, clientStream);
@@ -625,7 +618,7 @@ namespace Roslyn.Test.Utilities
                 return server;
             }
 
-            private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, EditorTestWorkspace workspace, WellKnownLspServerKinds serverKind, AbstractLspLogger logger)
+            private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, LspTestWorkspace workspace, WellKnownLspServerKinds serverKind, AbstractLspLogger logger)
             {
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
                 var factory = workspace.ExportProvider.GetExportedValue<ILanguageServerFactory>();
@@ -696,6 +689,34 @@ namespace Roslyn.Test.Utilities
 
                 var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, text.ToString(), languageId);
                 await ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(LSP.Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None);
+            }
+
+            /// <summary>
+            /// Opens a document in the workspace only, and waits for workspace operations.
+            /// Use <see cref="OpenDocumentAsync(Uri, string, string)"/> if the document should be opened in LSP"/>
+            /// </summary>
+            public async Task OpenDocumentInWorkspaceAsync(DocumentId documentId, bool openAllLinkedDocuments, SourceText? text = null)
+            {
+                var document = TestWorkspace.CurrentSolution.GetDocument(documentId);
+                Contract.ThrowIfNull(document);
+
+                if (text is null)
+                    text = await TestWorkspace.CurrentSolution.GetDocument(documentId)!.GetTextAsync(CancellationToken.None);
+
+                List<DocumentId> linkedDocuments = [documentId];
+                if (openAllLinkedDocuments)
+                {
+                    linkedDocuments.AddRange(document.GetLinkedDocumentIds());
+                }
+
+                var container = new TestStaticSourceTextContainer(text);
+
+                foreach (var documentIdToOpen in linkedDocuments)
+                {
+                    TestWorkspace.OnDocumentOpened(documentIdToOpen, container);
+                }
+
+                await WaitForWorkspaceOperationsAsync(TestWorkspace);
             }
 
             public Task ReplaceTextAsync(Uri documentUri, params (LSP.Range Range, string Text)[] changes)

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions;
 
 public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
-    [WpfTheory, CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestCodeActionHandlerAsync(bool mutatingLspWorkspace)
     {
         var markup =
@@ -57,7 +57,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         AssertJsonEquals(expected, useImplicitType);
     }
 
-    [WpfTheory, CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestCodeActionHandlerAsync_NestedAction(bool mutatingLspWorkspace)
     {
         var markup =
@@ -96,7 +96,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         AssertJsonEquals(expected, introduceConstant);
     }
 
-    [WpfTheory, CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestCodeActionHasCorrectDiagnostics(bool mutatingLspWorkspace)
     {
         var markup =
@@ -138,7 +138,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         Assert.Equal(AddImportDiagnosticIds.CS0103, addImport.Diagnostics.Single().Code!.Value);
     }
 
-    [WpfTheory, CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestNoSuppressionFixerInStandardLSP(bool mutatingLspWorkspace)
     {
         var markup = """
@@ -175,7 +175,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         Assert.Equal("Make method synchronous", results[0].Title);
     }
 
-    [WpfTheory, CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestStandardLspNestedCodeAction(bool mutatingLspWorkspace)
     {
         var markup = """
@@ -221,7 +221,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         Assert.NotNull(inline.Command);
     }
 
-    [WpfTheory, CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestStandardLspNestedFixAllCodeAction(bool mutatingLspWorkspace)
     {
         var markup = """
@@ -266,7 +266,7 @@ public class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLang
         Assert.Equal("Fix All: in Source", data.NestedCodeActions!.Value[1].Title);
     }
 
-    [WpfTheory, CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task TestStandardLspNestedResolveTopLevelCodeAction(bool mutatingLspWorkspace)
     {
         var markup = """
