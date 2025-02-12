@@ -30,11 +30,10 @@ internal sealed class DocumentationCommentCommandHandler(
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,
     EditorOptionsService editorOptionsService,
-    [Import(AllowDefault = true)] SuggestionServiceBase suggestionServiceBase,
-    IThreadingContext threadingContext,
+    CopilotGenerateDocumentationCommentManager generateDocumentationCommentManager,
     IAsynchronousOperationListenerProvider listenerProvider)
             : AbstractDocumentationCommentCommandHandler(uiThreadOperationExecutor, undoHistoryRegistry,
-                editorOperationsFactoryService, editorOptionsService, suggestionServiceBase, threadingContext, listenerProvider)
+                editorOperationsFactoryService, editorOptionsService, generateDocumentationCommentManager, listenerProvider)
 {
     protected override string ExteriorTriviaText => "///";
 }

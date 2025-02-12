@@ -25,25 +25,44 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 {
     internal class CopilotGenerateDocumentationCommentProvider : SuggestionProviderBase
     {
-        private readonly SuggestionServiceBase? _suggestionServiceBase;
+        private readonly IThreadingContext _threadingContext;
+
         private SuggestionManagerBase? _suggestionManagerBase;
         private VisualStudio.Threading.IAsyncDisposable? _intellicodeLineCompletionsDisposable;
 
         internal SuggestionSessionBase? _suggestionSession;
 
-        public readonly IThreadingContext? ThreadingContext;
-
-        public CopilotGenerateDocumentationCommentProvider(SuggestionServiceBase? suggestionServiceBase)
+        public CopilotGenerateDocumentationCommentProvider(IThreadingContext threadingContext)
         {
-            _suggestionServiceBase = suggestionServiceBase;
+            _threadingContext = threadingContext;
         }
 
-        public async Task SetSuggestionManagerBaseAsync(ITextView textView, CancellationToken cancellationToken)
+        public async Task InitializeAsync(ITextView textView, SuggestionServiceBase suggestionServiceBase, CancellationToken cancellationToken)
         {
-            if (_suggestionServiceBase is not null)
+            _suggestionManagerBase = await suggestionServiceBase.TryRegisterProviderAsync(this, textView, "AmbientAIDocumentationComments", cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<ICopilotCodeAnalysisService?> IsGenerateDocumentationAvailableAsync(Document document, CancellationToken cancellationToken)
+        {
+            // Bailing out if copilot is not available or the option is not enabled.
+            if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+                    await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
             {
-                _suggestionManagerBase = await _suggestionServiceBase.TryRegisterProviderAsync(this, textView, "AmbientAIDocumentationComments", cancellationToken).ConfigureAwait(false);
+                return null;
             }
+
+            if (document.GetLanguageService<ICopilotOptionsService>() is not { } copilotOptionService ||
+                !await copilotOptionService.IsGenerateDocumentationCommentOptionEnabledAsync().ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            if (_suggestionManagerBase is null)
+            {
+                return null;
+            }
+
+            return copilotService;
         }
 
         public async Task GenerateDocumentationProposalAsync(Document document, DocumentationCommentSnippet snippet,
@@ -51,15 +70,9 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         {
             await Task.Yield().ConfigureAwait(false);
 
-            // Bailing out if copilot is not available or the option is not enabled.
-            if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
-                    await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
-            {
-                return;
-            }
+            var copilotService = await IsGenerateDocumentationAvailableAsync(document, cancellationToken).ConfigureAwait(false);
 
-            if (document.GetLanguageService<ICopilotOptionsService>() is not { } copilotOptionService ||
-                !await copilotOptionService.IsGenerateDocumentationCommentOptionEnabledAsync().ConfigureAwait(false))
+            if (copilotService is null)
             {
                 return;
             }
@@ -275,14 +288,14 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         private async Task<bool> TryDisplaySuggestionAsync(SuggestionSessionBase session, DocumentationCommentSuggestion suggestion, CancellationToken cancellationToken)
         {
-            if (ThreadingContext is null)
+            if (_threadingContext is null)
             {
                 return false;
             }
 
             try
             {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 await session.DisplayProposalAsync(suggestion.Proposal, cancellationToken).ConfigureAwait(false);
                 return true;
             }
