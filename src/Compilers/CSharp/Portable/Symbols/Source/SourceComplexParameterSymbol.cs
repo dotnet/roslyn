@@ -1640,22 +1640,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            var candidateMethods = ArrayBuilder<MethodSymbol>.GetInstance();
                             // PROTOTYPE: Update the params collection spec to allow the builder factory method to have an optional or params parameter.
-                            var collectionBuilderMethod = binder.GetAndValidateCollectionBuilderMethods(syntax, (NamedTypeSymbol)Type, candidateMethods, diagnostics);
-                            if (collectionBuilderMethod is { })
-                            {
-                                Binder.ReportUseSite(collectionBuilderMethod, diagnostics, syntax.Location); // PROTOTYPE: Test.
-                                binder.ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
-                                Binder.ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
+                            var targetType = (NamedTypeSymbol)Type;
+                            targetType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
+                            Debug.Assert(builderType is { });
+                            Debug.Assert(!string.IsNullOrEmpty(methodName));
 
-                                if (ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
+                            var candidateMethods = binder.GetAndValidateCollectionBuilderMethods(syntax, targetType, builderType, methodName, diagnostics);
+                            if (candidateMethods.Any())
+                            {
+                                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
+                                var spanType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T).Construct(elementType); // PROTOTYPE: Test missing ReadOnlySpan<T>.
+                                var typeArguments = targetType.GetAllTypeArguments(ref useSiteInfo);
+                                var candidateMethodGroup = binder.BindCollectionBuilderMethodGroup(syntax, methodName, typeArguments, candidateMethods);
+                                var collectionCreation = binder.BindCollectionBuilderCreate(
+                                    syntax,
+                                    candidateMethodGroup,
+                                    spanArgument: new BoundDefaultExpression(syntax, spanType),
+                                    withElement: null, diagnostics);
+
+                                if (collectionCreation is BoundCall { Method: var collectionBuilderMethod } &&
+                                    ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
                                 {
                                     checkIsAtLeastAsVisible(syntax, binder, collectionBuilderMethod, diagnostics);
                                 }
                             }
-
-                            candidateMethods.Free();
                         }
                         break;
                 }

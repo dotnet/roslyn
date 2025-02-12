@@ -978,16 +978,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(elementType is { });
 
-                    var collectionBuilderCandidates = ArrayBuilder<MethodSymbol>.GetInstance();
-                    GetAndValidateCollectionBuilderMethods(syntax, (NamedTypeSymbol)targetType, collectionBuilderCandidates, diagnostics);
+                    ((NamedTypeSymbol)targetType).HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
 
+                    var collectionBuilderCandidates = GetAndValidateCollectionBuilderMethods(syntax, (NamedTypeSymbol)targetType, builderType, methodName, diagnostics);
                     if (collectionBuilderCandidates.IsEmpty)
                     {
-                        collectionBuilderCandidates.Free();
                         return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                     }
 
-                    ((NamedTypeSymbol)targetType).HasCollectionBuilderAttribute(out _, out string? methodName);
+                    Debug.Assert(builderType is { });
                     Debug.Assert(methodName is { });
 
                     var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
@@ -1002,29 +1001,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (element is BoundCollectionExpressionWithElement withElement)
                         {
-                            var analyzedArguments = AnalyzedArguments.GetInstance();
-                            addCollectionBuilderElementsArgument(analyzedArguments, collectionBuilderSpanPlaceholder);
-                            withElement.AddArguments(analyzedArguments);
                             // PROTOTYPE: If there are multiple with() elements, should with() elements after
                             // the first be bound for error recovery only rather than as a factory method call?
-                            var collectionWithArguments = BindCollectionBuilderCreate(withElement.Syntax, candidateMethodGroup, analyzedArguments, diagnostics);
+                            var collectionWithArguments = BindCollectionBuilderCreate(
+                                withElement.Syntax,
+                                candidateMethodGroup,
+                                collectionBuilderSpanPlaceholder,
+                                withElement,
+                                diagnostics);
                             collectionCreation ??= collectionWithArguments;
-                            analyzedArguments.Free();
                         }
                     }
 
-                    // Bind collection creation with no arguments if necessary.
                     if (collectionCreation is null)
                     {
-                        var analyzedArguments = AnalyzedArguments.GetInstance();
-                        addCollectionBuilderElementsArgument(analyzedArguments, collectionBuilderSpanPlaceholder);
-                        collectionCreation = BindCollectionBuilderCreate(syntax, candidateMethodGroup, analyzedArguments, diagnostics);
-                        analyzedArguments.Free();
+                        // Bind collection creation with no arguments.
+                        // PROTOTYPE: Should we require a factory method callable with no arguments even if arguments are provided
+                        // at the call-site, or is this requirement for 'params' parameter types only? Either way, make it clear in the spec.
+                        collectionCreation = BindCollectionBuilderCreate(
+                            syntax,
+                            candidateMethodGroup,
+                            collectionBuilderSpanPlaceholder,
+                            withElement: null,
+                            diagnostics);
                     }
 
                     collectionCreation = CreateConversion(collectionCreation, targetType, diagnostics);
-
-                    collectionBuilderCandidates.Free();
                 }
 
                 var elementConversions = conversion.UnderlyingConversions;
@@ -1090,12 +1092,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetType)
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
 
-            static void addCollectionBuilderElementsArgument(AnalyzedArguments analyzedArguments, BoundValuePlaceholder elements)
-            {
-                Debug.Assert(analyzedArguments.Arguments.IsEmpty);
-                analyzedArguments.Arguments.Add(elements);
-            }
-
             BoundNode bindSpreadElement(BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion, BindingDiagnosticBag diagnostics)
             {
                 var enumeratorInfo = element.EnumeratorInfoOpt;
@@ -1148,22 +1144,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundMethodGroup BindCollectionBuilderMethodGroup(
+        internal BoundMethodGroup BindCollectionBuilderMethodGroup(
             SyntaxNode syntax,
             string methodName,
             ImmutableArray<TypeWithAnnotations> typeArguments,
-            ArrayBuilder<MethodSymbol> collectionBuilderCandidates)
+            ImmutableArray<MethodSymbol> collectionBuilderCandidates)
         {
-            var candidateDefinitions = ArrayBuilder<MethodSymbol>.GetInstance();
-            foreach (var candidate in collectionBuilderCandidates)
-            {
-                candidateDefinitions.Add(candidate.OriginalDefinition);
-            }
+            Debug.Assert(collectionBuilderCandidates.All(c => c.IsDefinition));
+
             return new BoundMethodGroup(
                 syntax,
                 typeArgumentsOpt: typeArguments,
                 name: methodName,
-                methods: candidateDefinitions.ToImmutableAndFree(),
+                methods: collectionBuilderCandidates,
                 lookupSymbolOpt: null,
                 lookupError: null,
                 flags: BoundMethodGroupFlags.None,
@@ -1172,13 +1165,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind: LookupResultKind.Viable);
         }
 
-        private BoundExpression BindCollectionBuilderCreate(
+        internal BoundExpression BindCollectionBuilderCreate(
             SyntaxNode syntax,
             BoundMethodGroup candidateMethodGroup,
-            AnalyzedArguments analyzedArguments,
+            BoundExpression spanArgument,
+            BoundCollectionExpressionWithElement? withElement,
             BindingDiagnosticBag diagnostics)
         {
-            return BindMethodGroupInvocation(
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+            analyzedArguments.Arguments.Add(spanArgument);
+            withElement?.AddArguments(analyzedArguments);
+            var collectionCreation = BindMethodGroupInvocation(
                 syntax,
                 expression: syntax,
                 methodName: candidateMethodGroup.Name,
@@ -1188,6 +1185,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 queryClause: null,
                 ignoreNormalFormIfHasValidParamsParameter: false,
                 out _).MakeCompilerGenerated();
+            analyzedArguments.Free();
+            return collectionCreation;
         }
 
         private bool HasCollectionInitializerTypeInProgress(SyntaxNode syntax, TypeSymbol targetType)
@@ -1208,26 +1207,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal MethodSymbol? GetAndValidateCollectionBuilderMethods(
+        internal ImmutableArray<MethodSymbol> GetAndValidateCollectionBuilderMethods(
             SyntaxNode syntax,
             NamedTypeSymbol targetType,
-            ArrayBuilder<MethodSymbol> candidates,
+            TypeSymbol? builderType,
+            string? methodName,
             BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(candidates.IsEmpty);
-
-            bool result = targetType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
-            Debug.Assert(result);
-
             var targetTypeOriginalDefinition = targetType.OriginalDefinition;
-            result = TryGetCollectionIterationType(syntax, targetTypeOriginalDefinition, out TypeWithAnnotations elementTypeOriginalDefinition);
+            bool result = TryGetCollectionIterationType(syntax, targetTypeOriginalDefinition, out var elementTypeOriginalDefinition);
             Debug.Assert(result);
+
+            ImmutableArray<MethodSymbol> candidates = ImmutableArray<MethodSymbol>.Empty;
 
             if (SourceNamedTypeSymbol.IsValidCollectionBuilderType(builderType) &&
                 !string.IsNullOrEmpty(methodName))
             {
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                GetCollectionBuilderMethods(targetType, elementTypeOriginalDefinition.Type, (NamedTypeSymbol)builderType, methodName, candidates, ref useSiteInfo);
+                candidates = GetCollectionBuilderMethods(targetType, elementTypeOriginalDefinition.Type, (NamedTypeSymbol)builderType, methodName, ref useSiteInfo);
                 diagnostics.Add(syntax, useSiteInfo);
 
                 Debug.Assert(candidates.All(static (m, n) => m.Arity == n, targetType.AllTypeArgumentCount()));
@@ -1235,28 +1232,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfObsolete(diagnostics, builderType, syntax, hasBaseReceiver: false);
             }
 
-            MethodSymbol? noArgsMethod = null;
-            // PROTOTYPE: For cases where multiple candidates are callable with no additional arguments,
-            // we can't check for ObsoleteAttribute or check constraints, because the actual method used at
-            // the call site is not known. Is a spec change needed for params collections to make that clear?
-            foreach (var candidate in candidates)
+            if (candidates.IsEmpty)
             {
-                if (IsCollectionBuilderMethodCallableWithoutAdditionalArguments(syntax, candidate.OriginalDefinition))
-                {
-                    noArgsMethod = candidate;
-                    break;
-                }
+                diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition.Type, targetType.OriginalDefinition);
             }
 
-            if (noArgsMethod is null)
-            {
-                // PROTOTYPE: We currently require a factory method callable with no arguments even if arguments are provided
-                // at the call-site. (See error reported for [with(t)] in CollectionBuilder_NoParameterlessConstructor.) Is this
-                // requirement necessary other than for 'params' parameter types? If not, remove this diagnostic and update the spec.
-                diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition, targetTypeOriginalDefinition);
-            }
-
-            return noArgsMethod;
+            return candidates;
         }
 
         internal static MethodSymbol? GetCollectionBuilderMethod(BoundCollectionExpression node)
@@ -1278,22 +1259,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundConversion conversion => GetCollectionBuilderMethodFromCollectionCreation(conversion.Operand),
                 _ => null,
             };
-        }
-
-        private bool IsCollectionBuilderMethodCallableWithoutAdditionalArguments(SyntaxNode syntax, MethodSymbol candidate)
-        {
-            Debug.Assert(candidate.IsDefinition);
-
-            var candidates = ArrayBuilder<MethodSymbol>.GetInstance(1);
-            candidates.Add(candidate);
-            var analyzedArguments = AnalyzedArguments.GetInstance();
-            analyzedArguments.Arguments.Add(new BoundDefaultExpression(syntax, candidate.Parameters[0].Type));
-            var candidateMethodGroup = BindCollectionBuilderMethodGroup(syntax, candidate.Name, candidate.TypeArgumentsWithAnnotations, candidates);
-            var diagnostics = BindingDiagnosticBag.GetInstance();
-            var collectionCreation = BindCollectionBuilderCreate(syntax, candidateMethodGroup, analyzedArguments, diagnostics);
-            diagnostics.Free(); // PROTOTYPE: Should return these diagnostics when returning true.
-            analyzedArguments.Free();
-            return collectionCreation is BoundCall { ResultKind: LookupResultKind.Viable };
         }
 
         internal BoundExpression BindCollectionExpressionConstructor(
@@ -2105,14 +2070,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void GetCollectionBuilderMethods(
-            NamedTypeSymbol targetType,
+        private ImmutableArray<MethodSymbol> GetCollectionBuilderMethods(
+            NamedTypeSymbol targetType, // PROTOTYPE: This should be a definition. Then 'elementTypeOriginalDefinition' can be renamed to 'elementType'.
             TypeSymbol elementTypeOriginalDefinition,
             NamedTypeSymbol builderType,
             string methodName,
-            ArrayBuilder<MethodSymbol> candidates,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(builderType.IsDefinition);
+            Debug.Assert(!builderType.IsGenericType);
+
+            var candidates = ArrayBuilder<MethodSymbol>.GetInstance();
             var readOnlySpanType = Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T);
 
             foreach (var candidate in builderType.GetMembers(methodName))
@@ -2122,6 +2090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
+                Debug.Assert(method.IsDefinition);
                 var candidateUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
                 if (!IsAccessible(method, ref candidateUseSiteInfo))
                 {
@@ -2147,8 +2116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (allTypeArguments.Length > 0)
                 {
                     var allTypeParameters = TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(targetType.OriginalDefinition.GetAllTypeParameters());
-                    methodWithTargetTypeParameters = method.OriginalDefinition.Construct(allTypeParameters);
-                    method = method.Construct(allTypeArguments);
+                    methodWithTargetTypeParameters = method.Construct(allTypeParameters);
                 }
                 else
                 {
@@ -2177,6 +2145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteInfo.AddDiagnostics(candidateUseSiteInfo.Diagnostics);
                 candidates.Add(method);
             }
+
+            return candidates.ToImmutableAndFree();
         }
 
         /// <summary>
