@@ -244,7 +244,7 @@ public class A { }";
                 => value switch
                 {
                     null => "null",
-                    _ => value.ToString()
+                    _ => value.ToString()!
                 };
 
             private static string GenerateNonDefaultValue(IOption2 option)
