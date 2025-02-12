@@ -1003,7 +1003,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (element is BoundCollectionExpressionWithElement withElement)
                         {
                             var analyzedArguments = AnalyzedArguments.GetInstance();
-                            var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
                             addCollectionBuilderElementsArgument(analyzedArguments, collectionBuilderSpanPlaceholder);
                             withElement.AddArguments(analyzedArguments);
                             // PROTOTYPE: If there are multiple with() elements, should with() elements after
@@ -1211,16 +1210,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal MethodSymbol? GetAndValidateCollectionBuilderMethods(
             SyntaxNode syntax,
-            NamedTypeSymbol namedType,
+            NamedTypeSymbol targetType,
             ArrayBuilder<MethodSymbol> candidates,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(candidates.IsEmpty);
 
-            bool result = namedType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
+            bool result = targetType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
             Debug.Assert(result);
 
-            var targetTypeOriginalDefinition = namedType.OriginalDefinition;
+            var targetTypeOriginalDefinition = targetType.OriginalDefinition;
             result = TryGetCollectionIterationType(syntax, targetTypeOriginalDefinition, out TypeWithAnnotations elementTypeOriginalDefinition);
             Debug.Assert(result);
 
@@ -1228,10 +1227,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !string.IsNullOrEmpty(methodName))
             {
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                GetCollectionBuilderMethods(namedType, elementTypeOriginalDefinition.Type, (NamedTypeSymbol)builderType, methodName, candidates, ref useSiteInfo);
+                GetCollectionBuilderMethods(targetType, elementTypeOriginalDefinition.Type, (NamedTypeSymbol)builderType, methodName, candidates, ref useSiteInfo);
                 diagnostics.Add(syntax, useSiteInfo);
 
-                Debug.Assert(candidates.All(static (m, n) => m.Arity == n, namedType.AllTypeArgumentCount()));
+                Debug.Assert(candidates.All(static (m, n) => m.Arity == n, targetType.AllTypeArgumentCount()));
 
                 ReportDiagnosticsIfObsolete(diagnostics, builderType, syntax, hasBaseReceiver: false);
             }

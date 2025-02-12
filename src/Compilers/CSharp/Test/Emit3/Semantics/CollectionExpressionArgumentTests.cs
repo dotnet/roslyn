@@ -1424,9 +1424,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation([sourceA, sourceB1], targetFramework: TargetFramework.Net80);
-            // PROTOTYPE: Should report an error for NoConstraintsParams<T>() declaration since there may not be a candidate that works for any T.
-            // PROTOTYPE: Update the params-collection spec so it's clear: "... a factory method callable with no additional arguments,
-            // and with the type arguments from the params parameter declaration". And provide an example such as this.
             comp.VerifyEmitDiagnostics(
                 // (3,58): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
                 //     static MyCollection<T> NoConstraints<T>(T x, T y) => [x, y];
@@ -1441,6 +1438,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
             // PROTOTYPE: Should report an error for NoConstraintsParams<T>() declaration since there may not be a candidate that works for any T.
+            // PROTOTYPE: Update the params-collection spec so it's clear that we require "... a factory method callable with no additional
+            // arguments, and with the type arguments from the params parameter declaration", and provide an example such as this case.
             comp.VerifyEmitDiagnostics(
                 // (3,58): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
                 //     static MyCollection<T> NoConstraints<T>(T x, T y) => NoConstraintsParams(x, y);
