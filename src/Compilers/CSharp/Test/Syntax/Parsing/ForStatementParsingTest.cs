@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing;
 
@@ -444,6 +446,72 @@ public sealed class ForStatementParsingTest(ITestOutputHelper output) : ParsingT
             N(SyntaxKind.EmptyStatement);
             {
                 N(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77160")]
+    public void TestMultipleDeclaratorsWithInitializers()
+    {
+        UsingStatement("""
+            for (int offset = 0, c1, c2; offset < length;)
+            {
+            }
+            """);
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "offset");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "c1");
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "c2");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "offset");
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "length");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
         }
         EOF();
