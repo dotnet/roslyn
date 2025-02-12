@@ -1458,7 +1458,7 @@ namespace Microsoft.CodeAnalysis
                 "NumericIntPtr",                            // System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
                 "ByRefFields",                              // System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
                 "ByRefLikeGenerics",                        // System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics
-                "Async",                        // System_Runtime_CompilerServices_RuntimeFeature__Async
+                "Async",                                    // System_Runtime_CompilerServices_RuntimeFeature__Async
                 ".ctor",                                    // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_InlineArrayAttribute__ctor
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Reference

@@ -524,6 +524,135 @@ class Test
 
         [Theory]
         [CombinatorialData]
+        public void Local_ReturningAsync(bool useValueTask, bool useGeneric)
+        {
+            string retType = useGeneric ? (useValueTask ? "ValueTask<string>" : "Task<string>") : (useValueTask ? "ValueTask" : "Task");
+            string expr = useValueTask ?
+                (useGeneric ? "default(ValueTask<string>)" : "default(ValueTask)") :
+                (useGeneric ? """default(Task<string>)""" : "default(Task)");
+
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    public static async {{retType}} F()
+                    {
+                        var l = {{expr}};
+                        NoOp();
+                        {{(useGeneric ? "return " : "")}}await l;
+                    }
+
+                    private static void NoOp() { }
+
+                    public static async Task Main()
+                    {
+                #pragma warning disable CS0219 // Unused assignment
+                        string result = null;
+                        try
+                        {
+                            {{(useGeneric ? "result = " : "")}}await F();
+                        }
+                        catch (System.NullReferenceException)
+                        {
+                        }
+                        Console.WriteLine({{(useValueTask && useGeneric ? "result" : "42")}});
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90);
+            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
+
+            var ilVerifyMessage = (useValueTask, useGeneric) switch
+            {
+                (false, false) => $$"""
+                    {{ReturnValueMissing("F", "0xb")}}
+                    {{ReturnValueMissing("Main", "0x16")}}
+                    """,
+                (false, true) => $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0xb, Found = ref 'string', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<string>' }
+                    {{ReturnValueMissing("Main", "0x17")}}
+                    """,
+                (true, false) => $$"""
+                    {{ReturnValueMissing("F", "0x13")}}
+                    {{ReturnValueMissing("Main", "0x16")}}
+                    """,
+                (true, true) => $$"""
+                    [F]: Unexpected type on the stack. { Offset = 0x13, Found = ref 'string', Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<string>' }
+                    {{ReturnValueMissing("Main", "0x18")}}
+                    """,
+            };
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = ilVerifyMessage,
+            }, symbolValidator: verify);
+            verifier.VerifyDiagnostics();
+
+            var expectedIl = (useValueTask, useGeneric) switch
+            {
+                (false, false) => """
+                    {
+                      // Code size       12 (0xc)
+                      .maxstack  1
+                      IL_0000:  ldnull
+                      IL_0001:  call       "void Test.NoOp()"
+                      IL_0006:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.Task)"
+                      IL_000b:  ret
+                    }
+                    """,
+                (false, true) => """
+                    {
+                      // Code size       12 (0xc)
+                      .maxstack  1
+                      IL_0000:  ldnull
+                      IL_0001:  call       "void Test.NoOp()"
+                      IL_0006:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
+                      IL_000b:  ret
+                    }
+                    """,
+                (true, false) => """
+                    {
+                      // Code size       20 (0x14)
+                      .maxstack  1
+                      .locals init (System.Threading.Tasks.ValueTask V_0)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "System.Threading.Tasks.ValueTask"
+                      IL_0008:  ldloc.0
+                      IL_0009:  call       "void Test.NoOp()"
+                      IL_000e:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.Await(System.Threading.Tasks.ValueTask)"
+                      IL_0013:  ret
+                    }
+                    """,
+                (true, true) => """
+                    {
+                      // Code size       20 (0x14)
+                      .maxstack  1
+                      .locals init (System.Threading.Tasks.ValueTask<string> V_0)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "System.Threading.Tasks.ValueTask<string>"
+                      IL_0008:  ldloc.0
+                      IL_0009:  call       "void Test.NoOp()"
+                      IL_000e:  call       "string System.Runtime.CompilerServices.RuntimeHelpers.Await<string>(System.Threading.Tasks.ValueTask<string>)"
+                      IL_0013:  ret
+                    }
+                    """,
+            };
+
+            verifier.VerifyIL("Test.F", expectedIl);
+
+            void verify(ModuleSymbol module)
+            {
+                var test = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                var f = test.GetMethod("F");
+                Assert.Equal(MethodImplOptionsAsync, f.ImplementationAttributes);
+                AssertEx.Empty(test.GetTypeMembers());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void DefaultLiteral_ReturningAsync(bool useValueTask, bool useGeneric)
         {
             string retType = useGeneric ? (useValueTask ? "ValueTask<string>" : "Task<string>") : (useValueTask ? "ValueTask" : "Task");

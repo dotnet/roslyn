@@ -56,7 +56,6 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
     public BoundExpression VisitExpression(BoundExpression node)
     {
         var result = Visit(node);
-        Debug.Assert(result is BoundExpression);
         return (BoundExpression)result;
     }
 
@@ -110,7 +109,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         }
 #endif
 
-        // System.Runtime.CompilerServices.RuntimeHelpers.Await(awaitedCall)
+        // System.Runtime.CompilerServices.RuntimeHelpers.Await(awaitedExpression)
         return _factory.Call(receiver: null, awaitMethod, VisitExpression(node.Expression));
     }
 }
