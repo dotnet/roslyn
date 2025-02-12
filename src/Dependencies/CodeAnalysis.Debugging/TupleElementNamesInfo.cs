@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.Debugging
 {
     internal readonly struct TupleElementNamesInfo
     {
-        internal readonly ImmutableArray<string> ElementNames;
+        internal readonly ImmutableArray<string?> ElementNames;
         internal readonly int SlotIndex; // Locals only
         internal readonly string LocalName;
         internal readonly int ScopeStart; // Constants only
         internal readonly int ScopeEnd; // Constants only
 
-        internal TupleElementNamesInfo(ImmutableArray<string> elementNames, int slotIndex, string localName, int scopeStart, int scopeEnd)
+        internal TupleElementNamesInfo(ImmutableArray<string?> elementNames, int slotIndex, string localName, int scopeStart, int scopeEnd)
         {
             Debug.Assert(!elementNames.IsDefault);
 

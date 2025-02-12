@@ -1,0 +1,6 @@
+[*.cs]
+
+# IDE0240: Remove redundant nullable directive
+# The directive needs to be included since all sources in a source package are considered generated code
+# when referenced from a project via package reference.
+dotnet_diagnostic.IDE0240.severity = none
