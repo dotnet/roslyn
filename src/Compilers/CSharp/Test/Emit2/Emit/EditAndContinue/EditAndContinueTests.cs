@@ -1478,7 +1478,6 @@ class Bad : Bad
                             new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),// G [A3] add with RowId 9
                             new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),// H [A6] -> [A7]
                         ]);
-                        }
                     })
                 .AddGeneration(
                     source: common + """
