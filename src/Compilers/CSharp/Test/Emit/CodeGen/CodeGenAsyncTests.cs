@@ -16,6 +16,7 @@ using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    [CompilerTrait(CompilerFeature.Async)]
     public class CodeGenAsyncTests : EmitMetadataTestBase
     {
         internal static string ExpectedOutput(string output)

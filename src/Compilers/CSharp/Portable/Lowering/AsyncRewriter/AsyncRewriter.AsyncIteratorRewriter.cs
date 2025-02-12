@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override void InitializeStateMachine(ArrayBuilder<BoundStatement> bodyBuilder, NamedTypeSymbol frameType, LocalSymbol stateMachineLocal)
             {
                 // var stateMachineLocal = new {StateMachineType}({initialState})
-                var initialState = _isEnumerable ? StateMachineState.FinishedState : StateMachineState.InitialAsyncIteratorState;
+                var initialState = _isEnumerable ? StateMachineState.InitialEnumerableState : StateMachineState.InitialAsyncIteratorState;
                 bodyBuilder.Add(
                     F.Assignment(
                         F.Local(stateMachineLocal),
@@ -279,8 +279,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Standard naming convention for generating 'IAsyncEnumerator.MoveNextAsync'")]
             private void GenerateIAsyncEnumeratorImplementation_MoveNextAsync()
             {
+                Debug.Assert((int)StateMachineState.IteratorFinishedState == -3);
                 // Produce:
-                //  if (state == StateMachineStates.FinishedStateMachine)
+                //  if (state == StateMachineStates.IteratorFinishedState)
                 //  {
                 //      return default;
                 //  }
@@ -327,8 +328,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out MethodSymbol promise_get_Version);
 
                 BoundStatement ifFinished = F.If(
-                    // if (state == StateMachineStates.FinishedStateMachine)
-                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineState.FinishedState)),
+                    // if (state == StateMachineStates.IteratorFinishedState)
+                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineState.IteratorFinishedState)),
                     // return default;
                     thenClause: F.Return(F.Default(moveNextAsyncReturnType)));
 
@@ -408,12 +409,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Standard naming convention for generating 'IAsyncDisposable.DisposeAsync'")]
             private void GenerateIAsyncDisposable_DisposeAsync()
             {
+                Debug.Assert((int)StateMachineState.NotStartedOrRunningState == -1);
+                Debug.Assert((int)StateMachineState.IteratorFinishedState == -3);
+
                 // Produce:
-                //  if (state >= StateMachineStates.NotStartedStateMachine /* -3 */)
+                //  if (state >= StateMachineStates.NotStartedOrRunningState /* -1 */)
                 //  {
                 //      throw new NotSupportedException();
                 //  }
-                //  if (state == StateMachineStates.FinishedStateMachine /* -2 */)
+                //  if (state == StateMachineStates.IteratorFinishedState /* -3 */)
                 //  {
                 //      return default;
                 //  }
@@ -437,14 +441,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out MethodSymbol promise_get_Version);
 
                 BoundStatement ifInvalidState = F.If(
-                    // if (state >= StateMachineStates.NotStartedStateMachine /* -1 */)
+                    // if (state >= StateMachineStates.NotStartedOrRunningState /* -1 */)
                     F.IntGreaterThanOrEqual(F.InstanceField(stateField), F.Literal(StateMachineState.NotStartedOrRunningState)),
                     // throw new NotSupportedException();
                     thenClause: F.Throw(F.New(F.WellKnownType(WellKnownType.System_NotSupportedException))));
 
                 BoundStatement ifFinished = F.If(
-                    // if (state == StateMachineStates.FinishedStateMachine)
-                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineState.FinishedState)),
+                    // if (state == StateMachineStates.IteratorFinishedState /* -3 */)
+                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineState.IteratorFinishedState)),
                     // return default;
                     thenClause: F.Return(F.Default(returnType)));
 

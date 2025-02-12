@@ -590,7 +590,7 @@ End Class
             Dim v0 = CompileAndVerify(compilation:=compilation0)
             v0.VerifyIL("C.VB$StateMachine_2_M.MoveNext()", "
 {
-  // Code size      204 (0xcc)
+  // Code size      208 (0xd0)
   .maxstack  3
   .locals init (Boolean V_0,
                 Integer V_1)
@@ -598,108 +598,109 @@ End Class
   IL_0001:  ldfld      ""C.VB$StateMachine_2_M.$State As Integer""
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
-  IL_0008:  ldc.i4.s   -3
+  IL_0008:  ldc.i4.s   -4
   IL_000a:  sub
   IL_000b:  switch    (
-        IL_002a,
-        IL_0033,
-        IL_0033,
-        IL_002c,
-        IL_002a,
-        IL_002e)
-  IL_0028:  br.s       IL_0033
-  IL_002a:  br.s       IL_0051
-  IL_002c:  br.s       IL_0035
-  IL_002e:  br         IL_00bf
-  IL_0033:  ldc.i4.0
-  IL_0034:  ret
-  IL_0035:  ldarg.0
-  IL_0036:  ldc.i4.m1
-  IL_0037:  dup
-  IL_0038:  stloc.1
-  IL_0039:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-  IL_003e:  nop
-  IL_003f:  nop
-  IL_0040:  ldarg.0
-  IL_0041:  ldarg.0
-  IL_0042:  ldfld      ""C.VB$StateMachine_2_M.$VB$Me As C""
-  IL_0047:  callvirt   ""Function C.F() As System.IDisposable""
-  IL_004c:  stfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
-  IL_0051:  nop
+        IL_002e,
+        IL_0037,
+        IL_0037,
+        IL_0037,
+        IL_0030,
+        IL_002e,
+        IL_0032)
+  IL_002c:  br.s       IL_0037
+  IL_002e:  br.s       IL_0055
+  IL_0030:  br.s       IL_0039
+  IL_0032:  br         IL_00c3
+  IL_0037:  ldc.i4.0
+  IL_0038:  ret
+  IL_0039:  ldarg.0
+  IL_003a:  ldc.i4.m1
+  IL_003b:  dup
+  IL_003c:  stloc.1
+  IL_003d:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+  IL_0042:  nop
+  IL_0043:  nop
+  IL_0044:  ldarg.0
+  IL_0045:  ldarg.0
+  IL_0046:  ldfld      ""C.VB$StateMachine_2_M.$VB$Me As C""
+  IL_004b:  callvirt   ""Function C.F() As System.IDisposable""
+  IL_0050:  stfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
+  IL_0055:  nop
   .try
   {
-    IL_0052:  ldloc.1
-    IL_0053:  ldc.i4.s   -3
-    IL_0055:  beq.s      IL_005f
-    IL_0057:  br.s       IL_0059
-    IL_0059:  ldloc.1
-    IL_005a:  ldc.i4.1
-    IL_005b:  beq.s      IL_0061
-    IL_005d:  br.s       IL_0063
-    IL_005f:  br.s       IL_0065
-    IL_0061:  br.s       IL_0086
-    IL_0063:  br.s       IL_0072
-    IL_0065:  ldarg.0
-    IL_0066:  ldc.i4.m1
-    IL_0067:  dup
-    IL_0068:  stloc.1
-    IL_0069:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-    IL_006e:  ldc.i4.1
-    IL_006f:  stloc.0
-    IL_0070:  leave.s    IL_00ca
-    IL_0072:  ldarg.0
-    IL_0073:  ldc.i4.1
-    IL_0074:  stfld      ""C.VB$StateMachine_2_M.$Current As Integer""
-    IL_0079:  ldarg.0
-    IL_007a:  ldc.i4.1
-    IL_007b:  dup
-    IL_007c:  stloc.1
-    IL_007d:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-    IL_0082:  ldc.i4.1
-    IL_0083:  stloc.0
-    IL_0084:  leave.s    IL_00ca
-    IL_0086:  ldarg.0
-    IL_0087:  ldc.i4.m1
-    IL_0088:  dup
-    IL_0089:  stloc.1
-    IL_008a:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-    IL_008f:  leave.s    IL_00ad
+    IL_0056:  ldloc.1
+    IL_0057:  ldc.i4.s   -4
+    IL_0059:  beq.s      IL_0063
+    IL_005b:  br.s       IL_005d
+    IL_005d:  ldloc.1
+    IL_005e:  ldc.i4.1
+    IL_005f:  beq.s      IL_0065
+    IL_0061:  br.s       IL_0067
+    IL_0063:  br.s       IL_0069
+    IL_0065:  br.s       IL_008a
+    IL_0067:  br.s       IL_0076
+    IL_0069:  ldarg.0
+    IL_006a:  ldc.i4.m1
+    IL_006b:  dup
+    IL_006c:  stloc.1
+    IL_006d:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+    IL_0072:  ldc.i4.1
+    IL_0073:  stloc.0
+    IL_0074:  leave.s    IL_00ce
+    IL_0076:  ldarg.0
+    IL_0077:  ldc.i4.1
+    IL_0078:  stfld      ""C.VB$StateMachine_2_M.$Current As Integer""
+    IL_007d:  ldarg.0
+    IL_007e:  ldc.i4.1
+    IL_007f:  dup
+    IL_0080:  stloc.1
+    IL_0081:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+    IL_0086:  ldc.i4.1
+    IL_0087:  stloc.0
+    IL_0088:  leave.s    IL_00ce
+    IL_008a:  ldarg.0
+    IL_008b:  ldc.i4.m1
+    IL_008c:  dup
+    IL_008d:  stloc.1
+    IL_008e:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+    IL_0093:  leave.s    IL_00b1
   }
   finally
   {
-    IL_0091:  ldloc.1
-    IL_0092:  ldc.i4.0
-    IL_0093:  bge.s      IL_00ac
-    IL_0095:  nop
-    IL_0096:  ldarg.0
-    IL_0097:  ldfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
-    IL_009c:  brfalse.s  IL_00aa
-    IL_009e:  ldarg.0
-    IL_009f:  ldfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
-    IL_00a4:  callvirt   ""Sub System.IDisposable.Dispose()""
-    IL_00a9:  nop
-    IL_00aa:  br.s       IL_00ac
-    IL_00ac:  endfinally
+    IL_0095:  ldloc.1
+    IL_0096:  ldc.i4.0
+    IL_0097:  bge.s      IL_00b0
+    IL_0099:  nop
+    IL_009a:  ldarg.0
+    IL_009b:  ldfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
+    IL_00a0:  brfalse.s  IL_00ae
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldfld      ""C.VB$StateMachine_2_M.$S0 As System.IDisposable""
+    IL_00a8:  callvirt   ""Sub System.IDisposable.Dispose()""
+    IL_00ad:  nop
+    IL_00ae:  br.s       IL_00b0
+    IL_00b0:  endfinally
   }
-  IL_00ad:  ldarg.0
-  IL_00ae:  ldc.i4.2
-  IL_00af:  stfld      ""C.VB$StateMachine_2_M.$Current As Integer""
-  IL_00b4:  ldarg.0
-  IL_00b5:  ldc.i4.2
-  IL_00b6:  dup
-  IL_00b7:  stloc.1
-  IL_00b8:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-  IL_00bd:  ldc.i4.1
-  IL_00be:  ret
-  IL_00bf:  ldarg.0
-  IL_00c0:  ldc.i4.m1
-  IL_00c1:  dup
-  IL_00c2:  stloc.1
-  IL_00c3:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
-  IL_00c8:  ldc.i4.0
-  IL_00c9:  ret
-  IL_00ca:  ldloc.0
-  IL_00cb:  ret
+  IL_00b1:  ldarg.0
+  IL_00b2:  ldc.i4.2
+  IL_00b3:  stfld      ""C.VB$StateMachine_2_M.$Current As Integer""
+  IL_00b8:  ldarg.0
+  IL_00b9:  ldc.i4.2
+  IL_00ba:  dup
+  IL_00bb:  stloc.1
+  IL_00bc:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+  IL_00c1:  ldc.i4.1
+  IL_00c2:  ret
+  IL_00c3:  ldarg.0
+  IL_00c4:  ldc.i4.m1
+  IL_00c5:  dup
+  IL_00c6:  stloc.1
+  IL_00c7:  stfld      ""C.VB$StateMachine_2_M.$State As Integer""
+  IL_00cc:  ldc.i4.0
+  IL_00cd:  ret
+  IL_00ce:  ldloc.0
+  IL_00cf:  ret
 }
 ")
             v0.VerifyPdb("C+VB$StateMachine_2_M.MoveNext", "
@@ -717,19 +718,19 @@ End Class
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x3e"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""53"" document=""1"" />
-        <entry offset=""0x3f"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
-        <entry offset=""0x51"" hidden=""true"" document=""1"" />
-        <entry offset=""0x52"" hidden=""true"" document=""1"" />
-        <entry offset=""0x72"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""20"" document=""1"" />
-        <entry offset=""0x8f"" hidden=""true"" document=""1"" />
-        <entry offset=""0x91"" hidden=""true"" document=""1"" />
-        <entry offset=""0x95"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""18"" document=""1"" />
-        <entry offset=""0xac"" hidden=""true"" document=""1"" />
-        <entry offset=""0xad"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""16"" document=""1"" />
-        <entry offset=""0xc8"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""17"" document=""1"" />
+        <entry offset=""0x42"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""53"" document=""1"" />
+        <entry offset=""0x43"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x55"" hidden=""true"" document=""1"" />
+        <entry offset=""0x56"" hidden=""true"" document=""1"" />
+        <entry offset=""0x76"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x93"" hidden=""true"" document=""1"" />
+        <entry offset=""0x95"" hidden=""true"" document=""1"" />
+        <entry offset=""0x99"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""18"" document=""1"" />
+        <entry offset=""0xb0"" hidden=""true"" document=""1"" />
+        <entry offset=""0xb1"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""16"" document=""1"" />
+        <entry offset=""0xcc"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""17"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xcc"">
+      <scope startOffset=""0x0"" endOffset=""0xd0"">
         <importsforward declaringType=""C"" methodName=""F"" />
       </scope>
     </method>

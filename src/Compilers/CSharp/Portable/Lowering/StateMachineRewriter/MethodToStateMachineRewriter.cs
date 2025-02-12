@@ -875,6 +875,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
+            Debug.Assert(this is AsyncIteratorMethodToStateMachineRewriter or AsyncMethodToStateMachineRewriter);
+
             var oldDispatches = _dispatches;
 
             _dispatches = null;
@@ -926,6 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual BoundBinaryOperator ShouldEnterFinallyBlock()
         {
+            Debug.Assert(this is AsyncMethodToStateMachineRewriter);
             return F.IntLessThan(F.Local(cachedState), F.Literal(StateMachineState.FirstUnusedState));
         }
 
