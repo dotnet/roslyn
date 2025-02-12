@@ -85,6 +85,7 @@
       "Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Xaml":  "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.Workspaces": "vs-impl",
