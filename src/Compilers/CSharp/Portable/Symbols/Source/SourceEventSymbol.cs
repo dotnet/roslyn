@@ -194,8 +194,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
-            if ((_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed) &&
-                LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
+            var bag = _lazyCustomAttributesBag;
+            if (bag != null && bag.IsSealed)
+            {
+                return bag;
+            }
+
+            bool bagCreatedOnThisThread;
+
+            if (SourcePartialDefinitionPart is { } definitionPart)
+            {
+                Debug.Assert(!ReferenceEquals(definitionPart, this));
+                bag = definitionPart.GetAttributesBag();
+                bagCreatedOnThisThread = Interlocked.CompareExchange(ref _lazyCustomAttributesBag, bag, null) == null;
+            }
+            else
+            {
+                bagCreatedOnThisThread = LoadAndValidateAttributes(this.GetAttributeDeclarations(), ref _lazyCustomAttributesBag);
+            }
+
+            if (bagCreatedOnThisThread)
             {
                 DeclaringCompilation.SymbolDeclaredEvent(this);
                 var wasCompletedThisThread = _state.NotePartComplete(CompletionPart.Attributes);
@@ -204,6 +222,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             RoslynDebug.AssertNotNull(_lazyCustomAttributesBag);
             return _lazyCustomAttributesBag;
+        }
+
+        private OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        {
+            // Attributes on partial events are owned by the definition part.
+            // If this symbol has a non-null PartialDefinitionPart, we should have accessed this method through that definition symbol instead.
+            Debug.Assert(PartialDefinitionPart is null);
+
+            if (SourcePartialImplementationPart is { } implementationPart)
+            {
+                return OneOrMany.Create(this.AttributeDeclarationSyntaxList, implementationPart.AttributeDeclarationSyntaxList);
+            }
+
+            return OneOrMany.Create(this.AttributeDeclarationSyntaxList);
         }
 
         /// <summary>

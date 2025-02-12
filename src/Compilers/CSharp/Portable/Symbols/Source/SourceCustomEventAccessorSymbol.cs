@@ -77,9 +77,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        protected override SourceMemberMethodSymbol? BoundAttributesSource => (SourceMemberMethodSymbol?)PartialDefinitionPart;
+
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            return OneOrMany.Create(GetSyntax().AttributeLists);
+            Debug.Assert(PartialImplementationPart is null);
+
+            // If this is a partial event, the corresponding partial definition cannot have any accessor attributes
+            // (there are no explicit accessors in source on the definition part).
+
+            return OneOrMany.Create(this.GetSyntax().AttributeLists);
         }
 
         public override bool IsImplicitlyDeclared

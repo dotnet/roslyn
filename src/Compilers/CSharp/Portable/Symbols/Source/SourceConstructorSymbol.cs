@@ -192,10 +192,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
+            // Attributes on partial constructors are owned by the definition part.
+            // If this symbol has a non-null PartialDefinitionPart, we should have accessed this method through that definition symbol instead.
+            Debug.Assert(PartialDefinitionPart is null);
+
+            if (SourcePartialImplementationPart is { } implementationPart)
+            {
+                return OneOrMany.Create(
+                    ((ConstructorDeclarationSyntax)this.SyntaxNode).AttributeLists,
+                    ((ConstructorDeclarationSyntax)implementationPart.SyntaxNode).AttributeLists);
+            }
+
             return OneOrMany.Create(((ConstructorDeclarationSyntax)this.SyntaxNode).AttributeLists);
         }
+
+        protected override SourceMemberMethodSymbol? BoundAttributesSource => SourcePartialDefinitionPart;
+#nullable disable
 
         internal override bool IsNullableAnalysisEnabled()
             => flags.HasThisInitializer
