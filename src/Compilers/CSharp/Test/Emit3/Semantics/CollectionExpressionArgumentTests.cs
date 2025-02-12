@@ -1382,8 +1382,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadArgType, "[with(2), 3]").WithArguments("1", "System.ReadOnlySpan<int>", "int").WithLocation(7, 13));
         }
 
+        // C#7.3 feature ImprovedOverloadCandidates drops candidates with constraint violations
+        // (see OverloadResolution.RemoveConstraintViolations()) which allows constructing
+        // MyCollection<T> and MyCollection<U> with different factory methods.
         [Fact]
-        public void CollectionBuilder_MultipleConstructors_NoArguments()
+        public void CollectionBuilder_MultipleConstructors_GenericConstraints_ClassAndStruct()
         {
             string sourceA = """
                 using System;
@@ -1417,49 +1420,498 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string sourceB1 = """
                 class Program
                 {
-                    static void Main()
-                    {
-                        MyCollection<int> x = [1, 2, 3];
-                        x.Report();
-                        MyCollection<object> y = [4, 5];
-                        y.Report();
-                        Params<int>(1, 2, 3).Report();
-                        Params<object>(4, 5).Report();
-                        ThreeItems<int>(1, 2, 3).Report();
-                        TwoItems<object>(4, 5).Report();
-                    }
-                    static MyCollection<T> TwoItems<T>(T x, T y) where T : class => Params(x, y);
-                    static MyCollection<T> ThreeItems<T>(T x, T y, T z) where T : struct => Params(x, y, z);
-                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                    static MyCollection<T> NoConstraints<T>(T x, T y) => [x, y];
                 }
                 """;
-            // C#7.3 feature ImprovedOverloadCandidates drops candidates with constraint violations
-            // (see OverloadResolution.RemoveConstraintViolations()) which allows constructing
-            // MyCollection<int> and MyCollection<object> with different factory methods.
+            var comp = CreateCompilation([sourceA, sourceB1], targetFramework: TargetFramework.Net80);
+            // PROTOTYPE: Should report an error for NoConstraintsParams<T>() declaration since there may not be a candidate that works for any T.
+            // PROTOTYPE: Update the params-collection spec so it's clear: "... a factory method callable with no additional arguments,
+            // and with the type arguments from the params parameter declaration". And provide an example such as this.
+            comp.VerifyEmitDiagnostics(
+                // (3,58): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
+                //     static MyCollection<T> NoConstraints<T>(T x, T y) => [x, y];
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "[x, y]").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(3, 58));
+
+            string sourceB2 = """
+                class Program
+                {
+                    static MyCollection<T> NoConstraints<T>(T x, T y) => NoConstraintsParams(x, y);
+                    static MyCollection<T> NoConstraintsParams<T>(params MyCollection<T> c) => c;
+                }
+                """;
+            comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+            // PROTOTYPE: Should report an error for NoConstraintsParams<T>() declaration since there may not be a candidate that works for any T.
+            comp.VerifyEmitDiagnostics(
+                // (3,58): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
+                //     static MyCollection<T> NoConstraints<T>(T x, T y) => NoConstraintsParams(x, y);
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "NoConstraintsParams(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(3, 58));
+
+            string sourceB3 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        StructConstraint(3, 4).Report();
+                        ClassConstraint((object)5, 6).Report();
+                    }
+                    static MyCollection<T> StructConstraint<T>(T x, T y) where T : struct => [x, y];
+                    static MyCollection<T> ClassConstraint<T>(T x, T y) where T : class => [x, y];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB3, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[0, 3, 4], [5, 6], "));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.StructConstraint<T>", """
+                {
+                  // Code size       59 (0x3b)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray2<T> V_0,
+                                T V_1)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray2<T>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_0010:  ldarg.0
+                  IL_0011:  stobj      "T"
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_001e:  ldarg.1
+                  IL_001f:  stobj      "T"
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  ldc.i4.2
+                  IL_0027:  call       "System.ReadOnlySpan<T> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<T>, T>(in <>y__InlineArray2<T>, int)"
+                  IL_002c:  ldloca.s   V_1
+                  IL_002e:  initobj    "T"
+                  IL_0034:  ldloc.1
+                  IL_0035:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)"
+                  IL_003a:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.ClassConstraint<T>", """
+                {
+                  // Code size       50 (0x32)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray2<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray2<T>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_0010:  ldarg.0
+                  IL_0011:  stobj      "T"
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_001e:  ldarg.1
+                  IL_001f:  stobj      "T"
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  ldc.i4.2
+                  IL_0027:  call       "System.ReadOnlySpan<T> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<T>, T>(in <>y__InlineArray2<T>, int)"
+                  IL_002c:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>)"
+                  IL_0031:  ret
+                }
+                """);
+
+            string sourceB4 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        StructConstraint(3, 4).Report();
+                        ClassConstraint((object)5, 6).Report();
+                    }
+                    static MyCollection<T> StructConstraint<T>(T x, T y) where T : struct => StructConstraintParams(x, y);
+                    static MyCollection<T> ClassConstraint<T>(T x, T y) where T : class => ClassConstraintParams(x, y);
+                    static MyCollection<T> StructConstraintParams<T>(params MyCollection<T> c) where T : struct => c;
+                    static MyCollection<T> ClassConstraintParams<T>(params MyCollection<T> c) where T : class => c;
+                }
+                """;
+            verifier = CompileAndVerify(
+                [sourceA, sourceB4, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[0, 3, 4], [5, 6], "));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.StructConstraint<T>", """
+                {
+                  // Code size       64 (0x40)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray2<T> V_0,
+                                T V_1)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray2<T>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_0010:  ldarg.0
+                  IL_0011:  stobj      "T"
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_001e:  ldarg.1
+                  IL_001f:  stobj      "T"
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  ldc.i4.2
+                  IL_0027:  call       "System.ReadOnlySpan<T> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<T>, T>(in <>y__InlineArray2<T>, int)"
+                  IL_002c:  ldloca.s   V_1
+                  IL_002e:  initobj    "T"
+                  IL_0034:  ldloc.1
+                  IL_0035:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)"
+                  IL_003a:  call       "MyCollection<T> Program.StructConstraintParams<T>(params MyCollection<T>)"
+                  IL_003f:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.ClassConstraint<T>", """
+                {
+                  // Code size       55 (0x37)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray2<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray2<T>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_0010:  ldarg.0
+                  IL_0011:  stobj      "T"
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_001e:  ldarg.1
+                  IL_001f:  stobj      "T"
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  ldc.i4.2
+                  IL_0027:  call       "System.ReadOnlySpan<T> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<T>, T>(in <>y__InlineArray2<T>, int)"
+                  IL_002c:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>)"
+                  IL_0031:  call       "MyCollection<T> Program.ClassConstraintParams<T>(params MyCollection<T>)"
+                  IL_0036:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void CollectionBuilder_MultipleConstructors_GenericConstraints_NoneAndClass()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _items;
+                    public MyCollection(ReadOnlySpan<T> items)
+                    {
+                        _items = new(items.ToArray());
+                    }
+                    public MyCollection(T arg, ReadOnlySpan<T> items)
+                    {
+                        _items = new();
+                        _items.Add(arg);
+                        _items.AddRange(items.ToArray());
+                    }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(items);
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg = default) where T : class => new(arg, items);
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        NoConstraints(1, 2).Report();
+                        StructConstraint(3, 4).Report();
+                        ClassConstraint((object)5, 6).Report();
+                    }
+                    static MyCollection<T> NoConstraints<T>(T x, T y) => [x, y];
+                    static MyCollection<T> StructConstraint<T>(T x, T y) where T : struct => [x, y];
+                    static MyCollection<T> ClassConstraint<T>(T x, T y) where T : class => [x, y];
+                }
+                """;
             var verifier = CompileAndVerify(
                 [sourceA, sourceB1, s_collectionExtensions],
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("[0, 1, 2, 3], [4, 5], [0, 1, 2, 3], [4, 5], [0, 1, 2, 3], [4, 5], "));
+                expectedOutput: IncludeExpectedOutput("[1, 2], [3, 4], [5, 6], "));
             verifier.VerifyDiagnostics();
+            string expectedIL = """
+                {
+                  // Code size       50 (0x32)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray2<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray2<T>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_0010:  ldarg.0
+                  IL_0011:  stobj      "T"
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_001e:  ldarg.1
+                  IL_001f:  stobj      "T"
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  ldc.i4.2
+                  IL_0027:  call       "System.ReadOnlySpan<T> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<T>, T>(in <>y__InlineArray2<T>, int)"
+                  IL_002c:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>)"
+                  IL_0031:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.NoConstraints<T>", expectedIL);
+            verifier.VerifyIL("Program.StructConstraint<T>", expectedIL);
+            verifier.VerifyIL("Program.ClassConstraint<T>", expectedIL);
 
             string sourceB2 = """
                 class Program
                 {
                     static void Main()
                     {
-                        TwoItems(1, 2);
+                        NoConstraints(1, 2).Report();
+                        StructConstraint(3, 4).Report();
+                        ClassConstraint((object)5, 6).Report();
                     }
-                    static MyCollection<T> TwoItems<T>(T x, T y) => Params(x, y);
-                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                    static MyCollection<T> NoConstraints<T>(T x, T y) => NoConstraintsParams(x, y);
+                    static MyCollection<T> StructConstraint<T>(T x, T y) where T : struct => StructConstraintParams(x, y);
+                    static MyCollection<T> ClassConstraint<T>(T x, T y) where T : class => ClassConstraintParams(x, y);
+                    static MyCollection<T> NoConstraintsParams<T>(params MyCollection<T> c) => c;
+                    static MyCollection<T> StructConstraintParams<T>(params MyCollection<T> c) where T : struct => c;
+                    static MyCollection<T> ClassConstraintParams<T>(params MyCollection<T> c) where T : class => c;
                 }
                 """;
-            var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
-            // PROTOTYPE: Should we report an error for Params<T>() since there may not be a candidate that works for any T? Did we report such an error in C#13?
-            comp.VerifyEmitDiagnostics(
-                // (7,53): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
-                //     static MyCollection<T> TwoItems<T>(T x, T y) => Params(x, y);
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "Params(x, y)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>)", "T", "T").WithLocation(7, 53));
+            verifier = CompileAndVerify(
+                [sourceA, sourceB2, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 2], [3, 4], [5, 6], "));
+            verifier.VerifyDiagnostics();
+            expectedIL = """
+                {
+                  // Code size       55 (0x37)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray2<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray2<T>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_0010:  ldarg.0
+                  IL_0011:  stobj      "T"
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_001e:  ldarg.1
+                  IL_001f:  stobj      "T"
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  ldc.i4.2
+                  IL_0027:  call       "System.ReadOnlySpan<T> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<T>, T>(in <>y__InlineArray2<T>, int)"
+                  IL_002c:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>)"
+                  IL_0031:  call       "MyCollection<T> Program.NoConstraintsParams<T>(params MyCollection<T>)"
+                  IL_0036:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.NoConstraints<T>", expectedIL);
+            verifier.VerifyIL("Program.StructConstraint<T>", expectedIL.Replace("NoConstraintsParams", "StructConstraintParams"));
+            verifier.VerifyIL("Program.ClassConstraint<T>", expectedIL.Replace("NoConstraintsParams", "ClassConstraintParams"));
+        }
+
+        [Fact]
+        public void CollectionBuilder_MultipleConstructors_GenericConstraints_StructAndNone()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _items;
+                    public MyCollection(ReadOnlySpan<T> items)
+                    {
+                        _items = new(items.ToArray());
+                    }
+                    public MyCollection(T arg, ReadOnlySpan<T> items)
+                    {
+                        _items = new();
+                        _items.Add(arg);
+                        _items.AddRange(items.ToArray());
+                    }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) where T : struct => new(items);
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg = default) => new(arg, items);
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        NoConstraints(1, 2).Report();
+                        StructConstraint(3, 4).Report();
+                        ClassConstraint((object)5, 6).Report();
+                    }
+                    static MyCollection<T> NoConstraints<T>(T x, T y) => [x, y];
+                    static MyCollection<T> StructConstraint<T>(T x, T y) where T : struct => [x, y];
+                    static MyCollection<T> ClassConstraint<T>(T x, T y) where T : class => [x, y];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB1, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[0, 1, 2], [3, 4], [null, 5, 6], "));
+            verifier.VerifyDiagnostics();
+            string expectedNoneAndClassIL = """
+                {
+                  // Code size       59 (0x3b)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray2<T> V_0,
+                                T V_1)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray2<T>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_0010:  ldarg.0
+                  IL_0011:  stobj      "T"
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_001e:  ldarg.1
+                  IL_001f:  stobj      "T"
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  ldc.i4.2
+                  IL_0027:  call       "System.ReadOnlySpan<T> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<T>, T>(in <>y__InlineArray2<T>, int)"
+                  IL_002c:  ldloca.s   V_1
+                  IL_002e:  initobj    "T"
+                  IL_0034:  ldloc.1
+                  IL_0035:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)"
+                  IL_003a:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.NoConstraints<T>", expectedNoneAndClassIL);
+            verifier.VerifyIL("Program.ClassConstraint<T>", expectedNoneAndClassIL);
+            verifier.VerifyIL("Program.StructConstraint<T>", """
+                {
+                  // Code size       50 (0x32)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray2<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray2<T>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_0010:  ldarg.0
+                  IL_0011:  stobj      "T"
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_001e:  ldarg.1
+                  IL_001f:  stobj      "T"
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  ldc.i4.2
+                  IL_0027:  call       "System.ReadOnlySpan<T> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<T>, T>(in <>y__InlineArray2<T>, int)"
+                  IL_002c:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>)"
+                  IL_0031:  ret
+                }
+                """);
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        NoConstraints(1, 2).Report();
+                        StructConstraint(3, 4).Report();
+                        ClassConstraint((object)5, 6).Report();
+                    }
+                    static MyCollection<T> NoConstraints<T>(T x, T y) => NoConstraintsParams(x, y);
+                    static MyCollection<T> StructConstraint<T>(T x, T y) where T : struct => StructConstraintParams(x, y);
+                    static MyCollection<T> ClassConstraint<T>(T x, T y) where T : class => ClassConstraintParams(x, y);
+                    static MyCollection<T> NoConstraintsParams<T>(params MyCollection<T> c) => c;
+                    static MyCollection<T> StructConstraintParams<T>(params MyCollection<T> c) where T : struct => c;
+                    static MyCollection<T> ClassConstraintParams<T>(params MyCollection<T> c) where T : class => c;
+                }
+                """;
+            verifier = CompileAndVerify(
+                [sourceA, sourceB2, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[0, 1, 2], [3, 4], [null, 5, 6], "));
+            verifier.VerifyDiagnostics();
+            expectedNoneAndClassIL = """
+                {
+                  // Code size       64 (0x40)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray2<T> V_0,
+                                T V_1)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray2<T>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_0010:  ldarg.0
+                  IL_0011:  stobj      "T"
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_001e:  ldarg.1
+                  IL_001f:  stobj      "T"
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  ldc.i4.2
+                  IL_0027:  call       "System.ReadOnlySpan<T> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<T>, T>(in <>y__InlineArray2<T>, int)"
+                  IL_002c:  ldloca.s   V_1
+                  IL_002e:  initobj    "T"
+                  IL_0034:  ldloc.1
+                  IL_0035:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)"
+                  IL_003a:  call       "MyCollection<T> Program.NoConstraintsParams<T>(params MyCollection<T>)"
+                  IL_003f:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.NoConstraints<T>", expectedNoneAndClassIL);
+            verifier.VerifyIL("Program.ClassConstraint<T>", expectedNoneAndClassIL.Replace("NoConstraintsParams", "ClassConstraintParams"));
+            verifier.VerifyIL("Program.StructConstraint<T>", """
+                {
+                  // Code size       55 (0x37)
+                  .maxstack  2
+                  .locals init (<>y__InlineArray2<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray2<T>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_0010:  ldarg.0
+                  IL_0011:  stobj      "T"
+                  IL_0016:  ldloca.s   V_0
+                  IL_0018:  ldc.i4.1
+                  IL_0019:  call       "ref T <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<T>, T>(ref <>y__InlineArray2<T>, int)"
+                  IL_001e:  ldarg.1
+                  IL_001f:  stobj      "T"
+                  IL_0024:  ldloca.s   V_0
+                  IL_0026:  ldc.i4.2
+                  IL_0027:  call       "System.ReadOnlySpan<T> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<T>, T>(in <>y__InlineArray2<T>, int)"
+                  IL_002c:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>)"
+                  IL_0031:  call       "MyCollection<T> Program.StructConstraintParams<T>(params MyCollection<T>)"
+                  IL_0036:  ret
+                }
+                """);
         }
 
         [Fact]
