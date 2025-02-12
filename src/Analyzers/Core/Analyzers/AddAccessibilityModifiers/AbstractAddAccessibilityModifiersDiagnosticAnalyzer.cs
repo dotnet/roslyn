@@ -17,6 +17,13 @@ internal abstract class AbstractAddAccessibilityModifiersDiagnosticAnalyzer<TCom
         new LocalizableResourceString(nameof(AnalyzersResources.Accessibility_modifiers_required), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     where TCompilationUnitSyntax : SyntaxNode
 {
+    protected readonly DiagnosticDescriptor ModifierRemovedDescriptor = CreateDescriptorWithId(
+        IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId,
+        EnforceOnBuildValues.AddAccessibilityModifiers,
+        hasAnyCodeStyleOption: true,
+        new LocalizableResourceString(nameof(AnalyzersResources.Remove_accessibility_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        new LocalizableResourceString(nameof(AnalyzersResources.Accessibility_modifiers_unnecessary), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)));
+
     protected static readonly ImmutableDictionary<string, string?> ModifiersAddedProperties = ImmutableDictionary<string, string?>.Empty.Add(
         AddAccessibilityModifiersConstants.ModifiersAdded, AddAccessibilityModifiersConstants.ModifiersAdded);
 

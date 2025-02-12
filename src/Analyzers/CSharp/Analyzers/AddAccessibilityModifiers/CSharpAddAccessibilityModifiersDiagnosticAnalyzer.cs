@@ -5,16 +5,14 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
+internal sealed class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
     : AbstractAddAccessibilityModifiersDiagnosticAnalyzer<CompilationUnitSyntax>
 {
     protected override void ProcessCompilationUnit(
@@ -56,7 +54,7 @@ internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
         // Have an issue to flag, either add or remove. Report issue to user.
         var additionalLocations = ImmutableArray.Create(member.GetLocation());
         context.ReportDiagnostic(DiagnosticHelper.Create(
-            Descriptor,
+            modifiersAdded ? Descriptor : ModifierRemovedDescriptor,
             name.GetLocation(),
             option.Notification,
             context.Options,

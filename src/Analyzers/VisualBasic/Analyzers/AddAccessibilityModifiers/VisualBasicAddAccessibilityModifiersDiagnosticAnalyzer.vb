@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer
+    Friend NotInheritable Class VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer
         Inherits AbstractAddAccessibilityModifiersDiagnosticAnalyzer(Of CompilationUnitSyntax)
 
         Protected Overrides Sub ProcessCompilationUnit(
@@ -57,14 +57,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
 
             Dim name As SyntaxToken = Nothing
             Dim modifiersAdded As Boolean = False
-            If Not VisualBasicAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(VisualBasicAccessibilityFacts.Instance, member, [option].Value, name, modifiersAdded) Then
+            If Not VisualBasicAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(
+                    VisualBasicAccessibilityFacts.Instance, member, [option].Value, name, modifiersAdded) Then
                 Return
             End If
 
             ' Have an issue to flag, either add or remove. Report issue to user.
             Dim additionalLocations = ImmutableArray.Create(member.GetLocation())
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor,
+                If(modifiersAdded, Descriptor, ModifierRemovedDescriptor),
                 name.GetLocation(),
                 [option].Notification,
                 context.Options,
