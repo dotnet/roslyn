@@ -10,15 +10,9 @@ using Microsoft.VisualStudio.Composition;
 
 namespace Roslyn.Test.Utilities;
 
-public abstract partial class AbstractLanguageServerProtocolTests
+[Export(typeof(LspWorkspaceRegistrationService)), Shared, PartNotDiscoverable]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class TestWorkspaceRegistrationService() : LspWorkspaceRegistrationService
 {
-    [Export(typeof(LspWorkspaceRegistrationService)), Shared, PartNotDiscoverable]
-    internal class TestWorkspaceRegistrationService : LspWorkspaceRegistrationService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestWorkspaceRegistrationService()
-        {
-        }
-    }
 }
