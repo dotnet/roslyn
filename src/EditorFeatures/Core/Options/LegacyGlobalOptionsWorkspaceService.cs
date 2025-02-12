@@ -47,6 +47,9 @@ internal sealed class LegacyGlobalOptionsWorkspaceService(IGlobalOptionService g
     public int RazorTabSize
         => _globalOptions.GetOption(RazorLineFormattingOptionsStorage.TabSize);
 
+    public bool RazorForceRuntimeCodeGeneration
+        => _globalOptions.GetOption(LegacyRazorOptions.ForceRuntimeCodeGeneration);
+
     public bool GetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(string language)
         => _globalOptions.GetOption(s_implementIEquatable, language);
 

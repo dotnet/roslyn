@@ -15,6 +15,7 @@ internal interface ILegacyGlobalOptionsWorkspaceService : IWorkspaceService
 {
     public bool RazorUseTabs { get; }
     public int RazorTabSize { get; }
+    public bool RazorForceRuntimeCodeGeneration { get; }
 
     public bool GenerateOverrides { get; set; }
 

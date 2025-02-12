@@ -88,6 +88,12 @@ internal sealed partial class ProjectState
         ProjectInfo = ClearAllDocumentsFromProjectInfo(projectInfo);
     }
 
+    /// <summary>
+    /// TODO: Remove once Razor ForceRuntimeCodeGeneration feature flag is removed.
+    /// </summary>
+    private static bool LegacyRazorForceRuntimeCodeGeneration(SolutionServices services)
+        => services.GetService<ILegacyGlobalOptionsWorkspaceService>()?.RazorForceRuntimeCodeGeneration == true;
+
     public ProjectState(LanguageServices languageServices, ProjectInfo projectInfo, StructuredAnalyzerConfigOptions fallbackAnalyzerOptions)
     {
         Contract.ThrowIfNull(projectInfo);
@@ -101,7 +107,7 @@ internal sealed partial class ProjectState
         // We need to compute our AnalyerConfigDocumentStates first, since we use those to produce our DocumentStates
         AnalyzerConfigDocumentStates = new TextDocumentStates<AnalyzerConfigDocumentState>(projectInfoFixed.AnalyzerConfigDocuments, info => new AnalyzerConfigDocumentState(languageServices.SolutionServices, info, loadTextOptions));
 
-        _analyzerConfigOptionsCache = new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, fallbackAnalyzerOptions);
+        _analyzerConfigOptionsCache = new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, fallbackAnalyzerOptions, LegacyRazorForceRuntimeCodeGeneration(languageServices.SolutionServices));
 
         // Add analyzer config information to the compilation options
         if (projectInfoFixed.CompilationOptions != null)
@@ -581,6 +587,26 @@ internal sealed partial class ProjectState
             => NamingStylePreferences.Empty;
     }
 
+    private sealed class GlobalAnalyzerConfigOptionsWithWorkaroundForRazor(SolutionServices services, AnalyzerConfigOptions underlyingOptions) : AnalyzerConfigOptions
+    {
+        private readonly ILegacyGlobalOptionsWorkspaceService? _globalOptions = services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+
+        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+        {
+            if (key == "build_property.SuppressRazorSourceGenerator" &&
+                _globalOptions?.RazorForceRuntimeCodeGeneration == true)
+            {
+                value = "false";
+                return true;
+            }
+
+            return underlyingOptions.TryGetValue(key, out value);
+        }
+
+        public override IEnumerable<string> Keys
+            => underlyingOptions.Keys;
+    }
+
     private sealed class ProjectSyntaxTreeOptionsProvider(AnalyzerConfigOptionsCache lazyAnalyzerConfigSet) : SyntaxTreeOptionsProvider
     {
         private readonly AnalyzerConfigOptionsCache _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
@@ -919,7 +945,7 @@ internal sealed partial class ProjectState
 
     private ProjectState CreateNewStateForChangedAnalyzerConfig(TextDocumentStates<AnalyzerConfigDocumentState> newAnalyzerConfigDocumentStates, StructuredAnalyzerConfigOptions fallbackOptions)
     {
-        var newOptionsCache = new AnalyzerConfigOptionsCache(newAnalyzerConfigDocumentStates, fallbackOptions);
+        var newOptionsCache = new AnalyzerConfigOptionsCache(newAnalyzerConfigDocumentStates, fallbackOptions, LegacyRazorForceRuntimeCodeGeneration(LanguageServices.SolutionServices));
         var projectInfo = ProjectInfo.WithVersion(Version.GetNewerVersion());
 
         // Changing analyzer configs changes compilation options
@@ -946,7 +972,7 @@ internal sealed partial class ProjectState
         return With(
             projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
             documentStates: DocumentStates.RemoveRange(documentIds),
-            analyzerConfigOptionsCache: new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, _analyzerConfigOptionsCache.FallbackOptions));
+            analyzerConfigOptionsCache: new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, _analyzerConfigOptionsCache.FallbackOptions, LegacyRazorForceRuntimeCodeGeneration(LanguageServices.SolutionServices)));
     }
 
     public ProjectState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
@@ -979,7 +1005,7 @@ internal sealed partial class ProjectState
         return With(
             projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
             documentStates: TextDocumentStates<DocumentState>.Empty,
-            analyzerConfigOptionsCache: new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, _analyzerConfigOptionsCache.FallbackOptions));
+            analyzerConfigOptionsCache: new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, _analyzerConfigOptionsCache.FallbackOptions, LegacyRazorForceRuntimeCodeGeneration(LanguageServices.SolutionServices)));
     }
 
     public ProjectState UpdateDocument(DocumentState newDocument)
