@@ -4,8 +4,6 @@
 
 #nullable enable
 
-#nullable disable
-
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Debugging
