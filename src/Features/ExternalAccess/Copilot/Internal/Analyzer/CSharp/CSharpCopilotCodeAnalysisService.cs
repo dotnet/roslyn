@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer.CSharp;
 
@@ -30,11 +31,14 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpCopilotCodeAnalysisService(
-        [Import] IExternalCSharpCopilotCodeAnalysisService externalCopilotService,
-        [Import] IExternalCSharpCopilotGenerateDocumentationService externalCSharpCopilotGenerateDocumentationService,
+        [Import] IExternalCSharpCopilotCodeAnalysisService? externalCopilotService,
+        [Import] IExternalCSharpCopilotGenerateDocumentationService? externalCSharpCopilotGenerateDocumentationService,
         IDiagnosticsRefresher diagnosticsRefresher
         ) : base(diagnosticsRefresher)
     {
+        Contract.ThrowIfNull(externalCopilotService);
+        Contract.ThrowIfNull(externalCSharpCopilotGenerateDocumentationService);
+
         AnalysisService = externalCopilotService;
         GenerateDocumentationService = externalCSharpCopilotGenerateDocumentationService;
     }

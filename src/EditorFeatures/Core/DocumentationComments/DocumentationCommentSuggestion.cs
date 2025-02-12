@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
-    internal class DocumentationCommentSuggestion(AbstractDocumentationCommentCommandHandler handlerInstance, ProposalBase proposal) : SuggestionBase
+    internal class DocumentationCommentSuggestion(CopilotGenerateDocumentationCommentProvider providerInstance, ProposalBase proposal) : SuggestionBase
     {
         public ProposalBase Proposal { get; } = proposal;
 
@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public override async Task OnAcceptedAsync(SuggestionSessionBase session, ProposalBase originalProposal, ProposalBase currentProposal, ReasonForAccept reason, CancellationToken cancel)
         {
-            var threadingContext = handlerInstance.ThreadingContext;
+            var threadingContext = providerInstance.ThreadingContext;
             if (threadingContext != null)
             {
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
-                await handlerInstance.DisposeAsync().ConfigureAwait(false);
+                await providerInstance.DisposeAsync().ConfigureAwait(false);
             }
         }
 
@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public override async Task OnDismissedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForDismiss reason, CancellationToken cancel)
         {
-            var threadingContext = handlerInstance.ThreadingContext;
+            var threadingContext = providerInstance.ThreadingContext;
             if (threadingContext != null)
             {
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
-                await handlerInstance.ClearSuggestionAsync(reason, cancel).ConfigureAwait(false);
+                await providerInstance.ClearSuggestionAsync(reason, cancel).ConfigureAwait(false);
             }
         }
 

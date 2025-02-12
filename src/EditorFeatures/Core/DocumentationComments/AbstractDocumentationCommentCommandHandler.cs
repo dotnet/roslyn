@@ -125,26 +125,26 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
             if (snippet != null)
             {
                 ApplySnippet(snippet, subjectBuffer, textView);
-                var oldSnapshot = subjectBuffer.CurrentSnapshot;
-                var oldCaret = textView.Caret.Position.VirtualBufferPosition;
+                /*var oldSnapshot = subjectBuffer.CurrentSnapshot;
+                var oldCaret = textView.Caret.Position.VirtualBufferPosition;*/
 
                 returnValue = true;
 
-                // Only calls into the suggestion manager is available, the shell of the comment still gets inserted regardless.
+/*                // Only calls into the suggestion manager is available, the shell of the comment still gets inserted regardless.
                 if (_suggestionManagerBase != null && ThreadingContext != null)
                 {
                     ThreadingContext.ThrowIfNotOnUIThread();
 
                     var token = _asyncListener.BeginAsyncOperation(nameof(GenerateDocumentationProposalAsync));
                     _ = GenerateDocumentationProposalAsync(document, snippet, oldSnapshot, oldCaret, cancellationToken).CompletesAsyncOperation(token);
-                }
+                }*/
             }
         }
 
         return returnValue;
     }
 
-    private async Task GenerateDocumentationProposalAsync(Document document, DocumentationCommentSnippet snippet,
+    /*private async Task GenerateDocumentationProposalAsync(Document document, DocumentationCommentSnippet snippet,
         ITextSnapshot oldSnapshot, VirtualSnapshotPoint oldCaret, CancellationToken cancellationToken)
     {
         await Task.Yield().ConfigureAwait(false);
@@ -190,9 +190,9 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         {
             await TryDisplaySuggestionAsync(session, suggestion, cancellationToken).ConfigureAwait(false);
         }
-    }
+    }*/
 
-    /// <summary>
+   /* /// <summary>
     /// Traverses the documentation comment shell and retrieves the pieces that are needed to generate the documentation comment.
     /// </summary>
     private static DocumentationCommentProposal? GetSnippetProposal(string? comments, SyntaxNode? memberNode, int? position, int caret)
@@ -409,7 +409,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
             await _intellicodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
             _intellicodeLineCompletionsDisposable = null;
         }
-    }
+    }*/
 
     public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
         => nextHandler();
@@ -426,13 +426,13 @@ internal abstract class AbstractDocumentationCommentCommandHandler : SuggestionP
         if (args.SubjectBuffer.IsInLspEditorContext())
             return;
 
-        ThreadingContext?.JoinableTaskFactory.Run(async () =>
+        /*ThreadingContext?.JoinableTaskFactory.Run(async () =>
             {
                 if (_suggestionServiceBase is not null)
                 {
                     _suggestionManagerBase = await _suggestionServiceBase.TryRegisterProviderAsync(this, args.TextView, "AmbientAIDocumentationComments", context.OperationContext.UserCancellationToken).ConfigureAwait(false);
                 }
-            });
+            });*/
 
         CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCharacterTyped, CancellationToken.None);
     }
