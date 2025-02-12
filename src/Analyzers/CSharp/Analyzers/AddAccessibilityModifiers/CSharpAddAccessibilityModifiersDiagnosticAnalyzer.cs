@@ -16,7 +16,7 @@ internal sealed class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
     : AbstractAddAccessibilityModifiersDiagnosticAnalyzer<CompilationUnitSyntax>
 {
     protected override IAccessibilityFacts AccessibilityFacts => CSharpAccessibilityFacts.Instance;
-    protected override IAddAccessibilityModifiers AddAccessibilityModifiers => CSharpAddAccessibilityModifiers.Instance
+    protected override IAddAccessibilityModifiers AddAccessibilityModifiers => CSharpAddAccessibilityModifiers.Instance;
 
     protected override void ProcessCompilationUnit(
         SyntaxTreeAnalysisContext context,
