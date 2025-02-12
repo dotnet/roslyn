@@ -437,7 +437,10 @@ namespace Roslyn.Test.Utilities
             await WaitForWorkspaceOperationsAsync(workspace);
         }
 
-        internal static async Task<Dictionary<string, IList<LSP.Location>>> GetAnnotatedLocationsAsync(LspTestWorkspace workspace, Solution solution)
+        internal static async Task<Dictionary<string, IList<LSP.Location>>> GetAnnotatedLocationsAsync<TDocument, TProject, TSolution>(TestWorkspace<TDocument, TProject, TSolution> workspace, Solution solution)
+            where TDocument : TestHostDocument
+            where TProject : TestHostProject<TDocument>
+            where TSolution : TestHostSolution<TDocument>
         {
             var locations = new Dictionary<string, IList<LSP.Location>>();
             foreach (var testDocument in workspace.Documents)
