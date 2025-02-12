@@ -87,6 +87,7 @@
                                  Grid.Column="0"
                                  Content="{Binding ElementName=control, Path=SelectNewFileAsDestination}"
                                  IsChecked="{Binding Destination, Converter={StaticResource enumBoolConverter}, ConverterParameter={x:Static local:NewTypeDestination.NewFile}}"
+                                 IsEnabled="{Binding CanAddDocument}"
                                  Padding="{StaticResource ResourceKey=radioButtonPadding}"
                                  VerticalAlignment="Center"
                                  />

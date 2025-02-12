@@ -8,9 +8,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers;
 
-internal class TypeNameItem
+internal sealed class TypeNameItem
 {
-    public string TypeName { get; }
+    public string FullyQualifiedTypeName { get; }
     public INamedTypeSymbol? NamedType { get; }
     public string DeclarationFilePath { get; }
     public string DeclarationFileName { get; }
@@ -22,22 +22,22 @@ internal class TypeNameItem
         IsFromHistory = isFromHistory;
         IsNew = false;
         NamedType = type;
-        TypeName = type.ToDisplayString();
+        FullyQualifiedTypeName = type.ToDisplayString();
         DeclarationFileName = PathUtilities.GetFileName(declarationFile);
         DeclarationFilePath = declarationFile;
     }
 
-    public TypeNameItem(string @typeName)
+    public TypeNameItem(string fullyQualifiedTypeName)
     {
         IsFromHistory = false;
         IsNew = true;
-        TypeName = @typeName;
+        FullyQualifiedTypeName = fullyQualifiedTypeName;
         NamedType = null;
         DeclarationFileName = string.Empty;
         DeclarationFilePath = string.Empty;
     }
 
-    public override string ToString() => TypeName;
+    public override string ToString() => FullyQualifiedTypeName;
 
     public static int CompareTo(TypeNameItem x, TypeNameItem y)
     {
@@ -48,8 +48,8 @@ internal class TypeNameItem
             return x.IsFromHistory ? -1 : 1;
         }
         // compare by each namespace/finally type
-        var xnames = x.TypeName.Split('.');
-        var ynames = y.TypeName.Split('.');
+        var xnames = x.FullyQualifiedTypeName.Split('.');
+        var ynames = y.FullyQualifiedTypeName.Split('.');
 
         for (var i = 0; i < Math.Min(xnames.Length, ynames.Length); i++)
         {

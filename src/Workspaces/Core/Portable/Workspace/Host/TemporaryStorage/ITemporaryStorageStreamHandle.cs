@@ -22,5 +22,5 @@ internal interface ITemporaryStorageStreamHandle
     /// Reads the data indicated to by this handle into a stream.  This stream can be created in a different process
     /// than the one that wrote the data originally.
     /// </summary>
-    Stream ReadFromTemporaryStorage(CancellationToken cancellationToken);
+    Stream ReadFromTemporaryStorage();
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
@@ -23,5 +24,5 @@ internal interface ISnippetExpansionLanguageHelper : ILanguageService
 
     bool TryGetSubjectBufferSpan(ITextView textView, ITextBuffer subjectBuffer, VsTextSpan surfaceBufferTextSpan, out SnapshotSpan subjectBufferSpan);
     ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan(IVsExpansionSession expansionSession, ITextView textView, ITextBuffer subjectBuffer);
-    Document AddImports(Document document, AddImportPlacementOptions addImportOptions, SyntaxFormattingOptions formattingOptions, int position, XElement snippetNode, CancellationToken cancellationToken);
+    Task<Document> AddImportsAsync(Document document, AddImportPlacementOptions addImportOptions, SyntaxFormattingOptions formattingOptions, int position, XElement snippetNode, CancellationToken cancellationToken);
 }

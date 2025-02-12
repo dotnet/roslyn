@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             ParseOptions parseOptions,
             string content)
         {
-            return Create(language, compilationOptions, parseOptions, new[] { content });
+            return Create(language, compilationOptions, parseOptions, [content]);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             ParseOptions parseOptions,
             string content)
         {
-            return Create(workspaceKind, language, compilationOptions, parseOptions, new[] { content });
+            return Create(workspaceKind, language, compilationOptions, parseOptions, [content]);
         }
 
         /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>

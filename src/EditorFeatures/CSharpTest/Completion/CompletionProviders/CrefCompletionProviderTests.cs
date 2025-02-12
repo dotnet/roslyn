@@ -441,13 +441,13 @@ public class CrefCompletionProviderTests : AbstractCSharpCompletionProviderTests
             {
             }
             """;
-        using var workspace = EditorTestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, composition: GetComposition());
+        using var workspace = EditorTestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), [text], composition: GetComposition());
         var called = false;
 
         var hostDocument = workspace.DocumentWithCursor;
         var document = workspace.CurrentSolution.GetRequiredDocument(hostDocument.Id);
         var service = GetCompletionService(document.Project);
-        var provider = Assert.IsType<CrefCompletionProvider>(service.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet<string>.Empty).Single());
+        var provider = Assert.IsType<CrefCompletionProvider>(service.GetTestAccessor().GetImportedAndBuiltInProviders([]).Single());
         provider.GetTestAccessor().SetSpeculativeNodeCallback(n =>
         {
             // asserts that we aren't be asked speculate on nodes inside documentation trivia.

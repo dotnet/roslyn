@@ -247,7 +247,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                     inner.Method1();
                 }
             }
-            """, new string[] { AnalyzersResources.Implement_abstract_class });
+            """, [AnalyzersResources.Implement_abstract_class]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]

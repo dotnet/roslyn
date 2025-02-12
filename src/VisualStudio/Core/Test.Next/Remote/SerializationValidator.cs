@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 // using .Result here since we don't want to convert all calls to this to async.
                 // and none of ChecksumWithChildren actually use async
-                Children = ImmutableArray.CreateRange(collection.Select(c => validator.GetValueAsync<T>(c).Result));
+                Children = [.. collection.Select(c => validator.GetValueAsync<T>(c).Result)];
             }
 
             public int Count => Children.Length;
@@ -110,7 +110,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         public async Task<Solution> GetSolutionAsync(SolutionAssetStorage.Scope scope)
         {
-            var solutionInfo = await new AssetProvider(this).CreateSolutionInfoAsync(scope.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
+            var solutionInfo = await new AssetProvider(this).CreateSolutionInfoAsync(
+                scope.SolutionChecksum, this.Services.SolutionServices, CancellationToken.None).ConfigureAwait(false);
 
             var workspace = new AdhocWorkspace(Services.HostServices);
             return workspace.AddSolution(solutionInfo);

@@ -110,7 +110,7 @@ internal abstract partial class AbstractChainedExpressionWrapper<
         // the set of wrapping options to provide.
         var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         return new CallExpressionCodeActionComputer(
-            this, document, sourceText, options, chunks, cancellationToken);
+            this, document, sourceText, options, chunks);
     }
 
     private ImmutableArray<ImmutableArray<SyntaxNodeOrToken>> GetChainChunks(SyntaxNode node)

@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
 
 #if CODE_STYLE
 using CSharpWorkspaceResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
-using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -326,7 +324,7 @@ public enum BinaryOperatorSpacingOptions
 
 internal static class CSharpFormattingOptionGroups
 {
-    public static readonly OptionGroup Indentation = new("csharp_indentation", CSharpWorkspaceResources.Indentation_preferences, priority: 3, parent: FormattingOptionGroups.FormattingOptionGroup);
-    public static readonly OptionGroup Spacing = new("csharp_spacing", CSharpWorkspaceResources.Space_preferences, priority: 4, parent: FormattingOptionGroups.FormattingOptionGroup);
-    public static readonly OptionGroup Wrapping = new("csharp_wrapping", CSharpWorkspaceResources.Wrapping_preferences, priority: 5, parent: FormattingOptionGroups.FormattingOptionGroup);
+    public static readonly OptionGroup Indentation = new("csharp_indentation", CSharpCompilerExtensionsResources.Indentation_preferences, priority: 3, parent: FormattingOptionGroups.FormattingOptionGroup);
+    public static readonly OptionGroup Spacing = new("csharp_spacing", CSharpCompilerExtensionsResources.Space_preferences, priority: 4, parent: FormattingOptionGroups.FormattingOptionGroup);
+    public static readonly OptionGroup Wrapping = new("csharp_wrapping", CSharpCompilerExtensionsResources.Wrapping_preferences, priority: 5, parent: FormattingOptionGroups.FormattingOptionGroup);
 }

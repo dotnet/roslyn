@@ -135,14 +135,14 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
     private static ImmutableArray<string> GetRuntimeDirectories()
     {
-        return GetReferencePaths().Concat(
+        return [.. GetReferencePaths().Concat(
             new string[]
             {
                 Environment.GetFolderPath(Environment.SpecialFolder.Windows),
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
                 RuntimeEnvironment.GetRuntimeDirectory()
-            }).Select(FileUtilities.NormalizeDirectoryPath).ToImmutableArray();
+            }).Select(FileUtilities.NormalizeDirectoryPath)];
     }
 
     /// <exception cref="IOException"/>
@@ -233,13 +233,13 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                 // location, so we can create a metadata value wrapping that.  This will also let us share the memory
                 // for that metadata value with our OOP process.
                 copyStream.Position = 0;
-                storageHandle = temporaryStorageService.WriteToTemporaryStorage(copyStream, CancellationToken.None);
+                storageHandle = temporaryStorageService.WriteToTemporaryStorage(copyStream);
             }
 
             // Now, read the data from the memory-mapped-file back into a stream that we load into the metadata value.
             // The ITemporaryStorageStreamHandle should have given us an UnmanagedMemoryStream
             // since this only runs on Windows for VS.
-            stream = (UnmanagedMemoryStream)storageHandle.ReadFromTemporaryStorage(CancellationToken.None);
+            stream = (UnmanagedMemoryStream)storageHandle.ReadFromTemporaryStorage();
 
             // stream size must be same as what metadata reader said the size should be.
             Contract.ThrowIfFalse(stream.Length == size);

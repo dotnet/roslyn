@@ -25,7 +25,6 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -575,8 +574,8 @@ public class C
                 VerifyMethods(output, "C", new[] { "void C.Main()", "C..ctor()" });
                 VerifyMvid(output, hasMvidSection: false);
 
-                verifyEntryPoint(metadataOutput, expectZero: true);
-                VerifyMethods(metadataOutput, "C", new[] { "C..ctor()" });
+                verifyEntryPoint(metadataOutput, expectZero: false);
+                VerifyMethods(metadataOutput, "C", new[] { "void C.Main()", "C..ctor()" });
                 VerifyMvid(metadataOutput, hasMvidSection: true);
             }
 
@@ -4042,7 +4041,12 @@ public class Test
             var extension = ".netmodule";
             var outputName = "b";
 
-            var compilation = CreateCompilation("class A { }", options: TestOptions.ReleaseModule.WithModuleName(name + extension), assemblyName: null);
+            var compilation = CSharpCompilation.Create(
+                assemblyName: null,
+                syntaxTrees: [SyntaxFactory.ParseSyntaxTree("class A { }")],
+                references: TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+                options: TestOptions.ReleaseModule.WithModuleName(name + extension));
+
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;

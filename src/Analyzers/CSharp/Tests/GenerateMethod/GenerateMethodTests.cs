@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMethod;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-public class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
+public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new GenerateMethodCodeFixProvider());
@@ -11092,5 +11092,57 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
                 }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70803")]
+    public async Task GenerateInPrimaryConstructorBaseList()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Base(int Alice);
+            class Derived(int Other) : Base([|NewExpr()|])
+            {
+            }
+            """,
+            """
+            using System;
+
+            class Base(int Alice);
+            class Derived(int Other) : Base(NewExpr())
+            {
+                private static int NewExpr()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60136")]
+    public async Task GenerateIntoTopLevelProgramWithPartialType()
+    {
+        await TestAsync(
+            """
+            Program.[|Test|]();
+
+            internal partial class Program
+            {
+            }
+            """,
+            """
+            using System;
+
+            Program.Test();
+            
+            internal partial class Program
+            {
+                private static void Test()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """, parseOptions: CSharpParseOptions.Default);
     }
 }

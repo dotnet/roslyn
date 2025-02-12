@@ -1022,6 +1022,11 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.CodeAnalysisEmbeddedAttribute).HasValue;
         }
 
+        internal bool HasCompilerLoweringPreserveAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.CompilerLoweringPreserveAttribute).HasValue;
+        }
+
         internal bool HasInterpolatedStringHandlerAttribute(EntityHandle token)
         {
             return FindTargetAttribute(token, AttributeDescription.InterpolatedStringHandlerAttribute).HasValue;
@@ -1294,17 +1299,18 @@ namespace Microsoft.CodeAnalysis
                 diagnosticId = null;
             }
 
-            string? urlFormat = crackUrlFormat(decoder, ref sig);
-            return new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: null, isError: false, diagnosticId, urlFormat);
+            (string? urlFormat, string? message) = crackUrlFormatAndMessage(decoder, ref sig);
+            return new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, message: message, isError: false, diagnosticId, urlFormat);
 
-            static string? crackUrlFormat(IAttributeNamedArgumentDecoder decoder, ref BlobReader sig)
+            static (string? urlFormat, string? message) crackUrlFormatAndMessage(IAttributeNamedArgumentDecoder decoder, ref BlobReader sig)
             {
                 if (sig.RemainingBytes <= 0)
                 {
-                    return null;
+                    return default;
                 }
 
                 string? urlFormat = null;
+                string? message = null;
 
                 try
                 {
@@ -1313,7 +1319,7 @@ namespace Microsoft.CodeAnalysis
                     // Next is a description of the optional “named” fields and properties.
                     // This starts with NumNamed– an unsigned int16 giving the number of “named” properties or fields that follow.
                     var numNamed = sig.ReadUInt16();
-                    for (int i = 0; i < numNamed && urlFormat is null; i++)
+                    for (int i = 0; i < numNamed && (urlFormat is null || message is null); i++)
                     {
                         var ((name, value), isProperty, typeCode, /* elementTypeCode */ _) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
                         if (typeCode == SerializationTypeCode.String && isProperty && value.ValueInternal is string stringValue)
@@ -1322,13 +1328,17 @@ namespace Microsoft.CodeAnalysis
                             {
                                 urlFormat = stringValue;
                             }
+                            else if (message is null && name == ObsoleteAttributeData.MessagePropertyName)
+                            {
+                                message = stringValue;
+                            }
                         }
                     }
                 }
                 catch (BadImageFormatException) { }
                 catch (UnsupportedSignatureContent) { }
 
-                return urlFormat;
+                return (urlFormat, message);
             }
         }
 

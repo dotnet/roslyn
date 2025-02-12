@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     public abstract class GeneratorDriver
     {
-        internal const IncrementalGeneratorOutputKind HostKind = (IncrementalGeneratorOutputKind)0b100000; // several steps higher than IncrementalGeneratorOutputKind.Implementation
-
         internal readonly GeneratorDriverState _state;
 
         internal GeneratorDriver(GeneratorDriverState state)
@@ -246,7 +244,7 @@ namespace Microsoft.CodeAnalysis
                     var inputBuilder = ArrayBuilder<SyntaxInputNode>.GetInstance();
                     var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
                     var pipelineContext = new IncrementalGeneratorInitializationContext(
-                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension, compilation.CatchAnalyzerExceptions);
+                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension, this.EmbeddedAttributeDefinition, compilation.CatchAnalyzerExceptions);
 
                     Exception? ex = null;
                     try
@@ -323,7 +321,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.
-                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | HostKind, new GeneratorRunStateTable.Builder(state.TrackIncrementalSteps), cancellationToken, driverStateBuilder);
+                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.Host, new GeneratorRunStateTable.Builder(state.TrackIncrementalSteps), cancellationToken, driverStateBuilder);
                     (var sources, var generatorDiagnostics, var generatorRunStateTable, var hostOutputs) = context.ToImmutableAndFree();
                     generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 
@@ -463,6 +461,8 @@ namespace Microsoft.CodeAnalysis
         internal abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken);
 
         internal abstract string SourceExtension { get; }
+
+        internal abstract string EmbeddedAttributeDefinition { get; }
 
         internal abstract ISyntaxHelper SyntaxHelper { get; }
     }

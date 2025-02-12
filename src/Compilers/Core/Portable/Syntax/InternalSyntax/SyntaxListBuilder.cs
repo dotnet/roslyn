@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
     {
         private ArrayElement<GreenNode?>[] _nodes;
         public int Count { get; private set; }
+        public int Capacity => _nodes.Length;
 
         public SyntaxListBuilder(int size)
         {
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         public void Clear()
         {
+            Array.Clear(_nodes, 0, _nodes.Length);
             this.Count = 0;
         }
 

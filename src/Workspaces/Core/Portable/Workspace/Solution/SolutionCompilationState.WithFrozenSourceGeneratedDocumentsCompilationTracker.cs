@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     /// <summary>
     /// An implementation of <see cref="ICompilationTracker"/> that takes a compilation from another compilation tracker
@@ -75,10 +75,9 @@ internal partial class SolutionCompilationState
 
         public ICompilationTracker Fork(ProjectState newProject, TranslationAction? translate)
         {
-            // TODO: This only needs to be implemented if a feature that operates from a source generated file then makes
-            // further mutations to that project, which isn't needed for now. This will be need to be fixed up when we complete
-            // https://github.com/dotnet/roslyn/issues/49533.
-            throw new NotImplementedException();
+            // We'll apply the translation to the underlying tracker, and then replace the documents again.
+            var underlyingTracker = this.UnderlyingTracker.Fork(newProject, translate);
+            return new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
         }
 
         public ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration)
@@ -89,9 +88,9 @@ internal partial class SolutionCompilationState
                 : new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
         }
 
-        public ICompilationTracker WithDoNotCreateCreationPolicy(CancellationToken cancellationToken)
+        public ICompilationTracker WithDoNotCreateCreationPolicy()
         {
-            var underlyingTracker = this.UnderlyingTracker.WithDoNotCreateCreationPolicy(cancellationToken);
+            var underlyingTracker = this.UnderlyingTracker.WithDoNotCreateCreationPolicy();
             return underlyingTracker == this.UnderlyingTracker
                 ? this
                 : new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);

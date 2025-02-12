@@ -89,14 +89,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // update text
             var newText = oldText.WithChanges(new TextChange(TextSpan.FromBounds(0, 0), "/* test */"));
 
-            // sync
-            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-                (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText).AsImmutable(), cancellationToken),
-                CancellationToken.None);
-
             // apply change to solution
             var newDocument = oldDocument.WithText(newText);
             var newState = await newDocument.State.GetStateChecksumsAsync(CancellationToken.None);
+
+            // sync
+            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+                (service, cancellationToken) => service.SynchronizeTextChangesAsync(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText).AsImmutable(), newState.Text, cancellationToken),
+                CancellationToken.None);
 
             // check that text already exist in remote side
             Assert.True(client.TestData.WorkspaceManager.SolutionAssetCache.TryGetAsset<SerializableSourceText>(newState.Text, out var serializableRemoteText));
@@ -115,7 +115,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var storage = new SolutionAssetCache();
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
-            return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
+            return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.SolutionServices);
         }
 
         [Fact]
@@ -352,15 +352,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var solutionInfo = SolutionInfo.Create(
                 SolutionId.CreateNewId(), VersionStamp.Create(), "",
-                new[]
-                {
-                        ProjectInfo.Create(
-                            p1, VersionStamp.Create(), "p1", "p1", LanguageNames.CSharp, outputFilePath: file.Path,
-                            projectReferences: new [] { new ProjectReference(p2) }),
-                        ProjectInfo.Create(
-                            p2, VersionStamp.Create(), "p2", "p2", LanguageNames.CSharp,
-                            metadataReferences: new [] { MetadataReference.CreateFromFile(file.Path) })
-                });
+                [
+                    ProjectInfo.Create(
+                        p1, VersionStamp.Create(), "p1", "p1", LanguageNames.CSharp, outputFilePath: file.Path,
+                        projectReferences: [new ProjectReference(p2)]),
+                    ProjectInfo.Create(
+                        p2, VersionStamp.Create(), "p2", "p2", LanguageNames.CSharp,
+                        metadataReferences: [MetadataReference.CreateFromFile(file.Path)])
+                ]);
 
             using var remoteWorkspace = new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
@@ -382,7 +381,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 {
                     // We have one of our possible n! solutions,
                     // add it to the list.
-                    result.Add(values.ToImmutableArray());
+                    result.Add([.. values]);
                 }
                 else
                 {
@@ -430,6 +429,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var project = localWorkspace.CurrentSolution
                     .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
                     .GetRequiredProject(projectId)
+                    .WithCompilationOutputInfo(new CompilationOutputInfo(
+                        assemblyPath: Path.Combine(TempRoot.Root, "Test.dll"),
+                        generatedFilesOutputDirectory: null))
                     .AddAnalyzerReference(analyzerReference);
                 var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
                 tempDocId = tempDoc.Id;
@@ -521,8 +523,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var sourceText = CreateText(Guid.NewGuid().ToString());
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", sourceText)),
-                ImmutableArray.Create(("SG.cs", sourceText)));
+                [("SG.cs", sourceText)],
+                [("SG.cs", sourceText)]);
         }
 
         [Fact]
@@ -530,24 +532,24 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var sourceText = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", CreateText(sourceText))),
-                ImmutableArray.Create(("SG.cs", CreateText(sourceText))));
+                [("SG.cs", CreateText(sourceText))],
+                [("SG.cs", CreateText(sourceText))]);
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree4()
         {
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
-                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))));
+                [("SG.cs", CreateText(Guid.NewGuid().ToString()))],
+                [("SG.cs", CreateText(Guid.NewGuid().ToString()))]);
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree5()
         {
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
-                ImmutableArray.Create(("NewName.cs", CreateText(Guid.NewGuid().ToString()))));
+                [("SG.cs", CreateText(Guid.NewGuid().ToString()))],
+                [("NewName.cs", CreateText(Guid.NewGuid().ToString()))]);
         }
 
         [Fact]
@@ -555,8 +557,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var sourceText = CreateText(Guid.NewGuid().ToString());
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", sourceText)),
-                ImmutableArray.Create(("NewName.cs", sourceText)));
+                [("SG.cs", sourceText)],
+                [("NewName.cs", sourceText)]);
         }
 
         [Fact]
@@ -564,48 +566,48 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var sourceText = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", CreateText(sourceText))),
-                ImmutableArray.Create(("NewName.cs", CreateText(sourceText))));
+                [("SG.cs", CreateText(sourceText))],
+                [("NewName.cs", CreateText(sourceText))]);
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree8()
         {
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
-                ImmutableArray.Create(("NewName.cs", CreateText(Guid.NewGuid().ToString()))));
+                [("SG.cs", CreateText(Guid.NewGuid().ToString()))],
+                [("NewName.cs", CreateText(Guid.NewGuid().ToString()))]);
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree9()
         {
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.ASCII))),
-                ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.UTF8))));
+                [("SG.cs", CreateText("X", Encoding.ASCII))],
+                [("SG.cs", CreateText("X", Encoding.UTF8))]);
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree10()
         {
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha1))),
-                ImmutableArray.Create(("SG.cs", CreateText("X", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256))));
+                [("SG.cs", CreateText("X", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha1))],
+                [("SG.cs", CreateText("X", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256))]);
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree11()
         {
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))),
-                ImmutableArray<(string, SourceText)>.Empty);
+                [("SG.cs", CreateText(Guid.NewGuid().ToString()))],
+                []);
         }
 
         [Fact]
         public async Task InProcAndRemoteWorkspaceAgree12()
         {
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray<(string, SourceText)>.Empty,
-                ImmutableArray.Create(("SG.cs", CreateText(Guid.NewGuid().ToString()))));
+                [],
+                [("SG.cs", CreateText(Guid.NewGuid().ToString()))]);
         }
 
         [Fact]
@@ -613,8 +615,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", CreateText(contents))),
-                ImmutableArray.Create(("SG.cs", CreateText(contents)), ("SG1.cs", CreateText(contents))));
+                [("SG.cs", CreateText(contents))],
+                [("SG.cs", CreateText(contents)), ("SG1.cs", CreateText(contents))]);
         }
 
         [Fact]
@@ -622,8 +624,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", CreateText(contents))),
-                ImmutableArray.Create(("SG.cs", CreateText(contents)), ("SG1.cs", CreateText("Other"))));
+                [("SG.cs", CreateText(contents))],
+                [("SG.cs", CreateText(contents)), ("SG1.cs", CreateText("Other"))]);
         }
 
         [Fact]
@@ -631,8 +633,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", CreateText(contents))),
-                ImmutableArray.Create(("SG1.cs", CreateText(contents)), ("SG.cs", CreateText("Other"))));
+                [("SG.cs", CreateText(contents))],
+                [("SG1.cs", CreateText(contents)), ("SG.cs", CreateText("Other"))]);
         }
 
         [Fact]
@@ -640,8 +642,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", CreateText(contents))),
-                ImmutableArray.Create(("SG1.cs", CreateText("Other")), ("SG.cs", CreateText(contents))));
+                [("SG.cs", CreateText(contents))],
+                [("SG1.cs", CreateText("Other")), ("SG.cs", CreateText(contents))]);
         }
 
         [Fact]
@@ -649,9 +651,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", CreateText(contents))),
-                ImmutableArray.Create(("SG1.cs", CreateText("Other")), ("SG.cs", CreateText(contents))),
-                ImmutableArray<(string, SourceText)>.Empty);
+                [("SG.cs", CreateText(contents))],
+                [("SG1.cs", CreateText("Other")), ("SG.cs", CreateText(contents))],
+                []);
         }
 
         [Fact]
@@ -667,8 +669,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = CreateText(Guid.NewGuid().ToString());
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG1.cs", contents), ("SG2.cs", contents)),
-                ImmutableArray.Create(("SG2.cs", contents), ("SG1.cs", contents)));
+                [("SG1.cs", contents), ("SG2.cs", contents)],
+                [("SG2.cs", contents), ("SG1.cs", contents)]);
         }
 
         [Fact]
@@ -676,8 +678,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG1.cs", CreateText(contents)), ("SG2.cs", CreateText(contents))),
-                ImmutableArray.Create(("SG2.cs", CreateText(contents)), ("SG1.cs", CreateText(contents))));
+                [("SG1.cs", CreateText(contents)), ("SG2.cs", CreateText(contents))],
+                [("SG2.cs", CreateText(contents)), ("SG1.cs", CreateText(contents))]);
         }
 
         [Theory, CombinatorialData]
@@ -686,8 +688,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var contents = Guid.NewGuid().ToString();
             await TestInProcAndRemoteWorkspace(
-                ImmutableArray.Create(("SG.cs", CreateStreamText(contents, useBOM: useBOM1, useMemoryStream: useMemoryStream1))),
-                ImmutableArray.Create(("SG.cs", CreateStreamText(contents, useBOM: useBOM2, useMemoryStream: useMemoryStream2))));
+                [("SG.cs", CreateStreamText(contents, useBOM: useBOM1, useMemoryStream: useMemoryStream1))],
+                [("SG.cs", CreateStreamText(contents, useBOM: useBOM2, useMemoryStream: useMemoryStream2))]);
         }
 
         [PartNotDiscoverable]
@@ -766,6 +768,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var project = workspace.CurrentSolution
                 .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name: "Test", assemblyName: "Test", language: LanguageNames.CSharp))
                 .GetRequiredProject(projectId)
+                .WithCompilationOutputInfo(new CompilationOutputInfo(
+                    assemblyPath: Path.Combine(TempRoot.Root, "Test.dll"),
+                    generatedFilesOutputDirectory: null))
                 .AddAnalyzerReference(analyzerReference);
             var tempDoc = project.AddDocument("X.cs", SourceText.From("// "));
 

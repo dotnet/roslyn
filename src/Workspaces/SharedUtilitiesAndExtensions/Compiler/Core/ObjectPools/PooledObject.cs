@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -69,6 +70,14 @@ internal struct PooledObject<T> : IDisposable where T : class
             static (p, v) => Releaser(p, v));
     }
 
+    public static PooledObject<ConcurrentSet<TItem>> Create<TItem>(ObjectPool<ConcurrentSet<TItem>> pool) where TItem : notnull
+    {
+        return new PooledObject<ConcurrentSet<TItem>>(
+            pool,
+            static p => Allocator(p),
+            static (p, v) => Releaser(p, v));
+    }
+
     public static PooledObject<Dictionary<TKey, TValue>> Create<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool)
         where TKey : notnull
     {
@@ -118,7 +127,13 @@ internal struct PooledObject<T> : IDisposable where T : class
     private static HashSet<TItem> Allocator<TItem>(ObjectPool<HashSet<TItem>> pool)
         => pool.AllocateAndClear();
 
+    private static ConcurrentSet<TItem> Allocator<TItem>(ObjectPool<ConcurrentSet<TItem>> pool) where TItem : notnull
+        => pool.AllocateAndClear();
+
     private static void Releaser<TItem>(ObjectPool<HashSet<TItem>> pool, HashSet<TItem> obj)
+        => pool.ClearAndFree(obj);
+
+    private static void Releaser<TItem>(ObjectPool<ConcurrentSet<TItem>> pool, ConcurrentSet<TItem> obj) where TItem : notnull
         => pool.ClearAndFree(obj);
 
     private static Dictionary<TKey, TValue> Allocator<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool)

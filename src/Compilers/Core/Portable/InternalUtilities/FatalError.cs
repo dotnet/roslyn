@@ -4,11 +4,9 @@
 
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
@@ -147,11 +145,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             return ReportAndPropagate(exception, severity);
         }
 
-        // Since the command line compiler has no way to catch exceptions, report them, and march on, we
-        // simply don't offer such a mechanism here to avoid accidental swallowing of exceptions.
-
-#if !COMPILERCORE
-
         /// <summary>
         /// Report an error.
         /// Calls <see cref="s_handler"/> and doesn't pass the exception through (the method returns true).
@@ -168,6 +161,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             Report(exception, severity);
             return true;
         }
+
+        // Since the command line compiler has no way to catch exceptions, report them, and march on, we
+        // simply don't offer such a mechanism here to avoid accidental swallowing of exceptions.
+
+#if !COMPILERCORE
 
         [DebuggerHidden]
         public static bool ReportWithDumpAndCatch(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)

@@ -344,12 +344,12 @@ Friend Module Extensions
 
     <Extension>
     Friend Function ReduceExtensionMethod(this As MethodSymbol, instanceType As TypeSymbol) As MethodSymbol
-        Return this.ReduceExtensionMethod(instanceType, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
+        Return this.ReduceExtensionMethod(instanceType, CompoundUseSiteInfo(Of AssemblySymbol).Discarded, LanguageVersion.Latest)
     End Function
 
     <Extension>
     Friend Function ReduceExtensionMethod(this As MethodSymbol, instanceType As TypeSymbol, proximity As Integer) As MethodSymbol
-        Return this.ReduceExtensionMethod(instanceType, proximity, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
+        Return this.ReduceExtensionMethod(instanceType, proximity, CompoundUseSiteInfo(Of AssemblySymbol).Discarded, LanguageVersion.Latest)
     End Function
 
     <Extension>

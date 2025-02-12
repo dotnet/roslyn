@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             {
                 builder.Add(this[i]);
 
-#if NETCOREAPP
+#if NET
                 if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
 #endif
                 {

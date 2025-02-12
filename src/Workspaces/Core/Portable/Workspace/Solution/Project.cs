@@ -147,7 +147,12 @@ public partial class Project
     /// <summary>
     /// The options used by analyzers for this project.
     /// </summary>
-    public AnalyzerOptions AnalyzerOptions => State.AnalyzerOptions;
+    public AnalyzerOptions AnalyzerOptions => State.ProjectAnalyzerOptions;
+
+    /// <summary>
+    /// The options used by analyzers for this project.
+    /// </summary>
+    public AnalyzerOptions HostAnalyzerOptions => State.HostAnalyzerOptions;
 
     /// <summary>
     /// The options used when building the compilation for this project.
@@ -578,6 +583,15 @@ public partial class Project
     /// </summary>
     public Project WithDefaultNamespace(string defaultNamespace)
         => this.Solution.WithProjectDefaultNamespace(this.Id, defaultNamespace).GetRequiredProject(Id);
+
+    internal Project WithOutputFilePath(string? path)
+        => Solution.WithProjectOutputFilePath(Id, path).GetRequiredProject(Id);
+
+    internal Project WithOutputRefFilePath(string? path)
+        => Solution.WithProjectOutputRefFilePath(Id, path).GetRequiredProject(Id);
+
+    internal Project WithCompilationOutputInfo(in CompilationOutputInfo info)
+        => Solution.WithProjectCompilationOutputInfo(Id, info).GetRequiredProject(Id);
 
     /// <summary>
     /// Creates a new instance of this project updated to have the specified compilation options.

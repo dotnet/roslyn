@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 /// that we search for.  Placing these in a group allows the final consumer to know that these 
 /// symbols can be merged together.
 /// </summary>
-internal class SymbolGroup : IEquatable<SymbolGroup>
+internal sealed class SymbolGroup : IEquatable<SymbolGroup>
 {
     /// <summary>
     /// All the symbols in the group.

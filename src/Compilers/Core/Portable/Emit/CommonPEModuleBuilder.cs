@@ -89,6 +89,23 @@ namespace Microsoft.CodeAnalysis.Emit
         /// EnC generation. 0 if the module is not an EnC delta, 1 if it is the first EnC delta, etc.
         /// </summary>
         public int CurrentGenerationOrdinal => (PreviousGeneration?.Ordinal + 1) ?? 0;
+
+        /// <summary>
+        /// Creates the type definition of HotReloadException type if it has not been synthesized yet and returns its constructor.
+        /// </summary>
+        public abstract IMethodSymbolInternal GetOrCreateHotReloadExceptionConstructorDefinition();
+
+        /// <summary>
+        /// Creates the type definition of HotReloadException type if it has not been synthesized yet and the module is an EnC delta.
+        /// Returns the synthesized type definition or null if the module is not an EnC delta or a user-defined type is already defined in the compilation.
+        /// </summary>
+        public abstract INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType();
+
+        /// <summary>
+        /// Returns the HotReloadException type symbol if it has been used in this compilation, null otherwise.
+        /// </summary>
+        public abstract INamedTypeSymbolInternal? GetUsedSynthesizedHotReloadExceptionType();
+
 #nullable disable
 
         /// <summary>
@@ -196,6 +213,8 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         public abstract PrivateImplementationDetails? GetFrozenPrivateImplementationDetails();
+
+        internal abstract PrivateImplementationDetails GetPrivateImplClass(SyntaxNode? syntaxNode, DiagnosticBag diagnostics);
 
         /// <summary>
         /// Additional top-level types injected by the Expression Evaluators.
@@ -981,6 +1000,18 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
+            // Add synthesized HotReloadException if it has been used in emitted code.
+            // We do not add it at the creation time since we don't know if it's going to be used at that point.
+            if (GetUsedSynthesizedHotReloadExceptionType() is { } hotReloadException)
+            {
+                if (!builder.TryGetValue(hotReloadException.ContainingNamespace, out var existingTypes))
+                {
+                    existingTypes = [];
+                }
+
+                builder[hotReloadException.ContainingNamespace] = existingTypes.Add(hotReloadException);
+            }
+
             return builder.ToImmutable();
         }
 
@@ -990,12 +1021,12 @@ namespace Microsoft.CodeAnalysis.Emit
 
         Cci.IFieldReference ITokenDeferral.GetFieldForData(ImmutableArray<byte> data, ushort alignment, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            Debug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
+            RoslynDebug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
 
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
 
             // map a field to the block (that makes it addressable via a token)
-            return privateImpl.CreateDataField(data, alignment);
+            return privateImpl.GetOrAddDataField(data, alignment);
         }
 
         Cci.IFieldReference ITokenDeferral.GetArrayCachingFieldForData(ImmutableArray<byte> data, Cci.IArrayTypeReference arrayType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
@@ -1013,6 +1044,14 @@ namespace Microsoft.CodeAnalysis.Emit
             var privateImpl = GetPrivateImplClass((TSyntaxNode)syntaxNode, diagnostics);
             var emitContext = new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true);
             return privateImpl.CreateArrayCachingField(constants, arrayType, emitContext);
+        }
+
+        /// <summary>
+        /// <see cref="PrivateImplementationDetails.TryGetOrCreateFieldForStringValue"/>
+        /// </summary>
+        public Cci.IFieldReference TryGetOrCreateFieldForStringValue(string text, TSyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            return PrivateImplementationDetails.TryGetOrCreateFieldForStringValue(text, this, syntaxNode, diagnostics);
         }
 
         public abstract Cci.IMethodReference GetInitArrayHelper();
@@ -1043,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
 #nullable enable
 
-        internal PrivateImplementationDetails GetPrivateImplClass(TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        internal PrivateImplementationDetails GetPrivateImplClass(TSyntaxNode? syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             var result = _lazyPrivateImplementationDetails;
 
@@ -1068,6 +1107,11 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return result;
+        }
+
+        internal override PrivateImplementationDetails GetPrivateImplClass(SyntaxNode? syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            return GetPrivateImplClass((TSyntaxNode?)syntaxNodeOpt, diagnostics);
         }
 
         public PrivateImplementationDetails? FreezePrivateImplementationDetails()

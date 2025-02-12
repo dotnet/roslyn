@@ -98,6 +98,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasUnmanagedTypeConstraint As Boolean
+            Get
+                Return _originalDefinition.HasUnmanagedTypeConstraint
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
                 Return _containingSymbol

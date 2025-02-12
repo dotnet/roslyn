@@ -42,7 +42,6 @@ public class SimplifyPropertyPatternTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -108,7 +107,6 @@ public class SimplifyPropertyPatternTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -134,7 +132,6 @@ public class SimplifyPropertyPatternTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -160,7 +157,6 @@ public class SimplifyPropertyPatternTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -186,7 +182,6 @@ public class SimplifyPropertyPatternTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -212,7 +207,6 @@ public class SimplifyPropertyPatternTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -238,7 +232,6 @@ public class SimplifyPropertyPatternTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -750,7 +743,6 @@ public class SimplifyPropertyPatternTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             LanguageVersion = LanguageVersion.CSharp10,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -773,7 +765,6 @@ public class SimplifyPropertyPatternTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
             LanguageVersion = LanguageVersion.CSharp10,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();

@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
-internal partial class AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
+internal abstract partial class AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
 {
     internal abstract class State
     {
@@ -58,7 +58,7 @@ internal partial class AbstractGenerateParameterizedMemberService<TService, TSim
         protected async Task<bool> TryFinishInitializingStateAsync(TService service, SemanticDocument document, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+            TypeToGenerateIn = SymbolFinderInternal.FindSourceDefinition(TypeToGenerateIn, document.Project.Solution, cancellationToken) as INamedTypeSymbol;
             if (TypeToGenerateIn.IsErrorType())
             {
                 return false;
@@ -82,11 +82,7 @@ internal partial class AbstractGenerateParameterizedMemberService<TService, TSim
                 .GetMembers(IdentifierToken.ValueText)
                 .OfType<IMethodSymbol>();
 
-#if CODE_STYLE
             var destinationProvider = document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(TypeToGenerateIn.Language);
-#else
-            var destinationProvider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
-#endif
 
             var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
             var syntaxFactory = destinationProvider.GetService<SyntaxGenerator>();

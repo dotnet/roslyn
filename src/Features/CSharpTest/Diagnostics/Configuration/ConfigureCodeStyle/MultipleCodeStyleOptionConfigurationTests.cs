@@ -27,7 +27,7 @@ public abstract partial class MultipleCodeStyleOptionConfigurationTests : Abstra
     {
         Assert.Single(actions);
         var nestedActionForOptionIndex = ((AbstractConfigurationActionWithNestedActions)actions[0]).NestedActions[OptionIndex];
-        return base.MassageActions(ImmutableArray.Create(nestedActionForOptionIndex));
+        return base.MassageActions([nestedActionForOptionIndex]);
     }
 
     protected internal override string GetLanguage() => LanguageNames.CSharp;

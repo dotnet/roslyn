@@ -14,7 +14,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting.Test
 {
-    public class ScriptingTestHelpers
+    public static class ScriptingTestHelpers
     {
         public static ScriptState<T> RunScriptWithOutput<T>(Script<T> script, string expectedOutput)
         {

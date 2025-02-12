@@ -10,11 +10,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.Security.Principal" />
     <PackageReference Include="System.Reflection.Metadata" />
     <PackageReference Include="System.Management" />
     <PackageReference Include="Mono.Options" />
-    <PackageReference Include="Microsoft.Win32.Registry" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Microsoft.TeamFoundationServer.Client" />
     <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />

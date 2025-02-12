@@ -2933,7 +2933,7 @@ unsafe class Test
         }
 
         [Fact, WorkItem(4696, "https://github.com/dotnet/roslyn/issues/4696")]
-        public void LangVersionAndReadonlyAutoProperty()
+        public void LangVersionAndReadonlyAutoProperty_01()
         {
             var source = @"
 public class Class1
@@ -2957,12 +2957,48 @@ interface I1
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular5);
             comp.GetDeclarationDiagnostics().Verify(
-    // (9,19): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5. Please use language version 6 or greater.
-    //     public string Prop1 { get; }
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Prop1").WithArguments("readonly automatically implemented properties", "6").WithLocation(9, 19)
+                // (9,19): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5. Please use language version 6 or greater.
+                //     public string Prop1 { get; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Prop1").WithArguments("readonly automatically implemented properties", "6").WithLocation(9, 19)
                 );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular6);
+            comp.GetDeclarationDiagnostics().Verify();
+        }
+
+        [Fact]
+        public void LangVersionAndReadonlyAutoProperty_02()
+        {
+            var source = @"
+public class Class1
+{
+    public string Prop1 { set; }
+}
+
+abstract class Class2
+{
+    public abstract string Prop2 { set; }
+}
+
+interface I1
+{
+    string Prop3 { set; }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular5);
+            comp.GetDeclarationDiagnostics().Verify(
+                // (4,27): error CS8051: Auto-implemented properties must have get accessors.
+                //     public string Prop1 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(4, 27));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.GetDeclarationDiagnostics().Verify(
+                // (4,27): error CS8051: Auto-implemented properties must have get accessors.
+                //     public string Prop1 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(4, 27));
         }
 
         [Fact]
@@ -2989,6 +3025,75 @@ class C
             var compilation = CreateCompilation(source).VerifyDiagnostics();
             var property = compilation.GetMember<PropertySymbol>("C.P");
             Assert.True(property.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_01()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public class Preserve1Attribute : Attribute { }
+";
+
+            string source2 = @"
+public class Test1
+{
+    [Preserve1]
+    int P1 {get; set;}
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>k__BackingField").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_02()
+        {
+            string source1 = @"
+using System;
+
+[AttributeUsage(AttributeTargets.Field)]
+public class Preserve1Attribute : Attribute { }
+";
+
+            string source2 = @"
+public class Test1
+{
+    [field: Preserve1]
+    int P1 {get; set;}
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)",
+                        "Preserve1Attribute"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>k__BackingField").GetAttributes().Select(a => a.ToString()));
+            }
         }
     }
 }

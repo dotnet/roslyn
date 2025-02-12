@@ -14,7 +14,7 @@ internal interface IAddReferenceDatabaseWrapper
     AddReferenceDatabase Database { get; }
 }
 
-internal class AddReferenceDatabaseWrapper(AddReferenceDatabase database) : IAddReferenceDatabaseWrapper
+internal sealed class AddReferenceDatabaseWrapper(AddReferenceDatabase database) : IAddReferenceDatabaseWrapper
 {
     public AddReferenceDatabase Database { get; } = database;
 }

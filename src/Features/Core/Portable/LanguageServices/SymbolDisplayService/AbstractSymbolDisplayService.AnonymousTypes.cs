@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageService;
 
-internal partial class AbstractSymbolDisplayService
+internal abstract partial class AbstractSymbolDisplayService
 {
     protected abstract partial class AbstractSymbolDescriptionBuilder
     {

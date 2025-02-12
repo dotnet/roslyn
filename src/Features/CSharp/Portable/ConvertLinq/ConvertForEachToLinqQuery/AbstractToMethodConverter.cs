@@ -153,10 +153,10 @@ internal abstract class AbstractToMethodConverter(
                         throw ExceptionUtilities.Unreachable();
                     }
 
-                    return new IEnumerable<SyntaxTrivia>[] {
+                    return [.. new IEnumerable<SyntaxTrivia>[] {
                         SyntaxNodeOrTokenExtensions.GetTrivia(localDeclaration.Declaration.Type),
                         GetTriviaFromVariableDeclarator(localDeclaration.Declaration.Variables[0]),
-                        SyntaxNodeOrTokenExtensions.GetTrivia(localDeclaration.SemicolonToken)}.Flatten().ToArray();
+                        SyntaxNodeOrTokenExtensions.GetTrivia(localDeclaration.SemicolonToken)}.Flatten()];
 
                 case SyntaxKind.VariableDeclarator:
                     return GetTriviaFromVariableDeclarator((VariableDeclaratorSyntax)node);

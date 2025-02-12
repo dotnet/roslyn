@@ -240,4 +240,16 @@
   <data name="Project_0_has_unresolved_dependencies" xml:space="preserve">
     <value>Project {0} has unresolved dependencies</value>
   </data>
+  <data name="Standard_Output_Messages" xml:space="preserve">
+    <value>Standard Output Messages</value>
+  </data>
+  <data name="Standard_Error_Messages" xml:space="preserve">
+    <value>Standard Error Messages</value>
+  </data>
+  <data name="Debug_Trace_Messages" xml:space="preserve">
+    <value>Debug Trace Messages</value>
+  </data>
+  <data name="Additional_Info_Messages" xml:space="preserve">
+    <value>Additional Info Messages</value>
+  </data>
 </root>

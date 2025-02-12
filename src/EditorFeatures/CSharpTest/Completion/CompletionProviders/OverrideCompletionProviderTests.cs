@@ -3055,7 +3055,7 @@ namespace ConsoleApplication46
         override $$
     }
 }";
-        using var workspace = EditorTestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, composition: GetComposition());
+        using var workspace = EditorTestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), [text], composition: GetComposition());
         var provider = new OverrideCompletionProvider();
         var testDocument = workspace.Documents.Single();
         var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);

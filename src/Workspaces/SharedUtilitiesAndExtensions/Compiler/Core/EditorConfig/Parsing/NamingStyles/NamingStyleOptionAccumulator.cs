@@ -11,7 +11,7 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.EditorCon
 
 namespace Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles;
 
-internal class NamingStyleOptionAccumulator : IEditorConfigOptionAccumulator<EditorConfigNamingStyles, NamingStyleOption>
+internal sealed class NamingStyleOptionAccumulator : IEditorConfigOptionAccumulator<EditorConfigNamingStyles, NamingStyleOption>
 {
     private ArrayBuilder<NamingStyleOption>? _rules;
 
@@ -22,21 +22,16 @@ internal class NamingStyleOptionAccumulator : IEditorConfigOptionAccumulator<Edi
         return editorConfigNamingStyles;
     }
 
-    public void ProcessSection(Section section, IReadOnlyDictionary<string, (string value, TextLine? line)> properties)
+    public void ProcessSection(Section section, IReadOnlyDictionary<string, string> values, IReadOnlyDictionary<string, TextLine> lines)
     {
-        foreach (var ruleTitle in GetRuleTitles(properties))
+        foreach (var ruleTitle in GetRuleTitles(values))
         {
-            if (TryGetSymbolSpec(section, ruleTitle, properties, out var applicableSymbolInfo) &&
-                TryGetNamingStyleData(section, ruleTitle, properties, out var namingScheme) &&
-                TryGetRuleSeverity(ruleTitle, properties, out var severity))
+            if (TryGetSymbolSpecification(section, ruleTitle, values, lines, out var applicableSymbolInfo) &&
+                TryGetNamingStyle(section, ruleTitle, values, lines, out var namingScheme) &&
+                TryGetRule(section, ruleTitle, applicableSymbolInfo, namingScheme, values, lines, out var rule, out _))
             {
                 _rules ??= ArrayBuilder<NamingStyleOption>.GetInstance();
-                _rules.Add(new NamingStyleOption(
-                    Section: section,
-                    RuleName: (section, severity.line?.Span, ruleTitle), // all rules must have a severity so we consider this its location
-                    ApplicableSymbolInfo: applicableSymbolInfo,
-                    NamingScheme: namingScheme,
-                    Severity: (section, severity.line?.Span, severity.severity)));
+                _rules.Add(rule);
             }
         }
     }

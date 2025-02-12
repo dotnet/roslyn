@@ -125,11 +125,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                 methodKind: State.MethodKind);
 
             // Ensure no conflicts between type parameter names and parameter names.
-#if CODE_STYLE
             var languageServiceProvider = Document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(State.TypeToGenerateIn.Language);
-#else
-            var languageServiceProvider = Document.Project.Solution.Services.GetLanguageServices(State.TypeToGenerateIn.Language);
-#endif
 
             var syntaxFacts = languageServiceProvider.GetService<ISyntaxFactsService>();
 

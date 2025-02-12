@@ -25,7 +25,7 @@ internal static class TaskTestUtil
         Assert.Equal(line, rsp);
         Assert.Equal(expected, task.GenerateCommandLineArgsTaskItems(rsp).Select(x => x.ItemSpec));
 
-#if NETCOREAPP
+#if NET
         Assert.Equal($"exec \"{task.PathToManagedTool}\"", task.GenerateCommandLineContents().Trim());
 
         // Can only run the Execute path on .NET Core presently. The internal workings of ToolTask 

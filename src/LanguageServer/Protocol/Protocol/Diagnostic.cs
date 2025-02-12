@@ -170,7 +170,7 @@ namespace Roslyn.LanguageServer.Protocol
 
         /// <inheritdoc/>
         public override int GetHashCode() =>
-#if NETCOREAPP
+#if NET
             HashCode.Combine(Range, Severity, Code, Source, Message, Hash.CombineValues(Tags), CodeDescription, Data);
 #else
             Hash.Combine(Range,

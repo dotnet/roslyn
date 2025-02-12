@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="FormattingOptionsEncounteredInvalidToken">
         <source>Unable to deserialize FormattingOptions. Invalid token: {0}</source>
-        <target state="new">Unable to deserialize FormattingOptions. Invalid token: {0}</target>
+        <target state="translated">FormattingOptions를 역직렬화할 수 없습니다. 잘못된 토큰: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="FormattingOptionsEndedUnexpectedly">
         <source>Unable to deserialize FormattingOptions as it ended unexpectedly</source>
-        <target state="new">Unable to deserialize FormattingOptions as it ended unexpectedly</target>
+        <target state="translated">FormattingOptions가 예기치 않게 종료되어 역직렬화할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="FormattingOptionsMissingRequiredProperty">
         <source>Unable to deserialize FormattingOptions. Missing required property: {0}</source>
-        <target state="new">Unable to deserialize FormattingOptions. Missing required property: {0}</target>
+        <target state="translated">FormattingOptions를 역직렬화할 수 없습니다. 누락된 필수 속성: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="MarkupContentSerializationError">

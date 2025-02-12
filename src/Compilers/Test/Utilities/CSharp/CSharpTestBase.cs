@@ -32,7 +32,6 @@ using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -588,7 +587,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected static readonly string AsyncStreamsTypes = DisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes;
+        public static readonly string AsyncStreamsTypes = DisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes;
 
         protected static readonly string EnumeratorCancellationAttributeType = @"
 namespace System.Runtime.CompilerServices
@@ -761,6 +760,20 @@ namespace System.Diagnostics.CodeAnalysis
                 .property instance int32 Priority()
                 {
                     .get instance int32 System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::get_Priority()
+                }
+            }
+            """;
+
+        /// <summary>
+        /// The shape of the attribute comes from https://github.com/dotnet/runtime/issues/103430
+        /// </summary>
+        internal const string CompilerLoweringPreserveAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+                public class CompilerLoweringPreserveAttribute : Attribute
+                {
+                    public CompilerLoweringPreserveAttribute() { }
                 }
             }
             """;
@@ -1247,13 +1260,11 @@ namespace System.Diagnostics.CodeAnalysis
 
             if (RuntimeUtilities.IsCoreClrRuntime)
             {
-                allReferences = TargetFrameworkUtil.NetStandard20References;
-                allReferences = allReferences.Concat(new[] { SystemThreadingTasksExtensions.NetStandard20Lib });
+                allReferences = [.. NetStandard20.References.All, NetStandard20.ExtraReferences.SystemThreadingTasksExtensions];
             }
             else
             {
-                allReferences = TargetFrameworkUtil.Mscorlib461ExtendedReferences;
-                allReferences = allReferences.Concat(new[] { Net461.References.SystemThreadingTasks, SystemThreadingTasksExtensions.PortableLib });
+                allReferences = [.. TargetFrameworkUtil.Mscorlib461ExtendedReferences, Net461.ExtraReferences.SystemThreadingTasksExtensions];
             }
 
             if (references != null)
@@ -1314,7 +1325,7 @@ namespace System.Diagnostics.CodeAnalysis
             }
 
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(
-                assemblyName == "" ? GetUniqueName() : assemblyName,
+                string.IsNullOrEmpty(assemblyName) ? GetUniqueName() : assemblyName,
                 syntaxTrees,
                 references,
                 options);
@@ -2357,6 +2368,24 @@ namespace System.Diagnostics.CodeAnalysis
             }
         }
 
+        protected static CSharpCompilation CreateCompilationWithIndexAndRangeAndSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, TargetFramework targetFramework = TargetFramework.NetCoreApp)
+        {
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                return CreateCompilation(text, targetFramework: targetFramework, options: options, parseOptions: parseOptions);
+            }
+            else
+            {
+                var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range, TestSources.Span, TestSources.MemoryExtensions }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+                return CreateCompilation(
+                    text,
+                    references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                    options: options,
+                    parseOptions: parseOptions);
+            }
+        }
+
         internal static string GetIdForErrorCode(ErrorCode code)
         {
             return MessageProvider.Instance.GetIdForErrorCode((int)code);
@@ -2515,9 +2544,17 @@ namespace System.Runtime.CompilerServices
             var cultureInfoHandler = @"
 public class CultureInfoNormalizer
 {
+    private static CultureInfo originalCulture;
+
     public static void Normalize()
     {
+        originalCulture = CultureInfo.CurrentCulture;
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+    }
+
+    public static void Reset()
+    {
+        CultureInfo.CurrentCulture = originalCulture;
     }
 }
 ";

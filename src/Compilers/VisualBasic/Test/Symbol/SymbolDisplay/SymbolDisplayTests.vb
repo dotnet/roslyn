@@ -1552,7 +1552,7 @@ end class
             Dim format = New SymbolDisplayFormat(
                 memberOptions:=SymbolDisplayMemberOptions.IncludeType,
                 kindOptions:=SymbolDisplayKindOptions.IncludeMemberKeyword,
-                compilerInternalOptions:=SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames)
+                compilerInternalOptions:=SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)
 
             TestSymbolDescription(
                 text,
@@ -5014,13 +5014,13 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation},
-                references:={MetadataReference.CreateFromImage(TestResources.NetFX.ValueTuple.tuplelib)})
+                references:={Net461.ExtraReferences.SystemValueTuple})
         End Sub
 
         <Fact()>
@@ -5999,6 +5999,37 @@ end class"
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation)
+        End Sub
+
+        <Fact>
+        Public Sub PreprocessingSymbol()
+            Dim source =
+"
+#If NET5_0_OR_GREATER
+#End If"
+            Dim format = New SymbolDisplayFormat(
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeModifiers,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            Dim comp = CreateCompilation(source)
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim preprocessingNameSyntax = tree.GetRoot().DescendantNodes(descendIntoTrivia:=True).OfType(Of IdentifierNameSyntax).First()
+            Dim preprocessingSymbolInfo = model.GetPreprocessingSymbolInfo(preprocessingNameSyntax)
+            Dim preprocessingSymbol = preprocessingSymbolInfo.Symbol
+
+            Assert.Equal(
+                "NET5_0_OR_GREATER",
+                SymbolDisplay.ToDisplayString(preprocessingSymbol, format))
+
+            Dim displayParts = preprocessingSymbol.ToDisplayParts(format)
+            Dim expectedDisplayParts =
+            {
+                New SymbolDisplayPart(SymbolDisplayPartKind.Text, preprocessingSymbol, "NET5_0_OR_GREATER")
+            }
+            Assert.Equal(
+                expected:=expectedDisplayParts,
+                actual:=displayParts)
         End Sub
 
 #Region "Helpers"

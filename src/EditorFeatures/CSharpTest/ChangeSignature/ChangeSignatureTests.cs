@@ -63,7 +63,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
         await TestChangeSignatureViaCommandAsync(
             LanguageNames.CSharp,
             markup: markup,
-            updatedSignature: new[] { 1, 0 },
+            updatedSignature: [1, 0],
             expectedUpdatedInvocationDocumentCode: expectedCode);
     }
 
@@ -92,7 +92,7 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
         await TestChangeSignatureViaCommandAsync(
             LanguageNames.CSharp,
             markup: markup,
-            updatedSignature: new[] { 1, 0 },
+            updatedSignature: [1, 0],
             expectedUpdatedInvocationDocumentCode: expectedCode);
     }
 

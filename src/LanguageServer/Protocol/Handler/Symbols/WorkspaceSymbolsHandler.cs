@@ -79,6 +79,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Contract.ThrowIfNull(context.Solution);
                 var solution = context.Solution;
 
+                var clientCapabilities = context.GetRequiredClientCapabilities();
+                var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
+
                 foreach (var result in results)
                 {
                     var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false);
@@ -88,9 +91,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (location == null)
                         return;
 
-                    var service = solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
-                    var symbolInfo = service.Create(
-                        result.Name, result.AdditionalInformation, ProtocolConversions.NavigateToKindToSymbolKind(result.Kind), location, result.NavigableItem.Glyph);
+                    var symbolInfo = SymbolInformationFactory.Create(
+                        result.Name,
+                        result.AdditionalInformation,
+                        ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
+                        location,
+                        result.NavigableItem.Glyph,
+                        supportsVSExtensions);
 
                     progress.Report(symbolInfo);
                 }

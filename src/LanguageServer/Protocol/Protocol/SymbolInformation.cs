@@ -127,7 +127,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <inheritdoc/>
         public override int GetHashCode() =>
 #pragma warning disable CS0618 // Type or member is obsolete
-#if NETCOREAPP
+#if NET
             HashCode.Combine(Name, Kind, Hash.CombineValues(Tags), Deprecated, Location, ContainerName);
 #else
             Hash.Combine(Name,

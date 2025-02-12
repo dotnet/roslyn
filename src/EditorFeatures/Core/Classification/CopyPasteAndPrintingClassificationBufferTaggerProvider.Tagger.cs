@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -89,10 +90,18 @@ internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
             return [];
         }
 
-        private static IReadOnlyList<TagSpan<IClassificationTag>> GetIntersectingTags(NormalizedSnapshotSpanCollection spans, TagSpanIntervalTree<IClassificationTag> cachedTags)
-            => SegmentedListPool<TagSpan<IClassificationTag>>.ComputeList(
-                static (args, tags) => args.cachedTags.AddIntersectingTagSpans(args.spans, tags),
-                (cachedTags, spans));
+        private static IEnumerable<TagSpan<IClassificationTag>> GetIntersectingTags(NormalizedSnapshotSpanCollection spans, TagSpanIntervalTree<IClassificationTag> cachedTags)
+        {
+            using var pooledObject = SegmentedListPool.GetPooledList<TagSpan<IClassificationTag>>(out var list);
+
+            cachedTags.AddIntersectingTagSpans(spans, list);
+
+            // Use yield return mechanism to allow the segmented list to get returned back to the
+            // pool after usage. This does cause an allocation for the yield state machinery, but
+            // that is better than not freeing a potentially large segmented list back to the pool.
+            foreach (var item in list)
+                yield return item;
+        }
 
         IEnumerable<ITagSpan<IClassificationTag>> IAccurateTagger<IClassificationTag>.GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
             => GetAllTags(spans, cancellationToken);

@@ -47,7 +47,6 @@ public abstract class HostWorkspaceServices : IDisposable
     /// <summary>
     /// The host services this workspace services originated from.
     /// </summary>
-    /// <returns></returns>
     public abstract HostServices HostServices { get; }
 
     /// <summary>
@@ -85,7 +84,10 @@ public abstract class HostWorkspaceServices : IDisposable
         var service = GetService<TWorkspaceService>();
         if (service == null)
         {
-            throw new InvalidOperationException(string.Format(WorkspacesResources.Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace, typeof(TWorkspaceService).FullName));
+            throw new InvalidOperationException(
+                string.Format(WorkspacesResources.Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_1_workspace,
+                typeof(TWorkspaceService),
+                Workspace.Kind));
         }
 
         return service;

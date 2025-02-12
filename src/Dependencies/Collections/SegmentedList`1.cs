@@ -131,23 +131,48 @@ namespace Microsoft.CodeAnalysis.Collections
                     ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.value, ExceptionResource.ArgumentOutOfRange_SmallCapacity);
                 }
 
-                if (value != _items.Length)
+                if (value == _items.Length)
+                    return;
+
+                if (value <= 0)
                 {
-                    if (value > 0)
-                    {
-                        var newItems = new SegmentedArray<T>(value);
-                        if (_size > 0)
-                        {
-                            SegmentedArray.Copy(_items, newItems, _size);
-                        }
-                        _items = newItems;
-                    }
-                    else
-                    {
-                        _items = s_emptyArray;
-                    }
+                    _items = s_emptyArray;
+                    return;
+                }
+
+                if (_items.Length == 0)
+                {
+                    // No data from existing array to reuse, just create a new one.
+                    _items = new SegmentedArray<T>(value);
+                }
+                else
+                {
+                    // Rather than creating a copy of _items, instead reuse as much of it's data as possible.
+                    _items = CreateNewSegmentedArrayReusingOldSegments(_items, value);
                 }
             }
+        }
+
+        private static SegmentedArray<T> CreateNewSegmentedArrayReusingOldSegments(SegmentedArray<T> oldArray, int newSize)
+        {
+            var segments = SegmentedCollectionsMarshal.AsSegments(oldArray);
+
+            var oldSegmentCount = segments.Length;
+            var newSegmentCount = (newSize + SegmentedArrayHelper.GetSegmentSize<T>() - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
+
+            // Grow the array of segments, if necessary
+            Array.Resize(ref segments, newSegmentCount);
+
+            // Resize all segments to full segment size from the last old segment to the next to last
+            // new segment.
+            for (var i = oldSegmentCount - 1; i < newSegmentCount - 1; i++)
+                Array.Resize(ref segments[i], SegmentedArrayHelper.GetSegmentSize<T>());
+
+            // Resize the last segment
+            var lastSegmentSize = newSize - ((newSegmentCount - 1) << SegmentedArrayHelper.GetSegmentShift<T>());
+            Array.Resize(ref segments[newSegmentCount - 1], lastSegmentSize);
+
+            return SegmentedCollectionsMarshal.AsSegmentedArray(newSize, segments);
         }
 
         // Read-only property describing how many elements are in the SegmentedList.
@@ -359,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public void Clear()
         {
             _version++;
-#if NETCOREAPP
+#if NET
             if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
             {
                 _size = 0;
@@ -492,17 +517,53 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             Debug.Assert(_items.Length < capacity);
 
-            var newCapacity = _items.Length == 0 ? DefaultCapacity : 2 * _items.Length;
+            var newCapacity = 0;
 
-            // Allow the list to grow to maximum possible capacity (~2G elements) before encountering overflow.
-            // Note that this check works even when _items.Length overflowed thanks to the (uint) cast
-            if ((uint)newCapacity > MaxLength)
-                newCapacity = MaxLength;
+            if (_items.Length < SegmentedArrayHelper.GetSegmentSize<T>() / 2)
+            {
+                // The array isn't near the maximum segment size. If the array is empty, the new capacity 
+                // should be DefaultCapacity. Otherwise, the new capacity should be double the current array size.
+                newCapacity = _items.Length == 0 ? DefaultCapacity : _items.Length * 2;
+            }
+            else if (_items.Length < SegmentedArrayHelper.GetSegmentSize<T>())
+            {
+                // There is only a single segment that is over half full. Increase it to a full segment.
+                newCapacity = SegmentedArrayHelper.GetSegmentSize<T>();
+            }
+            else
+            {
+                // If the last segment is fully sized, increase the number of segments by the desired growth rate
+                if (0 == (_items.Length & SegmentedArrayHelper.GetOffsetMask<T>()))
+                {
+                    // This value determines the growth rate of the number of segments to use.
+                    // For a value of 3, this means the segment count will grow at a rate of
+                    // 1 + (1 >> 3) or 12.5%
+                    const int segmentGrowthShiftValue = 3;
 
-            // If the computed capacity is still less than specified, set to the original argument.
+                    var oldSegmentCount = (_items.Length + SegmentedArrayHelper.GetSegmentSize<T>() - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
+                    var newSegmentCount = oldSegmentCount + Math.Max(1, oldSegmentCount >> segmentGrowthShiftValue);
+
+                    newCapacity = SegmentedArrayHelper.GetSegmentSize<T>() * newSegmentCount;
+                }
+            }
+
+            // If the computed capacity is less than specified, set to the original argument.
             // Capacities exceeding Array.MaxLength will be surfaced as OutOfMemoryException by Array.Resize.
             if (newCapacity < capacity)
                 newCapacity = capacity;
+
+            if (newCapacity > SegmentedArrayHelper.GetSegmentSize<T>())
+            {
+                // If the last segment isn't fully sized, increase the new capacity such that it will be.
+                var lastSegmentLength = newCapacity & SegmentedArrayHelper.GetOffsetMask<T>();
+                if (lastSegmentLength > 0)
+                    newCapacity = (newCapacity - lastSegmentLength) + SegmentedArrayHelper.GetSegmentSize<T>();
+
+                // Allow the list to grow to maximum possible capacity (~2G elements) before encountering overflow.
+                // Note that this check works even when _items.Length overflowed thanks to the (uint) cast
+                if ((uint)newCapacity > MaxLength)
+                    newCapacity = MaxLength;
+            }
 
             Capacity = newCapacity;
         }
@@ -1049,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
             }
 
-#if NETCOREAPP
+#if NET
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
 #endif
             {
@@ -1075,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 SegmentedArray.Copy(_items, index + 1, _items, index, _size - index);
             }
-#if NETCOREAPP
+#if NET
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
 #endif
             {
@@ -1109,7 +1170,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
 
                 _version++;
-#if NETCOREAPP
+#if NET
                 if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
 #endif
                 {

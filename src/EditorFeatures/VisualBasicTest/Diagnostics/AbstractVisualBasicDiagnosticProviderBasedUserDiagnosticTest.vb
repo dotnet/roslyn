@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
         End Function
 
         Friend Overloads Async Function TestAsync(
-                initialMarkup As XElement, expected As XElement, Optional index As Integer = 0) As Threading.Tasks.Task
+                initialMarkup As XElement, expected As XElement, Optional index As Integer = 0) As Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
             Dim expectedStr = expected.ConvertTestSourceTag()
 
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
                                    index:=index)
         End Function
 
-        Protected Overloads Async Function TestMissingAsync(initialMarkup As XElement) As Threading.Tasks.Task
+        Protected Overloads Async Function TestMissingAsync(initialMarkup As XElement) As Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
 
             Await MyBase.TestMissingAsync(initialMarkupStr, New TestParameters(parseOptions:=Nothing, compilationOptions:=_compilationOptions))

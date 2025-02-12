@@ -1661,7 +1661,7 @@ public delegate Sub Y(addin As List(Of string))
 </compilation>
 
             Dim comp1 = CreateCompilationWithMscorlib40(source1, options:=TestOptions.ReleaseDll,
-                references:={TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)})
+                references:={TestReferences.SymbolsTests.NoPia.StdOleNet40.WithEmbedInteropTypes(True)})
 
             Dim source2 =
 <compilation>
@@ -1676,14 +1676,14 @@ End Module
 
             Dim comp2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2,
                 {comp1.EmitToImageReference(),
-                TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)},
+                TestReferences.SymbolsTests.NoPia.StdOleNet40.WithEmbedInteropTypes(True)},
                 TestOptions.ReleaseExe)
 
             CompileAndVerify(comp2, expectedOutput:="Y").Diagnostics.Verify()
 
             Dim comp3 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2,
                 {New VisualBasicCompilationReference(comp1),
-                TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)},
+                TestReferences.SymbolsTests.NoPia.StdOleNet40.WithEmbedInteropTypes(True)},
                 TestOptions.ReleaseExe)
 
             CompileAndVerify(comp3, expectedOutput:="Y").Diagnostics.Verify()

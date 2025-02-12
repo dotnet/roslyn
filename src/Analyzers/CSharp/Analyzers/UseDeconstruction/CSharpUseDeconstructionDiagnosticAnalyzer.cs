@@ -284,12 +284,9 @@ internal sealed class CSharpUseDeconstructionDiagnosticAnalyzer : AbstractBuiltI
         return true;
     }
 
-    private static IEnumerable<ISymbol> GetExistingSymbols(
+    private static HashSet<ISymbol> GetExistingSymbols(
         SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
     {
-        // Ignore an anonymous type property.  It's ok if they have a name that 
-        // matches the name of the local we're introducing.
-        return semanticModel.GetAllDeclaredSymbols(container, cancellationToken)
-                            .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
+        return semanticModel.GetAllDeclaredSymbols(container, cancellationToken);
     }
 }

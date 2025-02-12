@@ -13,7 +13,7 @@ internal static class CSharpSyntaxFormattingOptionsProviders
 {
     public static async ValueTask<CSharpSyntaxFormattingOptions> GetCSharpSyntaxFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return new CSharpSyntaxFormattingOptions(configOptions);
     }
 }

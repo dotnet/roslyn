@@ -30,7 +30,7 @@ internal static class AddImportOptionsProviders
 
     public static async ValueTask<AddImportOptions> GetAddImportOptionsAsync(this Document document, SymbolSearchOptions searchOptions, CancellationToken cancellationToken)
     {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return configOptions.GetAddImportOptions(document.Project.Services, searchOptions, document.AllowImportsInHiddenRegions());
     }
 }

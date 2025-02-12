@@ -58,7 +58,7 @@ internal sealed class ParameterConfiguration(
     }
 
     internal ParameterConfiguration WithoutAddedParameters()
-        => Create(ToListOfParameters().OfType<ExistingParameter>().ToImmutableArray<Parameter>(), ThisParameter != null, selectedIndex: 0);
+        => Create([.. ToListOfParameters().OfType<ExistingParameter>()], ThisParameter != null, selectedIndex: 0);
 
     public ImmutableArray<Parameter> ToListOfParameters()
     {

@@ -57,7 +57,7 @@ internal class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamed
         }
     }
 
-    private class ArgumentAnalyzer :
+    private sealed class ArgumentAnalyzer :
         BaseAnalyzer<ArgumentSyntax, BaseArgumentListSyntax>
     {
         protected override bool IsPositionalArgument(ArgumentSyntax node)
@@ -77,7 +77,7 @@ internal class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamed
             => argumentSyntax.Expression;
     }
 
-    private class AttributeArgumentAnalyzer :
+    private sealed class AttributeArgumentAnalyzer :
         BaseAnalyzer<AttributeArgumentSyntax, AttributeArgumentListSyntax>
     {
         protected override bool IsPositionalArgument(AttributeArgumentSyntax argument)

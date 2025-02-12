@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -99,7 +100,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
     }
 
     private static string GetEquivalenceKey(
-        IImplementInterfaceInfo state,
+        ImplementInterfaceInfo state,
         ImplementInterfaceConfiguration options)
     {
         var interfaceType = state.InterfaceTypes.First();
@@ -122,10 +123,11 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
     }
 
     private static async IAsyncEnumerable<ImplementInterfaceConfiguration> GetImplementOptionsAsync(
-        Document document, IImplementInterfaceInfo state, [EnumeratorCancellation] CancellationToken cancellationToken)
+        Document document, ImplementInterfaceInfo state, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var supportsImplicitImplementationOfNonPublicInterfaceMembers = syntaxFacts.SupportsImplicitImplementationOfNonPublicInterfaceMembers(document.Project.ParseOptions!);
         if (state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length > 0)
         {
             var totalMemberCount = 0;
@@ -137,7 +139,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
                 {
                     totalMemberCount++;
 
-                    if (IsLessAccessibleThan(member, state.ClassOrStructType))
+                    if (ContainsTypeLessAccessibleThan(member, state.ClassOrStructType, supportsImplicitImplementationOfNonPublicInterfaceMembers))
                         inaccessibleMemberCount++;
                 }
             }
@@ -170,7 +172,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
             yield return new() { OnlyRemaining = true, Explicitly = true };
     }
 
-    private static bool AnyImplementedImplicitly(IImplementInterfaceInfo state)
+    private static bool AnyImplementedImplicitly(ImplementInterfaceInfo state)
     {
         if (state.MembersWithoutExplicitOrImplicitImplementation.Length != state.MembersWithoutExplicitImplementation.Length)
         {
@@ -196,7 +198,7 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
     }
 
     private static ImmutableArray<ISymbol> GetDelegatableMembers(
-        Document document, IImplementInterfaceInfo state, CancellationToken cancellationToken)
+        Document document, ImplementInterfaceInfo state, CancellationToken cancellationToken)
     {
         var firstInterfaceType = state.InterfaceTypes.First();
 

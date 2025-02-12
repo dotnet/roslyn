@@ -75,10 +75,33 @@ internal static class ConvertToRawStringHelpers
         return false;
     }
 
-    public static bool CanConvert(VirtualCharSequence characters)
-        => !characters.IsDefault && characters.All(static ch => CanConvert(ch));
+    /// <summary>
+    /// Returns if this sequence of characters can be converted to a raw string.  If it can, also returns if it
+    /// contained an explicitly escaped newline (like <c>\r\n</c>) within it.  It it can't convert, then the value of
+    /// <paramref name="containsEscapedEndOfLineCharacter"/> is undefined.
+    /// </summary>
+    public static bool CanConvert(VirtualCharSequence characters, out bool containsEscapedEndOfLineCharacter)
+    {
+        containsEscapedEndOfLineCharacter = false;
+        if (characters.IsDefault)
+            return false;
 
-    public static bool CanConvert(VirtualChar ch)
+        foreach (var ch in characters)
+        {
+            if (!CanConvert(ch))
+                return false;
+
+            // Look for *explicit* usages of sequences like \r or \n.  These are multi character representations of
+            // newlines.  If we see these, we only want to fix these up in a fix-all if the original string contained
+            // those as well.
+            if (ch.Span.Length > 1 && SyntaxFacts.IsNewLine((char)ch.Value))
+                containsEscapedEndOfLineCharacter = true;
+        }
+
+        return true;
+    }
+
+    private static bool CanConvert(VirtualChar ch)
     {
         // Don't bother with unpaired surrogates.  This is just a legacy language corner case that we don't care to
         // even try having support for.

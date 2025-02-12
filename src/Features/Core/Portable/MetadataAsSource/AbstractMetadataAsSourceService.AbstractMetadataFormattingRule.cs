@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal partial class AbstractMetadataAsSourceService
+internal abstract partial class AbstractMetadataAsSourceService
 {
     protected abstract class AbstractMetadataFormattingRule : AbstractFormattingRule
     {

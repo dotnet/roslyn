@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api;
 using Roslyn.Utilities;
@@ -17,8 +18,8 @@ internal static class UnusedReferenceExtensions
             (ReferenceType)projectSystemReference.ReferenceType,
             projectSystemReference.ItemSpecification,
             projectSystemReference.TreatAsUsed,
-            ImmutableArray<string>.Empty,
-            ImmutableArray<ReferenceInfo>.Empty);
+            [],
+            []);
     }
 
     public static ProjectSystemReferenceUpdate ToProjectSystemReferenceUpdate(this ReferenceUpdate referenceUpdate)

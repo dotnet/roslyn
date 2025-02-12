@@ -24,8 +24,6 @@ internal static class TelemetryLogging
     public const string KeyLanguageName = "LanguageName";
     public const string KeyMetricName = "MetricName";
 
-    public static event EventHandler<EventArgs>? Flushed;
-
     public static void SetLogProvider(ITelemetryLogProvider logProvider)
     {
         s_logProvider = logProvider;
@@ -59,9 +57,9 @@ internal static class TelemetryLogging
     /// Adds information to an aggregated telemetry event representing the <paramref name="functionId"/> operation 
     /// with the specified name and value.
     /// </summary>
-    public static void LogAggregated(FunctionId functionId, TelemetryLoggingInterpolatedStringHandler name, int value)
+    public static void LogAggregatedHistogram(FunctionId functionId, TelemetryLoggingInterpolatedStringHandler name, long value)
     {
-        if (GetAggregatingLog(functionId) is not { } aggregatingLog)
+        if (GetHistogramLog(functionId) is not { } aggregatingLog)
             return;
 
         var logMessage = KeyValueLogMessage.Create(m =>
@@ -74,9 +72,9 @@ internal static class TelemetryLogging
         logMessage.Free();
     }
 
-    public static void LogAggregated(FunctionId functionId, KeyValueLogMessage logMessage)
+    public static void LogAggregatedHistogram(FunctionId functionId, KeyValueLogMessage logMessage)
     {
-        if (GetAggregatingLog(functionId) is not { } aggregatingLog)
+        if (GetHistogramLog(functionId) is not { } aggregatingLog)
             return;
 
         aggregatingLog.Log(logMessage);
@@ -88,9 +86,9 @@ internal static class TelemetryLogging
     /// with metric <paramref name="metricName"/> only if the block duration meets or exceeds <paramref name="minThresholdMs"/> milliseconds.
     /// </summary>
     /// <param name="minThresholdMs">Optional parameter used to determine whether to send the telemetry event</param>
-    public static IDisposable? LogBlockTimeAggregated(FunctionId functionId, TelemetryLoggingInterpolatedStringHandler metricName, int minThresholdMs = -1)
+    public static IDisposable? LogBlockTimeAggregatedHistogram(FunctionId functionId, TelemetryLoggingInterpolatedStringHandler metricName, int minThresholdMs = -1)
     {
-        if (GetAggregatingLog(functionId) is not { } aggregatingLog)
+        if (GetHistogramLog(functionId) is not { } aggregatingLog)
             return null;
 
         var logMessage = KeyValueLogMessage.Create(m =>
@@ -101,10 +99,19 @@ internal static class TelemetryLogging
         return aggregatingLog.LogBlockTime(logMessage, minThresholdMs);
     }
 
+    public static void LogAggregatedCounter(FunctionId functionId, KeyValueLogMessage logMessage)
+    {
+        if (GetCounterLog(functionId) is not { } aggregatingLog)
+            return;
+
+        aggregatingLog.Log(logMessage);
+        logMessage.Free();
+    }
+
     /// <summary>
     /// Returns non-aggregating telemetry log.
     /// </summary>
-    public static ITelemetryLog? GetLog(FunctionId functionId)
+    public static ITelemetryBlockLog? GetLog(FunctionId functionId)
     {
         return s_logProvider?.GetLog(functionId);
     }
@@ -112,16 +119,19 @@ internal static class TelemetryLogging
     /// <summary>
     /// Returns aggregating telemetry log.
     /// </summary>
-    public static ITelemetryLog? GetAggregatingLog(FunctionId functionId, double[]? bucketBoundaries = null)
+    private static ITelemetryBlockLog? GetHistogramLog(FunctionId functionId, double[]? bucketBoundaries = null)
     {
-        return s_logProvider?.GetAggregatingLog(functionId, bucketBoundaries);
+        return s_logProvider?.GetHistogramLog(functionId, bucketBoundaries);
+    }
+
+    private static ITelemetryLog? GetCounterLog(FunctionId functionId)
+    {
+        return s_logProvider?.GetCounterLog(functionId);
     }
 
     public static void Flush()
     {
         s_logProvider?.Flush();
-
-        Flushed?.Invoke(null, EventArgs.Empty);
     }
 
     private static async Task PostCollectedTelemetryAsync(CancellationToken cancellationToken)

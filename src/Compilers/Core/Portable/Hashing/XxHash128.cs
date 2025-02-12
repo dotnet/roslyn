@@ -117,7 +117,7 @@ namespace System.IO.Hashing
             return false;
         }
 
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
         /// <summary>Computes the XXH128 hash of the provided data.</summary>
         /// <param name="source">The data to hash.</param>
         /// <param name="seed">The seed value for this hash computation. The default is zero.</param>
@@ -204,7 +204,7 @@ namespace System.IO.Hashing
             return current;
         }
 
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
         /// <summary>Gets the current computed hash value without modifying accumulated state.</summary>
         /// <returns>The hash value for the data already provided.</returns>
         // [CLSCompliant(false)]

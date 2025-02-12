@@ -538,4 +538,108 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
             }
             """);
     }
+
+    [Fact]
+    public async Task InsertInlineSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest()
+    {
+        await VerifySnippetAsync("""
+            using System;
+
+            class C
+            {
+                void M(bool flag)
+                {
+                    flag.$$
+                    Console.WriteLine();
+                }
+            }
+            """, $$"""
+            using System;
+
+            class C
+            {
+                void M(bool flag)
+                {
+                    {{SnippetIdentifier}} (flag)
+                    {
+                        $$
+                    }
+                    Console.WriteLine();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NoInlineSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest()
+    {
+        await VerifySnippetIsAbsentAsync("""
+            class C
+            {
+                void M(bool flag)
+                {
+                    flag.$$ToString();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NoInlineSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest()
+    {
+        await VerifySnippetIsAbsentAsync("""
+            class C
+            {
+                void M(bool flag)
+                {
+                    flag.$$var a = 0;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NoInlineSnippetForTypeItselfTest()
+    {
+        await VerifySnippetIsAbsentAsync("""
+            class C
+            {
+                void M()
+                {
+                    bool.$$
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NoInlineSnippetForTypeItselfTest_Parenthesized()
+    {
+        await VerifySnippetIsAbsentAsync("""
+            class C
+            {
+                void M()
+                {
+                    (bool).$$
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NoInlineSnippetForTypeItselfTest_BeforeContextualKeyword()
+    {
+        await VerifySnippetIsAbsentAsync("""
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async void M()
+                {
+                    bool.$$
+                    await Task.Delay(10);
+                }
+            }
+            """);
+    }
 }

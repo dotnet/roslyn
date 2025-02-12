@@ -1037,7 +1037,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var formattingRules = Formatter.GetDefaultFormattingRules(document);
             if (additionalRules != null)
             {
-                formattingRules = additionalRules.Concat(formattingRules).ToImmutableArray();
+                formattingRules = [.. additionalRules, .. formattingRules];
             }
 
             return _threadingContext.JoinableTaskFactory.Run(async () =>
@@ -1046,7 +1046,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 return await Formatter.FormatAsync(
                     document,
-                    new TextSpan[] { formattingSpan },
+                    [formattingSpan],
                     options,
                     formattingRules,
                     cancellationToken).ConfigureAwait(false);

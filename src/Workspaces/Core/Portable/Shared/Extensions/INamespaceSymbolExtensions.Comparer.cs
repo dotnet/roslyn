@@ -8,9 +8,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal partial class INamespaceSymbolExtensions
+internal static partial class INamespaceSymbolExtensions
 {
-    private class Comparer : IEqualityComparer<INamespaceSymbol?>
+    private sealed class Comparer : IEqualityComparer<INamespaceSymbol?>
     {
         public bool Equals(INamespaceSymbol? x, INamespaceSymbol? y)
             => GetNameParts(x).SequenceEqual(GetNameParts(y));

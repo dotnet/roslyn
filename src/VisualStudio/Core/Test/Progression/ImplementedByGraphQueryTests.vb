@@ -63,7 +63,7 @@ class Goo2 : Base, IBlah
                             <Link Source="(@1 Type=Goo2)" Target="(@1 Type=IBlah)" Category="Implements"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using

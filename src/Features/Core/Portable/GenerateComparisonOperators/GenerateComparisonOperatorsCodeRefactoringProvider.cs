@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators;
 using static CodeGenerationSymbolFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeRefactoringProviderNames.GenerateComparisonOperators), Shared]
-internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactoringProvider
 {
     private const string LeftName = "left";
     private const string RightName = "right";

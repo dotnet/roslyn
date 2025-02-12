@@ -32,7 +32,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -52,7 +51,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -74,7 +72,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -96,7 +93,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -121,7 +117,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -146,7 +141,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -172,7 +166,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -198,7 +191,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -224,7 +216,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -250,7 +241,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -277,7 +267,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -303,7 +292,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -333,7 +321,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -391,7 +378,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -941,7 +927,6 @@ public class ConsecutiveStatementPlacementTests
         await new Verify.Test
         {
             TestCode = code,
-            FixedCode = code,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }

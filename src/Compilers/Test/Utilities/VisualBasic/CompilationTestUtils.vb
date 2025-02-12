@@ -14,7 +14,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestBase
-Imports Roslyn.Test.Utilities.TestMetadata
 Imports Xunit
 
 Friend Module CompilationUtils
@@ -66,7 +65,7 @@ Friend Module CompilationUtils
         Dim trees = source.GetSyntaxTrees(parseOptions, assemblyName)
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(
-                                            If(assemblyName, GetUniqueName()),
+                                            If(String.IsNullOrEmpty(assemblyName), GetUniqueName(), assemblyName),
                                             trees,
                                             references,
                                             options)
@@ -652,7 +651,7 @@ Friend Module CompilationUtils
         MarkupTestFile.GetSpans(codeWithMarker, codeWithoutMarker, spans)
 
         Dim text = SourceText.From(codeWithoutMarker, Encoding.UTF8)
-        Return (VisualBasicSyntaxTree.ParseText(text, parseOptions, If(programElement.@name, "")), spans)
+        Return (VisualBasicSyntaxTree.ParseText(text, If(parseOptions, TestOptions.RegularLatest), If(programElement.@name, "")), spans)
     End Function
 
     ' Find a node inside a tree.

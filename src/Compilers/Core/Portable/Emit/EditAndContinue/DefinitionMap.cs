@@ -291,14 +291,15 @@ namespace Microsoft.CodeAnalysis.Emit
                     debugInfo = Baseline.DebugInformationProvider(methodHandle);
                     localSignature = Baseline.LocalSignatureProvider(methodHandle);
                 }
-                catch (Exception e) when (e is InvalidDataException or IOException)
+                catch (Exception e) when (e is InvalidDataException or IOException or BadImageFormatException)
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(
                         MessageProvider.ERR_InvalidDebugInfo,
                         method.Locations.First(),
                         method,
                         MetadataTokens.GetToken(methodHandle),
-                        method.ContainingAssembly
+                        method.ContainingAssembly,
+                        e.Message
                     ));
 
                     return null;
@@ -382,7 +383,8 @@ namespace Microsoft.CodeAnalysis.Emit
                             method.Locations.First(),
                             method,
                             MetadataTokens.GetToken(localSignature),
-                            method.ContainingAssembly
+                            method.ContainingAssembly,
+                            e.Message
                         ));
 
                         return null;
@@ -418,9 +420,9 @@ namespace Microsoft.CodeAnalysis.Emit
         private void ReportMissingStateMachineAttribute(DiagnosticBag diagnostics, IMethodSymbolInternal method, string stateMachineAttributeFullName)
         {
             diagnostics.Add(MessageProvider.CreateDiagnostic(
-                MessageProvider.ERR_EncUpdateFailedMissingAttribute,
+                MessageProvider.ERR_EncUpdateFailedMissingSymbol,
                 method.Locations.First(),
-                MessageProvider.GetErrorDisplayString(method.GetISymbol()),
+                CodeAnalysisResources.Attribute,
                 stateMachineAttributeFullName));
         }
 
@@ -690,7 +692,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 provider = Baseline.DebugInformationProvider(MetadataTokens.MethodDefinitionHandle(methodRowId));
             }
-            catch (Exception e) when (e is InvalidDataException or IOException)
+            catch (Exception e) when (e is InvalidDataException or IOException or BadImageFormatException)
             {
                 return [];
             }

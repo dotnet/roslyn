@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -1407,19 +1408,22 @@ public class C
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (4,13): error CS8145: Auto-implemented properties cannot return by reference
+                // 0.cs(4,13): error CS8145: Auto-implemented properties cannot return by reference
                 //     ref int Property1 { get; init; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "Property1").WithLocation(4, 13),
-                // (4,30): error CS8147: Properties which return by reference cannot have set accessors
+                // 0.cs(4,30): error CS8147: Properties which return by reference cannot have set accessors
                 //     ref int Property1 { get; init; }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(4, 30),
-                // (5,13): error CS8146: Properties which return by reference must have a get accessor
+                // 0.cs(5,13): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref int Property2 { init; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "Property2").WithLocation(5, 13),
+                // 0.cs(5,13): error CS8146: Properties which return by reference must have a get accessor
                 //     ref int Property2 { init; }
                 Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property2").WithLocation(5, 13),
-                // (6,44): error CS8147: Properties which return by reference cannot have set accessors
+                // 0.cs(6,44): error CS8147: Properties which return by reference cannot have set accessors
                 //     ref int Property3 { get => throw null; init => throw null; }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(6, 44),
-                // (7,13): error CS8146: Properties which return by reference must have a get accessor
+                // 0.cs(7,13): error CS8146: Properties which return by reference must have a get accessor
                 //     ref int Property4 { init => throw null; }
                 Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property4").WithLocation(7, 13)
                 );
@@ -3459,7 +3463,10 @@ public class D
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9,
+                options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
+                    // warning CS1685: The predefined type 'DefaultMemberAttribute' is defined in multiple assemblies
+                    ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS1685", ReportDiagnostic.Suppress)));
             comp.VerifyEmitDiagnostics(
                 // (4,25): error CS0569: 'Derived.this[int]': cannot override 'C.this[int]' because it is not supported by the language
                 //     public override int this[int i] { set { throw null; } }
@@ -3555,7 +3562,10 @@ public class Derived2 : C
 ";
 
             var reference = CreateMetadataReferenceFromIlSource(il);
-            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, references: new[] { reference }, parseOptions: TestOptions.Regular9,
+                options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
+                    // warning CS1685: The predefined type 'DefaultMemberAttribute' is defined in multiple assemblies
+                    ImmutableDictionary<string, ReportDiagnostic>.Empty.Add("CS1685", ReportDiagnostic.Suppress)));
             comp.VerifyEmitDiagnostics(
                 // (4,39): error CS0570: 'C.this[int].set' is not supported by the language
                 //     public override int this[int i] { set { throw null; } }

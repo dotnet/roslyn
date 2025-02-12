@@ -200,8 +200,8 @@ public sealed class [|ObsoleteAttribute|] : Attribute
 
             var expected = signaturesOnly switch
             {
-                true => $@"#Region ""{FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51""
-' System.ValueTuple.dll
+                true => $@"#Region ""{FeaturesResources.Assembly} System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51""
+' System.ValueTuple (net461)
 #End Region
 
 Imports System.Collections
@@ -226,12 +226,13 @@ Namespace System
         Public Overrides Function ToString() As String
     End Structure
 End Namespace",
-                false => $@"#region {FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+                false => $@"#region {FeaturesResources.Assembly} System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
 // {FeaturesResources.location_unknown}
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Collections;
+using System.Numerics.Hashing;
 using System.Runtime.InteropServices;
 
 namespace System;
@@ -363,67 +364,49 @@ public struct [|ValueTuple|] : IEquatable<ValueTuple>, IStructuralEquatable, ISt
 
     internal static int CombineHashCodes(int h1, int h2)
     {{
-        return ((h1 << 5) + h1) ^ h2;
+        return HashHelpers.Combine(HashHelpers.Combine(HashHelpers.RandomSeed, h1), h2);
     }}
 
     internal static int CombineHashCodes(int h1, int h2, int h3)
     {{
-        return CombineHashCodes(CombineHashCodes(h1, h2), h3);
+        return HashHelpers.Combine(CombineHashCodes(h1, h2), h3);
     }}
 
     internal static int CombineHashCodes(int h1, int h2, int h3, int h4)
     {{
-        return CombineHashCodes(CombineHashCodes(h1, h2), CombineHashCodes(h3, h4));
+        return HashHelpers.Combine(CombineHashCodes(h1, h2, h3), h4);
     }}
 
     internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5)
     {{
-        return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), h5);
+        return HashHelpers.Combine(CombineHashCodes(h1, h2, h3, h4), h5);
     }}
 
     internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5, int h6)
     {{
-        return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), CombineHashCodes(h5, h6));
+        return HashHelpers.Combine(CombineHashCodes(h1, h2, h3, h4, h5), h6);
     }}
 
     internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5, int h6, int h7)
     {{
-        return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), CombineHashCodes(h5, h6, h7));
+        return HashHelpers.Combine(CombineHashCodes(h1, h2, h3, h4, h5, h6), h7);
     }}
 
     internal static int CombineHashCodes(int h1, int h2, int h3, int h4, int h5, int h6, int h7, int h8)
     {{
-        return CombineHashCodes(CombineHashCodes(h1, h2, h3, h4), CombineHashCodes(h5, h6, h7, h8));
+        return HashHelpers.Combine(CombineHashCodes(h1, h2, h3, h4, h5, h6, h7), h8);
     }}
 }}
 #if false // {FeaturesResources.Decompilation_log}
 {string.Format(FeaturesResources._0_items_in_cache, 9)}
 ------------------
-{string.Format(FeaturesResources.Resolve_0, "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
-{string.Format(FeaturesResources.Found_single_assembly_0, "System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
-{string.Format(FeaturesResources.WARN_Version_mismatch_Expected_0_Got_1, "4.0.0.0", "4.0.20.0")}
-{string.Format(FeaturesResources.Load_from_0, "System.Runtime.dll")}
-------------------
-{string.Format(FeaturesResources.Resolve_0, "System.Resources.ResourceManager, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
-{string.Format(FeaturesResources.Could_not_find_by_name_0, "System.Resources.ResourceManager, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
-------------------
-{string.Format(FeaturesResources.Resolve_0, "System.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
-{string.Format(FeaturesResources.Could_not_find_by_name_0, "System.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
-------------------
 {string.Format(FeaturesResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 ------------------
-{string.Format(FeaturesResources.Resolve_0, "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(FeaturesResources.Found_single_assembly_0, "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(FeaturesResources.Load_from_0, "System.Core.v4_0_30319_17929.dll")}
-------------------
 {string.Format(FeaturesResources.Resolve_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(FeaturesResources.Found_single_assembly_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(FeaturesResources.Load_from_0, "System.v4_6_1038_0.dll")}
-------------------
-{string.Format(FeaturesResources.Resolve_0, "System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
-{string.Format(FeaturesResources.Could_not_find_by_name_0, "System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 #endif",
             };
 

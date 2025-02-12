@@ -123,7 +123,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Throw New NotImplementedException()
             End Function
 
-            Friend Overrides Function GetBrowseObject(symbolListItem As SymbolListItem) As Object
+            Friend Overrides Function GetBrowseObjectAsync(symbolListItem As SymbolListItem, cancellationToken As CancellationToken) As Task(Of Object)
                 Throw New NotImplementedException()
             End Function
         End Class

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationParameterSymbol(
+internal sealed class CodeGenerationParameterSymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes,
     RefKind refKind,

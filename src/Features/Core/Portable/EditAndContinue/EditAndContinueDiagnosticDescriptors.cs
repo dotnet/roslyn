@@ -91,8 +91,8 @@ internal static class EditAndContinueDiagnosticDescriptors
         AddRudeEdit(RudeEditKind.InsertExtern, nameof(FeaturesResources.Adding_an_extern_0_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.InsertDllImport, nameof(FeaturesResources.Adding_an_imported_method_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.InsertOperator, nameof(FeaturesResources.Adding_a_user_defined_0_requires_restarting_the_application));
-        AddRudeEdit(RudeEditKind.InsertIntoStruct, nameof(FeaturesResources.Adding_0_into_a_1_requires_restarting_the_application));
-        AddRudeEdit(RudeEditKind.InsertIntoClassWithLayout, nameof(FeaturesResources.Adding_0_into_a_class_with_explicit_or_sequential_layout_requires_restarting_the_application));
+        AddRudeEdit(RudeEditKind.InsertOrMoveStructMember, nameof(FeaturesResources.Adding_or_moving_0_of_1_requires_restarting_the_application));
+        AddRudeEdit(RudeEditKind.InsertOrMoveTypeWithLayoutMember, nameof(FeaturesResources.Adding_or_moving_0_of_1_with_explicit_or_sequential_layout_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.Move, nameof(FeaturesResources.Moving_0_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.Delete, nameof(FeaturesResources.Deleting_0_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.GenericMethodUpdate, nameof(FeaturesResources.Modifying_a_generic_method_requires_restarting_the_application));
@@ -107,7 +107,7 @@ internal static class EditAndContinueDiagnosticDescriptors
         AddRudeEdit(RudeEditKind.ChangingCapturedVariableScope, nameof(FeaturesResources.Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.ChangingLambdaParameters, nameof(FeaturesResources.Changing_the_parameters_of_0_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.ChangingLambdaReturnType, nameof(FeaturesResources.Changing_the_return_type_of_0_requires_restarting_the_application));
-        AddRudeEdit(RudeEditKind.ChangingQueryLambdaType, nameof(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime));
+        AddRudeEdit(RudeEditKind.ChangingQueryLambdaType, nameof(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.ActiveStatementUpdate, nameof(FeaturesResources.Updating_an_active_statement_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.ActiveStatementLambdaRemoved, nameof(FeaturesResources.Removing_0_that_contains_an_active_statement_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.PartiallyExecutedActiveStatementUpdate, nameof(FeaturesResources.Updating_an_active_statement_requires_restarting_the_application));
@@ -149,6 +149,7 @@ internal static class EditAndContinueDiagnosticDescriptors
         AddRudeEdit(RudeEditKind.ChangingNameOrSignatureOfActiveMember, nameof(FeaturesResources.Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.UpdateMightNotHaveAnyEffect, nameof(FeaturesResources.Changing_0_might_not_have_any_effect_until_the_application_is_restarted), DiagnosticSeverity.Warning);
         AddRudeEdit(RudeEditKind.TypeUpdateAroundActiveStatement, nameof(FeaturesResources.Updating_a_0_around_an_active_statement_requires_restarting_the_application));
+        AddRudeEdit(RudeEditKind.InsertOrMoveComInterfaceMember, nameof(FeaturesResources.Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application));
 
         // VB specific
         AddRudeEdit(RudeEditKind.HandlesClauseUpdate, nameof(FeaturesResources.Updating_the_Handles_clause_of_0_requires_restarting_the_application));

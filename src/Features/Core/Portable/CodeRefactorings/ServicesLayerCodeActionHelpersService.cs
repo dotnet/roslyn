@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
 [ExportWorkspaceServiceFactory(typeof(ICodeRefactoringHelpersService), ServiceLayer.Default), Shared]
-internal class ServicesLayerCodeActionHelpersService : IWorkspaceServiceFactory
+internal sealed class ServicesLayerCodeActionHelpersService : IWorkspaceServiceFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -23,7 +23,7 @@ internal class ServicesLayerCodeActionHelpersService : IWorkspaceServiceFactory
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new CodeActionHelpersService();
 
-    private class CodeActionHelpersService : ICodeRefactoringHelpersService
+    private sealed class CodeActionHelpersService : ICodeRefactoringHelpersService
     {
         public bool ActiveInlineRenameSession => false;
     }

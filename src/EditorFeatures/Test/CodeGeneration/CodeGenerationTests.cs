@@ -538,7 +538,7 @@ public partial class CodeGenerationTests
         var codeGenerator = testContext.Document.GetRequiredLanguageService<ICodeGenerationService>();
         var options = await testContext.Document.GetCodeGenerationOptionsAsync(CancellationToken.None);
         var info = codeGenerator.GetInfo(CodeGenerationContext.Default, options, oldNode.SyntaxTree.Options);
-        var newNode = codeGenerator.AddAttributes(oldNode, new[] { attr }, target, info, CancellationToken.None)
+        var newNode = codeGenerator.AddAttributes(oldNode, [attr], target, info, CancellationToken.None)
                                    .WithAdditionalAnnotations(Formatter.Annotation);
         testContext.Result = testContext.Document.WithSyntaxRoot(testContext.SemanticModel.SyntaxTree.GetRoot().ReplaceNode(oldNode, newNode));
     }
@@ -676,10 +676,10 @@ public partial class CodeGenerationTests
     }
 
     internal static ImmutableArray<Func<SemanticModel, IParameterSymbol>> Parameters(params Func<SemanticModel, IParameterSymbol>[] p)
-        => p.ToImmutableArray();
+        => [.. p];
 
     internal static ImmutableArray<Func<SemanticModel, ISymbol>> Members(params Func<SemanticModel, ISymbol>[] m)
-        => m.ToImmutableArray();
+        => [.. m];
 
     internal static Func<SemanticModel, ITypeSymbol> CreateArrayType(Type type, int rank = 1)
         => s => CodeGenerationSymbolFactory.CreateArrayTypeSymbol(GetTypeSymbol(type)(s), rank);
@@ -928,7 +928,7 @@ public partial class CodeGenerationTests
             }
 
             var delimiter = IsVisualBasic ? "\r\n" : ";";
-            var parts = statements.Split(new[] { delimiter }, StringSplitOptions.RemoveEmptyEntries);
+            var parts = statements.Split([delimiter], StringSplitOptions.RemoveEmptyEntries);
             var list = new FixedSizeArrayBuilder<SyntaxNode>(parts.Length);
             foreach (var p in parts)
             {

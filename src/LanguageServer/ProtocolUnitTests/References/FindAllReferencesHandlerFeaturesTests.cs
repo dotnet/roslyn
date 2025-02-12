@@ -71,7 +71,7 @@ public sealed class FindAllReferencesHandlerFeaturesTests(ITestOutputHelper? tes
             """;
 
             var testDocument = new EditorTestHostDocument(text: source, displayName: @$"C:\SomeFile{i}.cs", exportProvider: testLspServer.TestWorkspace.ExportProvider, filePath: @$"C:\SomeFile{i}.cs");
-            testLspServer.TestWorkspace.AddTestProject(new EditorTestHostProject(testLspServer.TestWorkspace, documents: new[] { testDocument }));
+            testLspServer.TestWorkspace.AddTestProject(new EditorTestHostProject(testLspServer.TestWorkspace, documents: [testDocument]));
         }
 
         await WaitForWorkspaceOperationsAsync(testLspServer.TestWorkspace);

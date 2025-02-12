@@ -747,6 +747,7 @@ expression
   | default_expression
   | element_access_expression
   | element_binding_expression
+  | field_expression
   | implicit_array_creation_expression
   | implicit_element_access
   | implicit_stack_alloc_array_creation_expression
@@ -889,6 +890,10 @@ element_access_expression
 
 element_binding_expression
   : bracketed_argument_list
+  ;
+
+field_expression
+  : 'field'
   ;
 
 implicit_array_creation_expression

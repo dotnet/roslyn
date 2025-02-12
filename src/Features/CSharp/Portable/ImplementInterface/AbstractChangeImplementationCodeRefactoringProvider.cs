@@ -28,12 +28,11 @@ using MemberImplementationMap = OrderedMultiDictionary<ISymbol, ISymbol>;
 
 internal abstract class AbstractChangeImplementationCodeRefactoringProvider : CodeRefactoringProvider
 {
-    private static readonly SymbolDisplayFormat NameAndTypeParametersFormat =
-        new SymbolDisplayFormat(
-            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+    private static readonly SymbolDisplayFormat NameAndTypeParametersFormat = new(
+        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
     protected abstract string Implement_0 { get; }
     protected abstract string Implement_all_interfaces { get; }

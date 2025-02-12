@@ -98,23 +98,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
         Friend Shared Function GetContextState(
             runtime As RuntimeInstance,
-            methodName As String) As (ModuleVersionId As Guid, SymReader As ISymUnmanagedReader, MethodToken As Integer, LocalSignatureToken As Integer, ILOffset As UInteger)
+            methodName As String) As (ModuleId As ModuleId, SymReader As ISymUnmanagedReader, MethodToken As Integer, LocalSignatureToken As Integer, ILOffset As UInteger)
 
             Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-            Dim moduleVersionId As Guid = Nothing
+            Dim moduleId As ModuleId = Nothing
             Dim symReader As ISymUnmanagedReader = Nothing
             Dim methodToken As Integer
             Dim localSignatureToken As Integer
-            GetContextState(runtime, methodName, blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            GetContextState(runtime, methodName, blocks, moduleId, symReader, methodToken, localSignatureToken)
             Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader)
-            Return (moduleVersionId, symReader, methodToken, localSignatureToken, ilOffset)
+            Return (moduleId, symReader, methodToken, localSignatureToken, ilOffset)
         End Function
 
         Friend Shared Sub GetContextState(
             runtime As RuntimeInstance,
             methodOrTypeName As String,
             <Out> ByRef blocks As ImmutableArray(Of MetadataBlock),
-            <Out> ByRef moduleVersionId As Guid,
+            <Out> ByRef moduleId As ModuleId,
             <Out> ByRef symReader As ISymUnmanagedReader,
             <Out> ByRef methodOrTypeToken As Integer,
             <Out> ByRef localSignatureToken As Integer)
@@ -125,10 +125,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Dim compilation = blocks.ToCompilation()
             Dim methodOrType = GetMethodOrTypeBySignature(compilation, methodOrTypeName)
             Dim [module] = DirectCast(methodOrType.ContainingModule, PEModuleSymbol)
-            Dim id = [module].Module.GetModuleVersionIdOrThrow()
-            Dim moduleInstance = moduleInstances.First(Function(m) m.ModuleVersionId = id)
+            Dim mvid = [module].Module.GetModuleVersionIdOrThrow()
+            Dim moduleInstance = moduleInstances.First(Function(m) m.Id.Id = mvid)
 
-            moduleVersionId = id
+            moduleId = moduleInstance.Id
             symReader = DirectCast(moduleInstance.SymReader, ISymUnmanagedReader)
 
             Dim methodOrTypeHandle As EntityHandle
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         Friend Shared Function CreateTypeContext(
             appDomain As AppDomain,
             metadataBlocks As ImmutableArray(Of MetadataBlock),
-            moduleVersionId As Guid,
+            moduleId As ModuleId,
             typeToken As Integer,
             kind As MakeAssemblyReferencesKind) As EvaluationContext
 
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
                 appDomain,
                 Function(ad) ad.GetMetadataContext(),
                 metadataBlocks,
-                moduleVersionId,
+                moduleId,
                 typeToken,
                 kind)
         End Function
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             metadataBlocks As ImmutableArray(Of MetadataBlock),
             lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)),
             symReader As Object,
-            moduleVersionId As Guid,
+            moduleId As ModuleId,
             methodToken As Integer,
             methodVersion As Integer,
             ilOffset As UInteger,
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
                 metadataBlocks,
                 lazyAssemblyReaders,
                 symReader,
-                moduleVersionId,
+                moduleId,
                 methodToken,
                 methodVersion,
                 ilOffset,
@@ -206,14 +206,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         Friend Shared Function CreateMethodContext(
             appDomain As AppDomain,
             blocks As ImmutableArray(Of MetadataBlock),
-            state As (ModuleVersionId As Guid, SymReader As ISymUnmanagedReader, MethodToken As Integer, LocalSignatureToken As Integer, ILOffset As UInteger)) As EvaluationContext
+            state As (ModuleId As ModuleId, SymReader As ISymUnmanagedReader, MethodToken As Integer, LocalSignatureToken As Integer, ILOffset As UInteger)) As EvaluationContext
 
             Return CreateMethodContext(
                 appDomain,
                 blocks,
                 MakeDummyLazyAssemblyReaders(),
                 state.SymReader,
-                state.ModuleVersionId,
+                state.ModuleId,
                 state.MethodToken,
                 methodVersion:=1,
                 state.ILOffset,
@@ -221,13 +221,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
                 MakeAssemblyReferencesKind.AllReferences)
         End Function
 
-        Friend Shared Function GetMetadataContext(appDomainContext As MetadataContext(Of VisualBasicMetadataContext), Optional mvid As Guid = Nothing) As VisualBasicMetadataContext
+        Friend Shared Function GetMetadataContext(appDomainContext As MetadataContext(Of VisualBasicMetadataContext), Optional moduleId As ModuleId = Nothing) As VisualBasicMetadataContext
             Dim assemblyContexts = appDomainContext.AssemblyContexts
             If assemblyContexts Is Nothing Then
                 Return Nothing
             End If
             Dim context As VisualBasicMetadataContext = Nothing
-            assemblyContexts.TryGetValue(New MetadataContextId(mvid), context)
+            assemblyContexts.TryGetValue(New MetadataContextId(moduleId.Id), context)
             Return context
         End Function
 
@@ -244,11 +244,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Optional lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)) = Nothing) As EvaluationContext
 
             Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-            Dim moduleVersionId As Guid = Nothing
+            Dim moduleId As ModuleId = Nothing
             Dim symReader As ISymUnmanagedReader = Nothing
             Dim methodToken = 0
             Dim localSignatureToken = 0
-            GetContextState(runtime, methodName, blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            GetContextState(runtime, methodName, blocks, moduleId, symReader, methodToken, localSignatureToken)
             Const methodVersion = 1
 
             Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber)
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
                 blocks,
                 If(lazyAssemblyReaders, MakeDummyLazyAssemblyReaders()),
                 symReader,
-                moduleVersionId,
+                moduleId,
                 methodToken,
                 methodVersion,
                 ilOffset,
@@ -280,16 +280,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             typeName As String) As EvaluationContext
 
             Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-            Dim moduleVersionId As Guid = Nothing
+            Dim moduleId As ModuleId = Nothing
             Dim symReader As ISymUnmanagedReader = Nothing
             Dim typeToken = 0
             Dim localSignatureToken = 0
-            GetContextState(runtime, typeName, blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
+            GetContextState(runtime, typeName, blocks, moduleId, symReader, typeToken, localSignatureToken)
             Return VisualBasicExpressionCompiler.CreateTypeContextHelper(
                 New AppDomain(),
                 Function(ad) ad.GetMetadataContext(),
                 blocks,
-                moduleVersionId,
+                moduleId,
                 typeToken,
                 MakeAssemblyReferencesKind.AllAssemblies)
         End Function
@@ -465,7 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Dim peCompilation = runtime.Modules.SelectAsArray(Function(m) m.MetadataBlock).ToCompilation()
             Dim peMethod = peCompilation.GlobalNamespace.GetMember(Of PEMethodSymbol)(qualifiedMethodName)
             Dim peModule = DirectCast(peMethod.ContainingModule, PEModuleSymbol)
-            Dim symReader = runtime.Modules.Single(Function(mi) mi.ModuleVersionId = peModule.Module.GetModuleVersionIdOrThrow()).SymReader
+            Dim symReader = runtime.Modules.Single(Function(mi) mi.Id.Id = peModule.Module.GetModuleVersionIdOrThrow()).SymReader
             Dim symbolProvider = New VisualBasicEESymbolProvider(peModule, peMethod)
             Return MethodDebugInfo(Of TypeSymbol, LocalSymbol).ReadMethodDebugInfo(DirectCast(symReader, ISymUnmanagedReader3), symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion:=1, ilOffset:=ilOffset, isVisualBasicMethod:=True)
         End Function

@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="FormattingOptionsEncounteredInvalidToken">
         <source>Unable to deserialize FormattingOptions. Invalid token: {0}</source>
-        <target state="new">Unable to deserialize FormattingOptions. Invalid token: {0}</target>
+        <target state="translated">Formatierungsoptionen können nicht deserialisiert werden. Ungültiges Token: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="FormattingOptionsEndedUnexpectedly">
         <source>Unable to deserialize FormattingOptions as it ended unexpectedly</source>
-        <target state="new">Unable to deserialize FormattingOptions as it ended unexpectedly</target>
+        <target state="translated">Formatierungsoptionen können nicht deserialisiert werden, weil sie unerwartet beendet wurden.</target>
         <note />
       </trans-unit>
       <trans-unit id="FormattingOptionsMissingRequiredProperty">
         <source>Unable to deserialize FormattingOptions. Missing required property: {0}</source>
-        <target state="new">Unable to deserialize FormattingOptions. Missing required property: {0}</target>
+        <target state="translated">Formatierungsoptionen können nicht deserialisiert werden. Erforderliche Eigenschaft fehlt: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="MarkupContentSerializationError">

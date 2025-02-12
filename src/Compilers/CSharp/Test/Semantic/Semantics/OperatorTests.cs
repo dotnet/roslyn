@@ -8789,7 +8789,7 @@ struct TestStr
                         Assert.Null(info1.Symbol);
                         break;
                     default:
-                        throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(i);
+                        throw ExceptionUtilities.UnexpectedValue(i);
                 }
             }
         }
@@ -8971,7 +8971,7 @@ class P
 
         private sealed class EmptyRewriter : BoundTreeRewriter
         {
-            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            protected override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
             {
                 throw new NotImplementedException();
             }

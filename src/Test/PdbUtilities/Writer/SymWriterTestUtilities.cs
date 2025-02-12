@@ -13,5 +13,10 @@ namespace Roslyn.Test.PdbUtilities
     {
         public static readonly Func<ISymWriterMetadataProvider, SymUnmanagedWriter> ThrowingFactory =
             _ => throw new SymUnmanagedWriterException("xxx", new NotSupportedException(), "<lib name>");
+
+        public static SymUnmanagedWriter CreateUnmanagedWriter(ISymWriterMetadataProvider metadataProvider)
+        {
+            return SymUnmanagedWriterFactory.CreateWriter(metadataProvider);
+        }
     }
 }

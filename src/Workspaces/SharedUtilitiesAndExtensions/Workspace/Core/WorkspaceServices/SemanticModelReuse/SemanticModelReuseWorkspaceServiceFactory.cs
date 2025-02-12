@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.SemanticModelReuse;
 
 [ExportWorkspaceServiceFactory(typeof(ISemanticModelReuseWorkspaceService), ServiceLayer.Default), Shared]
-internal partial class SemanticModelReuseWorkspaceServiceFactory : IWorkspaceServiceFactory
+internal sealed partial class SemanticModelReuseWorkspaceServiceFactory : IWorkspaceServiceFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

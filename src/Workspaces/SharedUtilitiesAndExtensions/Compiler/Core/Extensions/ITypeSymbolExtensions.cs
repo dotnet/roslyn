@@ -121,9 +121,9 @@ internal static partial class ITypeSymbolExtensions
         }
     }
 
-    public static IEnumerable<INamedTypeSymbol> GetBaseTypes(this ITypeSymbol type)
+    public static IEnumerable<INamedTypeSymbol> GetBaseTypes(this ITypeSymbol? type)
     {
-        var current = type.BaseType;
+        var current = type?.BaseType;
         while (current != null)
         {
             yield return current;
@@ -447,17 +447,17 @@ internal static partial class ITypeSymbolExtensions
             return [];
         }
 
-        return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(within).ToImmutableArray();
+        return [.. containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(within)];
     }
 
     public static ImmutableArray<T> GetAccessibleMembersInThisAndBaseTypes<T>(this ITypeSymbol? containingType, string memberName, ISymbol within) where T : class, ISymbol
     {
         if (containingType == null)
         {
-            return ImmutableArray<T>.Empty;
+            return [];
         }
 
-        return containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(memberName, within).ToImmutableArray();
+        return [.. containingType.GetBaseTypesAndThis().SelectAccessibleMembers<T>(memberName, within)];
     }
 
     public static bool? AreMoreSpecificThan(this IList<ITypeSymbol> t1, IList<ITypeSymbol> t2)
@@ -588,8 +588,8 @@ internal static partial class ITypeSymbolExtensions
         // We should not have gotten here unless there were identity conversions between the
         // two types.
 
-        var allTypeArgs1 = n1.GetAllTypeArguments().ToList();
-        var allTypeArgs2 = n2.GetAllTypeArguments().ToList();
+        var allTypeArgs1 = n1.GetAllTypeArguments();
+        var allTypeArgs2 = n2.GetAllTypeArguments();
 
         return allTypeArgs1.AreMoreSpecificThan(allTypeArgs2);
     }
@@ -751,8 +751,8 @@ internal static partial class ITypeSymbolExtensions
             ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
         };
 
-    public static bool IsReadOnlySpan([NotNullWhen(true)] this ITypeSymbol? type)
-        => type is INamedTypeSymbol
+    public static bool IsReadOnlySpan([NotNullWhen(true)] this ISymbol? symbol)
+        => symbol is INamedTypeSymbol
         {
             Name: nameof(ReadOnlySpan<int>),
             TypeArguments.Length: 1,

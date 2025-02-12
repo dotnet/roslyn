@@ -17,7 +17,6 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using Basic.Reference.Assemblies;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
@@ -4930,7 +4929,7 @@ class C
         [|Other|] b;
     }
 }
-", ImmutableArray<string>.Empty);
+", []);
     }
 
     [Fact]

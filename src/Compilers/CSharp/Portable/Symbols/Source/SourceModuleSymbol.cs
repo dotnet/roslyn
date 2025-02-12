@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var toVisit = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
 
                 // Search the namespaces which were indicated to contain interceptors.
-                ImmutableArray<ImmutableArray<string>> interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsPreviewNamespaces;
+                ImmutableArray<ImmutableArray<string>> interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsNamespaces;
                 foreach (ImmutableArray<string> namespaceParts in interceptorsNamespaces)
                 {
                     if (namespaceParts is ["global"])
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

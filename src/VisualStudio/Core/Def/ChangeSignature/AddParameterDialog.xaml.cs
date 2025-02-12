@@ -4,6 +4,7 @@
 
 using System;
 using System.Windows;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
@@ -16,7 +17,7 @@ internal partial class AddParameterDialog : DialogWindow
     private readonly AddParameterDialogViewModel _viewModel;
 
     public string OK { get { return ServicesVSResources.OK; } }
-    public string Cancel { get { return ServicesVSResources.Cancel; } }
+    public string Cancel { get { return EditorFeaturesResources.Cancel; } }
     public string ParameterInformation { get { return ServicesVSResources.Parameter_information; } }
     public string TypeNameLabel { get { return ServicesVSResources.Type_Name; } }
     public string ParameterNameLabel { get { return ServicesVSResources.Parameter_Name; } }
@@ -26,7 +27,7 @@ internal partial class AddParameterDialog : DialogWindow
     public string Required { get { return ServicesVSResources.Required; } }
     public string OptionalWithDefaultValue { get { return ServicesVSResources.Optional_with_default_value_colon; } }
     public string ValueToInjectAtCallsites { get { return ServicesVSResources.Value_to_inject_at_call_sites; } }
-    public string Value { get { return ServicesVSResources.Value_colon; } }
+    public string Value { get { return FeaturesResources.Value_colon; } }
     public string UseNamedArgument { get { return ServicesVSResources.Use_named_argument; } }
     public string IntroduceUndefinedTodoVariables { get { return ServicesVSResources.IntroduceUndefinedTodoVariables; } }
     public string OmitOnlyForOptionalParameters { get { return ServicesVSResources.Omit_only_for_optional_parameters; } }
