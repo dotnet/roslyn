@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 #if NET6_0_OR_GREATER
 
 using System.Runtime.CompilerServices;
@@ -11,6 +13,8 @@ using System.Runtime.CompilerServices;
 #pragma warning restore RS0016 // Add public types and members to the declared API
 
 #else
+
+#pragma warning disable CA1019 // Add a public read-only property accessor for positional argument argument of Attribute
 
 namespace System.Runtime.CompilerServices
 {

@@ -358,6 +358,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 ITypeSymbolInternal? type = null;
                 if (targetKind == ImportTargetKind.Type)
                 {
+                    RoslynDebug.Assert(targetString != null);
                     type = symbolProvider.GetTypeSymbolForSerializedType(targetString);
                     targetString = null;
                 }
@@ -599,10 +600,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static bool TryCreateImportRecordFromVisualBasicImportString(string importString, out ImportRecord record, out VBImportScopeKind scope)
         {
-            ImportTargetKind targetKind;
-            string alias;
-            string targetString;
-            if (CustomDebugInfoReader.TryParseVisualBasicImportString(importString, out alias, out targetString, out targetKind, out scope))
+            if (CustomDebugInfoReader.TryParseVisualBasicImportString(importString, out var alias, out var targetString, out var targetKind, out scope))
             {
                 record = new ImportRecord(
                     targetKind: targetKind,

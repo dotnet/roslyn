@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 // This was copied from https://github.com/dotnet/runtime/blob/815953a12c822847095a843d69c610a9f895ae3f/src/libraries/System.Private.CoreLib/src/System/Diagnostics/CodeAnalysis/ExperimentalAttribute.cs
 // and updated to have the scope of the attributes be internal.
 
