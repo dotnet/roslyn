@@ -6,19 +6,47 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks;
 
-internal sealed partial class AsynchronousOperationListenerProvider
+internal sealed class NullAsynchronousOperationListenerProvider : IAsynchronousOperationListenerProvider
 {
-    private sealed class NullOperationListener : IAsynchronousOperationListener
+    public static readonly IAsynchronousOperationListenerProvider Instance = new NullAsynchronousOperationListenerProvider();
+
+    public static IAsyncToken Token
+        => NullToken.Instance;
+
+    public static IAsynchronousOperationListener Listener
+        => NullListener.Instance;
+
+    public IAsynchronousOperationListener GetListener(string featureName)
+        => NullListener.Instance;
+
+    private sealed class NullToken : IAsyncToken
     {
+        public static readonly NullToken Instance = new();
+
+        public bool IsNull
+            => true;
+
+        public void Dispose()
+        {
+            // Empty by design requirement: operations which use IAsyncToken are free to optimize code sequences by
+            // eliding calls to Dispose() with the understanding that it doesn't do anything.
+        }
+    }
+
+    private sealed class NullListener : IAsynchronousOperationListener
+    {
+        public static readonly NullListener Instance = new();
+
+        private static readonly Task<bool> s_trueTask = Task.FromResult(true);
+
         public IAsyncToken BeginAsyncOperation(
             string name,
             object? tag = null,
             [CallerFilePath] string filePath = "",
-            [CallerLineNumber] int lineNumber = 0) => EmptyAsyncToken.Instance;
+            [CallerLineNumber] int lineNumber = 0) => Token;
 
         public Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
         {
@@ -43,7 +71,7 @@ internal sealed partial class AsynchronousOperationListenerProvider
                 // Avoid ContinueWith overheads for a 0 delay or if race conditions resulted
                 // in the delay task being complete by the time we checked.
                 return t.Status == TaskStatus.RanToCompletion
-                    ? SpecializedTasks.True
+                    ? s_trueTask
                     : Task.FromCanceled<bool>(cancellationToken);
             }
 
