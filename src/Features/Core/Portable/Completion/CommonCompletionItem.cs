@@ -23,7 +23,7 @@ internal static class CommonCompletionItem
         string? sortText = null,
         string? filterText = null,
         bool showsWarningIcon = false,
-        ImmutableArray<KeyValuePair<string, string>> properties = default,
+        ImmutableArray<KeyValuePair<string, object>> properties = default,
         ImmutableArray<string> tags = default,
         string? inlineDescription = null,
         string? displayTextPrefix = null,
@@ -44,7 +44,7 @@ internal static class CommonCompletionItem
 
         if (!description.IsDefault && description.Length > 0)
         {
-            properties = properties.NullToEmpty().Add(KeyValuePairUtil.Create(DescriptionProperty, EncodeDescription(description.ToTaggedText())));
+            properties = properties.NullToEmpty().Add(KeyValuePairUtil.Create<string, object>(DescriptionProperty, CompletionDescription.Create(description.ToTaggedText())));
         }
 
         return CompletionItem.CreateInternal(
@@ -65,31 +65,8 @@ internal static class CommonCompletionItem
 
     public static CompletionDescription GetDescription(CompletionItem item)
     {
-        if (item.TryGetProperty(DescriptionProperty, out var encodedDescription))
-        {
-            return DecodeDescription(encodedDescription);
-        }
-        else
-        {
-            return CompletionDescription.Empty;
-        }
-    }
-
-    private static readonly char[] s_descriptionSeparators = ['|'];
-
-    private static string EncodeDescription(ImmutableArray<TaggedText> description)
-        => string.Join("|", description.SelectMany(d => new[] { d.Tag, d.Text }).Select(t => t.Escape('\\', s_descriptionSeparators)));
-
-    private static CompletionDescription DecodeDescription(string encoded)
-    {
-        var parts = encoded.Split(s_descriptionSeparators).Select(t => t.Unescape('\\')).ToArray();
-
-        var builder = ImmutableArray<TaggedText>.Empty.ToBuilder();
-        for (var i = 0; i < parts.Length; i += 2)
-        {
-            builder.Add(new TaggedText(parts[i], parts[i + 1]));
-        }
-
-        return CompletionDescription.Create(builder.ToImmutable());
+        return item.TryGetObjectProperty<CompletionDescription>(DescriptionProperty, out var description)
+            ? description
+            : CompletionDescription.Empty;
     }
 }
