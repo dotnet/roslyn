@@ -1643,9 +1643,9 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (9,13): warning CS9256: Partial member declarations 'C2.C2(dynamic x)' and 'C2.C2(object x)' have signature differences.
             //     partial C2(object x) { }
             Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C2").WithArguments("C2.C2(dynamic x)", "C2.C2(object x)").WithLocation(9, 13),
-            // (14,13): warning CS9256: Partial member declarations 'C3.C3((int X, int Y) x)' and 'C3.C3((int A, int B) x)' have signature differences.
+            // (14,13): error CS8142: Both partial member declarations, 'C3.C3((int X, int Y))' and 'C3.C3((int A, int B))', must use the same tuple element names.
             //     partial C3((int A, int B) x) { }
-            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C3").WithArguments("C3.C3((int X, int Y) x)", "C3.C3((int A, int B) x)").WithLocation(14, 13),
+            Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "C3").WithArguments("C3.C3((int X, int Y))", "C3.C3((int A, int B))").WithLocation(14, 13),
             // (18,13): error CS9400: Partial member 'C4.C4((int X, int Y))' must have an implementation part.
             //     partial C4((int X, int Y) x);
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C4").WithArguments("C4.C4((int X, int Y))").WithLocation(18, 13),

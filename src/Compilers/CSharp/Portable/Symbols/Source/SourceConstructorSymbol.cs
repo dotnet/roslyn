@@ -249,7 +249,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!ReferenceEquals(this, implementation));
             Debug.Assert(ReferenceEquals(this.OtherPartOfPartial, implementation));
 
-            if (!MemberSignatureComparer.PartialMethodsStrictComparer.Equals(this, implementation)
+            if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(this, implementation))
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberInconsistentTupleNames, implementation.GetFirstLocation(), this, implementation);
+            }
+            else if (!MemberSignatureComparer.PartialMethodsStrictComparer.Equals(this, implementation)
                 || !Parameters.SequenceEqual(implementation.Parameters, static (a, b) => a.Name == b.Name))
             {
                 diagnostics.Add(ErrorCode.WRN_PartialMemberSignatureDifference, implementation.GetFirstLocation(),

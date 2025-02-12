@@ -101,7 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PartialConstructorChecks(diagnostics);
         }
 
-        protected virtual void PartialConstructorChecks(BindingDiagnosticBag diagnostics) { }
+        protected virtual void PartialConstructorChecks(BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(!IsPartial);
+        }
 
         public sealed override bool IsImplicitlyDeclared
         {
