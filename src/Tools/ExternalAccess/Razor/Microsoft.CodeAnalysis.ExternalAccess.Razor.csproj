@@ -15,6 +15,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\Dependencies\Contracts\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
 
     <!--
