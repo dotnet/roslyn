@@ -12,7 +12,6 @@
     <ILAsmPackageVersion>9.0.0-rc.2.24462.10</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
-    <_MicrosoftTestPlatformVersion>17.5.0</_MicrosoftTestPlatformVersion>
     <!--
       VS .NET Runtime
 
